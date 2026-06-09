@@ -11,3 +11,8 @@ web/node_modules/
 web/dist/
 web/.env.production
 web/.env.development
+
+# Coverage artifacts (regenerados por pytest)
+api/observer/coverage.xml
+api/observer/.coverage
+api/observer/htmlcov/
