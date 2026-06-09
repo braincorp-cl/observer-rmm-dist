@@ -1,0 +1,129 @@
+---
+# Python 3.11 via deadsnakes PPA (Ubuntu 22.04 trae 3.10)
+- name: Agregar PPA deadsnakes
+  ansible.builtin.apt_repository:
+    repo: ppa:deadsnakes/ppa
+    state: present
+
+- name: Instalar Python {{ observer_python_version }}
+  ansible.builtin.apt:
+    name:
+      - "python{{ observer_python_version }}"
+      - "python{{ observer_python_version }}-venv"
+      - "python{{ observer_python_version }}-dev"
+    state: present
+    update_cache: true
+
+# Directorios
+- name: Crear directorios del API
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0755"
+  loop:
+    - "{{ observer_root }}/api"
+    - "{{ observer_root }}/api/{{ observer_app_name }}"
+    - "{{ observer_root }}/backups"
+
+# Virtualenv
+- name: Crear virtualenv Python {{ observer_python_version }}
+  ansible.builtin.command:
+    cmd: "python{{ observer_python_version }} -m venv {{ observer_root }}/api/env"
+    creates: "{{ observer_root }}/api/env/bin/activate"
+  become: true
+  become_user: "{{ observer_user }}"
+
+# uWSGI e uvicorn
+- name: Instalar uWSGI y uvicorn en el venv
+  ansible.builtin.pip:
+    name:
+      - uwsgi
+      - uvicorn
+      - setuptools==80.9.0
+      - wheel==0.45.1
+    virtualenv: "{{ observer_root }}/api/env"
+    state: present
+  become: true
+  become_user: "{{ observer_user }}"
+
+# Configuración Django
+- name: Desplegar local_settings.py
+  ansible.builtin.template:
+    src: local_settings.j2
+    dest: "{{ observer_root }}/api/{{ observer_app_name }}/local_settings.py"
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0640"
+  notify:
+    - restart rmm
+    - restart daphne
+    - restart celery
+    - restart celerybeat
+
+# Django setup — sync código + pip + migrate + collectstatic + reload_nats (R-04)
+- name: Setup Django (código + dependencias + migrate + collectstatic + reload_nats)
+  ansible.builtin.include_tasks: django_deploy.yml
+
+# NATS Server
+- name: Instalar NATS Server {{ observer_nats_version }}
+  ansible.builtin.include_tasks: nats.yml
+
+# nats-api binary (Go)
+- name: Copiar nats-api binary
+  ansible.builtin.copy:
+    src: "nats-api{{ '-arm64' if ansible_architecture == 'aarch64' else '' }}"
+    dest: /usr/local/bin/nats-api
+    owner: root
+    group: root
+    mode: "0755"
+
+# Celery conf
+- name: Crear directorio /etc/conf.d
+  ansible.builtin.file:
+    path: /etc/conf.d
+    state: directory
+    mode: "0755"
+
+- name: Desplegar celery.conf
+  ansible.builtin.template:
+    src: celery.conf.j2
+    dest: /etc/conf.d/celery.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart celery
+    - restart celerybeat
+
+# Systemd services
+- name: Desplegar servicios systemd del API
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - { src: rmm.service.j2,        dest: rmm.service }
+    - { src: daphne.service.j2,     dest: daphne.service }
+    - { src: nats.service.j2,       dest: nats.service }
+    - { src: nats-api.service.j2,   dest: nats-api.service }
+    - { src: celery.service.j2,     dest: celery.service }
+    - { src: celerybeat.service.j2, dest: celerybeat.service }
+  notify: systemd daemon-reload
+
+- name: Habilitar y arrancar servicios del API
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  loop:
+    - nats
+    - nats-api
+    - rmm
+    - daphne
+    - celery
+    - celerybeat

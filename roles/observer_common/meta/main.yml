@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: BrainCorp Chile
+  description: Usuario de sistema, UFW y dependencias comunes para Observer RMM
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+dependencies: []

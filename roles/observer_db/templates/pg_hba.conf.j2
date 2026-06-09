@@ -1,0 +1,17 @@
+# pg_hba.conf — generado por Ansible (observer_db role)
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Acceso local para el usuario postgres
+local   all             postgres                                peer
+local   all             all                                     md5
+
+# IPv4 loopback
+host    all             all             127.0.0.1/32            md5
+
+# IPv6 loopback
+host    all             all             ::1/128                 md5
+
+# Acceso remoto desde observer_api y observer_mesh
+{% for host in observer_db_allowed_hosts %}
+host    all             all             {{ host }}              scram-sha-256
+{% endfor %}

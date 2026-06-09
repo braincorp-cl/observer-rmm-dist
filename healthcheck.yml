@@ -1,0 +1,98 @@
+---
+# healthcheck.yml — Verificación post-install del sistema Observer RMM
+# Uso: ansible-playbook healthcheck.yml -i inventory/production.yml --ask-vault-pass
+
+- name: Healthcheck — PostgreSQL
+  hosts: observer_db
+  gather_facts: false
+  tasks:
+    - name: Verificar puerto 5432
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 5432
+        timeout: 10
+      delegate_to: localhost
+
+- name: Healthcheck — Redis
+  hosts: observer_redis
+  gather_facts: false
+  tasks:
+    - name: Verificar puerto 6379
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 6379
+        timeout: 10
+      delegate_to: localhost
+
+- name: Healthcheck — MeshCentral
+  hosts: observer_mesh
+  gather_facts: false
+  tasks:
+    - name: Verificar puerto 4430
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 4430
+        timeout: 15
+      delegate_to: localhost
+
+- name: Healthcheck — API (localhost:8000)
+  hosts: observer_api
+  gather_facts: false
+  tasks:
+    - name: Verificar uWSGI en puerto 8000
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 8000
+        timeout: 15
+
+    - name: Verificar NATS en puerto 4222
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 4222
+        timeout: 10
+
+    - name: Verificar servicios systemd del API
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+      register: svc_status
+      loop:
+        - rmm
+        - daphne
+        - celery
+        - celerybeat
+        - nats
+        - nats-api
+
+    - name: Validar que todos los servicios están activos
+      ansible.builtin.assert:
+        that:
+          - item.status.ActiveState == "active"
+        fail_msg: "Servicio {{ item.item }} no está activo (estado: {{ item.status.ActiveState }})"
+      loop: "{{ svc_status.results }}"
+
+- name: Healthcheck — Proxy (endpoint público)
+  hosts: observer_proxy
+  gather_facts: false
+  tasks:
+    - name: Verificar HTTP redirect en puerto 80
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 80
+        timeout: 10
+
+    - name: Verificar HTTPS en puerto 443
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 443
+        timeout: 10
+
+    - name: Verificar API endpoint retorna 401
+      ansible.builtin.uri:
+        url: "https://{{ observer_domain }}/api/v4/me/"
+        status_code: 401
+        validate_certs: true
+      register: api_result
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "API OK — retornó {{ api_result.status }} como esperado"

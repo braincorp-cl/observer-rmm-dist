@@ -1,0 +1,41 @@
+# local_settings.py — generado por Ansible (observer_api role)
+# NO editar manualmente — los cambios se perderán en el próximo deploy
+
+SECRET_KEY = "{{ vault_django_secret_key }}"
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': '{{ observer_db_name }}',
+        'USER': '{{ observer_db_user }}',
+        'PASSWORD': '{{ vault_observer_db_password }}',
+        'HOST': '{{ observer_db_host }}',
+        'PORT': '{{ observer_db_port | default("5432") }}',
+    }
+}
+
+REDIS_HOST = '{{ observer_redis_host }}'
+REDIS_PORT = {{ observer_redis_port | default(6379) }}
+REDIS_PASSWORD = '{{ vault_observer_redis_password }}'
+
+MESH_SITE = 'https://{{ observer_mesh_host }}'
+MESH_USERNAME = '{{ observer_mesh_user | default("meshcentral_admin") }}'
+MESH_TOKEN_KEY = '{{ vault_observer_mesh_password }}'
+
+NATS_SERVER = 'nats://{{ observer_nats_host }}:{{ observer_nats_port }}'
+
+# Parámetros de escala — validados producción MINSAL 28.300 agentes (2026)
+# Valores upstream (200-400s) causan carga excesiva en DB a escala
+CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syncmesh_max }})
+CHECKIN_WIN_SERVICES = ({{ observer_checkin_win_services_min }}, {{ observer_checkin_win_services_max }})
+CHECKIN_SW_INVENTORY = ({{ observer_checkin_sw_inventory_min }}, {{ observer_checkin_sw_inventory_max }})
+CHECKIN_HW_ASSETS = ({{ observer_checkin_hw_assets_min }}, {{ observer_checkin_hw_assets_max }})
+
+ALLOWED_HOSTS = ['{{ observer_domain | default("*") }}']
+
+CORS_ORIGIN_WHITELIST = [
+    'https://{{ observer_app_domain | default(observer_domain | default("localhost")) }}',
+{% if observer_debug | default(false) %}
+    'http://localhost:9000',
+{% endif %}
+]

@@ -1,0 +1,80 @@
+---
+# install.yml — Playbook principal Observer RMM Distributed
+# Despliega todos los componentes en orden de dependencias.
+# Compatible con inventory/all-in-one.yml (dev) e inventory/production.yml (prod).
+#
+# Uso:
+#   ansible-playbook install.yml -i inventory/production.yml --ask-vault-pass
+#   ansible-playbook install.yml -i inventory/all-in-one.yml --ask-vault-pass
+#   ansible-playbook install.yml --tags skip_checks -i inventory/production.yml --ask-vault-pass
+
+- name: Pre-checks
+  hosts: localhost
+  gather_facts: false
+  tags: [pre_checks]
+  tasks:
+    - name: Validar que todos los grupos estén definidos
+      ansible.builtin.assert:
+        that:
+          - groups['observer_db'] | length > 0
+          - groups['observer_redis'] | length > 0
+          - groups['observer_mesh'] | length > 0
+          - groups['observer_api'] | length > 0
+          - groups['observer_proxy'] | length > 0
+        fail_msg: >
+          Faltan grupos en el inventario.
+          Grupos requeridos: observer_db, observer_redis, observer_mesh, observer_api, observer_proxy.
+          Revise el archivo de inventario que está usando.
+
+    - name: Verificar que vault.yml no contenga CHANGEME (credenciales sin configurar)
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/group_vars"
+        patterns: "vault.yml"
+        recurse: true
+      register: vault_files
+
+    - name: Leer vault files buscando CHANGEME
+      ansible.builtin.shell: "grep -l CHANGEME {{ item.path }} 2>/dev/null || true"
+      register: changeme_check
+      loop: "{{ vault_files.files }}"
+      changed_when: false
+
+    - name: Fallar si hay CHANGEME en vault
+      ansible.builtin.fail:
+        msg: >
+          Se encontró 'CHANGEME' en {{ item.item.path }}.
+          Configure las credenciales reales y cifre con ansible-vault antes de desplegar.
+          Para omitir esta validación use: --tags skip_checks
+      when: item.stdout | length > 0
+      loop: "{{ changeme_check.results }}"
+      tags: [never, skip_checks_guard]
+
+- name: Dependencias comunes — todos los hosts
+  hosts: all
+  roles:
+    - observer_common
+
+- name: Base de datos PostgreSQL
+  hosts: observer_db
+  roles:
+    - observer_db
+
+- name: Cache Redis
+  hosts: observer_redis
+  roles:
+    - observer_redis
+
+- name: MeshCentral
+  hosts: observer_mesh
+  roles:
+    - observer_mesh
+
+- name: API Django + NATS + Celery
+  hosts: observer_api
+  roles:
+    - observer_api
+
+- name: Proxy nginx + SSL
+  hosts: observer_proxy
+  roles:
+    - observer_proxy

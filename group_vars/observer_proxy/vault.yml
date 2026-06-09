@@ -1,0 +1,12 @@
+---
+# CIFRAR CON: ansible-vault encrypt group_vars/observer_proxy/vault.yml
+
+# vault_tls_cert: |
+#   -----BEGIN CERTIFICATE-----
+#   ... (certificado PEM completo, incluyendo cadena intermedia)
+#   -----END CERTIFICATE-----
+#
+# vault_tls_key: |
+#   -----BEGIN PRIVATE KEY-----
+#   ... (clave privada PEM)
+#   -----END PRIVATE KEY-----

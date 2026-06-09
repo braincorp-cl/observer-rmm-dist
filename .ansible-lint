@@ -1,0 +1,10 @@
+---
+profile: moderate
+exclude_paths:
+  - molecule/
+  - .cache/
+warn_list:
+  - yaml[line-length]
+  - name[casing]
+skip_list:
+  - fqcn[action-core]

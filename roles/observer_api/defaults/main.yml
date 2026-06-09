@@ -1,0 +1,23 @@
+---
+observer_python_version: "3.11"
+observer_nats_version: "2.14.0"
+observer_nats_port: 4222
+observer_nats_ws_port: 9235
+observer_nats_host: "127.0.0.1"
+celery_min_workers: 2
+celery_max_workers: 20
+observer_checkin_syncmesh_min: 3600
+observer_checkin_syncmesh_max: 7200
+observer_checkin_win_services_min: 2400
+observer_checkin_win_services_max: 3000
+observer_checkin_sw_inventory_min: 2800
+observer_checkin_sw_inventory_max: 3500
+observer_checkin_hw_assets_min: 3000
+observer_checkin_hw_assets_max: 4000
+
+# Django source deployment (consumido por tasks/django_deploy.yml)
+# observer_source_path: path del código fuente Django en el control node.
+#   Default asume layout sibling: observer-rmm-dist/ y observer-rmm/ comparten parent dir.
+#   Override en inventory si el layout es distinto o si se usa otra estrategia (git, etc).
+observer_source_path: "{{ playbook_dir }}/../observer-rmm/api/observerrmm/"
+observer_django_requirements: "requirements.txt"

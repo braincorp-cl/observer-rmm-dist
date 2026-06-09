@@ -1,0 +1,6 @@
+---
+# CIFRAR CON: ansible-vault encrypt group_vars/observer_api/vault.yml
+
+# vault_observer_admin_password: "CHANGEME"   # Password superusuario Django inicial
+# vault_django_secret_key: "CHANGEME"         # SECRET_KEY Django — mín. 50 chars aleatorios
+#                                             # Generar con: openssl rand -base64 50

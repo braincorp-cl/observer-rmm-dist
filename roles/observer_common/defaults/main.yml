@@ -1,0 +1,3 @@
+---
+observer_ufw_enabled: true
+observer_ufw_rules: []

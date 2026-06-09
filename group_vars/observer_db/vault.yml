@@ -1,0 +1,6 @@
+---
+# CIFRAR CON: ansible-vault encrypt group_vars/observer_db/vault.yml
+# NUNCA commitear en texto plano
+
+# vault_observer_db_password: "CHANGEME"
+# vault_observer_mesh_db_password: "CHANGEME"

@@ -1,0 +1,29 @@
+---
+- name: Establecer arquitectura NATS
+  ansible.builtin.set_fact:
+    nats_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+- name: Descargar NATS Server v{{ observer_nats_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/nats-io/nats-server/releases/download/v{{ observer_nats_version }}/nats-server-v{{ observer_nats_version }}-linux-{{ nats_arch }}.tar.gz"
+    dest: "/tmp/nats-server-v{{ observer_nats_version }}.tar.gz"
+    checksum: ""
+    mode: "0644"
+
+- name: Descomprimir e instalar NATS Server
+  ansible.builtin.unarchive:
+    src: "/tmp/nats-server-v{{ observer_nats_version }}.tar.gz"
+    dest: /usr/local/bin/
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+      - --wildcards
+      - "*/nats-server"
+    creates: /usr/local/bin/nats-server
+
+- name: Asegurar permisos en nats-server
+  ansible.builtin.file:
+    path: /usr/local/bin/nats-server
+    owner: root
+    group: root
+    mode: "0755"

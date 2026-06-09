@@ -1,0 +1,40 @@
+---
+# Inventario all-in-one — dev/staging
+# Todos los componentes en un único host local.
+# El mismo playbook install.yml funciona sin cambiar ninguna línea.
+
+all:
+  vars:
+    ansible_user: observer
+    ansible_python_interpreter: /usr/bin/python3
+    # En all-in-one todos los hostnames de servicios apuntan a localhost
+    observer_db_host: localhost
+    observer_redis_host: localhost
+    observer_mesh_host: localhost
+    observer_nats_host: 127.0.0.1
+
+  children:
+    observer_db:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    observer_redis:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    observer_mesh:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    observer_api:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    observer_proxy:
+      hosts:
+        localhost:
+          ansible_connection: local

@@ -1,0 +1,36 @@
+---
+# Inventario multi-host — producción MINSAL
+# Reemplazar las IPs de ejemplo con las IPs reales antes de desplegar
+# Ejemplo basado en red LAN 10.50.0.0/24
+
+all:
+  vars:
+    ansible_user: observer
+    ansible_python_interpreter: /usr/bin/python3
+
+  children:
+    observer_db:
+      hosts:
+        db-host:
+          ansible_host: 10.50.0.11    # IP del servidor PostgreSQL
+
+    observer_redis:
+      hosts:
+        redis-host:
+          ansible_host: 10.50.0.12    # IP del servidor Redis
+                                       # Puede colocarse en el mismo host que observer_api
+
+    observer_mesh:
+      hosts:
+        mesh-host:
+          ansible_host: 10.50.0.13    # IP del servidor MeshCentral
+
+    observer_api:
+      hosts:
+        api-host:
+          ansible_host: 10.50.0.14    # IP del servidor API Django
+
+    observer_proxy:
+      hosts:
+        proxy-host:
+          ansible_host: 10.50.0.10    # IP del servidor nginx (frente público)

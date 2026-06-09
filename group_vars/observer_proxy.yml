@@ -1,0 +1,15 @@
+---
+# nginx proxy — observer_proxy host
+
+observer_proxy_http_port: 80
+observer_proxy_https_port: 443
+observer_proxy_upstream_port: 8000   # Puerto uWSGI del observer_api
+                                      # En all-in-one puede usarse socket Unix
+
+# Email para certbot SSL (Let's Encrypt) — REQUERIDO
+# observer_certbot_email: "admin@ejemplo.cl"
+
+# Dominios — REQUERIDOS para Feature 003 (web frontend)
+# observer_base_domain: "serviciosmds.cl"       # Dominio raíz (para certs certbot)
+# observer_app_domain: "rmm.serviciosmds.cl"    # Frontend SPA
+# observer_domain se define en group_vars/all.yml y apunta al API (api.serviciosmds.cl)

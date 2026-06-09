@@ -1,0 +1,38 @@
+---
+# API layer — observer_api host
+
+# Conexiones a servicios externos (resueltas dinámicamente por inventario)
+observer_db_host: "{{ hostvars[groups['observer_db'][0]]['ansible_host'] | default('localhost') }}"
+observer_db_name: observerrmm
+observer_db_user: observerrmm
+observer_db_port: 5432
+
+observer_redis_host: "{{ hostvars[groups['observer_redis'][0]]['ansible_host'] | default('localhost') }}"
+observer_redis_port: 6379
+
+observer_mesh_host: "{{ hostvars[groups['observer_mesh'][0]]['ansible_host'] | default('localhost') }}"
+observer_mesh_user: meshcentral_admin
+
+observer_nats_host: "127.0.0.1"    # NATS corre en el mismo host que el API
+observer_nats_port: 4222
+observer_nats_ws_port: 9235
+
+observer_nats_version: "2.14.0"
+observer_python_version: "3.11"
+
+celery_min_workers: 2
+celery_max_workers: 20
+
+# ============================================================
+# Parámetros de escala — validados producción MINSAL 28.300 agentes
+# NO usar valores upstream (200-400s) — causaron crash DB en producción
+# ============================================================
+
+observer_checkin_syncmesh_min: 3600
+observer_checkin_syncmesh_max: 7200
+observer_checkin_win_services_min: 2400
+observer_checkin_win_services_max: 3000
+observer_checkin_sw_inventory_min: 2800
+observer_checkin_sw_inventory_max: 3500
+observer_checkin_hw_assets_min: 3000
+observer_checkin_hw_assets_max: 4000

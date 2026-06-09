@@ -1,0 +1,5 @@
+---
+observer_redis_port: 6379
+observer_redis_bind: "127.0.0.1"
+observer_redis_maxmemory: "512mb"
+observer_redis_maxmemory_policy: allkeys-lru

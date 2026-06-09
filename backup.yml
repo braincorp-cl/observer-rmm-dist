@@ -1,0 +1,69 @@
+---
+# backup.yml — Backup coordinado Observer RMM
+# Uso: ansible-playbook backup.yml -i inventory/production.yml --ask-vault-pass
+
+- name: Backup — PostgreSQL
+  hosts: observer_db
+  vars:
+    backup_ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  tasks:
+    - name: Crear directorio de backups
+      ansible.builtin.file:
+        path: "{{ observer_root }}/backups"
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0750"
+
+    - name: pg_dump observerrmm
+      become: true
+      become_user: postgres
+      ansible.builtin.command: >
+        pg_dump -Fc observerrmm
+        -f {{ observer_root }}/backups/observerrmm_{{ backup_ts }}.dump
+      changed_when: true
+
+    - name: pg_dump meshcentral
+      become: true
+      become_user: postgres
+      ansible.builtin.command: >
+        pg_dump -Fc meshcentral
+        -f {{ observer_root }}/backups/meshcentral_{{ backup_ts }}.dump
+      changed_when: true
+
+    - name: Verificar que backups no contienen vault_ en texto
+      ansible.builtin.shell: >
+        strings {{ observer_root }}/backups/observerrmm_{{ backup_ts }}.dump |
+        grep -c "vault_" || true
+      register: vault_check
+      changed_when: false
+
+    - name: Warn si se detectan posibles credenciales
+      ansible.builtin.debug:
+        msg: "ADVERTENCIA: se detectaron referencias vault_ en el dump"
+      when: vault_check.stdout | int > 0
+
+- name: Backup — API (configuración y código)
+  hosts: observer_api
+  vars:
+    backup_ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  tasks:
+    - name: Tarball de configuración API
+      ansible.builtin.archive:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}"
+        dest: "{{ observer_root }}/backups/api_config_{{ backup_ts }}.tar.gz"
+        format: gz
+        exclusion_patterns:
+          - "*.pyc"
+          - "__pycache__"
+
+- name: Backup — MeshCentral (configuración)
+  hosts: observer_mesh
+  vars:
+    backup_ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  tasks:
+    - name: Tarball de configuración MeshCentral
+      ansible.builtin.archive:
+        path: /meshcentral/config.json
+        dest: "{{ observer_root }}/backups/meshcentral_config_{{ backup_ts }}.tar.gz"
+        format: gz

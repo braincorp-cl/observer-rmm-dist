@@ -1,0 +1,13 @@
+*.retry
+*.pyc
+__pycache__/
+.vault_pass
+*.log
+.molecule/
+.cache/
+
+# Frontend (Feature 003)
+web/node_modules/
+web/dist/
+web/.env.production
+web/.env.development

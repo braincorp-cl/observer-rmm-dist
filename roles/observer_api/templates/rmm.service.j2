@@ -1,0 +1,15 @@
+[Unit]
+Description=observerrmm uwsgi daemon
+After=network.target postgresql.service
+
+[Service]
+User={{ observer_user }}
+Group=www-data
+WorkingDirectory={{ observer_root }}/api/{{ observer_app_name }}
+Environment="PATH={{ observer_root }}/api/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart={{ observer_root }}/api/env/bin/uwsgi --ini app.ini
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

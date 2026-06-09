@@ -1,0 +1,106 @@
+---
+# django_deploy.yml — despliegue del código Django + setup inicial
+#
+# Cubre los pasos faltantes entre "Desplegar local_settings.py" y "Instalar
+# NATS Server" del role observer_api: sincronizar el código fuente, instalar
+# dependencias Python, correr migraciones de BD, recolectar estáticos y
+# generar `nats-rmm.conf` con el user `observerrmm` (cierre cross-repo R-04).
+#
+# Idempotencia: synchronize usa rsync delta-transfer; pip install respeta
+# requirements; migrate/collectstatic/reload_nats son no-op si ya están al día.
+#
+# Precondición: el control node debe tener el código del hub en
+# {{ observer_source_path }} (default: ../observer-rmm/api/observerrmm/
+# relativo a playbook_dir).
+
+- name: Validar que el path del código fuente Django existe en el control node
+  ansible.builtin.stat:
+    path: "{{ observer_source_path }}"
+  delegate_to: localhost
+  become: false
+  register: observer_source_stat
+
+- name: Fallar si el código fuente no existe
+  ansible.builtin.fail:
+    msg: >
+      No se encontró el código fuente Django en {{ observer_source_path }}.
+      Configure `observer_source_path` apuntando al directorio
+      api/observerrmm/ del repo observer-rmm en el control node.
+  when: not observer_source_stat.stat.exists
+
+- name: Sincronizar código fuente Django al host
+  ansible.posix.synchronize:
+    src: "{{ observer_source_path }}"
+    dest: "{{ observer_root }}/api/{{ observer_app_name }}/"
+    delete: false
+    rsync_opts:
+      - "--exclude=__pycache__"
+      - "--exclude=*.pyc"
+      - "--exclude=.pytest_cache"
+      - "--exclude=local_settings.py"
+      - "--exclude=nats-rmm.conf"
+      - "--exclude=.env"
+  become: true
+  become_user: "{{ observer_user }}"
+  notify:
+    - restart rmm
+    - restart daphne
+    - restart celery
+    - restart celerybeat
+
+- name: Instalar dependencias Python (requirements.txt)
+  ansible.builtin.pip:
+    requirements: "{{ observer_root }}/api/{{ observer_app_name }}/{{ observer_django_requirements }}"
+    virtualenv: "{{ observer_root }}/api/env"
+    state: present
+  become: true
+  become_user: "{{ observer_user }}"
+  notify:
+    - restart rmm
+    - restart daphne
+    - restart celery
+
+- name: Ejecutar Django migrate
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: django_migrate_result
+  changed_when: "'No migrations to apply' not in django_migrate_result.stdout"
+
+- name: Ejecutar Django collectstatic
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py collectstatic --noinput"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: django_collectstatic_result
+  changed_when: "'0 static files copied' not in django_collectstatic_result.stdout"
+
+# R-04 / CONTRACT-01 — genera nats-rmm.conf con user `observerrmm`
+# (no `tacticalrmm` legacy). Backend Django en observerrmm/utils.py:178-256
+# escribe el JSON config con `users[0].user = "observerrmm"` y luego intenta
+# `nats-server -signal reload` (silenciado si el binario no existe todavía
+# — primer deploy: NATS se instala después y arranca leyendo este conf).
+- name: Ejecutar Django reload_nats (cierre R-04 — genera nats-rmm.conf con user observerrmm)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py reload_nats"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+    creates: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: reload_nats_result
+
+- name: Verificar que nats-rmm.conf contiene user observerrmm (smoke test R-04)
+  ansible.builtin.command:
+    cmd: "grep -q '\"observerrmm\"' {{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+  changed_when: false
+  register: nats_user_grep
+  failed_when: nats_user_grep.rc != 0

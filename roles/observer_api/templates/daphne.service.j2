@@ -1,0 +1,20 @@
+[Unit]
+Description=uvicorn daemon v1
+After=network.target
+
+[Service]
+User={{ observer_user }}
+Group=www-data
+WorkingDirectory={{ observer_root }}/api/{{ observer_app_name }}
+Environment="PATH={{ observer_root }}/api/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart={{ observer_root }}/api/env/bin/uvicorn \
+    --uds {{ observer_root }}/daphne.sock \
+    --forwarded-allow-ips='*' \
+    {{ observer_app_name }}.asgi:application
+ExecStartPre=rm -f {{ observer_root }}/daphne.sock
+ExecStartPre=rm -f {{ observer_root }}/daphne.sock.lock
+Restart=always
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target

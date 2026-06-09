@@ -1,0 +1,124 @@
+---
+# Repositorio oficial nginx.org
+- name: Agregar clave GPG nginx
+  ansible.builtin.apt_key:
+    url: https://nginx.org/keys/nginx_signing.key
+    state: present
+
+- name: Agregar repositorio nginx stable
+  ansible.builtin.apt_repository:
+    repo: "deb https://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx"
+    filename: nginx
+    state: present
+
+- name: Instalar nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+# Certificados TLS desde vault
+- name: Crear directorio de certificados
+  ansible.builtin.file:
+    path: /etc/ssl/observer
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Escribir certificado TLS
+  ansible.builtin.copy:
+    content: "{{ vault_tls_cert }}"
+    dest: /etc/ssl/observer/fullchain.pem
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Escribir clave privada TLS
+  ansible.builtin.copy:
+    content: "{{ vault_tls_key }}"
+    dest: /etc/ssl/observer/privkey.pem
+    owner: root
+    group: root
+    mode: "0600"
+  notify: reload nginx
+
+# Configuración nginx
+- name: Desplegar rmm.conf
+  ansible.builtin.template:
+    src: rmm.conf.j2
+    dest: /etc/nginx/sites-available/rmm.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Activar rmm.conf
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/rmm.conf
+    dest: /etc/nginx/sites-enabled/rmm.conf
+    state: link
+  notify: reload nginx
+
+- name: Desplegar meshcentral.conf
+  ansible.builtin.template:
+    src: meshcentral.conf.j2
+    dest: /etc/nginx/sites-available/meshcentral.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Activar meshcentral.conf
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/meshcentral.conf
+    dest: /etc/nginx/sites-enabled/meshcentral.conf
+    state: link
+  notify: reload nginx
+
+- name: Eliminar default nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Habilitar y arrancar nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+
+# Frontend SPA (Feature 003) — observer_app_domain y observer_base_domain requeridos
+- name: Crear directorio de activos del frontend
+  ansible.builtin.file:
+    path: /var/www/observer/dist
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0755"
+
+- name: Sincronizar activos compilados del frontend
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../web/dist/"
+    dest: /var/www/observer/dist/
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0644"
+  notify: reload nginx
+
+- name: Desplegar frontend.conf
+  ansible.builtin.template:
+    src: frontend.conf.j2
+    dest: /etc/nginx/sites-available/frontend.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Activar frontend.conf
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/frontend.conf
+    dest: /etc/nginx/sites-enabled/frontend.conf
+    state: link
+  notify: reload nginx

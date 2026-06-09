@@ -1,0 +1,99 @@
+---
+# 1. Huge Pages — debe aplicarse ANTES de iniciar PostgreSQL
+- name: Reservar Huge Pages para PostgreSQL
+  ansible.posix.sysctl:
+    name: vm.nr_hugepages
+    value: "{{ pg_vm_nr_hugepages }}"
+    sysctl_file: /etc/sysctl.d/60-observer-hugepages.conf
+    reload: true
+    state: present
+
+# 2. Repositorio oficial PostgreSQL
+- name: Agregar clave GPG PostgreSQL
+  ansible.builtin.apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Agregar repositorio PostgreSQL
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    filename: pgdg
+    state: present
+
+# 3. Instalar PostgreSQL
+- name: Instalar PostgreSQL {{ observer_postgresql_version }}
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ observer_postgresql_version }}"
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Asegurar servicio PostgreSQL iniciado
+  ansible.builtin.systemd:
+    name: "postgresql@{{ observer_postgresql_version }}-main"
+    state: started
+    enabled: true
+
+# 4. Configuración tuning
+- name: Desplegar postgresql.conf con tuning de producción
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "/etc/postgresql/{{ observer_postgresql_version }}/main/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: "0644"
+  notify: restart postgresql
+
+# 5. pg_hba.conf — acceso remoto desde observer_api y observer_mesh
+- name: Desplegar pg_hba.conf
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "/etc/postgresql/{{ observer_postgresql_version }}/main/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: reload postgresql
+
+# 6. Bases de datos y usuarios
+- name: Crear usuario PostgreSQL para Django
+  community.postgresql.postgresql_user:
+    name: "{{ observer_db_user }}"
+    password: "{{ vault_observer_db_password }}"
+    role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Crear base de datos observerrmm
+  community.postgresql.postgresql_db:
+    name: "{{ observer_db_name }}"
+    owner: "{{ observer_db_user }}"
+    encoding: UTF8
+    lc_collate: "es_CL.UTF-8"
+    lc_ctype: "es_CL.UTF-8"
+    template: template0
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Crear usuario PostgreSQL para MeshCentral
+  community.postgresql.postgresql_user:
+    name: "{{ observer_mesh_db_user }}"
+    password: "{{ vault_observer_mesh_db_password }}"
+    role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Crear base de datos meshcentral
+  community.postgresql.postgresql_db:
+    name: "{{ observer_mesh_db_name }}"
+    owner: "{{ observer_mesh_db_user }}"
+    encoding: UTF8
+    lc_collate: "C.UTF-8"
+    lc_ctype: "C.UTF-8"
+    template: template0
+    state: present
+  become: true
+  become_user: postgres

@@ -1,0 +1,62 @@
+---
+# Node.js via nodesource
+- name: Descargar script de instalación nodesource
+  ansible.builtin.get_url:
+    url: "https://deb.nodesource.com/setup_{{ observer_nodejs_version }}.x"
+    dest: /tmp/nodesource_setup.sh
+    mode: "0755"
+
+- name: Ejecutar script nodesource
+  ansible.builtin.command: bash /tmp/nodesource_setup.sh
+  changed_when: true
+
+- name: Instalar Node.js {{ observer_nodejs_version }}
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: true
+
+# MeshCentral — NO usa MongoDB; usa PostgreSQL via dbPath
+- name: Crear directorio /meshcentral
+  ansible.builtin.file:
+    path: /meshcentral
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0755"
+
+- name: Instalar MeshCentral {{ observer_meshcentral_version }} via npm
+  community.general.npm:
+    name: "meshcentral"
+    version: "{{ observer_meshcentral_version }}"
+    path: /meshcentral
+    state: present
+  become: true
+  become_user: "{{ observer_user }}"
+
+- name: Desplegar mesh.cfg (config.json de MeshCentral)
+  ansible.builtin.template:
+    src: mesh.cfg.j2
+    dest: /meshcentral/config.json
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0640"
+  notify: restart meshcentral
+
+- name: Desplegar meshcentral.service
+  ansible.builtin.template:
+    src: meshcentral.service.j2
+    dest: /etc/systemd/system/meshcentral.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - systemd daemon-reload
+    - restart meshcentral
+
+- name: Habilitar y arrancar meshcentral.service
+  ansible.builtin.systemd:
+    name: meshcentral
+    state: started
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,14 @@
+---
+# MeshCentral — observer_mesh host
+
+observer_mesh_port: 4430
+observer_nodejs_version: "20"
+observer_meshcentral_version: "1.1.32"
+
+# Base de datos PostgreSQL para MeshCentral
+# MeshCentral usa PostgreSQL (NO MongoDB)
+observer_mesh_db_name: meshcentral
+observer_mesh_db_user: meshcentral
+
+# Hostname del API para integración MeshCentral→TRMM — REQUERIDO
+# observer_api_host: "10.50.0.14"

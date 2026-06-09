@@ -1,0 +1,52 @@
+upstream rmm-backend {
+    server unix:{{ observer_root }}/api/{{ observer_app_name }}/observerrmm.sock fail_timeout=0;
+}
+
+upstream rmm-asgi {
+    server unix:{{ observer_root }}/daphne.sock fail_timeout=0;
+}
+
+upstream rmm-natsws {
+    server {{ hostvars[groups['observer_api'][0]]['ansible_host'] | default('127.0.0.1') }}:{{ observer_nats_ws_port | default(9235) }};
+}
+
+server {
+    listen {{ observer_proxy_http_port }};
+    server_name {{ observer_domain }};
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen {{ observer_proxy_https_port }} ssl;
+    server_name {{ observer_domain }};
+
+    ssl_certificate     /etc/letsencrypt/live/{{ observer_base_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ observer_base_domain }}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    client_max_body_size 300M;
+
+    location /ws/ {
+        proxy_pass http://rmm-asgi;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400;
+    }
+
+    location /natsws {
+        proxy_pass http://rmm-natsws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location / {
+        uwsgi_pass rmm-backend;
+        include /etc/nginx/uwsgi_params;
+        uwsgi_read_timeout 9999;
+        uwsgi_ignore_client_abort on;
+    }
+}

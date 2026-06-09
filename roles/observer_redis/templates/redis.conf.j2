@@ -1,0 +1,16 @@
+# redis.conf — generado por Ansible (observer_redis role)
+
+bind {{ observer_redis_bind }}
+port {{ observer_redis_port }}
+requirepass {{ vault_observer_redis_password }}
+maxmemory {{ observer_redis_maxmemory }}
+maxmemory-policy {{ observer_redis_maxmemory_policy }}
+
+daemonize yes
+supervised systemd
+loglevel notice
+logfile /var/log/redis/redis-server.log
+
+# Persistencia deshabilitada — Redis se usa como broker/cache, no como almacén primario
+save ""
+appendonly no

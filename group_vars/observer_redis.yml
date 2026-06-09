@@ -1,0 +1,9 @@
+---
+# Redis — observer_redis host
+
+observer_redis_port: 6379
+# NUNCA usar 0.0.0.0 en producción — bind solo a la IP interna LAN
+# En all-in-one se puede usar 127.0.0.1
+observer_redis_bind: "0.0.0.0"
+observer_redis_maxmemory: "512mb"
+observer_redis_maxmemory_policy: allkeys-lru

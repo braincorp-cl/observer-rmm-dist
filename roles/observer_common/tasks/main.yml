@@ -1,0 +1,69 @@
+---
+- name: Validar versión mínima de Ansible
+  ansible.builtin.assert:
+    that:
+      - ansible_version.full is version(observer_min_ansible_version, '>=')
+    fail_msg: >
+      Se requiere ansible-core >= {{ observer_min_ansible_version }}.
+      Versión actual: {{ ansible_version.full }}.
+      Ejecute: pip install --upgrade ansible-core
+
+- name: Instalar dependencias APT
+  ansible.builtin.apt:
+    name: "{{ observer_common_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Crear grupo del sistema observer
+  ansible.builtin.group:
+    name: "{{ observer_group }}"
+    system: true
+    state: present
+
+- name: Crear usuario del sistema observer
+  ansible.builtin.user:
+    name: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    groups:
+      - "{{ observer_group }}"
+      - www-data
+    home: "{{ observer_root }}"
+    shell: /bin/bash
+    system: true
+    create_home: true
+    state: present
+
+- name: Crear directorio de logs
+  ansible.builtin.file:
+    path: "{{ observer_log_dir }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0755"
+
+- name: Configurar UFW — política por defecto
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+  when: observer_ufw_enabled
+
+- name: Configurar UFW — reglas base
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    comment: "{{ item.comment | default('') }}"
+  loop: "{{ observer_ufw_base_rules }}"
+  when: observer_ufw_enabled
+
+- name: Configurar UFW — reglas del rol
+  community.general.ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port | string }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    src: "{{ item.src | default(omit) }}"
+    comment: "{{ item.comment | default('') }}"
+  loop: "{{ observer_ufw_rules | default([]) }}"
+  when: observer_ufw_enabled

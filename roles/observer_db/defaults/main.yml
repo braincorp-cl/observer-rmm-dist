@@ -1,0 +1,40 @@
+---
+# Valores por defecto — sobreescribir en group_vars/observer_db.yml
+
+observer_postgresql_version: "18"
+observer_db_name: observerrmm
+observer_db_user: observerrmm
+observer_db_port: 5432
+observer_db_max_connections: 500
+observer_db_allowed_hosts:
+  - "127.0.0.1/32"
+
+observer_mesh_db_name: meshcentral
+observer_mesh_db_user: meshcentral
+
+pg_shared_buffers: "4GB"
+pg_huge_pages: "try"
+pg_vm_nr_hugepages: 2100
+pg_work_mem: "16MB"
+pg_maintenance_work_mem: "256MB"
+pg_autovacuum_work_mem: "256MB"
+pg_wal_buffers: "16MB"
+pg_checkpoint_timeout: "15min"
+pg_checkpoint_completion_target: "0.9"
+pg_min_wal_size: "1GB"
+pg_max_wal_size: "8GB"
+pg_effective_cache_size: "12GB"
+pg_random_page_cost: "1.1"
+pg_effective_io_concurrency: 200
+pg_max_parallel_workers_per_gather: 2
+pg_max_parallel_workers: 4
+pg_max_worker_processes: 8
+pg_jit: "off"
+pg_autovacuum_max_workers: 3
+pg_autovacuum_naptime: "60s"
+pg_autovacuum_vacuum_cost_delay: "2ms"
+pg_log_min_duration_statement: 5000
+pg_log_checkpoints: "on"
+pg_log_lock_waits: "on"
+pg_timezone: "America/Santiago"
+pg_log_timezone: "America/Santiago"

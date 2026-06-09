@@ -1,0 +1,64 @@
+server {
+    server_name {{ observer_app_domain }};
+    charset utf-8;
+
+    error_log /var/log/nginx/frontend-error.log;
+    access_log /var/log/nginx/frontend-access.log;
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    ssl_certificate /etc/letsencrypt/live/{{ observer_base_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ observer_base_domain }}/privkey.pem;
+    ssl_session_cache shared:FRONTSSL:10m;
+
+    add_header X-Content-Type-Options nosniff;
+
+    # index.html — sin cache (SPA routing, siempre fresco)
+    location = /index.html {
+        root /var/www/observer/dist;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+    }
+
+    # Assets del agente (binarios de instalación, etc.)
+    location /agents/ {
+        alias /var/www/observer/dist/agents/;
+        expires 1d;
+        add_header Cache-Control "public";
+    }
+
+    # JS/CSS/fonts con hash en nombre — inmutables, cache agresivo 30 días
+    # Vue/Quasar genera nuevos hashes en cada build → seguro cachear
+    location ~* \.(js|css|woff2?|ttf|eot|otf)$ {
+        root /var/www/observer/dist;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Imágenes e iconos
+    location ~* \.(png|ico|svg|gif|jpg|jpeg|webp)$ {
+        root /var/www/observer/dist;
+        expires 7d;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+    }
+
+    # SPA fallback — todas las rutas no coincidentes sirven index.html
+    location / {
+        root /var/www/observer/dist;
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Pragma "no-cache";
+    }
+}
+
+server {
+    if ($host = {{ observer_app_domain }}) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80;
+    listen [::]:80;
+    server_name {{ observer_app_domain }};
+    return 404;
+}

@@ -1,0 +1,5 @@
+---
+# CIFRAR CON: ansible-vault encrypt group_vars/observer_mesh/vault.yml
+
+# vault_observer_mesh_password: "CHANGEME"       # Password admin MeshCentral
+# vault_observer_mesh_db_password: "CHANGEME"    # Password PostgreSQL usuario meshcentral

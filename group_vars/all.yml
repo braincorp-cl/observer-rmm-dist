@@ -1,0 +1,18 @@
+---
+# Variables globales — compartidas por todos los roles
+
+# Sistema operativo
+observer_user: observer
+observer_group: observer
+observer_app_name: observer       # Nombre del módulo Django:
+                                  # - WorkingDirectory: /opt/observer/api/observer/
+                                  # - CELERY_APP: observer
+                                  # - ASGI: observer.asgi:application
+observer_root: /opt/observer
+observer_log_dir: /opt/observer/logs
+
+# Dominio — REQUERIDO, sin valor por defecto
+# observer_domain: "rmm.ejemplo.cl"
+
+# Validación de versión mínima de Ansible
+observer_min_ansible_version: "2.15"

@@ -1,0 +1,38 @@
+---
+# upgrade.yml — Actualización de componentes Observer RMM
+# Uso: ansible-playbook upgrade.yml -i inventory/production.yml --ask-vault-pass
+#      ansible-playbook upgrade.yml --limit observer_mesh -i inventory/production.yml --ask-vault-pass
+
+- name: Backup previo al upgrade
+  ansible.builtin.import_playbook: backup.yml
+
+- name: Upgrade — dependencias comunes
+  hosts: all
+  roles:
+    - observer_common
+
+- name: Upgrade — PostgreSQL
+  hosts: observer_db
+  roles:
+    - observer_db
+
+- name: Upgrade — Redis
+  hosts: observer_redis
+  roles:
+    - observer_redis
+
+- name: Upgrade — MeshCentral
+  hosts: observer_mesh
+  roles:
+    - observer_mesh
+
+- name: Upgrade — API (rolling restart 1 host a la vez)
+  hosts: observer_api
+  serial: 1
+  roles:
+    - observer_api
+
+- name: Upgrade — Proxy nginx
+  hosts: observer_proxy
+  roles:
+    - observer_proxy

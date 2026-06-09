@@ -1,0 +1,29 @@
+---
+- name: systemd daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: systemd daemon-reload
+
+- name: restart rmm
+  ansible.builtin.systemd:
+    name: rmm
+    state: restarted
+  listen: restart rmm
+
+- name: restart daphne
+  ansible.builtin.systemd:
+    name: daphne
+    state: restarted
+  listen: restart daphne
+
+- name: restart celery
+  ansible.builtin.systemd:
+    name: celery
+    state: restarted
+  listen: restart celery
+
+- name: restart celerybeat
+  ansible.builtin.systemd:
+    name: celerybeat
+    state: restarted
+  listen: restart celerybeat

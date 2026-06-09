@@ -1,0 +1,62 @@
+# postgresql.conf — generado por Ansible (observer_db role)
+# AJUSTAR pg_shared_buffers y pg_effective_cache_size según RAM del host:
+#   pg_shared_buffers    = 25% de RAM
+#   pg_effective_cache_size = 75% de RAM
+
+listen_addresses = '*'
+port = {{ observer_db_port }}
+max_connections = {{ observer_db_max_connections }}
+unix_socket_directories = '/var/run/postgresql'
+
+# Memory
+shared_buffers = {{ pg_shared_buffers }}
+huge_pages = {{ pg_huge_pages }}
+work_mem = {{ pg_work_mem }}
+maintenance_work_mem = {{ pg_maintenance_work_mem }}
+autovacuum_work_mem = {{ pg_autovacuum_work_mem }}
+dynamic_shared_memory_type = posix
+
+# WAL
+wal_buffers = {{ pg_wal_buffers }}
+checkpoint_timeout = {{ pg_checkpoint_timeout }}
+checkpoint_completion_target = {{ pg_checkpoint_completion_target }}
+min_wal_size = {{ pg_min_wal_size }}
+max_wal_size = {{ pg_max_wal_size }}
+
+# Query planner
+effective_cache_size = {{ pg_effective_cache_size }}
+random_page_cost = {{ pg_random_page_cost }}
+effective_io_concurrency = {{ pg_effective_io_concurrency }}
+
+# Parallelism
+max_parallel_workers_per_gather = {{ pg_max_parallel_workers_per_gather }}
+max_parallel_workers = {{ pg_max_parallel_workers }}
+max_worker_processes = {{ pg_max_worker_processes }}
+
+# JIT
+jit = {{ pg_jit }}
+
+# Autovacuum
+autovacuum_max_workers = {{ pg_autovacuum_max_workers }}
+autovacuum_naptime = {{ pg_autovacuum_naptime }}
+autovacuum_vacuum_cost_delay = {{ pg_autovacuum_vacuum_cost_delay }}
+
+# Logging
+log_min_duration_statement = {{ pg_log_min_duration_statement }}
+log_autovacuum_min_duration = 0
+log_checkpoints = {{ pg_log_checkpoints }}
+log_lock_waits = {{ pg_log_lock_waits }}
+log_temp_files = 0
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+
+# Locale / timezone
+timezone = '{{ pg_timezone }}'
+log_timezone = '{{ pg_log_timezone }}'
+datestyle = 'iso, mdy'
+lc_messages = 'C.UTF-8'
+lc_monetary = 'C.UTF-8'
+lc_numeric = 'C.UTF-8'
+lc_time = 'C.UTF-8'
+default_text_search_config = 'pg_catalog.english'
+
+include_dir = 'conf.d'

@@ -1,0 +1,61 @@
+---
+# PostgreSQL — observer_db host
+
+observer_postgresql_version: "18"
+observer_db_name: observerrmm
+observer_db_user: observerrmm
+observer_db_port: 5432
+
+# Hosts permitidos en pg_hba.conf (IPs de observer_api y observer_mesh)
+# En all-in-one se sobreescribe con ["127.0.0.1/32"]
+observer_db_allowed_hosts:
+  - "{{ hostvars[groups['observer_api'][0]]['ansible_host'] | default('127.0.0.1') }}/32"
+  - "{{ hostvars[groups['observer_mesh'][0]]['ansible_host'] | default('127.0.0.1') }}/32"
+
+# Reservado para v2
+patroni_enabled: false
+
+# ============================================================
+# Tuning PostgreSQL — extraído de producción MINSAL
+# 28.300 agentes, servidor 160 GB RAM, SSD NVMe
+# AJUSTAR pg_shared_buffers y pg_effective_cache_size según
+# la RAM real del host antes de desplegar:
+#   pg_shared_buffers    = 25% de RAM
+#   pg_effective_cache_size = 75% de RAM
+# ============================================================
+
+observer_db_max_connections: 500
+
+pg_shared_buffers: "40GB"
+pg_huge_pages: "try"
+pg_vm_nr_hugepages: 20500          # (shared_buffers + wal_buffers) / 2MB + margen
+
+pg_work_mem: "16MB"
+pg_maintenance_work_mem: "2GB"
+pg_autovacuum_work_mem: "2GB"
+
+pg_wal_buffers: "32MB"
+pg_checkpoint_timeout: "15min"
+pg_checkpoint_completion_target: "0.9"
+pg_min_wal_size: "1GB"
+pg_max_wal_size: "32GB"
+
+pg_effective_cache_size: "120GB"
+pg_random_page_cost: "1.1"         # SSD NVMe
+pg_effective_io_concurrency: 200   # SSD NVMe
+
+pg_max_parallel_workers_per_gather: 4
+pg_max_parallel_workers: 8
+pg_max_worker_processes: 16
+
+pg_jit: "off"                       # JIT penaliza OLTP cortas
+
+pg_autovacuum_max_workers: 5
+pg_autovacuum_naptime: "30s"
+pg_autovacuum_vacuum_cost_delay: "2ms"
+
+pg_log_min_duration_statement: 2000  # ms — loguear queries > 2s
+pg_log_checkpoints: "on"
+pg_log_lock_waits: "on"
+pg_timezone: "America/Santiago"
+pg_log_timezone: "America/Santiago"

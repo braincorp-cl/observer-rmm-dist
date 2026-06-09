@@ -1,0 +1,6 @@
+---
+observer_mesh_port: 4430
+observer_nodejs_version: "20"
+observer_meshcentral_version: "1.1.32"
+observer_mesh_db_name: meshcentral
+observer_mesh_db_user: meshcentral

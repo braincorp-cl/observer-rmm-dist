@@ -1,0 +1,4 @@
+---
+# CIFRAR CON: ansible-vault encrypt group_vars/observer_redis/vault.yml
+
+# vault_observer_redis_password: "CHANGEME"

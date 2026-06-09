@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "Cert": "{{ observer_mesh_host }}",
+    "TLSOffload": "{{ hostvars[groups['observer_proxy'][0]]['ansible_host'] | default('127.0.0.1') }}",
+    "Port": {{ observer_mesh_port }},
+    "RedirPort": 80,
+    "AgentPong": 300,
+    "dbPath": "postgresql://{{ observer_mesh_db_user }}:{{ vault_observer_mesh_db_password }}@{{ hostvars[groups['observer_db'][0]]['ansible_host'] | default('localhost') }}/{{ observer_mesh_db_name }}"
+  },
+  "domains": {
+    "": {
+      "title": "Observer RMM",
+      "title2": "BrainCorp Chile",
+      "NewAccounts": false,
+      "certUrl": "https://{{ observer_domain | default('rmm.localhost') }}",
+      "trmm_url": "https://{{ observer_api_host | default(hostvars[groups['observer_api'][0]]['ansible_host'] | default('localhost')) }}"
+    }
+  }
+}

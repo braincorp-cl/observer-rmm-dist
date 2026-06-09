@@ -1,0 +1,36 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Verificar API responde 401 (auth requerida)
+      ansible.builtin.uri:
+        url: "http://localhost:8000/api/v4/me/"
+        status_code: 401
+        validate_certs: false
+      register: api_check
+      retries: 5
+      delay: 10
+
+    - name: Verificar servicio rmm activo
+      ansible.builtin.systemd:
+        name: rmm
+      register: rmm_svc
+
+    - name: Assert rmm running
+      ansible.builtin.assert:
+        that:
+          - rmm_svc.status.ActiveState == "active"
+        fail_msg: "rmm.service no está activo"
+
+    - name: Verificar PostgreSQL escucha en 5432
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 5432
+        timeout: 10
+
+    - name: Verificar Redis escucha en 6379
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 6379
+        timeout: 10
