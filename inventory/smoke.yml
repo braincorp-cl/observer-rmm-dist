@@ -1,0 +1,13 @@
+---
+# Inventario del gate de smoke (smoke.yml — F008 Fase 0 / RN-04).
+# Apuntar a una VM Ubuntu 22.04 DESECHABLE accesible por SSH con sudo.
+# Ajustar ansible_host y ansible_user a tu VM antes de correr.
+
+all:
+  children:
+    observer_smoke:
+      hosts:
+        smoke-vm:
+          ansible_host: 192.168.122.10   # ← IP de tu VM
+          ansible_user: ubuntu           # ← usuario SSH con sudo
+          ansible_python_interpreter: /usr/bin/python3

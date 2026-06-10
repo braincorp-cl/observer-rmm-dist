@@ -1,0 +1,177 @@
+---
+# smoke.yml — Gate de validación backend (F008 Fase 0 / RN-04 / D-08)
+#
+# Provisiona un host desechable (VM Ubuntu 22.04) con el stack mínimo del
+# producto reutilizando los roles reales (observer_db → PostgreSQL 15 vía PGDG,
+# observer_redis), sincroniza el backend Django y ejecuta los smokes del gate:
+#
+#   1. manage.py check
+#   2. manage.py makemigrations --check --dry-run
+#   3. pytest completo (baseline D-09 — se copia al nodo de control)
+#   4. pytest -k test_update_autotask_rejects_null_schedule_fields (fix R-09)
+#
+# Uso (desde la raíz de este repo, con ansible-core en el nodo de control):
+#   ansible-galaxy collection install -r requirements.yml
+#   ansible-playbook -i inventory/smoke.yml smoke.yml
+#
+# Semántica de gate: si cualquier smoke falla, el playbook falla (D-08 — el
+# fix se hace en el fork hub y se re-corre este gate; nada se copia a dist
+# con el gate rojo). Re-ejecutable: la provisión es idempotente, los smokes
+# corren siempre.
+
+- name: Gate de smoke backend — provisión + ejecución
+  hosts: observer_smoke
+  become: true
+  vars:
+    # Pre-consolidación (F008 Fase 0): el backend vive en el fork hub,
+    # sibling de este repo. Post-consolidación (T013) puede apuntar a
+    # "{{ playbook_dir }}/api/observerrmm/".
+    smoke_source_path: "{{ playbook_dir }}/../observer-rmm/api/observerrmm/"
+    smoke_root: /opt/observer-smoke
+    smoke_python_version: "3.11"
+
+    # Credenciales espejo del bloque GHACTIONS de observerrmm/settings.py.
+    # Host desechable: NO son secretos de producción.
+    smoke_db_user: pipeline
+    smoke_db_password: "pipeline123456"
+    smoke_db_name: pipeline
+
+    # Overrides para VM chica. El tuning de producción (group_vars/
+    # observer_db.yml, perfil MINSAL) aplica al grupo observer_db,
+    # no a observer_smoke — aquí mandan estos valores.
+    observer_db_allowed_hosts: ["127.0.0.1/32"]
+    pg_vm_nr_hugepages: 0
+    pg_huge_pages: "off"
+    pg_shared_buffers: "512MB"
+    pg_effective_cache_size: "1GB"
+    pg_maintenance_work_mem: "128MB"
+    pg_autovacuum_work_mem: "128MB"
+    pg_max_wal_size: "2GB"
+
+    # El role observer_db exige estos passwords (vault en producción).
+    # En el host de smoke desechable se usan valores fijos no productivos.
+    vault_observer_db_password: "smoke-only-not-production"
+    vault_observer_mesh_db_password: "smoke-only-not-production"
+
+  pre_tasks:
+    - name: Generar locale es_CL.UTF-8 (requerido por las BD del producto)
+      community.general.locale_gen:
+        name: es_CL.UTF-8
+        state: present
+
+  roles:
+    - observer_db
+    - observer_redis
+
+  tasks:
+    - name: Instalar Python {{ smoke_python_version }} y dependencias de build
+      ansible.builtin.apt:
+        name:
+          - "python{{ smoke_python_version }}"
+          - "python{{ smoke_python_version }}-venv"
+          - "python{{ smoke_python_version }}-dev"
+          - build-essential
+          - rsync
+        state: present
+        update_cache: true
+
+    - name: Crear usuario de BD del gate (CREATEDB — pytest crea test_pipeline)
+      community.postgresql.postgresql_user:
+        name: "{{ smoke_db_user }}"
+        password: "{{ smoke_db_password }}"
+        role_attr_flags: CREATEDB,NOSUPERUSER,NOCREATEROLE
+        state: present
+      become: true
+      become_user: postgres
+
+    - name: Crear base de datos del gate
+      community.postgresql.postgresql_db:
+        name: "{{ smoke_db_name }}"
+        owner: "{{ smoke_db_user }}"
+        encoding: UTF8
+        template: template0
+        state: present
+      become: true
+      become_user: postgres
+
+    - name: Sincronizar backend desde el fork hub (working tree)
+      ansible.posix.synchronize:
+        src: "{{ smoke_source_path }}"
+        dest: "{{ smoke_root }}/observerrmm/"
+        delete: true
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=__pycache__"
+          - "--exclude=.pytest_cache"
+          - "--exclude=.mypy_cache"
+          - "--exclude=env"
+
+    - name: Crear virtualenv Python {{ smoke_python_version }}
+      ansible.builtin.command:
+        cmd: "python{{ smoke_python_version }} -m venv {{ smoke_root }}/env"
+        creates: "{{ smoke_root }}/env/bin/python"
+
+    - name: Actualizar pip en el virtualenv
+      ansible.builtin.command:
+        cmd: "{{ smoke_root }}/env/bin/pip install --upgrade pip"
+      register: pip_upgrade
+      changed_when: "'Successfully installed' in pip_upgrade.stdout"
+
+    - name: Instalar requirements del backend (incluye requirements-test)
+      ansible.builtin.command:
+        cmd: >-
+          {{ smoke_root }}/env/bin/pip install
+          -r {{ smoke_root }}/observerrmm/requirements.txt
+          -r {{ smoke_root }}/observerrmm/requirements-test.txt
+      register: pip_install
+      changed_when: "'Successfully installed' in pip_install.stdout"
+
+    - name: Smoke 1/4 — manage.py check
+      ansible.builtin.command:
+        cmd: "{{ smoke_root }}/env/bin/python manage.py check"
+        chdir: "{{ smoke_root }}/observerrmm"
+      environment: &smoke_env
+        GHACTIONS: "1"
+        DJANGO_SETTINGS_MODULE: observerrmm.settings
+      register: smoke_check
+      changed_when: false
+
+    - name: Smoke 2/4 — makemigrations --check --dry-run
+      ansible.builtin.command:
+        cmd: "{{ smoke_root }}/env/bin/python manage.py makemigrations --check --dry-run"
+        chdir: "{{ smoke_root }}/observerrmm"
+      environment: *smoke_env
+      register: smoke_migrations
+      changed_when: false
+
+    - name: Smoke 3/4 — pytest completo (baseline D-09)
+      ansible.builtin.shell:
+        cmd: "set -o pipefail; {{ smoke_root }}/env/bin/pytest --tb=short -q 2>&1 | tee /tmp/F008-baseline-pytest.txt"
+        chdir: "{{ smoke_root }}/observerrmm"
+        executable: /bin/bash
+      environment: *smoke_env
+      register: smoke_pytest
+      changed_when: false
+
+    - name: Smoke 4/4 — test del fix R-09 (commit hub 8f887987)
+      ansible.builtin.command:
+        cmd: "{{ smoke_root }}/env/bin/pytest autotasks/tests/test_autotasks.py -k test_update_autotask_rejects_null_schedule_fields -v"
+        chdir: "{{ smoke_root }}/observerrmm"
+      environment: *smoke_env
+      register: smoke_r09
+      changed_when: false
+
+    - name: Copiar baseline pytest al nodo de control (D-09)
+      ansible.builtin.fetch:
+        src: /tmp/F008-baseline-pytest.txt
+        dest: "{{ playbook_dir }}/smoke-results/F008-baseline-pytest.txt"
+        flat: true
+
+    - name: Resumen del gate
+      ansible.builtin.debug:
+        msg:
+          - "Smoke 1/4 check: OK"
+          - "Smoke 2/4 makemigrations --check: OK"
+          - "Smoke 3/4 pytest: {{ smoke_pytest.stdout_lines[-1] | default('ver smoke-results/') }}"
+          - "Smoke 4/4 test R-09: {{ smoke_r09.stdout_lines[-1] | default('OK') }}"
+          - "Baseline D-09 copiado a smoke-results/F008-baseline-pytest.txt"
