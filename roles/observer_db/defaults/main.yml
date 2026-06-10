@@ -1,7 +1,9 @@
 ---
 # Valores por defecto — sobreescribir en group_vars/observer_db.yml
 
-observer_postgresql_version: "18"
+# PostgreSQL 15 explícito vía PGDG (estándar BrainCorp, igual que el install.sh
+# upstream): NO se usa el postgres de la distribución.
+observer_postgresql_version: "15"
 observer_db_name: observerrmm
 observer_db_user: observerrmm
 observer_db_port: 5432
