@@ -1,0 +1,60 @@
+---
+# Python {{ observer_python_full_version }} compilado desde fuente (python.org),
+# espejo EXACTO del método del install.sh original de TacticalRMM:
+#   ./configure --enable-optimizations && make -j $(nproc) && make altinstall
+# altinstall NO toca el python3 del sistema; instala /usr/local/bin/python3.11.
+# NO se usa apt/PPA para Python (decisión BrainCorp: solo métodos del install.sh).
+# Idempotente: no recompila si la versión exacta ya está instalada.
+
+- name: Verificar versión de Python instalada
+  ansible.builtin.command:
+    cmd: "/usr/local/bin/python{{ observer_python_version }} --version"
+  register: observer_python_installed
+  changed_when: false
+  failed_when: false
+
+- name: Compilar e instalar Python {{ observer_python_full_version }} desde fuente
+  when: >-
+    observer_python_installed.rc != 0
+    or observer_python_full_version not in observer_python_installed.stdout
+  block:
+    - name: Instalar dependencias de build (mismas del install.sh)
+      ansible.builtin.apt:
+        name:
+          - build-essential
+          - zlib1g-dev
+          - libncurses5-dev
+          - libgdbm-dev
+          - libnss3-dev
+          - libssl-dev
+          - libreadline-dev
+          - libffi-dev
+          - libsqlite3-dev
+          - libbz2-dev
+        state: present
+        update_cache: true
+
+    - name: Descargar fuente de Python {{ observer_python_full_version }}
+      ansible.builtin.get_url:
+        url: "https://www.python.org/ftp/python/{{ observer_python_full_version }}/Python-{{ observer_python_full_version }}.tgz"
+        dest: "/tmp/Python-{{ observer_python_full_version }}.tgz"
+        mode: "0644"
+
+    - name: Extraer fuente
+      ansible.builtin.unarchive:
+        src: "/tmp/Python-{{ observer_python_full_version }}.tgz"
+        dest: /tmp
+        remote_src: true
+
+    - name: Compilar e instalar (make altinstall)
+      ansible.builtin.shell:
+        cmd: "./configure --enable-optimizations && make -j $(nproc) && make altinstall"
+        chdir: "/tmp/Python-{{ observer_python_full_version }}"
+
+    - name: Limpiar fuentes de build
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/Python-{{ observer_python_full_version }}"
+        - "/tmp/Python-{{ observer_python_full_version }}.tgz"

@@ -1,18 +1,9 @@
 ---
-# Python 3.11 via deadsnakes PPA (Ubuntu 22.04 trae 3.10)
-- name: Agregar PPA deadsnakes
-  ansible.builtin.apt_repository:
-    repo: ppa:deadsnakes/ppa
-    state: present
-
-- name: Instalar Python {{ observer_python_version }}
-  ansible.builtin.apt:
-    name:
-      - "python{{ observer_python_version }}"
-      - "python{{ observer_python_version }}-venv"
-      - "python{{ observer_python_version }}-dev"
-    state: present
-    update_cache: true
+# Python 3.11.8 compilado desde fuente — método del install.sh original.
+# Reemplaza el PPA deadsnakes (no oficial): ver roles/observer_python.
+- name: Instalar Python desde fuente (método install.sh)
+  ansible.builtin.include_role:
+    name: observer_python
 
 # Directorios
 - name: Crear directorios del API

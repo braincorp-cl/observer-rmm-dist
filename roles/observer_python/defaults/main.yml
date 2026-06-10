@@ -1,0 +1,5 @@
+---
+# Versión exacta que compila el install.sh original (PYTHON_VER='3.11.8')
+observer_python_full_version: "3.11.8"
+# Versión corta usada por el resto de los roles (binario python3.11)
+observer_python_version: "3.11"

@@ -62,14 +62,14 @@
   roles:
     - observer_db
     - observer_redis
+    # Python 3.11.8 compilado desde fuente — mismo método del install.sh
+    # original (nada de apt/PPA para Python)
+    - observer_python
 
   tasks:
-    - name: Instalar Python {{ smoke_python_version }} y dependencias de build
+    - name: Instalar utilitarios del gate (build-essential para uWSGI, rsync para synchronize)
       ansible.builtin.apt:
         name:
-          - "python{{ smoke_python_version }}"
-          - "python{{ smoke_python_version }}-venv"
-          - "python{{ smoke_python_version }}-dev"
           - build-essential
           - rsync
         state: present
