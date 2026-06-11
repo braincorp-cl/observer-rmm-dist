@@ -5,6 +5,17 @@
   ansible.builtin.include_role:
     name: observer_python
 
+# Librerías de sistema para WeasyPrint (ee/reporting genera PDFs) —
+# espejo del install.sh líneas 549-552 (rama ubuntu)
+- name: Instalar dependencias de sistema de WeasyPrint
+  ansible.builtin.apt:
+    name:
+      - libpango-1.0-0
+      - libharfbuzz0b
+      - libpangoft2-1.0-0
+    state: present
+    update_cache: true
+
 # Directorios
 - name: Crear directorios del API
   ansible.builtin.file:
