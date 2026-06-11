@@ -70,8 +70,11 @@
     name: "{{ observer_db_name }}"
     owner: "{{ observer_db_user }}"
     encoding: UTF8
-    lc_collate: "es_CL.UTF-8"
-    lc_ctype: "es_CL.UTF-8"
+    # C.UTF-8 como el servidor TacticalRMM de referencia (verificado en
+    # producción real 2026-06-10: lc_collate=C.UTF-8); disponible en Ubuntu
+    # minimizado sin el paquete locales
+    lc_collate: "C.UTF-8"
+    lc_ctype: "C.UTF-8"
     template: template0
     state: present
   become: true

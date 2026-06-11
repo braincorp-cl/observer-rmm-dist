@@ -54,10 +54,21 @@
     vault_observer_mesh_db_password: "smoke-only-not-production"
 
   pre_tasks:
-    - name: Generar locale es_CL.UTF-8 (requerido por las BD del producto)
-      community.general.locale_gen:
-        name: es_CL.UTF-8
+    # Base mínima del install.sh original (línea 6) — Ubuntu Server
+    # minimizado no trae gnupg/dirmngr, requeridos por el repo PGDG.
+    # Locale: C.UTF-8 del sistema, igual que el servidor TacticalRMM de
+    # referencia (NO se genera es_CL ni se instala el paquete locales).
+    - name: Instalar base mínima (espejo install.sh línea 6)
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - dirmngr
+          - gnupg
+          - lsb-release
+          - ca-certificates
         state: present
+        update_cache: true
 
   roles:
     - observer_db
