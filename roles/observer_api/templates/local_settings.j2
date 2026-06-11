@@ -16,7 +16,8 @@ DATABASES = {
 
 REDIS_HOST = '{{ observer_redis_host }}'
 REDIS_PORT = {{ observer_redis_port | default(6379) }}
-REDIS_PASSWORD = '{{ vault_observer_redis_password }}'
+# (sin REDIS_PASSWORD: el backend no soporta auth Redis — channels, cache y
+# celery usan redis://HOST:6379 sin password, igual que upstream/install.sh)
 
 MESH_SITE = 'https://{{ observer_mesh_host }}'
 MESH_USERNAME = '{{ observer_mesh_user | default("meshcentral_admin") }}'
@@ -26,10 +27,13 @@ NATS_SERVER = 'nats://{{ observer_nats_host }}:{{ observer_nats_port }}'
 
 # Parámetros de escala — validados producción MINSAL 28.300 agentes (2026)
 # Valores upstream (200-400s) causan carga excesiva en DB a escala
+# Nombres de settings = los que lee apiv3/utils.py (CHECKIN_WINSVC/SW/WMI;
+# los anteriores WIN_SERVICES/SW_INVENTORY/HW_ASSETS eran claves muertas
+# que Django ignoraba — solo SYNCMESH surtía efecto)
 CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syncmesh_max }})
-CHECKIN_WIN_SERVICES = ({{ observer_checkin_win_services_min }}, {{ observer_checkin_win_services_max }})
-CHECKIN_SW_INVENTORY = ({{ observer_checkin_sw_inventory_min }}, {{ observer_checkin_sw_inventory_max }})
-CHECKIN_HW_ASSETS = ({{ observer_checkin_hw_assets_min }}, {{ observer_checkin_hw_assets_max }})
+CHECKIN_WINSVC = ({{ observer_checkin_win_services_min }}, {{ observer_checkin_win_services_max }})
+CHECKIN_SW = ({{ observer_checkin_sw_inventory_min }}, {{ observer_checkin_sw_inventory_max }})
+CHECKIN_WMI = ({{ observer_checkin_hw_assets_min }}, {{ observer_checkin_hw_assets_max }})
 
 ALLOWED_HOSTS = ['{{ observer_domain | default("*") }}']
 
