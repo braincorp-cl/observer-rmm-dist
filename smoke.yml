@@ -105,6 +105,12 @@
       become: true
       become_user: postgres
 
+    - name: Crear directorio raíz del smoke
+      ansible.builtin.file:
+        path: "{{ smoke_root }}"
+        state: directory
+        mode: "0755"
+
     - name: Sincronizar backend desde el fork hub (working tree)
       ansible.posix.synchronize:
         src: "{{ smoke_source_path }}"
