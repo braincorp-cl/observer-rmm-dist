@@ -1,0 +1,36 @@
+name: Build web
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.2"
+
+      - run: touch env-config.js
+
+      - run: sudo npm install -g npm@11.14.0
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Create tarball
+        run: tar -czvf observer-rmm-web-${{github.ref_name}}.tar.gz dist/
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: observer-rmm-web-${{github.ref_name}}.tar.gz

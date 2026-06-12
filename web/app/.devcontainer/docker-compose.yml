@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  app-dev:
+    container_name: observerrmm-app-dev
+    image: node:20-alpine
+    restart: always
+    command: /bin/sh -c "npm install --cache ~/.npm && npm i -g @quasar/cli && npm run serve"
+    working_dir: /workspace/web
+    volumes:
+      - ..:/workspace:cached
+    ports:
+      - "8080:443"
+    networks:
+      dev:
+        aliases:
+          - observer-frontend
+
+networks:
+  dev:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_NETWORK}

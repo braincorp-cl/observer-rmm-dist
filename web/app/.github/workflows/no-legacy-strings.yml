@@ -1,0 +1,67 @@
+name: No legacy upstream strings
+
+# Gate F007.5 - prevents regression of the TacticalRMM -> Observer RMM rebrand sweep.
+# Mirror of the hub gate 'no-tacticalrmm-regressions' (observer-rmm repo, RN-024).
+#
+# Pattern covers product slugs, corporate entities and known kebab variants.
+#
+# Intentionally NOT in the pattern:
+#   - 'trmm_' (underscore variant) matches backend payload field names
+#     data.trmm_version and data.latest_trmm_ver which are preserved by
+#     design until F007.6 / F4 of the hub renames them.
+#
+# Allowed exceptions are documented in
+# .reversa/sweep-f007-f3.1-ocurrencias.md and listed explicitly in the
+# allowlist step below.
+
+on:
+  push:
+    branches: [develop, main, master]
+  pull_request:
+    branches: [develop, main, master]
+
+jobs:
+  no-legacy:
+    runs-on: ubuntu-latest
+    name: Block legacy upstream strings
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for legacy strings
+        run: |
+          set -uo pipefail
+
+          PATTERN='TacticalRMM|tacticalrmm|TacticalAgent|tacticalagent|amidaware|AmidaWare|tactical-rmm|tactical-frontend|trmm-'
+
+          # Allowlist of documented exceptions. Each grep -vE removes one
+          # category of expected hit. See .reversa/sweep-f007-f3.1-ocurrencias.md
+          # for the rationale of each exception.
+          #
+          # Path prefix '\.?/?' tolerates grep implementations that do or do
+          # not emit a './' prefix when scanning the current directory.
+          HITS=$(grep -rnE "$PATTERN" \
+            --exclude-dir=node_modules --exclude-dir=.git \
+            --exclude-dir=.reversa --exclude-dir=_reversa_sdd \
+            --exclude-dir=.agents --exclude-dir=.claude \
+            --exclude-dir=dist \
+            . \
+            | grep -vE '^\.?/?\.github/workflows/no-legacy-strings\.yml:' \
+            | grep -vE '^\.?/?src/composables/checks\.js:1255:.*tacticalagent' \
+            | grep -vE '^\.?/?src/composables/scripts\.ts:[0-9]+:.*amidaware/community-scripts' \
+            | grep -vE '^\.?/?src/components/AgentTable\.vue:[0-9]+:.*upstream issue ref' \
+            | grep -vE '^\.?/?src/components/FileBar\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            | grep -vE '^\.?/?src/components/modals/coresettings/EditCoreSettings\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            | grep -vE '^\.?/?src/components/modals/agents/InstallAgent\.vue:[0-9]+:.*(docs\.tacticalrmm\.com|tactical-rmm|TODO F007)' \
+            | grep -vE '^\.?/?src/views/InitialSetup\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            || true)
+
+          if [ -n "$HITS" ]; then
+            echo "::error::Legacy upstream strings detected outside the documented allowlist."
+            echo "::error::See .reversa/sweep-f007-f3.1-ocurrencias.md and ADR-009 for context."
+            echo ""
+            echo "Hits:"
+            echo "$HITS"
+            exit 1
+          fi
+
+          echo "::notice::No new legacy upstream strings detected."
