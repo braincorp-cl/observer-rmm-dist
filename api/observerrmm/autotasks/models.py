@@ -9,6 +9,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.db.models.fields import DateTimeField
 from django.db.models.fields.json import JSONField
 from django.db.utils import DatabaseError
@@ -57,6 +58,58 @@ logger = logging.getLogger("trmm")
 
 
 class AutomatedTask(BaseAuditModel):
+    class Meta:
+        # DF-03 / RN-026 / EC-11 — espejo en BD de TaskSerializer.SCHEDULE_INVARIANTS:
+        # por cada task_type con schedule, sus campos invariantes no pueden ser NULL.
+        # Más débil que el serializer a propósito (solo IS NOT NULL, sin rangos de
+        # bitmask). MANUAL, SCHEDULED (deprecated) y ONBOARDING no llevan constraint.
+        # En BDs con datos legacy correr sanitize_task_schedule_invariants ANTES de
+        # aplicar la migración que agrega estos constraints.
+        constraints = [
+            models.CheckConstraint(
+                name="runonce_requires_run_time_date",
+                check=~Q(task_type=TaskType.RUN_ONCE) | Q(run_time_date__isnull=False),
+            ),
+            models.CheckConstraint(
+                name="daily_requires_schedule_fields",
+                check=~Q(task_type=TaskType.DAILY)
+                | (Q(run_time_date__isnull=False) & Q(daily_interval__isnull=False)),
+            ),
+            models.CheckConstraint(
+                name="weekly_requires_schedule_fields",
+                check=~Q(task_type=TaskType.WEEKLY)
+                | (
+                    Q(run_time_date__isnull=False)
+                    & Q(weekly_interval__isnull=False)
+                    & Q(run_time_bit_weekdays__isnull=False)
+                ),
+            ),
+            models.CheckConstraint(
+                name="monthly_requires_schedule_fields",
+                check=~Q(task_type=TaskType.MONTHLY)
+                | (
+                    Q(run_time_date__isnull=False)
+                    & Q(monthly_months_of_year__isnull=False)
+                    & Q(monthly_days_of_month__isnull=False)
+                ),
+            ),
+            models.CheckConstraint(
+                name="monthlydow_requires_schedule_fields",
+                check=~Q(task_type=TaskType.MONTHLY_DOW)
+                | (
+                    Q(run_time_date__isnull=False)
+                    & Q(monthly_months_of_year__isnull=False)
+                    & Q(monthly_weeks_of_month__isnull=False)
+                    & Q(run_time_bit_weekdays__isnull=False)
+                ),
+            ),
+            models.CheckConstraint(
+                name="checkfailure_requires_assigned_check",
+                check=~Q(task_type=TaskType.CHECK_FAILURE)
+                | Q(assigned_check__isnull=False),
+            ),
+        ]
+
     objects = PermissionQuerySet.as_manager()
 
     agent = models.ForeignKey(

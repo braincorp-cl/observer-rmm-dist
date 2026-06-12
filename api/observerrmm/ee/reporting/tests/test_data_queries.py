@@ -55,6 +55,10 @@ class TestResolvingModels:
 class TestBuildingQueryset:
     @pytest.fixture
     def setup_agents(self):
+        # las properties computadas (checks/status) terminan en
+        # get_core_settings(); sin esta fila el test dependía de que otro
+        # test anterior dejara CoreSettings en el cache Redis
+        baker.make("core.CoreSettings")
         agent1 = baker.make_recipe(
             "agents.online_agent", hostname="ZAgent1", plat="windows"
         )

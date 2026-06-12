@@ -86,25 +86,32 @@ def setup_instance(db):
         )
 
         for task in item["tasks"]:
+            # DF-03: los CheckConstraint de schedule exigen el estado completo
+            # en el INSERT — el patrón viejo de crear-y-completar en dos pasos
+            # violaba el constraint del task_type en la primera escritura.
+            # El scheduler no lee los campos *_interval
+            # (observerrmm/scheduler.py), así que el valor 1 es inerte.
+            extra_fields = {}
+            if task["task_type"] == TaskType.DAILY:
+                extra_fields["daily_interval"] = 1
+            elif task["task_type"] == TaskType.WEEKLY:
+                extra_fields["weekly_interval"] = 1
+                extra_fields["run_time_bit_weekdays"] = task["weekly_bit"]
+            elif task["task_type"] == TaskType.MONTHLY:
+                extra_fields["monthly_months_of_year"] = task["months_of_year"]
+                extra_fields["monthly_days_of_month"] = task["days_of_month"]
+            elif task["task_type"] == TaskType.MONTHLY_DOW:
+                extra_fields["monthly_months_of_year"] = task["months_of_year"]
+                extra_fields["monthly_weeks_of_month"] = task["on_weeks"]
+                extra_fields["run_time_bit_weekdays"] = task["on_days"]
+
             t = baker.make(
                 "autotasks.AutomatedTask",
                 agent=agent,
                 task_type=task["task_type"],
                 run_time_date=task["run_time"],
+                **extra_fields,
             )
-
-            if t.task_type == TaskType.WEEKLY:
-                t.run_time_bit_weekdays = task["weekly_bit"]
-                t.save()
-            elif t.task_type == TaskType.MONTHLY:
-                t.monthly_months_of_year = task["months_of_year"]
-                t.monthly_days_of_month = task["days_of_month"]
-                t.save()
-            elif t.task_type == TaskType.MONTHLY_DOW:
-                t.monthly_months_of_year = task["months_of_year"]
-                t.monthly_weeks_of_month = task["on_weeks"]
-                t.run_time_bit_weekdays = task["on_days"]
-                t.save()
 
             baker.make(
                 "autotasks.TaskResult",

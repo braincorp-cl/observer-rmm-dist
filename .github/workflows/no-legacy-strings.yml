@@ -1,0 +1,77 @@
+name: No legacy upstream strings
+
+# Gate F008/T019 (D-07 / RN-05) - previene regresiones del rebrand
+# TacticalRMM -> Observer RMM en el repo consolidado.
+# Espejo del gate del hub 'no-tacticalrmm-regressions' (observer-rmm, RN-024)
+# y del gate del fork web 'no-legacy-strings' (observer-rmm-web, F007.5).
+#
+# Exclusiones justificadas (cada grep -vE remueve una categoría revisada):
+#   - migrations: historia congelada de Django; 0030 conserva el default
+#     upstream 'TacticalRMM' y 0052 lo documenta al migrarlo a 'ObserverRMM'.
+#   - web/app/.github/workflows/no-legacy-strings.yml: el gate propio del
+#     fork web copiado en la consolidación; contiene el patrón por necesidad.
+#   - checks.js value "tacticalagent": nombre real del servicio Windows del
+#     agente upstream; excepción heredada 1:1 del gate del web (F007.5).
+#   - docs.tacticalrmm.com en 4 componentes Vue: links de documentación
+#     pendientes de R-03 (CDN/docs BrainCorp); rastreados como TODO F007.
+#   - AgentTable.vue "upstream issue ref": referencia a issue del upstream
+#     conservada a propósito como procedencia.
+#   - comentarios de procedencia en smoke.yml y roles/ que citan el
+#     install.sh / servidor TacticalRMM de referencia (estándar BrainCorp:
+#     instalar EXACTAMENTE como el método del upstream).
+#   - docs/: documentación de procedencia del dist (RF-11/RN-02) cita el
+#     fork de origen por diseño.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  no-legacy:
+    runs-on: ubuntu-latest
+    name: Block legacy upstream strings
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for legacy strings
+        run: |
+          set -uo pipefail
+
+          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent'
+
+          # Prefijo '\.?/?' tolera greps que emiten o no './' al escanear '.'
+          HITS=$(grep -rnE "$PATTERN" \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=__pycache__ \
+            --exclude-dir=.pytest_cache \
+            --exclude-dir=.mypy_cache \
+            --exclude-dir=migrations \
+            --exclude-dir=test_data \
+            --exclude-dir=docs \
+            . \
+            | grep -vE '^\.?/?\.github/workflows/no-legacy-strings\.yml:' \
+            | grep -vE '^\.?/?web/app/\.github/workflows/no-legacy-strings\.yml:' \
+            | grep -vE '^\.?/?web/app/src/composables/checks\.js:[0-9]+:.*value: "tacticalagent"' \
+            | grep -vE '^\.?/?web/app/src/components/AgentTable\.vue:[0-9]+:.*upstream issue ref' \
+            | grep -vE '^\.?/?web/app/src/components/FileBar\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            | grep -vE '^\.?/?web/app/src/components/modals/coresettings/EditCoreSettings\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            | grep -vE '^\.?/?web/app/src/components/modals/agents/InstallAgent\.vue:[0-9]+:.*(docs\.tacticalrmm\.com|tactical-rmm|TODO F007)' \
+            | grep -vE '^\.?/?web/app/src/views/InitialSetup\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
+            | grep -vE '^\.?/?smoke\.yml:[0-9]+:.*servidor TacticalRMM de' \
+            | grep -vE '^\.?/?roles/observer_python/tasks/main\.yml:[0-9]+:.*install\.sh original de TacticalRMM' \
+            | grep -vE '^\.?/?roles/observer_db/tasks/main\.yml:[0-9]+:.*servidor TacticalRMM de' \
+            | grep -vE '^\.?/?roles/observer_api/tasks/django_deploy\.yml:[0-9]+:.*`tacticalrmm` legacy' \
+            || true)
+
+          if [ -n "$HITS" ]; then
+            echo "::error::Legacy upstream strings detected outside the documented allowlist."
+            echo ""
+            echo "Hits:"
+            echo "$HITS"
+            exit 1
+          fi
+
+          echo "::notice::No new legacy upstream strings detected."
