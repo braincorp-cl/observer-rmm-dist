@@ -1,8 +1,10 @@
 # observer-rmm-dist
 
-Plataforma Observer RMM — despliegue distribuido con Ansible.
+Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
+(backend Django en `api/observerrmm/`, capa Go NATS, frontend Vue/Quasar en
+`web/`) + despliegue distribuido con Ansible.
 
-Reemplaza el script monolítico `install.sh` con 6 roles Ansible independientes que soportan:
+El despliegue reemplaza el script monolítico `install.sh` con 6 roles Ansible independientes que soportan:
 
 - **all-in-one**: todos los componentes en un único host (dev/staging)
 - **multi-host**: cada componente en su propio host (producción)
@@ -35,8 +37,16 @@ Ver `docs/architecture.md`.
 | Rol | Host | Servicios |
 |-----|------|-----------|
 | `observer_common` | todos | usuario, ufw, dependencias |
-| `observer_db` | observer_db | PostgreSQL 18 |
+| `observer_db` | observer_db | PostgreSQL 15 (PGDG) |
 | `observer_redis` | observer_redis | Redis |
 | `observer_mesh` | observer_mesh | MeshCentral |
 | `observer_api` | observer_api | Django, Celery, NATS |
 | `observer_proxy` | observer_proxy | nginx, SSL |
+
+## Procedencia
+
+El código de producto se consolida desde los forks de trabajo de BrainCorp
+mediante commits squash sin historia derivada. El agente multiplataforma NO
+vive en este repo (se distribuye como binarios de release del repo
+`observer-agent`). Tabla de procedencia por componente, confianzas Reversa y
+detalles en [`docs/PROVENANCE.md`](docs/PROVENANCE.md).
