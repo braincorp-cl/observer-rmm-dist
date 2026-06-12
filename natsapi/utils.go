@@ -8,12 +8,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/braincorp/observer-rmm/natsapi/shared"
+	"github.com/braincorp-cl/observer-rmm/natsapi/shared"
 )
 
 func GetConfig(cfg string) (db *sqlx.DB, r DjangoConfig, err error) {
 	if cfg == "" {
-		cfg = "/rmm/api/observer/nats-api.conf"
+		cfg = "/rmm/api/observerrmm/nats-api.conf"
 		if !shared.FileExists(cfg) {
 			err = errors.New("unable to find config file")
 			return

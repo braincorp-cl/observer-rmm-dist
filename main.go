@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/braincorp/observer-rmm/natsapi"
+	"github.com/braincorp-cl/observer-rmm/natsapi"
 	"github.com/sirupsen/logrus"
 )
 

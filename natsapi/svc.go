@@ -10,7 +10,7 @@ import (
 	nats "github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/ugorji/go/codec"
-	"github.com/braincorp/observer-rmm/natsapi/shared"
+	"github.com/braincorp-cl/observer-rmm/natsapi/shared"
 )
 
 func Svc(logger *logrus.Logger, cfg string) {
@@ -21,8 +21,8 @@ func Svc(logger *logrus.Logger, cfg string) {
 	}
 
 	opts := []nats.Option{
-		nats.Name("observer-nats-api"),
-		nats.UserInfo("observer", r.Key),
+		nats.Name("observerrmm-nats-api"),
+		nats.UserInfo("observerrmm", r.Key),
 		nats.ReconnectWait(time.Second * 2),
 		nats.RetryOnFailedConnect(true),
 		nats.IgnoreAuthErrorAbort(),
