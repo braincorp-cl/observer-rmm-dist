@@ -8,6 +8,6 @@ all:
     observer_smoke:
       hosts:
         smoke-vm:
-          ansible_host: 192.168.122.10   # ← IP de tu VM
-          ansible_user: ubuntu           # ← usuario SSH con sudo
+          ansible_host: 10.20.0.104   # ← IP de tu VM
+          ansible_user: observer      # ← usuario SSH con sudo
           ansible_python_interpreter: /usr/bin/python3
