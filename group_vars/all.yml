@@ -4,10 +4,10 @@
 # Sistema operativo
 observer_user: observer
 observer_group: observer
-observer_app_name: observer       # Nombre del módulo Django:
-                                  # - WorkingDirectory: /opt/observer/api/observer/
-                                  # - CELERY_APP: observer
-                                  # - ASGI: observer.asgi:application
+observer_app_name: observerrmm   # Nombre del módulo Django (naming canónico RN-01):
+                                  # - WorkingDirectory: /opt/observer/api/observerrmm/
+                                  # - CELERY_APP: observerrmm
+                                  # - ASGI: observerrmm.asgi:application
 observer_root: /opt/observer
 observer_log_dir: /opt/observer/logs
 

@@ -10,7 +10,7 @@
 # requirements; migrate/collectstatic/reload_nats son no-op si ya están al día.
 #
 # Precondición: el control node debe tener el código del hub en
-# {{ observer_source_path }} (default: ../observer-rmm/api/observerrmm/
+# {{ observer_source_path }} (default: {{ playbook_dir }}/api/observerrmm/ — dist-interno desde F008/D-03;
 # relativo a playbook_dir).
 
 - name: Validar que el path del código fuente Django existe en el control node

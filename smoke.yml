@@ -23,10 +23,11 @@
   hosts: observer_smoke
   become: true
   vars:
-    # Pre-consolidación (F008 Fase 0): el backend vive en el fork hub,
-    # sibling de este repo. Post-consolidación (T013) puede apuntar a
-    # "{{ playbook_dir }}/api/observerrmm/".
-    smoke_source_path: "{{ playbook_dir }}/../observer-rmm/api/observerrmm/"
+    # Post-consolidación (F008/T013): el gate valida el backend
+    # consolidado del propio dist. Para validar el fork hub (flujo D-08
+    # de fixes), apuntar temporalmente a
+    # "{{ playbook_dir }}/../observer-rmm/api/observerrmm/".
+    smoke_source_path: "{{ playbook_dir }}/api/observerrmm/"
     smoke_root: /opt/observer-smoke
     smoke_python_version: "3.11"
 
@@ -115,7 +116,7 @@
         state: directory
         mode: "0755"
 
-    - name: Sincronizar backend desde el fork hub (working tree)
+    - name: Sincronizar backend (fuente según smoke_source_path)
       ansible.posix.synchronize:
         src: "{{ smoke_source_path }}"
         dest: "{{ smoke_root }}/observerrmm/"

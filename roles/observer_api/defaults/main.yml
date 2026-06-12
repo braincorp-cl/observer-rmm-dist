@@ -19,5 +19,6 @@ observer_checkin_hw_assets_max: 4000
 # observer_source_path: path del código fuente Django en el control node.
 #   Default asume layout sibling: observer-rmm-dist/ y observer-rmm/ comparten parent dir.
 #   Override en inventory si el layout es distinto o si se usa otra estrategia (git, etc).
-observer_source_path: "{{ playbook_dir }}/../observer-rmm/api/observerrmm/"
+# Post-consolidación F008: el dist es self-contained (D-03)
+observer_source_path: "{{ playbook_dir }}/api/observerrmm/"
 observer_django_requirements: "requirements.txt"
