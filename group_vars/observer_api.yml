@@ -28,11 +28,24 @@ celery_max_workers: 20
 # NO usar valores upstream (200-400s) — causaron crash DB en producción
 # ============================================================
 
+# F009: bloque anti-OOM COMPLETO (8 CHECKIN_* + jitter + NATS max conn),
+# valores de producción (~28k agentes). NO bajar (esp. SYNCMESH < 3600).
+observer_checkin_hello_min: 200
+observer_checkin_hello_max: 400
+observer_checkin_agentinfo_min: 24000
+observer_checkin_agentinfo_max: 40000
+observer_checkin_win_services_min: 24000
+observer_checkin_win_services_max: 30000
+observer_checkin_pubip_min: 3000
+observer_checkin_pubip_max: 5000
+observer_checkin_disks_min: 240000
+observer_checkin_disks_max: 250000
+observer_checkin_sw_inventory_min: 50000
+observer_checkin_sw_inventory_max: 51000
+observer_checkin_hw_assets_min: 24000
+observer_checkin_hw_assets_max: 254000
 observer_checkin_syncmesh_min: 3600
 observer_checkin_syncmesh_max: 7200
-observer_checkin_win_services_min: 2400
-observer_checkin_win_services_max: 3000
-observer_checkin_sw_inventory_min: 2800
-observer_checkin_sw_inventory_max: 3500
-observer_checkin_hw_assets_min: 3000
-observer_checkin_hw_assets_max: 4000
+observer_check_interval_jitter_min: 3
+observer_check_interval_jitter_max: 120
+observer_nats_max_connections: 50000

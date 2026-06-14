@@ -8,17 +8,27 @@
     reload: true
     state: present
 
-# 2. Repositorio oficial PostgreSQL
-- name: Agregar clave GPG PostgreSQL
-  ansible.builtin.apt_key:
-    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    state: present
+# 2. Repositorio oficial PostgreSQL (PGDG) — get_url + signed-by, fiel a install.sh
+#    (F009 D-04: reemplaza apt_key deprecado; sin apt_repository ni deb822_repository)
+- name: Crear directorio de keyrings APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
 
-- name: Agregar repositorio PostgreSQL
-  ansible.builtin.apt_repository:
-    repo: "deb https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
-    filename: pgdg
-    state: present
+- name: Descargar clave GPG PostgreSQL (PGDG)
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /etc/apt/keyrings/pgdg.asc
+    mode: "0644"
+
+- name: Registrar repositorio PostgreSQL con signed-by
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/pgdg.list
+    content: "deb [signed-by=/etc/apt/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main\n"
+    owner: root
+    group: root
+    mode: "0644"
 
 # 3. Instalar PostgreSQL
 - name: Instalar PostgreSQL {{ observer_postgresql_version }}

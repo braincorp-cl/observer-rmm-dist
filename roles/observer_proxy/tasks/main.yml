@@ -1,15 +1,25 @@
 ---
-# Repositorio oficial nginx.org
-- name: Agregar clave GPG nginx
-  ansible.builtin.apt_key:
-    url: https://nginx.org/keys/nginx_signing.key
-    state: present
+# Repositorio oficial nginx.org — get_url + signed-by, fiel a install.sh
+# (F009 D-04: reemplaza apt_key deprecado; sin apt_repository ni deb822_repository)
+- name: Crear directorio de keyrings APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
 
-- name: Agregar repositorio nginx stable
-  ansible.builtin.apt_repository:
-    repo: "deb https://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx"
-    filename: nginx
-    state: present
+- name: Descargar clave GPG nginx
+  ansible.builtin.get_url:
+    url: https://nginx.org/keys/nginx_signing.key
+    dest: /etc/apt/keyrings/nginx.asc
+    mode: "0644"
+
+- name: Registrar repositorio nginx stable con signed-by
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/nginx.list
+    content: "deb [signed-by=/etc/apt/keyrings/nginx.asc] https://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx\n"
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Instalar nginx
   ansible.builtin.apt:

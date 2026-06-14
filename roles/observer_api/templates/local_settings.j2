@@ -30,15 +30,20 @@ MESH_TOKEN_KEY = '{{ vault_observer_mesh_password }}'
 
 NATS_SERVER = 'nats://{{ observer_nats_host }}:{{ observer_nats_port }}'
 
-# Parámetros de escala — validados producción MINSAL 28.300 agentes (2026)
-# Valores upstream (200-400s) causan carga excesiva en DB a escala
-# Nombres de settings = los que lee apiv3/utils.py (CHECKIN_WINSVC/SW/WMI;
-# los anteriores WIN_SERVICES/SW_INVENTORY/HW_ASSETS eran claves muertas
-# que Django ignoraba — solo SYNCMESH surtía efecto)
-CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syncmesh_max }})
+# Parámetros de escala anti-OOM — validados en producción (~28k agentes).
+# Bloque COMPLETO parametrizado (F009): los 8 CHECKIN_* + CHECK_INTERVAL_JITTER +
+# NATS_MAX_CONNECTIONS. Nombres = los que lee apiv3/utils.py. Defaults del rol =
+# valores de producción; bajar cualquiera (esp. SYNCMESH < 3600) arriesga OOM MeshCentral.
+CHECKIN_HELLO = ({{ observer_checkin_hello_min }}, {{ observer_checkin_hello_max }})
+CHECKIN_AGENTINFO = ({{ observer_checkin_agentinfo_min }}, {{ observer_checkin_agentinfo_max }})
 CHECKIN_WINSVC = ({{ observer_checkin_win_services_min }}, {{ observer_checkin_win_services_max }})
+CHECKIN_PUBIP = ({{ observer_checkin_pubip_min }}, {{ observer_checkin_pubip_max }})
+CHECKIN_DISKS = ({{ observer_checkin_disks_min }}, {{ observer_checkin_disks_max }})
 CHECKIN_SW = ({{ observer_checkin_sw_inventory_min }}, {{ observer_checkin_sw_inventory_max }})
 CHECKIN_WMI = ({{ observer_checkin_hw_assets_min }}, {{ observer_checkin_hw_assets_max }})
+CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syncmesh_max }})
+CHECK_INTERVAL_JITTER = ({{ observer_check_interval_jitter_min }}, {{ observer_check_interval_jitter_max }})
+NATS_MAX_CONNECTIONS = {{ observer_nats_max_connections }}
 
 ALLOWED_HOSTS = ['{{ observer_domain | default("*") }}']
 

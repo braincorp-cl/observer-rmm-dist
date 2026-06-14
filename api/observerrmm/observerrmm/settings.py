@@ -118,17 +118,20 @@ HOSTED = False
 SWAGGER_ENABLED = False
 REDIS_HOST = "127.0.0.1"
 
-# Agent check-in intervals (seconds). Overridable in local_settings.py.
-# CHECKIN_SYNCMESH minimum 3600s — prevents OOM at scale
-# (MINSAL lesson: 200-400s caused OOM with 28k agents)
-CHECKIN_HELLO = (30, 60)
-CHECKIN_AGENTINFO = (200, 400)
-CHECKIN_WINSVC = (2400, 3000)
-CHECKIN_PUBIP = (300, 500)
-CHECKIN_DISKS = (1000, 2000)
-CHECKIN_SW = (2800, 3500)
-CHECKIN_WMI = (3000, 4000)
-CHECKIN_SYNCMESH = (3600, 3600)
+# Agent check-in intervals (seconds), random (min, max) per agent → built-in jitter.
+# Anti-OOM defaults: values proven in production at scale (~28k agents). Lowering any
+# of these (especially CHECKIN_SYNCMESH < 3600) risks MeshCentral OOM (MINSAL lesson).
+# Overridable per site in local_settings.py (the Ansible role parametrizes all of them).
+CHECKIN_HELLO = (200, 400)
+CHECKIN_AGENTINFO = (24000, 40000)
+CHECKIN_WINSVC = (24000, 30000)
+CHECKIN_PUBIP = (3000, 5000)
+CHECKIN_DISKS = (240000, 250000)
+CHECKIN_SW = (50000, 51000)
+CHECKIN_WMI = (24000, 254000)
+CHECKIN_SYNCMESH = (3600, 7200)
+CHECK_INTERVAL_JITTER = (3, 120)
+NATS_MAX_CONNECTIONS = 50000
 TRMM_LOG_LEVEL = "ERROR"
 TRMM_LOG_TO = "file"
 TRMM_PROTO = "https"

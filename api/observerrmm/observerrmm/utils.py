@@ -245,6 +245,11 @@ def reload_nats() -> None:
     if "NATS_WS_COMPRESSION" in os.environ or hasattr(settings, "NATS_WS_COMPRESSION"):
         config["websocket"]["compression"] = True
 
+    if "NATS_MAX_CONNECTIONS" in os.environ:
+        config["max_connections"] = int(os.getenv("NATS_MAX_CONNECTIONS"))  # type: ignore
+    elif hasattr(settings, "NATS_MAX_CONNECTIONS"):
+        config["max_connections"] = settings.NATS_MAX_CONNECTIONS  # type: ignore
+
     conf = os.path.join(settings.BASE_DIR, "nats-rmm.conf")
     with open(conf, "w") as f:
         json.dump(config, f)

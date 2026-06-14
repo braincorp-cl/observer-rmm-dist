@@ -64,8 +64,11 @@ class CheckCredsV2(KnoxLoginView):
         # check credentials
         serializer = AuthTokenSerializer(data=request.data)
         if not serializer.is_valid():
+            # .get() avoids a KeyError → HTTP 500 when the payload is empty or
+            # missing "username"; an invalid body returns 400 "Bad credentials".
             AuditLog.audit_user_failed_login(
-                request.data["username"], debug_info={"ip": request._client_ip}
+                request.data.get("username", ""),
+                debug_info={"ip": request._client_ip},
             )
             return notify_error("Bad credentials")
 
@@ -111,7 +114,10 @@ class LoginViewV2(KnoxLoginView):
         if user.is_sso_user:
             return notify_error("Bad credentials")
 
-        token = request.data["twofactor"]
+        # .get() avoids a KeyError → HTTP 500 when "twofactor" is absent (valid
+        # username/password but no TOTP key in the body); "" fails verification
+        # and falls through to a clean 400 "Bad credentials" (GAP-031).
+        token = request.data.get("twofactor", "")
         totp = pyotp.TOTP(user.totp_key)
 
         if settings.DEBUG and token == "sekret":

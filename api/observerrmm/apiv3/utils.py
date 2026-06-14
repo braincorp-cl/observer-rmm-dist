@@ -7,19 +7,23 @@ from observerrmm.structs import AgentCheckInConfig
 
 def get_agent_config() -> AgentCheckInConfig:
     return AgentCheckInConfig(
-        checkin_hello=random.randint(*getattr(settings, "CHECKIN_HELLO", (30, 60))),
+        # Fallbacks aligned to the anti-OOM production defaults in settings.py:
+        # losing a CHECKIN_* line must never degrade to a more aggressive interval.
+        checkin_hello=random.randint(*getattr(settings, "CHECKIN_HELLO", (200, 400))),
         checkin_agentinfo=random.randint(
-            *getattr(settings, "CHECKIN_AGENTINFO", (200, 400))
+            *getattr(settings, "CHECKIN_AGENTINFO", (24000, 40000))
         ),
         checkin_winsvc=random.randint(
-            *getattr(settings, "CHECKIN_WINSVC", (2400, 3000))
+            *getattr(settings, "CHECKIN_WINSVC", (24000, 30000))
         ),
-        checkin_pubip=random.randint(*getattr(settings, "CHECKIN_PUBIP", (300, 500))),
-        checkin_disks=random.randint(*getattr(settings, "CHECKIN_DISKS", (1000, 2000))),
-        checkin_sw=random.randint(*getattr(settings, "CHECKIN_SW", (2800, 3500))),
-        checkin_wmi=random.randint(*getattr(settings, "CHECKIN_WMI", (3000, 4000))),
+        checkin_pubip=random.randint(*getattr(settings, "CHECKIN_PUBIP", (3000, 5000))),
+        checkin_disks=random.randint(
+            *getattr(settings, "CHECKIN_DISKS", (240000, 250000))
+        ),
+        checkin_sw=random.randint(*getattr(settings, "CHECKIN_SW", (50000, 51000))),
+        checkin_wmi=random.randint(*getattr(settings, "CHECKIN_WMI", (24000, 254000))),
         checkin_syncmesh=random.randint(
-            *getattr(settings, "CHECKIN_SYNCMESH", (800, 1200))
+            *getattr(settings, "CHECKIN_SYNCMESH", (3600, 7200))
         ),
         limit_data=getattr(settings, "LIMIT_DATA", False),
         install_nushell=getattr(settings, "INSTALL_NUSHELL", False),

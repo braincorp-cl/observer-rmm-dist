@@ -5,6 +5,7 @@ pytest
 pytest-django
 pytest-xdist
 pytest-cov
+pytest-randomly
 refurb
 flake8
 daphne

@@ -19,9 +19,17 @@ class TestCheckCredsEndpoint(ObserverTestCase):
     def setUp(self):
         self.setup_coresettings()
 
-    # NOTE: no test for empty payload — the real view does
-    # request.data["username"] unguarded and returns 500 on missing keys
-    # (upstream behavior). Hardening candidate for F009.
+    # F009 (GAP-029): an invalid/empty payload must return a clean 400, never a
+    # 500. The view now uses request.data.get("username", "") so a missing key
+    # falls through to notify_error("Bad credentials"). These tests fix the 400
+    # contract; they deliberately do NOT assert the old 500.
+    def test_empty_payload_returns_400(self):
+        r = self.client.post(CHECKCREDS_URL, {}, format="json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_payload_without_password_returns_400(self):
+        r = self.client.post(CHECKCREDS_URL, {"username": "someone"}, format="json")
+        self.assertEqual(r.status_code, 400)
 
     def test_invalid_password_returns_400(self):
         baker.make("accounts.User", username="testuser", is_active=True)
@@ -138,6 +146,26 @@ class TestLoginEndpoint(ObserverTestCase):
                 "password": "testpass123",
                 "twofactor": "000000",
             },
+            format="json",
+        )
+        self.assertEqual(r.status_code, 400)
+
+    def test_login_missing_twofactor_returns_400(self):
+        # GAP-031: the view read request.data["twofactor"] unguarded → valid
+        # username/password without a "twofactor" key raised KeyError → 500.
+        # Now .get() lets it fall through to a clean 400, never a 500.
+        totp_key = pyotp.random_base32()
+        user = baker.make(
+            "accounts.User",
+            username="mfauser3",
+            is_active=True,
+            totp_key=totp_key,
+        )
+        user.set_password("testpass123")
+        user.save()
+        r = self.client.post(
+            LOGIN_URL,
+            {"username": "mfauser3", "password": "testpass123"},
             format="json",
         )
         self.assertEqual(r.status_code, 400)

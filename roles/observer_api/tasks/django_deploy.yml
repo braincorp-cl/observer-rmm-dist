@@ -88,7 +88,7 @@
 #   - create_natsapi_conf NO generaba nats-api.conf -> nats-api crash-loop ("unexpected end of JSON input")
 # generate_json_schemas (reporting), load_chocos (Chocolatey) y load_community_scripts
 # cargan datos funcionales. create_* escriben en settings.BASE_DIR (el dir del paquete).
-- name: Comandos de setup Django (schemas, nats-api.conf, app.ini, chocos, community scripts)
+- name: Comandos de setup Django (schemas, app.ini, chocos)
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py {{ item }}"
     chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
@@ -98,12 +98,45 @@
     DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
   loop:
     - generate_json_schemas
-    - create_natsapi_conf
     - create_uwsgi_conf
     - load_chocos
   changed_when: true
   notify:
     - restart rmm
+
+# F009 (RF-12 ext.): nats-api.conf idempotente. Contiene "key" (= SECRET_KEY, el token
+# NATS) + credenciales de PostgreSQL. Antes create_natsapi_conf iba en el loop de arriba
+# con changed_when:true (siempre "changed"). Ahora nats-api solo se reinicia si su CONFIG
+# cambió (p.ej. rotación de la contraseña de BD o de SECRET_KEY), independiente de
+# nats-rmm.conf. Como ambos confs derivan de SECRET_KEY, el token queda siempre sincronizado.
+- name: Checksum de nats-api.conf antes de create_natsapi_conf
+  ansible.builtin.stat:
+    path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-api.conf"
+  register: natsapi_conf_before
+
+- name: Generar nats-api.conf (create_natsapi_conf)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py create_natsapi_conf"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  changed_when: false
+
+- name: Checksum de nats-api.conf después de create_natsapi_conf
+  ansible.builtin.stat:
+    path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-api.conf"
+  register: natsapi_conf_after
+
+- name: Reiniciar nats-api solo si nats-api.conf cambió
+  ansible.builtin.debug:
+    msg: "nats-api.conf cambió → se reiniciará nats-api"
+  changed_when: >-
+    natsapi_conf_before.stat.checksum | default('') !=
+    natsapi_conf_after.stat.checksum | default('')
+  notify:
+    - restart nats-api
     - restart daphne
 
 # Superusuario Django inicial (= install.sh L586 `createsuperuser`). Sin esto no hay
@@ -179,7 +212,20 @@
 # SIN `creates:` a propósito: con el guard, nats-rmm.conf se generaba una sola vez y
 # quedaba stale, mientras create_natsapi_conf regenera nats-api.conf cada run → el token
 # NATS quedaba desincronizado y nats-api crash-loopea con "Authorization Violation".
-# Regenerar siempre + reiniciar nats (que recarga el config) y nats-api (que reconecta).
+# F009 (RF-12): idempotencia. Antes 'changed_when: true' reiniciaba nats + nats-api en
+# CADA deploy. Ahora cada servicio se reinicia SOLO si su propio config cambió:
+#   - nats     ⟸ nats-rmm.conf (checksum aquí). Deriva de SECRET_KEY (estable) + lista de
+#                agentes (users): re-deploys sin altas/bajas dan checksum idéntico → sin restart.
+#   - nats-api ⟸ nats-api.conf (checksum en el bloque create_natsapi_conf de arriba).
+# nats-api es cliente NATS y auto-reconecta cuando nats reinicia, así que no necesita
+# restart por cambios de nats-rmm.conf. Ambos confs derivan de SECRET_KEY → token sincronizado.
+# (El comando regenera el conf siempre e internamente hace 'nats-server -signal reload',
+# que es una recarga en caliente no disruptiva; lo que se evita es el restart systemd.)
+- name: Checksum de nats-rmm.conf antes de reload_nats
+  ansible.builtin.stat:
+    path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+  register: nats_conf_before
+
 - name: Ejecutar Django reload_nats (cierre R-04 — genera nats-rmm.conf con user observerrmm)
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py reload_nats"
@@ -189,10 +235,21 @@
   environment:
     DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
   register: reload_nats_result
-  changed_when: true
+  changed_when: false
+
+- name: Checksum de nats-rmm.conf después de reload_nats
+  ansible.builtin.stat:
+    path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+  register: nats_conf_after
+
+- name: Reiniciar nats solo si nats-rmm.conf cambió
+  ansible.builtin.debug:
+    msg: "nats-rmm.conf cambió → se reiniciará nats"
+  changed_when: >-
+    nats_conf_before.stat.checksum | default('') !=
+    nats_conf_after.stat.checksum | default('')
   notify:
     - restart nats
-    - restart nats-api
 
 - name: Verificar que nats-rmm.conf contiene user observerrmm (smoke test R-04)
   ansible.builtin.command:
