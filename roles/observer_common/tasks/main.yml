@@ -69,6 +69,32 @@
     group: "{{ observer_group }}"
     mode: "0755"
 
+# Resolución local de los 3 FQDN — FIEL a install.sh (L203-219). El host debe resolver
+# sus propios dominios (api/frontend/mesh) para que nginx, MeshCentral y los smoke checks
+# funcionen sin depender de DNS externo. En all-in-one apuntan a 127.0.1.1.
+- name: Comprobar si existe cloud-init
+  ansible.builtin.stat:
+    path: /etc/cloud/cloud.cfg
+  register: observer_cloud_cfg
+
+- name: Desactivar manage_etc_hosts de cloud-init (no sobrescribir /etc/hosts en reboot)
+  ansible.builtin.lineinfile:
+    path: /etc/cloud/cloud.cfg
+    regexp: '^\s*manage_etc_hosts:'
+    line: "manage_etc_hosts: false"
+  when: observer_cloud_cfg.stat.exists
+
+- name: Registrar FQDN del sistema en /etc/hosts (auto-resolución, install.sh L203-219)
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "^127\\.0\\.1\\.1 .*{{ observer_domain | regex_escape }}"
+    line: "127.0.1.1 {{ observer_domain }} {{ observer_app_domain }} {{ observer_mesh_domain }}"
+    state: present
+  when:
+    - observer_domain is defined
+    - observer_app_domain is defined
+    - observer_mesh_domain is defined
+
 - name: Configurar UFW — política por defecto
   community.general.ufw:
     state: enabled

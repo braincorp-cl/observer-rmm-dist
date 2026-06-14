@@ -106,6 +106,28 @@
     - restart rmm
     - restart daphne
 
+# Superusuario Django inicial (= install.sh L586 `createsuperuser`). Sin esto no hay
+# usuario para entrar al dashboard. No-interactivo vía DJANGO_SUPERUSER_PASSWORD (Django
+# 3.0+); idempotente (si el usuario ya existe, createsuperuser retorna error tolerado).
+# El admin completa el 2FA (TOTP) en su primer login web.
+- name: Crear superusuario Django inicial
+  ansible.builtin.command:
+    cmd: >-
+      {{ observer_root }}/api/env/bin/python manage.py createsuperuser --noinput
+      --username {{ observer_admin_user }} --email {{ observer_acme_email }}
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+    DJANGO_SUPERUSER_PASSWORD: "{{ vault_observer_admin_password }}"
+  register: observer_createsuperuser
+  changed_when: observer_createsuperuser.rc == 0
+  failed_when:
+    - observer_createsuperuser.rc != 0
+    - "'is already taken' not in observer_createsuperuser.stderr"
+    - "'already exists' not in observer_createsuperuser.stderr"
+
 # Community scripts (= install.sh L391-394): el repo se clona a settings.SCRIPTS_DIR
 # (= /opt/trmm-community-scripts, ruta legacy en settings.py) y load_community_scripts
 # lo carga. Es un RECURSO EXTERNO — decisión BrainCorp pendiente sobre qué repo usar
@@ -154,16 +176,23 @@
 # escribe el JSON config con `users[0].user = "observerrmm"` y luego intenta
 # `nats-server -signal reload` (silenciado si el binario no existe todavía
 # — primer deploy: NATS se instala después y arranca leyendo este conf).
+# SIN `creates:` a propósito: con el guard, nats-rmm.conf se generaba una sola vez y
+# quedaba stale, mientras create_natsapi_conf regenera nats-api.conf cada run → el token
+# NATS quedaba desincronizado y nats-api crash-loopea con "Authorization Violation".
+# Regenerar siempre + reiniciar nats (que recarga el config) y nats-api (que reconecta).
 - name: Ejecutar Django reload_nats (cierre R-04 — genera nats-rmm.conf con user observerrmm)
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py reload_nats"
     chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
-    creates: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
   become: true
   become_user: "{{ observer_user }}"
   environment:
     DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
   register: reload_nats_result
+  changed_when: true
+  notify:
+    - restart nats
+    - restart nats-api
 
 - name: Verificar que nats-rmm.conf contiene user observerrmm (smoke test R-04)
   ansible.builtin.command:

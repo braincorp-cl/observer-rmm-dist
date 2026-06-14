@@ -6,12 +6,13 @@
   hosts: observer_db
   gather_facts: false
   tasks:
+    # Chequeo LOCAL en el host (PG bindea local + UFW bloquea acceso externo;
+    # delegar a localhost/control-node daba timeout contra la IP externa).
     - name: Verificar puerto 5432
       ansible.builtin.wait_for:
-        host: "{{ ansible_host }}"
+        host: localhost
         port: 5432
         timeout: 10
-      delegate_to: localhost
 
 - name: Healthcheck — Redis
   hosts: observer_redis
@@ -19,10 +20,9 @@
   tasks:
     - name: Verificar puerto 6379
       ansible.builtin.wait_for:
-        host: "{{ ansible_host }}"
+        host: localhost
         port: 6379
         timeout: 10
-      delegate_to: localhost
 
 - name: Healthcheck — MeshCentral
   hosts: observer_mesh
@@ -30,20 +30,20 @@
   tasks:
     - name: Verificar puerto 4430
       ansible.builtin.wait_for:
-        host: "{{ ansible_host }}"
+        host: localhost
         port: 4430
         timeout: 15
-      delegate_to: localhost
 
-- name: Healthcheck — API (localhost:8000)
+- name: Healthcheck — API (uWSGI socket)
   hosts: observer_api
   gather_facts: false
   tasks:
-    - name: Verificar uWSGI en puerto 8000
-      ansible.builtin.wait_for:
-        host: localhost
-        port: 8000
-        timeout: 15
+    # uWSGI bindea un socket unix (app.ini), NO :8000. Verificar el socket, no el puerto.
+    - name: Verificar socket uWSGI del API
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}/observerrmm.sock"
+      register: rmm_uwsgi_sock
+      failed_when: not rmm_uwsgi_sock.stat.exists
 
     - name: Verificar NATS en puerto 4222
       ansible.builtin.wait_for:
@@ -86,13 +86,25 @@
         port: 443
         timeout: 10
 
-    - name: Verificar API endpoint retorna 401
+    # /core/version/ es un endpoint protegido real (Observer/TacticalRMM NO usa prefijo
+    # /api/): sin token devuelve 401, probando toda la cadena nginx→uwsgi→Django→DRF auth.
+    # El host se auto-resuelve vía /etc/hosts (observer_common, install.sh L203-219).
+    - name: Verificar endpoint protegido del API retorna 401
       ansible.builtin.uri:
-        url: "https://{{ observer_domain }}/api/v4/me/"
+        url: "https://{{ observer_domain }}/core/version/"
         status_code: 401
         validate_certs: true
       register: api_result
 
+    - name: Verificar health endpoint del API retorna 200
+      ansible.builtin.uri:
+        url: "https://{{ observer_domain }}/"
+        status_code: 200
+        validate_certs: true
+      register: api_health
+
     - name: Mostrar resultado
       ansible.builtin.debug:
-        msg: "API OK — retornó {{ api_result.status }} como esperado"
+        msg: >
+          API OK — /core/version/ retornó {{ api_result.status }} (401 auth enforced),
+          / retornó {{ api_health.status }} (health {{ api_health.json.status | default('?') }})

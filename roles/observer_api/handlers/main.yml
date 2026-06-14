@@ -27,3 +27,19 @@
     name: celerybeat
     state: restarted
   listen: restart celerybeat
+
+# Orden importa: nats (servidor) ANTES de nats-api (cliente). Los handlers corren en
+# orden de definición al final del play, así el servidor ya tiene el config fresco
+# (nats-rmm.conf regenerado por reload_nats) cuando nats-api reconecta — si no, el
+# cliente choca con "nats: Authorization Violation" por token desincronizado.
+- name: restart nats
+  ansible.builtin.systemd:
+    name: nats
+    state: restarted
+  listen: restart nats
+
+- name: restart nats-api
+  ansible.builtin.systemd:
+    name: nats-api
+    state: restarted
+  listen: restart nats-api

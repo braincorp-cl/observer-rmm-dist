@@ -88,7 +88,9 @@
 - name: Setup Django (código + dependencias + migrate + collectstatic + reload_nats)
   ansible.builtin.include_tasks: django_deploy.yml
 
-# nats-api binary (Go)
+# nats-api binary (Go). Debe estar recompilado desde el fuente actual (natsapi/svc.go
+# conecta como user NATS `observerrmm`); un binario stale pre-rebrand conecta con el
+# user viejo y choca con "nats: Authorization Violation". Al cambiar, reiniciar el servicio.
 - name: Copiar nats-api binary
   ansible.builtin.copy:
     src: "nats-api{{ '-arm64' if ansible_architecture == 'aarch64' else '' }}"
@@ -96,6 +98,7 @@
     owner: root
     group: root
     mode: "0755"
+  notify: restart nats-api
 
 # Celery conf
 - name: Crear directorio /etc/conf.d

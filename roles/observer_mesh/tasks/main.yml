@@ -34,10 +34,20 @@
   become: true
   become_user: "{{ observer_user }}"
 
+- name: Crear el data dir de MeshCentral
+  ansible.builtin.file:
+    path: /meshcentral/meshcentral-data
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+
 - name: Desplegar mesh.cfg (config.json de MeshCentral)
   ansible.builtin.template:
     src: mesh.cfg.j2
-    dest: /meshcentral/config.json
+    # MeshCentral lee su config de meshcentral-data/config.json (NO de la raíz del
+    # install). En la raíz se ignora → MeshCentral usa defaults (no bindea el port).
+    dest: /meshcentral/meshcentral-data/config.json
     owner: "{{ observer_user }}"
     group: "{{ observer_group }}"
     mode: "0640"

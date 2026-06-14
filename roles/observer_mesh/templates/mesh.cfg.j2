@@ -1,19 +1,52 @@
 {
   "settings": {
-    "Cert": "{{ observer_mesh_host }}",
-    "TLSOffload": "{{ hostvars[groups['observer_proxy'][0]]['ansible_host'] | default('127.0.0.1') }}",
-    "Port": {{ observer_mesh_port }},
-    "RedirPort": 80,
-    "AgentPong": 300,
-    "dbPath": "postgresql://{{ observer_mesh_db_user }}:{{ vault_observer_mesh_db_password }}@{{ hostvars[groups['observer_db'][0]]['ansible_host'] | default('localhost') }}/{{ observer_mesh_db_name }}"
+    "cert": "{{ observer_mesh_domain }}",
+    "WANonly": true,
+    "minify": 1,
+    "port": {{ observer_mesh_port | default(4430) }},
+    "aliasPort": 443,
+    "redirPort": 800,
+    "allowLoginToken": true,
+    "allowFraming": true,
+    "agentPing": 250,
+    "agentIdleTimeout": 300,
+    "agentWsCompression": true,
+    "wsCompression": true,
+    "compression": true,
+    "allowHighQualityDesktop": true,
+    "tlsOffload": "{{ hostvars[groups['observer_proxy'][0]]['ansible_host'] | default('127.0.0.1') }}",
+    "cookieEncoding": "base64",
+    "agentsInRam": true,
+    "allowedFramingOrigins": [
+      "https://{{ observer_app_domain }}"
+    ],
+    "ignoreAgentHashCheck": true,
+    "autoBackup": {
+      "keepLastDaysBackup": 7,
+      "backupHour": 6
+    },
+    "prometheus": true,
+    "maxInvalidLogin": {
+      "time": 5,
+      "count": 5,
+      "coolofftime": 30
+    },
+    "postgres": {
+      "user": "{{ observer_mesh_db_user }}",
+      "password": "{{ vault_observer_mesh_db_password }}",
+      "port": "{{ observer_db_port | default(5432) }}",
+      "host": "{{ observer_db_host | default('localhost') }}"
+    }
   },
   "domains": {
     "": {
       "title": "Observer RMM",
-      "title2": "BrainCorp Chile",
-      "NewAccounts": false,
-      "certUrl": "https://{{ observer_domain | default('rmm.localhost') }}",
-      "trmm_url": "https://{{ observer_api_host | default(hostvars[groups['observer_api'][0]]['ansible_host'] | default('localhost')) }}"
+      "title2": "Observer RMM",
+      "newAccounts": false,
+      "certUrl": "https://{{ observer_mesh_domain }}:443/",
+      "geoLocation": true,
+      "cookieIpCheck": false,
+      "mstsc": true
     }
   }
 }
