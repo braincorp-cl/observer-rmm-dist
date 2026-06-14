@@ -16,6 +16,7 @@ alcanzable desde `main`** (criterio de aceite RN-02).
 |------------|--------------|----------------|------------------|----------------------|-------------------|
 | Backend Django (18 apps) | `api/observerrmm/` | `observer-rmm` (hub) | hub `099cc1a0` | `328d2f3` | ~98% |
 | Capa Go (natsapi) | `natsapi/` + `main.go` + `go.mod`/`go.sum` | `observer-rmm` (hub) | hub `099cc1a0` | `328d2f3` (mismo squash backend) | ~98% |
+| Binario nats-api (artefacto Go) | `roles/observer_api/files/nats-api{,-arm64}` | compilado de `natsapi/` (este repo) | — | `bafa5bf` (recompilado) | — (derivado) |
 | Frontend Vue/Quasar (fuente) | `web/app/` | `observer-rmm-web` | web `fe91b2d` | `09ecf3f` | ~87% |
 | Frontend (artefacto build) | `web/dist/` | build local desde `web/app/` (pins en `web/BUILD.md`) | — | `09ecf3f` | — (derivado) |
 | Despliegue Ansible (6 roles + playbooks) | `roles/`, `*.yml`, `group_vars/` | nativo del dist (scaffold F001 + endurecimiento F008) | — | historia propia del dist | — (nativo) |
@@ -23,6 +24,14 @@ alcanzable desde `main`** (criterio de aceite RN-02).
 
 Confianzas según `confidence-report.md` del hub (re-extracción 5 hub /
 re-extracción 7 web / re-extracción 5 agent, 2026-06).
+
+> **Nota nats-api (staging E2E, `bafa5bf`):** los binarios `roles/observer_api/files/nats-api{,-arm64}`
+> versionados en el primer commit del dist estaban **stale** (build del 26-may pre-rebrand: embebían
+> el user NATS `observer` y el path `/rmm/api/observer/`), lo que provocaba `nats: Authorization Violation`
+> contra `nats-rmm.conf` (user `observerrmm`). Se **recompilaron desde el fuente `natsapi/` de este repo**
+> (`go build`, amd64+arm64) → embeben `observerrmm-nats-api`. **Regla:** estos artefactos deben
+> reconstruirse desde `natsapi/` ante cualquier cambio del fuente; un binario stale tras un rebrand es
+> un fallo silencioso (el `.go` correcto no garantiza el binario correcto).
 
 ## Upstream original
 
