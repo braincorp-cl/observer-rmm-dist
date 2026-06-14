@@ -3,13 +3,12 @@
 bind {{ observer_redis_bind }}
 port {{ observer_redis_port }}
 {# El producto (Django channels/cache/celery) se conecta SIN auth, igual que
-   el install.sh original — settings.py usa redis://HOST:6379 sin password.
-   requirepass solo se emite si se define la variable (requeriría además
-   parchear settings.py para soportar auth — candidato F009+). En multi-host
-   la protección es bind + reglas UFW entre grupos. #}
-{% if vault_observer_redis_password is defined and vault_observer_redis_password | length > 0 %}
-requirepass {{ vault_observer_redis_password }}
-{% endif %}
+   el install.sh original — settings.py/local_settings.j2 usan redis://HOST:6379
+   sin password. Por eso NO se emite requirepass: la protección es bind a
+   loopback + protected-mode + reglas UFW entre grupos (multi-host). Emitir
+   requirepass sin parchear el backend para soportar AUTH rompe celery/cache/
+   channels con NOAUTH (GAP-033). Ref: redis.conf de producción (install.sh)
+   sin requirepass. #}
 maxmemory {{ observer_redis_maxmemory }}
 maxmemory-policy {{ observer_redis_maxmemory_policy }}
 
