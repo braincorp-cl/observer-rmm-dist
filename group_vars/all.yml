@@ -14,5 +14,12 @@ observer_log_dir: /opt/observer/logs
 # Dominio — REQUERIDO, sin valor por defecto
 # observer_domain: "rmm.ejemplo.cl"
 
+# Identidad de conexión a la BD — COMPARTIDA cross-rol/cross-host: el rol observer_db
+# la usa para crear la BD/usuario y el rol observer_api para conectarse (local_settings).
+# Debe vivir aquí (no en defaults del rol observer_db) o el rol observer_api no la ve.
+observer_db_name: observerrmm
+observer_db_user: observerrmm
+observer_db_port: 5432
+
 # Validación de versión mínima de Ansible
 observer_min_ansible_version: "2.15"

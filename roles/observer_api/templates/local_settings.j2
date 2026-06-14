@@ -3,6 +3,11 @@
 
 SECRET_KEY = "{{ vault_django_secret_key }}"
 
+# URL ofuscada del admin Django (= install.sh ADMIN_URL). settings.py solo la define
+# en el bloque GHACTIONS; en producción DEBE venir de aquí o middleware.py falla con
+# AttributeError 'ADMIN_URL'. Incluye '/' final como el install.sh (línea 493).
+ADMIN_URL = "{{ observer_admin_url }}/"
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

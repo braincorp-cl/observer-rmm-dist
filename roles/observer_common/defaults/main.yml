@@ -1,3 +1,27 @@
 ---
+# Paquetes APT instalados en todos los hosts por observer_common.
+# Movido desde group_vars/observer_common.yml en F008 T022 (staging E2E):
+# ese archivo era un group_vars HUÉRFANO — observer_common es un rol aplicado
+# a `hosts: all`, no un grupo de inventario, así que el archivo nunca se cargaba
+# y observer_common_packages / observer_ufw_base_rules quedaban undefined.
+# Como defaults del rol, viven con el rol y aceptan override por group_vars/host_vars.
+observer_common_packages:
+  - python3-pip
+  - python3-venv
+  - git
+  - curl
+  - wget
+  - ufw
+  - acl
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - apt-transport-https
+
 observer_ufw_enabled: true
 observer_ufw_rules: []
+
+# Reglas UFW base (puertos entre grupos).
+# Cada rol agrega sus propias reglas via la variable observer_ufw_rules.
+observer_ufw_base_rules:
+  - { rule: allow, port: 22, proto: tcp, comment: "SSH" }

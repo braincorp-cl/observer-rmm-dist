@@ -7,8 +7,8 @@ server {
 
     listen 443 ssl;
     listen [::]:443 ssl;
-    ssl_certificate /etc/letsencrypt/live/{{ observer_base_domain }}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{ observer_base_domain }}/privkey.pem;
+    ssl_certificate {{ observer_cert_path }};
+    ssl_certificate_key {{ observer_cert_key_path }};
     ssl_session_cache shared:FRONTSSL:10m;
 
     add_header X-Content-Type-Options nosniff;

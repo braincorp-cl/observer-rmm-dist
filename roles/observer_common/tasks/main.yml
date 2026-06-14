@@ -21,7 +21,17 @@
     system: true
     state: present
 
-- name: Crear usuario del sistema observer
+# El usuario observer puede ser TAMBIÉN el usuario de deploy/SSH (modelo install.sh:
+# se instala como el usuario de servicio). En ese caso ya existe y está logueado, y
+# usermod -d (cambio de home) falla con "user is currently used by process". Por eso:
+# crear solo si no existe; si ya existe, no modificarlo destructivamente.
+- name: Comprobar si el usuario observer ya existe
+  ansible.builtin.command: "getent passwd {{ observer_user }}"
+  register: observer_user_check
+  changed_when: false
+  failed_when: false
+
+- name: Crear usuario del sistema observer (solo si no existe)
   ansible.builtin.user:
     name: "{{ observer_user }}"
     group: "{{ observer_group }}"
@@ -33,6 +43,23 @@
     system: true
     create_home: true
     state: present
+  when: observer_user_check.rc != 0
+
+- name: Asegurar membresía de www-data del usuario observer (no destructivo)
+  ansible.builtin.user:
+    name: "{{ observer_user }}"
+    groups:
+      - www-data
+    append: true
+  when: observer_user_check.rc == 0
+
+- name: Asegurar el directorio raíz de la app observer
+  ansible.builtin.file:
+    path: "{{ observer_root }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0755"
 
 - name: Crear directorio de logs
   ansible.builtin.file:

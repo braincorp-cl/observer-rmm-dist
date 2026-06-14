@@ -17,8 +17,37 @@
     state: present
     update_cache: true
 
-# Certificados TLS desde vault
-- name: Crear directorio de certificados
+# El paquete nginx.org no trae sites-available/sites-enabled ni los incluye en
+# nginx.conf (solo conf.d/*.conf). Sin esto, los vhosts del rol (rmm/frontend/mesh,
+# desplegados a sites-enabled/) serían ignorados y los symlinks fallarían. (= install.sh L278-313.)
+- name: Crear sites-available y sites-enabled
+  ansible.builtin.file:
+    path: "/etc/nginx/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: [sites-available, sites-enabled]
+
+- name: Desplegar nginx.conf (incluye sites-enabled/*)
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+# --- Provisión del certificado TLS — SOLO en el host con rol nginx ---------------
+# El proxy termina TLS; los backends van en HTTP plano (interno sin SSL).
+# Modo acme (default): acme.sh emite el wildcard *.<root> por DNS-01 vía la API de
+#   GoDaddy (dns_gd) — automatizado, sin exposición a Internet, sin paso manual; deja
+#   los certs en /etc/ssl/observer/ y registra el reload de nginx para la renovación
+#   automática (cron de acme.sh). GoDaddy NO tiene plugin oficial de certbot; acme.sh
+#   es el método elegido (decisión BrainCorp 2026-06-13). CA = Let's Encrypt.
+# Modo byo: cert provisto por el operador vía vault (mismo destino /etc/ssl/observer/).
+
+- name: Crear directorio de certificados nginx
   ansible.builtin.file:
     path: /etc/ssl/observer
     state: directory
@@ -26,23 +55,90 @@
     group: root
     mode: "0755"
 
-- name: Escribir certificado TLS
-  ansible.builtin.copy:
-    content: "{{ vault_tls_cert }}"
-    dest: /etc/ssl/observer/fullchain.pem
-    owner: root
-    group: root
-    mode: "0644"
-  notify: reload nginx
+- name: Provisión TLS con acme.sh + GoDaddy DNS (modo acme)
+  when: observer_cert_mode == 'acme'
+  block:
+    - name: Validar prerequisitos del modo acme
+      ansible.builtin.assert:
+        that:
+          - observer_acme_email | length > 0
+          - observer_base_domain is defined and (observer_base_domain | length > 0)
+          - vault_godaddy_key is defined and (vault_godaddy_key | length > 0)
+          - vault_godaddy_secret is defined and (vault_godaddy_secret | length > 0)
+        fail_msg: >
+          observer_cert_mode=acme requiere observer_acme_email, observer_base_domain y
+          vault_godaddy_key / vault_godaddy_secret (group_vars/observer_proxy/vault.yml).
+          Obtén una API key de PRODUCCIÓN en https://developer.godaddy.com/keys/
+          (requiere >10 dominios o Discount Domain Club en la cuenta GoDaddy).
 
-- name: Escribir clave privada TLS
-  ansible.builtin.copy:
-    content: "{{ vault_tls_key }}"
-    dest: /etc/ssl/observer/privkey.pem
-    owner: root
-    group: root
-    mode: "0600"
-  notify: reload nginx
+    - name: Instalar dependencias de acme.sh
+      ansible.builtin.apt:
+        name: [git, curl, socat, cron]
+        state: present
+        update_cache: true
+
+    - name: Clonar acme.sh
+      ansible.builtin.git:
+        repo: https://github.com/acmesh-official/acme.sh.git
+        dest: /opt/acme.sh-src
+        version: "{{ observer_acme_sh_version | default('master') }}"
+
+    - name: Instalar acme.sh (root — instala cron de renovación en /root/.acme.sh)
+      ansible.builtin.command:
+        cmd: "./acme.sh --install -m {{ observer_acme_email }}"
+        chdir: /opt/acme.sh-src
+        creates: /root/.acme.sh/acme.sh
+
+    - name: Emitir wildcard *.{{ observer_base_domain }} vía GoDaddy DNS (Let's Encrypt)
+      ansible.builtin.command:
+        cmd: >-
+          /root/.acme.sh/acme.sh --issue --dns dns_gd --server letsencrypt
+          --dnssleep {{ observer_acme_dnssleep | default(600) }}
+          -d {{ observer_base_domain }} -d '*.{{ observer_base_domain }}'
+      environment:
+        GD_Key: "{{ vault_godaddy_key }}"
+        GD_Secret: "{{ vault_godaddy_secret }}"
+      register: acme_issue
+      # acme.sh: rc 0 = emitido; rc 2 = ya válido, se omite (idempotente)
+      changed_when: acme_issue.rc == 0
+      failed_when: acme_issue.rc not in [0, 2]
+
+    - name: Instalar el cert en /etc/ssl/observer + registrar reload de nginx (renovación)
+      ansible.builtin.command:
+        # reload-or-restart: en el primer install nginx aún no está activo (el rol lo
+        # arranca después, tras desplegar los vhosts); reload-or-restart lo ARRANCA si
+        # está parado y lo RECARGA en renovaciones (nginx ya corriendo). 'reload' a secas
+        # falla con "nginx.service is not active".
+        cmd: >-
+          /root/.acme.sh/acme.sh --install-cert -d {{ observer_base_domain }}
+          --key-file /etc/ssl/observer/privkey.pem
+          --fullchain-file /etc/ssl/observer/fullchain.pem
+          --reloadcmd "systemctl reload-or-restart nginx"
+      changed_when: true
+      notify: reload nginx
+
+# Modo byo (= install.sh --use-own-cert): cert provisto por el operador vía vault.
+# (El directorio /etc/ssl/observer ya se crea arriba, incondicional.)
+- name: Provisión TLS BYO (cert del vault)
+  when: observer_cert_mode == 'byo'
+  block:
+    - name: Escribir certificado TLS
+      ansible.builtin.copy:
+        content: "{{ vault_tls_cert }}"
+        dest: /etc/ssl/observer/fullchain.pem
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload nginx
+
+    - name: Escribir clave privada TLS
+      ansible.builtin.copy:
+        content: "{{ vault_tls_key }}"
+        dest: /etc/ssl/observer/privkey.pem
+        owner: root
+        group: root
+        mode: "0600"
+      notify: reload nginx
 
 # Configuración nginx
 - name: Desplegar rmm.conf
@@ -100,7 +196,7 @@
 
 - name: Sincronizar activos compilados del frontend
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../web/dist/"
+    src: "{{ playbook_dir }}/web/dist/"
     dest: /var/www/observer/dist/
     owner: "{{ observer_user }}"
     group: "{{ observer_group }}"

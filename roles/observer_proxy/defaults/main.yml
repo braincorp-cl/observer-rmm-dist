@@ -2,3 +2,26 @@
 observer_proxy_http_port: 80
 observer_proxy_https_port: 443
 observer_proxy_upstream_port: 8000
+
+# --- Provisión de certificado TLS — SOLO en el host con rol nginx ----------------
+# El proxy termina TLS y reenvía a los backends en HTTP plano (interno sin SSL).
+#
+#   'acme' (default): acme.sh emite el WILDCARD *.<root> por DNS-01 vía la API de
+#           GoDaddy (dns_gd) — automatizado, sin exposición a Internet, renovación
+#           desatendida (cron de acme.sh). CA = Let's Encrypt. GoDaddy no tiene
+#           plugin oficial de certbot. Requiere vault_godaddy_key/secret.
+#   'byo'   (= install.sh --use-own-cert): el operador provee el wildcard
+#           (fullchain+privkey) vía vault; el rol solo lo instala.
+#
+# Ambos modos dejan los certs en /etc/ssl/observer/ -> path único para nginx.
+observer_cert_mode: acme
+
+# Email para registro/avisos ACME + django + meshcentral (install.sh `letsemail`).
+observer_acme_email: ""
+
+# Parámetros de acme.sh (modo acme):
+observer_acme_sh_version: master    # tag/branch de acme.sh a clonar
+observer_acme_dnssleep: 600         # espera de propagación DNS GoDaddy (s) — wiki dns_gd
+
+observer_cert_path: /etc/ssl/observer/fullchain.pem
+observer_cert_key_path: /etc/ssl/observer/privkey.pem

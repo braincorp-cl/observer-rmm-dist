@@ -29,13 +29,9 @@
     state: present
     update_cache: true
 
-- name: Asegurar servicio PostgreSQL iniciado
-  ansible.builtin.systemd:
-    name: "postgresql@{{ observer_postgresql_version }}-main"
-    state: started
-    enabled: true
-
-# 4. Configuración tuning
+# 4. Configuración tuning — ANTES de asegurar el arranque, para que el servicio
+# siempre inicie con el config correcto. Si el config en disco es inválido (p.ej.
+# shared_buffers > RAM), "iniciar" fallaría antes de poder corregirlo.
 - name: Desplegar postgresql.conf con tuning de producción
   ansible.builtin.template:
     src: postgresql.conf.j2
@@ -54,6 +50,12 @@
     group: postgres
     mode: "0640"
   notify: reload postgresql
+
+- name: Asegurar servicio PostgreSQL iniciado
+  ansible.builtin.systemd:
+    name: "postgresql@{{ observer_postgresql_version }}-main"
+    state: started
+    enabled: true
 
 # 6. Bases de datos y usuarios
 - name: Crear usuario PostgreSQL para Django

@@ -1,0 +1,29 @@
+# /etc/nginx/nginx.conf — generado por Ansible (observer_proxy). Espejo del install.sh
+# (líneas 282-306): el paquete nginx.org NO incluye sites-enabled/ por defecto, así que
+# se reemplaza nginx.conf para incluir conf.d/*.conf Y sites-enabled/* (donde el rol
+# despliega rmm/frontend/meshcentral).
+worker_rlimit_nofile 1000000;
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 4096;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    types_hash_max_size 2048;
+    server_names_hash_bucket_size 256;
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+    gzip on;
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}

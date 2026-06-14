@@ -3,6 +3,16 @@
 #   pg_shared_buffers    = 25% de RAM
 #   pg_effective_cache_size = 75% de RAM
 
+# Rutas del cluster gestionado por Debian/PGDG (postgresql-common). Este archivo
+# REEMPLAZA el postgresql.conf de la distro, así que deben declararse aquí o
+# pg_ctlcluster/postgresql@{{ observer_postgresql_version }}-main no encuentra el
+# data_directory y el servicio no arranca.
+data_directory = '/var/lib/postgresql/{{ observer_postgresql_version }}/main'
+hba_file = '/etc/postgresql/{{ observer_postgresql_version }}/main/pg_hba.conf'
+ident_file = '/etc/postgresql/{{ observer_postgresql_version }}/main/pg_ident.conf'
+external_pid_file = '/run/postgresql/{{ observer_postgresql_version }}-main.pid'
+cluster_name = '{{ observer_postgresql_version }}/main'
+
 listen_addresses = '*'
 port = {{ observer_db_port }}
 max_connections = {{ observer_db_max_connections }}

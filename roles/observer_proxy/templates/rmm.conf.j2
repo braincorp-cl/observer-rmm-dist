@@ -20,8 +20,8 @@ server {
     listen {{ observer_proxy_https_port }} ssl;
     server_name {{ observer_domain }};
 
-    ssl_certificate     /etc/letsencrypt/live/{{ observer_base_domain }}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{ observer_base_domain }}/privkey.pem;
+    ssl_certificate     {{ observer_cert_path }};
+    ssl_certificate_key {{ observer_cert_key_path }};
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 

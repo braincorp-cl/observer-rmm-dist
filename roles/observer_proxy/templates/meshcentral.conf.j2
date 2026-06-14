@@ -4,14 +4,16 @@ upstream meshcentral-backend {
 
 server {
     listen {{ observer_proxy_https_port }} ssl;
-    server_name mesh.{{ observer_domain }};
+    server_name {{ observer_mesh_domain }};
 
-    ssl_certificate     /etc/letsencrypt/live/{{ observer_base_domain }}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{ observer_base_domain }}/privkey.pem;
+    ssl_certificate     {{ observer_cert_path }};
+    ssl_certificate_key {{ observer_cert_key_path }};
     ssl_protocols       TLSv1.2 TLSv1.3;
 
     location / {
-        proxy_pass https://meshcentral-backend;
+        # MeshCentral con TLSOffload escucha HTTP plano; nginx termina TLS
+        # (= install.sh línea 805 `proxy_pass http://127.0.0.1:4430/`). Interno sin SSL.
+        proxy_pass http://meshcentral-backend;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -19,7 +21,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_ssl_verify off;
         proxy_read_timeout 86400;
     }
 }

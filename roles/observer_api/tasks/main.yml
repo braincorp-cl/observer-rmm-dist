@@ -28,6 +28,14 @@
     - "{{ observer_root }}/api"
     - "{{ observer_root }}/api/{{ observer_app_name }}"
     - "{{ observer_root }}/backups"
+    # /var/log/celery debe existir y ser de observer ANTES de arrancar celery:
+    # celery multi (como user observer) hace os.makedirs('/var/log/celery') y, si
+    # no existe, falla con PermissionError bajo /var/log -> crash-loop del servicio.
+    # (= install.sh líneas 383-384: mkdir -p /var/log/celery + chown al user de servicio.)
+    - /var/log/celery
+    # Reporting (ee/reporting): assets + schemas (= install.sh líneas 559-561).
+    - "{{ observer_root }}/reporting/assets"
+    - "{{ observer_root }}/reporting/schemas"
 
 # Virtualenv
 - name: Crear virtualenv Python {{ observer_python_version }}
@@ -50,11 +58,15 @@
   become: true
   become_user: "{{ observer_user }}"
 
-# Configuración Django
+# Configuración Django — DEBE ir en el paquete interno (junto a settings.py): settings.py
+# hace `from .local_settings import *` (import relativo = observerrmm.local_settings). El dir
+# externo {{ observer_app_name }}/ tiene manage.py; el paquete está en
+# {{ observer_app_name }}/{{ observer_app_name }}/. Si se deja afuera, el import falla,
+# suppress(ImportError) lo traga y ALLOWED_HOSTS queda [] -> IndexError en settings.py:170.
 - name: Desplegar local_settings.py
   ansible.builtin.template:
     src: local_settings.j2
-    dest: "{{ observer_root }}/api/{{ observer_app_name }}/local_settings.py"
+    dest: "{{ observer_root }}/api/{{ observer_app_name }}/{{ observer_app_name }}/local_settings.py"
     owner: "{{ observer_user }}"
     group: "{{ observer_group }}"
     mode: "0640"
@@ -64,13 +76,17 @@
     - restart celery
     - restart celerybeat
 
+# NATS Server — instalar el binario ANTES del setup de Django: reload_nats (dentro de
+# django_deploy) ejecuta `nats-server -signal reload`; si el binario no existe,
+# subprocess.run lanza FileNotFoundError y revienta el deploy. El install.sh instala
+# nats-server antes del setup de Django por esta razón. (El servicio se arranca al final;
+# aquí solo se descarga el binario, así que no necesita aún el nats-rmm.conf.)
+- name: Instalar NATS Server {{ observer_nats_version }}
+  ansible.builtin.include_tasks: nats.yml
+
 # Django setup — sync código + pip + migrate + collectstatic + reload_nats (R-04)
 - name: Setup Django (código + dependencias + migrate + collectstatic + reload_nats)
   ansible.builtin.include_tasks: django_deploy.yml
-
-# NATS Server
-- name: Instalar NATS Server {{ observer_nats_version }}
-  ansible.builtin.include_tasks: nats.yml
 
 # nats-api binary (Go)
 - name: Copiar nats-api binary
