@@ -70,3 +70,87 @@
     state: started
     enabled: true
     daemon_reload: true
+
+# --- Mantenimiento de la DB de MeshCentral (fix MeshCentral #7787 + retención) ---
+# MeshCentral crea sus tablas (events/eventids/...) en el primer arranque, pero NO crea
+# el índice sobre eventids(fkid). Sin ese índice, el borrado de eventos hace seq-scans y
+# nunca purga → events crece sin tope y los autobackups llegan a decenas de GB (visto en
+# producción: 34-40 GB/backup). Aquí: (1) creamos el índice faltante, (2) comprimimos el
+# JSON de inventario HW/SW con LZ4, (3) instalamos un purge nocturno acotado a N días.
+# Se ejecuta en el host de la DB (peer auth como postgres), igual que el install.sh upstream.
+- name: Mantenimiento de la DB de MeshCentral
+  when: observer_mesh_db_maintenance | bool
+  delegate_to: "{{ groups['observer_db'][0] }}"
+  become: true
+  block:
+    - name: "Mesh DB — esperar a que MeshCentral cree sus tablas (events, eventids)"
+      community.postgresql.postgresql_query:
+        db: "{{ observer_mesh_db_name }}"
+        query: >-
+          SELECT to_regclass('public.events') AS events,
+                 to_regclass('public.eventids') AS eventids
+      become: true
+      become_user: postgres
+      register: observer_mesh_tables
+      until:
+        - observer_mesh_tables.query_result[0].events is not none
+        - observer_mesh_tables.query_result[0].eventids is not none
+      retries: 30
+      delay: 5
+
+    - name: "Mesh DB — crear índice idx_eventids_fkid (fix #7787, acelera el purge)"
+      community.postgresql.postgresql_idx:
+        db: "{{ observer_mesh_db_name }}"
+        table: eventids
+        columns: fkid
+        name: idx_eventids_fkid
+        concurrent: true
+      become: true
+      become_user: postgres
+
+    - name: "Mesh DB — leer compresión actual de events.doc"
+      community.postgresql.postgresql_query:
+        db: "{{ observer_mesh_db_name }}"
+        query: >-
+          SELECT attcompression AS c FROM pg_attribute
+          WHERE attrelid = 'public.events'::regclass AND attname = 'doc'
+      become: true
+      become_user: postgres
+      register: observer_mesh_doc_compression
+      changed_when: false
+
+    - name: "Mesh DB — comprimir events.doc con LZ4 (inventario HW/SW = JSON grande)"
+      # SET COMPRESSION aplica a filas NUEVAS; en una instalación fresca events está
+      # vacía, así que toda la data entra comprimida. Recomprimir filas viejas exigiría
+      # VACUUM FULL (fuera de alcance: este rol apunta a instalaciones nuevas).
+      community.postgresql.postgresql_query:
+        db: "{{ observer_mesh_db_name }}"
+        query: "ALTER TABLE events ALTER COLUMN doc SET COMPRESSION lz4"
+      become: true
+      become_user: postgres
+      when: observer_mesh_doc_compression.query_result[0].c != 'l'
+
+    - name: "Mesh DB — directorio de scripts de mantenimiento"
+      ansible.builtin.file:
+        path: "{{ observer_mesh_db_maintenance_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: "Mesh DB — script de purga de eventos antiguos"
+      ansible.builtin.template:
+        src: clean_mesh_events.sh.j2
+        dest: "{{ observer_mesh_db_maintenance_dir }}/clean_mesh_events.sh"
+        owner: root
+        group: root
+        mode: "0750"
+
+    - name: "Mesh DB — cron nocturno de purga de eventos antiguos"
+      ansible.builtin.cron:
+        name: "observer-mesh purge old events"
+        cron_file: observer-mesh-events
+        user: root
+        minute: "0"
+        hour: "{{ observer_mesh_events_purge_hour }}"
+        job: "{{ observer_mesh_db_maintenance_dir }}/clean_mesh_events.sh"

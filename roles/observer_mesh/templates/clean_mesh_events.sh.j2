@@ -1,0 +1,38 @@
+#!/bin/bash
+# {{ ansible_managed }}
+# Observer RMM — purga de eventos antiguos de MeshCentral (DB "{{ observer_mesh_db_name }}").
+#
+# Mantiene solo los últimos {{ observer_mesh_events_keep_days }} días en la tabla `events`.
+#
+# Por qué existe: MeshCentral issue #7787 — sin el índice `idx_eventids_fkid` sobre
+# `eventids(fkid)` (la columna FK con ON DELETE CASCADE hacia events.id), el borrado de
+# eventos hace seq-scans de `eventids` y se vuelve tan lento que en la práctica nunca
+# purga. `events` crece sin tope → la DB y los autobackups de MeshCentral crecen a decenas
+# de GB (observado en producción: ~34-40 GB por backup). El índice (creado por el rol
+# observer_mesh) + este purge nocturno mantienen la tabla acotada.
+#
+# Borrado en lotes de {{ observer_mesh_events_purge_batch }} filas con COMMIT por lote
+# para no tomar un lock largo ni inflar un único transaction.
+#
+# Gestionado por Ansible (rol observer_mesh) — NO editar a mano.
+set -euo pipefail
+
+# cd a un dir legible por postgres (evita el warning "could not change directory to ...")
+cd /tmp
+
+/usr/bin/sudo -u postgres psql -d "{{ observer_mesh_db_name }}" -v ON_ERROR_STOP=1 <<'SQL'
+DO $$
+DECLARE rows_deleted INT;
+BEGIN
+    LOOP
+        DELETE FROM events WHERE id IN (
+            SELECT id FROM events
+            WHERE time < (now() - interval '{{ observer_mesh_events_keep_days }} days')
+            LIMIT {{ observer_mesh_events_purge_batch }}
+        );
+        GET DIAGNOSTICS rows_deleted = ROW_COUNT;
+        EXIT WHEN rows_deleted = 0;
+        COMMIT;
+    END LOOP;
+END $$;
+SQL

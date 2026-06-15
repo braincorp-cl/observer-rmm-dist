@@ -4,3 +4,15 @@ observer_nodejs_version: "20"
 observer_meshcentral_version: "1.1.32"
 observer_mesh_db_name: meshcentral
 observer_mesh_db_user: meshcentral
+
+# --- Mantenimiento de la DB de MeshCentral (fix issue #7787 + retención) ---
+# Toggle global del bloque de mantenimiento (índice + LZ4 + purga nocturna).
+observer_mesh_db_maintenance: true
+# Días de eventos a retener en la tabla `events` (el resto se purga cada noche).
+observer_mesh_events_keep_days: 30
+# Tamaño de lote del borrado (COMMIT por lote para no bloquear).
+observer_mesh_events_purge_batch: 25000
+# Hora (0-23) del cron nocturno de purga.
+observer_mesh_events_purge_hour: 1
+# Directorio donde se instala el script de purga (en el host de la DB).
+observer_mesh_db_maintenance_dir: /opt/observer/scripts
