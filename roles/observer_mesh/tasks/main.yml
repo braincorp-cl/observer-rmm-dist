@@ -146,6 +146,18 @@
         group: root
         mode: "0750"
 
+    - name: "Mesh DB — asegurar paquete cron (provee crontab + daemon; ausente en Ubuntu mínimo)"
+      ansible.builtin.apt:
+        name: cron
+        state: present
+        update_cache: true
+
+    - name: "Mesh DB — cron.service habilitado y activo"
+      ansible.builtin.systemd:
+        name: cron
+        state: started
+        enabled: true
+
     - name: "Mesh DB — cron nocturno de purga de eventos antiguos"
       ansible.builtin.cron:
         name: "observer-mesh purge old events"
