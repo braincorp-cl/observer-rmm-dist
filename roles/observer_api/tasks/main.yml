@@ -27,6 +27,11 @@
   loop:
     - "{{ observer_root }}/api"
     - "{{ observer_root }}/api/{{ observer_app_name }}"
+    # Paquete Django interno (observerrmm/observerrmm/): local_settings.py se despliega
+    # acá ANTES del sync de código (django_deploy.yml). En greenfield este dir aún no
+    # existe → el deploy de local_settings falla. Lo creamos explícitamente; el sync
+    # posterior (sin --delete) rellena el resto sin pisar local_settings.py.
+    - "{{ observer_root }}/api/{{ observer_app_name }}/{{ observer_app_name }}"
     - "{{ observer_root }}/backups"
     # /var/log/celery debe existir y ser de observer ANTES de arrancar celery:
     # celery multi (como user observer) hace os.makedirs('/var/log/celery') y, si
