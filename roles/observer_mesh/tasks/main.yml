@@ -85,7 +85,7 @@
   block:
     - name: "Mesh DB — esperar a que MeshCentral cree sus tablas (events, eventids)"
       community.postgresql.postgresql_query:
-        db: "{{ observer_mesh_db_name }}"
+        login_db: "{{ observer_mesh_db_name }}"
         query: >-
           SELECT to_regclass('public.events') AS events,
                  to_regclass('public.eventids') AS eventids
@@ -100,7 +100,7 @@
 
     - name: "Mesh DB — crear índice idx_eventids_fkid (fix #7787, acelera el purge)"
       community.postgresql.postgresql_idx:
-        db: "{{ observer_mesh_db_name }}"
+        login_db: "{{ observer_mesh_db_name }}"
         table: eventids
         columns: fkid
         name: idx_eventids_fkid
@@ -110,7 +110,7 @@
 
     - name: "Mesh DB — leer compresión actual de events.doc"
       community.postgresql.postgresql_query:
-        db: "{{ observer_mesh_db_name }}"
+        login_db: "{{ observer_mesh_db_name }}"
         query: >-
           SELECT attcompression AS c FROM pg_attribute
           WHERE attrelid = 'public.events'::regclass AND attname = 'doc'
@@ -124,7 +124,7 @@
       # vacía, así que toda la data entra comprimida. Recomprimir filas viejas exigiría
       # VACUUM FULL (fuera de alcance: este rol apunta a instalaciones nuevas).
       community.postgresql.postgresql_query:
-        db: "{{ observer_mesh_db_name }}"
+        login_db: "{{ observer_mesh_db_name }}"
         query: "ALTER TABLE events ALTER COLUMN doc SET COMPRESSION lz4"
       become: true
       become_user: postgres
