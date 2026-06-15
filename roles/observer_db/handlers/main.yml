@@ -10,3 +10,10 @@
     name: "postgresql@{{ observer_postgresql_version }}-main"
     state: reloaded
   listen: reload postgresql
+
+# Regenera /boot/grub/grub.cfg tras cambiar el drop-in de hugepages. La reserva en boot
+# toma efecto en el PRÓXIMO reinicio (no se reinicia aquí: el usuario controla la infra).
+- name: update grub
+  ansible.builtin.command: update-grub
+  changed_when: true
+  listen: update grub

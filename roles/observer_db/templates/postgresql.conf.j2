@@ -18,6 +18,17 @@ port = {{ observer_db_port }}
 max_connections = {{ observer_db_max_connections }}
 unix_socket_directories = '/var/run/postgresql'
 
+# Auth — scram-sha-256 (= método de prod, > md5 deprecado). En PG15 ya es el default,
+# pero se declara explícito para robustez y para que coincida con pg_hba.conf.
+password_encryption = scram-sha-256
+
+# SSL — cert snakeoil (paquete ssl-cert, local al host DB, sin acme). Cifra el tráfico
+# DB cross-host (multi-host). Clientes con sslmode=prefer (default libpq) lo negocian
+# solos; en single-host loopback es inocuo. = configuración de prod.
+ssl = on
+ssl_cert_file = '{{ pg_ssl_cert_file }}'
+ssl_key_file = '{{ pg_ssl_key_file }}'
+
 # Memory
 shared_buffers = {{ pg_shared_buffers }}
 huge_pages = {{ pg_huge_pages }}

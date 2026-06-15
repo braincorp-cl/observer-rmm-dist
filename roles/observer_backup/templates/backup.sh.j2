@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Observer RMM — backup completo. Port del backup.sh de TacticalRMM (v33), rebrandeado.
+# Cierra GAP-038. Gestionado por Ansible (rol observer_backup) — NO editar a mano.
+#
+# Uso:
+#   backup.sh           → un tarball único en {{ observer_backup_dir }}/
+#   backup.sh --auto    → rota daily/weekly/monthly + limpia por antigüedad (lo invoca el cron)
+#
+# Respalda: DB principal (pg_dump), DB MeshCentral (pg_dump), datos MeshCentral, certs TLS,
+# vhosts nginx, /etc/conf.d, units systemd y local_settings.py.
+#
+# Diferencias deliberadas con upstream: corre como root (vía /etc/cron.d, no exige sudo sin
+# password), usa PGPASSWORD en vez de URL inline (no expone la clave en `ps`), lee las
+# credenciales en runtime (manage.py get_config para la DB principal; el config.json de mesh
+# para la de mesh) → sin secretos horneados en el script. Guardas de existencia: en multi-host
+# respalda solo lo presente localmente (el pg_dump principal sí alcanza una DB remota).
+set -uo pipefail
+
+BACKUP_DIR="{{ observer_backup_dir }}"
+APP_DIR="{{ observer_root }}/api/{{ observer_app_name }}"
+VENV_PY="{{ observer_root }}/api/env/bin/python"
+MANAGE="${APP_DIR}/manage.py"
+MESH_DIR="{{ observer_backup_meshcentral_dir }}"
+MESH_CFG="${MESH_DIR}/meshcentral-data/config.json"
+MESH_DB="{{ observer_mesh_db_name | default('meshcentral') }}"
+OPT_TACTICAL="{{ observer_backup_opt_tactical_dir }}"
+CERT_DIR="{{ observer_backup_cert_dir }}"
+OWNER="{{ observer_user }}:{{ observer_group }}"
+KEEP_DAILY={{ observer_backup_keep_daily }}
+KEEP_WEEKLY={{ observer_backup_keep_weekly }}
+KEEP_MONTHLY={{ observer_backup_keep_monthly }}
+
+sysd="/etc/systemd/system"
+dt_now=$(date '+%Y_%m_%d__%H_%M_%S')
+tmp_dir=$(mktemp -d -t observerrmm-XXXXXXXXXXXX)
+trap 'rm -rf "${tmp_dir}"' EXIT
+mkdir -p "${tmp_dir}"/{postgres,certs,nginx,systemd,rmm,confd,opt,meshcentral}
+
+# --- DB principal (Django) + DB MeshCentral ---
+if command -v pg_dump >/dev/null 2>&1; then
+    DBNAME=$("${VENV_PY}" "${MANAGE}" get_config dbname)
+    DBUSER=$("${VENV_PY}" "${MANAGE}" get_config dbuser)
+    DBHOST=$("${VENV_PY}" "${MANAGE}" get_config dbhost)
+    DBPORT=$("${VENV_PY}" "${MANAGE}" get_config dbport)
+    PGPASSWORD=$("${VENV_PY}" "${MANAGE}" get_config dbpw) \
+        pg_dump --no-privileges --no-owner -U "${DBUSER}" -h "${DBHOST}" -p "${DBPORT}" "${DBNAME}" \
+        | gzip -9 > "${tmp_dir}/postgres/db-${dt_now}.psql.gz" \
+        || echo "WARN: pg_dump de la DB principal falló" >&2
+
+    # MeshCentral en postgres (si este host tiene su config.json)
+    if [ -f "${MESH_CFG}" ] && command -v jq >/dev/null 2>&1 && jq -e '.settings.postgres' "${MESH_CFG}" >/dev/null 2>&1; then
+        M_USER=$(jq -r '.settings.postgres.user' "${MESH_CFG}")
+        M_PW=$(jq -r '.settings.postgres.password' "${MESH_CFG}")
+        M_HOST=$(jq -r '.settings.postgres.host // "localhost"' "${MESH_CFG}")
+        M_PORT=$(jq -r '.settings.postgres.port // "5432"' "${MESH_CFG}")
+        PGPASSWORD="${M_PW}" \
+            pg_dump --no-privileges --no-owner -U "${M_USER}" -h "${M_HOST}" -p "${M_PORT}" "${MESH_DB}" \
+            | gzip -9 > "${tmp_dir}/postgres/mesh-db-${dt_now}.psql.gz" \
+            || echo "WARN: pg_dump de la DB de mesh falló" >&2
+    fi
+else
+    echo "WARN: pg_dump no encontrado — se omiten los dumps de BD (instale postgresql-client)" >&2
+fi
+
+# --- Datos de MeshCentral (excluye node_modules y grabaciones) ---
+if [ -d "${MESH_DIR}" ]; then
+    tar -czf "${tmp_dir}/meshcentral/mesh.tar.gz" \
+        --exclude="${MESH_DIR}/node_modules" \
+        --exclude="${MESH_DIR}/meshcentral-recordings" \
+        "${MESH_DIR}" 2>/dev/null || echo "WARN: tar de meshcentral incompleto" >&2
+fi
+
+# --- Certs TLS (modelo distribuido /etc/ssl/observer + letsencrypt si existe) ---
+[ -d "${CERT_DIR}" ]       && tar -czf "${tmp_dir}/certs/observer-certs.tar.gz"   -C "${CERT_DIR}" . 2>/dev/null
+[ -d /etc/letsencrypt ]    && tar -czf "${tmp_dir}/certs/etc-letsencrypt.tar.gz"  -C /etc/letsencrypt . 2>/dev/null
+
+# --- /opt/tactical (assets de reporting, etc.) ---
+[ -d "${OPT_TACTICAL}" ]   && tar -czf "${tmp_dir}/opt/opt-tactical.tar.gz"       -C "${OPT_TACTICAL}" . 2>/dev/null
+
+# --- nginx (vhosts + nginx.conf) ---
+for d in /etc/nginx/sites-available /etc/nginx/sites-enabled; do
+    [ -d "$d" ] && cp -a "$d" "${tmp_dir}/nginx/" 2>/dev/null
+done
+[ -f /etc/nginx/nginx.conf ] && cp -a /etc/nginx/nginx.conf "${tmp_dir}/nginx/" 2>/dev/null
+
+# --- /etc/conf.d (celery.conf) ---
+[ -d /etc/conf.d ] && tar -czf "${tmp_dir}/confd/etc-confd.tar.gz" -C /etc/conf.d . 2>/dev/null
+
+# --- units systemd ---
+for u in rmm daphne celery celerybeat nats nats-api meshcentral; do
+    [ -f "${sysd}/${u}.service" ] && cp -a "${sysd}/${u}.service" "${tmp_dir}/systemd/" 2>/dev/null
+done
+
+# --- local_settings.py ---
+[ -f "${APP_DIR}/{{ observer_app_name }}/local_settings.py" ] \
+    && cp -a "${APP_DIR}/{{ observer_app_name }}/local_settings.py" "${tmp_dir}/rmm/" 2>/dev/null
+
+# --- Empaquetado + rotación ---
+if [[ "${1:-}" == "--auto" ]]; then
+    month_day=$(date +"%d")
+    week_day=$(date +"%u")
+    if [ "${month_day}" -eq 10 ]; then
+        dest="${BACKUP_DIR}/monthly"
+    elif [ "${week_day}" -eq 5 ]; then
+        dest="${BACKUP_DIR}/weekly"
+    else
+        dest="${BACKUP_DIR}/daily"
+    fi
+    out="${dest}/observer-backup-${dt_now}.tar"
+    tar -cf "${out}" -C "${tmp_dir}" .
+    chown "${OWNER}" "${out}"
+    find "${BACKUP_DIR}/daily/"   -type f -name '*.tar' -mtime +${KEEP_DAILY}   -delete 2>/dev/null
+    find "${BACKUP_DIR}/weekly/"  -type f -name '*.tar' -mtime +${KEEP_WEEKLY}  -delete 2>/dev/null
+    find "${BACKUP_DIR}/monthly/" -type f -name '*.tar' -mtime +${KEEP_MONTHLY} -delete 2>/dev/null
+    echo "Backup completado: ${out}"
+else
+    out="${BACKUP_DIR}/observer-backup-${dt_now}.tar"
+    tar -cf "${out}" -C "${tmp_dir}" .
+    chown "${OWNER}" "${out}"
+    echo "Backup guardado en ${out}"
+fi

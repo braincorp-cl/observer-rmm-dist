@@ -10,6 +10,12 @@ observer_mesh_db_user: meshcentral
 observer_mesh_db_maintenance: true
 # Días de eventos a retener en la tabla `events` (el resto se purga cada noche).
 observer_mesh_events_keep_days: 30
+# Retención nativa de MeshCentral (dbExpire) para las otras dos tablas de eventos,
+# que el cron de #7787 NO toca (solo purga `events`) y crecían sin tope. Paridad con
+# prod: powerevents 10d, statsevents 30d. `events` en dbExpire sigue al keep_days del
+# cron (una sola fuente de verdad + defensa en profundidad ahora que existe el índice).
+observer_mesh_powerevents_keep_days: 10
+observer_mesh_statsevents_keep_days: 30
 # Tamaño de lote del borrado (COMMIT por lote para no bloquear).
 observer_mesh_events_purge_batch: 25000
 # Hora (0-23) del cron nocturno de purga.

@@ -1,0 +1,64 @@
+---
+# Rol observer_backup — instala el script de backup + cron diario. Cierra GAP-038.
+
+- name: Asegurar paquetes requeridos (cron para el job, jq para leer config.json de mesh)
+  ansible.builtin.apt:
+    name:
+      - cron
+      - jq
+    state: present
+    update_cache: true
+  when: observer_backup_enabled | bool
+
+- name: Habilitar y arrancar cron (Ubuntu mínimo no lo trae activo — ver GAP-034)
+  ansible.builtin.systemd:
+    name: cron
+    enabled: true
+    state: started
+  when: observer_backup_enabled | bool
+
+- name: Crear directorios de backup (daily/weekly/monthly)
+  ansible.builtin.file:
+    path: "{{ observer_backup_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+  loop:
+    - daily
+    - weekly
+    - monthly
+  when: observer_backup_enabled | bool
+
+- name: Crear directorio de scripts
+  ansible.builtin.file:
+    path: "{{ observer_backup_script_dir }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+  when: observer_backup_enabled | bool
+
+- name: Desplegar script de backup
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: "{{ observer_backup_script_dir }}/backup.sh"
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+  when: observer_backup_enabled | bool
+
+- name: Instalar cron job diario (/etc/cron.d/observer-backup)
+  ansible.builtin.template:
+    src: observer-backup.cron.j2
+    dest: /etc/cron.d/observer-backup
+    owner: root
+    group: root
+    mode: "0644"
+  when: observer_backup_enabled | bool
+
+- name: Quitar el cron job de backup cuando el rol está deshabilitado
+  ansible.builtin.file:
+    path: /etc/cron.d/observer-backup
+    state: absent
+  when: not (observer_backup_enabled | bool)

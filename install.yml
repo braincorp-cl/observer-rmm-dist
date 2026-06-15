@@ -78,3 +78,8 @@
   hosts: observer_proxy
   roles:
     - observer_proxy
+
+- name: Backups (DB principal + mesh + certs + config) — cierra GAP-038
+  hosts: observer_api
+  roles:
+    - observer_backup

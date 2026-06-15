@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+# HugePages para PostgreSQL — reserva en boot (robusto para pools grandes, = producción).
+# Drop-in sourceado por grub-mkconfig DESPUÉS de /etc/default/grub: appendea `hugepages=` al
+# GRUB_CMDLINE_LINUX existente SIN clobberear otros parámetros del kernel.
+# Gestionado por Ansible (rol observer_db) — NO editar a mano. Requiere reboot + update-grub.
+GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX hugepages={{ pg_vm_nr_hugepages }}"

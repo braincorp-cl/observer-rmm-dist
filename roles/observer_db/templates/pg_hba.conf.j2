@@ -3,13 +3,13 @@
 
 # Acceso local para el usuario postgres
 local   all             postgres                                peer
-local   all             all                                     md5
+local   all             all                                     scram-sha-256
 
 # IPv4 loopback
-host    all             all             127.0.0.1/32            md5
+host    all             all             127.0.0.1/32            scram-sha-256
 
 # IPv6 loopback
-host    all             all             ::1/128                 md5
+host    all             all             ::1/128                 scram-sha-256
 
 # Acceso remoto desde observer_api y observer_mesh
 {% for host in observer_db_allowed_hosts %}

@@ -1,12 +1,52 @@
 ---
-# 1. Huge Pages — debe aplicarse ANTES de iniciar PostgreSQL
-- name: Reservar Huge Pages para PostgreSQL
+# 1. Huge Pages — debe reservarse ANTES de iniciar PostgreSQL.
+# Bootstrap inmediato del boot de instalación vía sysctl (evita forzar reboot a mitad del
+# play). Si pg_hugepages_via_grub está activo, grub es la fuente robusta tras el próximo boot.
+- name: Reservar HugePages vía sysctl (bootstrap del boot actual)
   ansible.posix.sysctl:
     name: vm.nr_hugepages
     value: "{{ pg_vm_nr_hugepages }}"
     sysctl_file: /etc/sysctl.d/60-observer-hugepages.conf
     reload: true
     state: present
+
+# Reserva persistente en boot vía grub (método de prod, robusto para pools grandes: el kernel
+# las aparta antes de cualquier userspace, sin depender de RAM contigua en runtime). Drop-in
+# en /etc/default/grub.d que grub-mkconfig sourcea tras /etc/default/grub → appendea
+# `hugepages=` sin clobberear otros args. REQUIERE REBOOT (no se fuerza: el usuario controla
+# la infra; el sysctl de arriba cubre el boot de instalación).
+- name: Asegurar /etc/default/grub.d (drop-ins de grub)
+  ansible.builtin.file:
+    path: /etc/default/grub.d
+    state: directory
+    mode: "0755"
+  when: pg_hugepages_via_grub | bool
+
+- name: Reservar HugePages en grub (boot-time, robusto para pools grandes)
+  ansible.builtin.template:
+    src: grub-hugepages.cfg.j2
+    dest: /etc/default/grub.d/99-observer-hugepages.cfg
+    owner: root
+    group: root
+    mode: "0644"
+  when: pg_hugepages_via_grub | bool
+  register: pg_grub_hugepages
+  notify: update grub
+
+- name: Quitar el drop-in de grub si se desactiva el método grub
+  ansible.builtin.file:
+    path: /etc/default/grub.d/99-observer-hugepages.cfg
+    state: absent
+  when: not (pg_hugepages_via_grub | bool)
+  notify: update grub
+
+- name: Avisar que la reserva grub de HugePages requiere reboot
+  ansible.builtin.debug:
+    msg: >-
+      HugePages fijadas en grub (hugepages={{ pg_vm_nr_hugepages }}). REINICIE el host de la DB
+      para activar la reserva en boot; hasta el reboot rige el sysctl (best-effort sobre la RAM
+      disponible). Recuerde mantener pg_vm_nr_hugepages en sincronía con pg_shared_buffers.
+  when: pg_grub_hugepages.changed | default(false)
 
 # 2. Repositorio oficial PostgreSQL (PGDG) — get_url + signed-by, fiel a install.sh
 #    (F009 D-04: reemplaza apt_key deprecado; sin apt_repository ni deb822_repository)
@@ -36,6 +76,9 @@
     name:
       - "postgresql-{{ observer_postgresql_version }}"
       - python3-psycopg2
+      # ssl-cert: genera el snakeoil (/etc/ssl/certs/ssl-cert-snakeoil.*) que usa ssl=on.
+      # Es dependencia de postgresql, pero se declara explícito por robustez.
+      - ssl-cert
     state: present
     update_cache: true
 

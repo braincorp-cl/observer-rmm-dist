@@ -16,6 +16,17 @@ observer_mesh_db_user: meshcentral
 
 pg_shared_buffers: "4GB"
 pg_huge_pages: "try"
+# HugePages: nr_hugepages debe escalar CON shared_buffers
+# (regla: nr_hugepages ≈ shared_buffers / 2MB + overhead → 4GB≈2100, 40GB≈21500 como prod).
+# Con huge_pages=try, si nr_hugepages no cubre shared_buffers PG ignora las hugepages en
+# silencio (todo-o-nada) — mantener ambas vars en sincronía.
+# Método de reserva:
+#   pg_hugepages_via_grub: true  → reserva en boot vía drop-in /etc/default/grub.d (robusto
+#       para pools grandes, = prod). REQUIERE REBOOT para activarse (no se fuerza: el usuario
+#       controla la infra). El sysctl sigue aplicándose como bootstrap del boot de instalación.
+#   pg_hugepages_via_grub: false → solo sysctl runtime (ok para pools chicos; menos robusto a
+#       escala tras reboots con RAM fragmentada).
+pg_hugepages_via_grub: true
 pg_vm_nr_hugepages: 2100
 pg_work_mem: "16MB"
 pg_maintenance_work_mem: "256MB"
@@ -40,3 +51,10 @@ pg_log_checkpoints: "on"
 pg_log_lock_waits: "on"
 pg_timezone: "America/Santiago"
 pg_log_timezone: "America/Santiago"
+
+# SSL — usa el cert snakeoil autogenerado por el paquete ssl-cert (dependencia de
+# postgresql), local al host DB e INDEPENDIENTE de acme.sh/proxy. Cifra el tráfico DB
+# cross-host (multi-host); en single-host loopback es inocuo. Self-signed: cifra sin
+# autenticar la identidad del servidor. Override a un cert de CA si se desea verify-ca.
+pg_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+pg_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key

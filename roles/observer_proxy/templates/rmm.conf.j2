@@ -27,6 +27,26 @@ server {
 
     client_max_body_size 300M;
 
+    # Estáticos de Django (admin + DRF browsable API). Sin esta location, con
+    # DEBUG=False y sin whitenoise, daban 404 pese a que collectstatic los deja en
+    # STATIC_ROOT (= BASE_DIR/static). El SPA Vue no usa /static/. Espejo de prod.
+    location /static/ {
+        alias {{ observer_root }}/api/{{ observer_app_name }}/static/;
+        add_header "Access-Control-Allow-Origin" "https://{{ observer_app_domain }}";
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Assets de reportes servidos vía X-Accel-Redirect desde ee/reporting
+    # (NginxRedirect → "/assets/" + asset.file.name). Sin esta location interna las
+    # descargas de assets de reportes dan 404. Paridad con prod; alias =
+    # REPORTING_ASSETS_BASE_PATH del backend Django.
+    location /assets/ {
+        internal;
+        add_header "Access-Control-Allow-Origin" "https://{{ observer_app_domain }}";
+        alias {{ observer_reporting_assets_path }}/;
+    }
+
     location /ws/ {
         proxy_pass http://rmm-asgi;
         proxy_http_version 1.1;

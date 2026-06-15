@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+# Observer RMM — backup diario (rol observer_backup). Corre como root.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+{{ observer_backup_minute }} {{ observer_backup_hour }} * * * root {{ observer_backup_script_dir }}/backup.sh --auto > /dev/null 2>&1

@@ -23,7 +23,28 @@ http {
     ssl_prefer_server_ciphers on;
     access_log /var/log/nginx/access.log;
     error_log /var/log/nginx/error.log;
+
+    # gzip — sin gzip_types solo comprime text/html; el bundle JS de Quasar (~3.5MB)
+    # se serviría sin comprimir. Bloque portado de la config de producción.
     gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 4;
+    gzip_min_length 1024;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/javascript
+        application/x-javascript
+        application/json
+        application/xml
+        application/rss+xml
+        image/svg+xml
+        font/woff
+        font/woff2;
+
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;
 }

@@ -26,6 +26,11 @@
       "backupHour": 6
     },
     "prometheus": true,
+    "dbExpire": {
+      "events": {{ (observer_mesh_events_keep_days | int) * 86400 }},
+      "powerevents": {{ (observer_mesh_powerevents_keep_days | int) * 86400 }},
+      "statsevents": {{ (observer_mesh_statsevents_keep_days | int) * 86400 }}
+    },
     "maxInvalidLogin": {
       "time": 5,
       "count": 5,

@@ -1,0 +1,35 @@
+---
+# Rol observer_backup — port del backup.sh de TacticalRMM (v33), rebrandeado a Observer RMM.
+# Cierra GAP-038 (dist no tenía mecanismo de backup).
+#
+# Respalda en un tarball: DB principal (pg_dump), DB de MeshCentral (pg_dump), datos de
+# MeshCentral, certs TLS, vhosts nginx, /etc/conf.d, units systemd y local_settings.py.
+#
+# Corre en el host del grupo observer_api (tiene el venv + manage.py + local_settings, y
+# alcanza la DB vía get_config dbhost). En instalaciones single-host (all-in-one, el caso
+# greenfield dominante) respalda TODO. En multi-host respalda lo que esté local — el script
+# usa guardas de existencia (mesh/nginx/certs pueden vivir en otros hosts); el pg_dump de la
+# DB principal sí alcanza una DB remota. Backup multi-host completo = trabajo futuro.
+
+observer_backup_enabled: true
+
+# Destino de los backups (alineado con el dir que ya crea observer_api).
+observer_backup_dir: "{{ observer_root }}/backups"
+# Directorio donde se instala el script (mismo que usa observer_mesh para su purga).
+observer_backup_script_dir: "{{ observer_root }}/scripts"
+
+# Cron diario.
+observer_backup_hour: 0
+observer_backup_minute: 0
+
+# Retención (días) por tipo — idéntico a upstream backup.sh.
+observer_backup_keep_daily: 14
+observer_backup_keep_weekly: 60
+observer_backup_keep_monthly: 380
+
+# Rutas a respaldar (overridables).
+observer_backup_meshcentral_dir: /meshcentral
+observer_backup_opt_tactical_dir: /opt/tactical
+# Dir de certs que usa nginx en el modelo TLS distribuido del dist (= dirname de
+# observer_cert_path). /etc/letsencrypt se respalda aparte si existe.
+observer_backup_cert_dir: /etc/ssl/observer
