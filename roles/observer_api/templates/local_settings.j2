@@ -19,6 +19,12 @@ DATABASES = {
     }
 }
 
+# sslmode del cliente nats-api (Go/lib/pq) → PostgreSQL, leído por create_natsapi_conf.
+# lib/pq NO soporta 'prefer'; 'require' cifra sin verificar CA (correcto con el snakeoil de
+# observer_db, ssl=on). Cierra el residual O-DIFF-PGAUTH (el default del comando era 'disable').
+# Django no usa DB_SSL: negocia TLS por el default de libpq (prefer) por su cuenta.
+DB_SSL = "{{ observer_db_sslmode | default('require') }}"
+
 REDIS_HOST = '{{ observer_redis_host }}'
 REDIS_PORT = {{ observer_redis_port | default(6379) }}
 # (sin REDIS_PASSWORD: el backend no soporta auth Redis — channels, cache y

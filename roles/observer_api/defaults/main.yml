@@ -28,6 +28,13 @@ observer_check_interval_jitter_min: 3
 observer_check_interval_jitter_max: 120
 observer_nats_max_connections: 50000
 
+# sslmode del cliente nats-api (Go/lib/pq) → PostgreSQL, leído por settings.DB_SSL en
+# create_natsapi_conf. lib/pq solo soporta disable/require/verify-ca/verify-full (NO 'prefer').
+# 'require' cifra sin verificar CA (correcto con el cert snakeoil del rol observer_db, ssl=on).
+# Cierra el residual O-DIFF-PGAUTH (el default del comando era 'disable' = en plano).
+# Solo afecta a nats-api; el cliente Django usa el default de libpq (prefer) por separado.
+observer_db_sslmode: require
+
 # Django source deployment (consumido por tasks/django_deploy.yml)
 # observer_source_path: path del código fuente Django en el control node.
 #   Default asume layout sibling: observer-rmm-dist/ y observer-rmm/ comparten parent dir.
