@@ -107,7 +107,7 @@ class TestGetAllAssets:
     @patch("ee.reporting.views.report_assets_fs")
     @patch("ee.reporting.views.os.walk")
     def test_general_functionality(self, mock_os_walk, mock_fs, authenticated_client):
-        fake_base_path = "/opt/tactical/reporting/assets"
+        fake_base_path = "/opt/observer/reporting/assets"
         mock_fs.base_location = fake_base_path
 
         mock_os_walk.return_value = iter(

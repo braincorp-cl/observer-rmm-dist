@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # {{ ansible_managed }}
-# Observer RMM — backup completo. Port del backup.sh de TacticalRMM (v33), rebrandeado.
+# Observer RMM — backup completo. Port del backup.sh del instalador de referencia upstream (v33), rebrandeado.
 # Cierra GAP-038. Gestionado por Ansible (rol observer_backup) — NO editar a mano.
 #
 # Uso:
@@ -24,7 +24,7 @@ MANAGE="${APP_DIR}/manage.py"
 MESH_DIR="{{ observer_backup_meshcentral_dir }}"
 MESH_CFG="${MESH_DIR}/meshcentral-data/config.json"
 MESH_DB="{{ observer_mesh_db_name | default('meshcentral') }}"
-OPT_TACTICAL="{{ observer_backup_opt_tactical_dir }}"
+REPORTING_DIR="{{ observer_backup_reporting_dir }}"
 CERT_DIR="{{ observer_backup_cert_dir }}"
 OWNER="{{ observer_user }}:{{ observer_group }}"
 KEEP_DAILY={{ observer_backup_keep_daily }}
@@ -75,8 +75,8 @@ fi
 [ -d "${CERT_DIR}" ]       && tar -czf "${tmp_dir}/certs/observer-certs.tar.gz"   -C "${CERT_DIR}" . 2>/dev/null
 [ -d /etc/letsencrypt ]    && tar -czf "${tmp_dir}/certs/etc-letsencrypt.tar.gz"  -C /etc/letsencrypt . 2>/dev/null
 
-# --- /opt/tactical (assets de reporting, etc.) ---
-[ -d "${OPT_TACTICAL}" ]   && tar -czf "${tmp_dir}/opt/opt-tactical.tar.gz"       -C "${OPT_TACTICAL}" . 2>/dev/null
+# --- reporting assets/schemas (datos subidos por usuarios) ---
+[ -d "${REPORTING_DIR}" ]  && tar -czf "${tmp_dir}/opt/reporting.tar.gz"          -C "${REPORTING_DIR}" . 2>/dev/null
 
 # --- nginx (vhosts + nginx.conf) ---
 for d in /etc/nginx/sites-available /etc/nginx/sites-enabled; do

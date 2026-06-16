@@ -10,7 +10,7 @@ class Settings:
         return getattr(
             self.settings,
             "REPORTING_ASSETS_BASE_PATH",
-            "/opt/tactical/reporting/assets",
+            "/opt/observer/reporting/assets",
         )
 
     @property

@@ -6,7 +6,7 @@ observer_proxy_upstream_port: 8000
 # Path base de assets de reportes (= REPORTING_ASSETS_BASE_PATH del backend Django,
 # ee/reporting/settings.py). nginx los sirve internamente vía X-Accel-Redirect que
 # emite ee/reporting/views.py (NginxRedirect → "/assets/" + asset.file.name).
-observer_reporting_assets_path: /opt/tactical/reporting/assets
+observer_reporting_assets_path: /opt/observer/reporting/assets
 
 # --- Provisión de certificado TLS — SOLO en el host con rol nginx ----------------
 # El proxy termina TLS y reenvía a los backends en HTTP plano (interno sin SSL).

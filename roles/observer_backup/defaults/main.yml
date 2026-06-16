@@ -1,5 +1,5 @@
 ---
-# Rol observer_backup — port del backup.sh de TacticalRMM (v33), rebrandeado a Observer RMM.
+# Rol observer_backup — port del backup.sh del instalador de referencia upstream (v33), rebrandeado a Observer RMM.
 # Cierra GAP-038 (dist no tenía mecanismo de backup).
 #
 # Respalda en un tarball: DB principal (pg_dump), DB de MeshCentral (pg_dump), datos de
@@ -29,7 +29,8 @@ observer_backup_keep_monthly: 380
 
 # Rutas a respaldar (overridables).
 observer_backup_meshcentral_dir: /meshcentral
-observer_backup_opt_tactical_dir: /opt/tactical
+# Reporting assets/schemas subidos por usuarios (datos, no código redeployable).
+observer_backup_reporting_dir: "{{ observer_root }}/reporting"
 # Dir de certs que usa nginx en el modelo TLS distribuido del dist (= dirname de
 # observer_cert_path). /etc/letsencrypt se respalda aparte si existe.
 observer_backup_cert_dir: /etc/ssl/observer

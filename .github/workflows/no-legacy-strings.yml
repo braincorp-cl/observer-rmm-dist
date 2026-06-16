@@ -16,7 +16,7 @@ name: No legacy upstream strings
 #     pendientes de R-03 (CDN/docs BrainCorp); rastreados como TODO F007.
 #   - AgentTable.vue "upstream issue ref": referencia a issue del upstream
 #     conservada a propósito como procedencia.
-#   - comentarios de procedencia en smoke.yml y roles/ que citan el
+#   - comentarios de procedencia en smoke.yml, healthcheck.yml y roles/ que citan el
 #     install.sh / servidor TacticalRMM de referencia (estándar BrainCorp:
 #     instalar EXACTAMENTE como el método del upstream).
 #   - docs/: documentación de procedencia del dist (RF-11/RN-02) cita el
@@ -39,7 +39,13 @@ jobs:
         run: |
           set -uo pipefail
 
-          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent'
+          # Cubre el nombre del producto upstream + el PATH legacy /opt/tactical.
+          # GAP-036: el path de reporting assets se le escapaba al patrón viejo
+          # (el token suelto 'tactical' no matcheaba 'tacticalrmm|...'), dejando
+          # un mismatch nginx/Django vs el dir real /opt/observer/reporting/assets.
+          # El sufijo ([^a-z]|$) caza /opt/tactical, /opt/tactical/... y el valor
+          # de var suelto, pero NO /opt/tacticalmesh (path real del MeshAgent en macOS).
+          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent|/opt/tactical([^a-z]|$)'
 
           # Prefijo '\.?/?' tolera greps que emiten o no './' al escanear '.'
           HITS=$(grep -rnE "$PATTERN" \
@@ -61,6 +67,7 @@ jobs:
             | grep -vE '^\.?/?web/app/src/components/modals/agents/InstallAgent\.vue:[0-9]+:.*(docs\.tacticalrmm\.com|tactical-rmm|TODO F007)' \
             | grep -vE '^\.?/?web/app/src/views/InitialSetup\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
             | grep -vE '^\.?/?smoke\.yml:[0-9]+:.*servidor TacticalRMM de' \
+            | grep -vE '^\.?/?healthcheck\.yml:[0-9]+:.*Observer/TacticalRMM NO usa prefijo' \
             | grep -vE '^\.?/?roles/observer_python/tasks/main\.yml:[0-9]+:.*install\.sh original de TacticalRMM' \
             | grep -vE '^\.?/?roles/observer_db/tasks/main\.yml:[0-9]+:.*servidor TacticalRMM de' \
             | grep -vE '^\.?/?roles/observer_api/tasks/django_deploy\.yml:[0-9]+:.*`tacticalrmm` legacy' \
