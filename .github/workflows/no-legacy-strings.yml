@@ -39,13 +39,14 @@ jobs:
         run: |
           set -uo pipefail
 
-          # Cubre el nombre del producto upstream + el PATH legacy /opt/tactical.
+          # Cubre el nombre del producto upstream + los PATHS legacy /opt/tactical*.
           # GAP-036: el path de reporting assets se le escapaba al patrón viejo
           # (el token suelto 'tactical' no matcheaba 'tacticalrmm|...'), dejando
           # un mismatch nginx/Django vs el dir real /opt/observer/reporting/assets.
-          # El sufijo ([^a-z]|$) caza /opt/tactical, /opt/tactical/... y el valor
-          # de var suelto, pero NO /opt/tacticalmesh (path real del MeshAgent en macOS).
-          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent|/opt/tactical([^a-z]|$)'
+          # /opt/tactical (sin guard) caza tambien /opt/tacticalmesh: el meshagent
+          # de Observer se instala en /opt/observermesh (agent_macos.sh/agent_linux.sh);
+          # el path tactical solo sobrevivia, stale, en mac_uninstall.sh (ya corregido).
+          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent|tacticalmesh|/opt/tactical'
 
           # Prefijo '\.?/?' tolera greps que emiten o no './' al escanear '.'
           HITS=$(grep -rnE "$PATTERN" \
