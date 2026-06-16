@@ -11,7 +11,8 @@ host    all             all             127.0.0.1/32            scram-sha-256
 # IPv6 loopback
 host    all             all             ::1/128                 scram-sha-256
 
-# Acceso remoto desde observer_api y observer_mesh
-{% for host in observer_db_allowed_hosts %}
+# Acceso remoto desde observer_api y observer_mesh (loopback v4/v6 ya cubierto arriba;
+# se omite aquí para no duplicar la regla cuando observer_db_allowed_hosts trae 127.0.0.1/32)
+{% for host in observer_db_allowed_hosts if host not in ['127.0.0.1/32', '::1/128'] %}
 host    all             all             {{ host }}              scram-sha-256
 {% endfor %}
