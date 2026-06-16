@@ -542,11 +542,11 @@ class TestMeshWSUrl(ObserverTestCase):
         )
 
     @patch("core.utils.get_auth_token")
-    @override_settings(DOCKER_BUILD=True, MESH_WS_URL="ws://tactical-meshcentral:4443")
+    @override_settings(DOCKER_BUILD=True, MESH_WS_URL="ws://observer-meshcentral:4443")
     def test_docker_install(self, mock_token):
         mock_token.return_value = "abc123"
         self.assertEqual(
-            get_mesh_ws_url(), "ws://tactical-meshcentral:4443/control.ashx?auth=abc123"
+            get_mesh_ws_url(), "ws://observer-meshcentral:4443/control.ashx?auth=abc123"
         )
 
     @patch("core.utils.get_auth_token")
@@ -598,7 +598,7 @@ class TestCoreUtils(ObserverTestCase):
         )
 
     @override_settings(DOCKER_BUILD=True)
-    @override_settings(MESH_WS_URL="ws://tactical-meshcentral:4443")
+    @override_settings(MESH_WS_URL="ws://observer-meshcentral:4443")
     def test_get_meshagent_url_docker(self):
         r = get_meshagent_url(
             ident=MeshAgentIdent.DARWIN_UNIVERSAL,
@@ -608,7 +608,7 @@ class TestCoreUtils(ObserverTestCase):
         )
         self.assertEqual(
             r,
-            "http://tactical-meshcentral:4443/meshagents?id=abc123&installflags=2&meshinstall=10005",
+            "http://observer-meshcentral:4443/meshagents?id=abc123&installflags=2&meshinstall=10005",
         )
 
         r = get_meshagent_url(
@@ -619,7 +619,7 @@ class TestCoreUtils(ObserverTestCase):
         )
         self.assertEqual(
             r,
-            "http://tactical-meshcentral:4443/meshagents?id=4&meshid=abc123&installflags=0",
+            "http://observer-meshcentral:4443/meshagents?id=4&meshid=abc123&installflags=0",
         )
 
     @override_settings(USE_EXTERNAL_MESH=True)

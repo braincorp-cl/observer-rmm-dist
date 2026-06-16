@@ -1,26 +1,28 @@
 name: No legacy upstream strings
 
 # Gate F008/T019 (D-07 / RN-05) - previene regresiones del rebrand
-# TacticalRMM -> Observer RMM en el repo consolidado.
-# Espejo del gate del hub 'no-tacticalrmm-regressions' (observer-rmm, RN-024)
-# y del gate del fork web 'no-legacy-strings' (observer-rmm-web, F007.5).
+# TacticalRMM -> Observer RMM en el repo consolidado (backend + infra).
+# Espejo del gate del hub 'no-tacticalrmm-regressions' (observer-rmm, RN-024).
 #
-# Exclusiones justificadas (cada grep -vE remueve una categoría revisada):
-#   - migrations: historia congelada de Django; 0030 conserva el default
-#     upstream 'TacticalRMM' y 0052 lo documenta al migrarlo a 'ObserverRMM'.
-#   - web/app/.github/workflows/no-legacy-strings.yml: el gate propio del
-#     fork web copiado en la consolidación; contiene el patrón por necesidad.
-#   - checks.js value "tacticalagent": nombre real del servicio Windows del
-#     agente upstream; excepción heredada 1:1 del gate del web (F007.5).
-#   - docs.tacticalrmm.com en 4 componentes Vue: links de documentación
-#     pendientes de R-03 (CDN/docs BrainCorp); rastreados como TODO F007.
-#   - AgentTable.vue "upstream issue ref": referencia a issue del upstream
-#     conservada a propósito como procedencia.
-#   - comentarios de procedencia en smoke.yml, healthcheck.yml y roles/ que citan el
-#     install.sh / servidor TacticalRMM de referencia (estándar BrainCorp:
-#     instalar EXACTAMENTE como el método del upstream).
-#   - docs/: documentación de procedencia del dist (RF-11/RN-02) cita el
-#     fork de origen por diseño.
+# ALCANCE: cubre lo que el dist EDITA/POSEE (api/ Python, roles/ Ansible,
+# playbooks, scripts). El frontend vive en 'web/' como COPIA del repo
+# observer-rmm-web, que tiene su PROPIO gate no-legacy-strings; por eso 'web/'
+# se excluye aqui. Rebrand del frontend = deuda de observer-rmm-web
+# (componentes <tactical-dropdown>/<tactical-table> + label "Tactical RMM Agent").
+#
+# PATRON: 'tactical' como token (seguido de no-letra o fin de linea) + las formas
+# pegadas tacticalrmm/tacticalagent/tacticalmesh. grep -i => cubre Tactical/TACTICAL.
+# Nota: un identificador con 'Tactical' PEGADO a otra palabra (p.ej. la clase
+# TacticalSocialAdapter en ee/sso, SSO deshabilitado) NO lo caza el guard ([^a-z]);
+# queda como deuda menor cosmetica, no como regresion bloqueante.
+#
+# Exclusiones de linea justificadas (cada grep -vE remueve una categoria revisada):
+#   - comentarios de procedencia en smoke.yml, healthcheck.yml y roles/ que citan
+#     el install.sh / servidor TacticalRMM de referencia (estandar BrainCorp:
+#     instalar EXACTAMENTE como el metodo del upstream).
+# Exclusiones por dir: migrations (historia Django congelada), test_data y docs
+#   (fixtures / procedencia), web (gate propio del repo web), smoke-results
+#   (artefactos de output de pytest), y los caches habituales.
 
 on:
   push:
@@ -39,17 +41,12 @@ jobs:
         run: |
           set -uo pipefail
 
-          # Cubre el nombre del producto upstream + los PATHS legacy /opt/tactical*.
-          # GAP-036: el path de reporting assets se le escapaba al patrón viejo
-          # (el token suelto 'tactical' no matcheaba 'tacticalrmm|...'), dejando
-          # un mismatch nginx/Django vs el dir real /opt/observer/reporting/assets.
-          # /opt/tactical (sin guard) caza tambien /opt/tacticalmesh: el meshagent
-          # de Observer se instala en /opt/observermesh (agent_macos.sh/agent_linux.sh);
-          # el path tactical solo sobrevivia, stale, en mac_uninstall.sh (ya corregido).
-          PATTERN='tacticalrmm|TacticalRMM|TacticalAgent|tacticalagent|tacticalmesh|/opt/tactical'
+          # 'tactical' token (no-letra|fin) + formas pegadas. Ver cabecera.
+          PATTERN='tacticalrmm|tacticalagent|tacticalmesh|tactical([^a-z]|$)'
 
+          # -i: cubre Tactical/TACTICAL. 'web/' excluido (gate propio del repo web).
           # Prefijo '\.?/?' tolera greps que emiten o no './' al escanear '.'
-          HITS=$(grep -rnE "$PATTERN" \
+          HITS=$(grep -rniE "$PATTERN" \
             --exclude-dir=.git \
             --exclude-dir=node_modules \
             --exclude-dir=__pycache__ \
@@ -58,15 +55,10 @@ jobs:
             --exclude-dir=migrations \
             --exclude-dir=test_data \
             --exclude-dir=docs \
+            --exclude-dir=web \
+            --exclude-dir=smoke-results \
             . \
             | grep -vE '^\.?/?\.github/workflows/no-legacy-strings\.yml:' \
-            | grep -vE '^\.?/?web/app/\.github/workflows/no-legacy-strings\.yml:' \
-            | grep -vE '^\.?/?web/app/src/composables/checks\.js:[0-9]+:.*value: "tacticalagent"' \
-            | grep -vE '^\.?/?web/app/src/components/AgentTable\.vue:[0-9]+:.*upstream issue ref' \
-            | grep -vE '^\.?/?web/app/src/components/FileBar\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
-            | grep -vE '^\.?/?web/app/src/components/modals/coresettings/EditCoreSettings\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
-            | grep -vE '^\.?/?web/app/src/components/modals/agents/InstallAgent\.vue:[0-9]+:.*(docs\.tacticalrmm\.com|tactical-rmm|TODO F007)' \
-            | grep -vE '^\.?/?web/app/src/views/InitialSetup\.vue:[0-9]+:.*docs\.tacticalrmm\.com' \
             | grep -vE '^\.?/?smoke\.yml:[0-9]+:.*servidor TacticalRMM de' \
             | grep -vE '^\.?/?healthcheck\.yml:[0-9]+:.*Observer/TacticalRMM NO usa prefijo' \
             | grep -vE '^\.?/?roles/observer_python/tasks/main\.yml:[0-9]+:.*install\.sh original de TacticalRMM' \
