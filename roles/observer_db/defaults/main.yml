@@ -18,12 +18,15 @@ pg_shared_buffers: "4GB"
 pg_huge_pages: "try"
 # HugePages: nr_hugepages se DERIVA de pg_shared_buffers (abajo) — elimina el acoplamiento
 # manual que hacía que un default fijo (2100) no cupiera en VMs chicas. Fórmula: nº de páginas
-# de 2 MiB que cubren shared_buffers + 5% de overhead (el segmento de mem compartida de PG es
-# shared_buffers + wal_buffers/locks/etc.), redondeado hacia arriba. Coincide con el mapeo de
-# prod (4GB→2151, 40GB→21504). Con huge_pages=try, si nr_hugepages no cubre shared_buffers PG
-# ignora las hugepages en silencio; al derivar, ambas vars quedan SIEMPRE en sincronía aunque
-# se cambie shared_buffers. Un override explícito (p.ej. staging pg_vm_nr_hugepages=0) gana.
-# Cálculo EXACTO de PG (alternativa de mayor precisión): `postgres -C
+# de 2 MiB que cubren shared_buffers + 5% (escala) + 32 páginas fijas (~64 MiB). El segmento de
+# memoria compartida de PG = shared_buffers + estructuras FIJAS (CLOG, lock tables, proc array,
+# wal_buffers): ese overhead fijo (~32 MiB) domina en pools chicos (>5%) y es ínfimo en grandes,
+# por eso un % solo no alcanza abajo. Verificado E2E (2026-06-16): 256MB necesitó 144 páginas;
+# la fórmula da 167. Mapeo: 256MB→167, 4GB→2183, 40GB→21536 (≈ los 2100/21500 de prod, con holgura).
+# Con huge_pages=try, si nr_hugepages no cubre el segmento PG ignora las hugepages en silencio
+# (todo-o-nada); al derivar, ambas vars quedan SIEMPRE en sincronía aunque se cambie shared_buffers.
+# Un override explícito (p.ej. staging pg_vm_nr_hugepages=0) gana.
+# Cálculo EXACTO de PG (mayor precisión, mejora futura): `postgres -C
 # shared_memory_size_in_huge_pages -D <datadir>` (PG15+), pero requiere PG ya instalado/config.
 # Método de reserva:
 #   pg_hugepages_via_grub: true  → reserva en boot vía drop-in /etc/default/grub.d (robusto
@@ -32,9 +35,10 @@ pg_huge_pages: "try"
 #   pg_hugepages_via_grub: false → solo sysctl runtime (ok para pools chicos; menos robusto a
 #       escala tras reboots con RAM fragmentada).
 pg_hugepages_via_grub: true
-# Derivado de pg_shared_buffers: páginas de 2 MiB (2097152 B) + 5% overhead, ceil. Espera un
-# valor con sufijo de unidad ("4GB"/"256MB"). Override explícito en inventory gana sobre esto.
-pg_vm_nr_hugepages: "{{ (((pg_shared_buffers | human_to_bytes) / 2097152) * 1.05) | round(0, 'ceil') | int }}"
+# Derivado de pg_shared_buffers: páginas de 2 MiB (2097152 B) × 1.05 (5% escala), ceil, + 32
+# páginas fijas (64 MiB de overhead fijo de PG). Espera un valor con sufijo ("4GB"/"256MB").
+# Override explícito en inventory gana sobre esto.
+pg_vm_nr_hugepages: "{{ ((((pg_shared_buffers | human_to_bytes) / 2097152) * 1.05) | round(0, 'ceil') | int) + 32 }}"
 pg_work_mem: "16MB"
 pg_maintenance_work_mem: "256MB"
 pg_autovacuum_work_mem: "256MB"
