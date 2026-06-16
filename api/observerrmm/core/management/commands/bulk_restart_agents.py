@@ -8,7 +8,7 @@ from observerrmm.constants import AGENT_DEFER
 
 
 class Command(BaseCommand):
-    help = "Restarts the tactical and meshagent services"
+    help = "Restarts the agent and meshagent services"
 
     def handle(self, *args, **kwargs) -> None:
         agents = Agent.objects.defer(*AGENT_DEFER)
@@ -17,9 +17,13 @@ class Command(BaseCommand):
         for agent in agents:
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Restarting Tactical Agent Service on {agent.hostname}"
+                    f"Restarting Observer Agent Service on {agent.hostname}"
                 )
             )
+            # DEUDA (revisar en repo observer-agent): el comando "tacagent" y el
+            # nombre del servicio del agente (hardcodeado en web checks.js) son
+            # contrato con el binario del agente. Rebrand pendiente allá; cambiarlo
+            # solo aquí rompería el control de agentes ya instalados.
             agent.recover("tacagent", uri, wait=False)
 
         self.stdout.write(self.style.WARNING("Waiting 10 seconds..."))

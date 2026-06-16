@@ -207,7 +207,7 @@ fi
 
 eval "${INSTALL_CMD}"
 
-tacticalsvc="$(
+agentsvc="$(
     cat <<EOF
 [Unit]
 Description=Observer RMM Linux Agent
@@ -226,7 +226,7 @@ KillMode=process
 WantedBy=multi-user.target
 EOF
 )"
-echo "${tacticalsvc}" | tee ${agentSysD} >/dev/null
+echo "${agentsvc}" | tee ${agentSysD} >/dev/null
 
 systemctl daemon-reload
 systemctl enable ${agentSvcName}
