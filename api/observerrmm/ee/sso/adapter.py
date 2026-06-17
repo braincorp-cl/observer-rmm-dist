@@ -10,7 +10,7 @@ from observerrmm.logger import logger
 from observerrmm.utils import get_core_settings
 
 
-class TacticalSocialAdapter(DefaultSocialAccountAdapter):
+class ObserverSocialAdapter(DefaultSocialAccountAdapter):
 
     def populate_user(self, request, sociallogin, data):
         user = super().populate_user(request, sociallogin, data)

@@ -12,9 +12,10 @@ name: No legacy upstream strings
 #
 # PATRON: 'tactical' como token (seguido de no-letra o fin de linea) + las formas
 # pegadas tacticalrmm/tacticalagent/tacticalmesh. grep -i => cubre Tactical/TACTICAL.
-# Nota: un identificador con 'Tactical' PEGADO a otra palabra (p.ej. la clase
-# TacticalSocialAdapter en ee/sso, SSO deshabilitado) NO lo caza el guard ([^a-z]);
-# queda como deuda menor cosmetica, no como regresion bloqueante.
+# Nota: el guard ([^a-z]) NO caza un 'Tactical' PEGADO a otra palabra. El unico
+# caso conocido (la clase del adapter SSO en ee/sso) fue renombrado a
+# ObserverSocialAdapter el 2026-06-17 (hub+dist, anti-drift), asi que ya no
+# queda deuda de token-pegado en el producto.
 #
 # Exclusiones de linea justificadas (cada grep -vE remueve una categoria revisada):
 #   - comentarios de procedencia en smoke.yml, healthcheck.yml y roles/ que citan
