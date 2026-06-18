@@ -66,7 +66,7 @@
 import { ref, computed } from "vue";
 
 export default {
-  name: "tactical-dropdown",
+  name: "observer-dropdown",
   inheritAttrs: false,
   props: {
     modelValue: !String,

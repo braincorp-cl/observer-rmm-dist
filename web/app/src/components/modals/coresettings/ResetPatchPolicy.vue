@@ -26,7 +26,7 @@
 
       <q-form @submit="submit">
         <q-card-section v-if="target == 'client'">
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val) => !!val || '*Required']"
             label="Clients"
             mapOptions
@@ -38,7 +38,7 @@
           />
         </q-card-section>
         <q-card-section v-if="target == 'site'">
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val) => !!val || '*Required']"
             label="Sites"
             mapOptions
@@ -79,7 +79,7 @@ import { sendPatchPolicyReset } from "@/api/automation";
 import { notifySuccess } from "@/utils/notify";
 
 //ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // static data
 const targetOptions = [
@@ -91,7 +91,7 @@ const targetOptions = [
 export default {
   name: "ResetPatchPolicy",
   components: {
-    TacticalDropdown,
+    ObserverDropdown,
   },
   emits: [...useDialogPluginComponent.emits],
   setup() {

@@ -1,6 +1,6 @@
 <template>
   <q-table
-    ref="tacticalTable"
+    ref="observerTable"
     :columns="localColumns"
     :visible-columns="visibleColumns"
     :table-class="{

@@ -48,7 +48,7 @@
           :options="filterTypeOptions"
           color="primary"
         />
-        <tactical-dropdown
+        <observer-dropdown
           v-if="filterType === 'agents' && !agent"
           class="q-pr-sm"
           style="width: 200px"
@@ -61,7 +61,7 @@
           filled
           filterable
         />
-        <tactical-dropdown
+        <observer-dropdown
           v-if="filterType === 'clients' && !agent"
           class="q-pr-sm"
           style="width: 200px"
@@ -74,7 +74,7 @@
           mapOptions
           filterable
         />
-        <tactical-dropdown
+        <observer-dropdown
           class="q-pr-sm"
           style="width: 200px"
           v-model="userFilter"
@@ -84,7 +84,7 @@
           filled
           multiple
         />
-        <tactical-dropdown
+        <observer-dropdown
           class="q-pr-sm"
           style="width: 200px"
           v-model="actionFilter"
@@ -95,7 +95,7 @@
           multiple
           mapOptions
         />
-        <tactical-dropdown
+        <observer-dropdown
           class="q-pr-sm"
           style="width: 200px"
           v-if="!agent"
@@ -107,7 +107,7 @@
           multiple
           mapOptions
         />
-        <tactical-dropdown
+        <observer-dropdown
           class="q-pr-sm"
           style="width: 200px"
           v-model="timeFilter"
@@ -165,7 +165,7 @@ import { formatTableColumnText } from "@/utils/format";
 // ui imported
 import AuditLogDetailModal from "@/components/logs/AuditLogDetailModal.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // static data
 const columns = [
@@ -293,7 +293,7 @@ const filterTypeOptions = [
 
 export default {
   name: "AuditManager",
-  components: { TacticalDropdown, ExportTableBtn },
+  components: { ObserverDropdown, ExportTableBtn },
   props: {
     agent: String,
     tabHeight: String,

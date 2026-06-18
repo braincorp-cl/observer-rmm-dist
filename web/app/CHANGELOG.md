@@ -2,6 +2,49 @@
 
 Formato: las entradas más recientes arriba. Cada entrada cita la feature del ciclo forward (`_reversa_forward/NNN-<short-name>/`), la decisión que la origina y, cuando corresponda, los hallazgos cross-repo del hub `observer-rmm`.
 
+## 2026-06-17 — Descarte de módulos Reportes y SSO (ADR-010, sweep directo)
+
+**Resumen:** se descartan los módulos Enterprise Edition **Reportes** (`src/ee/reporting/`) y **SSO** (`src/ee/sso/`). Ambas carpetas quedan **vacías** (solo un `README.md` placeholder), pendientes de reimplementación desde cero, y se eliminan/ocultan todos los links, menús, botones, rutas e imports que apuntaban a ellos. 36 archivos eliminados.
+
+**Disparador:** decisión de producto (BrainCorp). Tras quitar la licencia EE para acceder a ambos módulos, el análisis concluyó: **Reportes** dependía de sitios externos (repos de plantillas de terceros y comunidad) para cargar reportes → inviable; **SSO** estaba incompleto y con vulnerabilidades de seguridad confirmadas (LEAK del `secret` OAuth, RN-SSO-C/GAP-09) → inseguro. Completa/supera las features `001-disable-sso-ui` y `002-remove-shared-templates`.
+
+**Cambios:**
+- Eliminados los 36 archivos de `src/ee/reporting/` y `src/ee/sso/`; añadido `README.md` de descarte en cada módulo.
+- Puntos de entrada removidos: `FileBar.vue` (método de reportes huérfano), `AdminManager.vue` (menú/import SSO), `accounts/UserSessionsTable.vue` (tipo `SSOUser` → `User`), `modals/coresettings/EditCoreSettings.vue` (tab SSO + dynamic import + flag + watch), `views/LoginView.vue` (sección "Log in with SSO" + lógica), `router/routes.js` (callback OAuth), `boot/axios.js` (excepción URL `ssoproviders/token/`).
+
+**Efecto:** el descarte de SSO **neutraliza el LEAK del `secret` OAuth** (sin módulo ni UI no hay endpoint expuesto desde el frontend). Decisión y trazabilidad en `_reversa_sdd/adrs/010-descarte-modulos-reportes-sso.md`.
+
+**Verificación:** `npm run lint` exit 0; `quasar build` "Build succeeded"; gate `no-legacy-strings` PASS; `grep dist/` sin símbolos de los módulos descartados; login normal intacto.
+
+## 2026-06-16 — Rebrand cero-tactical: componentes UI internos (sweep directo, F007 continuación)
+
+**Resumen:** se eliminan los últimos identificadores `tactical` del código de aplicación, completando el rebrand TacticalRMM → Observer RMM más allá de los strings de marca upstream (cubiertos en F3.x). Los componentes UI internos `TacticalDropdown` y `TacticalTable` se renombran a `ObserverDropdown` / `ObserverTable`. Decisión cross-repo fijada desde el hub `observer-rmm`.
+
+**Disparador:** sesión cross-repo (hub `observer-rmm`) — objetivo "cero tactical" en `observer-rmm-web`. El label `"Tactical RMM Agent"` / value `"tacticalagent"` del service-check ya se había migrado a `"Observer RMM Agent"` / `"observeragent"` en el commit `4e7f713`; esta entrada cierra el resto.
+
+**Mecanismo:** sweep mecánico grep-able (no hay registro global; cada `.vue` importa el componente explícitamente). Cuatro tokens reemplazados de forma pareja (`TacticalDropdown`→`ObserverDropdown`, `tactical-dropdown`→`observer-dropdown`, `TacticalTable`→`ObserverTable`, `tactical-table`→`observer-table`) en símbolo de import, path, clave de `components: {}` (Options API) y tag kebab (`<script setup>`). El ref vestigial `ref="tacticalTable"` → `ref="observerTable"`.
+
+**Archivos tocados:**
+
+- `src/components/ui/TacticalDropdown.vue` → **renombrado** a `src/components/ui/ObserverDropdown.vue` (`name: "tactical-dropdown"` → `"observer-dropdown"`)
+- `src/core/dashboard/ui/TacticalTable.vue` → **renombrado** a `src/core/dashboard/ui/ObserverTable.vue` (componente vivo, 2 importadores)
+- `src/components/ui/TacticalTable.vue` → **eliminado** (zombie: 0 importadores, paralelo al cleanup `fetchChecks` de R-08)
+- 30 archivos `.vue` consumidores actualizados (imports + registro + ~80 tags)
+- `.github/workflows/no-legacy-strings.yml` — patrón extendido con `tactical-dropdown|tactical-table|TacticalDropdown|TacticalTable` (guard de regresión); removida la allowlist obsoleta `checks.js:1255:.*tacticalagent` (la línea ya es `observeragent`); agregado `--exclude-dir=_reversa_forward` (descuido: artefactos Reversa committeados desde la feature 002 disparaban el gate por menciones históricas a `amidaware`); allowlist para la referencia histórica de `CHANGELOG.md` a `amidaware/reporting-templates`
+- `CHANGELOG.md` — esta entrada
+
+**Verificación:**
+
+- Gate `no-legacy-strings` simulado localmente → **PASS** (0 hits fuera de allowlist)
+- `npm run lint` exit 0; `npm run build` → **Build succeeded** (spa)
+- `grep` en `dist/`: 0 tokens `tactical-*`/`Tactical*`/`tacticalagent`/`Tactical RMM Agent`; `observeragent`/"Observer RMM Agent" presentes (sanity)
+- `grep` en `src/`: 0 tokens tactical residuales
+
+**Fuera de scope (documentado):**
+
+- `TacticalSocialAdapter` — vive en el backend Django (`observer-rmm-dist`/hub), 0 ocurrencias en `src/`. Se cierra en sesión dedicada cross-repo.
+- Links residuales `docs.tacticalrmm.com` (FileBar, InitialSetup, InstallAgent…) — bloqueados por R-03 (CDN `docs.observer.cl` aún no publicado), allowlist preservada.
+
 ## 2026-06-02 — Feature `004-revoke-pdf-object-urls` (cierra WI-DECISION-02 / Q-REP-07)
 
 **Resumen:** corregir memory leak en el módulo Reportes EE. Tres funciones del factory `useReportTemplates()` (`runReportPreview`, `runReport`) y `useReportingHistory()` (`runReportHistory`) creaban `URL.createObjectURL(data)` para PDFs sin revocar el URL anterior, acumulando blobs en sesiones largas. Cierre del watch item registrado en `_reversa_sdd/watch-items.md#wi-decision-02`.

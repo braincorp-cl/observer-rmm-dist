@@ -164,7 +164,7 @@
                 inline
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-if="template.action_type == 'script'"
                 class="q-mb-sm"
                 label="Failure script"
@@ -177,7 +177,7 @@
                 :rules="[(val) => !!val || '*Required']"
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-else-if="template.action_type == 'server'"
                 class="q-mb-sm"
                 label="Failure script"
@@ -189,7 +189,7 @@
                 filterable
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-else
                 class="q-mb-sm"
                 label="Failure Web Hook"
@@ -263,7 +263,7 @@
                 inline
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-if="template.resolved_action_type === 'script'"
                 class="q-mb-sm"
                 label="Resolved Script"
@@ -275,7 +275,7 @@
                 filterable
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-else-if="template.resolved_action_type === 'server'"
                 class="q-mb-sm"
                 label="Resolved Script"
@@ -287,7 +287,7 @@
                 filterable
               />
 
-              <tactical-dropdown
+              <observer-dropdown
                 v-else
                 class="q-mb-sm"
                 label="Resolved Web Hook"
@@ -746,7 +746,7 @@ import { addAlertTemplate, saveAlertTemplate } from "@/api/alerts";
 import { isValidEmail } from "@/utils/validation";
 
 // components
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // types
 import type { AlertTemplate, AlertSeverity } from "@/types/alerts";

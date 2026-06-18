@@ -54,7 +54,7 @@
                   state.collector_all_output = false;
                 "
               />
-              <tactical-dropdown
+              <observer-dropdown
                 v-if="collector"
                 :rules="[(val) => !!val || '*Required']"
                 v-model="state.custom_field"
@@ -78,7 +78,7 @@
               />
             </q-card-section>
             <q-card-section>
-              <tactical-dropdown
+              <observer-dropdown
                 v-model="state.alert_severity"
                 :options="severityOptions"
                 label="Alert Severity"
@@ -110,7 +110,7 @@
                   ]"
                 />
 
-                <tactical-dropdown
+                <observer-dropdown
                   v-if="actionType === 'script'"
                   class="col-3"
                   label="Select script"
@@ -729,7 +729,7 @@
 
                 <div class="col-6"></div>
 
-                <tactical-dropdown
+                <observer-dropdown
                   v-if="!isPosix"
                   class="col-6 q-pa-sm"
                   label="Task instance policy"
@@ -745,7 +745,7 @@
                 v-else-if="state.task_type === 'checkfailure'"
                 class="row"
               >
-                <tactical-dropdown
+                <observer-dropdown
                   class="col-6 q-pa-sm"
                   :rules="[(val) => !!val || '*Required']"
                   v-model="state.assigned_check"
@@ -823,7 +823,7 @@ import {
 } from "@/utils/format";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // static data
 const severityOptions = [
@@ -900,7 +900,7 @@ const plat_options = [
 ];
 
 export default defineComponent({
-  components: { TacticalDropdown, draggable },
+  components: { ObserverDropdown, draggable },
   name: "AddAutomatedTask",
   emits: [...useDialogPluginComponent.emits],
   props: {

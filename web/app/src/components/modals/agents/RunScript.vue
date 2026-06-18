@@ -38,7 +38,7 @@
       </q-bar>
       <q-form @submit.prevent="sendScript">
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val: number) => !!val || '*Required']"
             v-model="state.script"
             :options="filterByPlatformOptions"
@@ -63,10 +63,10 @@
                 >
               </q-btn>
             </template>
-          </tactical-dropdown>
+          </observer-dropdown>
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.args"
             label="Script Arguments (press Enter after typing each argument)"
             filled
@@ -78,7 +78,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.env_vars"
             :label="envVarsLabel"
             filled
@@ -117,7 +117,7 @@
         <q-card-section
           v-if="state.emailMode === 'custom' && state.output === 'email'"
         >
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.emails"
             label="Email recipients (press Enter after typing each email)"
             filled
@@ -129,7 +129,7 @@
           />
         </q-card-section>
         <q-card-section v-if="state.output === 'collector'">
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val: number) => !!val || '*Required']"
             outlined
             v-model="state.custom_field"
@@ -246,7 +246,7 @@ import { notifySuccess } from "@/utils/notify";
 import { envVarsLabel, runAsUserToolTip } from "@/constants/constants";
 
 //ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import ScriptOutputCopyClip from "@/components/scripts/ScriptOutputCopyClip.vue";
 
 // types

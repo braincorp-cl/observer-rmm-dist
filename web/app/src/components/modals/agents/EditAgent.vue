@@ -29,7 +29,7 @@
                   <q-card-section class="row">
                     <div class="col-2">Site:</div>
                     <div class="col-2"></div>
-                    <tactical-dropdown
+                    <observer-dropdown
                       class="col-8"
                       v-model="agent.site"
                       :options="siteOptions"
@@ -63,7 +63,7 @@
                   <q-card-section class="row">
                     <div class="col-2">Timezone:</div>
                     <div class="col-2"></div>
-                    <tactical-dropdown
+                    <observer-dropdown
                       filterable
                       outlined
                       dense
@@ -379,13 +379,13 @@ import { useDialogPluginComponent } from "quasar";
 import mixins from "@/mixins/mixins";
 import PatchPolicyForm from "@/components/modals/agents/PatchPolicyForm.vue";
 import CustomField from "@/components/ui/CustomField.vue";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import { capitalize } from "@/utils/format";
 
 export default {
   name: "EditAgent",
   emits: [...useDialogPluginComponent.emits],
-  components: { PatchPolicyForm, CustomField, TacticalDropdown },
+  components: { PatchPolicyForm, CustomField, ObserverDropdown },
   mixins: [mixins],
   props: {
     agent_id: !String,

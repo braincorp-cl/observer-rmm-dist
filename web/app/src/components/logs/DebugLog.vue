@@ -44,7 +44,7 @@
           @click="getDebugLog"
           icon="refresh"
         />
-        <tactical-dropdown
+        <observer-dropdown
           v-if="!agent"
           class="q-pr-sm"
           style="width: 250px"
@@ -56,7 +56,7 @@
           clearable
           filterable
         />
-        <tactical-dropdown
+        <observer-dropdown
           class="q-pr-sm"
           style="width: 250px"
           v-model="logTypeFilter"
@@ -133,7 +133,7 @@ import { fetchDebugLog } from "@/api/logs";
 import { formatTableColumnText } from "@/utils/format";
 
 // ui components
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 
 // static data
@@ -187,7 +187,7 @@ const columns = [
 export default {
   name: "LogModal",
   components: {
-    TacticalDropdown,
+    ObserverDropdown,
     ExportTableBtn,
   },
   props: {

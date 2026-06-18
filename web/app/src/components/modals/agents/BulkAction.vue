@@ -22,7 +22,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-if="state.target === 'client'"
             :rules="[(val) => !!val || '*Required']"
             v-model="state.client"
@@ -32,7 +32,7 @@
             mapOptions
             filterable
           />
-          <tactical-dropdown
+          <observer-dropdown
             v-else-if="state.target === 'site'"
             :rules="[(val) => !!val || '*Required']"
             v-model="state.site"
@@ -42,7 +42,7 @@
             mapOptions
             filterable
           />
-          <tactical-dropdown
+          <observer-dropdown
             v-else-if="state.target === 'agents'"
             :rules="[(val) => !!val || '*Required']"
             v-model="state.agents"
@@ -80,7 +80,7 @@
         </q-card-section>
 
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val) => !!val || '*Required']"
             v-model="state.script"
             :options="filterByPlatformOptions"
@@ -105,10 +105,10 @@
                 >
               </q-btn>
             </template>
-          </tactical-dropdown>
+          </observer-dropdown>
         </q-card-section>
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.args"
             label="Script Arguments (press Enter after typing each argument)"
             filled
@@ -120,7 +120,7 @@
           />
         </q-card-section>
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.env_vars"
             :label="envVarsLabel"
             filled
@@ -188,7 +188,7 @@
         </q-card-section>
 
         <q-card-section v-if="mode === 'script' && collector">
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val) => !!val || '*Required']"
             outlined
             v-model="state.custom_field"
@@ -279,7 +279,7 @@ import { cmdPlaceholder } from "@/composables/agents";
 import { envVarsLabel, runAsUserToolTip } from "@/constants/constants";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // static data
 const monTypeOptions = [
@@ -309,7 +309,7 @@ const patchModeOptions = [
 
 export default defineComponent({
   name: "BulkAction",
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   emits: [...useDialogPluginComponent.emits],
   props: {
     mode: !String,

@@ -66,10 +66,10 @@ export default function ({ app, router }) {
       // perms
       else if (error.response.status === 403) {
         // don't notify user if method is GET
+        // SSO descartado (ADR-010, 2026-06-17): excepción para "accounts/ssoproviders/token/" eliminada.
         if (
           error.config.method === "get" ||
-          error.config.method === "patch" ||
-          error.config.url === "accounts/ssoproviders/token/"
+          error.config.method === "patch"
         )
           return Promise.reject({ ...error });
         text = error.response.data.detail;

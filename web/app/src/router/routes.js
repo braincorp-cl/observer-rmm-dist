@@ -89,13 +89,7 @@ const routes = [
       auth.next = from.fullPath;
     },
   },
-  // Feature 001-disable-sso-ui (BrainCorp 2026-06-01):
-  // ruta de callback OAuth registrada pero sin componente; redirige siempre al login
-  // para usuarios con tabs huérfanos o bookmarks de un SSO previamente activo.
-  {
-    path: "/account/provider/callback",
-    beforeEnter: () => ({ name: "Login" }),
-  },
+  // SSO descartado (ADR-010, 2026-06-17): ruta de callback OAuth eliminada (módulo ee/sso vaciado).
   { path: "/:catchAll(.*)", component: () => import("@/views/NotFound.vue") },
 ];
 

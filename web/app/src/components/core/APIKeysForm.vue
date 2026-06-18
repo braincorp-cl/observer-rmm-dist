@@ -25,7 +25,7 @@
 
         <!-- user -->
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             outlined
             v-model="localKey.user"
             label="User"
@@ -80,10 +80,10 @@ import {
 } from "@/utils/format";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   name: "APIKeysForm",
   emits: [...useDialogPluginComponent.emits],
   props: { APIKey: Object },

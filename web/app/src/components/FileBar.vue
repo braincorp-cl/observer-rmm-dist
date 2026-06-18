@@ -443,11 +443,8 @@ export default {
         component: DeploymentTable,
       });
     },
-    showReportsManager() {
-      this.$q.dialog({
-        component: ReportsManager,
-      });
-    },
+    // Reportes descartado (ADR-010, 2026-06-17): módulo ee/reporting vaciado;
+    // el método showReportsManager (huérfano, sin invocación ni import) fue eliminado.
   },
 };
 </script>

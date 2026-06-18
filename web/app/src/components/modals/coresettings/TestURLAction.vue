@@ -19,7 +19,7 @@
       </q-card-section>
 
       <q-card-section v-if="runAgainst === 'agent'">
-        <tactical-dropdown
+        <observer-dropdown
           v-model="agent"
           :options="agentOptions"
           label="Agents"
@@ -31,7 +31,7 @@
       </q-card-section>
 
       <q-card-section v-else-if="runAgainst === 'site'">
-        <tactical-dropdown
+        <observer-dropdown
           v-model="site"
           :options="siteOptions"
           label="Sites"
@@ -43,7 +43,7 @@
       </q-card-section>
 
       <q-card-section v-else-if="runAgainst === 'client'">
-        <tactical-dropdown
+        <observer-dropdown
           v-model="client"
           :options="clientOptions"
           label="Client"
@@ -97,7 +97,7 @@ import { runTestURLAction } from "@/api/core";
 import { URLAction } from "@/types/core/urlactions";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // define emits
 defineEmits([...useDialogPluginComponent.emits]);

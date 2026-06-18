@@ -124,19 +124,6 @@
                 <q-item
                   clickable
                   v-close-popup
-                  @click="showSSOAccounts(props.row)"
-                  id="context-reset"
-                  :disable="props.row.social_accounts.length === 0"
-                >
-                  <q-item-section side>
-                    <q-icon name="groups" />
-                  </q-item-section>
-                  <q-item-section>Show Connected SSO Accounts</q-item-section>
-                </q-item>
-
-                <q-item
-                  clickable
-                  v-close-popup
                   @click="showSessions(props.row)"
                   id="context-reset"
                 >
@@ -195,7 +182,7 @@ import { mapState as piniaMapState } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import UserForm from "@/components/modals/admin/UserForm.vue";
 import UserResetPasswordForm from "@/components/modals/admin/UserResetPasswordForm.vue";
-import SSOAccountsTable from "@/ee/sso/components/SSOAccountsTable.vue";
+// SSO descartado (ADR-010, 2026-06-17): import de SSOAccountsTable eliminado (módulo ee/sso vaciado).
 import UserSessionsTable from "@/components/accounts/UserSessionsTable.vue";
 
 export default {
@@ -208,15 +195,6 @@ export default {
 
     const $q = useQuasar();
 
-    function showSSOAccounts(user) {
-      $q.dialog({
-        component: SSOAccountsTable,
-        componentProps: {
-          user,
-        },
-      });
-    }
-
     async function showSessions(user) {
       $q.dialog({
         component: UserSessionsTable,
@@ -228,7 +206,6 @@ export default {
 
     return {
       formatDate,
-      showSSOAccounts,
       showSessions,
     };
   },

@@ -29,7 +29,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="script.category"
             :options="categories"
             label="Category"
@@ -50,7 +50,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="script.shell"
             :options="shellOptions"
             label="Type"
@@ -60,7 +60,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="script.supported_platforms"
             :options="agentPlatformOptions"
             label="Supported Platforms (All supported if blank)"
@@ -72,7 +72,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="script.args"
             label="Script Arguments"
             placeholder="(press Enter after typing each argument)"
@@ -86,7 +86,7 @@
         </q-card-section>
 
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="script.env_vars"
             label="Environment Variables"
             placeholder="(press Enter after typing each key=value pair)"
@@ -136,12 +136,12 @@ import { agentPlatformOptions } from "@/composables/agents";
 import { notifySuccess } from "@/utils/notify";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // static data
 import { shellOptions } from "@/composables/scripts";
 export default {
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   name: "ScriptModal",
   emits: [...useDialogPluginComponent.emits],
   props: {

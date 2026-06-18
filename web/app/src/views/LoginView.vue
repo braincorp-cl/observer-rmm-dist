@@ -50,31 +50,7 @@
             </q-form>
           </q-card-section>
 
-          <q-card-section v-if="ssoProviders?.length > 0 && openSSOProviderRedirect">
-            <div class="text-h6 text-center q-mb-md">Log in with SSO</div>
-            <q-separator />
-
-            <q-list dense bordered class="q-pa-sm">
-              <q-item
-                v-for="provider in ssoProviders"
-                :key="provider.id"
-                @click="openSSOProviderRedirect(provider.id)"
-                clickable
-                class="q-pa-xs hover-bg"
-              >
-                <q-item-section avatar>
-                  <q-icon
-                    :name="provider.icon ?? 'mdi-key'"
-                    size="sm"
-                    class="text-primary"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ provider.name }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
+          <!-- SSO descartado (ADR-010, 2026-06-17): sección "Log in with SSO" eliminada (módulo ee/sso vaciado). -->
         </q-card>
 
         <!-- 2 factor modal -->
@@ -111,17 +87,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive } from "vue";
 import { type QForm, useQuasar } from "quasar";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
-import type { SSOProviderConfig } from "@/ee/sso/api/sso";
 
-// Feature 001-disable-sso-ui (BrainCorp 2026-06-01):
-// imports SSO en runtime se cargan vía dynamic import detrás del flag de build
-// `SSO_DISABLED`, para que Vite tree-shake elimine el chunk SSO completo del
-// bundle cuando el flag está activo (default).
-let openSSOProviderRedirect: ((id: string) => void) | null = null;
+// SSO descartado (ADR-010, 2026-06-17): imports y lógica SSO eliminados (módulo ee/sso vaciado).
 
 // setup quasar
 const $q = useQuasar();
@@ -141,7 +112,6 @@ const credentials = reactive({ username: "", password: "" });
 const twofactor = ref("");
 const prompt = ref(false);
 const showPassword = ref(true);
-const ssoProviders = ref([] as SSOProviderConfig[]);
 
 async function checkCreds() {
   try {
@@ -175,20 +145,6 @@ async function onSubmit() {
     prompt.value = false;
   }
 }
-
-onMounted(async () => {
-  if (process.env.SSO_DISABLED === "true") {
-    return;
-  }
-  try {
-    const sso = await import("@/ee/sso/api/sso");
-    openSSOProviderRedirect = sso.openSSOProviderRedirect;
-    const result = await sso.getSSOConfig();
-    ssoProviders.value = result.data.socialaccount.providers;
-  } catch (e) {
-    console.error(e);
-  }
-});
 </script>
 
 <style>

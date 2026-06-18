@@ -14,7 +14,7 @@
           again
         </q-card-section>
         <q-card-section v-if="siteOptions.length > 0">
-          <tactical-dropdown
+          <observer-dropdown
             label="Site to move agents to"
             outlined
             v-model="site"
@@ -55,13 +55,13 @@ import { fetchClients, removeClient, removeSite } from "@/api/clients";
 import { formatSiteOptions } from "@/utils/format";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
   name: "DeleteClient",
   emits: [...useDialogPluginComponent.emits],
   components: {
-    TacticalDropdown,
+    ObserverDropdown,
   },
   props: {
     object: !Object,

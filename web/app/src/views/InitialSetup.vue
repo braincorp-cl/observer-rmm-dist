@@ -46,7 +46,7 @@
             </q-card-section>
             <q-card-section>
               <div>Default timezone for agents:</div>
-              <tactical-dropdown
+              <observer-dropdown
                 filterable
                 dense
                 options-dense
@@ -93,11 +93,11 @@
 
 <script>
 import mixins from "@/mixins/mixins";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
   name: "InitialSetup",
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   mixins: [mixins],
   data() {
     return {

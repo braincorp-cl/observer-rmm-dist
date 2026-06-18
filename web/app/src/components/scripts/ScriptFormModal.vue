@@ -85,7 +85,7 @@
               map-options
               label="Shell Type"
             />
-            <tactical-dropdown
+            <observer-dropdown
               v-model="script.supported_platforms"
               :options="agentPlatformOptions"
               label="Supported Platforms (All supported if blank)"
@@ -95,7 +95,7 @@
               multiple
               :readonly="readonly"
             />
-            <tactical-dropdown
+            <observer-dropdown
               filled
               v-model="script.category"
               :options="categories"
@@ -107,7 +107,7 @@
               :readonly="readonly"
               hide-bottom-space
             />
-            <tactical-dropdown
+            <observer-dropdown
               v-model="script.args"
               label="Script Arguments (press Enter after typing each argument)"
               filled
@@ -118,7 +118,7 @@
               new-value-mode="add"
               :readonly="readonly"
             />
-            <tactical-dropdown
+            <observer-dropdown
               v-model="script.env_vars"
               :label="envVarsLabel"
               filled
@@ -167,7 +167,7 @@
         ></div>
       </div>
       <q-card-actions>
-        <tactical-dropdown
+        <observer-dropdown
           style="width: 550px"
           dense
           :loading="agentLoading"
@@ -220,7 +220,7 @@
               </q-tooltip>
             </q-btn>
           </template>
-        </tactical-dropdown>
+        </observer-dropdown>
         <q-space />
         <q-btn dense flat label="Cancel" @click="closeEditor" />
         <q-btn
@@ -249,7 +249,7 @@ import { notifyError, notifySuccess } from "@/utils/notify";
 
 // ui imports
 import TestScriptModal from "@/components/scripts/TestScriptModal.vue";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import * as monaco from "monaco-editor";
 
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";

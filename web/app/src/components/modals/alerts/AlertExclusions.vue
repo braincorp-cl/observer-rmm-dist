@@ -10,7 +10,7 @@
       </q-bar>
       <q-form ref="form" @submit.prevent="onSubmit">
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Excluded Clients"
             outlined
             multiple
@@ -22,7 +22,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Excluded Sites"
             outlined
             multiple
@@ -34,7 +34,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Excluded Agents"
             outlined
             multiple
@@ -68,11 +68,11 @@
 
 <script>
 import mixins from "@/mixins/mixins";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 export default {
   name: "AlertExclusions",
   components: {
-    TacticalDropdown,
+    ObserverDropdown,
   },
   emits: ["hide", "ok"],
   props: { template: !Object },

@@ -14,7 +14,7 @@
     </div>
     <q-separator />
 
-    <tactical-table
+    <observer-table
       :rows="schedules"
       :columns="columns"
       row-key="id"
@@ -61,7 +61,7 @@
           </q-td>
         </q-tr>
       </template>
-    </tactical-table>
+    </observer-table>
   </div>
 </template>
 
@@ -73,7 +73,7 @@ import type { Schedule } from "../types";
 
 // ui imports
 import ScheduleForm from "./ScheduleForm.vue";
-import TacticalTable from "src/core/dashboard/ui/TacticalTable.vue";
+import ObserverTable from "src/core/dashboard/ui/ObserverTable.vue";
 import { until } from "@vueuse/shared";
 import { capitalize } from "@/utils/format";
 

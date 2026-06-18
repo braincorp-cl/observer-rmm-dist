@@ -308,7 +308,7 @@
           </template>
         </q-tree>
       </div>
-      <tactical-table
+      <observer-table
         v-if="tableView"
         dense
         :style="{ 'max-height': `${$q.screen.height - 182}px` }"
@@ -570,7 +570,7 @@
             <q-td></q-td>
           </q-tr>
         </template>
-      </tactical-table>
+      </observer-table>
     </q-card>
   </q-dialog>
 </template>
@@ -594,7 +594,7 @@ import { notifySuccess } from "@/utils/notify";
 import ScriptUploadModal from "@/components/scripts/ScriptUploadModal.vue";
 import ScriptFormModal from "@/components/scripts/ScriptFormModal.vue";
 import ScriptSnippets from "@/components/scripts/ScriptSnippets.vue";
-import TacticalTable from "@/core/dashboard/ui/TacticalTable.vue";
+import ObserverTable from "@/core/dashboard/ui/ObserverTable.vue";
 
 import trmmLogo from "@/assets/trmm_256.png";
 
@@ -661,7 +661,7 @@ const columns = [
 export default {
   name: "ScriptManager",
   components: {
-    TacticalTable,
+    ObserverTable,
   },
   emits: [...useDialogPluginComponent.emits],
   setup() {

@@ -13,7 +13,7 @@
           <q-tab name="webhooks" label="Web Hooks" />
           <q-tab name="retention" label="Retention" />
           <q-tab name="apikeys" label="API Keys" />
-          <q-tab v-if="ssoEnabled" name="sso" label="Single Sign-On (SSO)" />
+          <!-- SSO descartado (ADR-010, 2026-06-17): tab Single Sign-On eliminado (módulo ee/sso vaciado). -->
           <q-tab name="schedules" label="Schedules" />
           <!-- <q-tab name="openai" label="Open AI" /> -->
         </q-tabs>
@@ -94,7 +94,7 @@
                 <q-card-section class="row">
                   <div class="col-4">Default agent timezone:</div>
                   <div class="col-2"></div>
-                  <tactical-dropdown
+                  <observer-dropdown
                     filterable
                     outlined
                     dense
@@ -651,10 +651,7 @@
                 <APIKeysTable />
               </q-tab-panel>
 
-              <!-- sso integration — visible only when SSO_DISABLED build flag is "false" -->
-              <q-tab-panel v-if="ssoEnabled" name="sso">
-                <SSOProvidersTable />
-              </q-tab-panel>
+              <!-- SSO descartado (ADR-010, 2026-06-17): panel y SSOProvidersTable eliminados (módulo ee/sso vaciado). -->
 
               <!-- schedules -->
               <q-tab-panel name="schedules">
@@ -749,21 +746,11 @@ import CustomFields from "@/components/modals/coresettings/CustomFields.vue";
 import KeyStoreTable from "@/components/modals/coresettings/KeyStoreTable.vue";
 import URLActionsTable from "@/components/modals/coresettings/URLActionsTable.vue";
 import APIKeysTable from "@/components/core/APIKeysTable.vue";
-import { defineAsyncComponent } from "vue";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import ScheduleTable from "@/core/settings/components/ScheduleTable.vue";
 
-// Feature 001-disable-sso-ui (BrainCorp 2026-06-01):
-// `SSOProvidersTable` se carga vía dynamic import detrás del flag de build
-// `SSO_DISABLED`. Cuando el flag está activo (default "true"), el constante
-// queda `null`, el template no renderiza el componente y Vite tree-shake
-// elimina el chunk `@/ee/sso/components/SSOProvidersTable.vue` del bundle.
-const SSOProvidersTable =
-  process.env.SSO_DISABLED === "true"
-    ? null
-    : defineAsyncComponent(
-        () => import("@/ee/sso/components/SSOProvidersTable.vue"),
-      );
+// SSO descartado (ADR-010, 2026-06-17): el dynamic import de SSOProvidersTable
+// fue eliminado junto con el módulo ee/sso (vaciado, pendiente de reimplementación).
 
 export default {
   name: "EditCoreSettings",
@@ -773,16 +760,13 @@ export default {
     KeyStoreTable,
     URLActionsTable,
     APIKeysTable,
-    ...(SSOProvidersTable ? { SSOProvidersTable } : {}),
-    TacticalDropdown,
+    ObserverDropdown,
     ScheduleTable,
   },
   mixins: [mixins],
   data() {
     return {
-      // Feature 001-disable-sso-ui (BrainCorp 2026-06-01):
-      // valor resuelto en tiempo de build a partir del flag `SSO_DISABLED`.
-      ssoEnabled: process.env.SSO_DISABLED !== "true",
+      // SSO descartado (ADR-010, 2026-06-17): flag ssoEnabled eliminado (módulo ee/sso vaciado).
       ready: false,
       policies: [],
       settings: {},
@@ -814,16 +798,7 @@ export default {
       return this.$store.state.hosted;
     },
   },
-  watch: {
-    tab(newTab, oldTab) {
-      // Feature 001-disable-sso-ui: el tab "sso" sólo existe cuando ssoEnabled === true;
-      // si el flag está activo, esta rama nunca se ejerce porque oldTab no puede
-      // tomar el valor "sso".
-      if (this.ssoEnabled && oldTab === "sso") {
-        this.getCoreSettings();
-      }
-    },
-  },
+  // SSO descartado (ADR-010, 2026-06-17): watch del tab "sso" eliminado (módulo ee/sso vaciado).
   methods: {
     openURL(url) {
       openURL(url);

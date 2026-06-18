@@ -258,7 +258,7 @@
           </q-card-section>
 
           <q-card-section class="row">
-            <tactical-dropdown
+            <observer-dropdown
               class="col-6"
               label="Allowed Clients"
               :options="clientOptions"
@@ -271,7 +271,7 @@
             />
           </q-card-section>
           <q-card-section class="row">
-            <tactical-dropdown
+            <observer-dropdown
               class="col-6"
               label="Allowed Sites"
               :options="siteOptions"
@@ -447,10 +447,10 @@ import { useClientDropdown, useSiteDropdown } from "@/composables/clients";
 import { notifySuccess } from "@/utils/notify";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   name: "RolesForm",
   emits: [...useDialogPluginComponent.emits],
   props: { role: Object },

@@ -10,7 +10,7 @@
       </q-bar>
       <q-form @submit="submit">
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="state.client"
             label="Client"
             :options="clientOptions"
@@ -66,14 +66,14 @@ import { notifySuccess } from "@/utils/notify";
 
 // ui imports
 import CustomField from "@/components/ui/CustomField.vue";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
   name: "SitesForm",
   emits: [...useDialogPluginComponent.emits],
   components: {
     CustomField,
-    TacticalDropdown,
+    ObserverDropdown,
   },
   props: {
     site: Object,

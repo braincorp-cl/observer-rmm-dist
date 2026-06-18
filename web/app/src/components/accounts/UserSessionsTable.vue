@@ -67,8 +67,8 @@ import {
 } from "@/api/accounts";
 
 //types
-import type { SSOUser } from "@/ee/sso/types/sso";
-import type { AuthToken } from "@/types/accounts";
+// SSO descartado (ADR-010, 2026-06-17): tipo SSOUser reemplazado por User base (módulo ee/sso vaciado).
+import type { AuthToken, User } from "@/types/accounts";
 
 const columns: QTableColumn[] = [
   {
@@ -99,7 +99,7 @@ defineEmits([...useDialogPluginComponent.emits]);
 
 // props
 const props = defineProps<{
-  user: SSOUser;
+  user: User;
 }>();
 
 const { dialogRef, onDialogHide } = useDialogPluginComponent();

@@ -10,7 +10,7 @@
       </q-bar>
       <q-form @submit="submit">
         <q-card-section v-if="options.length > 0">
-          <tactical-dropdown
+          <observer-dropdown
             v-if="type === 'client' || type === 'site'"
             class="q-mb-md"
             v-model="selectedServerPolicy"
@@ -21,7 +21,7 @@
             mapOptions
             filterable
           />
-          <tactical-dropdown
+          <observer-dropdown
             v-if="type === 'client' || type === 'site'"
             v-model="selectedWorkstationPolicy"
             :options="options"
@@ -31,7 +31,7 @@
             mapOptions
             filterable
           />
-          <tactical-dropdown
+          <observer-dropdown
             v-if="type === 'agent'"
             v-model="selectedAgentPolicy"
             :options="options"
@@ -73,11 +73,11 @@
 
 <script>
 import mixins from "@/mixins/mixins";
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
   name: "PolicyAdd",
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   emits: ["hide", "ok", "cancel"],
   props: {
     object: !Object,

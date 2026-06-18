@@ -15,7 +15,7 @@
 
       <q-form v-else @submit.prevent="submit(onDialogOK)">
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             :rules="[(val) => !!val || '*Required']"
             outlined
             v-model="state.script"
@@ -53,7 +53,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Informational return codes (press Enter after typing each code)"
             filled
             v-model="state.info_return_codes"
@@ -66,7 +66,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Warning return codes (press Enter after typing each code)"
             filled
             v-model="state.warning_return_codes"
@@ -79,7 +79,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             label="Success return codes (press Enter after typing each code)"
             filled
             v-model="state.success_return_codes"
@@ -144,10 +144,10 @@ import { validateRetcode } from "@/utils/validation";
 import { envVarsLabel } from "@/constants/constants";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 export default {
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   name: "ScriptCheck",
   emits: [...useDialogPluginComponent.emits],
   props: {

@@ -9,7 +9,7 @@
         </q-btn>
       </q-bar>
       <q-card-section>
-        <tactical-dropdown
+        <observer-dropdown
           :rules="[(val) => !!val || '*Required']"
           outlined
           label="Site"
@@ -87,11 +87,11 @@ import {
 import { GOARCH_AMD64, GOARCH_i386 } from "@/constants/constants";
 
 // ui imports
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 export default {
   name: "NewDeployment",
   components: {
-    TacticalDropdown,
+    ObserverDropdown,
   },
   emits: [...useDialogPluginComponent.emits],
   setup() {

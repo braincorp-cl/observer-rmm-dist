@@ -10,7 +10,7 @@
       </q-bar>
       <q-form ref="form" @submit.prevent="onSubmit">
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="localPolicy.excluded_clients"
             :options="clientOptions"
             label="Excluded Clients"
@@ -21,7 +21,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="localPolicy.excluded_sites"
             :options="siteOptions"
             label="Excluded Sites"
@@ -32,7 +32,7 @@
           />
         </q-card-section>
         <q-card-section>
-          <tactical-dropdown
+          <observer-dropdown
             v-model="localPolicy.excluded_agents"
             :options="agentOptions"
             label="Excluded Agents"
@@ -53,11 +53,11 @@
 </template>
 
 <script>
-import TacticalDropdown from "@/components/ui/TacticalDropdown.vue";
+import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import mixins from "@/mixins/mixins";
 export default {
   name: "PolicyExclusions",
-  components: { TacticalDropdown },
+  components: { ObserverDropdown },
   emits: ["hide", "ok", "cancel"],
   props: { policy: !Object },
   mixins: [mixins],
