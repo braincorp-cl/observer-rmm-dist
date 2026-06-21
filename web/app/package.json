@@ -1,6 +1,7 @@
 {
-  "name": "web",
-  "version": "0.101.59",
+  "name": "observer-rmm-web",
+  "version": "0.0.1-observer",
+  "description": "Observer RMM Web UI",
   "private": true,
   "productName": "Observer RMM",
   "scripts": {
