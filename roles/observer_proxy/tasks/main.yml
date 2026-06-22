@@ -204,13 +204,23 @@
     group: "{{ observer_group }}"
     mode: "0755"
 
+# synchronize (rsync --delete) en vez de copy: copy NO purga archivos que ya no
+# existen en el fuente; como quasar usa nombres con hash de contenido, cada build
+# nuevo deja los chunks viejos huérfanos en el dest (p.ej. TacticalDropdown/Table
+# pre-rebrand) -> el grep cero-tactical falla y se sirven assets muertos. delete: true
+# espeja exacto el artefacto. Corre como observer (dueño del dir) -> observer:observer,
+# modos del fuente preservados (0644/0755), world-readable para nginx (www-data).
 - name: Sincronizar activos compilados del frontend
-  ansible.builtin.copy:
+  ansible.posix.synchronize:
     src: "{{ playbook_dir }}/web/dist/"
     dest: /var/www/observer/dist/
-    owner: "{{ observer_user }}"
-    group: "{{ observer_group }}"
-    mode: "0644"
+    delete: true
+    recursive: true
+    rsync_opts:
+      - "--no-owner"
+      - "--no-group"
+  become: true
+  become_user: "{{ observer_user }}"
   notify: reload nginx
 
 - name: Desplegar frontend.conf

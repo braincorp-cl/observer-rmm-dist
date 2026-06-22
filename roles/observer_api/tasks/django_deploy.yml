@@ -71,6 +71,21 @@
   register: django_migrate_result
   changed_when: "'No migrations to apply' not in django_migrate_result.stdout"
 
+# Siembra el singleton CoreSettings (= install.sh `initial_db_setup`). Sin esta fila,
+# get_core_settings() lanza CoreSettingsNotFound y CUALQUIER login da HTTP 500 en DB
+# fresca (LoginViewV2.post la lee antes de autenticar). Idempotente: CoreSettings.save()
+# lanza ValidationError si ya existe y el comando lo envuelve en suppress() -> no-op.
+- name: Sembrar CoreSettings singleton (initial_db_setup)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py initial_db_setup"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: observer_initial_db
+  changed_when: "'Core db populated' in observer_initial_db.stdout"
+
 - name: Ejecutar Django collectstatic
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py collectstatic --noinput"
