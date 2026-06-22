@@ -21,10 +21,8 @@
       "https://{{ observer_app_domain }}"
     ],
     "ignoreAgentHashCheck": true,
-    "autoBackup": {
-      "keepLastDaysBackup": 7,
-      "backupHour": 6
-    },
+    "_autoBackup_comment": "DESACTIVADO a propósito: el autobackup nativo zipea todo el árbol de MeshCentral, que CONTIENE meshcentral-backups -> incluye sus propios backups previos recursivamente (133M -> 82G -> disco lleno). El guard anti-recursión de MeshCentral (meshcentral.js:2100) solo cubre backuppath dentro de datapath, no dentro del scope del zip. autoBackup:false -> MeshCentral lo elimina (meshcentral.js:2093). Los respaldos de mesh (DB + dir) los hace el rol observer_backup (GAP-038), sin redundancia.",
+    "autoBackup": false,
     "prometheus": true,
     "dbExpire": {
       "events": {{ (observer_mesh_events_keep_days | int) * 86400 }},
