@@ -42,6 +42,18 @@
     group: "{{ observer_group }}"
     mode: "0750"
 
+# Solo si el autobackup nativo se reactiva: su destino debe vivir FUERA de /meshcentral
+# (el --dataPath) para que el backup no se incluya a sí mismo (anti-recursión, ver
+# defaults y mesh.cfg.j2). Deshabilitado por defecto -> tarea omitida.
+- name: Crear dir de autobackup de MeshCentral (fuera del dataPath, anti-recursión)
+  ansible.builtin.file:
+    path: "{{ observer_mesh_autobackup_path }}"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+  when: observer_mesh_autobackup_enabled | bool
+
 - name: Desplegar mesh.cfg (config.json de MeshCentral)
   ansible.builtin.template:
     src: mesh.cfg.j2

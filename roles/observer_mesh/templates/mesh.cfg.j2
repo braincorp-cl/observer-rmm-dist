@@ -21,8 +21,27 @@
       "https://{{ observer_app_domain }}"
     ],
     "ignoreAgentHashCheck": true,
-    "_autoBackup_comment": "DESACTIVADO a propósito: el autobackup nativo zipea todo el árbol de MeshCentral, que CONTIENE meshcentral-backups -> incluye sus propios backups previos recursivamente (133M -> 82G -> disco lleno). El guard anti-recursión de MeshCentral (meshcentral.js:2100) solo cubre backuppath dentro de datapath, no dentro del scope del zip. autoBackup:false -> MeshCentral lo elimina (meshcentral.js:2093). Los respaldos de mesh (DB + dir) los hace el rol observer_backup (GAP-038), sin redundancia.",
+{#
+  autoBackup nativo: DESACTIVADO por defecto (observer_mesh_autobackup_enabled=false).
+  - Redundante: observer_backup (GAP-038) ya respalda la DB mesh (pg_dump) + meshcentral-data
+    (certs/config) excluyendo node_modules, en cron diario. El nativo no aporta nada nuevo.
+  - Recursión: el servicio corre con --dataPath /meshcentral (ver meshcentral.service), y el
+    backupPath por defecto cae DENTRO de ese dataPath -> el backup se incluye a sí mismo
+    (133M -> 82G -> disco 100%, visto en staging) y al llenar el disco rompía el backup
+    diario de observer_backup (tars de 0 bytes). Prod no recursa porque su dataPath es más
+    angosto.
+  Si se reactiva (observer_mesh_autobackup_enabled=true), backupPath apunta FUERA de
+  /meshcentral -> sin recursión posible. Esa es la corrección de la causa raíz.
+#}
+{% if observer_mesh_autobackup_enabled | bool %}
+    "autoBackup": {
+      "backupPath": "{{ observer_mesh_autobackup_path }}",
+      "keepLastDaysBackup": {{ observer_mesh_autobackup_keep_days | int }},
+      "backupHour": {{ observer_mesh_autobackup_hour | int }}
+    },
+{% else %}
     "autoBackup": false,
+{% endif %}
     "prometheus": true,
     "dbExpire": {
       "events": {{ (observer_mesh_events_keep_days | int) * 86400 }},
