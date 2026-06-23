@@ -49,6 +49,68 @@
       loop: "{{ changeme_check.results }}"
       tags: [never, skip_checks_guard]
 
+- name: Build del frontend SPA en el control node (genera web/dist/, gitignored — ver web/BUILD.md)
+  # web/dist/ NO se versiona (.gitignore): se regenera aquí, en el control node, ANTES de
+  # que el rol observer_proxy lo sincronice (synchronize src: {{ playbook_dir }}/web/dist/).
+  # Corre temprano para fallar rápido si falta el toolchain, antes de tocar hosts remotos.
+  # Omitir con -e observer_frontend_build=false (p.ej. re-deploy sin cambios de frontend,
+  # usando el web/dist/ ya construido) o seleccionar con --tags frontend_build.
+  hosts: localhost
+  gather_facts: false
+  tags: [frontend_build]
+  vars:
+    observer_frontend_build: true
+    observer_web_app_dir: "{{ playbook_dir }}/web/app"
+    observer_web_dist_dir: "{{ playbook_dir }}/web/dist"
+  tasks:
+    - name: Build del frontend (omitible con observer_frontend_build=false)
+      when: observer_frontend_build | bool
+      block:
+        - name: Verificar que npm está disponible en el control node
+          ansible.builtin.command: npm --version
+          register: _observer_npm_ver
+          changed_when: false
+          failed_when: _observer_npm_ver.rc != 0
+
+        - name: Informar versión de Node/npm (referencia Node 22.22.2, ver web/BUILD.md)
+          ansible.builtin.command: node --version
+          register: _observer_node_ver
+          changed_when: false
+          failed_when: false
+
+        - name: Mostrar toolchain detectado
+          ansible.builtin.debug:
+            msg: "Control node: node {{ _observer_node_ver.stdout | default('?') }}, npm {{ _observer_npm_ver.stdout }} (referencia Node 22.22.2)"
+
+        - name: Instalar dependencias del frontend (npm ci, reproducible desde lockfile)
+          ansible.builtin.command:
+            cmd: npm ci
+            chdir: "{{ observer_web_app_dir }}"
+          changed_when: true
+
+        - name: Compilar el SPA (quasar build)
+          ansible.builtin.command:
+            cmd: npm run build
+            chdir: "{{ observer_web_app_dir }}"
+          changed_when: true
+
+        - name: Reconstituir el artefacto desplegable web/dist/ desde el output del build
+          # Espeja el procedimiento documentado en web/BUILD.md (maneja salida en dist/ o dist/spa/).
+          ansible.builtin.shell: |
+            set -euo pipefail
+            OUT="{{ observer_web_app_dir }}/dist"
+            [ -f "$OUT/spa/index.html" ] && OUT="$OUT/spa"
+            rm -rf "{{ observer_web_dist_dir }}"
+            cp -r "$OUT" "{{ observer_web_dist_dir }}"
+            test -s "{{ observer_web_dist_dir }}/index.html"
+          args:
+            executable: /bin/bash
+          changed_when: true
+
+        - name: Confirmar artefacto generado
+          ansible.builtin.debug:
+            msg: "web/dist/ regenerado en el control node — observer_proxy lo sincronizará al servidor."
+
 - name: Dependencias comunes — todos los hosts
   hosts: all
   roles:
