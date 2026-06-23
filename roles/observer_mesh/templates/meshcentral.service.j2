@@ -5,7 +5,13 @@ After=network.target postgresql.service nginx.service
 [Service]
 Type=simple
 LimitNOFILE=1000000
-ExecStart=/usr/bin/node /meshcentral/node_modules/meshcentral --dataPath /meshcentral
+# Sin --dataPath (igual que producción): MeshCentral usa el dataPath por defecto =
+# <WorkingDirectory>/meshcentral-data = /meshcentral/meshcentral-data. Pasar
+# --dataPath /meshcentral hacía que el dataPath fuera TODO /meshcentral (con node_modules
+# y meshcentral-backups dentro) -> el autobackup nativo respaldaba el árbol completo e
+# incluía sus propios backups (recursión: 133M -> 82G -> disco lleno). Con el default, el
+# backupPath ("meshcentral-backups") queda hermano de meshcentral-data, fuera del scope.
+ExecStart=/usr/bin/node /meshcentral/node_modules/meshcentral
 WorkingDirectory=/meshcentral
 Environment=NODE_ENV=production
 User={{ observer_user }}

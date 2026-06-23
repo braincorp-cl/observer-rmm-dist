@@ -24,13 +24,14 @@ observer_mesh_events_purge_hour: 1
 observer_mesh_db_maintenance_dir: /opt/observer/scripts
 
 # --- Autobackup nativo de MeshCentral ---
-# DESACTIVADO por defecto: observer_backup (GAP-038, cron diario) ya cubre DB+certs+config
-# de mesh sin node_modules. El nativo es redundante y, con --dataPath /meshcentral, recursa
-# (backupPath dentro del dataPath -> se incluye a sí mismo -> disco lleno). Si se reactiva,
-# backupPath DEBE quedar fuera de /meshcentral (ver observer_mesh_autobackup_path) para
-# evitar la recursión.
-observer_mesh_autobackup_enabled: false
-# Fuera de /meshcentral (el dataPath) -> sin recursión cuando el autobackup está activo.
-observer_mesh_autobackup_path: "{{ observer_root }}/mesh-autobackups"
+# La causa de la recursión NO era el backupPath sino el --dataPath /meshcentral del service
+# (lo zipeaba todo, incluido meshcentral-backups). Corregido: meshcentral.service.j2 ya no
+# pasa --dataPath, así que el dataPath default (meshcentral-data) deja el backupPath default
+# como hermano fuera del scope -> sin recursión, igual que producción.
+# ACTIVO temporalmente para validarlo en staging.
+# >>> RECORDATORIO (cierre del proyecto): poner en 'false'. observer_backup (GAP-038, cron
+#     diario) ya cubre DB mesh + meshcentral-data (certs/config) sin node_modules -> el nativo
+#     es redundante. <<<
+observer_mesh_autobackup_enabled: true
 observer_mesh_autobackup_keep_days: 7
 observer_mesh_autobackup_hour: 6
