@@ -114,6 +114,14 @@ class LoginViewV2(KnoxLoginView):
         if user.is_sso_user:
             return notify_error("Bad credentials")
 
+        # A user with no TOTP key has not completed 2FA setup — the real flow
+        # routes them through CheckCredsV2 → TOTP setup first. Guard here so a
+        # direct POST to /v2/login/ returns a clean 400 instead of crashing
+        # pyotp.TOTP(None) → HTTP 500 (caught on greenfield staging 2026-06-23).
+        # Same hardening family as GAP-029/GAP-031 (F009).
+        if not user.totp_key:
+            return notify_error("Bad credentials")
+
         # .get() avoids a KeyError → HTTP 500 when "twofactor" is absent (valid
         # username/password but no TOTP key in the body); "" fails verification
         # and falls through to a clean 400 "Bad credentials" (GAP-031).

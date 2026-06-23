@@ -170,6 +170,26 @@ class TestLoginEndpoint(ObserverTestCase):
         )
         self.assertEqual(r.status_code, 400)
 
+    def test_login_no_totp_key_returns_400(self):
+        # A freshly created superuser has no totp_key; a direct POST to /v2/login/
+        # used to crash pyotp.TOTP(None) → HTTP 500 (caught on greenfield staging
+        # 2026-06-23). The view now guards and returns a clean 400. The real UI
+        # never hits this — CheckCredsV2 routes no-2FA users to TOTP setup first.
+        user = baker.make(
+            "accounts.User",
+            username="nototpuser",
+            is_active=True,
+            totp_key=None,
+        )
+        user.set_password("testpass123")
+        user.save()
+        r = self.client.post(
+            LOGIN_URL,
+            {"username": "nototpuser", "password": "testpass123"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 400)
+
 
 class TestRoleCache(ObserverTestCase):
     def test_role_cache_roundtrip(self):
