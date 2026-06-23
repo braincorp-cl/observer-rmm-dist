@@ -1,0 +1,20 @@
+---
+# Reglas UFW del host del proxy (GAP-044).
+#
+# El rol observer_common (hosts: all) habilita UFW con política deny-incoming y aplica
+# observer_ufw_base_rules (solo SSH/22) + observer_ufw_rules (reglas del host). Sin estas
+# reglas, UFW dejaba el servidor inalcanzable salvo SSH: 80/443 quedaban DROP para todo
+# cliente externo (browser y agentes). El healthcheck no lo cazaba porque corre en loopback.
+#
+# Por el proxy (nginx/443) entra TODO el tráfico de usuario y de agentes: frontend (rmm.*),
+# API (api.*), mesh (mesh.*, aliasPort 443) y NATS-sobre-WebSocket (/natsws). NATS estándar
+# (4222) es loopback. Por eso basta 80 (redirect) + 443.
+#
+# Va en este directorio (no en group_vars/observer_proxy.yml) porque el .yml está
+# shadoweado por este propio directorio (vault.yml) y ansible no lo carga.
+#
+# En all-in-one el host pertenece al grupo observer_proxy → estas reglas se le aplican.
+# En multi-host, solo el host del proxy las recibe (correcto).
+observer_ufw_rules:
+  - { rule: allow, port: 80, proto: tcp, comment: "HTTP (redirect a HTTPS)" }
+  - { rule: allow, port: 443, proto: tcp, comment: "HTTPS — API/frontend/mesh/natsws via nginx" }

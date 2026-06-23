@@ -6,6 +6,12 @@ observer_proxy_https_port: 443
 observer_proxy_upstream_port: 8000   # Puerto uWSGI del observer_api
                                       # En all-in-one puede usarse socket Unix
 
+# ⚠️ NOTA: este archivo está SHADOWEADO por el directorio group_vars/observer_proxy/
+# (vault.yml). Ansible carga el directorio e ignora este .yml → las vars de aquí NO se
+# aplican (coinciden con los defaults del rol observer_proxy, por eso nunca se notó).
+# Las vars de grupo del proxy que SÍ deben aplicarse van en group_vars/observer_proxy/*.yml
+# (p.ej. ufw.yml con observer_ufw_rules — GAP-044).
+
 # Email para certbot SSL (Let's Encrypt) — REQUERIDO
 # observer_certbot_email: "admin@ejemplo.cl"
 
