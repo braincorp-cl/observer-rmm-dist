@@ -219,9 +219,24 @@
     rsync_opts:
       - "--no-owner"
       - "--no-group"
+      - "--exclude=env-config.js"   # generado por la tarea siguiente (GAP-045); no borrar con --delete
   become: true
   become_user: "{{ observer_user }}"
   notify: reload nginx
+
+# Config runtime del SPA (GAP-045): index.html carga <script src=/env-config.js> que
+# debe definir window._env_.PROD_URL = URL del API. Sin esto, getBaseUrl() (boot/axios.js)
+# hace window._env_.PROD_URL sobre un _env_ undefined -> TypeError -> el login (y toda
+# llamada al API) falla en silencio (el botón "no hace nada"). Espeja install.sh:935 de
+# prod. PROD_URL = observer_domain (el host del API/backend, p.ej. api.observer.cl).
+- name: Generar env-config.js del frontend (window._env_.PROD_URL -> API)
+  ansible.builtin.copy:
+    dest: /var/www/observer/dist/env-config.js
+    content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\"}\n"
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0644"
+  when: observer_domain is defined
 
 - name: Desplegar frontend.conf
   ansible.builtin.template:
