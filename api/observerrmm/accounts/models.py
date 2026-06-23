@@ -46,6 +46,12 @@ class User(AbstractUser, BaseAuditModel):
     dash_warning_color = models.CharField(max_length=255, default="warning")
     clear_search_when_switching = models.BooleanField(default=True)
     date_format = models.CharField(max_length=30, blank=True, null=True)
+    language = models.CharField(
+        max_length=5,
+        choices=[("en", "English"), ("es", "Español")],
+        default="",
+        blank=True,
+    )
     is_installer_user = models.BooleanField(default=False)
     last_login_ip = models.GenericIPAddressField(default=None, blank=True, null=True)
 

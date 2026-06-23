@@ -3,6 +3,12 @@ observer_proxy_http_port: 80
 observer_proxy_https_port: 443
 observer_proxy_upstream_port: 8000
 
+# Idioma por defecto de la UI elegido al instalar (feature 010 i18n). Se inyecta en
+# /var/www/observer/dist/env-config.js como window._env_.DEFAULT_LANG y lo consume el
+# SPA (boot/i18n.ts). Soportados: 'en' | 'es'. Cada usuario puede sobreescribirlo
+# desde la UI (se persiste en accounts.User.language).
+observer_default_language: en
+
 # Path base de assets de reportes (= REPORTING_ASSETS_BASE_PATH del backend Django,
 # ee/reporting/settings.py). nginx los sirve internamente vía X-Accel-Redirect que
 # emite ee/reporting/views.py (NginxRedirect → "/assets/" + asset.file.name).

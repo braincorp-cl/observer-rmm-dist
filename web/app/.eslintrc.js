@@ -85,4 +85,32 @@ module.exports = {
     // allow debugger during development only
     "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
   },
+
+  // i18n (feature 010): el plugin lee los catálogos para validar claves.
+  settings: {
+    "vue-i18n": {
+      localeDir: "./src/i18n/*.json",
+      messageSyntaxVersion: "^9.0.0",
+    },
+  },
+
+  overrides: [
+    {
+      // Gate i18n ESTRICTO acotado a las vistas ya migradas (piloto login/2FA).
+      // - no-missing-keys: toda clave usada debe existir en es Y en (falla build).
+      // - no-raw-text: prohíbe texto hardcodeado nuevo en la vista migrada.
+      // El resto de la UI aún sin migrar NO entra al gate (RN-07), por eso el scope
+      // por glob en vez de aplicar no-raw-text globalmente.
+      files: ["src/views/LoginView.vue"],
+      extends: ["plugin:@intlify/vue-i18n/recommended"],
+      rules: {
+        // "Observer RMM" es el nombre de marca: literal por diseño, no se traduce.
+        "@intlify/vue-i18n/no-raw-text": [
+          "error",
+          { ignoreText: ["Observer RMM"] },
+        ],
+        "@intlify/vue-i18n/no-missing-keys": "error",
+      },
+    },
+  ],
 };

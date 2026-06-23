@@ -1,0 +1,18 @@
+{
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "submit": "Login",
+    "fieldRequired": "This field is required",
+    "twoFactorTitle": "Two-Factor Token",
+    "cancel": "Cancel",
+    "twoFactorSubmit": "Submit"
+  },
+  "layout": {
+    "language": "Language"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Español"
+  }
+}

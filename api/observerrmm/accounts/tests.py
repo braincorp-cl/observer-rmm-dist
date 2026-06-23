@@ -297,6 +297,29 @@ class TestUserAction(ObserverTestCase):
 
         self.check_not_authenticated("patch", url)
 
+    def test_user_ui_language(self):
+        # i18n (feature 010): la preferencia de idioma de UI se persiste por usuario,
+        # espejando el patrón de dark_mode. Default vacío = "sin preferencia".
+        url = "/accounts/users/ui/"
+
+        self.john.refresh_from_db()
+        self.assertEqual(self.john.language, "")
+
+        # idioma soportado -> persiste
+        r = self.client.patch(url, {"language": "es"}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.john.refresh_from_db()
+        self.assertEqual(self.john.language, "es")
+
+        # idioma no soportado -> 400 de validación (choices), nunca 500 (RN-031);
+        # el valor previo no se altera
+        r = self.client.patch(url, {"language": "fr"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.john.refresh_from_db()
+        self.assertEqual(self.john.language, "es")
+
+        self.check_not_authenticated("patch", url)
+
 
 class TestUserReset(ObserverTestCase):
     def setUp(self):

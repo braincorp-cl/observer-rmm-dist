@@ -84,6 +84,19 @@
             >SSL certificate expires in {{ daysUntilCertExpires }} days</q-chip
           >
         </q-toolbar-title>
+        <!-- language selector (i18n, feature 010) -->
+        <q-select
+          v-model="language"
+          :options="languageOptions"
+          :aria-label="$t('layout.language')"
+          emit-value
+          map-options
+          dense
+          borderless
+          options-dense
+          class="q-mr-sm"
+          style="min-width: 96px"
+        />
         <!-- temp dark mode toggle -->
         <q-toggle
           v-model="darkMode"
@@ -227,6 +240,7 @@ import { storeToRefs } from "pinia";
 import { resetTwoFactor } from "@/api/accounts";
 import { notifyError, notifySuccess } from "@/utils/notify";
 import axios from "axios";
+import { i18n, applyLocale } from "@/boot/i18n";
 
 // webtermn
 import { checkWebTermPerms, openWebTerminal } from "@/api/core";
@@ -258,6 +272,20 @@ const darkMode = computed({
     $q.dark.set(value);
   },
 });
+
+// i18n (feature 010): selector de idioma. Espeja el patrón de darkMode — aplica en vivo
+// (vue-i18n + Quasar lang pack) y persiste la preferencia en el backend (User.language).
+const language = computed({
+  get: () => i18n.global.locale.value,
+  set: (value) => {
+    applyLocale(value);
+    axios.patch("/accounts/users/ui/", { language: value });
+  },
+});
+const languageOptions = [
+  { label: "English", value: "en" },
+  { label: "Español", value: "es" },
+];
 
 const currentVersion = computed(() => store.state.currentVersion);
 const latestVersion = computed(() => store.state.latestVersion);

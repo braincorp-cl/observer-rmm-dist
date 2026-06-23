@@ -15,20 +15,20 @@
               <q-input
                 filled
                 v-model="credentials.username"
-                label="Username"
+                :label="$t('login.username')"
                 lazy-rules
                 :rules="[
-                  (val) => (val && val.length > 0) || 'This field is required',
+                  (val) => (val && val.length > 0) || $t('login.fieldRequired'),
                 ]"
               />
               <q-input
                 v-model="credentials.password"
                 filled
                 :type="showPassword ? 'password' : 'text'"
-                label="Password"
+                :label="$t('login.password')"
                 lazy-rules
                 :rules="[
-                  (val) => (val && val.length > 0) || 'This field is required',
+                  (val) => (val && val.length > 0) || $t('login.fieldRequired'),
                 ]"
               >
                 <template v-slot:append>
@@ -41,7 +41,7 @@
               </q-input>
               <div>
                 <q-btn
-                  label="Login"
+                  :label="$t('login.submit')"
                   type="submit"
                   color="primary"
                   class="full-width"
@@ -57,9 +57,9 @@
         <q-dialog persistent v-model="prompt">
           <q-card style="min-width: 400px">
             <q-form ref="formToken" @submit.prevent="onSubmit">
-              <q-card-section class="text-center text-h6"
-                >Two-Factor Token</q-card-section
-              >
+              <q-card-section class="text-center text-h6">{{
+                $t("login.twoFactorTitle")
+              }}</q-card-section>
 
               <q-card-section>
                 <q-input
@@ -69,14 +69,14 @@
                   v-model="twofactor"
                   :rules="[
                     (val) =>
-                      (val && val.length > 0) || 'This field is required',
+                      (val && val.length > 0) || $t('login.fieldRequired'),
                   ]"
                 />
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn flat label="Cancel" v-close-popup />
-                <q-btn flat label="Submit" type="submit" />
+                <q-btn flat :label="$t('login.cancel')" v-close-popup />
+                <q-btn flat :label="$t('login.twoFactorSubmit')" type="submit" />
               </q-card-actions>
             </q-form>
           </q-card>

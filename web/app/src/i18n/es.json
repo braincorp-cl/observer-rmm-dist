@@ -1,0 +1,18 @@
+{
+  "login": {
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Ingresar",
+    "fieldRequired": "Este campo es obligatorio",
+    "twoFactorTitle": "Token de doble factor",
+    "cancel": "Cancelar",
+    "twoFactorSubmit": "Enviar"
+  },
+  "layout": {
+    "language": "Idioma"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Español"
+  }
+}

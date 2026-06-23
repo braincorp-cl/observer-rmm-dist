@@ -2,6 +2,7 @@ import { createStore } from "vuex";
 import { Screen, Dark, LoadingBar } from "quasar";
 import axios from "axios";
 import { formatDate } from "@/utils/format";
+import { applyLocale } from "@/boot/i18n";
 
 export default function () {
   const Store = new createStore({
@@ -242,6 +243,15 @@ export default function () {
           commit("SET_CLIENT_SPLITTER", data.client_tree_splitter);
         }
         Dark.set(data.dark_mode);
+        // i18n (feature 010): aplica el idioma del usuario al cargar dashinfo (RN-01).
+        // Precedencia: preferencia del usuario -> default del servidor (env-config.js) -> en.
+        applyLocale(
+          data.language ||
+            (typeof window !== "undefined" && window._env_
+              ? window._env_.DEFAULT_LANG
+              : "") ||
+            "en",
+        );
         commit("setCurrentVersion", data.trmm_version);
         commit("setLatestVersion", data.latest_trmm_ver);
         commit("SET_AGENT_DBLCLICK_ACTION", data.dbl_click_action);

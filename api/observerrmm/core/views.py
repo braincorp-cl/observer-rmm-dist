@@ -130,6 +130,7 @@ def dashboard_info(request):
             "trmm_version": settings.TRMM_VERSION,
             "latest_trmm_ver": get_latest_trmm_ver(),
             "dark_mode": request.user.dark_mode,
+            "language": request.user.language,
             "show_community_scripts": request.user.show_community_scripts,
             "dbl_click_action": request.user.agent_dblclick_action,
             "default_agent_tbl_tab": request.user.default_agent_tbl_tab,
