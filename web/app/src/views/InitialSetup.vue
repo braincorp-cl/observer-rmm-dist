@@ -7,7 +7,7 @@
           <q-card-actions align="center">
             <!-- TODO F007.2: switch href to https://docs.observer.cl/guide_gettingstarted/ when R-03 (BrainCorp CDN) is published -->
             <q-btn
-              label="Getting Started"
+              :label="$t('setup.gettingStarted')"
               color="info"
               class="full-width"
               href="https://docs.tacticalrmm.com/guide_gettingstarted/"
@@ -15,16 +15,16 @@
             />
           </q-card-actions>
           <q-card-section class="row items-center">
-            <div class="text-h5 text-weight-bold">Initial Setup</div>
+            <div class="text-h5 text-weight-bold">{{ $t("setup.title") }}</div>
           </q-card-section>
           <q-form @submit.prevent="finish">
             <q-card-section>
-              <div>Add Client:</div>
+              <div>{{ $t("setup.addClient") }}</div>
               <q-input
                 dense
                 outlined
                 v-model="client.name"
-                :rules="[(val) => !!val || '*Required']"
+                :rules="[(val) => !!val || $t('setup.required')]"
               >
                 <template v-slot:prepend>
                   <q-icon name="business" />
@@ -32,12 +32,12 @@
               </q-input>
             </q-card-section>
             <q-card-section>
-              <div>Add Site:</div>
+              <div>{{ $t("setup.addSite") }}</div>
               <q-input
                 dense
                 outlined
                 v-model="site.name"
-                :rules="[(val) => !!val || '*Required']"
+                :rules="[(val) => !!val || $t('setup.required')]"
               >
                 <template v-slot:prepend>
                   <q-icon name="apartment" />
@@ -45,7 +45,7 @@
               </q-input>
             </q-card-section>
             <q-card-section>
-              <div>Default timezone for agents:</div>
+              <div>{{ $t("setup.defaultTimezone") }}</div>
               <observer-dropdown
                 filterable
                 dense
@@ -58,16 +58,14 @@
 
             <q-card-section>
               <div>
-                Company name:
+                {{ $t("setup.companyName") }}
                 <q-icon
                   name="ion-information-circle-outline"
                   size="sm"
                   class="q-ml-sm cursor-pointer"
                 >
                   <q-tooltip class="text-caption">
-                    Adding your company name here will append it to the user's
-                    full name that appears when doing a remote control session,
-                    for example: 'John Doe - BrainCorp'
+                    {{ $t("setup.companyNameTooltip") }}
                   </q-tooltip>
                 </q-icon>
               </div>
@@ -77,7 +75,7 @@
 
             <q-card-actions align="center">
               <q-btn
-                label="Finish"
+                :label="$t('setup.finish')"
                 color="primary"
                 class="full-width"
                 type="submit"

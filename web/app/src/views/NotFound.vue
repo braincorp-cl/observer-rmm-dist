@@ -1,11 +1,11 @@
 <template>
   <div class="fixed-center text-center">
     <p class="text-faded">
-      Sorry, nothing here...
-      <strong>(404)</strong>
+      {{ $t("notFound.message") }}
+      <strong>{{ $t("notFound.code") }}</strong>
     </p>
     <q-btn color="secondary" style="width: 200px" @click="$router.push('/')">
-      Go back
+      {{ $t("notFound.goBack") }}
     </q-btn>
   </div>
 </template>

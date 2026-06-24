@@ -1,7 +1,9 @@
 <template>
   <div class="fixed-center text-center">
-    <p class="text-faded">Your session has expired</p>
-    <q-btn color="secondary" style="width: 200px" to="/login">Login</q-btn>
+    <p class="text-faded">{{ $t("session.expired") }}</p>
+    <q-btn color="secondary" style="width: 200px" to="/login">{{
+      $t("session.login")
+    }}</q-btn>
   </div>
 </template>
 

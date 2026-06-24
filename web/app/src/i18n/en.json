@@ -14,5 +14,73 @@
   "lang": {
     "en": "English",
     "es": "Español"
+  },
+  "nav": {
+    "file": "File",
+    "view": "View",
+    "agents": "Agents",
+    "settings": "Settings",
+    "tools": "Tools",
+    "reporting": "Reporting",
+    "help": "Help",
+    "add": "Add",
+    "client": "Client",
+    "site": "Site",
+    "auditLog": "Audit Log",
+    "debugLog": "Debug Log",
+    "pendingActions": "Pending Actions",
+    "installAgent": "Install Agent",
+    "manageDeployments": "Manage Deployments",
+    "updateAgents": "Update Agents",
+    "clientsManager": "Clients Manager",
+    "scriptManager": "Script Manager",
+    "automationManager": "Automation Manager",
+    "alertsManager": "Alerts Manager",
+    "permissionsManager": "Permissions Manager",
+    "userAdministration": "User Administration",
+    "globalSettings": "Global Settings",
+    "codeSigning": "Code Signing",
+    "bulkCommand": "Bulk Command",
+    "bulkScript": "Bulk Script",
+    "bulkPatchManagement": "Bulk Patch Management",
+    "serverMaintenance": "Server Maintenance",
+    "clearCache": "Clear Cache",
+    "recoverAllAgents": "Recover All Agents",
+    "reportingManager": "Reporting Manager",
+    "documentation": "Documentation",
+    "githubRepo": "GitHub Repo",
+    "bugReport": "Bug Report",
+    "featureRequest": "Feature Request",
+    "joinDiscord": "Join Discord",
+    "bulkRecoverTitle": "Bulk Recover All Agents?",
+    "bulkRecoverMessage": "This will restart the Observer and Mesh Agent services on all agents",
+    "reportingTierWarning": "Reporting feature requires a Tier 2 or higher sponsorship. Please check the docs for more info."
+  },
+  "setup": {
+    "gettingStarted": "Getting Started",
+    "title": "Initial Setup",
+    "addClient": "Add Client:",
+    "addSite": "Add Site:",
+    "defaultTimezone": "Default timezone for agents:",
+    "companyName": "Company name:",
+    "companyNameTooltip": "Adding your company name here will append it to the user's full name that appears when doing a remote control session, for example: 'John Doe - BrainCorp'",
+    "required": "*Required",
+    "finish": "Finish"
+  },
+  "totp": {
+    "title": "Setup 2-Factor",
+    "scanInstructions": "Scan the QR Code with your authenticator app and then click Finish to be redirected back to the signin page. If you navigate away from this page you 2FA signin will need to be reset!",
+    "manualInstructions": "You can also use the below code to configure the authenticator manually.",
+    "qrAlt": "QR Code",
+    "finish": "Finish"
+  },
+  "session": {
+    "expired": "Your session has expired",
+    "login": "Login"
+  },
+  "notFound": {
+    "message": "Sorry, nothing here...",
+    "code": "(404)",
+    "goBack": "Go back"
   }
 }

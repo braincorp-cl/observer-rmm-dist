@@ -5,26 +5,19 @@
       <div class="col">
         <q-card>
           <q-card-section class="row items-center">
-            <div class="text-h6">Setup 2-Factor</div>
+            <div class="text-h6">{{ $t("totp.title") }}</div>
           </q-card-section>
           <q-card-section v-if="qrUrl">
-            <p>
-              Scan the QR Code with your authenticator app and then click Finish
-              to be redirected back to the signin page. If you navigate away
-              from this page you 2FA signin will need to be reset!
-            </p>
-            <img :src="qrCode" alt="QR Code" />
+            <p>{{ $t("totp.scanInstructions") }}</p>
+            <img :src="qrCode" :alt="$t('totp.qrAlt')" />
           </q-card-section>
           <q-card-section v-if="totpKey">
-            <p>
-              You can also use the below code to configure the authenticator
-              manually.
-            </p>
+            <p>{{ $t("totp.manualInstructions") }}</p>
             <p>{{ totpKey }}</p>
           </q-card-section>
           <q-card-actions align="center">
             <q-btn
-              label="Finish"
+              :label="$t('totp.finish')"
               color="primary"
               class="full-width"
               @click="logout"

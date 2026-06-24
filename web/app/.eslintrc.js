@@ -96,12 +96,20 @@ module.exports = {
 
   overrides: [
     {
-      // Gate i18n ESTRICTO acotado a las vistas ya migradas (piloto login/2FA).
+      // Gate i18n ESTRICTO acotado a las superficies ya migradas.
       // - no-missing-keys: toda clave usada debe existir en es Y en (falla build).
       // - no-raw-text: prohíbe texto hardcodeado nuevo en la vista migrada.
       // El resto de la UI aún sin migrar NO entra al gate (RN-07), por eso el scope
       // por glob en vez de aplicar no-raw-text globalmente.
-      files: ["src/views/LoginView.vue"],
+      // Ola 1 (F010): login/2FA. Ola 2: chrome de navegación + onboarding + vistas chicas.
+      files: [
+        "src/views/LoginView.vue",
+        "src/components/FileBar.vue",
+        "src/views/InitialSetup.vue",
+        "src/views/TOTPSetup.vue",
+        "src/views/SessionExpired.vue",
+        "src/views/NotFound.vue",
+      ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
         // "Observer RMM" es el nombre de marca: literal por diseño, no se traduce.

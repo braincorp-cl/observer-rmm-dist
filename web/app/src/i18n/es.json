@@ -14,5 +14,73 @@
   "lang": {
     "en": "English",
     "es": "Español"
+  },
+  "nav": {
+    "file": "Archivo",
+    "view": "Ver",
+    "agents": "Agentes",
+    "settings": "Configuración",
+    "tools": "Herramientas",
+    "reporting": "Reportes",
+    "help": "Ayuda",
+    "add": "Agregar",
+    "client": "Cliente",
+    "site": "Sitio",
+    "auditLog": "Registro de auditoría",
+    "debugLog": "Registro de depuración",
+    "pendingActions": "Acciones pendientes",
+    "installAgent": "Instalar agente",
+    "manageDeployments": "Gestionar despliegues",
+    "updateAgents": "Actualizar agentes",
+    "clientsManager": "Gestor de clientes",
+    "scriptManager": "Gestor de scripts",
+    "automationManager": "Gestor de automatización",
+    "alertsManager": "Gestor de alertas",
+    "permissionsManager": "Gestor de permisos",
+    "userAdministration": "Administración de usuarios",
+    "globalSettings": "Configuración global",
+    "codeSigning": "Firma de código",
+    "bulkCommand": "Comando masivo",
+    "bulkScript": "Script masivo",
+    "bulkPatchManagement": "Gestión masiva de parches",
+    "serverMaintenance": "Mantenimiento del servidor",
+    "clearCache": "Limpiar caché",
+    "recoverAllAgents": "Recuperar todos los agentes",
+    "reportingManager": "Gestor de reportes",
+    "documentation": "Documentación",
+    "githubRepo": "Repositorio GitHub",
+    "bugReport": "Reportar error",
+    "featureRequest": "Solicitar función",
+    "joinDiscord": "Unirse a Discord",
+    "bulkRecoverTitle": "¿Recuperar todos los agentes?",
+    "bulkRecoverMessage": "Esto reiniciará los servicios del agente Observer y Mesh en todos los agentes",
+    "reportingTierWarning": "La función de reportes requiere un patrocinio Tier 2 o superior. Consulta la documentación para más información."
+  },
+  "setup": {
+    "gettingStarted": "Primeros pasos",
+    "title": "Configuración inicial",
+    "addClient": "Agregar cliente:",
+    "addSite": "Agregar sitio:",
+    "defaultTimezone": "Zona horaria por defecto para los agentes:",
+    "companyName": "Nombre de la empresa:",
+    "companyNameTooltip": "Agregar el nombre de tu empresa aquí lo añadirá al nombre completo del usuario que aparece durante una sesión de control remoto, por ejemplo: 'John Doe - BrainCorp'",
+    "required": "*Obligatorio",
+    "finish": "Finalizar"
+  },
+  "totp": {
+    "title": "Configurar doble factor",
+    "scanInstructions": "Escanea el código QR con tu app de autenticación y luego haz clic en Finalizar para volver a la página de inicio de sesión. ¡Si sales de esta página tu inicio de sesión 2FA deberá restablecerse!",
+    "manualInstructions": "También puedes usar el código de abajo para configurar el autenticador manualmente.",
+    "qrAlt": "Código QR",
+    "finish": "Finalizar"
+  },
+  "session": {
+    "expired": "Tu sesión ha expirado",
+    "login": "Ingresar"
+  },
+  "notFound": {
+    "message": "Lo sentimos, no hay nada aquí...",
+    "code": "(404)",
+    "goBack": "Volver"
   }
 }
