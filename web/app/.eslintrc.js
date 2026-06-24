@@ -102,6 +102,8 @@ module.exports = {
       // El resto de la UI aún sin migrar NO entra al gate (RN-07), por eso el scope
       // por glob en vez de aplicar no-raw-text globalmente.
       // Ola 1 (F010): login/2FA. Ola 2: chrome de navegación + onboarding + vistas chicas.
+      // Ola 3: DashboardView. Ola 4: AgentTable. Ola 5a: InstallAgent.
+      // Ola 5b: modales de agente (EditAgent / BulkAction / PatchPolicyForm).
       files: [
         "src/views/LoginView.vue",
         "src/components/FileBar.vue",
@@ -112,6 +114,9 @@ module.exports = {
         "src/views/DashboardView.vue",
         "src/components/AgentTable.vue",
         "src/components/modals/agents/InstallAgent.vue",
+        "src/components/modals/agents/EditAgent.vue",
+        "src/components/modals/agents/BulkAction.vue",
+        "src/components/modals/agents/PatchPolicyForm.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

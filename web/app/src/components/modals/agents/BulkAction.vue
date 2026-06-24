@@ -5,12 +5,14 @@
         {{ modalTitle }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("bulkAction.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submit">
         <q-card-section>
-          <p>Choose Target</p>
+          <p>{{ $t("bulkAction.chooseTarget") }}</p>
           <q-option-group
             v-model="state.target"
             :options="targetOptions"
@@ -24,30 +26,30 @@
         <q-card-section>
           <observer-dropdown
             v-if="state.target === 'client'"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
             v-model="state.client"
             :options="clientOptions"
-            label="Select Client"
+            :label="$t('bulkAction.selectClient')"
             outlined
             mapOptions
             filterable
           />
           <observer-dropdown
             v-else-if="state.target === 'site'"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
             v-model="state.site"
             :options="siteOptions"
-            label="Select Site"
+            :label="$t('bulkAction.selectSite')"
             outlined
             mapOptions
             filterable
           />
           <observer-dropdown
             v-else-if="state.target === 'agents'"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
             v-model="state.agents"
             :options="agentOptions"
-            label="Select Agents"
+            :label="$t('bulkAction.selectAgents')"
             filled
             multiple
             mapOptions
@@ -56,7 +58,7 @@
         </q-card-section>
 
         <q-card-section>
-          <p>Agent OS</p>
+          <p>{{ $t("bulkAction.agentOs") }}</p>
           <q-option-group
             v-model="state.osType"
             :options="filteredOsTypeOptions"
@@ -68,7 +70,7 @@
         </q-card-section>
 
         <q-card-section v-show="state.target !== 'agents'">
-          <p>Agent Type</p>
+          <p>{{ $t("bulkAction.agentType") }}</p>
           <q-option-group
             v-model="state.monType"
             :options="monTypeOptions"
@@ -84,7 +86,7 @@
             :rules="[(val) => !!val || '*Required']"
             v-model="state.script"
             :options="filterByPlatformOptions"
-            label="Select Script"
+            :label="$t('bulkAction.selectScript')"
             outlined
             mapOptions
             filterable
@@ -110,7 +112,7 @@
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <observer-dropdown
             v-model="state.args"
-            label="Script Arguments (press Enter after typing each argument)"
+            :label="$t('bulkAction.scriptArgs')"
             filled
             use-input
             multiple
@@ -133,7 +135,7 @@
         </q-card-section>
 
         <q-card-section v-if="mode === 'command'">
-          <p>Shell</p>
+          <p>{{ $t("bulkAction.shell") }}</p>
           <q-option-group
             v-model="state.shell"
             :options="shellOptions"
@@ -148,24 +150,27 @@
           <q-input
             v-model="state.custom_shell"
             outlined
-            label="Custom shell"
+            :label="$t('bulkAction.customShell')"
             stack-label
-            placeholder="/usr/bin/python3"
-            :rules="[(val) => !!val || '*Required']"
+            :placeholder="$t('bulkAction.customShellPlaceholder')"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
           />
         </q-card-section>
         <q-card-section v-if="mode === 'command'">
           <q-input
             v-model="state.cmd"
             outlined
-            label="Command"
+            :label="$t('bulkAction.command')"
             stack-label
             :placeholder="cmdPlaceholder(state.shell)"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
           />
         </q-card-section>
         <q-card-section v-if="supportsRunAsUser()" class="q-pt-none">
-          <q-checkbox v-model="state.run_as_user" label="Run As User">
+          <q-checkbox
+            v-model="state.run_as_user"
+            :label="$t('bulkAction.runAsUser')"
+          >
             <q-tooltip>{{ runAsUserToolTip }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
@@ -173,7 +178,7 @@
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <div class="q-gutter-sm">
             <q-checkbox
-              label="Save results to Custom Field"
+              :label="$t('bulkAction.saveToCustomField')"
               v-model="collector"
               @update:model-value="
                 state.custom_field = null;
@@ -182,24 +187,24 @@
             />
             <q-checkbox
               v-model="state.save_to_agent_note"
-              label="Save results to Agent Note"
+              :label="$t('bulkAction.saveToAgentNote')"
             />
           </div>
         </q-card-section>
 
         <q-card-section v-if="mode === 'script' && collector">
           <observer-dropdown
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
             outlined
             v-model="state.custom_field"
             :options="customFieldOptions"
-            label="Select custom field"
+            :label="$t('bulkAction.selectCustomField')"
             mapOptions
             filterable
           />
           <q-checkbox
             v-model="state.collector_all_output"
-            label="Save all output"
+            :label="$t('bulkAction.saveAllOutput')"
           />
         </q-card-section>
 
@@ -210,17 +215,17 @@
             outlined
             type="number"
             style="max-width: 150px"
-            label="Timeout (seconds)"
+            :label="$t('bulkAction.timeoutSeconds')"
             stack-label
             :rules="[
-              (val) => !!val || '*Required',
-              (val) => val >= 5 || 'Minimum is 5 seconds',
+              (val) => !!val || $t('bulkAction.required'),
+              (val) => val >= 5 || $t('bulkAction.ruleMinSeconds5'),
             ]"
           />
         </q-card-section>
 
         <q-card-section v-if="mode === 'patch'">
-          <p>Action</p>
+          <p>{{ $t("bulkAction.action") }}</p>
           <q-option-group
             v-model="state.patchMode"
             :options="patchModeOptions"
@@ -234,19 +239,16 @@
         <q-card-section v-show="false">
           <q-checkbox
             v-model="state.offlineAgents"
-            label="Offline Agents (Run on next checkin)"
+            :label="$t('bulkAction.offlineAgents')"
           >
-            <q-tooltip
-              >If the agent is offline, a pending action will be created to run
-              on agent checkin</q-tooltip
-            >
+            <q-tooltip>{{ $t("bulkAction.offlineAgentsTooltip") }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="Cancel" v-close-popup />
+          <q-btn :label="$t('bulkAction.cancel')" v-close-popup />
           <q-btn
-            label="Run"
+            :label="$t('bulkAction.run')"
             color="primary"
             type="submit"
             :disable="loading"
@@ -269,6 +271,7 @@ import {
   defineComponent,
 } from "vue";
 import { useDialogPluginComponent, openURL } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useScriptDropdown } from "@/composables/scripts";
 import { useAgentDropdown } from "@/composables/agents";
 import { useClientDropdown, useSiteDropdown } from "@/composables/clients";
@@ -281,32 +284,6 @@ import { envVarsLabel, runAsUserToolTip } from "@/constants/constants";
 // ui imports
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
-// static data
-const monTypeOptions = [
-  { label: "All", value: "all" },
-  { label: "Servers", value: "servers" },
-  { label: "Workstations", value: "workstations" },
-];
-
-const osTypeOptions = [
-  { label: "Windows", value: "windows" },
-  { label: "Linux", value: "linux" },
-  { label: "macOS", value: "darwin" },
-  { label: "All", value: "all" },
-];
-
-const targetOptions = [
-  { label: "Client", value: "client" },
-  { label: "Site", value: "site" },
-  { label: "Selected Agents", value: "agents" },
-  { label: "All", value: "all" },
-];
-
-const patchModeOptions = [
-  { label: "Scan", value: "scan" },
-  { label: "Install", value: "install" },
-];
-
 export default defineComponent({
   name: "BulkAction",
   components: { ObserverDropdown },
@@ -315,26 +292,55 @@ export default defineComponent({
     mode: !String,
   },
   setup(props) {
+    const { t } = useI18n();
+
+    // Option arrays son computed (no estáticas de módulo) para que las etiquetas
+    // traducidas reaccionen al cambio de idioma en vivo.
+    const monTypeOptions = computed(() => [
+      { label: t("bulkAction.monTypeAll"), value: "all" },
+      { label: t("bulkAction.monTypeServers"), value: "servers" },
+      { label: t("bulkAction.monTypeWorkstations"), value: "workstations" },
+    ]);
+
+    const osTypeOptions = computed(() => [
+      { label: t("bulkAction.osWindows"), value: "windows" },
+      { label: t("bulkAction.osLinux"), value: "linux" },
+      { label: t("bulkAction.osMacos"), value: "darwin" },
+      { label: t("bulkAction.osAll"), value: "all" },
+    ]);
+
+    const targetOptions = computed(() => [
+      { label: t("bulkAction.targetClient"), value: "client" },
+      { label: t("bulkAction.targetSite"), value: "site" },
+      { label: t("bulkAction.targetSelectedAgents"), value: "agents" },
+      { label: t("bulkAction.targetAll"), value: "all" },
+    ]);
+
+    const patchModeOptions = computed(() => [
+      { label: t("bulkAction.patchScan"), value: "scan" },
+      { label: t("bulkAction.patchInstall"), value: "install" },
+    ]);
+
     const shellOptions = computed(() => {
       if (state.osType === "windows") {
         return [
-          { label: "CMD", value: "cmd" },
-          { label: "Powershell", value: "powershell" },
+          { label: t("bulkAction.shellCmd"), value: "cmd" },
+          { label: t("bulkAction.shellPowershell"), value: "powershell" },
         ];
       } else {
         return [
-          { label: "Bash", value: "/bin/bash" },
-          { label: "Custom", value: "custom" },
+          { label: t("bulkAction.shellBash"), value: "/bin/bash" },
+          { label: t("bulkAction.shellCustom"), value: "custom" },
         ];
       }
     });
 
     const filteredOsTypeOptions = computed(() => {
       if (props.mode === "command")
-        return osTypeOptions.filter((i) => i.value !== "all");
+        return osTypeOptions.value.filter((i) => i.value !== "all");
       else if (props.mode === "patch")
-        return osTypeOptions.filter((i) => i.value === "windows");
-      return osTypeOptions;
+        return osTypeOptions.value.filter((i) => i.value === "windows");
+      return osTypeOptions.value;
     });
 
     // quasar dialog setup
@@ -436,11 +442,11 @@ export default defineComponent({
     // set modal title and caption
     const modalTitle = computed(() => {
       return props.mode === "command"
-        ? "Run Bulk Command"
+        ? t("bulkAction.titleCommand")
         : props.mode === "script"
-          ? "Run Bulk Script"
+          ? t("bulkAction.titleScript")
           : props.mode === "patch"
-            ? "Bulk Patch Management"
+            ? t("bulkAction.titlePatch")
             : "";
     });
 
