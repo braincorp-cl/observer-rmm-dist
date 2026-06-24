@@ -3,12 +3,26 @@
 > F008 `consolidacion-dist` — 2026-06-11
 > Decisión marco: `D-2026-06-10-CONSOLIDACION-DIST` (copia limpia sin historia,
 > squash por componente, naming canónico `observerrmm`).
+>
+> **Actualización 2026-06-24 — ADR-016 (topología bi-repo):** este repo pasa a ser
+> la **FUENTE ÚNICA DE VERDAD del backend y del frontend** del producto. El modelo
+> F008 de "consolidar desde forks vía squash" queda **superado**: el backend Django
+> (`api/observerrmm`) y el frontend Quasar (`web/app`) **se desarrollan directamente
+> aquí** (el frontend canónico `observer-rmm-web` y `observer-rmm-web-dist` están
+> congelados/archivados). **Se retira el espejo backend hub→dist** (ADR-015
+> transicional): el backend del hub queda como referencia histórica congelada. El
+> hub `observer-rmm` pasa a ser repo de specs/conocimiento. **El agente sigue NO
+> consolidado** (D-05, ver abajo): `observer-agent-dist`, artefacto/binarios aparte.
+> Modelo neto: 2 repos de producto (`observer-rmm-dist` + `observer-agent-dist`) + 1
+> de specs (hub). Decisión completa en el hub: `_reversa_sdd/adrs/016-*.md`.
 
 Este repositorio es el punto de consolidación del sistema Observer RMM de
-BrainCorp. El código de producto NO se desarrolla aquí: se desarrolla y valida
-en los forks de trabajo (local-only) y se consolida vía commits squash únicos,
-de modo que **ningún commit del upstream original (TacticalRMM / Amidaware) es
-alcanzable desde `main`** (criterio de aceite RN-02).
+BrainCorp. **(Histórico F008, ver actualización ADR-016 arriba:)** el código de
+producto se consolidó originalmente vía commits squash únicos desde los forks de
+trabajo (local-only), de modo que **ningún commit del upstream original
+(TacticalRMM / Amidaware) es alcanzable desde `main`** (criterio de aceite RN-02).
+Ese criterio RN-02 se mantiene; lo que cambia (ADR-016) es que backend y frontend
+ahora se desarrollan **directamente aquí**, no en los forks.
 
 ## Tabla de procedencia
 
