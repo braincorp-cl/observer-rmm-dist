@@ -2,7 +2,7 @@
   <q-card style="min-width: 35vw">
     <q-card-section class="row">
       <q-card-actions align="left">
-        <div class="text-h6">Add an agent</div>
+        <div class="text-h6">{{ $t("installAgent.title") }}</div>
       </q-card-actions>
       <q-space />
       <q-card-actions align="right">
@@ -16,7 +16,7 @@
             outlined
             dense
             options-dense
-            label="Client"
+            :label="$t('installAgent.client')"
             v-model="client"
             :options="client_options"
             @update:model-value="site = sites[0]"
@@ -27,7 +27,7 @@
             dense
             options-dense
             outlined
-            label="Site"
+            :label="$t('installAgent.site')"
             v-model="site"
             :options="sites"
           />
@@ -37,7 +37,7 @@
             <q-radio
               v-model="agentOS"
               val="windows"
-              label="Windows"
+              :label="$t('installAgent.osWindows')"
               @update:model-value="
                 installMethod = 'exe';
                 goarch = GOARCH_AMD64;
@@ -46,7 +46,7 @@
             <q-radio
               v-model="agentOS"
               val="linux"
-              label="Linux"
+              :label="$t('installAgent.osLinux')"
               @update:model-value="
                 installMethod = 'bash';
                 goarch = GOARCH_AMD64;
@@ -55,7 +55,7 @@
             <q-radio
               v-model="agentOS"
               val="darwin"
-              label="macOS"
+              :label="$t('installAgent.osMacos')"
               @update:model-value="
                 installMethod = 'mac';
                 goarch = GOARCH_AMD64;
@@ -68,13 +68,13 @@
             <q-radio
               v-model="agenttype"
               val="server"
-              label="Server"
+              :label="$t('installAgent.typeServer')"
               @update:model-value="power = false"
             />
             <q-radio
               v-model="agenttype"
               val="workstation"
-              label="Workstation"
+              :label="$t('installAgent.typeWorkstation')"
             />
           </div>
         </q-card-section>
@@ -85,7 +85,7 @@
               dense
               type="number"
               filled
-              label="Token expiration (hours)"
+              :label="$t('installAgent.tokenExpiration')"
               style="max-width: 200px"
               stack-label
             />
@@ -93,81 +93,89 @@
         </q-card-section>
         <q-card-section v-show="agentOS === 'windows'">
           <div class="q-gutter-sm">
-            <q-checkbox v-model="rdp" dense label="Enable RDP" />
-            <q-checkbox v-model="ping" dense label="Enable Ping">
+            <q-checkbox
+              v-model="rdp"
+              dense
+              :label="$t('installAgent.enableRdp')"
+            />
+            <q-checkbox
+              v-model="ping"
+              dense
+              :label="$t('installAgent.enablePing')"
+            >
               <q-tooltip>
-                Enable ICMP echo requests in the local firewall
+                {{ $t("installAgent.enablePingTooltip") }}
               </q-tooltip>
             </q-checkbox>
             <q-checkbox
               v-model="power"
               dense
               v-show="agenttype === 'workstation'"
-              label="Disable sleep/hibernate"
+              :label="$t('installAgent.disableSleep')"
             />
           </div>
         </q-card-section>
         <q-card-section>
-          Arch
+          {{ $t("installAgent.arch") }}
           <div class="q-gutter-sm">
             <q-radio
               v-model="goarch"
               :val="GOARCH_AMD64"
-              label="64 bit"
+              :label="$t('installAgent.arch64')"
               v-show="agentOS === 'windows' || agentOS === 'linux'"
             />
             <q-radio
               v-model="goarch"
               :val="GOARCH_AMD64"
-              label="Intel 64 bit"
+              :label="$t('installAgent.archIntel64')"
               v-show="agentOS === 'darwin'"
             />
             <q-radio
               v-model="goarch"
               :val="GOARCH_i386"
-              label="32 bit"
+              :label="$t('installAgent.arch32')"
               v-show="agentOS !== 'darwin'"
             />
             <q-radio
               v-model="goarch"
               :val="GOARCH_ARM64"
-              label="ARM 64 bit"
+              :label="$t('installAgent.archArm64')"
               v-show="agentOS === 'linux'"
             />
             <q-radio
               v-model="goarch"
               :val="GOARCH_ARM64"
-              label="Apple Silicon (M-Series)"
+              :label="$t('installAgent.archAppleSilicon')"
               v-show="agentOS === 'darwin'"
             />
             <q-radio
               v-model="goarch"
               :val="GOARCH_ARM32"
-              label="ARM 32 bit"
+              :label="$t('installAgent.archArm32')"
               v-show="agentOS === 'linux'"
             />
           </div>
         </q-card-section>
         <q-card-section>
-          Installation Method
+          {{ $t("installAgent.installMethod") }}
           <div class="q-gutter-sm">
             <q-radio
               v-model="installMethod"
               val="powershell"
               v-show="agentOS === 'windows'"
-              label="Powershell"
+              :label="$t('installAgent.methodPowershell')"
             />
             <q-radio
               v-model="installMethod"
               val="manual"
               v-show="false"
-              label="Standard EXE"
+              :label="$t('installAgent.methodStandardExe')"
             />
             <q-radio
               v-model="installMethod"
               val="exe"
               v-show="false"
-              label="Generated EXE"
+              :label="$t('installAgent.methodGeneratedExe')"
             />
           </div>
         </q-card-section>
@@ -288,33 +296,32 @@ export default {
       } else if (this.installMethod === "exe") {
         this.$q
           .dialog({
-            title: "Warning",
+            title: this.$t("installAgent.warningTitle"),
             style: {
               width: "40vw",
               maxWidth: "50vw",
             },
-            // TODO F007.2: switch docs.tacticalrmm.com link below (and its anchor slug "tactical-rmm") to docs.observer.cl/faq/... when R-03 (BrainCorp CDN) is published
-            message: `
-              This installation method may trigger Antivirus (AV), Windows SmartScreen, or Untrusted Publisher warnings, <strong>even when code-signing is enabled</strong>.<br><br>
-              We strongly recommend using the Standard EXE or PowerShell installer instead.<br><br>
-              This method may also expose your environment to the risk of unauthorized or unexpected agents appearing. Please read <a target="_blank" rel="noopener noreferrer" href="https://docs.tacticalrmm.com/faq/#help-ive-been-hacked-and-there-are-weird-agents-appearing-in-my-tactical-rmm">this guidance</a> before continuing.<br><br>
-              Proceed only if you understand and accept these risks.
-              `,
+            // TODO F007.2: el enlace docs.tacticalrmm.com (y su slug "tactical-rmm") vive en
+            // installAgent.exeWarningMessage de los catálogos i18n; migrar a docs.observer.cl/faq/...
+            // cuando R-03 (BrainCorp CDN) se publique.
+            message: this.$t("installAgent.exeWarningMessage"),
             color: "negative",
             ok: {
-              label: "Yes, continue",
+              label: this.$t("installAgent.continueLabel"),
               color: "negative",
               unelevated: true,
             },
             cancel: {
-              label: "Cancel",
+              label: this.$t("installAgent.cancel"),
               color: "grey",
             },
             persistent: true,
             html: true,
           })
           .onOk(() => {
-            this.$q.loading.show({ message: "Generating executable..." });
+            this.$q.loading.show({
+              message: this.$t("installAgent.generatingExe"),
+            });
             this.$axios
               .post("/agents/installer/", data, { responseType: "blob" })
               .then((r) => {
@@ -357,8 +364,12 @@ export default {
     },
     showDLMessage() {
       this.$q.dialog({
-        message: `Installer for ${this.client.label}, ${this.site.label} (${this.agenttype}) will now be downloaded.
-              You may reuse this installer for ${this.expires} hours before it expires. No command line arguments are needed.`,
+        message: this.$t("installAgent.dlMessage", {
+          client: this.client.label,
+          site: this.site.label,
+          type: this.agenttype,
+          hours: this.expires,
+        }),
       });
     },
   },
@@ -370,19 +381,19 @@ export default {
       let text;
       switch (this.installMethod) {
         case "exe":
-          text = "Generate and download exe";
+          text = this.$t("installAgent.btnGenerateExe");
           break;
         case "powershell":
-          text = "Download powershell script";
+          text = this.$t("installAgent.btnDownloadPowershell");
           break;
         case "manual":
-          text = "Show installation instructions";
+          text = this.$t("installAgent.btnShowInstructions");
           break;
         case "bash":
-          text = "Download linux install script";
+          text = this.$t("installAgent.btnDownloadBash");
           break;
         case "mac":
-          text = "Show installation instructions";
+          text = this.$t("installAgent.btnShowInstructions");
           break;
       }
 

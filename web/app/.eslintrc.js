@@ -111,6 +111,7 @@ module.exports = {
         "src/views/NotFound.vue",
         "src/views/DashboardView.vue",
         "src/components/AgentTable.vue",
+        "src/components/modals/agents/InstallAgent.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
