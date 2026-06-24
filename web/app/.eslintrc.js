@@ -109,6 +109,7 @@ module.exports = {
         "src/views/TOTPSetup.vue",
         "src/views/SessionExpired.vue",
         "src/views/NotFound.vue",
+        "src/views/DashboardView.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
