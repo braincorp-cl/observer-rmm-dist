@@ -15,7 +15,7 @@
       :loading="loading"
       hide-bottom
       virtual-scroll
-      no-data-label="No notes"
+      :no-data-label="$t('agentTabs.notes.noNotes')"
     >
       <template v-slot:top>
         <q-btn
@@ -28,7 +28,7 @@
         />
         <q-btn
           icon="add"
-          label="Add Note"
+          :label="$t('agentTabs.notes.addNote')"
           no-caps
           dense
           flat
@@ -65,7 +65,9 @@
                         <q-item-section side>
                           <q-icon name="edit" />
                         </q-item-section>
-                        <q-item-section>Edit</q-item-section>
+                        <q-item-section>{{
+                          $t("agentTabs.common.edit")
+                        }}</q-item-section>
                       </q-item>
 
                       <q-item
@@ -76,7 +78,9 @@
                         <q-item-section side>
                           <q-icon name="delete" />
                         </q-item-section>
-                        <q-item-section>Delete</q-item-section>
+                        <q-item-section>{{
+                          $t("agentTabs.common.delete")
+                        }}</q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>
@@ -98,6 +102,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 import {
   fetchAgentNotes,
   editAgentNote,
@@ -109,31 +114,33 @@ import { notifySuccess } from "@/utils/notify";
 // ui imports
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 
-// static data
-const columns = [
-  {
-    name: "entry_time",
-    label: "Date",
-    field: "entry_time",
-  },
-  {
-    name: "username",
-    label: "User",
-    field: "username",
-  },
-  {
-    name: "note",
-    label: "Note",
-    field: "note",
-  },
-];
-
 export default {
   name: "NotesTab",
   components: {
     ExportTableBtn,
   },
   setup() {
+    const { t } = useI18n();
+
+    // table columns (computed so labels follow the active locale)
+    const columns = computed(() => [
+      {
+        name: "entry_time",
+        label: t("agentTabs.notes.colDate"),
+        field: "entry_time",
+      },
+      {
+        name: "username",
+        label: t("agentTabs.notes.colUser"),
+        field: "username",
+      },
+      {
+        name: "note",
+        label: t("agentTabs.notes.colNote"),
+        field: "note",
+      },
+    ]);
+
     // setup vuex
     const store = useStore();
     const selectedAgent = computed(() => store.state.selectedRow);
@@ -162,14 +169,14 @@ export default {
     function addNote() {
       noteText.value = "";
       $q.dialog({
-        title: "Add Note",
+        title: t("agentTabs.notes.addNote"),
         prompt: {
           model: noteText,
           type: "textarea",
           isValid: (val) => !!val,
         },
         style: "width: 90vw; max-width: 90vw",
-        ok: { label: "Add" },
+        ok: { label: t("agentTabs.notes.add") },
         cancel: true,
       }).onOk(async () => {
         loading.value = true;
@@ -189,14 +196,14 @@ export default {
 
     function editNote(note) {
       $q.dialog({
-        title: "Edit Note",
+        title: t("agentTabs.notes.editNote"),
         prompt: {
           model: note.note,
           type: "textarea",
           isValid: (val) => !!val,
         },
         style: "width: 90vw; max-width: 90vw",
-        ok: { label: "Save" },
+        ok: { label: t("agentTabs.common.save") },
         cancel: true,
       }).onOk(async (data) => {
         loading.value = true;
@@ -213,9 +220,9 @@ export default {
 
     function deleteNote(note) {
       $q.dialog({
-        title: "Delete note?",
+        title: t("agentTabs.notes.deleteNoteTitle"),
         cancel: true,
-        ok: { label: "Delete", color: "negative" },
+        ok: { label: t("agentTabs.common.delete"), color: "negative" },
       }).onOk(async () => {
         loading.value = true;
         try {

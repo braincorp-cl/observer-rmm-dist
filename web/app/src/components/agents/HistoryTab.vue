@@ -25,7 +25,7 @@
         <q-input
           v-model="filter"
           outlined
-          label="Search"
+          :label="$t('agentTabs.common.search')"
           dense
           clearable
           class="q-pr-sm"
@@ -51,8 +51,8 @@
                 ? showCommandOutput(props.row.command, props.row.results)
                 : showScriptOutput(props.row.script_results)
             "
-            >Output
-          </span>
+            >{{ $t("agentTabs.history.output") }}</span
+          >
         </q-td>
       </template>
 
@@ -70,6 +70,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useQuasar, Notify } from "quasar";
+import { useI18n } from "vue-i18n";
 import { formatTableColumnText, truncateText } from "@/utils/format";
 import { fetchAgentHistory } from "@/api/agents";
 
@@ -78,55 +79,6 @@ import ScriptOutput from "@/components/checks/ScriptOutput.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 import PreDialog from "@/components/ui/PreDialog.vue";
 
-// static data
-const columns = [
-  {
-    name: "time",
-    label: "Time",
-    field: "time",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "type",
-    label: "Action",
-    field: "type",
-    align: "left",
-    sortable: true,
-    format: (val) => formatTableColumnText(val),
-  },
-  /* {
-    name: "status",
-    label: "Status",
-    field: "status",
-    align: "left",
-    sortable: true,
-    format: (val, row) => formatTableColumnText(val),
-  }, */
-  {
-    name: "command",
-    label: "Script/Command",
-    field: (row) => (row.type === "script_run" ? row.script_name : row.command),
-    align: "left",
-    sortable: true,
-    format: (val) => truncateText(val, 30),
-  },
-  {
-    name: "username",
-    label: "Initiated By",
-    field: "username",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "output",
-    label: "Output",
-    field: "output",
-    align: "left",
-    sortable: true,
-  },
-];
-
 export default {
   name: "HistoryTab",
   components: {
@@ -134,6 +86,49 @@ export default {
   },
   setup() {
     const $q = useQuasar();
+    const { t } = useI18n();
+
+    // table columns (computed so labels follow the active locale)
+    const columns = computed(() => [
+      {
+        name: "time",
+        label: t("agentTabs.history.colTime"),
+        field: "time",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "type",
+        label: t("agentTabs.history.colAction"),
+        field: "type",
+        align: "left",
+        sortable: true,
+        format: (val) => formatTableColumnText(val),
+      },
+      {
+        name: "command",
+        label: t("agentTabs.history.colCommand"),
+        field: (row) =>
+          row.type === "script_run" ? row.script_name : row.command,
+        align: "left",
+        sortable: true,
+        format: (val) => truncateText(val, 30),
+      },
+      {
+        name: "username",
+        label: t("agentTabs.history.colInitiatedBy"),
+        field: "username",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "output",
+        label: t("agentTabs.history.colOutput"),
+        field: "output",
+        align: "left",
+        sortable: true,
+      },
+    ]);
 
     const store = useStore();
     const selectedAgent = computed(() => store.state.selectedRow);
@@ -161,7 +156,7 @@ export default {
     function showScriptOutput(output) {
       if (!output) {
         Notify.create({
-          message: "No output is available yet",
+          message: t("agentTabs.history.noOutputYet"),
           type: "negative",
         });
         return;

@@ -3,7 +3,7 @@
     {{ $t("agentTabs.noAgentSelected") }}
   </div>
   <div v-else-if="agentPlatform.toLowerCase() !== 'windows'" class="q-pa-sm">
-    Only supported for Windows agents at this time
+    {{ $t("agentTabs.common.windowsOnly") }}
   </div>
   <div v-else>
     <q-tabs
@@ -16,19 +16,28 @@
       narrow-indicator
       no-caps
     >
-      <q-tab name="os" label="Operating System" />
-      <q-tab name="cpu" label="CPU" />
-      <q-tab name="mem" label="Memory" />
-      <q-tab name="usb" label="USB" />
-      <q-tab name="bios" label="Bios" />
-      <q-tab name="disk" label="Disks" />
-      <q-tab name="comp_sys" label="Computer System" />
-      <q-tab name="base_board" label="Motherboard" />
-      <q-tab name="comp_sys_prod" label="Computer System Product" />
-      <q-tab name="network_config" label="Network Config" />
-      <q-tab name="graphics" label="Graphics" />
-      <q-tab name="desktop_monitor" label="Monitors" />
-      <q-tab name="network_adapter" label="Network Adapters" />
+      <q-tab name="os" :label="$t('agentTabs.assets.os')" />
+      <q-tab name="cpu" :label="$t('agentTabs.assets.cpu')" />
+      <q-tab name="mem" :label="$t('agentTabs.assets.mem')" />
+      <q-tab name="usb" :label="$t('agentTabs.assets.usb')" />
+      <q-tab name="bios" :label="$t('agentTabs.assets.bios')" />
+      <q-tab name="disk" :label="$t('agentTabs.assets.disk')" />
+      <q-tab name="comp_sys" :label="$t('agentTabs.assets.compSys')" />
+      <q-tab name="base_board" :label="$t('agentTabs.assets.baseBoard')" />
+      <q-tab name="comp_sys_prod" :label="$t('agentTabs.assets.compSysProd')" />
+      <q-tab
+        name="network_config"
+        :label="$t('agentTabs.assets.networkConfig')"
+      />
+      <q-tab name="graphics" :label="$t('agentTabs.assets.graphics')" />
+      <q-tab
+        name="desktop_monitor"
+        :label="$t('agentTabs.assets.desktopMonitor')"
+      />
+      <q-tab
+        name="network_adapter"
+        :label="$t('agentTabs.assets.networkAdapter')"
+      />
     </q-tabs>
 
     <q-separator />

@@ -27,7 +27,7 @@
         :color="dash_negative_color"
         class="q-mr-sm"
       >
-        <q-tooltip>Agent overdue</q-tooltip>
+        <q-tooltip>{{ $t("agentTabs.summary.agentOverdue") }}</q-tooltip>
       </q-icon>
       <q-icon
         v-else-if="summary.status === 'offline'"
@@ -48,15 +48,22 @@
         <q-tooltip>{{ store.getters.formatDate(summary.last_seen) }}</q-tooltip>
       </q-icon>
       <b>{{ summary.hostname }}</b>
-      <span v-if="summary.maintenance_mode">
-        &bull; <q-badge color="green"> Maintenance Mode </q-badge>
+      <span v-if="summary.maintenance_mode" class="q-mr-sm">
+        <q-badge color="green">
+          {{ $t("agentTabs.summary.maintenanceMode") }}
+        </q-badge>
       </span>
-      &bull; {{ summary.operating_system }} &bull; Agent v{{ summary.version }}
+      <span>{{
+        $t("agentTabs.summary.systemLine", {
+          os: summary.operating_system,
+          version: summary.version,
+        })
+      }}</span>
       <q-space />
       <q-btn
         dense
         flat
-        label="Popout"
+        :label="$t('agentTabs.summary.popout')"
         icon="open_in_new"
         size="md"
         no-caps
@@ -66,14 +73,20 @@
       <q-btn
         dense
         flat
-        label="Take Control"
+        :label="$t('agentTabs.summary.takeControl')"
         icon="computer"
         size="md"
         no-caps
         class="q-mr-sm"
         @click="runTakeControl(selectedAgent)"
       />
-      <q-btn-dropdown dense flat size="md" no-caps label="Actions">
+      <q-btn-dropdown
+        dense
+        flat
+        size="md"
+        no-caps
+        :label="$t('agentTabs.summary.actions')"
+      >
         <AgentActionMenu :agent="summary" />
       </q-btn-dropdown>
     </q-bar>
@@ -81,7 +94,9 @@
     <div class="row">
       <div class="col-4">
         <!-- left -->
-        <span class="text-subtitle2 text-bold">Hardware Details</span>
+        <span class="text-subtitle2 text-bold">{{
+          $t("agentTabs.summary.hardwareDetails")
+        }}</span>
         <q-list dense>
           <q-item>
             <q-item-section avatar>
@@ -99,7 +114,9 @@
             <q-item-section avatar>
               <q-icon name="fas fa-memory" />
             </q-item-section>
-            <q-item-section>{{ summary.total_ram }} GB RAM</q-item-section>
+            <q-item-section>{{
+              $t("agentTabs.summary.ram", { ram: summary.total_ram })
+            }}</q-item-section>
           </q-item>
 
           <!-- physical disks -->
@@ -127,18 +144,24 @@
             <q-item-section avatar>
               <q-icon name="fas fa-globe-americas" />
             </q-item-section>
-            <q-item-section>Public IP: {{ summary.public_ip }}</q-item-section>
+            <q-item-section>{{
+              $t("agentTabs.summary.publicIp", { ip: summary.public_ip })
+            }}</q-item-section>
           </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section>LAN IP: {{ summary.local_ips }}</q-item-section>
+            <q-item-section>{{
+              $t("agentTabs.summary.lanIp", { ips: summary.local_ips })
+            }}</q-item-section>
           </q-item>
         </q-list>
       </div>
       <div class="col-2">
-        <span class="text-subtitle2 text-bold">Checks Status</span>
+        <span class="text-subtitle2 text-bold">{{
+          $t("agentTabs.summary.checksStatus")
+        }}</span>
         <br />
         <div v-if="summary.checks.total !== 0">
           <q-chip v-if="summary.checks.passing" square size="lg">
@@ -149,7 +172,11 @@
               :color="dash_positive_color"
               text-color="white"
             />
-            <small>{{ summary.checks.passing }} checks passing</small>
+            <small>{{
+              $t("agentTabs.summary.checksPassing", {
+                n: summary.checks.passing,
+              })
+            }}</small>
           </q-chip>
           <q-chip v-if="summary.checks.failing" square size="lg">
             <q-avatar
@@ -159,7 +186,11 @@
               :color="dash_negative_color"
               text-color="white"
             />
-            <small>{{ summary.checks.failing }} checks failing</small>
+            <small>{{
+              $t("agentTabs.summary.checksFailing", {
+                n: summary.checks.failing,
+              })
+            }}</small>
           </q-chip>
           <q-chip v-if="summary.checks.warning" square size="lg">
             <q-avatar
@@ -169,7 +200,11 @@
               :color="dash_warning_color"
               text-color="white"
             />
-            <small>{{ summary.checks.warning }} checks warning</small>
+            <small>{{
+              $t("agentTabs.summary.checksWarning", {
+                n: summary.checks.warning,
+              })
+            }}</small>
           </q-chip>
           <q-chip v-if="summary.checks.info" square size="lg">
             <q-avatar
@@ -179,7 +214,9 @@
               :color="dash_info_color"
               text-color="white"
             />
-            <small>{{ summary.checks.info }} checks info</small>
+            <small>{{
+              $t("agentTabs.summary.checksInfo", { n: summary.checks.info })
+            }}</small>
           </q-chip>
           <span
             v-if="
@@ -189,32 +226,47 @@
               summary.checks.warning === 0 &&
               summary.checks.info === 0
             "
-            >{{ summary.checks.total }} checks awaiting first
-            synchronization</span
+            >{{
+              $t("agentTabs.summary.checksAwaiting", {
+                n: summary.checks.total,
+              })
+            }}</span
           >
         </div>
-        <div v-else>No checks</div>
+        <div v-else>{{ $t("agentTabs.summary.noChecks") }}</div>
 
         <span
           v-if="customFields.length > 0"
           class="text-subtitle2 text-bold block q-mt-xl"
-          >Custom Fields</span
+          >{{ $t("agentTabs.summary.customFields") }}</span
         >
         <q-list dense>
           <q-item v-for="(field, i) in customFields" :key="field + i">
             <q-item-section thumbnail>
               <q-icon name="fas fa-user" size="xs" />
             </q-item-section>
-            <q-item-section>{{ field.name }}: {{ field.value }}</q-item-section>
+            <q-item-section>{{
+              $t("agentTabs.summary.customField", {
+                name: field.name,
+                value: field.value,
+              })
+            }}</q-item-section>
           </q-item>
         </q-list>
       </div>
       <div class="col-1"></div>
       <!-- right -->
       <div class="col-3">
-        <span class="text-subtitle2 text-bold">Disks</span>
+        <span class="text-subtitle2 text-bold">{{
+          $t("agentTabs.summary.disks")
+        }}</span>
         <div v-for="disk in disks" :key="disk.device">
-          <span>{{ disk.device }} ({{ disk.fstype }})</span>
+          <span>{{
+            $t("agentTabs.summary.diskDevice", {
+              device: disk.device,
+              fstype: disk.fstype,
+            })
+          }}</span>
           <q-linear-progress
             rounded
             size="15px"
@@ -222,7 +274,12 @@
             :color="diskBarColor(disk.percent)"
             class="q-mt-sm"
           />
-          <span>{{ disk.free }} free of {{ disk.total }}</span>
+          <span>{{
+            $t("agentTabs.summary.diskFree", {
+              free: disk.free,
+              total: disk.total,
+            })
+          }}</span>
           <q-separator />
         </div>
       </div>
