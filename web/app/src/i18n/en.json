@@ -350,5 +350,18 @@
     "editedSuccess": "Patch policy was edited successfully!",
     "createdSuccess": "Patch policy was created successfully!",
     "deletedSuccess": "Patch policy was deleted successfully!"
+  },
+  "agentTabs": {
+    "summary": "Summary",
+    "checks": "Checks",
+    "tasks": "Tasks",
+    "patches": "Patches",
+    "software": "Software",
+    "history": "History",
+    "notes": "Notes",
+    "assets": "Assets",
+    "debug": "Debug",
+    "audit": "Audit",
+    "noAgentSelected": "No agent selected"
   }
 }

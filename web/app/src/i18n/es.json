@@ -350,5 +350,18 @@
     "editedSuccess": "¡La política de parches fue editada con éxito!",
     "createdSuccess": "¡La política de parches fue creada con éxito!",
     "deletedSuccess": "¡La política de parches fue eliminada con éxito!"
+  },
+  "agentTabs": {
+    "summary": "Resumen",
+    "checks": "Chequeos",
+    "tasks": "Tareas",
+    "patches": "Parches",
+    "software": "Software",
+    "history": "Historial",
+    "notes": "Notas",
+    "assets": "Activos",
+    "debug": "Depuración",
+    "audit": "Auditoría",
+    "noAgentSelected": "Ningún agente seleccionado"
   }
 }

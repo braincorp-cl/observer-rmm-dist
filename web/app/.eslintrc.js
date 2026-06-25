@@ -104,6 +104,9 @@ module.exports = {
       // Ola 1 (F010): login/2FA. Ola 2: chrome de navegación + onboarding + vistas chicas.
       // Ola 3: DashboardView. Ola 4: AgentTable. Ola 5a: InstallAgent.
       // Ola 5b: modales de agente (EditAgent / BulkAction / PatchPolicyForm).
+      // Ola 6a: barra de pestañas del detalle de agente (SubTableTabs). Solo la barra
+      // entra al gate; los interiores de las 10 *Tab.vue siguen en inglés (long tail,
+      // GAP-046) y NO se agregan aquí porque dispararían no-raw-text.
       files: [
         "src/views/LoginView.vue",
         "src/components/FileBar.vue",
@@ -117,6 +120,7 @@ module.exports = {
         "src/components/modals/agents/EditAgent.vue",
         "src/components/modals/agents/BulkAction.vue",
         "src/components/modals/agents/PatchPolicyForm.vue",
+        "src/components/SubTableTabs.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
