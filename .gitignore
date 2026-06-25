@@ -3,6 +3,9 @@
 __pycache__/
 .vault_pass
 *.log
+
+# Inventario de entorno real (IP del lab + admin_url ofuscado) — usar staging.yml.example
+inventory/staging.yml
 .molecule/
 .cache/
 
