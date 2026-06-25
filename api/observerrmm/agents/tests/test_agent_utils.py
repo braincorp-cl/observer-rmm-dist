@@ -17,7 +17,7 @@ class TestAgentUtils(ObserverTestCase):
 
         # test without token
         r = get_agent_url(goarch="amd64", plat="windows", token="")
-        expected = f"https://github.com/braincorp-cl/observer-agent/releases/download/v{ver}/observeragent-v{ver}-windows-amd64.exe"
+        expected = f"https://github.com/braincorp-cl/observer-agent-dist/releases/download/v{ver}/observeragent-v{ver}-windows-amd64.exe"
         self.assertEqual(r, expected)
 
         # test with token
