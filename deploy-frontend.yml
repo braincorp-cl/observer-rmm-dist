@@ -1,0 +1,52 @@
+---
+# Mini-playbook deploy SOLO-FRONTEND (ola 6a / GAP-046) — réplica fiel de las 4
+# tareas de frontend del rol observer_proxy (tasks/main.yml L199-242 + handler reload
+# nginx). NO toca nginx repo/TLS/ACME ni vhosts (ya desplegados e idempotentes).
+# Uso:
+#   ansible-playbook -i inventory/staging.yml deploy-frontend.yml \
+#     -e observer_default_language=es
+# (observer_user/group vienen de group_vars/all.yml; observer_domain de la inventory.)
+- name: Deploy solo-frontend (assets SPA + env-config.js)
+  hosts: observer_proxy
+  become: true
+  tasks:
+    # 1) mkdir — réplica de "Crear directorio de activos del frontend"
+    - name: Crear directorio de activos del frontend
+      ansible.builtin.file:
+        path: /var/www/observer/dist
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0755"
+
+    # 2) synchronize --delete --exclude=env-config.js — réplica exacta
+    - name: Sincronizar activos compilados del frontend
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/web/dist/"
+        dest: /var/www/observer/dist/
+        delete: true
+        recursive: true
+        rsync_opts:
+          - "--no-owner"
+          - "--no-group"
+          - "--exclude=env-config.js"
+      become: true
+      become_user: "{{ observer_user }}"
+      notify: reload nginx
+
+    # 3) env-config.js (GAP-045 + feature 010 DEFAULT_LANG)
+    - name: Generar env-config.js del frontend (window._env_.PROD_URL -> API)
+      ansible.builtin.copy:
+        dest: /var/www/observer/dist/env-config.js
+        content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\", DEFAULT_LANG: \"{{ observer_default_language | default('en') }}\"}\n"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0644"
+      when: observer_domain is defined
+
+  # 4) reload nginx — réplica del handler del rol
+  handlers:
+    - name: reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
