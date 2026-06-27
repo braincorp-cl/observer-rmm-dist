@@ -1,45 +1,54 @@
 package shared
 
+// GAP-051: el agente (observer-agent, canónico) serializa los payloads NATS con
+// github.com/ugorji/go/codec, cuyo MsgpackHandle por defecto honra los tags "codec"
+// y luego "json" (helper.go: NewTypeInfos([]string{"codec","json"})) e IGNORA "msgpack".
+// Estos structs deben usar tags `json:` con claves IDÉNTICAS a las del agente
+// (observer-agent/shared/types.go), o el decode produce structs vacíos (Agentid="")
+// y los UPDATE ... WHERE agent_id='' no matchean ninguna fila → sin last_seen ni
+// inventario. (Antes usaban `msgpack:` → ugorji caía al nombre del campo Go y nada
+// matcheaba. Mismo formato de wire para Windows y Linux: un solo shared/types.go y un
+// solo NatsMessage sin build-tags. Cierra el TODO T023 de CONTRACT-01.)
+
 // CheckInNats is sent by the agent on NATS subject "agent-hello".
 type CheckInNats struct {
-	Agentid string `msgpack:"id"`
-	Version string `msgpack:"version"`
+	Agentid string `json:"agent_id"`
+	Version string `json:"version"`
 }
 
 // PublicIPNats is sent by the agent on NATS subject "agent-publicip".
 type PublicIPNats struct {
-	Agentid  string `msgpack:"id"`
-	PublicIP string `msgpack:"public_ip"`
+	Agentid  string `json:"agent_id"`
+	PublicIP string `json:"public_ip"`
 }
 
 // AgentInfoNats is sent by the agent on NATS subject "agent-agentinfo".
 type AgentInfoNats struct {
-	Agentid      string  `msgpack:"id"`
-	Hostname     string  `msgpack:"hostname"`
-	OS           string  `msgpack:"os"`
-	Platform     string  `msgpack:"plat"`
-	TotalRAM     float64 `msgpack:"total_ram"`
-	BootTime     int64   `msgpack:"boot_time"`
-	RebootNeeded bool    `msgpack:"needs_reboot"`
-	Username     string  `msgpack:"logged_in_username"`
-	GoArch       string  `msgpack:"goarch"`
+	Agentid      string  `json:"agent_id"`
+	Hostname     string  `json:"hostname"`
+	OS           string  `json:"operating_system"`
+	Platform     string  `json:"plat"`
+	TotalRAM     float64 `json:"total_ram"`
+	BootTime     int64   `json:"boot_time"`
+	RebootNeeded bool    `json:"needs_reboot"`
+	Username     string  `json:"logged_in_username"`
+	GoArch       string  `json:"goarch"`
 }
 
 // WinDisksNats is sent by the agent on NATS subject "agent-disks".
 type WinDisksNats struct {
-	Agentid string        `msgpack:"id"`
-	Disks   []interface{} `msgpack:"disks"`
+	Agentid string        `json:"agent_id"`
+	Disks   []interface{} `json:"disks"`
 }
 
 // WinSvcNats is sent by the agent on NATS subject "agent-winsvc".
 type WinSvcNats struct {
-	Agentid string        `msgpack:"id"`
-	WinSvcs []interface{} `msgpack:"svcs"`
+	Agentid string        `json:"agent_id"`
+	WinSvcs []interface{} `json:"services"`
 }
 
 // WinWMINats is sent by the agent on NATS subject "agent-wmi".
-// NOTE (T023): verify msgpack tags against integration-contracts.md CONTRACT-01 before finalizing.
 type WinWMINats struct {
-	Agentid string                 `msgpack:"id"`
-	WMI     map[string]interface{} `msgpack:"wmi"`
+	Agentid string                 `json:"agent_id"`
+	WMI     map[string]interface{} `json:"wmi"`
 }
