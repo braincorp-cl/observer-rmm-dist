@@ -30,7 +30,7 @@ REDIS_PORT = {{ observer_redis_port | default(6379) }}
 # (sin REDIS_PASSWORD: el backend no soporta auth Redis — channels, cache y
 # celery usan redis://HOST:6379 sin password, igual que upstream/install.sh)
 
-MESH_SITE = 'https://{{ observer_mesh_host }}'
+MESH_SITE = 'https://{{ observer_mesh_domain }}'
 MESH_USERNAME = '{{ observer_mesh_user | default("meshcentral_admin") }}'
 MESH_TOKEN_KEY = '{{ vault_observer_mesh_password }}'
 
