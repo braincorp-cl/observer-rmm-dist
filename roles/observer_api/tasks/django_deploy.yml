@@ -176,6 +176,23 @@
     - "'is already taken' not in observer_createsuperuser.stderr"
     - "'already exists' not in observer_createsuperuser.stderr"
 
+# Installer user (= upstream install/update `create_installer_user`). El endpoint
+# agents.install_agent hace AuthToken.objects.create(user=<installer_user>, ...) para
+# firmar el token de enrolamiento; si no existe ningún User con is_installer_user=True,
+# install_agent revienta (FK user_id NOT NULL en el AuthToken). El rol NO lo creaba ->
+# en greenfield la generación de instaladores (bash/exe/mac) fallaba 500. El comando es
+# idempotente: si ya existe, retorna "Installer user already exists" sin crear otro.
+- name: Crear installer user (create_installer_user)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py create_installer_user"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: observer_installer_user
+  changed_when: "'has been created' in observer_installer_user.stdout"
+
 # Community scripts (= install.sh L391-394): el repo se clona a settings.SCRIPTS_DIR
 # (= /opt/trmm-community-scripts, ruta legacy en settings.py) y load_community_scripts
 # lo carga. Es un RECURSO EXTERNO — decisión BrainCorp pendiente sobre qué repo usar
