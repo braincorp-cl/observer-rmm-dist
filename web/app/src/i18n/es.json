@@ -352,6 +352,18 @@
     "deletedSuccess": "¡La política de parches fue eliminada con éxito!"
   },
   "agentTabs": {
+    "labels": {
+      "summary": "Resumen",
+      "checks": "Chequeos",
+      "tasks": "Tareas",
+      "patches": "Parches",
+      "software": "Software",
+      "history": "Historial",
+      "notes": "Notas",
+      "assets": "Activos",
+      "debug": "Depuración",
+      "audit": "Auditoría"
+    },
     "summary": {
       "agentOverdue": "Agente atrasado",
       "maintenanceMode": "Modo mantenimiento",

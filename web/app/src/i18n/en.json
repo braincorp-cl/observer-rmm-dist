@@ -352,6 +352,18 @@
     "deletedSuccess": "Patch policy was deleted successfully!"
   },
   "agentTabs": {
+    "labels": {
+      "summary": "Summary",
+      "checks": "Checks",
+      "tasks": "Tasks",
+      "patches": "Patches",
+      "software": "Software",
+      "history": "History",
+      "notes": "Notes",
+      "assets": "Assets",
+      "debug": "Debug",
+      "audit": "Audit"
+    },
     "summary": {
       "agentOverdue": "Agent overdue",
       "maintenanceMode": "Maintenance Mode",

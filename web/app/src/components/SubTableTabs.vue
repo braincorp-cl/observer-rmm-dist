@@ -20,70 +20,70 @@
           name="summary"
           icon="fas fa-info-circle"
           size="xs"
-          :label="$t('agentTabs.summary')"
+          :label="$t('agentTabs.labels.summary')"
         />
         <q-tab
           v-if="activeTabs.includes('checks')"
           content-class="min-width"
           name="checks"
           icon="fas fa-check-double"
-          :label="$t('agentTabs.checks')"
+          :label="$t('agentTabs.labels.checks')"
         />
         <q-tab
           v-if="activeTabs.includes('tasks')"
           content-class="min-width"
           name="tasks"
           icon="fas fa-tasks"
-          :label="$t('agentTabs.tasks')"
+          :label="$t('agentTabs.labels.tasks')"
         />
         <q-tab
           v-if="activeTabs.includes('patches')"
           content-class="min-width"
           name="patches"
           icon="system_update"
-          :label="$t('agentTabs.patches')"
+          :label="$t('agentTabs.labels.patches')"
         />
         <q-tab
           v-if="activeTabs.includes('software')"
           content-class="min-width"
           name="software"
           icon="fab fa-windows"
-          :label="$t('agentTabs.software')"
+          :label="$t('agentTabs.labels.software')"
         />
         <q-tab
           v-if="activeTabs.includes('history')"
           content-class="min-width"
           name="history"
           icon="history"
-          :label="$t('agentTabs.history')"
+          :label="$t('agentTabs.labels.history')"
         />
         <q-tab
           v-if="activeTabs.includes('notes')"
           content-class="min-width"
           name="notes"
           icon="far fa-sticky-note"
-          :label="$t('agentTabs.notes')"
+          :label="$t('agentTabs.labels.notes')"
         />
         <q-tab
           v-if="activeTabs.includes('assets')"
           content-class="min-width"
           name="assets"
           icon="fas fa-barcode"
-          :label="$t('agentTabs.assets')"
+          :label="$t('agentTabs.labels.assets')"
         />
         <q-tab
           v-if="activeTabs.includes('debug')"
           content-class="min-width"
           name="debug"
           icon="bug_report"
-          :label="$t('agentTabs.debug')"
+          :label="$t('agentTabs.labels.debug')"
         />
         <q-tab
           v-if="activeTabs.includes('audit')"
           content-class="min-width"
           name="audit"
           icon="travel_explore"
-          :label="$t('agentTabs.audit')"
+          :label="$t('agentTabs.labels.audit')"
         />
       </q-tabs>
       <q-separator />
