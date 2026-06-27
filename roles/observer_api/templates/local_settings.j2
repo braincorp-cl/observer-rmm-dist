@@ -32,7 +32,12 @@ REDIS_PORT = {{ observer_redis_port | default(6379) }}
 
 MESH_SITE = 'https://{{ observer_mesh_domain }}'
 MESH_USERNAME = '{{ observer_mesh_user | default("meshcentral_admin") }}'
-MESH_TOKEN_KEY = '{{ vault_observer_mesh_password }}'
+# MESH_TOKEN_KEY NO es la contraseña del admin: es el login token key (hex >=160) que
+# MeshCentral guarda como LoginCookieEncryptionKey en su DB. El rol observer_mesh lo
+# obtiene con `--logintokenkey` y lo publica como fact (cierra GAP-049 — antes apuntaba a
+# vault_observer_mesh_password, no-hex → ValueError en meshctrl.get_auth_token/bytes.fromhex).
+# El play observer_mesh SIEMPRE corre antes que observer_api en install.yml, así que el fact existe.
+MESH_TOKEN_KEY = '{{ hostvars[groups["observer_mesh"][0]]["observer_mesh_login_token_key"] }}'
 
 NATS_SERVER = 'nats://{{ observer_nats_host }}:{{ observer_nats_port }}'
 

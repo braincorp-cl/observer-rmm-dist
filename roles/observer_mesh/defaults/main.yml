@@ -5,6 +5,13 @@ observer_meshcentral_version: "1.1.32"
 observer_mesh_db_name: meshcentral
 observer_mesh_db_user: meshcentral
 
+# Cuenta admin de MeshCentral (= install.sh meshusername/letsemail). El usuario debe
+# coincidir con MESH_USERNAME de Django (local_settings.j2 default: meshcentral_admin),
+# porque get_mesh_ws_url mina el token de auth para ESTE usuario. La contraseña vive en
+# vault (vault_observer_mesh_password) y NO es el MESH_TOKEN_KEY (ese es el login token key).
+observer_mesh_user: meshcentral_admin
+observer_mesh_admin_email: "{{ observer_acme_email | default('admin@' + (observer_base_domain | default('localhost'))) }}"
+
 # --- Mantenimiento de la DB de MeshCentral (fix issue #7787 + retención) ---
 # Toggle global del bloque de mantenimiento (índice + LZ4 + purga nocturna).
 observer_mesh_db_maintenance: true

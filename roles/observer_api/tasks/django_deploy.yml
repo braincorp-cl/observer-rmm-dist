@@ -86,6 +86,24 @@
   register: observer_initial_db
   changed_when: "'Core db populated' in observer_initial_db.stdout"
 
+# Setup inicial de MeshCentral (= install.sh `sync_mesh_with_trmm`/AddDeviceGroup). Crea el
+# device group "ObserverRMM" vía websocket usando el token que get_mesh_ws_url mina con
+# MESH_TOKEN_KEY (login token key del rol observer_mesh). También resincroniza el mesh_token
+# guardado en CoreSettings con settings.MESH_TOKEN_KEY. Idempotente: solo crea el mesh si no
+# existe (action=meshes). Requiere MeshCentral arriba (mismo host: ws://127.0.0.1:4430).
+# Cierra GAP-049 (lado device group): sin este paso el backend no resuelve mesh_node_id y la
+# generación del instalador / control remoto fallan. Tolera mesh caído (ConnectionClosedError).
+- name: Setup inicial de MeshCentral (device group ObserverRMM)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py initial_mesh_setup"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: observer_initial_mesh
+  changed_when: "'Created device group' in observer_initial_mesh.stdout"
+
 - name: Ejecutar Django collectstatic
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py collectstatic --noinput"

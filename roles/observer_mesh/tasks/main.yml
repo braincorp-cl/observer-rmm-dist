@@ -71,6 +71,87 @@
     enabled: true
     daemon_reload: true
 
+# --- Bring-up de MeshCentral: login token key + cuenta admin (cierra GAP-049) ---
+# Reproduce en Ansible la secuencia del install.sh de producción (L991-1038):
+#   1) esperar readiness; 2) `--logintokenkey` (idempotente: lee/crea
+#      `LoginCookieEncryptionKey` en la DB mesh y lo devuelve — meshcentral.js:3728
+#      showLoginTokenKey); 3) crear la cuenta admin una sola vez con el server detenido.
+# El token (hex >=160) NO es la contraseña del admin: es la clave con la que MeshCentral
+# valida los tokens que Django mina (meshctrl.get_auth_token → bytes.fromhex). Se publica
+# como fact para que observer_api lo inyecte en MESH_TOKEN_KEY (local_settings.j2).
+- name: "Mesh — esperar a que el HTTP server escuche en el puerto {{ observer_mesh_port }}"
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ observer_mesh_port }}"
+    timeout: 180
+
+- name: "Mesh — obtener el login token key (idempotente: persiste en la DB mesh)"
+  ansible.builtin.command:
+    cmd: "/usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey"
+    chdir: /meshcentral
+  become: true
+  become_user: "{{ observer_user }}"
+  register: observer_mesh_ltk
+  changed_when: false
+
+- name: "Mesh — extraer el hex y publicarlo como fact para observer_api"
+  ansible.builtin.set_fact:
+    observer_mesh_login_token_key: "{{ observer_mesh_ltk.stdout | regex_search('[0-9a-fA-F]{160,}') }}"
+
+- name: "Mesh — validar que el login token key es hex >=160 (si no, el bring-up está roto)"
+  ansible.builtin.assert:
+    that:
+      - observer_mesh_login_token_key is string
+      - observer_mesh_login_token_key | length >= 160
+    fail_msg: >-
+      MeshCentral --logintokenkey no devolvió un hex válido (>=160 chars).
+      Revisar que config.json (postgres) y la DB mesh estén disponibles.
+    quiet: true
+
+- name: "Mesh — ¿la cuenta admin ya fue creada? (sentinel idempotente)"
+  ansible.builtin.stat:
+    path: /meshcentral/meshcentral-data/.observer-admin-created
+  register: observer_mesh_admin_sentinel
+
+- name: "Mesh — crear la cuenta admin de MeshCentral (una sola vez, server detenido)"
+  when: not observer_mesh_admin_sentinel.stat.exists
+  block:
+    - name: "Mesh — detener meshcentral para crear la cuenta"
+      ansible.builtin.systemd:
+        name: meshcentral
+        state: stopped
+
+    - name: "Mesh — createaccount + adminaccount"
+      ansible.builtin.command:
+        cmd: "/usr/bin/node /meshcentral/node_modules/meshcentral {{ item }}"
+        chdir: /meshcentral
+      become: true
+      become_user: "{{ observer_user }}"
+      loop:
+        - "--createaccount {{ observer_mesh_user }} --pass {{ vault_observer_mesh_password }} --email {{ observer_mesh_admin_email }}"
+        - "--adminaccount {{ observer_mesh_user }}"
+      changed_when: true
+      no_log: true  # no filtrar vault_observer_mesh_password al log/ps
+
+    - name: "Mesh — re-arrancar meshcentral"
+      ansible.builtin.systemd:
+        name: meshcentral
+        state: started
+
+    - name: "Mesh — esperar readiness tras crear la cuenta"
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ observer_mesh_port }}"
+        timeout: 180
+
+    - name: "Mesh — marcar la cuenta admin como creada (sentinel)"
+      ansible.builtin.file:
+        path: /meshcentral/meshcentral-data/.observer-admin-created
+        state: touch
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0640"
+
 # --- Mantenimiento de la DB de MeshCentral (fix MeshCentral #7787 + retención) ---
 # MeshCentral crea sus tablas (events/eventids/...) en el primer arranque, pero NO crea
 # el índice sobre eventids(fkid). Sin ese índice, el borrado de eventos hace seq-scans y

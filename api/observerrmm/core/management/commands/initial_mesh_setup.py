@@ -2,6 +2,12 @@ import asyncio
 import json
 
 import websockets
+
+# websockets 13.1 no expone el submódulo `exceptions` como atributo del paquete top-level
+# por acceso perezoso: `websockets.exceptions.X` lanza AttributeError. Import explícito
+# (observado vivo en el bring-up mesh 2026-06-27, GAP-049).
+from websockets.exceptions import ConnectionClosedError
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -12,7 +18,9 @@ from observerrmm.constants import TRMM_WS_MAX_SIZE
 class Command(BaseCommand):
     help = "Sets up initial mesh central configuration"
 
-    async def websocket_call(self, uri):
+    async def websocket_call(self, uri) -> bool:
+        # Devuelve True si creó el device group, False si ya existía (para que el
+        # caller distinga "changed" de no-op — idempotencia del deploy Ansible).
         async with websockets.connect(uri, max_size=TRMM_WS_MAX_SIZE) as websocket:
             # Get Device groups to see if it exists
             await websocket.send(json.dumps({"action": "meshes"}))
@@ -32,9 +40,10 @@ class Command(BaseCommand):
                                 }
                             )
                         )
-                        break
+                        return True
                     else:
-                        break
+                        return False
+        return False
 
     def handle(self, *args, **kwargs):
         mesh_settings = get_core_settings()
@@ -71,9 +80,13 @@ class Command(BaseCommand):
 
         try:
             uri = get_mesh_ws_url()
-            asyncio.run(self.websocket_call(uri))
+            created = asyncio.run(self.websocket_call(uri))
+            if created:
+                self.stdout.write("Created device group ObserverRMM")
+            else:
+                self.stdout.write("Device group ObserverRMM already present")
             self.stdout.write("Initial Mesh Central setup complete")
-        except websockets.exceptions.ConnectionClosedError:
+        except ConnectionClosedError:
             self.stdout.write(
                 "Unable to connect to MeshCentral. Please verify it is online and the configuration is correct in the settings."
             )
