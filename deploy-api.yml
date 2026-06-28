@@ -1,0 +1,217 @@
+---
+# Mini-playbook deploy SOLO-BACKEND (actualización de código Django) — análogo a
+# deploy-frontend.yml. Réplica fiel del SUBCONJUNTO DE ACTUALIZACIÓN DE CÓDIGO del rol
+# observer_api (roles/observer_api/tasks/django_deploy.yml): sincroniza el código fuente,
+# instala dependencias, corre migraciones, recolecta estáticos, regenera los configs
+# derivados del código (uwsgi app.ini, schemas JSON, nats confs) y reinicia los servicios
+# del API solo cuando corresponde (synchronize/checksum). Idempotente (O-IDEMPOTENCIA-01):
+# un re-deploy sin cambios de código = 0 restart de la API.
+#
+# Uso (deploy recurrente de backend, p.ej. tras pushear un fix a observer-rmm-dist):
+#   ansible-playbook -i inventory/staging.yml deploy-api.yml
+#
+# QUÉ HACE: code sync + pip + migrate + collectstatic + regenerar app.ini/schemas/nats
+#   confs + restart condicional de rmm/daphne/celery/celerybeat (y nats/nats-api si su
+#   config cambió). Secretos y runtime intactos: excluye local_settings.py, nats-rmm.conf,
+#   .env y *.log del synchronize.
+#
+# QUÉ NO HACE (a propósito — eso es BRING-UP/INSTALL, va por install.yml):
+#   - NO renderiza local_settings.py (requiere el fact observer_mesh_login_token_key que
+#     setea el rol observer_mesh en el bring-up; local_settings ya está desplegado y es estable).
+#   - NO corre initial_db_setup / initial_mesh_setup / createsuperuser / create_installer_user
+#     (siembra de bring-up, idempotente pero one-time; ya ejecutada en la instalación).
+#   - NO compila Python, NO crea el venv, NO despliega unidades systemd ni el binario nats-api,
+#     NO provisiona community scripts.
+#   Para un cambio que toque cualquiera de esos, corré install.yml (greenfield-correct).
+#
+# Precondición: sistema ya instalado (install.yml corrido al menos una vez) y el código
+# fuente Django presente en {{ observer_source_path }} (default {{ playbook_dir }}/api/observerrmm/).
+- name: Deploy solo-backend (código Django — sync + migrate + collectstatic + restart)
+  hosts: observer_api
+  become: true
+  vars:
+    # Role defaults NO se cargan en un playbook task/role-less explícito → se fijan aquí.
+    observer_source_path: "{{ playbook_dir }}/api/observerrmm/"
+    observer_django_requirements: "requirements.txt"
+    # observer_user/group/app_name/root vienen de group_vars/all.yml (auto-cargados por inventory).
+  tasks:
+    - name: Validar que el path del código fuente Django existe en el control node
+      ansible.builtin.stat:
+        path: "{{ observer_source_path }}"
+      delegate_to: localhost
+      become: false
+      register: observer_source_stat
+
+    - name: Fallar si el código fuente no existe
+      ansible.builtin.fail:
+        msg: >
+          No se encontró el código fuente Django en {{ observer_source_path }}.
+          Configure `observer_source_path` apuntando al directorio api/observerrmm/
+          del repo observer-rmm-dist en el control node.
+      when: not observer_source_stat.stat.exists
+
+    # rsync_opts idénticos a django_deploy.yml (O-IDEMPOTENCIA-01): excluye secretos
+    # (local_settings/nats-rmm.conf/.env) y logs de runtime; --omit-dir-times --no-perms
+    # para no disparar changed/restart espurios.
+    - name: Sincronizar código fuente Django al host
+      ansible.posix.synchronize:
+        src: "{{ observer_source_path }}"
+        dest: "{{ observer_root }}/api/{{ observer_app_name }}/"
+        delete: false
+        rsync_opts:
+          - "--exclude=__pycache__"
+          - "--exclude=*.pyc"
+          - "--exclude=.pytest_cache"
+          - "--exclude=local_settings.py"
+          - "--exclude=nats-rmm.conf"
+          - "--exclude=.env"
+          - "--exclude=*.log"
+          - "--omit-dir-times"
+          - "--no-perms"
+      become: true
+      become_user: "{{ observer_user }}"
+      notify:
+        - restart rmm
+        - restart daphne
+        - restart celery
+        - restart celerybeat
+
+    - name: Instalar dependencias Python (requirements.txt)
+      ansible.builtin.pip:
+        requirements: "{{ observer_root }}/api/{{ observer_app_name }}/{{ observer_django_requirements }}"
+        virtualenv: "{{ observer_root }}/api/env"
+        state: present
+      become: true
+      become_user: "{{ observer_user }}"
+      notify:
+        - restart rmm
+        - restart daphne
+        - restart celery
+
+    - name: Ejecutar Django migrate
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      register: django_migrate_result
+      changed_when: "'No migrations to apply' not in django_migrate_result.stdout"
+
+    - name: Ejecutar Django collectstatic
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py collectstatic --noinput"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      register: django_collectstatic_result
+      changed_when: "'0 static files copied' not in django_collectstatic_result.stdout"
+
+    # Regeneración determinista de configs derivados del código (idempotente,
+    # changed_when:false — los cambios reales de código ya disparan restart vía synchronize).
+    - name: Comandos de setup Django (schemas + app.ini)
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py {{ item }}"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      loop:
+        - generate_json_schemas
+        - create_uwsgi_conf
+      changed_when: false
+
+    # nats-api.conf: regenerar y reiniciar nats-api SOLO si el config cambió (checksum).
+    # Deriva de SECRET_KEY + creds PG (estables) → no-op en un deploy de código puro.
+    - name: Checksum de nats-api.conf antes de create_natsapi_conf
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-api.conf"
+      register: natsapi_conf_before
+
+    - name: Generar nats-api.conf (create_natsapi_conf)
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py create_natsapi_conf"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      changed_when: false
+
+    - name: Checksum de nats-api.conf después de create_natsapi_conf
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-api.conf"
+      register: natsapi_conf_after
+
+    - name: Reiniciar nats-api solo si nats-api.conf cambió
+      ansible.builtin.debug:
+        msg: "nats-api.conf cambió → se reiniciará nats-api"
+      changed_when: >-
+        natsapi_conf_before.stat.checksum | default('') !=
+        natsapi_conf_after.stat.checksum | default('')
+      notify:
+        - restart nats-api
+        - restart daphne
+
+    # nats-rmm.conf: regenerar (reload_nats) y reiniciar nats SOLO si cambió (checksum).
+    # Hot-reload no disruptivo interno; restart systemd solo si el conf cambió.
+    - name: Checksum de nats-rmm.conf antes de reload_nats
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+      register: nats_conf_before
+
+    - name: Ejecutar Django reload_nats (genera nats-rmm.conf con user observerrmm)
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py reload_nats"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      changed_when: false
+
+    - name: Checksum de nats-rmm.conf después de reload_nats
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/api/{{ observer_app_name }}/nats-rmm.conf"
+      register: nats_conf_after
+
+    - name: Reiniciar nats solo si nats-rmm.conf cambió
+      ansible.builtin.debug:
+        msg: "nats-rmm.conf cambió → se reiniciará nats"
+      changed_when: >-
+        nats_conf_before.stat.checksum | default('') !=
+        nats_conf_after.stat.checksum | default('')
+      notify:
+        - restart nats
+
+  # Handlers réplica de roles/observer_api/handlers/main.yml. Orden: nats (servidor)
+  # antes de nats-api (cliente) — los handlers corren en orden de definición.
+  handlers:
+    - name: restart rmm
+      ansible.builtin.systemd:
+        name: rmm
+        state: restarted
+    - name: restart daphne
+      ansible.builtin.systemd:
+        name: daphne
+        state: restarted
+    - name: restart celery
+      ansible.builtin.systemd:
+        name: celery
+        state: restarted
+    - name: restart celerybeat
+      ansible.builtin.systemd:
+        name: celerybeat
+        state: restarted
+    - name: restart nats
+      ansible.builtin.systemd:
+        name: nats
+        state: restarted
+    - name: restart nats-api
+      ansible.builtin.systemd:
+        name: nats-api
+        state: restarted
