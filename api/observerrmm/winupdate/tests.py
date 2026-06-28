@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from model_bakery import baker
 
+from observerrmm.constants import AgentPlat
 from observerrmm.test import ObserverTestCase
 
 from .models import WinUpdate
@@ -37,6 +38,26 @@ class TestWinUpdateViews(ObserverTestCase):
         nats_cmd.assert_called_once()
 
         self.check_not_authenticated("post", url)
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_scan_and_install_not_available_on_posix(self, nats_cmd):
+        # GAP-054: scan ya validaba is_posix; install debe validar igual.
+        # En un agente posix (linux/darwin) ambos endpoints degradan a 400 sin
+        # enviar comando NATS (installwinupdates no existe en el agente posix).
+        agent = baker.make_recipe("agents.agent", plat=AgentPlat.LINUX)
+        baker.make("winupdate.WinUpdatePolicy", agent=agent)
+
+        scan_url = f"{base_url}/{agent.agent_id}/scan/"
+        r = self.client.post(scan_url)
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.data, "Not available for linux")
+
+        install_url = f"{base_url}/{agent.agent_id}/install/"
+        r = self.client.post(install_url)
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.data, "Not available for linux")
+
+        nats_cmd.assert_not_called()
 
     def test_get_winupdates(self):
         agent = baker.make_recipe("agents.agent")

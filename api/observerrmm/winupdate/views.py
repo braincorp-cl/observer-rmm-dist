@@ -48,6 +48,9 @@ class InstallWindowsUpdates(APIView):
     # install approved windows updates on agent
     def post(self, request, agent_id):
         agent = get_object_or_404(Agent, agent_id=agent_id)
+        if agent.is_posix:
+            return notify_error(f"Not available for {agent.plat}")
+
         agent.delete_superseded_updates()
         agent.approve_updates()
         nats_data = {
