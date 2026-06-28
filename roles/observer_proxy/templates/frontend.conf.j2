@@ -20,9 +20,14 @@ server {
         add_header Pragma "no-cache";
     }
 
-    # Assets del agente (binarios de instalación, etc.)
+    # Assets del agente (binarios de instalación, etc.) — sirve el archivo si existe,
+    # pero cae a index.html para la ruta SPA /agents/:agent_id (history mode). Sin este
+    # fallback, un deep-link/ventana-nueva a /agents/<id> da 404 (GAP-053): el `alias`
+    # previo aliaseaba un dir inexistente y sombreaba la ruta de cliente. `root` (no `alias`)
+    # mapea /agents/foo -> /var/www/observer/dist/agents/foo igual que antes.
     location /agents/ {
-        alias /var/www/observer/dist/agents/;
+        root /var/www/observer/dist;
+        try_files $uri $uri/ /index.html;
         expires 1d;
         add_header Cache-Control "public";
     }
