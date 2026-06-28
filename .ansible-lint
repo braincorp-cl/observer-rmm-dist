@@ -8,3 +8,7 @@ warn_list:
   - name[casing]
 skip_list:
   - fqcn[action-core]
+  # El proyecto usa el prefijo de proyecto `observer_` (compartido entre roles,
+  # p.ej. observer_python_version definido en observer_python y consumido por
+  # observer_api), no el prefijo por-rol que asume esta sub-regla.
+  - var-naming[no-role-prefix]

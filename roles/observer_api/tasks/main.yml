@@ -132,11 +132,11 @@
     group: root
     mode: "0644"
   loop:
-    - { src: rmm.service.j2,        dest: rmm.service }
-    - { src: daphne.service.j2,     dest: daphne.service }
-    - { src: nats.service.j2,       dest: nats.service }
-    - { src: nats-api.service.j2,   dest: nats-api.service }
-    - { src: celery.service.j2,     dest: celery.service }
+    - { src: rmm.service.j2, dest: rmm.service }
+    - { src: daphne.service.j2, dest: daphne.service }
+    - { src: nats.service.j2, dest: nats.service }
+    - { src: nats-api.service.j2, dest: nats-api.service }
+    - { src: celery.service.j2, dest: celery.service }
     - { src: celerybeat.service.j2, dest: celerybeat.service }
   notify: systemd daemon-reload
 

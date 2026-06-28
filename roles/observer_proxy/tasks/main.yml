@@ -99,7 +99,7 @@
         chdir: /opt/acme.sh-src
         creates: /root/.acme.sh/acme.sh
 
-    - name: Emitir wildcard *.{{ observer_base_domain }} vía GoDaddy DNS (Let's Encrypt)
+    - name: Emitir wildcard vía GoDaddy DNS (Let's Encrypt) para *.{{ observer_base_domain }}
       ansible.builtin.command:
         cmd: >-
           /root/.acme.sh/acme.sh --issue --dns dns_gd --server letsencrypt

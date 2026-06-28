@@ -25,7 +25,7 @@
     group: "{{ observer_group }}"
     mode: "0755"
 
-- name: Instalar MeshCentral {{ observer_meshcentral_version }} via npm
+- name: Instalar MeshCentral vía npm, versión {{ observer_meshcentral_version }}
   community.general.npm:
     name: "meshcentral"
     version: "{{ observer_meshcentral_version }}"

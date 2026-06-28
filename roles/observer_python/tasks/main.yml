@@ -13,7 +13,7 @@
   changed_when: false
   failed_when: false
 
-- name: Compilar e instalar Python {{ observer_python_full_version }} desde fuente
+- name: Compilar e instalar Python desde fuente, versión {{ observer_python_full_version }}
   when: >-
     observer_python_installed.rc != 0
     or observer_python_full_version not in observer_python_installed.stdout
