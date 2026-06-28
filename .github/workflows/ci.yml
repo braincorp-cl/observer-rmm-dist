@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Write vault password file
+        run: printf '%s' "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
+
       - name: ansible-lint
         run: ansible-lint
 
@@ -49,6 +52,9 @@ jobs:
 
       - name: Install collections
         run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Write vault password file
+        run: printf '%s' "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
 
       - name: Run Molecule
         run: molecule test -s ${{ matrix.scenario }}
