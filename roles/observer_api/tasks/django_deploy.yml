@@ -40,6 +40,20 @@
       - "--exclude=local_settings.py"
       - "--exclude=nats-rmm.conf"
       - "--exclude=.env"
+      # O-IDEMPOTENCIA-01: excluir logs de runtime (private/log/*.log viven en el árbol
+      # fuente vía .gitkeep) — sin esto rsync empuja el log vacío del repo sobre el log
+      # vivo del server (lo trunca) y reporta changed cada corrida → bouncea la API.
+      - "--exclude=*.log"
+      # omitir mtime de directorios: evita que el cambio de mtime del dir raíz dispare
+      # changed (y los restart handlers) en un re-deploy sin cambios de código.
+      - "--omit-dir-times"
+      # no propagar permisos: "Crear directorios del API" (main.yml) crea los dirs con
+      # mode 0755, pero el checkout del control node los tiene como 775 → archive (-p)
+      # los revertía a 775 cada pasada (.d...p) → changed + restart espurio. Con --no-perms
+      # el modo lo gobierna la tarea explícita (0755), no los perms accidentales del dev.
+      # Seguro: el código Django no depende de bits de ejecución y los secretos (local_settings,
+      # .env, nats-rmm.conf) están excluidos del sync.
+      - "--no-perms"
   become: true
   become_user: "{{ observer_user }}"
   notify:
@@ -133,9 +147,14 @@
     - generate_json_schemas
     - create_uwsgi_conf
     - load_chocos
-  changed_when: true
-  notify:
-    - restart rmm
+  # O-IDEMPOTENCIA-01: generadores deterministas idempotentes (regeneran schemas JSON +
+  # app.ini desde el código, y load_chocos siembra data en BD). Antes changed_when:true +
+  # notify restart rmm => SIEMPRE reportaban changed y bounceaban rmm en cada deploy. Los
+  # cambios REALES de código que afectan su salida ya disparan restart rmm vía el
+  # `synchronize` de arriba (ahora idempotente y con detección de cambios correcta);
+  # load_chocos es data en BD que no requiere restart. Por eso changed_when:false (no ruido,
+  # no restart espurio). Mismo criterio que el refactor checksum de create_natsapi_conf abajo.
+  changed_when: false
 
 # F009 (RF-12 ext.): nats-api.conf idempotente. Contiene "key" (= SECRET_KEY, el token
 # NATS) + credenciales de PostgreSQL. Antes create_natsapi_conf iba en el loop de arriba
