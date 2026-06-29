@@ -20,7 +20,13 @@
     "allowedFramingOrigins": [
       "https://{{ observer_app_domain }}"
     ],
-    "ignoreAgentHashCheck": true,
+{#
+  ignoreAgentHashCheck en false (verificación de hash de cert del agente ACTIVA).
+  El 'true' es un workaround específico de issues en PRODUCCIÓN (legado) y NO debe
+  replicarse en ambientes nuevos. Requiere que MeshCentral cargue el cert externo vía
+  certUrl al arrancar; con tlsOffload + LE válido detrás de nginx, el hash calza.
+#}
+    "ignoreAgentHashCheck": false,
 {#
   autoBackup nativo de MeshCentral.
   ACTIVO (observer_mesh_autobackup_enabled=true) para validarlo en staging.

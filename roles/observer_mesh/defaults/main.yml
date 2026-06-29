@@ -1,7 +1,10 @@
 ---
 observer_mesh_port: 4430
 observer_nodejs_version: "20"
-observer_meshcentral_version: "1.1.32"
+# 1.1.44 = igualar producción. <1.1.44 NO respalda PostgreSQL en el autobackup nativo
+# (performBackup solo tenía ramas mongo/mysql; postgres caía a NeDB → zip sin pgdump).
+# 1.1.44 añade la rama DB_POSTGRESQL → genera meshcentral-pgdump-<fecha>.sql vía pg_dump.
+observer_meshcentral_version: "1.1.44"
 observer_mesh_db_name: meshcentral
 observer_mesh_db_user: meshcentral
 
