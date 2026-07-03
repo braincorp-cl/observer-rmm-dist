@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="width: 60vw">
       <q-bar>
-        {{ check ? `Edit Memory Check` : "Add Memory Check" }}
+        {{ check ? $t("memCheck.titleEdit") : $t("memCheck.titleAdd") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("checksCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submit(onDialogOK)">
@@ -16,10 +18,10 @@
               outlined
               type="number"
               v-model.number="state.warning_threshold"
-              label="Warning Threshold (%)"
+              :label="$t('checksCommon.warningThreshold')"
               :rules="[
-                (val) => val >= 0 || 'Minimum threshold is 0',
-                (val) => val < 100 || 'Maximum threshold is 99',
+                (val) => val >= 0 || $t('checksCommon.minThreshold'),
+                (val) => val < 100 || $t('checksCommon.maxThreshold'),
               ]"
             />
           </q-card-section>
@@ -29,10 +31,10 @@
               outlined
               type="number"
               v-model.number="state.error_threshold"
-              label="Error Threshold (%)"
+              :label="$t('checksCommon.errorThreshold')"
               :rules="[
-                (val) => val >= 0 || 'Minimum threshold is 0',
-                (val) => val < 100 || 'Maximum threshold is 99',
+                (val) => val >= 0 || $t('checksCommon.minThreshold'),
+                (val) => val < 100 || $t('checksCommon.maxThreshold'),
               ]"
             />
           </q-card-section>
@@ -43,7 +45,7 @@
               options-dense
               v-model="state.fails_b4_alert"
               :options="failOptions"
-              label="Number of consecutive failures before alert"
+              :label="$t('checksCommon.failsBeforeAlert')"
             />
           </q-card-section>
           <q-card-section>
@@ -52,18 +54,18 @@
               dense
               type="number"
               v-model.number="state.run_interval"
-              label="Run this check every (seconds)"
-              hint="Setting this value to anything other than 0 will override the 'Run checks every' setting on the agent"
+              :label="$t('checksCommon.runIntervalLabel')"
+              :hint="$t('checksCommon.runIntervalHint')"
             />
           </q-card-section>
         </div>
         <q-card-actions align="right">
-          <q-btn dense flat label="Cancel" v-close-popup />
+          <q-btn dense flat :label="$t('checksCommon.cancel')" v-close-popup />
           <q-btn
             :loading="loading"
             dense
             flat
-            label="Save"
+            :label="$t('checksCommon.save')"
             color="primary"
             type="submit"
           />

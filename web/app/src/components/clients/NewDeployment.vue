@@ -2,7 +2,7 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 40vw">
       <q-bar>
-        Add Deployment
+        {{ $t("newDeployment.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip class="bg-white text-primary" />
@@ -10,9 +10,9 @@
       </q-bar>
       <q-card-section>
         <observer-dropdown
-          :rules="[(val) => !!val || '*Required']"
+          :rules="[(val) => !!val || $t('newDeployment.required')]"
           outlined
-          label="Site"
+          :label="$t('newDeployment.site')"
           v-model="state.site"
           :options="siteOptions"
           mapOptions
@@ -20,51 +20,67 @@
         />
       </q-card-section>
       <q-card-section>
-        <div class="q-pl-sm">Agent Type</div>
+        <div class="q-pl-sm">{{ $t("newDeployment.agentType") }}</div>
         <q-radio
           v-model="state.agenttype"
           val="server"
-          label="Server"
+          :label="$t('newDeployment.server')"
           @update:model-value="power = false"
         />
         <q-radio
           v-model="state.agenttype"
           val="workstation"
-          label="Workstation"
+          :label="$t('newDeployment.workstation')"
         />
       </q-card-section>
       <q-card-section>
         <q-input
           type="datetime-local"
           dense
-          label="Expiry"
+          :label="$t('newDeployment.expiry')"
           stack-label
           filled
           v-model="state.expires"
         />
       </q-card-section>
       <q-card-section class="q-gutter-sm">
-        <q-checkbox v-model="state.rdp" dense label="Enable RDP" />
-        <q-checkbox v-model="state.ping" dense label="Enable Ping" />
+        <q-checkbox
+          v-model="state.rdp"
+          dense
+          :label="$t('newDeployment.enableRdp')"
+        />
+        <q-checkbox
+          v-model="state.ping"
+          dense
+          :label="$t('newDeployment.enablePing')"
+        />
         <q-checkbox
           v-model="state.power"
           dense
           v-show="state.agenttype === 'workstation'"
-          label="Disable sleep/hibernate"
+          :label="$t('newDeployment.disableSleep')"
         />
       </q-card-section>
       <q-card-section>
-        <div class="q-pl-sm">Arch</div>
-        <q-radio v-model="state.goarch" :val="GOARCH_AMD64" label="64 bit" />
-        <q-radio v-model="state.goarch" :val="GOARCH_i386" label="32 bit" />
+        <div class="q-pl-sm">{{ $t("newDeployment.arch") }}</div>
+        <q-radio
+          v-model="state.goarch"
+          :val="GOARCH_AMD64"
+          :label="$t('newDeployment.arch64')"
+        />
+        <q-radio
+          v-model="state.goarch"
+          :val="GOARCH_i386"
+          :label="$t('newDeployment.arch32')"
+        />
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn dense flat label="Cancel" v-close-popup />
+        <q-btn dense flat :label="$t('newDeployment.cancel')" v-close-popup />
         <q-btn
           :loading="loading"
           dense
           flat
-          label="Create"
+          :label="$t('newDeployment.create')"
           color="primary"
           @click="submit"
         />

@@ -2,7 +2,7 @@
   <q-card style="min-width: 400px">
     <q-card-section class="row">
       <q-card-actions align="left">
-        <div class="text-h6">Server Maintenance</div>
+        <div class="text-h6">{{ $t("serverMaintenance.title") }}</div>
       </q-card-actions>
       <q-space />
       <q-card-actions align="right">
@@ -13,10 +13,10 @@
       <q-form @submit.prevent="submit">
         <q-card-section>
           <q-select
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('serverMaintenance.required')]"
             outlined
             options-dense
-            label="Actions"
+            :label="$t('serverMaintenance.actionsLabel')"
             v-model="action"
             :options="actions"
             emit-value
@@ -26,24 +26,34 @@
         </q-card-section>
 
         <q-card-section v-if="action === 'prune_db'">
-          <q-checkbox v-model="prune_tables" val="audit_logs" label="Audit Log">
-            <q-tooltip>Removes agent check results</q-tooltip>
+          <q-checkbox
+            v-model="prune_tables"
+            val="audit_logs"
+            :label="$t('serverMaintenance.auditLog')"
+          >
+            <q-tooltip>{{ $t("serverMaintenance.auditLogTip") }}</q-tooltip>
           </q-checkbox>
           <q-checkbox
             v-model="prune_tables"
             val="pending_actions"
-            label="Pending Actions"
+            :label="$t('serverMaintenance.pendingActions')"
           >
-            <q-tooltip>Removes completed pending actions</q-tooltip>
+            <q-tooltip>{{
+              $t("serverMaintenance.pendingActionsTip")
+            }}</q-tooltip>
           </q-checkbox>
-          <q-checkbox v-model="prune_tables" val="alerts" label="Alerts">
-            <q-tooltip>Removes all alerts</q-tooltip>
+          <q-checkbox
+            v-model="prune_tables"
+            val="alerts"
+            :label="$t('serverMaintenance.alerts')"
+          >
+            <q-tooltip>{{ $t("serverMaintenance.alertsTip") }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
 
         <q-card-actions align="left">
           <q-btn
-            label="Submit"
+            :label="$t('serverMaintenance.submit')"
             color="primary"
             type="submit"
             class="full-width"
@@ -64,21 +74,25 @@ export default {
     return {
       action: null,
       prune_tables: [],
-      actions: [
+    };
+  },
+  computed: {
+    actions() {
+      return [
         {
-          label: "Reload Nats Configuration",
+          label: this.$t("serverMaintenance.actReloadNats"),
           value: "reload_nats",
         },
         {
-          label: "Remove Orphaned Tasks",
+          label: this.$t("serverMaintenance.actRemoveOrphaned"),
           value: "rm_orphaned_tasks",
         },
         {
-          label: "Prune DB Tables",
+          label: this.$t("serverMaintenance.actPruneDb"),
           value: "prune_db",
         },
-      ],
-    };
+      ];
+    },
   },
   methods: {
     clear() {

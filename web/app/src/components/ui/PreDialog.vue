@@ -9,7 +9,7 @@
           size="md"
           icon="content_copy"
           @click="copyOutput(message)"
-          ><q-tooltip>Copy to Clipboard</q-tooltip></q-btn
+          ><q-tooltip>{{ $t("preDialog.copyToClipboard") }}</q-tooltip></q-btn
         >
       </q-card-section>
 
@@ -18,7 +18,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn label="OK" @click="onOKClick" />
+        <q-btn :label="$t('preDialog.ok')" @click="onOKClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>

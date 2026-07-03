@@ -5,21 +5,23 @@
         {{ title }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("apiKeysForm.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submitForm">
         <q-card-section>
-          <span v-if="!APIKey">API Key will be generated on save</span>
+          <span v-if="!APIKey">{{ $t("apiKeysForm.generatedOnSave") }}</span>
         </q-card-section>
         <!-- name -->
         <q-card-section>
           <q-input
-            label="Name"
+            :label="$t('apiKeysForm.name')"
             outlined
             dense
             v-model="localKey.name"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('apiKeysForm.required')]"
           />
         </q-card-section>
 
@@ -28,7 +30,7 @@
           <observer-dropdown
             outlined
             v-model="localKey.user"
-            label="User"
+            :label="$t('apiKeysForm.user')"
             :options="userOptions"
             mapOptions
             filterable
@@ -37,7 +39,13 @@
 
         <!-- key -->
         <q-card-section v-if="APIKey">
-          <q-input readonly label="Key" outlined dense v-model="localKey.key" />
+          <q-input
+            readonly
+            :label="$t('apiKeysForm.key')"
+            outlined
+            dense
+            v-model="localKey.key"
+          />
         </q-card-section>
 
         <!-- expiration -->
@@ -45,7 +53,7 @@
           <q-input
             type="datetime-local"
             dense
-            label="Key Expiration (Not required)"
+            :label="$t('apiKeysForm.keyExpiration')"
             stack-label
             filled
             v-model="localKey.expiration"
@@ -53,10 +61,10 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat :label="$t('apiKeysForm.cancel')" v-close-popup />
           <q-btn
             flat
-            label="Submit"
+            :label="$t('apiKeysForm.submit')"
             color="primary"
             type="submit"
             :loading="loading"
@@ -70,6 +78,7 @@
 <script>
 // composition imports
 import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent } from "quasar";
 import { saveAPIKey, editAPIKey } from "@/api/accounts";
 import { useUserDropdown } from "@/composables/accounts";
@@ -90,6 +99,7 @@ export default {
   setup(props) {
     // setup quasar plugins
     const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
+    const { t } = useI18n();
 
     // setup dropdowns
     const { userOptions } = useUserDropdown(true);
@@ -106,7 +116,7 @@ export default {
     }
 
     const title = computed(() =>
-      props.APIKey ? "Edit API Key" : "Add API Key"
+      props.APIKey ? t("apiKeysForm.titleEdit") : t("apiKeysForm.titleAdd"),
     );
 
     async function submitForm() {

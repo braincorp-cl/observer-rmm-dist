@@ -2,257 +2,262 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="min-width: 75vw; max-heigth: 75vh" class="q-dialog-plugin">
       <q-bar>
-        {{ localRole ? "Editing Role" : "Adding Role" }}
+        {{
+          localRole ? $t("rolesForm.titleEditing") : $t("rolesForm.titleAdding")
+        }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
       <q-form ref="form" @submit="onSubmit">
         <q-card-section class="row">
           <q-input
-            label="Role Name"
+            :label="$t('rolesForm.roleName')"
             class="col-6"
             dense
             outlined
             v-model="localRole.name"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('rolesForm.required')]"
           />
         </q-card-section>
         <q-card-section class="scroll" style="height: 70vh">
           <!-- Permissions -->
-          <div class="text-subtitle2">Super User</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secSuperUser") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
-              <q-checkbox v-model="localRole.is_superuser" label="Super User" />
+              <q-checkbox
+                v-model="localRole.is_superuser"
+                :label="$t('rolesForm.superUser')"
+              />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Reporting</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secReporting") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_view_reports"
-                label="Reporting Viewer"
+                :label="$t('rolesForm.reportingViewer')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_reports"
-                label="Reporting Manager"
+                :label="$t('rolesForm.reportingManager')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Accounts</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secAccounts") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_accounts"
-                label="List User Accounts"
+                :label="$t('rolesForm.listUserAccounts')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_accounts"
-                label="Manage User Accounts"
+                :label="$t('rolesForm.manageUserAccounts')"
               />
               <q-checkbox
                 v-model="localRole.can_list_roles"
-                label="List Roles"
+                :label="$t('rolesForm.listRoles')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_roles"
-                label="Manage Roles"
+                :label="$t('rolesForm.manageRoles')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Agents</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secAgents") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_agents"
-                label="List Agents"
+                :label="$t('rolesForm.listAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_list_agent_history"
-                label="List Agent History"
+                :label="$t('rolesForm.listAgentHistory')"
               />
               <q-checkbox
                 v-model="localRole.can_use_mesh"
-                label="Use MeshCentral"
+                :label="$t('rolesForm.useMeshCentral')"
               />
               <q-checkbox
                 v-model="localRole.can_uninstall_agents"
-                label="Uninstall Agents"
+                :label="$t('rolesForm.uninstallAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_update_agents"
-                label="Update Agents"
+                :label="$t('rolesForm.updateAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_edit_agent"
-                label="Edit Agents"
+                :label="$t('rolesForm.editAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_procs"
-                label="Manage Processes"
+                :label="$t('rolesForm.manageProcesses')"
               />
               <q-checkbox
                 v-model="localRole.can_view_eventlogs"
-                label="View Event Logs"
+                :label="$t('rolesForm.viewEventLogs')"
               />
               <q-checkbox
                 v-model="localRole.can_send_cmd"
-                label="Send Command"
+                :label="$t('rolesForm.sendCommand')"
               />
               <q-checkbox
                 v-model="localRole.can_reboot_agents"
-                label="Shutdown / Reboot Agents"
+                :label="$t('rolesForm.rebootAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_send_wol"
-                label="Wake-Up (WoL) Agents"
+                :label="$t('rolesForm.wolAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_install_agents"
-                label="Install Agents"
+                :label="$t('rolesForm.installAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_run_scripts"
-                label="Run Script"
+                :label="$t('rolesForm.runScript')"
               />
               <q-checkbox
                 v-model="localRole.can_run_bulk"
-                label="Bulk Actions"
+                :label="$t('rolesForm.bulkActions')"
               />
               <q-checkbox
                 v-model="localRole.can_recover_agents"
-                label="Recover Agents"
+                :label="$t('rolesForm.recoverAgents')"
               />
               <q-checkbox
                 v-model="localRole.can_use_registry"
-                label="Use Registry"
+                :label="$t('rolesForm.useRegistry')"
               />
             </div>
           </q-card-section>
-          <div class="text-subtitle2">Core</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secCore") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_notes"
-                label="List Notes"
+                :label="$t('rolesForm.listNotes')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_notes"
-                label="Manage Notes"
+                :label="$t('rolesForm.manageNotes')"
               />
               <q-checkbox
                 v-model="localRole.can_view_core_settings"
-                label="View Global Settings"
+                :label="$t('rolesForm.viewGlobalSettings')"
               />
               <q-checkbox
                 v-model="localRole.can_edit_core_settings"
-                label="Edit Global Settings"
+                :label="$t('rolesForm.editGlobalSettings')"
               />
               <q-checkbox
                 v-model="localRole.can_view_global_keystore"
-                label="View Global Key Store"
+                :label="$t('rolesForm.viewGlobalKeyStore')"
               />
               <q-checkbox
                 v-model="localRole.can_edit_global_keystore"
-                label="Edit Global Key Store"
+                :label="$t('rolesForm.editGlobalKeyStore')"
               />
               <q-checkbox
                 v-model="localRole.can_do_server_maint"
-                label="Do Server Maintenance"
+                :label="$t('rolesForm.doServerMaintenance')"
               />
               <q-checkbox
                 v-model="localRole.can_code_sign"
-                label="Manage Code Signing"
+                :label="$t('rolesForm.manageCodeSigning')"
               />
               <q-checkbox
                 v-model="localRole.can_list_api_keys"
-                label="List API Keys"
+                :label="$t('rolesForm.listApiKeys')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_api_keys"
-                label="Manage API Keys"
+                :label="$t('rolesForm.manageApiKeys')"
               />
               <q-checkbox
                 v-model="localRole.can_run_urlactions"
-                label="Run URL Actions"
+                :label="$t('rolesForm.runUrlActions')"
               />
               <q-checkbox
                 v-model="localRole.can_view_customfields"
-                label="View Custom Fields"
+                :label="$t('rolesForm.viewCustomFields')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_customfields"
-                label="Edit Custom Fields"
+                :label="$t('rolesForm.editCustomFields')"
               />
               <q-checkbox
                 v-model="localRole.can_view_schedules"
-                label="List Schedules"
+                :label="$t('rolesForm.listSchedules')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_schedules"
-                label="Manage Schedules"
+                :label="$t('rolesForm.manageSchedules')"
               />
               <q-checkbox
                 v-if="!hosted"
                 v-model="localRole.can_use_webterm"
-                label="Use TRMM Server Web Terminal"
+                :label="$t('rolesForm.useServerWebTerminal')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Checks</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secChecks") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_checks"
-                label="List Checks"
+                :label="$t('rolesForm.listChecks')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_checks"
-                label="Manage Checks"
+                :label="$t('rolesForm.manageChecks')"
               />
               <q-checkbox
                 v-model="localRole.can_run_checks"
-                label="Run Checks"
+                :label="$t('rolesForm.runChecks')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Clients</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secClients") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_clients"
-                label="List Clients"
+                :label="$t('rolesForm.listClients')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_clients"
-                label="Manage Clients"
+                :label="$t('rolesForm.manageClients')"
               />
               <q-checkbox
                 v-model="localRole.can_list_sites"
-                label="List Sites"
+                :label="$t('rolesForm.listSites')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_sites"
-                label="Manage Sites"
+                :label="$t('rolesForm.manageSites')"
               />
               <q-checkbox
                 v-model="localRole.can_list_deployments"
-                label="List Deployments"
+                :label="$t('rolesForm.listDeployments')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_deployments"
-                label="Manage Deployments"
+                :label="$t('rolesForm.manageDeployments')"
               />
             </div>
           </q-card-section>
@@ -260,10 +265,10 @@
           <q-card-section class="row">
             <observer-dropdown
               class="col-6"
-              label="Allowed Clients"
+              :label="$t('rolesForm.allowedClients')"
               :options="clientOptions"
               v-model="localRole.can_view_clients"
-              hint="Empty means all clients are allowed"
+              :hint="$t('rolesForm.allowedClientsHint')"
               outlined
               mapOptions
               multiple
@@ -273,10 +278,10 @@
           <q-card-section class="row">
             <observer-dropdown
               class="col-6"
-              label="Allowed Sites"
+              :label="$t('rolesForm.allowedSites')"
               :options="siteOptions"
               v-model="localRole.can_view_sites"
-              hint="Empty means all sites are allowed"
+              :hint="$t('rolesForm.allowedSitesHint')"
               outlined
               mapOptions
               multiple
@@ -284,150 +289,152 @@
             />
           </q-card-section>
 
-          <div class="text-subtitle2">Automation Policies</div>
+          <div class="text-subtitle2">
+            {{ $t("rolesForm.secAutomationPolicies") }}
+          </div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_automation_policies"
-                label="List Automation Policies"
+                :label="$t('rolesForm.listAutomationPolicies')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_automation_policies"
-                label="Manage Automation Policies"
+                :label="$t('rolesForm.manageAutomationPolicies')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Tasks</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secTasks") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_autotasks"
-                label="List Tasks"
+                :label="$t('rolesForm.listTasks')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_autotasks"
-                label="Manage Tasks"
+                :label="$t('rolesForm.manageTasks')"
               />
               <q-checkbox
                 v-model="localRole.can_run_autotasks"
-                label="Run Tasks"
+                :label="$t('rolesForm.runTasks')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Logs</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secLogs") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_view_auditlogs"
-                label="View Audit Logs"
+                :label="$t('rolesForm.viewAuditLogs')"
               />
               <q-checkbox
                 v-model="localRole.can_view_debuglogs"
-                label="View Debug Logs"
+                :label="$t('rolesForm.viewDebugLogs')"
               />
               <q-checkbox
                 v-model="localRole.can_list_pendingactions"
-                label="List Pending Actions"
+                :label="$t('rolesForm.listPendingActions')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_pendingactions"
-                label="Manage Pending Actions"
+                :label="$t('rolesForm.managePendingActions')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Scripts</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secScripts") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_scripts"
-                label="List Scripts"
+                :label="$t('rolesForm.listScripts')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_scripts"
-                label="Manage Scripts"
+                :label="$t('rolesForm.manageScripts')"
               />
               <q-checkbox
                 v-if="!hosted"
                 v-model="localRole.can_run_server_scripts"
-                label="Run Scripts on TRMM Server"
+                :label="$t('rolesForm.runServerScripts')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Alerts</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secAlerts") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_alerts"
-                label="List Alerts"
+                :label="$t('rolesForm.listAlerts')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_alerts"
-                label="Manage Alerts"
+                :label="$t('rolesForm.manageAlerts')"
               />
               <q-checkbox
                 v-model="localRole.can_list_alerttemplates"
-                label="List Alert Templates"
+                :label="$t('rolesForm.listAlertTemplates')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_alerttemplates"
-                label="Manage Alert Templates"
+                :label="$t('rolesForm.manageAlertTemplates')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Windows Services</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secWinServices") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_manage_winsvcs"
-                label="Manage Windows Services"
+                :label="$t('rolesForm.manageWinServices')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Software</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secSoftware") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_list_software"
-                label="List Software"
+                :label="$t('rolesForm.listSoftware')"
               />
               <q-checkbox
                 v-model="localRole.can_manage_software"
-                label="Manage Software"
+                :label="$t('rolesForm.manageSoftware')"
               />
             </div>
           </q-card-section>
 
-          <div class="text-subtitle2">Windows Updates</div>
+          <div class="text-subtitle2">{{ $t("rolesForm.secWinUpdates") }}</div>
           <q-separator />
           <q-card-section class="row">
             <div class="q-gutter-sm">
               <q-checkbox
                 v-model="localRole.can_manage_winupdates"
-                label="Manage Windows Updates"
+                :label="$t('rolesForm.manageWinUpdates')"
               />
             </div>
           </q-card-section>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn dense flat label="Cancel" v-close-popup />
+          <q-btn dense flat :label="$t('rolesForm.cancel')" v-close-popup />
           <q-btn
             :loading="loading"
             dense
             flat
-            label="Save"
+            :label="$t('rolesForm.save')"
             color="primary"
             type="submit"
           />

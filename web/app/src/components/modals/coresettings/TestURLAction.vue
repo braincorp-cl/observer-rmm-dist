@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="width: 80vw">
       <q-bar>
-        Testing {{ urlAction.name }}
+        {{ $t("testUrlAction.title", { name: urlAction.name }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("testUrlAction.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -22,7 +24,7 @@
         <observer-dropdown
           v-model="agent"
           :options="agentOptions"
-          label="Agents"
+          :label="$t('testUrlAction.agents')"
           mapOptions
           filterable
           dense
@@ -34,7 +36,7 @@
         <observer-dropdown
           v-model="site"
           :options="siteOptions"
-          label="Sites"
+          :label="$t('testUrlAction.sites')"
           mapOptions
           filterable
           dense
@@ -46,7 +48,7 @@
         <observer-dropdown
           v-model="client"
           :options="clientOptions"
-          label="Client"
+          :label="$t('testUrlAction.client')"
           mapOptions
           filterable
           dense
@@ -56,29 +58,29 @@
 
       <q-card-section style="height: 60vh" class="scroll">
         <div>
-          URL:
+          {{ $t("testUrlAction.url") }}
           <code>{{ return_url }}</code>
         </div>
         <br />
         <div>
-          Body
+          {{ $t("testUrlAction.body") }}
           <q-separator />
           <code>{{ return_request }}</code>
         </div>
         <br />
         <div>
-          Response
+          {{ $t("testUrlAction.response") }}
           <q-separator />
           <code>{{ return_result }}</code>
         </div>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" v-close-popup />
+        <q-btn flat :label="$t('testUrlAction.close')" v-close-popup />
         <q-btn
           :loading="loading"
           flat
-          label="Run"
+          :label="$t('testUrlAction.run')"
           color="primary"
           @click="submit"
         />
@@ -90,6 +92,7 @@
 <script setup lang="ts">
 // composition imports
 import { ref, reactive, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent } from "quasar";
 import { useAgentDropdown } from "@/composables/agents";
 import { useSiteDropdown, useClientDropdown } from "@/composables/clients";
@@ -107,6 +110,7 @@ const props = defineProps<{ urlAction: URLAction }>();
 
 // setup quasar
 const { dialogRef, onDialogHide } = useDialogPluginComponent();
+const { t } = useI18n();
 
 // setup dropdowns
 const { agent, agentOptions } = useAgentDropdown({ onMount: true });
@@ -115,12 +119,12 @@ const { site, siteOptions } = useSiteDropdown(true);
 
 const runAgainst = ref<"agent" | "site" | "client" | "none">("none");
 
-const runAgainstOptions = [
-  { label: "Agent", value: "agent" },
-  { label: "Site", value: "site" },
-  { label: "Client", value: "client" },
-  { label: "None", value: "none" },
-];
+const runAgainstOptions = computed(() => [
+  { label: t("testUrlAction.optAgent"), value: "agent" },
+  { label: t("testUrlAction.optSite"), value: "site" },
+  { label: t("testUrlAction.optClient"), value: "client" },
+  { label: t("testUrlAction.optNone"), value: "none" },
+]);
 const loading = ref(false);
 
 const runAgainstID = computed(() => {

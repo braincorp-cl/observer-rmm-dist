@@ -108,6 +108,10 @@ module.exports = {
       // Ola 6 (completa, GAP-046): interiores de las 10 agents/*Tab.vue
       // (Summary/Checks/Tasks/Patches/Software/History/Notes/Assets/Debug/Audit),
       // labels de columnas via computed con t() y diálogos/notify via t().
+      // Ola 7: cluster admin cuentas/roles (accounts/ + modals/admin/):
+      // ResetPass / UserSessionsTable / PermissionsManager / RolesForm +
+      // UserForm / UserResetPasswordForm. (RolesForm: 2 refs legacy "TRMM
+      // Server" debrandeadas a "Observer" al migrar, regla cero-tactical.)
       files: [
         "src/views/LoginView.vue",
         "src/components/FileBar.vue",
@@ -134,6 +138,60 @@ module.exports = {
         "src/components/agents/WinUpdateTab.vue",
         "src/components/agents/AgentActionMenu.vue",
         "src/components/agents/ConfirmYesDialog.vue",
+        "src/components/accounts/ResetPass.vue",
+        "src/components/accounts/UserSessionsTable.vue",
+        "src/components/accounts/PermissionsManager.vue",
+        "src/components/accounts/RolesForm.vue",
+        "src/components/modals/admin/UserForm.vue",
+        "src/components/modals/admin/UserResetPasswordForm.vue",
+        // Ola 8a: widgets compartidos ui/ (2 sin texto entran limpios al gate).
+        "src/components/ui/ConfirmDialog.vue",
+        "src/components/ui/CustomField.vue",
+        "src/components/ui/DialogWrapper.vue",
+        "src/components/ui/ExportTableBtn.vue",
+        "src/components/ui/IntegrationsContextMenu.vue",
+        "src/components/ui/ObserverDropdown.vue",
+        "src/components/ui/PreDialog.vue",
+        "src/components/ui/WinUpdateDialog.vue",
+        // Ola 8b: diálogos de chequeo chicos (checksCommon compartido) + salida de scripts.
+        "src/components/checks/CpuLoadCheck.vue",
+        "src/components/checks/MemCheck.vue",
+        "src/components/checks/DiskSpaceCheck.vue",
+        "src/components/checks/PingCheck.vue",
+        "src/components/checks/EventLogCheckOutput.vue",
+        "src/components/checks/ScriptOutput.vue",
+        "src/components/scripts/ScriptOutputCopyClip.vue",
+        // Ola 8c: formularios chicos clients/.
+        "src/components/clients/ClientsForm.vue",
+        "src/components/clients/SitesForm.vue",
+        "src/components/clients/NewDeployment.vue",
+        "src/components/clients/DeleteClient.vue",
+        // Ola 8d: vistas remotas (WebVNC/WebTerminal/AgentView sin texto entran limpias).
+        "src/views/TakeControl.vue",
+        "src/views/RemoteBackground.vue",
+        "src/views/WebVNC.vue",
+        "src/views/WebTerminal.vue",
+        "src/views/AgentView.vue",
+        // Ola 8e: modales chicos de coresettings/.
+        "src/components/modals/coresettings/CustomFields.vue",
+        "src/components/modals/coresettings/CodeSign.vue",
+        "src/components/modals/coresettings/KeyStoreForm.vue",
+        "src/components/modals/coresettings/ResetPatchPolicy.vue",
+        "src/components/modals/coresettings/TestURLAction.vue",
+        // Ola 8f: chicos varios (App/ObserverTable limpios). AgentDownload DIFERIDO
+        // (bloques <code> con flags CLI requieren decisión de config del gate).
+        "src/App.vue",
+        "src/core/dashboard/ui/ObserverTable.vue",
+        "src/components/agents/WmiDetail.vue",
+        "src/components/agents/CommandStream.vue",
+        "src/components/core/APIKeysForm.vue",
+        "src/components/logs/AuditLogDetailModal.vue",
+        "src/components/modals/agents/RebootLater.vue",
+        "src/components/modals/agents/AgentRecovery.vue",
+        "src/components/modals/core/ServerMaintenance.vue",
+        "src/components/software/InstallSoftware.vue",
+        "src/components/software/UninstallSoftware.vue",
+        "src/components/scripts/TestScriptModal.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

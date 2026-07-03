@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="width: 40vw; max-width: 50vw">
       <q-bar>
-        Install Software
+        {{ $t("installSoftware.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("installSoftware.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
@@ -27,7 +29,13 @@
           row-key="name"
         >
           <template v-slot:top-left>
-            <q-input v-model="filter" outlined label="Search" dense clearable>
+            <q-input
+              v-model="filter"
+              outlined
+              :label="$t('installSoftware.search')"
+              dense
+              clearable
+            >
               <template v-slot:prepend>
                 <q-icon name="search" />
               </template>
@@ -58,22 +66,12 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent, useQuasar } from "quasar";
 import { fetchChocosSoftware, installAgentSoftware } from "@/api/software";
 import { notifySuccess } from "@/utils/notify";
 
-// static data
-const columns = [
-  { name: "install", align: "left", label: "Install", sortable: false },
-  {
-    name: "name",
-    align: "left",
-    label: "Name",
-    field: "name",
-    sortable: true,
-  },
-];
 export default {
   name: "InstallSoftware",
   emits: [...useDialogPluginComponent.emits],
@@ -84,6 +82,24 @@ export default {
     // quasar setup
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
     const $q = useQuasar();
+    const { t } = useI18n();
+
+    // static data
+    const columns = computed(() => [
+      {
+        name: "install",
+        align: "left",
+        label: t("installSoftware.colInstall"),
+        sortable: false,
+      },
+      {
+        name: "name",
+        align: "left",
+        label: t("installSoftware.colName"),
+        field: "name",
+        sortable: true,
+      },
+    ]);
 
     // install software logic
     const chocos = ref([]);
@@ -105,9 +121,9 @@ export default {
     function installSoftware(name) {
       const data = { name: name };
       $q.dialog({
-        title: `Install ${name}?`,
+        title: t("installSoftware.confirmInstall", { name }),
         persistent: true,
-        ok: { label: "Install" },
+        ok: { label: t("installSoftware.install") },
         cancel: true,
       }).onOk(async () => {
         $q.loading.show();

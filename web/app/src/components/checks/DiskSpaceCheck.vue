@@ -2,10 +2,14 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="width: 60vw">
       <q-bar>
-        {{ check ? `Edit Disk Check` : "Add Disk Check" }}
+        {{
+          check ? $t("diskSpaceCheck.titleEdit") : $t("diskSpaceCheck.titleAdd")
+        }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("checksCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -18,8 +22,8 @@
               outlined
               v-model="state.disk"
               :options="diskOptions"
-              label="Disk"
-              :rules="[(val) => !!val || '*Required']"
+              :label="$t('diskSpaceCheck.disk')"
+              :rules="[(val) => !!val || $t('checksCommon.required')]"
             />
           </q-card-section>
           <q-card-section>
@@ -28,10 +32,10 @@
               outlined
               type="number"
               v-model.number="state.warning_threshold"
-              label="Warning Threshold Remaining (%)"
+              :label="$t('diskSpaceCheck.warningThresholdRemaining')"
               :rules="[
-                (val) => val >= 0 || 'Minimum threshold is 0',
-                (val) => val < 100 || 'Maximum threshold is 99',
+                (val) => val >= 0 || $t('checksCommon.minThreshold'),
+                (val) => val < 100 || $t('checksCommon.maxThreshold'),
               ]"
             />
           </q-card-section>
@@ -41,10 +45,10 @@
               outlined
               type="number"
               v-model.number="state.error_threshold"
-              label="Error Threshold Remaining (%)"
+              :label="$t('diskSpaceCheck.errorThresholdRemaining')"
               :rules="[
-                (val) => val >= 0 || 'Minimum threshold is 0',
-                (val) => val < 100 || 'Maximum threshold is 99',
+                (val) => val >= 0 || $t('checksCommon.minThreshold'),
+                (val) => val < 100 || $t('checksCommon.maxThreshold'),
               ]"
             />
           </q-card-section>
@@ -55,7 +59,7 @@
               options-dense
               v-model="state.fails_b4_alert"
               :options="failOptions"
-              label="Number of consecutive failures before alert"
+              :label="$t('checksCommon.failsBeforeAlert')"
             />
           </q-card-section>
           <q-card-section>
@@ -64,18 +68,18 @@
               outlined
               type="number"
               v-model.number="state.run_interval"
-              label="Run this check every (seconds)"
-              hint="Setting this value to anything other than 0 will override the 'Run checks every' setting on the agent"
+              :label="$t('checksCommon.runIntervalLabel')"
+              :hint="$t('checksCommon.runIntervalHint')"
             />
           </q-card-section>
         </div>
         <q-card-actions align="right">
-          <q-btn dense flat label="Cancel" v-close-popup />
+          <q-btn dense flat :label="$t('checksCommon.cancel')" v-close-popup />
           <q-btn
             :loading="loading"
             dense
             flat
-            label="Save"
+            :label="$t('checksCommon.save')"
             color="primary"
             type="submit"
           />

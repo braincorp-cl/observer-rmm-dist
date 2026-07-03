@@ -3,7 +3,9 @@
     <div v-for="i in info" :key="i + uid()">
       <div v-for="j in i" :key="j + uid()">
         <div v-for="(v, k) in j" :key="v + uid()">
-          <span class="text-overline">{{ k }}:</span>
+          <span class="text-overline">{{
+            $t("wmiDetail.keyLabel", { k })
+          }}</span>
           <q-badge color="primary" class="q-ml-sm text-caption">{{
             v
           }}</q-badge>
@@ -16,7 +18,7 @@
             icon="content_copy"
             @click="copyValueToClip(v)"
           >
-            <q-tooltip>Copy to Clipboard</q-tooltip>
+            <q-tooltip>{{ $t("wmiDetail.copyToClipboard") }}</q-tooltip>
           </q-btn>
         </div>
       </div>
@@ -30,6 +32,7 @@ import { copyToClipboard } from "quasar";
 import { notifySuccess } from "@/utils/notify";
 // composition imports
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { uid } from "quasar";
 
@@ -39,11 +42,12 @@ export default {
   setup() {
     // setup vuex
     const store = useStore();
+    const { t } = useI18n();
     const tabHeight = computed(() => store.state.tabHeight);
 
     function copyValueToClip(val) {
       copyToClipboard(val).then(() => {
-        notifySuccess("Copied to clipboard");
+        notifySuccess(t("wmiDetail.copiedToClipboard"));
       });
     }
 

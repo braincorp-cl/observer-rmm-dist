@@ -10,29 +10,39 @@
       align="left"
       narrow-indicator
     >
-      <q-tab name="terminal" icon="fas fa-terminal" label="Terminal" />
+      <q-tab
+        name="terminal"
+        icon="fas fa-terminal"
+        :label="$t('remoteBackground.terminal')"
+      />
       <q-tab
         name="filebrowser"
         icon="far fa-folder-open"
-        label="File Browser"
+        :label="$t('remoteBackground.fileBrowser')"
       />
       <q-tab
         v-if="$route.query.agentPlatform === 'windows'"
         name="services"
         icon="fas fa-cogs"
-        label="Services"
+        :label="$t('remoteBackground.services')"
       />
-      <q-tab name="processes" icon="fas fa-chart-area" label="Processes" />
+      <q-tab
+        name="processes"
+        icon="fas fa-chart-area"
+        :label="$t('remoteBackground.processes')"
+      />
       <q-tab
         v-if="$route.query.agentPlatform === 'windows'"
         name="eventlog"
         icon="fas fa-clipboard-list"
-        label="Event Log"
+        :label="$t('remoteBackground.eventLog')"
       />
       <q-tab v-if="$route.query.agentPlatform === 'windows'" name="registry">
         <div class="flex items-center text-weight-bold text-subtitle2">
           <q-icon :name="`img:${registryIcon}`" size="25px" />
-          <span class="q-ml-sm font">Registry</span>
+          <span class="q-ml-sm font">{{
+            $t("remoteBackground.registry")
+          }}</span>
         </div>
       </q-tab>
     </q-tabs>
@@ -95,6 +105,7 @@
 <script>
 // composition imports
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { useQuasar, useMeta } from "quasar";
 import { fetchAgentMeshCentralURLs } from "@/api/agents";
@@ -118,6 +129,7 @@ export default {
   setup() {
     // setup quasar
     const $q = useQuasar();
+    const { t } = useI18n();
 
     // vue router
     const { params } = useRoute();
@@ -134,7 +146,11 @@ export default {
       terminal.value = data.terminal;
       file.value = data.file;
       useMeta({
-        title: `${data.hostname} - ${data.client} - ${data.site} | Remote Background`,
+        title: t("remoteBackground.metaTitle", {
+          hostname: data.hostname,
+          client: data.client,
+          site: data.site,
+        }),
       });
     }
 
