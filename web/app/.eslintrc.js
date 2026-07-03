@@ -210,6 +210,10 @@ module.exports = {
         "src/components/automation/PolicyOverview.vue",
         "src/components/automation/PolicyChecksTab.vue",
         "src/components/automation/PolicyAutomatedTasksTab.vue",
+        // Ola 9e: alerts — AlertsOverview + AlertsManager. Options API: columns/
+        // options movidas a computed con this.$t; diálogos/notify interpolados.
+        "src/components/modals/alerts/AlertsOverview.vue",
+        "src/components/AlertsManager.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

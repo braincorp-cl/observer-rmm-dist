@@ -10,20 +10,24 @@
       <q-bar>
         <q-btn @click="search" class="q-mr-sm" dense flat push icon="refresh" />
         <q-space />
-        Alerts Overview
+        {{ $t("alertsOverview.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("alertsOverview.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
-      <div class="text-h6 q-pl-sm q-pt-sm">Filter</div>
+      <div class="text-h6 q-pl-sm q-pt-sm">
+        {{ $t("alertsOverview.filter") }}
+      </div>
       <div class="row">
         <div class="q-pa-sm col-3">
           <q-select
             v-model="clientFilter"
             :options="clientsOptions"
-            label="Clients"
+            :label="$t('alertsOverview.clients')"
             multiple
             outlined
             dense
@@ -36,7 +40,7 @@
           <q-select
             v-model="severityFilter"
             :options="severityOptions"
-            label="Severity"
+            :label="$t('alertsOverview.severity')"
             multiple
             outlined
             dense
@@ -50,7 +54,7 @@
             outlined
             dense
             v-model="timeFilter"
-            label="Time"
+            :label="$t('alertsOverview.time')"
             emit-value
             map-options
             :options="timeOptions"
@@ -61,17 +65,21 @@
             outlined
             dense
             v-model="includeSnoozed"
-            label="Include snoozed"
+            :label="$t('alertsOverview.includeSnoozed')"
           />
           <q-checkbox
             outlined
             dense
             v-model="includeResolved"
-            label="Include resolved"
+            :label="$t('alertsOverview.includeResolved')"
           />
         </div>
         <div class="q-pa-sm col-2">
-          <q-btn color="primary" label="Search" @click="search" />
+          <q-btn
+            color="primary"
+            :label="$t('alertsOverview.search')"
+            @click="search"
+          />
         </div>
       </div>
 
@@ -98,11 +106,13 @@
           virtual-scroll
         >
           <template v-slot:top>
-            <div class="col-1 q-table__title">Alerts</div>
+            <div class="col-1 q-table__title">
+              {{ $t("alertsOverview.alertsTitle") }}
+            </div>
 
             <q-btn-dropdown
               flat
-              label="Bulk Actions"
+              :label="$t('alertsOverview.bulkActions')"
               :disable="selectedAlerts.length === 0 || includeResolved"
             >
               <q-list dense>
@@ -115,7 +125,9 @@
                     <q-icon name="alarm_off" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Snooze alerts</q-item-label>
+                    <q-item-label>{{
+                      $t("alertsOverview.snoozeAlerts")
+                    }}</q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-item
@@ -127,7 +139,9 @@
                     <q-icon name="flag" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Resolve alerts</q-item-label>
+                    <q-item-label>{{
+                      $t("alertsOverview.resolveAlerts")
+                    }}</q-item-label>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -143,7 +157,9 @@
                 class="cursor-pointer"
                 @click="showScriptOutput(props.row, true)"
               >
-                <q-tooltip>Show failure action run results</q-tooltip>
+                <q-tooltip>{{
+                  $t("alertsOverview.showFailureResults")
+                }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-if="props.row.resolved_action_run"
@@ -152,7 +168,9 @@
                 class="cursor-pointer"
                 @click="showScriptOutput(props.row, false)"
               >
-                <q-tooltip>Show resolved action run results</q-tooltip>
+                <q-tooltip>{{
+                  $t("alertsOverview.showResolvedResults")
+                }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-if="!props.row.resolved && !props.row.snoozed"
@@ -161,7 +179,7 @@
                 class="cursor-pointer"
                 @click="snoozeAlert(props.row)"
               >
-                <q-tooltip>Snooze alert</q-tooltip>
+                <q-tooltip>{{ $t("alertsOverview.snoozeAlert") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="!props.row.resolved && props.row.snoozed"
@@ -170,7 +188,7 @@
                 class="cursor-pointer"
                 @click="unsnoozeAlert(props.row)"
               >
-                <q-tooltip>Unsnooze alert</q-tooltip>
+                <q-tooltip>{{ $t("alertsOverview.unsnoozeAlert") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-if="!props.row.resolved"
@@ -179,7 +197,7 @@
                 class="cursor-pointer"
                 @click="resolveAlert(props.row)"
               >
-                <q-tooltip>Resolve alert</q-tooltip>
+                <q-tooltip>{{ $t("alertsOverview.resolveAlert") }}</q-tooltip>
               </q-icon>
             </q-td>
           </template>
@@ -226,90 +244,6 @@ export default {
       includeSnoozed: false,
       searched: false,
       clientsOptions: [],
-      severityOptions: [
-        { label: "Informational", value: "info" },
-        { label: "Warning", value: "warning" },
-        { label: "Error", value: "error" },
-      ],
-      timeOptions: [
-        { value: 1, label: "1 Day Ago" },
-        { value: 7, label: "1 Week Ago" },
-        { value: 30, label: "30 Days Ago" },
-        { value: 90, label: "3 Months Ago" },
-        { value: 180, label: "6 Months Ago" },
-        { value: 365, label: "1 Year Ago" },
-        { value: 0, label: "Everything" },
-      ],
-      columns: [
-        {
-          name: "alert_time",
-          label: "Time",
-          field: "alert_time",
-          align: "left",
-          sortable: true,
-          format: (a) => this.formatDate(a),
-        },
-        {
-          name: "client",
-          label: "Client",
-          field: "client",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "site",
-          label: "Site",
-          field: "site",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "hostname",
-          label: "Agent",
-          field: "hostname",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "alert_type",
-          label: "Type",
-          field: "alert_type",
-          align: "left",
-          sortable: true,
-          format: (a) => this.capitalize(a, true),
-        },
-        {
-          name: "severity",
-          label: "Severity",
-          field: "severity",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "message",
-          label: "Message",
-          field: "message",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "resolved_on",
-          label: "Resolved On",
-          field: "resolved_on",
-          align: "left",
-          sortable: true,
-          format: (a) => this.formatDate(a),
-        },
-        {
-          name: "snoozed_until",
-          label: "Snoozed Until",
-          field: "snoozed_until",
-          align: "left",
-          sortable: true,
-          format: (a) => this.formatDate(a),
-        },
-        { name: "actions", label: "Actions", align: "left" },
-      ],
       pagination: {
         rowsPerPage: 50,
         sortBy: "alert_time",
@@ -318,10 +252,104 @@ export default {
     };
   },
   computed: {
+    severityOptions() {
+      return [
+        { label: this.$t("alertsOverview.sevInfo"), value: "info" },
+        { label: this.$t("alertsOverview.sevWarning"), value: "warning" },
+        { label: this.$t("alertsOverview.sevError"), value: "error" },
+      ];
+    },
+    timeOptions() {
+      return [
+        { value: 1, label: this.$t("alertsOverview.time1Day") },
+        { value: 7, label: this.$t("alertsOverview.time1Week") },
+        { value: 30, label: this.$t("alertsOverview.time30Days") },
+        { value: 90, label: this.$t("alertsOverview.time3Months") },
+        { value: 180, label: this.$t("alertsOverview.time6Months") },
+        { value: 365, label: this.$t("alertsOverview.time1Year") },
+        { value: 0, label: this.$t("alertsOverview.timeEverything") },
+      ];
+    },
+    columns() {
+      return [
+        {
+          name: "alert_time",
+          label: this.$t("alertsOverview.colTime"),
+          field: "alert_time",
+          align: "left",
+          sortable: true,
+          format: (a) => this.formatDate(a),
+        },
+        {
+          name: "client",
+          label: this.$t("alertsOverview.colClient"),
+          field: "client",
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "site",
+          label: this.$t("alertsOverview.colSite"),
+          field: "site",
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "hostname",
+          label: this.$t("alertsOverview.colAgent"),
+          field: "hostname",
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "alert_type",
+          label: this.$t("alertsOverview.colType"),
+          field: "alert_type",
+          align: "left",
+          sortable: true,
+          format: (a) => this.capitalize(a, true),
+        },
+        {
+          name: "severity",
+          label: this.$t("alertsOverview.colSeverity"),
+          field: "severity",
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "message",
+          label: this.$t("alertsOverview.colMessage"),
+          field: "message",
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "resolved_on",
+          label: this.$t("alertsOverview.colResolvedOn"),
+          field: "resolved_on",
+          align: "left",
+          sortable: true,
+          format: (a) => this.formatDate(a),
+        },
+        {
+          name: "snoozed_until",
+          label: this.$t("alertsOverview.colSnoozedUntil"),
+          field: "snoozed_until",
+          align: "left",
+          sortable: true,
+          format: (a) => this.formatDate(a),
+        },
+        {
+          name: "actions",
+          label: this.$t("alertsOverview.colActions"),
+          align: "left",
+        },
+      ];
+    },
     noDataText() {
       return this.searched
-        ? "No data found. Try to refine you search"
-        : "Click search to find alerts";
+        ? this.$t("alertsOverview.noDataFound")
+        : this.$t("alertsOverview.clickSearch");
     },
     visibleColumns() {
       return this.columns.map((column) => {
@@ -373,8 +401,8 @@ export default {
     snoozeAlert(alert) {
       this.$q
         .dialog({
-          title: "Snooze Alert",
-          message: "How many days to snooze alert?",
+          title: this.$t("alertsOverview.snoozeTitle"),
+          message: this.$t("alertsOverview.snoozeMessage"),
           prompt: {
             model: "",
             type: "number",
@@ -396,7 +424,9 @@ export default {
             .then(() => {
               this.search();
               this.$q.loading.hide();
-              this.notifySuccess(`The alert has been snoozed for ${days} days`);
+              this.notifySuccess(
+                this.$t("alertsOverview.snoozedForDays", { days }),
+              );
             })
             .catch(() => {
               this.$q.loading.hide();
@@ -416,7 +446,7 @@ export default {
         .then(() => {
           this.search();
           this.$q.loading.hide();
-          this.notifySuccess("The alert has been unsnoozed");
+          this.notifySuccess(this.$t("alertsOverview.unsnoozed"));
         })
         .catch(() => {
           this.$q.loading.hide();
@@ -435,7 +465,7 @@ export default {
         .then(() => {
           this.search();
           this.$q.loading.hide();
-          this.notifySuccess("The alert has been resolved");
+          this.notifySuccess(this.$t("alertsOverview.resolved"));
         })
         .catch(() => {
           this.$q.loading.hide();
@@ -454,7 +484,7 @@ export default {
         .then(() => {
           this.search();
           this.$q.loading.hide();
-          this.notifySuccess("Alerts were resolved");
+          this.notifySuccess(this.$t("alertsOverview.bulkResolved"));
         })
         .catch(() => {
           this.$q.loading.hide();
@@ -463,8 +493,8 @@ export default {
     snoozeAlertBulk(alerts) {
       this.$q
         .dialog({
-          title: "Snooze Alert",
-          message: "How many days to snooze alert?",
+          title: this.$t("alertsOverview.snoozeTitle"),
+          message: this.$t("alertsOverview.snoozeMessage"),
           prompt: {
             model: "",
             type: "number",
@@ -486,7 +516,9 @@ export default {
             .then(() => {
               this.search();
               this.$q.loading.hide();
-              this.notifySuccess(`Alerts were snoozed for ${days} days`);
+              this.notifySuccess(
+                this.$t("alertsOverview.bulkSnoozedForDays", { days }),
+              );
             })
             .catch(() => {
               this.$q.loading.hide();
@@ -496,14 +528,19 @@ export default {
     showScriptOutput(alert, failure = false) {
       let results = {};
       if (failure) {
-        results.readable_desc = `${alert.alert_type} failure action results`;
+        results.readable_desc = this.$t("alertsOverview.failureActionResults", {
+          type: alert.alert_type,
+        });
         results.execution_time = alert.action_execution_time;
         results.retcode = alert.action_retcode;
         results.stdout = alert.action_stdout;
         results.errout = alert.action_errout;
         results.last_run = alert.action_run;
       } else {
-        results.readable_desc = `${alert.alert_type} resolved action results`;
+        results.readable_desc = this.$t(
+          "alertsOverview.resolvedActionResults",
+          { type: alert.alert_type },
+        );
         results.execution_time = alert.resolved_action_execution_time;
         results.retcode = alert.resolved_action_retcode;
         results.stdout = alert.resolved_action_stdout;
