@@ -768,7 +768,9 @@
     "maxThreshold": "El umbral máximo es 99",
     "failsBeforeAlert": "Número de fallos consecutivos antes de alertar",
     "runIntervalLabel": "Ejecutar este chequeo cada (segundos)",
-    "runIntervalHint": "Establecer este valor en algo distinto de 0 anulará la configuración 'Ejecutar chequeos cada' del agente"
+    "runIntervalHint": "Establecer este valor en algo distinto de 0 anulará la configuración 'Ejecutar chequeos cada' del agente",
+    "descriptiveName": "Nombre descriptivo",
+    "alertSeverity": "Severidad de la alerta"
   },
   "cpuLoadCheck": {
     "titleEdit": "Editar chequeo de CPU",
@@ -791,6 +793,38 @@
     "descriptiveName": "Nombre descriptivo",
     "hostnameOrIp": "Nombre de host o IP",
     "alertSeverity": "Severidad de la alerta"
+  },
+  "eventLogCheck": {
+    "titleEdit": "Editar chequeo de registro de eventos",
+    "titleAdd": "Agregar chequeo de registro de eventos",
+    "eventLogToQuery": "Registro de eventos a consultar",
+    "failWhen": "Fallar cuando",
+    "eventId": "ID de evento (use * para coincidir con todos los ID de evento)",
+    "invalidEventId": "ID de evento inválido",
+    "eventSource": "Fuente del evento",
+    "messageContains": "El mensaje contiene el texto",
+    "searchLastDays": "Cuántos días previos buscar (ingrese 0 para todo el registro)",
+    "min0": "Mínimo 0",
+    "max9999": "Máximo 9999",
+    "eventType": "Tipo de evento:",
+    "typeInfo": "Información",
+    "typeWarning": "Advertencia",
+    "typeError": "Error",
+    "typeAuditSuccess": "Auditoría exitosa",
+    "typeAuditFailure": "Auditoría fallida",
+    "numberOfEventsB4Alert": "Número de eventos encontrados antes de alertar"
+  },
+  "scriptCheck": {
+    "titleEdit": "Editar chequeo de script",
+    "titleAdd": "Agregar chequeo de script",
+    "needUploadScript": "Primero debes subir un script",
+    "settingsScriptManager": "Configuración -> Gestor de scripts",
+    "selectScript": "Seleccionar script",
+    "scriptArgs": "Argumentos del script (presione Enter después de escribir cada argumento)",
+    "infoReturnCodes": "Códigos de retorno informativos (presione Enter después de escribir cada código)",
+    "warningReturnCodes": "Códigos de retorno de advertencia (presione Enter después de escribir cada código)",
+    "successReturnCodes": "Códigos de retorno de éxito (presione Enter después de escribir cada código)",
+    "timeout": "Tiempo de espera del script (segundos)"
   },
   "eventLogCheckOutput": {
     "close": "Cerrar",

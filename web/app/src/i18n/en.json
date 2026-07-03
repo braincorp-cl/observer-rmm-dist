@@ -768,7 +768,9 @@
     "maxThreshold": "Maximum threshold is 99",
     "failsBeforeAlert": "Number of consecutive failures before alert",
     "runIntervalLabel": "Run this check every (seconds)",
-    "runIntervalHint": "Setting this value to anything other than 0 will override the 'Run checks every' setting on the agent"
+    "runIntervalHint": "Setting this value to anything other than 0 will override the 'Run checks every' setting on the agent",
+    "descriptiveName": "Descriptive Name",
+    "alertSeverity": "Alert Severity"
   },
   "cpuLoadCheck": {
     "titleEdit": "Edit CPU Check",
@@ -791,6 +793,38 @@
     "descriptiveName": "Descriptive Name",
     "hostnameOrIp": "Hostname or IP",
     "alertSeverity": "Alert Severity"
+  },
+  "eventLogCheck": {
+    "titleEdit": "Edit Event Log Check",
+    "titleAdd": "Add Event Log Check",
+    "eventLogToQuery": "Event log to query",
+    "failWhen": "Fail When",
+    "eventId": "Event ID (Use * to match every event ID)",
+    "invalidEventId": "Invalid Event ID",
+    "eventSource": "Event source",
+    "messageContains": "Message contains string",
+    "searchLastDays": "How many previous days to search (Enter 0 for the entire log)",
+    "min0": "Min 0",
+    "max9999": "Max 9999",
+    "eventType": "Event Type:",
+    "typeInfo": "Information",
+    "typeWarning": "Warning",
+    "typeError": "Error",
+    "typeAuditSuccess": "Success Audit",
+    "typeAuditFailure": "Failure Audit",
+    "numberOfEventsB4Alert": "Number of events found before alert"
+  },
+  "scriptCheck": {
+    "titleEdit": "Edit Script Check",
+    "titleAdd": "Add Script Check",
+    "needUploadScript": "You need to upload a script first",
+    "settingsScriptManager": "Settings -> Script Manager",
+    "selectScript": "Select script",
+    "scriptArgs": "Script Arguments (press Enter after typing each argument)",
+    "infoReturnCodes": "Informational return codes (press Enter after typing each code)",
+    "warningReturnCodes": "Warning return codes (press Enter after typing each code)",
+    "successReturnCodes": "Success return codes (press Enter after typing each code)",
+    "timeout": "Script Timeout (seconds)"
   },
   "eventLogCheckOutput": {
     "close": "Close",

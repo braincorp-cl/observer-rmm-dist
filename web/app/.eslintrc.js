@@ -192,6 +192,10 @@ module.exports = {
         "src/components/software/InstallSoftware.vue",
         "src/components/software/UninstallSoftware.vue",
         "src/components/scripts/TestScriptModal.vue",
+        // Ola 9a: chequeos MEDIANOS (formularios densos), reusan checksCommon.*
+        // (+ 2 claves nuevas descriptiveName/alertSeverity) + namespaces propios.
+        "src/components/checks/EventLogCheck.vue",
+        "src/components/checks/ScriptCheck.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
