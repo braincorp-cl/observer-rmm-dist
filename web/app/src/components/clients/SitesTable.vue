@@ -9,10 +9,12 @@
           flat
           push
           icon="refresh"
-        />Sites for {{ client.name }}
+        />{{ $t("sitesTable.titleFor", { name: client.name }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("sitesTable.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -24,7 +26,7 @@
         binary-state-sort
         virtual-scroll
         :rows-per-page-options="[0]"
-        no-data-label="No Sites"
+        :no-data-label="$t('sitesTable.noData')"
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
           'table-bgcolor-dark': $q.dark.isActive,
@@ -35,7 +37,7 @@
       >
         <template v-slot:top>
           <q-btn
-            label="New"
+            :label="$t('sitesTable.new')"
             dense
             flat
             push
@@ -69,7 +71,7 @@
                   <q-item-section side>
                     <q-icon name="edit" />
                   </q-item-section>
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{ $t("sitesTable.edit") }}</q-item-section>
                 </q-item>
                 <q-item
                   clickable
@@ -79,13 +81,13 @@
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{ $t("sitesTable.delete") }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
 
                 <q-item clickable v-close-popup>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{ $t("sitesTable.close") }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -104,7 +106,8 @@
 
 <script>
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchClient, removeSite } from "@/api/clients";
 import { notifySuccess } from "@/utils/notify";
@@ -112,17 +115,6 @@ import { notifySuccess } from "@/utils/notify";
 // ui imports
 import SitesForm from "@/components/clients/SitesForm.vue";
 import DeleteClient from "@/components/clients/DeleteClient.vue";
-
-// static data
-const columns = [
-  { name: "name", label: "Name", field: "name", align: "left" },
-  {
-    name: "agent_count",
-    label: "Total Agents",
-    field: "agent_count",
-    align: "left",
-  },
-];
 
 export default {
   name: "SitesTable",
@@ -133,7 +125,24 @@ export default {
   setup(props) {
     // setup quasar dialog
     const $q = useQuasar();
+    const { t } = useI18n();
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
+
+    // i18n-aware columns (computed for language reactivity)
+    const columns = computed(() => [
+      {
+        name: "name",
+        label: t("sitesTable.colName"),
+        field: "name",
+        align: "left",
+      },
+      {
+        name: "agent_count",
+        label: t("sitesTable.colTotalAgents"),
+        field: "agent_count",
+        align: "left",
+      },
+    ]);
 
     // sites table logic
     const sites = ref([]);
@@ -160,10 +169,10 @@ export default {
         // can delete the client since there are no agents
       } else {
         $q.dialog({
-          title: "Are you sure?",
-          message: `Delete site: ${site.name}.`,
+          title: t("sitesTable.confirmTitle"),
+          message: t("sitesTable.deleteMessage", { name: site.name }),
           cancel: true,
-          ok: { label: "Delete", color: "negative" },
+          ok: { label: t("sitesTable.delete"), color: "negative" },
         }).onOk(async () => {
           loading.value = true;
           try {
@@ -203,7 +212,7 @@ export default {
       sites,
       loading,
 
-      // non-reactive data
+      // i18n-aware columns
       columns,
 
       // methods

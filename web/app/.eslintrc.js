@@ -220,6 +220,12 @@ module.exports = {
         "src/components/logs/AuditManager.vue",
         "src/components/logs/DebugLog.vue",
         "src/components/logs/PendingActions.vue",
+        // Ola 10b: clients/ MEDIANOS (Composition API; columns a computed con
+        // useI18n t; interpolación {name}/{count}). Namespaces propios
+        // clientsManager/sitesTable/deploymentTable.
+        "src/components/clients/ClientsManager.vue",
+        "src/components/clients/SitesTable.vue",
+        "src/components/clients/DeploymentTable.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

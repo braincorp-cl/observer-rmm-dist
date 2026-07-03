@@ -9,10 +9,12 @@
           flat
           push
           icon="refresh"
-        />Clients Manager
+        />{{ $t("clientsManager.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("clientsManager.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -30,13 +32,13 @@
         binary-state-sort
         virtual-scroll
         :rows-per-page-options="[0]"
-        no-data-label="No Clients"
+        :no-data-label="$t('clientsManager.noData')"
         :loading="loading"
       >
         <!-- top slot -->
         <template v-slot:top>
           <q-btn
-            label="New"
+            :label="$t('clientsManager.new')"
             dense
             flat
             push
@@ -69,7 +71,9 @@
                   <q-item-section side>
                     <q-icon name="edit" />
                   </q-item-section>
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("clientsManager.edit")
+                  }}</q-item-section>
                 </q-item>
                 <q-item
                   clickable
@@ -79,7 +83,9 @@
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("clientsManager.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
@@ -88,13 +94,17 @@
                   <q-item-section side>
                     <q-icon name="add" />
                   </q-item-section>
-                  <q-item-section>Add Site</q-item-section>
+                  <q-item-section>{{
+                    $t("clientsManager.addSite")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
 
                 <q-item clickable v-close-popup>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("clientsManager.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -107,7 +117,11 @@
                 style="cursor: pointer; text-decoration: underline"
                 class="text-primary"
                 @click="showSitesTable(props.row)"
-                >Show Sites ({{ props.row.sites.length }})</span
+                >{{
+                  $t("clientsManager.showSites", {
+                    count: props.row.sites.length,
+                  })
+                }}</span
               >
             </q-td>
             <q-td>{{ props.row.agent_count }}</q-td>
@@ -120,7 +134,8 @@
 
 <script>
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchClients, removeClient } from "@/api/clients";
 import { notifySuccess } from "@/utils/notify";
@@ -131,25 +146,36 @@ import SitesForm from "@/components/clients/SitesForm.vue";
 import DeleteClient from "@/components/clients/DeleteClient.vue";
 import SitesTable from "@/components/clients/SitesTable.vue";
 
-// static data
-const columns = [
-  { name: "name", label: "Name", field: "name", align: "left" },
-  { name: "sites", label: "Sites", field: "sites", align: "left" },
-  {
-    name: "agent_count",
-    label: "Total Agents",
-    field: "agent_count",
-    align: "left",
-  },
-];
-
 export default {
   name: "ClientsManager",
   emits: [...useDialogPluginComponent.emits],
   setup() {
     // setup quasar dialog
     const $q = useQuasar();
+    const { t } = useI18n();
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
+
+    // i18n-aware columns (computed for language reactivity)
+    const columns = computed(() => [
+      {
+        name: "name",
+        label: t("clientsManager.colName"),
+        field: "name",
+        align: "left",
+      },
+      {
+        name: "sites",
+        label: t("clientsManager.colSites"),
+        field: "sites",
+        align: "left",
+      },
+      {
+        name: "agent_count",
+        label: t("clientsManager.colTotalAgents"),
+        field: "agent_count",
+        align: "left",
+      },
+    ]);
 
     // clients manager logic
     const clients = ref([]);
@@ -175,10 +201,10 @@ export default {
         // can delete the client since there are no agents
       } else {
         $q.dialog({
-          title: "Are you sure?",
-          message: `Delete client: ${client.name}.`,
+          title: t("clientsManager.confirmTitle"),
+          message: t("clientsManager.deleteMessage", { name: client.name }),
           cancel: true,
-          ok: { label: "Delete", color: "negative" },
+          ok: { label: t("clientsManager.delete"), color: "negative" },
         }).onOk(async () => {
           loading.value = true;
           try {
@@ -233,7 +259,7 @@ export default {
       clients,
       loading,
 
-      // non-reactive data
+      // i18n-aware columns
       columns,
 
       // methods

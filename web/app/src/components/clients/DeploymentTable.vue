@@ -10,7 +10,7 @@
           push
           icon="refresh"
         />
-        Manage Deployments
+        {{ $t("deploymentTable.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip class="bg-white text-primary" />
@@ -31,11 +31,17 @@
         :rows-per-page-options="[0]"
         row-key="id"
         :pagination="{ rowsPerPage: 0, sortBy: 'id', descending: true }"
-        no-data-label="No Deployments"
+        :no-data-label="$t('deploymentTable.noData')"
         :loading="loading"
       >
         <template v-slot:top>
-          <q-btn dense flat icon="add" label="New" @click="showAddDeployment" />
+          <q-btn
+            dense
+            flat
+            icon="add"
+            :label="$t('deploymentTable.new')"
+            @click="showAddDeployment"
+          />
         </template>
 
         <template v-slot:body="props">
@@ -50,11 +56,15 @@
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("deploymentTable.delete")
+                  }}</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("deploymentTable.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -69,7 +79,10 @@
               formatDate(props.row.created)
             }}</q-td>
             <q-td key="flags" :props="props"
-              ><q-badge color="grey-8" label="View Flags" />
+              ><q-badge
+                color="grey-8"
+                :label="$t('deploymentTable.viewFlags')"
+              />
               <q-tooltip style="font-size: 12px">{{
                 props.row.install_flags
               }}</q-tooltip>
@@ -81,7 +94,7 @@
                 size="sm"
                 color="primary"
                 icon="content_copy"
-                label="Copy"
+                :label="$t('deploymentTable.copy')"
                 @click="copyLink(props.row)"
               />
             </q-td>
@@ -96,6 +109,7 @@
 // composition imports
 import { ref, computed, onMounted } from "vue";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, copyToClipboard } from "quasar";
 import { fetchDeployments, removeDeployment } from "@/api/clients";
 import { notifySuccess } from "@/utils/notify";
@@ -104,54 +118,6 @@ import { getBaseUrl } from "@/boot/axios";
 // ui imports
 import NewDeployment from "@/components/clients/NewDeployment.vue";
 
-// static data
-const columns = [
-  {
-    name: "client",
-    label: "Client",
-    field: "client_name",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "site",
-    label: "Site",
-    field: "site_name",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "mon_type",
-    label: "Type",
-    field: "mon_type",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "goarch",
-    label: "Arch",
-    field: "goarch",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "expiry",
-    label: "Expiry",
-    field: "expiry",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "created",
-    label: "Created",
-    field: "created",
-    align: "left",
-    sortable: true,
-  },
-  { name: "flags", label: "Flags", field: "install_flags", align: "left" },
-  { name: "link", label: "Download Link", align: "left" },
-];
-
 export default {
   name: "DeploymentTable",
   emits: [...useDialogPluginComponent.emits],
@@ -159,10 +125,68 @@ export default {
     // quasar dialog setup
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
     const $q = useQuasar();
+    const { t } = useI18n();
 
     // setup vuex
     const store = useStore();
     const formatDate = computed(() => store.getters.formatDate);
+
+    // i18n-aware columns (computed for language reactivity)
+    const columns = computed(() => [
+      {
+        name: "client",
+        label: t("deploymentTable.colClient"),
+        field: "client_name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "site",
+        label: t("deploymentTable.colSite"),
+        field: "site_name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "mon_type",
+        label: t("deploymentTable.colType"),
+        field: "mon_type",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "goarch",
+        label: t("deploymentTable.colArch"),
+        field: "goarch",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "expiry",
+        label: t("deploymentTable.colExpiry"),
+        field: "expiry",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "created",
+        label: t("deploymentTable.colCreated"),
+        field: "created",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "flags",
+        label: t("deploymentTable.colFlags"),
+        field: "install_flags",
+        align: "left",
+      },
+      {
+        name: "link",
+        label: t("deploymentTable.colDownloadLink"),
+        align: "left",
+      },
+    ]);
 
     // deployment logic
     const deployments = ref([]);
@@ -176,9 +200,9 @@ export default {
 
     function deleteDeployment(deployment) {
       $q.dialog({
-        title: "Delete deployment?",
+        title: t("deploymentTable.deleteTitle"),
         cancel: true,
-        ok: { label: "Delete", color: "negative" },
+        ok: { label: t("deploymentTable.delete"), color: "negative" },
       }).onOk(async () => {
         loading.value = true;
         try {
@@ -195,7 +219,7 @@ export default {
     function copyLink(deployment) {
       const api = getBaseUrl();
       copyToClipboard(`${api}/clients/${deployment.uid}/deploy/`).then(() => {
-        notifySuccess("Link copied to clipboard", 1500);
+        notifySuccess(t("deploymentTable.linkCopied"), 1500);
       });
     }
 
@@ -212,7 +236,7 @@ export default {
       deployments,
       loading,
 
-      // non-reactive data
+      // i18n-aware columns
       columns,
 
       // mehtods

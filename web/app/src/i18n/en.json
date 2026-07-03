@@ -1424,5 +1424,51 @@
     "colSite": "Site",
     "deleteTitle": "Delete this pending action?",
     "delete": "Delete"
+  },
+  "clientsManager": {
+    "title": "Clients Manager",
+    "close": "Close",
+    "new": "New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "addSite": "Add Site",
+    "colName": "Name",
+    "colSites": "Sites",
+    "colTotalAgents": "Total Agents",
+    "showSites": "Show Sites ({count})",
+    "noData": "No Clients",
+    "confirmTitle": "Are you sure?",
+    "deleteMessage": "Delete client: {name}."
+  },
+  "sitesTable": {
+    "titleFor": "Sites for {name}",
+    "close": "Close",
+    "new": "New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "colName": "Name",
+    "colTotalAgents": "Total Agents",
+    "noData": "No Sites",
+    "confirmTitle": "Are you sure?",
+    "deleteMessage": "Delete site: {name}."
+  },
+  "deploymentTable": {
+    "title": "Manage Deployments",
+    "new": "New",
+    "delete": "Delete",
+    "close": "Close",
+    "noData": "No Deployments",
+    "colClient": "Client",
+    "colSite": "Site",
+    "colType": "Type",
+    "colArch": "Arch",
+    "colExpiry": "Expiry",
+    "colCreated": "Created",
+    "colFlags": "Flags",
+    "colDownloadLink": "Download Link",
+    "viewFlags": "View Flags",
+    "copy": "Copy",
+    "deleteTitle": "Delete deployment?",
+    "linkCopied": "Link copied to clipboard"
   }
 }

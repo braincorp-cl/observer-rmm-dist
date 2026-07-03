@@ -1424,5 +1424,51 @@
     "colSite": "Sitio",
     "deleteTitle": "¿Eliminar esta acción pendiente?",
     "delete": "Eliminar"
+  },
+  "clientsManager": {
+    "title": "Gestor de clientes",
+    "close": "Cerrar",
+    "new": "Nuevo",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "addSite": "Agregar sitio",
+    "colName": "Nombre",
+    "colSites": "Sitios",
+    "colTotalAgents": "Total de agentes",
+    "showSites": "Mostrar sitios ({count})",
+    "noData": "Sin clientes",
+    "confirmTitle": "¿Estás seguro?",
+    "deleteMessage": "Eliminar cliente: {name}."
+  },
+  "sitesTable": {
+    "titleFor": "Sitios de {name}",
+    "close": "Cerrar",
+    "new": "Nuevo",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "colName": "Nombre",
+    "colTotalAgents": "Total de agentes",
+    "noData": "Sin sitios",
+    "confirmTitle": "¿Estás seguro?",
+    "deleteMessage": "Eliminar sitio: {name}."
+  },
+  "deploymentTable": {
+    "title": "Gestionar despliegues",
+    "new": "Nuevo",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "noData": "Sin despliegues",
+    "colClient": "Cliente",
+    "colSite": "Sitio",
+    "colType": "Tipo",
+    "colArch": "Arquitectura",
+    "colExpiry": "Expiración",
+    "colCreated": "Creado",
+    "colFlags": "Parámetros",
+    "colDownloadLink": "Enlace de descarga",
+    "viewFlags": "Ver parámetros",
+    "copy": "Copiar",
+    "deleteTitle": "¿Eliminar despliegue?",
+    "linkCopied": "Enlace copiado al portapapeles"
   }
 }
