@@ -38,10 +38,10 @@ observer_mesh_db_maintenance_dir: /opt/observer/scripts
 # (lo zipeaba todo, incluido meshcentral-backups). Corregido: meshcentral.service.j2 ya no
 # pasa --dataPath, así que el dataPath default (meshcentral-data) deja el backupPath default
 # como hermano fuera del scope -> sin recursión, igual que producción.
-# ACTIVO temporalmente para validarlo en staging.
-# >>> RECORDATORIO (cierre del proyecto): poner en 'false'. observer_backup (GAP-038, cron
-#     diario) ya cubre DB mesh + meshcentral-data (certs/config) sin node_modules -> el nativo
-#     es redundante. <<<
-observer_mesh_autobackup_enabled: true
+# DESACTIVADO al CIERRE DEL PROYECTO (2026-07-03), tras validar el autobackup en staging
+# (zips diarios con meshcentral-pgdump-*.sql + meshcentral-data/, retención y horario OK).
+# observer_backup (GAP-038, cron diario) ya cubre DB mesh + meshcentral-data (certs/config)
+# sin node_modules -> el nativo es redundante.
+observer_mesh_autobackup_enabled: false
 observer_mesh_autobackup_keep_days: 7
 observer_mesh_autobackup_hour: 6

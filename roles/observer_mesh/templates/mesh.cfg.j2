@@ -29,10 +29,10 @@
     "ignoreAgentHashCheck": false,
 {#
   autoBackup nativo de MeshCentral.
-  ACTIVO (observer_mesh_autobackup_enabled=true) para validarlo en staging.
-  >>> RECORDATORIO: volver a 'false' al CIERRE DEL PROYECTO. observer_backup (GAP-038,
-      cron diario) ya respalda DB mesh (pg_dump) + meshcentral-data (certs/config) sin
-      node_modules; el nativo es redundante. <<<
+  DESACTIVADO (observer_mesh_autobackup_enabled=false) al CIERRE DEL PROYECTO 2026-07-03,
+  tras validar el autobackup en staging (zips diarios con pgdump + meshcentral-data, retención
+  y horario OK). observer_backup (GAP-038, cron diario) ya respalda DB mesh (pg_dump) +
+  meshcentral-data (certs/config) sin node_modules; el nativo es redundante.
   Anti-recursión: se omite backupPath a propósito -> usa el default "meshcentral-backups",
   que queda HERMANO de meshcentral-data (fuera del dataPath), igual que producción. Esto
   SOLO es seguro mientras el servicio NO pase --dataPath /meshcentral (ver
