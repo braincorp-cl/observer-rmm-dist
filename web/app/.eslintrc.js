@@ -226,6 +226,15 @@ module.exports = {
         "src/components/clients/ClientsManager.vue",
         "src/components/clients/SitesTable.vue",
         "src/components/clients/DeploymentTable.vue",
+        // Ola 11: modals/agents/ comandos al agente — SendCommand +
+        // WebsocketSendCommand (casi-clones, namespace COMPARTIDO
+        // sendCommandCommon) + RunScript (<script setup>: outputOptions a
+        // computed con t). Labels de radios/inputs a $t; reglas interpoladas
+        // (min/max timeout). Constantes JS (envVarsLabel/runAsUserToolTip) no
+        // se traducen.
+        "src/components/modals/agents/SendCommand.vue",
+        "src/components/modals/agents/WebsocketSendCommand.vue",
+        "src/components/modals/agents/RunScript.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

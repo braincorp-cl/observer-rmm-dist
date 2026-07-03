@@ -10,26 +10,32 @@
       :style="{ 'min-width': !ret ? '40vw' : '70vw' }"
     >
       <q-bar>
-        Send command on {{ agent.hostname }}
+        {{ $t("sendCommandCommon.title", { hostname: agent.hostname }) }}
         <q-space />
-        <q-chip v-if="!wsConnected" color="red" text-color="white" icon="error"
-          >Websocket diconnected!</q-chip
+        <q-chip
+          v-if="!wsConnected"
+          color="red"
+          text-color="white"
+          icon="error"
+          >{{ $t("websocketSendCommand.websocketDisconnected") }}</q-chip
         >
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("sendCommandCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit="submit">
         <q-card-section>
-          <p>Shell</p>
+          <p>{{ $t("sendCommandCommon.shell") }}</p>
           <div class="q-gutter-sm">
             <q-radio
               v-if="agent.plat !== 'windows'"
               dense
               v-model="state.shell"
               val="/bin/bash"
-              label="Bash"
+              :label="$t('sendCommandCommon.bash')"
               @update:model-value="state.custom_shell = null"
             />
             <q-radio
@@ -37,21 +43,21 @@
               dense
               v-model="state.shell"
               val="custom"
-              label="Custom"
+              :label="$t('sendCommandCommon.custom')"
             />
             <q-radio
               v-if="agent.plat === 'windows'"
               dense
               v-model="state.shell"
               val="cmd"
-              label="CMD"
+              :label="$t('sendCommandCommon.cmd')"
             />
             <q-radio
               v-if="agent.plat === 'windows'"
               dense
               v-model="state.shell"
               val="powershell"
-              label="Powershell"
+              :label="$t('sendCommandCommon.powershell')"
             />
           </div>
         </q-card-section>
@@ -59,10 +65,10 @@
           <q-input
             v-model="state.custom_shell"
             outlined
-            label="Custom shell"
+            :label="$t('sendCommandCommon.customShell')"
             stack-label
-            placeholder="/usr/bin/python3"
-            :rules="[(val) => !!val || '*Required']"
+            :placeholder="$t('sendCommandCommon.customShellPlaceholder')"
+            :rules="[(val) => !!val || $t('sendCommandCommon.required')]"
           />
         </q-card-section>
         <q-card-section>
@@ -72,12 +78,15 @@
             outlined
             type="number"
             style="max-width: 150px"
-            label="Timeout (seconds)"
+            :label="$t('sendCommandCommon.timeoutSeconds')"
             stack-label
             :rules="[
-              (val) => !!val || '*Required',
-              (val) => val >= 10 || 'Minimum is 10 seconds',
-              (val) => val <= 3600 || 'Maximum is 3600 seconds',
+              (val) => !!val || $t('sendCommandCommon.required'),
+              (val) =>
+                val >= 10 || $t('sendCommandCommon.minTimeout', { min: 10 }),
+              (val) =>
+                val <= 3600 ||
+                $t('sendCommandCommon.maxTimeout', { max: 3600 }),
             ]"
           />
         </q-card-section>
@@ -85,21 +94,27 @@
           <q-input
             v-model="state.cmd"
             outlined
-            label="Command"
+            :label="$t('sendCommandCommon.command')"
             stack-label
             :placeholder="cmdPlaceholder(state.shell)"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('sendCommandCommon.required')]"
           />
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat dense push label="Cancel" v-close-popup />
+          <q-btn
+            flat
+            dense
+            push
+            :label="$t('sendCommandCommon.cancel')"
+            v-close-popup
+          />
           <q-btn
             :loading="loading"
             :disable="!wsConnected"
             flat
             dense
             push
-            label="Send"
+            :label="$t('sendCommandCommon.send')"
             color="primary"
             type="submit"
           >
