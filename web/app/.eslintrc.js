@@ -196,6 +196,10 @@ module.exports = {
         // (+ 2 claves nuevas descriptiveName/alertSeverity) + namespaces propios.
         "src/components/checks/EventLogCheck.vue",
         "src/components/checks/ScriptCheck.vue",
+        // Ola 9b: automation/ MEDIANOS (Options API; columns movidas a computed
+        // con this.$t para reactividad de idioma) + namespaces propios.
+        "src/components/automation/AutomationManager.vue",
+        "src/components/automation/modals/PolicyStatus.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
