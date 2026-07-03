@@ -197,7 +197,8 @@
     "btnGenerateExe": "Generar y descargar exe",
     "btnDownloadPowershell": "Descargar script de powershell",
     "btnShowInstructions": "Mostrar instrucciones de instalación",
-    "btnDownloadBash": "Descargar script de instalación de linux"
+    "btnDownloadBash": "Descargar script de instalación de linux",
+    "btnDownloadMac": "Descargar script de instalación de macOS"
   },
   "editAgent": {
     "tabGeneral": "General",

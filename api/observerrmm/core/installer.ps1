@@ -58,8 +58,13 @@ If (Get-Service $serviceName -ErrorAction SilentlyContinue) {
         Try
         {  
             Invoke-WebRequest -Uri $downloadlink -OutFile $OutPath\$output
-            write-host ('Extracting...')
-            Start-Process -FilePath $OutPath\$output -ArgumentList $installArgs -Wait
+            write-host ('Installing...')
+            # full-A: el asset de release es el instalador Inno Setup. Flujo de dos pasos:
+            # 1) instalar en silencio (copia el binario a Program Files, registra el servicio
+            #    y crea la entrada de desinstalacion en "Agregar o quitar programas").
+            Start-Process -FilePath $OutPath\$output -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES') -Wait
+            # 2) enrolar desde el binario ya instalado.
+            Start-Process -FilePath 'C:\Program Files\ObserverAgent\observeragent.exe' -ArgumentList $installArgs -Wait
             exit 0
         }
         Catch

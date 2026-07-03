@@ -39,7 +39,7 @@
               val="windows"
               :label="$t('installAgent.osWindows')"
               @update:model-value="
-                installMethod = 'exe';
+                installMethod = 'powershell';
                 goarch = GOARCH_AMD64;
               "
             />
@@ -168,7 +168,7 @@
             <q-radio
               v-model="installMethod"
               val="manual"
-              v-show="false"
+              v-show="agentOS === 'windows'"
               :label="$t('installAgent.methodStandardExe')"
             />
             <q-radio
@@ -283,7 +283,7 @@ export default {
         plat: this.agentOS,
       };
 
-      if (this.installMethod === "manual" || this.installMethod === "mac") {
+      if (this.installMethod === "manual") {
         this.$axios.post("/agents/installer/", data).then((r) => {
           this.info = {
             expires: this.expires,
@@ -341,7 +341,8 @@ export default {
           });
       } else if (
         this.installMethod === "powershell" ||
-        this.installMethod === "bash"
+        this.installMethod === "bash" ||
+        this.installMethod === "mac"
       ) {
         this.$q.loading.show();
         let ext = this.installMethod === "powershell" ? "ps1" : "sh";
@@ -393,7 +394,7 @@ export default {
           text = this.$t("installAgent.btnDownloadBash");
           break;
         case "mac":
-          text = this.$t("installAgent.btnShowInstructions");
+          text = this.$t("installAgent.btnDownloadMac");
           break;
       }
 

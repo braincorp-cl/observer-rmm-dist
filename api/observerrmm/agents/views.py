@@ -725,6 +725,11 @@ def install_agent(request):
 
     elif request.data["installMethod"] == "manual":
         resp = {}
+        # El release es un instalador InnoSetup (setup.iss): se corre silencioso
+        # (/VERYSILENT) para copiar el binario a C:\Program Files\ObserverAgent,
+        # registrar el servicio y crear la entrada de desinstalación (unins*.exe +
+        # "Agregar o quitar programas"); luego se enrola corriendo el binario
+        # instalado con `-m install`. Flujo de 2 pasos (full-A / GAP-055).
         cmd = [
             inno,
             "/VERYSILENT",
