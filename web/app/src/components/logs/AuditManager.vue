@@ -2,15 +2,17 @@
   <q-card>
     <q-bar v-if="modal">
       <q-btn @click="search" class="q-mr-sm" dense flat push icon="refresh" />
-      <q-space />Audit Manager
+      <q-space />{{ $t("auditManager.title") }}
       <q-space />
       <q-btn dense flat icon="close" v-close-popup>
-        <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+        <q-tooltip class="bg-white text-primary">{{
+          $t("auditManager.close")
+        }}</q-tooltip>
       </q-btn>
     </q-bar>
     <q-table
       @request="onRequest"
-      :title="modal ? 'Audit Logs' : ''"
+      :title="modal ? $t('auditManager.tableTitle') : ''"
       :rows="auditLogs"
       :columns="columns"
       class="tabs-tbl-sticky"
@@ -54,7 +56,7 @@
           style="width: 200px"
           v-model="agentFilter"
           :options="agentOptions"
-          label="Agent"
+          :label="$t('auditManager.filterAgent')"
           clearable
           mapOptions
           multiple
@@ -67,7 +69,7 @@
           style="width: 200px"
           v-model="clientFilter"
           :options="clientOptions"
-          label="Clients"
+          :label="$t('auditManager.filterClients')"
           clearable
           multiple
           filled
@@ -79,7 +81,7 @@
           style="width: 200px"
           v-model="userFilter"
           :options="userOptions"
-          label="Users"
+          :label="$t('auditManager.filterUsers')"
           clearable
           filled
           multiple
@@ -89,7 +91,7 @@
           style="width: 200px"
           v-model="actionFilter"
           :options="actionOptions"
-          label="Action"
+          :label="$t('auditManager.filterAction')"
           clearable
           filled
           multiple
@@ -101,7 +103,7 @@
           v-if="!agent"
           v-model="objectFilter"
           :options="objectOptions"
-          label="Object"
+          :label="$t('auditManager.filterObject')"
           clearable
           filled
           multiple
@@ -112,11 +114,16 @@
           style="width: 200px"
           v-model="timeFilter"
           :options="timeOptions"
-          label="Time"
+          :label="$t('auditManager.filterTime')"
           filled
           mapOptions
         />
-        <q-btn v-if="!agent" color="primary" label="Search" @click="search" />
+        <q-btn
+          v-if="!agent"
+          color="primary"
+          :label="$t('auditManager.search')"
+          @click="search"
+        />
 
         <q-space />
         <export-table-btn :data="auditLogs" :columns="columns" />
@@ -155,6 +162,7 @@
 // composition imports
 import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
 import { useClientDropdown } from "@/composables/clients";
 import { useAgentDropdown } from "@/composables/agents";
 import { useUserDropdown } from "@/composables/accounts";
@@ -166,130 +174,6 @@ import { formatTableColumnText } from "@/utils/format";
 import AuditLogDetailModal from "@/components/logs/AuditLogDetailModal.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
-
-// static data
-const columns = [
-  {
-    name: "entry_time",
-    label: "Time",
-    field: "entry_time",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "username",
-    label: "Username",
-    field: "username",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "agent",
-    label: "Agent",
-    field: "agent",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "client",
-    label: "Client",
-    field: "site",
-    align: "left",
-    sortable: true,
-  },
-  { name: "site", label: "Site", field: "site", align: "left", sortable: true },
-  {
-    name: "action",
-    label: "Action",
-    field: "action",
-    align: "left",
-    sortable: true,
-    format: (val) => formatTableColumnText(val),
-  },
-  {
-    name: "object_type",
-    label: "Object",
-    field: "object_type",
-    align: "left",
-    sortable: true,
-    format: (val) => formatTableColumnText(val),
-  },
-  {
-    name: "message",
-    label: "Message",
-    field: "message",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "client_ip",
-    label: "Client IP",
-    field: "ip_address",
-    align: "left",
-    sortable: true,
-  },
-];
-
-const agentActionOptions = [
-  { value: "add", label: "Add Object" },
-  { value: "modify", label: "Modify Object" },
-  { value: "execute_command", label: "Execute Command" },
-  { value: "execute_script", label: "Execute Script" },
-  { value: "remote_session", label: "Remote Session" },
-  { value: "url_action", label: "URL Action" },
-];
-
-const actionOptions = [
-  { value: "agent_install", label: "Agent Installs" },
-  { value: "bulk_action", label: "Bulk Actions" },
-  { value: "delete", label: "Delete Object" },
-  { value: "failed_login", label: "Failed User login" },
-  { value: "login", label: "User Login" },
-  { value: "modify", label: "Modify Object" },
-  { value: "task_run", label: "Task Run Results" },
-];
-
-const objectOptions = [
-  { value: "agent", label: "Agent" },
-  { value: "automatedtask", label: "Automated Task" },
-  { value: "bulk", label: "Bulk Actions" },
-  { value: "coresettings", label: "Core Settings" },
-  { value: "check", label: "Check" },
-  { value: "client", label: "Client" },
-  { value: "policy", label: "Policy" },
-  { value: "site", label: "Site" },
-  { value: "script", label: "Script" },
-  { value: "user", label: "User" },
-  { value: "winupdatepolicy", label: "Patch Policy" },
-  { value: "alerttemplate", label: "Alert Template" },
-  { value: "role", label: "Role" },
-  { value: "urlaction", label: "URL Action" },
-  { value: "keystore", label: "Global Key Store" },
-  { value: "customfield", label: "Custom Field" },
-  { value: "schedule", label: "Schedule" },
-  { value: "reportschedule", label: "Report Schedule" },
-];
-
-const timeOptions = [
-  { value: 1, label: "1 Day Ago" },
-  { value: 7, label: "1 Week Ago" },
-  { value: 30, label: "30 Days Ago" },
-  { value: 90, label: "3 Months Ago" },
-  { value: 180, label: "6 Months Ago" },
-  { value: 365, label: "1 Year Ago" },
-  { value: 0, label: "Everything" },
-];
-
-const filterTypeOptions = [
-  {
-    label: "Clients",
-    value: "clients",
-  },
-  {
-    label: "Agents",
-    value: "agents",
-  },
-];
 
 export default {
   name: "AuditManager",
@@ -305,6 +189,7 @@ export default {
   setup(props) {
     // setup vuex
     const store = useStore();
+    const { t } = useI18n();
     const formatDate = computed(() => store.getters.formatDate);
     const dash_positive_color = computed(() => store.state.dash_positive_color);
     const dash_negative_color = computed(() => store.state.dash_negative_color);
@@ -314,6 +199,136 @@ export default {
     const { clientOptions, getClientOptions } = useClientDropdown();
     const { agentOptions, getAgentOptions } = useAgentDropdown();
     const { userOptions, getUserOptions } = useUserDropdown();
+
+    // i18n-aware columns/options (computed for language reactivity)
+    const columns = computed(() => [
+      {
+        name: "entry_time",
+        label: t("auditManager.colTime"),
+        field: "entry_time",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "username",
+        label: t("auditManager.colUsername"),
+        field: "username",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "agent",
+        label: t("auditManager.colAgent"),
+        field: "agent",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "client",
+        label: t("auditManager.colClient"),
+        field: "site",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "site",
+        label: t("auditManager.colSite"),
+        field: "site",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "action",
+        label: t("auditManager.colAction"),
+        field: "action",
+        align: "left",
+        sortable: true,
+        format: (val) => formatTableColumnText(val),
+      },
+      {
+        name: "object_type",
+        label: t("auditManager.colObject"),
+        field: "object_type",
+        align: "left",
+        sortable: true,
+        format: (val) => formatTableColumnText(val),
+      },
+      {
+        name: "message",
+        label: t("auditManager.colMessage"),
+        field: "message",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "client_ip",
+        label: t("auditManager.colClientIp"),
+        field: "ip_address",
+        align: "left",
+        sortable: true,
+      },
+    ]);
+
+    const agentActionOptions = computed(() => [
+      { value: "add", label: t("auditManager.actAdd") },
+      { value: "modify", label: t("auditManager.actModify") },
+      { value: "execute_command", label: t("auditManager.actExecuteCommand") },
+      { value: "execute_script", label: t("auditManager.actExecuteScript") },
+      { value: "remote_session", label: t("auditManager.actRemoteSession") },
+      { value: "url_action", label: t("auditManager.actUrlAction") },
+    ]);
+
+    const extraActionOptions = computed(() => [
+      { value: "agent_install", label: t("auditManager.actAgentInstall") },
+      { value: "bulk_action", label: t("auditManager.actBulkAction") },
+      { value: "delete", label: t("auditManager.actDelete") },
+      { value: "failed_login", label: t("auditManager.actFailedLogin") },
+      { value: "login", label: t("auditManager.actLogin") },
+      { value: "modify", label: t("auditManager.actModify") },
+      { value: "task_run", label: t("auditManager.actTaskRun") },
+    ]);
+
+    const actionOptions = computed(() =>
+      props.agent
+        ? [...agentActionOptions.value]
+        : [...agentActionOptions.value, ...extraActionOptions.value],
+    );
+
+    const objectOptions = computed(() => [
+      { value: "agent", label: t("auditManager.objAgent") },
+      { value: "automatedtask", label: t("auditManager.objAutomatedTask") },
+      { value: "bulk", label: t("auditManager.objBulk") },
+      { value: "coresettings", label: t("auditManager.objCoreSettings") },
+      { value: "check", label: t("auditManager.objCheck") },
+      { value: "client", label: t("auditManager.objClient") },
+      { value: "policy", label: t("auditManager.objPolicy") },
+      { value: "site", label: t("auditManager.objSite") },
+      { value: "script", label: t("auditManager.objScript") },
+      { value: "user", label: t("auditManager.objUser") },
+      { value: "winupdatepolicy", label: t("auditManager.objPatchPolicy") },
+      { value: "alerttemplate", label: t("auditManager.objAlertTemplate") },
+      { value: "role", label: t("auditManager.objRole") },
+      { value: "urlaction", label: t("auditManager.objUrlAction") },
+      { value: "keystore", label: t("auditManager.objKeyStore") },
+      { value: "customfield", label: t("auditManager.objCustomField") },
+      { value: "schedule", label: t("auditManager.objSchedule") },
+      { value: "reportschedule", label: t("auditManager.objReportSchedule") },
+    ]);
+
+    const timeOptions = computed(() => [
+      { value: 1, label: t("auditManager.time1Day") },
+      { value: 7, label: t("auditManager.time1Week") },
+      { value: 30, label: t("auditManager.time30Days") },
+      { value: 90, label: t("auditManager.time3Months") },
+      { value: 180, label: t("auditManager.time6Months") },
+      { value: 365, label: t("auditManager.time1Year") },
+      { value: 0, label: t("auditManager.timeEverything") },
+    ]);
+
+    const filterTypeOptions = computed(() => [
+      { label: t("auditManager.optClients"), value: "clients" },
+      { label: t("auditManager.optAgents"), value: "agents" },
+    ]);
 
     // setup main audit log functionality
     const auditLogs = ref([]);
@@ -447,13 +462,13 @@ export default {
       pagination,
       userOptions,
 
-      // non-reactive data
+      // dropdowns
       clientOptions,
       agentOptions,
+
+      // i18n-aware columns/options
       columns,
-      actionOptions: props.agent
-        ? [...agentActionOptions]
-        : [...agentActionOptions, ...actionOptions],
+      actionOptions,
       objectOptions,
       timeOptions,
       filterTypeOptions,
@@ -461,8 +476,8 @@ export default {
       //computed
       tableNoDataText: computed(() =>
         searched.value
-          ? "No data found. Try to refine you search"
-          : "Click search to find audit logs",
+          ? t("auditManager.noDataSearched")
+          : t("auditManager.noDataInitial"),
       ),
 
       // methods

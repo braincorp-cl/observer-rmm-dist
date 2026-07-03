@@ -8,10 +8,12 @@
         flat
         push
         icon="refresh"
-      />Debug Log
+      />{{ $t("debugLog.title") }}
       <q-space />
       <q-btn dense flat icon="close" v-close-popup>
-        <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
+        <q-tooltip content-class="bg-white text-primary">{{
+          $t("debugLog.close")
+        }}</q-tooltip>
       </q-btn>
     </q-bar>
     <q-table
@@ -25,7 +27,7 @@
       }"
       :rows="debugLog"
       :columns="columns"
-      :title="modal ? 'Debug Logs' : ''"
+      :title="modal ? $t('debugLog.tableTitle') : ''"
       :pagination="{ sortBy: 'entry_time', descending: true, rowsPerPage: 0 }"
       :loading="loading"
       :filter="filter"
@@ -49,7 +51,7 @@
           class="q-pr-sm"
           style="width: 250px"
           v-model="agentFilter"
-          label="Agents Filter"
+          :label="$t('debugLog.agentsFilter')"
           :options="agentOptions"
           mapOptions
           outlined
@@ -60,7 +62,7 @@
           class="q-pr-sm"
           style="width: 250px"
           v-model="logTypeFilter"
-          label="Log Type Filter"
+          :label="$t('debugLog.logTypeFilter')"
           :options="logTypeOptions"
           mapOptions
           outlined
@@ -70,31 +72,31 @@
           v-model="logLevelFilter"
           :color="dash_info_color"
           val="info"
-          label="Info"
+          :label="$t('debugLog.levelInfo')"
         />
         <q-radio
           v-model="logLevelFilter"
           :color="dash_negative_color"
           val="critical"
-          label="Critical"
+          :label="$t('debugLog.levelCritical')"
         />
         <q-radio
           v-model="logLevelFilter"
           :color="dash_negative_color"
           val="error"
-          label="Error"
+          :label="$t('debugLog.levelError')"
         />
         <q-radio
           v-model="logLevelFilter"
           :color="dash_warning_color"
           val="warning"
-          label="Warning"
+          :label="$t('debugLog.levelWarning')"
         />
         <q-space />
         <q-input
           v-model="filter"
           outlined
-          label="Search"
+          :label="$t('debugLog.search')"
           dense
           clearable
           class="q-pr-sm"
@@ -110,7 +112,7 @@
         <q-tr v-if="Array.isArray(debugLog) && debugLog.length === 1000">
           <q-td colspan="100%">
             <q-icon name="warning" :color="dash_warning_color" />
-            Results are limited to 1000 rows.
+            {{ $t("debugLog.limitWarning") }}
           </q-td>
         </q-tr>
       </template>
@@ -128,6 +130,7 @@
 // composition api
 import { ref, toRef, watch, computed, onMounted } from "vue";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
 import { useAgentDropdown } from "@/composables/agents";
 import { fetchDebugLog } from "@/api/logs";
 import { formatTableColumnText } from "@/utils/format";
@@ -135,54 +138,6 @@ import { formatTableColumnText } from "@/utils/format";
 // ui components
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
-
-// static data
-const logTypeOptions = [
-  { label: "Agent Update", value: "agent_update" },
-  { label: "Agent Issues", value: "agent_issues" },
-  { label: "Windows Updates", value: "windows_updates" },
-  { label: "System Issues", value: "system_issues" },
-  { label: "Scripting", value: "scripting" },
-];
-
-const columns = [
-  {
-    name: "entry_time",
-    label: "Time",
-    field: "entry_time",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "log_level",
-    label: "Log Level",
-    field: "log_level",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "agent",
-    label: "Agent",
-    field: "agent",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "log_type",
-    label: "Log Type",
-    field: "log_type",
-    align: "left",
-    sortable: true,
-    format: (val) => formatTableColumnText(val),
-  },
-  {
-    name: "message",
-    label: "Message",
-    field: "message",
-    align: "left",
-    sortable: true,
-  },
-];
 
 export default {
   name: "LogModal",
@@ -201,6 +156,7 @@ export default {
   setup(props) {
     // setup vuex
     const store = useStore();
+    const { t } = useI18n();
 
     const formatDate = computed(() => store.getters.formatDate);
     const dash_info_color = computed(() => store.state.dash_info_color);
@@ -210,6 +166,54 @@ export default {
 
     // setup dropdowns
     const { agentOptions, getAgentOptions } = useAgentDropdown();
+
+    // i18n-aware columns/options (computed for language reactivity)
+    const logTypeOptions = computed(() => [
+      { label: t("debugLog.typeAgentUpdate"), value: "agent_update" },
+      { label: t("debugLog.typeAgentIssues"), value: "agent_issues" },
+      { label: t("debugLog.typeWindowsUpdates"), value: "windows_updates" },
+      { label: t("debugLog.typeSystemIssues"), value: "system_issues" },
+      { label: t("debugLog.typeScripting"), value: "scripting" },
+    ]);
+
+    const columns = computed(() => [
+      {
+        name: "entry_time",
+        label: t("debugLog.colTime"),
+        field: "entry_time",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "log_level",
+        label: t("debugLog.colLogLevel"),
+        field: "log_level",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "agent",
+        label: t("debugLog.colAgent"),
+        field: "agent",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "log_type",
+        label: t("debugLog.colLogType"),
+        field: "log_type",
+        align: "left",
+        sortable: true,
+        format: (val) => formatTableColumnText(val),
+      },
+      {
+        name: "message",
+        label: t("debugLog.colMessage"),
+        field: "message",
+        align: "left",
+        sortable: true,
+      },
+    ]);
 
     // set main debug log functionality
     const debugLog = ref([]);
@@ -243,7 +247,7 @@ export default {
             agentFilter.value = props.agent;
             getDebugLog();
           }
-        }
+        },
       );
     }
 
@@ -270,7 +274,7 @@ export default {
       dash_warning_color,
       dash_negative_color,
 
-      // non-reactive data
+      // i18n-aware columns/options
       columns,
       logTypeOptions,
 

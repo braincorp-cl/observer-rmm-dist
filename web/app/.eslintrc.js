@@ -214,6 +214,12 @@ module.exports = {
         // options movidas a computed con this.$t; diálogos/notify interpolados.
         "src/components/modals/alerts/AlertsOverview.vue",
         "src/components/AlertsManager.vue",
+        // Ola 10a: logs/ MEDIANOS (Composition API; columns/options movidas a
+        // computed con useI18n t; interpolación {hostname}/{count}). Namespaces
+        // propios auditManager/debugLog/pendingActions.
+        "src/components/logs/AuditManager.vue",
+        "src/components/logs/DebugLog.vue",
+        "src/components/logs/PendingActions.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
