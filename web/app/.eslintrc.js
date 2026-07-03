@@ -235,6 +235,12 @@ module.exports = {
         "src/components/modals/agents/SendCommand.vue",
         "src/components/modals/agents/WebsocketSendCommand.vue",
         "src/components/modals/agents/RunScript.vue",
+        // Ola 12: agents/remotebg/ servicios — ServicesManager + ServiceDetail
+        // (namespace COMPARTIDO servicesCommon: start/stop/restart + opciones de
+        // arranque idénticas). Options API: columns/startupOptions a computed
+        // con t. Valores del backend (start_type/status) NO se traducen.
+        "src/components/agents/remotebg/ServicesManager.vue",
+        "src/components/agents/remotebg/ServiceDetail.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

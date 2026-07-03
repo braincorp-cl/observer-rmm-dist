@@ -1529,5 +1529,39 @@
     "returnCode": "Return Code:",
     "standardOutput": "Standard Output",
     "standardError": "Standard Error"
+  },
+  "servicesCommon": {
+    "start": "Start",
+    "stop": "Stop",
+    "restart": "Restart",
+    "close": "Close",
+    "startupAutodelay": "Automatic (Delayed Start)",
+    "startupAutomatic": "Automatic",
+    "startupManual": "Manual",
+    "startupDisabled": "Disabled"
+  },
+  "servicesManager": {
+    "onlyWindows": "Only supported for Windows agents at this time",
+    "search": "Search",
+    "serviceDetails": "Service Details",
+    "colDisplayName": "Display Name",
+    "colName": "Name",
+    "colStartup": "Startup",
+    "colPid": "PID",
+    "colStatus": "Status",
+    "colLogOnAs": "Log On As",
+    "startTypeDelayed": "{type} (Delayed)",
+    "localSystem": "LocalSystem"
+  },
+  "serviceDetail": {
+    "title": "Service Details - {name}",
+    "serviceName": "Service name:",
+    "displayName": "Display name:",
+    "description": "Description:",
+    "path": "Path:",
+    "startupType": "Startup type:",
+    "serviceStatus": "Service status:",
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }

@@ -1529,5 +1529,39 @@
     "returnCode": "Código de retorno:",
     "standardOutput": "Salida estándar",
     "standardError": "Error estándar"
+  },
+  "servicesCommon": {
+    "start": "Iniciar",
+    "stop": "Detener",
+    "restart": "Reiniciar",
+    "close": "Cerrar",
+    "startupAutodelay": "Automático (inicio retrasado)",
+    "startupAutomatic": "Automático",
+    "startupManual": "Manual",
+    "startupDisabled": "Deshabilitado"
+  },
+  "servicesManager": {
+    "onlyWindows": "Solo compatible con agentes Windows por ahora",
+    "search": "Buscar",
+    "serviceDetails": "Detalles del servicio",
+    "colDisplayName": "Nombre para mostrar",
+    "colName": "Nombre",
+    "colStartup": "Inicio",
+    "colPid": "PID",
+    "colStatus": "Estado",
+    "colLogOnAs": "Iniciar sesión como",
+    "startTypeDelayed": "{type} (retrasado)",
+    "localSystem": "LocalSystem"
+  },
+  "serviceDetail": {
+    "title": "Detalles del servicio - {name}",
+    "serviceName": "Nombre del servicio:",
+    "displayName": "Nombre para mostrar:",
+    "description": "Descripción:",
+    "path": "Ruta:",
+    "startupType": "Tipo de inicio:",
+    "serviceStatus": "Estado del servicio:",
+    "cancel": "Cancelar",
+    "save": "Guardar"
   }
 }
