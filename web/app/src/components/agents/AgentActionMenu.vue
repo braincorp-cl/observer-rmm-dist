@@ -5,14 +5,16 @@
       <q-item-section side>
         <q-icon size="xs" name="fas fa-edit" />
       </q-item-section>
-      <q-item-section>Edit {{ agent.hostname }}</q-item-section>
+      <q-item-section>{{
+        $t("agentActions.edit", { hostname: agent.hostname })
+      }}</q-item-section>
     </q-item>
     <!-- agent pending actions -->
     <q-item clickable v-close-popup @click="showPendingActionsModal(agent)">
       <q-item-section side>
         <q-icon size="xs" name="far fa-clock" />
       </q-item-section>
-      <q-item-section>Pending Agent Actions</q-item-section>
+      <q-item-section>{{ $t("agentActions.pendingActions") }}</q-item-section>
     </q-item>
     <!-- take control -->
     <q-item
@@ -25,7 +27,7 @@
         <q-icon size="xs" name="fas fa-desktop" />
       </q-item-section>
 
-      <q-item-section>Take Control</q-item-section>
+      <q-item-section>{{ $t("agentActions.takeControl") }}</q-item-section>
     </q-item>
 
     <!-- vnc -->
@@ -39,14 +41,14 @@
         <q-icon size="xs" name="screen_share" />
       </q-item-section>
 
-      <q-item-section>VNC</q-item-section>
+      <q-item-section>{{ $t("agentActions.vnc") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-ripple :disable="urlActions.length === 0">
       <q-item-section side>
         <q-icon size="xs" name="open_in_new" />
       </q-item-section>
-      <q-item-section>Run URL Action</q-item-section>
+      <q-item-section>{{ $t("agentActions.runUrlAction") }}</q-item-section>
       <q-item-section side>
         <q-icon name="keyboard_arrow_right" />
       </q-item-section>
@@ -72,21 +74,23 @@
       <q-item-section side>
         <q-icon size="xs" name="fas fa-terminal" />
       </q-item-section>
-      <q-item-section>Send Command</q-item-section>
+      <q-item-section>{{ $t("agentActions.sendCommand") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-ripple v-close-popup @click="showRunScript(agent)">
       <q-item-section side>
         <q-icon size="xs" name="fas fa-terminal" />
       </q-item-section>
-      <q-item-section>Run Script</q-item-section>
+      <q-item-section>{{ $t("agentActions.runScript") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-ripple :disable="favoriteScripts.length === 0">
       <q-item-section side>
         <q-icon size="xs" name="star" />
       </q-item-section>
-      <q-item-section>Run Favorited Script</q-item-section>
+      <q-item-section>{{
+        $t("agentActions.runFavoritedScript")
+      }}</q-item-section>
       <q-item-section side>
         <q-icon name="keyboard_arrow_right" />
       </q-item-section>
@@ -114,7 +118,7 @@
       <q-item-section side>
         <q-icon size="xs" name="terminal" />
       </q-item-section>
-      <q-item-section>Remote Background</q-item-section>
+      <q-item-section>{{ $t("agentActions.remoteBackground") }}</q-item-section>
     </q-item>
 
     <!-- maintenance mode -->
@@ -125,8 +129,8 @@
       <q-item-section>
         {{
           agent.maintenance_mode
-            ? "Disable Maintenance Mode"
-            : "Enable Maintenance Mode"
+            ? $t("agentActions.disableMaintenance")
+            : $t("agentActions.enableMaintenance")
         }}
       </q-item-section>
     </q-item>
@@ -136,7 +140,7 @@
       <q-item-section side>
         <q-icon size="xs" name="system_update" />
       </q-item-section>
-      <q-item-section>Patch Management</q-item-section>
+      <q-item-section>{{ $t("agentActions.patchManagement") }}</q-item-section>
       <q-item-section side>
         <q-icon name="keyboard_arrow_right" />
       </q-item-section>
@@ -144,10 +148,14 @@
       <q-menu auto-close anchor="top right" self="top left">
         <q-list dense style="min-width: 100px">
           <q-item clickable v-ripple @click="runPatchStatusScan(agent)">
-            <q-item-section>Run Patch Status Scan</q-item-section>
+            <q-item-section>{{
+              $t("agentActions.runPatchStatusScan")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-ripple @click="installPatches(agent)">
-            <q-item-section>Install Patches Now</q-item-section>
+            <q-item-section>{{
+              $t("agentActions.installPatchesNow")
+            }}</q-item-section>
           </q-item>
         </q-list>
       </q-menu>
@@ -157,21 +165,21 @@
       <q-item-section side>
         <q-icon size="xs" name="fas fa-check-double" />
       </q-item-section>
-      <q-item-section>Run Checks</q-item-section>
+      <q-item-section>{{ $t("agentActions.runChecks") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-close-popup @click="wakeUp(agent)">
       <q-item-section side>
         <q-icon size="xs" name="offline_bolt" />
       </q-item-section>
-      <q-item-section>Wake-Up (WoL)</q-item-section>
+      <q-item-section>{{ $t("agentActions.wakeUp") }}</q-item-section>
     </q-item>
 
     <q-item clickable>
       <q-item-section side>
         <q-icon size="xs" name="power_settings_new" />
       </q-item-section>
-      <q-item-section>Reboot</q-item-section>
+      <q-item-section>{{ $t("agentActions.reboot") }}</q-item-section>
       <q-item-section side>
         <q-icon name="keyboard_arrow_right" />
       </q-item-section>
@@ -180,11 +188,13 @@
         <q-list dense style="min-width: 100px">
           <!-- reboot now -->
           <q-item clickable v-ripple @click="rebootNow(agent)">
-            <q-item-section>Now</q-item-section>
+            <q-item-section>{{ $t("agentActions.rebootNow") }}</q-item-section>
           </q-item>
           <!-- reboot later -->
           <q-item clickable v-ripple @click="showRebootLaterModal(agent)">
-            <q-item-section>Later</q-item-section>
+            <q-item-section>{{
+              $t("agentActions.rebootLater")
+            }}</q-item-section>
           </q-item>
         </q-list>
       </q-menu>
@@ -194,14 +204,14 @@
       <q-item-section side>
         <q-icon size="xs" name="power" />
       </q-item-section>
-      <q-item-section>Shutdown</q-item-section>
+      <q-item-section>{{ $t("agentActions.shutdown") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-close-popup @click="showPolicyAdd(agent)">
       <q-item-section side>
         <q-icon size="xs" name="policy" />
       </q-item-section>
-      <q-item-section>Assign Automation Policy</q-item-section>
+      <q-item-section>{{ $t("agentActions.assignPolicy") }}</q-item-section>
     </q-item>
 
     <q-item
@@ -215,7 +225,7 @@
       <q-item-section side>
         <q-icon size="xs" name="analytics" />
       </q-item-section>
-      <q-item-section>Reporting</q-item-section>
+      <q-item-section>{{ $t("agentActions.reporting") }}</q-item-section>
       <q-item-section side>
         <q-icon name="keyboard_arrow_right" />
       </q-item-section>
@@ -226,19 +236,19 @@
       <q-item-section side>
         <q-icon size="xs" name="fas fa-first-aid" />
       </q-item-section>
-      <q-item-section>Agent Recovery</q-item-section>
+      <q-item-section>{{ $t("agentActions.agentRecovery") }}</q-item-section>
     </q-item>
 
     <q-item clickable v-close-popup @click="pingAgent(agent)">
       <q-item-section side>
         <q-icon size="xs" name="delete" />
       </q-item-section>
-      <q-item-section>Remove Agent</q-item-section>
+      <q-item-section>{{ $t("agentActions.removeAgent") }}</q-item-section>
     </q-item>
 
     <q-separator />
     <q-item clickable v-close-popup>
-      <q-item-section>Close</q-item-section>
+      <q-item-section>{{ $t("agentActions.close") }}</q-item-section>
     </q-item>
   </q-list>
 </template>
@@ -248,6 +258,7 @@
 import { ref, inject, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 import { fetchURLActions, runURLAction } from "@/api/core";
 import {
   editAgent,
@@ -290,6 +301,9 @@ export default {
 
     // setup vuex
     const store = useStore();
+
+    // setup i18n
+    const { t } = useI18n();
 
     const refreshDashboard = inject("refreshDashboard");
 
@@ -374,9 +388,13 @@ export default {
       try {
         await editAgent(agent.agent_id, data);
         notifySuccess(
-          `Maintenance mode was ${
-            agent.maintenance_mode ? "disabled" : "enabled"
-          } on ${agent.hostname}`,
+          agent.maintenance_mode
+            ? t("agentActions.maintenanceDisabled", {
+                hostname: agent.hostname,
+              })
+            : t("agentActions.maintenanceEnabled", {
+                hostname: agent.hostname,
+              }),
         );
         store.commit("setRefreshSummaryTab", true);
         refreshDashboard();
@@ -388,7 +406,9 @@ export default {
     async function runPatchStatusScan(agent) {
       try {
         await runAgentUpdateScan(agent.agent_id);
-        notifySuccess(`Scan will be run shortly on ${agent.hostname}`);
+        notifySuccess(
+          t("agentActions.scanShortly", { hostname: agent.hostname }),
+        );
       } catch (e) {
         console.error(e);
       }
@@ -432,14 +452,14 @@ export default {
 
     function launchWebVNC(agent_id) {
       $q.dialog({
-        title: "VNC Server Port",
-        message: "Enter the VNC server port:",
+        title: t("agentActions.vncPortTitle"),
+        message: t("agentActions.vncPortMessage"),
         prompt: {
           model: "5900",
           type: "text",
         },
         cancel: true,
-        ok: { label: "Launch", color: "primary" },
+        ok: { label: t("agentActions.launch"), color: "primary" },
         persistent: true,
       }).onOk((port) => {
         runWebVNC(agent_id, port);
@@ -448,15 +468,19 @@ export default {
 
     function rebootNow(agent) {
       $q.dialog({
-        title: "Are you sure?",
-        message: `Reboot ${agent.hostname} now`,
+        title: t("agentActions.rebootConfirmTitle"),
+        message: t("agentActions.rebootConfirmMessage", {
+          hostname: agent.hostname,
+        }),
         cancel: true,
         persistent: true,
       }).onOk(async () => {
         $q.loading.show();
         try {
           await agentRebootNow(agent.agent_id);
-          notifySuccess(`${agent.hostname} will now be restarted`);
+          notifySuccess(
+            t("agentActions.rebootSuccess", { hostname: agent.hostname }),
+          );
           $q.loading.hide();
         } catch (e) {
           $q.loading.hide();
@@ -470,16 +494,18 @@ export default {
         component: ConfirmYesDialog,
         componentProps: {
           hostname: agent.hostname,
-          actionVerb: "shutdown",
-          title: "Confirm Shutdown",
-          okLabel: "Shutdown",
+          actionVerb: t("agentActions.verbShutdown"),
+          title: t("agentActions.confirmShutdownTitle"),
+          okLabel: t("agentActions.shutdown"),
           okColor: "negative",
         },
       }).onOk(async () => {
         $q.loading.show();
         try {
           await agentShutdown(agent.agent_id);
-          notifySuccess(`${agent.hostname} will now be shutdown`);
+          notifySuccess(
+            t("agentActions.shutdownSuccess", { hostname: agent.hostname }),
+          );
           $q.loading.hide();
         } catch (e) {
           $q.loading.hide();
@@ -514,12 +540,12 @@ export default {
         $q.loading.hide();
         if (data.status === "offline") {
           $q.dialog({
-            title: "Agent offline",
-            message: `${agent.hostname} cannot be contacted.
-                  Would you like to continue with the uninstall?
-                  If so, the agent will need to be manually uninstalled from the computer.`,
-            cancel: { label: "No", color: "negative" },
-            ok: { label: "Yes", color: "positive" },
+            title: t("agentActions.agentOfflineTitle"),
+            message: t("agentActions.agentOfflineMessage", {
+              hostname: agent.hostname,
+            }),
+            cancel: { label: t("agentActions.no"), color: "negative" },
+            ok: { label: t("agentActions.yes"), color: "positive" },
             persistent: true,
           })
             .onOk(() => deleteAgent(agent))
@@ -529,7 +555,7 @@ export default {
         } else if (data.status === "online") {
           deleteAgent(agent);
         } else {
-          notifyError("Something went wrong");
+          notifyError(t("agentActions.somethingWrong"));
         }
       } catch (e) {
         $q.loading.hide();
@@ -542,9 +568,9 @@ export default {
         component: ConfirmYesDialog,
         componentProps: {
           hostname: agent.hostname,
-          actionVerb: "deletion",
-          title: "Confirm Deletion",
-          okLabel: "Uninstall",
+          actionVerb: t("agentActions.verbDeletion"),
+          title: t("agentActions.confirmDeletionTitle"),
+          okLabel: t("agentActions.uninstall"),
           okColor: "negative",
         },
       }).onOk(async () => {
