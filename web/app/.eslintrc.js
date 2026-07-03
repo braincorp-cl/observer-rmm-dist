@@ -200,6 +200,10 @@ module.exports = {
         // con this.$t para reactividad de idioma) + namespaces propios.
         "src/components/automation/AutomationManager.vue",
         "src/components/automation/modals/PolicyStatus.vue",
+        // Ola 9c: WinSvcCheck (cierra checks/ medianos, reusa checksCommon.*) +
+        // UserPreferences (Options API; options movidas a computed con this.$t).
+        "src/components/checks/WinSvcCheck.vue",
+        "src/components/modals/coresettings/UserPreferences.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
