@@ -13,7 +13,7 @@
       <q-btn-dropdown
         v-if="!!selectedPolicy"
         icon="add"
-        label="New"
+        :label="$t('policyChecksTab.new')"
         no-caps
         dense
         flat
@@ -23,43 +23,57 @@
             <q-item-section side>
               <q-icon size="xs" name="far fa-hdd" />
             </q-item-section>
-            <q-item-section>Disk Space Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.diskSpaceCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('ping')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section>Ping Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.pingCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('cpuload')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-microchip" />
             </q-item-section>
-            <q-item-section>CPU Load Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.cpuLoadCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('memory')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-memory" />
             </q-item-section>
-            <q-item-section>Memory Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.memoryCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('winsvc')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-cogs" />
             </q-item-section>
-            <q-item-section>Windows Service Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.windowsServiceCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('script')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-terminal" />
             </q-item-section>
-            <q-item-section>Script Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.scriptCheck")
+            }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup @click="showCheckModal('eventlog')">
             <q-item-section side>
               <q-icon size="xs" name="fas fa-clipboard-list" />
             </q-item-section>
-            <q-item-section>Event Log Check</q-item-section>
+            <q-item-section>{{
+              $t("policyChecksTab.eventLogCheck")
+            }}</q-item-section>
           </q-item>
         </q-list>
       </q-btn-dropdown>
@@ -83,31 +97,31 @@
         <!-- No data Slot -->
         <template v-slot:no-data>
           <div class="full-width row flex-center q-gutter-sm">
-            <span v-if="!selectedPolicy"
-              >Click on a policy to see the checks</span
-            >
-            <span v-else>There are no checks added to this policy</span>
+            <span v-if="!selectedPolicy">{{
+              $t("policyChecksTab.clickPolicy")
+            }}</span>
+            <span v-else>{{ $t("policyChecksTab.noChecks") }}</span>
           </div>
         </template>
         <!-- header slots -->
         <template v-slot:header-cell-smsalert="props">
           <q-th auto-width :props="props">
             <q-icon name="phone_android" size="1.5em">
-              <q-tooltip>SMS Alert</q-tooltip>
+              <q-tooltip>{{ $t("policyTabsCommon.smsAlert") }}</q-tooltip>
             </q-icon>
           </q-th>
         </template>
         <template v-slot:header-cell-emailalert="props">
           <q-th auto-width :props="props">
             <q-icon name="email" size="1.5em">
-              <q-tooltip>Email Alert</q-tooltip>
+              <q-tooltip>{{ $t("policyTabsCommon.emailAlert") }}</q-tooltip>
             </q-icon>
           </q-th>
         </template>
         <template v-slot:header-cell-dashboardalert="props">
           <q-th auto-width :props="props">
             <q-icon name="notifications" size="1.5em">
-              <q-tooltip>Dashboard Alert</q-tooltip>
+              <q-tooltip>{{ $t("policyTabsCommon.dashboardAlert") }}</q-tooltip>
             </q-icon>
           </q-th>
         </template>
@@ -132,13 +146,17 @@
                   <q-item-section side>
                     <q-icon name="edit" />
                   </q-item-section>
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("policyTabsCommon.edit")
+                  }}</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="deleteCheck(props.row)">
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("policyTabsCommon.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
@@ -151,13 +169,17 @@
                   <q-item-section side>
                     <q-icon name="sync" />
                   </q-item-section>
-                  <q-item-section>Policy Status</q-item-section>
+                  <q-item-section>{{
+                    $t("policyTabsCommon.policyStatus")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
 
                 <q-item clickable v-close-popup>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("policyTabsCommon.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -187,7 +209,7 @@
                   checkAlert(
                     props.row.id,
                     'Dashboard',
-                    props.row.dashboard_alert
+                    props.row.dashboard_alert,
                   )
                 "
                 v-model="props.row.dashboard_alert"
@@ -199,12 +221,14 @@
                 style="cursor: pointer; text-decoration: underline"
                 @click="showPolicyStatus(props.row)"
                 class="status-cell text-primary"
-                >See Status</span
+                >{{ $t("policyTabsCommon.seeStatus") }}</span
               >
             </q-td>
-            <q-td v-if="props.row.assignedtasks.length > 1"
-              >{{ props.row.assignedtasks.length }} Tasks</q-td
-            >
+            <q-td v-if="props.row.assignedtasks.length > 1">{{
+              $t("policyChecksTab.tasksCount", {
+                count: props.row.assignedtasks.length,
+              })
+            }}</q-td>
             <q-td v-else-if="props.row.assignedtasks.length === 1">{{
               props.row.assignedtasks[0].name
             }}</q-td>
@@ -237,26 +261,6 @@ export default {
   data() {
     return {
       checks: [],
-      columns: [
-        { name: "smsalert", field: "text_alert", align: "left" },
-        { name: "emailalert", field: "email_alert", align: "left" },
-        { name: "dashboardalert", field: "dashboard_alert", align: "left" },
-        {
-          name: "desc",
-          field: "readable_desc",
-          label: "Description",
-          align: "left",
-          sortable: true,
-        },
-        { name: "status", label: "Status", field: "status", align: "left" },
-        {
-          name: "assigned_task",
-          label: "Assigned Tasks",
-          field: "assigned_task",
-          align: "left",
-          sortable: true,
-        },
-      ],
       pagination: {
         rowsPerPage: 0,
         sortBy: "status",
@@ -271,6 +275,33 @@ export default {
   },
   computed: {
     ...mapState(["dash_positive_color", "dash_warning_color"]),
+    columns() {
+      return [
+        { name: "smsalert", field: "text_alert", align: "left" },
+        { name: "emailalert", field: "email_alert", align: "left" },
+        { name: "dashboardalert", field: "dashboard_alert", align: "left" },
+        {
+          name: "desc",
+          field: "readable_desc",
+          label: this.$t("policyChecksTab.colDescription"),
+          align: "left",
+          sortable: true,
+        },
+        {
+          name: "status",
+          label: this.$t("policyChecksTab.colStatus"),
+          field: "status",
+          align: "left",
+        },
+        {
+          name: "assigned_task",
+          label: this.$t("policyChecksTab.colAssignedTasks"),
+          field: "assigned_task",
+          align: "left",
+          sortable: true,
+        },
+      ];
+    },
   },
   methods: {
     getChecks() {
@@ -298,7 +329,14 @@ export default {
       }
 
       data.check_alert = true;
-      const act = !action ? "enabled" : "disabled";
+      const typeMap = {
+        Text: this.$t("policyChecksTab.catText"),
+        Email: this.$t("policyChecksTab.catEmail"),
+        Dashboard: this.$t("policyChecksTab.catDashboard"),
+      };
+      const actLabel = !action
+        ? this.$t("policyChecksTab.actEnabled")
+        : this.$t("policyChecksTab.actDisabled");
       const color = !action
         ? this.dash_positive_color
         : this.dash_warning_color;
@@ -309,7 +347,10 @@ export default {
           this.$q.notify({
             color: color,
             icon: "fas fa-check-circle",
-            message: `${alert_type} alerts ${act}`,
+            message: this.$t("policyChecksTab.alertToggled", {
+              type: typeMap[alert_type],
+              action: actLabel,
+            }),
           });
         })
         .catch(() => {
@@ -319,8 +360,10 @@ export default {
     deleteCheck(check) {
       this.$q
         .dialog({
-          title: `Delete ${check.check_type} check?`,
-          ok: { label: "Delete", color: "negative" },
+          title: this.$t("policyChecksTab.deleteCheckTitle", {
+            type: check.check_type,
+          }),
+          ok: { label: this.$t("policyTabsCommon.delete"), color: "negative" },
           cancel: true,
         })
         .onOk(() => {
@@ -330,7 +373,7 @@ export default {
             .then(() => {
               this.getChecks();
               this.$q.loading.hide();
-              this.notifySuccess("Check Deleted!");
+              this.notifySuccess(this.$t("policyChecksTab.checkDeleted"));
             })
             .catch(() => {
               this.$q.loading.hide();

@@ -204,6 +204,12 @@ module.exports = {
         // UserPreferences (Options API; options movidas a computed con this.$t).
         "src/components/checks/WinSvcCheck.vue",
         "src/components/modals/coresettings/UserPreferences.vue",
+        // Ola 9d: completa automation/ — PolicyOverview + los dos tabs gemelos
+        // (namespace COMPARTIDO policyTabsCommon para alertas/edit/delete/etc.).
+        // Options API: columns/labels movidas a computed con this.$t.
+        "src/components/automation/PolicyOverview.vue",
+        "src/components/automation/PolicyChecksTab.vue",
+        "src/components/automation/PolicyAutomatedTasksTab.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
