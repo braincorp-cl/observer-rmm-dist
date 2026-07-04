@@ -2,10 +2,12 @@
   <q-dialog ref="dialog" @hide="onHide">
     <q-card style="width: 60vw">
       <q-bar>
-        {{ policy.name }} Relations
+        {{ $t("relationsView.title", { name: policy.name }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("relationsView.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section
@@ -15,12 +17,14 @@
         "
       >
         <div v-if="related.default_server_policy" class="text-body">
-          <q-icon name="error_outline" color="info" size="1.5em" />This policy
-          is set as the Default Server Policy.
+          <q-icon name="error_outline" color="info" size="1.5em" />{{
+            $t("relationsView.defaultServerPolicy")
+          }}
         </div>
         <div v-if="related.default_workstation_policy" class="text-body">
-          <q-icon name="error_outline" color="info" size="1.5em" />This policy
-          is set as the Default Workstation Policy.
+          <q-icon name="error_outline" color="info" size="1.5em" />{{
+            $t("relationsView.defaultWorkstationPolicy")
+          }}
         </div>
       </q-card-section>
       <q-card-section>
@@ -35,9 +39,9 @@
           narrow-indicator
           no-caps
         >
-          <q-tab name="clients" label="Clients" />
-          <q-tab name="sites" label="Sites" />
-          <q-tab name="agents" label="Agents" />
+          <q-tab name="clients" :label="$t('relationsView.clients')" />
+          <q-tab name="sites" :label="$t('relationsView.sites')" />
+          <q-tab name="agents" :label="$t('relationsView.agents')" />
         </q-tabs>
 
         <q-separator />
@@ -54,7 +58,7 @@
                   </q-item-section>
                   <q-item-section side>
                     <q-item-label>
-                      <i>Applied to Servers</i>
+                      <i>{{ $t("relationsView.appliedToServers") }}</i>
                     </q-item-label>
                   </q-item-section>
                 </q-item>
@@ -67,7 +71,7 @@
                   </q-item-section>
                   <q-item-section side>
                     <q-item-label>
-                      <i>Applied to Workstations</i>
+                      <i>{{ $t("relationsView.appliedToWorkstations") }}</i>
                     </q-item-label>
                   </q-item-section>
                 </q-item>
@@ -86,7 +90,7 @@
                   </q-item-section>
                   <q-item-section side>
                     <q-item-label>
-                      <i>Applied to Servers</i>
+                      <i>{{ $t("relationsView.appliedToServers") }}</i>
                     </q-item-label>
                   </q-item-section>
                 </q-item>
@@ -100,7 +104,7 @@
                   </q-item-section>
                   <q-item-section side>
                     <q-item-label>
-                      <i>Applied to Workstations</i>
+                      <i>{{ $t("relationsView.appliedToWorkstations") }}</i>
                     </q-item-label>
                   </q-item-section>
                 </q-item>

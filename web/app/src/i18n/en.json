@@ -9,7 +9,29 @@
     "twoFactorSubmit": "Submit"
   },
   "layout": {
-    "language": "Language"
+    "language": "Language",
+    "outdatedVersion": "You are viewing an outdated version of this page.",
+    "refresh": "Refresh",
+    "licenseInactive1": "Your license is currently inactive, usually due to a payment issue.",
+    "licenseInactive2": "To restore access, please update your payment method.",
+    "licenseInactive3": "If you’ve intentionally cancelled your sponsorship, you can remove your license key to stop seeing this message.",
+    "licenseInactive4": "If you need help, please contact our support team at",
+    "supportUrl": "https://support.observer.cl",
+    "backToDashboard": "Back to Dashboard",
+    "version": "v{version}",
+    "updateAvailable": "v{version} available",
+    "certExpires": "SSL certificate expires in {days} days",
+    "agentCount": "Agent Count",
+    "servers": "Servers",
+    "workstations": "Workstations",
+    "total": "Total: {count}",
+    "offline": "Offline: {count}",
+    "preferences": "Preferences",
+    "account": "Account",
+    "resetPassword": "Reset Password",
+    "reset2fa": "Reset 2FA",
+    "logout": "Logout",
+    "reset2faConfirm": "Are you sure you would like to reset your 2FA token?"
   },
   "lang": {
     "en": "English",
@@ -1964,5 +1986,27 @@
     "colValue": "Value",
     "deleteTitle": "Delete key: {name}?",
     "keyDeleted": "key: {name} was deleted!"
+  },
+  "alertsIcon": {
+    "noNewAlerts": "No New Alerts",
+    "agentPath": "{client} - {site} - {hostname}",
+    "snoozeAlert": "Snooze alert",
+    "resolveAlert": "Resolve alert",
+    "viewAll": "View All Alerts ({count})",
+    "snoozeTitle": "Snooze Alert",
+    "snoozeMsg": "How many days to snooze alert?",
+    "snoozedMsg": "The alert has been snoozed for {days} days",
+    "resolvedMsg": "The alert has been resolved"
+  },
+  "relationsView": {
+    "title": "{name} Relations",
+    "close": "Close",
+    "defaultServerPolicy": "This policy is set as the Default Server Policy.",
+    "defaultWorkstationPolicy": "This policy is set as the Default Workstation Policy.",
+    "clients": "Clients",
+    "sites": "Sites",
+    "agents": "Agents",
+    "appliedToServers": "Applied to Servers",
+    "appliedToWorkstations": "Applied to Workstations"
   }
 }

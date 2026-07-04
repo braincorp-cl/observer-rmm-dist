@@ -321,6 +321,18 @@ module.exports = {
         "src/components/AdminManager.vue",
         "src/components/core/APIKeysTable.vue",
         "src/components/modals/coresettings/KeyStoreTable.vue",
+        // Ola 21: medianos dispersos — MainLayout + AlertsIcon + RelationsView.
+        // MainLayout (<script setup>): toolbar, banners (versión desactualizada +
+        // licencia inactiva partida en 4 segmentos con <br> estructurales), chip de
+        // dispositivos (Servers/Workstations, Total/Offline con {count}), menú de
+        // usuario y diálogo reset2FA (t() de useI18n). Extiende el namespace layout
+        // existente (language). AlertsIcon (Options API): tooltips, path de agente
+        // ({client} - {site} - {hostname} identico es/en), viewAll con {count} y
+        // diálogos snooze/resolve vía this.$t. RelationsView (Options API): título
+        // {name} Relations, tabs y etiquetas "Applied to..." vía $t.
+        "src/layouts/MainLayout.vue",
+        "src/components/AlertsIcon.vue",
+        "src/components/automation/modals/RelationsView.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

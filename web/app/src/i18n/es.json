@@ -9,7 +9,29 @@
     "twoFactorSubmit": "Enviar"
   },
   "layout": {
-    "language": "Idioma"
+    "language": "Idioma",
+    "outdatedVersion": "Está viendo una versión desactualizada de esta página.",
+    "refresh": "Actualizar",
+    "licenseInactive1": "Su licencia está actualmente inactiva, generalmente debido a un problema de pago.",
+    "licenseInactive2": "Para restaurar el acceso, actualice su método de pago.",
+    "licenseInactive3": "Si canceló su patrocinio intencionalmente, puede eliminar su clave de licencia para dejar de ver este mensaje.",
+    "licenseInactive4": "Si necesita ayuda, contacte a nuestro equipo de soporte en",
+    "supportUrl": "https://support.observer.cl",
+    "backToDashboard": "Volver al Panel",
+    "version": "v{version}",
+    "updateAvailable": "v{version} disponible",
+    "certExpires": "El certificado SSL expira en {days} días",
+    "agentCount": "Cantidad de Agentes",
+    "servers": "Servidores",
+    "workstations": "Estaciones de Trabajo",
+    "total": "Total: {count}",
+    "offline": "Sin Conexión: {count}",
+    "preferences": "Preferencias",
+    "account": "Cuenta",
+    "resetPassword": "Restablecer Contraseña",
+    "reset2fa": "Restablecer 2FA",
+    "logout": "Cerrar Sesión",
+    "reset2faConfirm": "¿Está seguro de que desea restablecer su token 2FA?"
   },
   "lang": {
     "en": "English",
@@ -1964,5 +1986,27 @@
     "colValue": "Valor",
     "deleteTitle": "¿Eliminar la clave: {name}?",
     "keyDeleted": "¡La clave: {name} fue eliminada!"
+  },
+  "alertsIcon": {
+    "noNewAlerts": "Sin Alertas Nuevas",
+    "agentPath": "{client} - {site} - {hostname}",
+    "snoozeAlert": "Posponer alerta",
+    "resolveAlert": "Resolver alerta",
+    "viewAll": "Ver Todas las Alertas ({count})",
+    "snoozeTitle": "Posponer Alerta",
+    "snoozeMsg": "¿Por cuántos días posponer la alerta?",
+    "snoozedMsg": "La alerta ha sido pospuesta por {days} días",
+    "resolvedMsg": "La alerta ha sido resuelta"
+  },
+  "relationsView": {
+    "title": "Relaciones de {name}",
+    "close": "Cerrar",
+    "defaultServerPolicy": "Esta política está configurada como la Política de Servidor Predeterminada.",
+    "defaultWorkstationPolicy": "Esta política está configurada como la Política de Estación de Trabajo Predeterminada.",
+    "clients": "Clientes",
+    "sites": "Sitios",
+    "agents": "Agentes",
+    "appliedToServers": "Aplicada a Servidores",
+    "appliedToWorkstations": "Aplicada a Estaciones de Trabajo"
   }
 }

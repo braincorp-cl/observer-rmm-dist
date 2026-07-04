@@ -5,14 +5,19 @@
     }}</q-badge>
     <q-menu :style="{ 'max-height': `${$q.screen.height - 100}px` }">
       <q-list separator>
-        <q-item v-if="alertsCount === 0">No New Alerts</q-item>
+        <q-item v-if="alertsCount === 0">{{
+          $t("alertsIcon.noNewAlerts")
+        }}</q-item>
         <q-item v-for="alert in topAlerts" :key="alert.id">
           <q-item-section>
             <q-item-label overline
-              ><router-link :to="`/agents/${alert.agent_id}`"
-                >{{ alert.client }} - {{ alert.site }} -
-                {{ alert.hostname }}</router-link
-              ></q-item-label
+              ><router-link :to="`/agents/${alert.agent_id}`">{{
+                $t("alertsIcon.agentPath", {
+                  client: alert.client,
+                  site: alert.site,
+                  hostname: alert.hostname,
+                })
+              }}</router-link></q-item-label
             >
             <q-item-label lines="1">
               <q-icon
@@ -36,7 +41,7 @@
                 @click="snoozeAlert(alert)"
                 v-close-popup
               >
-                <q-tooltip>Snooze alert</q-tooltip>
+                <q-tooltip>{{ $t("alertsIcon.snoozeAlert") }}</q-tooltip>
               </q-icon>
               <q-icon
                 name="flag"
@@ -45,14 +50,14 @@
                 @click="resolveAlert(alert)"
                 v-close-popup
               >
-                <q-tooltip>Resolve alert</q-tooltip>
+                <q-tooltip>{{ $t("alertsIcon.resolveAlert") }}</q-tooltip>
               </q-icon>
             </q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="showOverview"
-          >View All Alerts ({{ alertsCount }})</q-item
-        >
+        <q-item clickable v-close-popup @click="showOverview">{{
+          $t("alertsIcon.viewAll", { count: alertsCount })
+        }}</q-item>
       </q-list>
     </q-menu>
   </q-btn>
@@ -112,8 +117,8 @@ export default {
     snoozeAlert(alert) {
       this.$q
         .dialog({
-          title: "Snooze Alert",
-          message: "How many days to snooze alert?",
+          title: this.$t("alertsIcon.snoozeTitle"),
+          message: this.$t("alertsIcon.snoozeMsg"),
           prompt: {
             model: "",
             type: "number",
@@ -135,7 +140,7 @@ export default {
             .then(() => {
               this.getAlerts();
               this.$q.loading.hide();
-              this.notifySuccess(`The alert has been snoozed for ${days} days`);
+              this.notifySuccess(this.$t("alertsIcon.snoozedMsg", { days }));
             })
             .catch(() => {
               this.$q.loading.hide();
@@ -155,7 +160,7 @@ export default {
         .then(() => {
           this.getAlerts();
           this.$q.loading.hide();
-          this.notifySuccess("The alert has been resolved");
+          this.notifySuccess(this.$t("alertsIcon.resolvedMsg"));
         })
         .catch(() => {
           this.$q.loading.hide();
@@ -171,9 +176,12 @@ export default {
       else return this.alertsCount;
     },
     pollAlerts() {
-      this.poll = setInterval(() => {
-        this.getAlerts();
-      }, 60 * 1 * 1000);
+      this.poll = setInterval(
+        () => {
+          this.getAlerts();
+        },
+        60 * 1 * 1000,
+      );
     },
   },
   mounted() {
