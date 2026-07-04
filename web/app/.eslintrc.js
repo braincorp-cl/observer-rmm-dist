@@ -276,6 +276,15 @@ module.exports = {
         "src/components/modals/alerts/AlertExclusions.vue",
         "src/components/modals/alerts/AlertTemplateAdd.vue",
         "src/components/modals/alerts/AlertTemplateRelated.vue",
+        // Ola 17: automation/modals/ policies — PolicyAdd + PolicyForm +
+        // PolicyExclusions. Options API (this.$t). Namespace COMPARTIDO
+        // policyModalsCommon (close/cancel/save/submit). {type} crudo del prop
+        // (client/site/agent) en título y tooltip de PolicyAdd. PolicyForm usa
+        // <i18n-t keypath="policyForm.copyIntro" scope="global"> con slot #name
+        // (<b>) para el HTML. Interpolación {name} en títulos.
+        "src/components/automation/modals/PolicyAdd.vue",
+        "src/components/automation/modals/PolicyForm.vue",
+        "src/components/automation/modals/PolicyExclusions.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

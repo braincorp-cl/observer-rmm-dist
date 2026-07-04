@@ -1731,5 +1731,40 @@
     "tabPolicies": "Policies",
     "tabClients": "Clients",
     "tabSites": "Sites"
+  },
+  "policyModalsCommon": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit"
+  },
+  "policyAdd": {
+    "title": "Edit policies assigned to {type}",
+    "serverPolicy": "Server Policy",
+    "workstationPolicy": "Workstation Policy",
+    "policy": "Policy",
+    "blockInheritance": "Block policy inheritance",
+    "inheritanceTooltip": "This {type} will not inherit from higher policies",
+    "noPolicies": "No Automation Policies have been setup. Go to Settings > Automation Manager",
+    "notifyUpdated": "Policies Updated Successfully!"
+  },
+  "policyForm": {
+    "copyIntro": "You are copying checks and tasks from Policy: {name} into a new policy.",
+    "name": "Name:",
+    "description": "Description:",
+    "active": "Active:",
+    "enforced": "Enforced:",
+    "required": "*Required",
+    "titleEdit": "Edit Policy",
+    "titleAdd": "Add Policy",
+    "notifyEdited": "Policy edited!",
+    "notifyAdded": "Policy added. Now you can add Tasks and Checks!"
+  },
+  "policyExclusions": {
+    "title": "Policy Exclusions for {name}",
+    "excludedClients": "Excluded Clients",
+    "excludedSites": "Excluded Sites",
+    "excludedAgents": "Excluded Agents",
+    "notifyAdded": "Policy exclusions added"
   }
 }

@@ -1731,5 +1731,40 @@
     "tabPolicies": "Políticas",
     "tabClients": "Clientes",
     "tabSites": "Sitios"
+  },
+  "policyModalsCommon": {
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "submit": "Enviar"
+  },
+  "policyAdd": {
+    "title": "Editar políticas asignadas a {type}",
+    "serverPolicy": "Política de servidor",
+    "workstationPolicy": "Política de estación de trabajo",
+    "policy": "Política",
+    "blockInheritance": "Bloquear herencia de políticas",
+    "inheritanceTooltip": "Este {type} no heredará de políticas superiores",
+    "noPolicies": "No se ha configurado ninguna política de automatización. Ve a Configuración > Administrador de automatización",
+    "notifyUpdated": "¡Políticas actualizadas correctamente!"
+  },
+  "policyForm": {
+    "copyIntro": "Estás copiando verificaciones y tareas de la política: {name} en una nueva política.",
+    "name": "Nombre:",
+    "description": "Descripción:",
+    "active": "Activa:",
+    "enforced": "Forzada:",
+    "required": "*Requerido",
+    "titleEdit": "Editar política",
+    "titleAdd": "Agregar política",
+    "notifyEdited": "¡Política editada!",
+    "notifyAdded": "Política agregada. ¡Ahora puedes agregar tareas y verificaciones!"
+  },
+  "policyExclusions": {
+    "title": "Exclusiones de política para {name}",
+    "excludedClients": "Clientes excluidos",
+    "excludedSites": "Sitios excluidos",
+    "excludedAgents": "Agentes excluidos",
+    "notifyAdded": "Exclusiones de política agregadas"
   }
 }
