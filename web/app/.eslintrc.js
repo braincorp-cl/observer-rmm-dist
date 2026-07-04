@@ -310,6 +310,17 @@ module.exports = {
         "src/components/agents/remotebg/EventLogManager.vue",
         "src/components/agents/remotebg/ProcessManager.vue",
         "src/components/agents/remotebg/RegistryValueModal.vue",
+        // Ola 20: settings/admin dispersos — AdminManager + APIKeysTable +
+        // KeyStoreTable. Tres tablas de administración con menú contextual
+        // (Editar/Eliminar/Cerrar), columnas y diálogos de confirmación. Columnas
+        // movidas de data()/const de módulo a computed con $t para reaccionar al
+        // idioma. Diálogos $q.dialog (título + ok + notifySuccess) traducidos vía
+        // $t con placeholders {username}/{name}. "SSO" y "****" van a clave con
+        // valor idéntico es/en (acrónimo y máscara). Los val de radios/estados del
+        // backend se mantienen crudos.
+        "src/components/AdminManager.vue",
+        "src/components/core/APIKeysTable.vue",
+        "src/components/modals/coresettings/KeyStoreTable.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

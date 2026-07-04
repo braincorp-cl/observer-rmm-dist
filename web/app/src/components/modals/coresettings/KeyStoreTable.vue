@@ -1,14 +1,18 @@
 <template>
   <div>
     <div class="row">
-      <div class="text-subtitle2">Global Key Store</div>
+      <div class="text-subtitle2">{{ $t("keyStoreTable.title") }}</div>
       <q-space />
       <q-btn
         size="sm"
         color="grey-5"
         text-color="black"
         class="q-mr-sm"
-        :label="isPwd ? 'Show values' : 'Hide values'"
+        :label="
+          isPwd
+            ? $t('keyStoreTable.showValues')
+            : $t('keyStoreTable.hideValues')
+        "
         :icon="isPwd ? 'visibility_off' : 'visibility'"
         @click="isPwd = !isPwd"
       />
@@ -17,7 +21,7 @@
         color="grey-5"
         icon="fas fa-plus"
         text-color="black"
-        label="Add key"
+        :label="$t('keyStoreTable.addKey')"
         @click="addKey"
       />
     </div>
@@ -32,7 +36,7 @@
       hide-pagination
       virtual-scroll
       :rows-per-page-options="[0]"
-      no-data-label="No Keys added yet"
+      :no-data-label="$t('keyStoreTable.noData')"
     >
       <!-- body slots -->
       <template v-slot:body="props">
@@ -48,19 +52,21 @@
                 <q-item-section side>
                   <q-icon name="edit" />
                 </q-item-section>
-                <q-item-section>Edit</q-item-section>
+                <q-item-section>{{ $t("keyStoreTable.edit") }}</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="deleteKey(props.row)">
                 <q-item-section side>
                   <q-icon name="delete" />
                 </q-item-section>
-                <q-item-section>Delete</q-item-section>
+                <q-item-section>{{
+                  $t("keyStoreTable.delete")
+                }}</q-item-section>
               </q-item>
 
               <q-separator></q-separator>
 
               <q-item clickable v-close-popup>
-                <q-item-section>Close</q-item-section>
+                <q-item-section>{{ $t("keyStoreTable.close") }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -70,7 +76,7 @@
           </q-td>
           <!-- value -->
           <q-td>
-            {{ isPwd ? "****" : props.row.value }}
+            {{ isPwd ? $t("keyStoreTable.masked") : props.row.value }}
           </q-td>
         </q-tr>
       </template>
@@ -94,23 +100,28 @@ export default {
         sortBy: "name",
         descending: true,
       },
-      columns: [
+    };
+  },
+  computed: {
+    // columns computadas para reaccionar al cambio de idioma
+    columns() {
+      return [
         {
           name: "name",
-          label: "Name",
+          label: this.$t("keyStoreTable.colName"),
           field: "name",
           align: "left",
           sortable: true,
         },
         {
           name: "value",
-          label: "Value",
+          label: this.$t("keyStoreTable.colValue"),
           field: "value",
           align: "left",
           sortable: true,
         },
-      ],
-    };
+      ];
+    },
   },
   methods: {
     getKeyStore() {
@@ -150,9 +161,9 @@ export default {
     deleteKey(key) {
       this.$q
         .dialog({
-          title: `Delete key: ${key.name}?`,
+          title: this.$t("keyStoreTable.deleteTitle", { name: key.name }),
           cancel: true,
-          ok: { label: "Delete", color: "negative" },
+          ok: { label: this.$t("keyStoreTable.delete"), color: "negative" },
         })
         .onOk(() => {
           this.$q.loading.show();
@@ -161,7 +172,9 @@ export default {
             .then(() => {
               this.getKeyStore();
               this.$q.loading.hide();
-              this.notifySuccess(`key: ${key.name} was deleted!`);
+              this.notifySuccess(
+                this.$t("keyStoreTable.keyDeleted", { name: key.name }),
+              );
             })
             .catch(() => {
               this.$q.loading.hide();

@@ -1,14 +1,14 @@
 <template>
   <div>
     <div class="row">
-      <div class="text-subtitle2">API Keys</div>
+      <div class="text-subtitle2">{{ $t("apiKeysTable.title") }}</div>
       <q-space />
       <q-btn
         size="sm"
         color="grey-5"
         icon="fas fa-plus"
         text-color="black"
-        label="Add key"
+        :label="$t('apiKeysTable.addKey')"
         @click="addAPIKey"
       />
     </div>
@@ -23,7 +23,7 @@
       hide-pagination
       virtual-scroll
       :rows-per-page-options="[0]"
-      no-data-label="No API tokens added yet"
+      :no-data-label="$t('apiKeysTable.noData')"
     >
       <!-- header slots -->
       <template v-slot:header-cell-actions="props">
@@ -44,19 +44,19 @@
                 <q-item-section side>
                   <q-icon name="edit" />
                 </q-item-section>
-                <q-item-section>Edit</q-item-section>
+                <q-item-section>{{ $t("apiKeysTable.edit") }}</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="deleteAPIKey(props.row)">
                 <q-item-section side>
                   <q-icon name="delete" />
                 </q-item-section>
-                <q-item-section>Delete</q-item-section>
+                <q-item-section>{{ $t("apiKeysTable.delete") }}</q-item-section>
               </q-item>
 
               <q-separator></q-separator>
 
               <q-item clickable v-close-popup>
-                <q-item-section>Close</q-item-section>
+                <q-item-section>{{ $t("apiKeysTable.close") }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -81,7 +81,7 @@
               name="content_copy"
               @click="copyKeyToClipboard(props.row.key)"
             >
-              <q-tooltip>Copy API Key to clipboard</q-tooltip>
+              <q-tooltip>{{ $t("apiKeysTable.copyTooltip") }}</q-tooltip>
             </q-icon>
           </q-td>
         </q-tr>
@@ -93,50 +93,56 @@
 <script>
 // composition imports
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { fetchAPIKeys, removeAPIKey } from "@/api/accounts";
 import { useQuasar, copyToClipboard } from "quasar";
 import { notifySuccess, notifyError } from "@/utils/notify";
 import APIKeysForm from "@/components/core/APIKeysForm.vue";
 
-const columns = [
-  {
-    name: "name",
-    label: "Name",
-    field: "name",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "username",
-    label: "User",
-    field: "username",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "expiration",
-    label: "Expiration",
-    field: "expiration",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "created_time",
-    label: "Created",
-    field: "created_time",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "actions",
-    label: "",
-    field: "actions",
-  },
-];
 export default {
   name: "APIKeysTable",
   setup() {
+    // i18n setup
+    const { t } = useI18n();
+
+    // columns (computed para reaccionar al cambio de idioma)
+    const columns = computed(() => [
+      {
+        name: "name",
+        label: t("apiKeysTable.colName"),
+        field: "name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "username",
+        label: t("apiKeysTable.colUser"),
+        field: "username",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "expiration",
+        label: t("apiKeysTable.colExpiration"),
+        field: "expiration",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "created_time",
+        label: t("apiKeysTable.colCreated"),
+        field: "created_time",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "actions",
+        label: "",
+        field: "actions",
+      },
+    ]);
+
     // setup quasar
     const $q = useQuasar();
 
@@ -158,10 +164,10 @@ export default {
     function copyKeyToClipboard(apikey) {
       copyToClipboard(apikey)
         .then(() => {
-          notifySuccess("Key was copied to clipboard!");
+          notifySuccess(t("apiKeysTable.keyCopied"));
         })
         .catch(() => {
-          notifyError("Unable to copy to clipboard!");
+          notifyError(t("apiKeysTable.copyError"));
         });
     }
 
@@ -174,9 +180,9 @@ export default {
 
     async function deleteAPIKey(key) {
       $q.dialog({
-        title: `Delete API key: ${key.name}?`,
+        title: t("apiKeysTable.deleteTitle", { name: key.name }),
         cancel: true,
-        ok: { label: "Delete", color: "negative" },
+        ok: { label: t("apiKeysTable.delete"), color: "negative" },
       }).onOk(async () => {
         loading.value = true;
         try {
