@@ -2,10 +2,12 @@
   <q-dialog ref="dialog" @hide="onHide">
     <q-card style="width: 60vw">
       <q-bar>
-        Assigned to {{ template.name }}
+        {{ $t("alertTemplateRelated.title", { name: template.name }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("alertsModalsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
@@ -20,9 +22,15 @@
           narrow-indicator
           no-caps
         >
-          <q-tab name="policies" label="Policies" />
-          <q-tab name="clients" label="Clients" />
-          <q-tab name="sites" label="Sites" />
+          <q-tab
+            name="policies"
+            :label="$t('alertTemplateRelated.tabPolicies')"
+          />
+          <q-tab
+            name="clients"
+            :label="$t('alertTemplateRelated.tabClients')"
+          />
+          <q-tab name="sites" :label="$t('alertTemplateRelated.tabSites')" />
         </q-tabs>
 
         <q-separator />

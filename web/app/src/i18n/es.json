@@ -1703,5 +1703,33 @@
     "noDataHook": "Aún no se agregaron Web Hooks",
     "deleteTitle": "¿Eliminar acción de URL: {name}?",
     "notifyDeleted": "¡La acción de URL: {name} fue eliminada!"
+  },
+  "alertsModalsCommon": {
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "submit": "Enviar"
+  },
+  "alertExclusions": {
+    "title": "Exclusiones de alerta para {name}",
+    "excludedClients": "Clientes excluidos",
+    "excludedSites": "Sitios excluidos",
+    "excludedAgents": "Agentes excluidos",
+    "excludeWorkstations": "Excluir estaciones de trabajo",
+    "excludeServers": "Excluir servidores",
+    "notifyAdded": "Exclusiones de la plantilla de alerta agregadas"
+  },
+  "alertTemplateAdd": {
+    "title": "Editar plantilla de alerta asignada a {type}",
+    "selectLabel": "Plantilla de alerta de {type}",
+    "noTemplates": "No se ha configurado ninguna plantilla de alerta. Ve a Configuración > Administrador de alertas",
+    "notifyAssigned": "¡Plantilla de alerta asignada correctamente!",
+    "notifyRemoved": "¡Plantilla de alerta removida correctamente!"
+  },
+  "alertTemplateRelated": {
+    "title": "Asignada a {name}",
+    "tabPolicies": "Políticas",
+    "tabClients": "Clientes",
+    "tabSites": "Sitios"
   }
 }

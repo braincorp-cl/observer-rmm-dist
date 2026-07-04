@@ -267,6 +267,15 @@ module.exports = {
         // en la vista, así que no los marca no-raw-text.
         "src/components/modals/coresettings/URLActionsForm.vue",
         "src/components/modals/coresettings/URLActionsTable.vue",
+        // Ola 16: modals/alerts/ — AlertExclusions + AlertTemplateAdd +
+        // AlertTemplateRelated (cierran el dominio alerts salvo el GRANDE
+        // AlertTemplateForm). Options API (this.$t). Namespace COMPARTIDO
+        // alertsModalsCommon (close/cancel/save/submit). Interpolación {name}/
+        // {type}. En AlertTemplateAdd el {type} del título es el valor crudo del
+        // prop (site/client/policy); selectLabel usa capitalize(type) como var.
+        "src/components/modals/alerts/AlertExclusions.vue",
+        "src/components/modals/alerts/AlertTemplateAdd.vue",
+        "src/components/modals/alerts/AlertTemplateRelated.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

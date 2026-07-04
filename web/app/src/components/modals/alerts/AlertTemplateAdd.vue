@@ -2,10 +2,12 @@
   <q-dialog ref="dialog" @hide="onHide">
     <q-card class="q-dialog-plugin" style="width: 60vw">
       <q-bar>
-        Edit Alert Template assigned to {{ type }}
+        {{ $t("alertTemplateAdd.title", { type: type }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("alertsModalsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submit" ref="form">
@@ -18,19 +20,26 @@
             clearable
             emit-value
             map-options
-            :label="capitalize(type) + ' Alert Template'"
+            :label="
+              $t('alertTemplateAdd.selectLabel', { type: capitalize(type) })
+            "
           >
           </q-select>
         </q-card-section>
         <q-card-section v-else>
-          No Alert Templates have been setup. Go to Settings > Alerts Manager
+          {{ $t("alertTemplateAdd.noTemplates") }}
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn dense flat label="Cancel" v-close-popup />
+          <q-btn
+            dense
+            flat
+            :label="$t('alertsModalsCommon.cancel')"
+            v-close-popup
+          />
           <q-btn
             v-if="options.length > 0"
             flat
-            label="Submit"
+            :label="$t('alertsModalsCommon.submit')"
             color="primary"
             type="submit"
           />
@@ -91,13 +100,16 @@ export default {
         data = { id: this.object.id, alert_template: this.selectedTemplate };
       }
 
-      const text = this.selectedTemplate ? "assigned" : "removed";
       this.$axios
         .put(url, data)
         .then(() => {
           this.$q.loading.hide();
           this.onOk();
-          this.notifySuccess(`Alert Template ${text} successfully!`);
+          this.notifySuccess(
+            this.selectedTemplate
+              ? this.$t("alertTemplateAdd.notifyAssigned")
+              : this.$t("alertTemplateAdd.notifyRemoved"),
+          );
         })
         .catch(() => {
           this.$q.loading.hide();

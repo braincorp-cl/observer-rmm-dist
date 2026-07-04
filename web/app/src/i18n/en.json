@@ -1703,5 +1703,33 @@
     "noDataHook": "No Web Hooks added yet",
     "deleteTitle": "Delete URL Action: {name}?",
     "notifyDeleted": "URL Action: {name} was deleted!"
+  },
+  "alertsModalsCommon": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit"
+  },
+  "alertExclusions": {
+    "title": "Alert Exclusions for {name}",
+    "excludedClients": "Excluded Clients",
+    "excludedSites": "Excluded Sites",
+    "excludedAgents": "Excluded Agents",
+    "excludeWorkstations": "Exclude Workstations",
+    "excludeServers": "Exclude Servers",
+    "notifyAdded": "Alert Template exclusions added"
+  },
+  "alertTemplateAdd": {
+    "title": "Edit Alert Template assigned to {type}",
+    "selectLabel": "{type} Alert Template",
+    "noTemplates": "No Alert Templates have been setup. Go to Settings > Alerts Manager",
+    "notifyAssigned": "Alert Template assigned successfully!",
+    "notifyRemoved": "Alert Template removed successfully!"
+  },
+  "alertTemplateRelated": {
+    "title": "Assigned to {name}",
+    "tabPolicies": "Policies",
+    "tabClients": "Clients",
+    "tabSites": "Sites"
   }
 }
