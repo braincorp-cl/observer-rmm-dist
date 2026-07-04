@@ -1671,5 +1671,37 @@
     "idTooltip": "ID: {id}",
     "deleteTitle": "¿Eliminar el campo personalizado {name}?",
     "notifyDeleted": "¡El campo personalizado {name} fue eliminado!"
+  },
+  "urlActionsCommon": {
+    "name": "Nombre",
+    "description": "Descripción",
+    "urlPattern": "Patrón de URL",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "submit": "Enviar"
+  },
+  "urlActionsForm": {
+    "titleEditWeb": "Editar acción de URL",
+    "titleEditHook": "Editar Web Hook",
+    "titleAddWeb": "Agregar acción de URL",
+    "titleAddHook": "Agregar Web Hook",
+    "fieldRequired": "*Requerido",
+    "method": "Método",
+    "requestBody": "Cuerpo de la solicitud",
+    "requestHeaders": "Encabezados de la solicitud",
+    "test": "Probar",
+    "notifyEdited": "¡La acción de URL fue editada!"
+  },
+  "urlActionsTable": {
+    "titleWeb": "Acciones de URL",
+    "titleHook": "Web Hooks para acciones de alerta fallida/resuelta",
+    "addWeb": "Agregar acción de URL",
+    "addHook": "Agregar Web Hook",
+    "noDataWeb": "Aún no se agregaron acciones de URL",
+    "noDataHook": "Aún no se agregaron Web Hooks",
+    "deleteTitle": "¿Eliminar acción de URL: {name}?",
+    "notifyDeleted": "¡La acción de URL: {name} fue eliminada!"
   }
 }

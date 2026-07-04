@@ -10,18 +10,12 @@
       :style="`width: ${props.type === 'web' ? 50 : 60}vw; max-width: ${props.type === 'web' ? 60 : 70}vw`"
     >
       <q-bar>
-        {{
-          props.action
-            ? props.type === "web"
-              ? "Edit URL Action"
-              : "Edit Web Hook"
-            : props.type === "web"
-              ? "Add URL Action"
-              : "Add Web Hook"
-        }}
+        {{ title }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("urlActionsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -29,18 +23,18 @@
         <!-- name -->
         <q-card-section>
           <q-input
-            label="Name"
+            :label="$t('urlActionsCommon.name')"
             outlined
             dense
             v-model="localAction.name"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('urlActionsForm.fieldRequired')]"
           />
         </q-card-section>
 
         <!-- description -->
         <q-card-section>
           <q-input
-            label="Description"
+            :label="$t('urlActionsCommon.description')"
             outlined
             dense
             type="textarea"
@@ -52,18 +46,18 @@
         <!-- pattern -->
         <q-card-section>
           <q-input
-            label="URL Pattern"
+            :label="$t('urlActionsCommon.urlPattern')"
             outlined
             dense
             v-model="localAction.pattern"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('urlActionsForm.fieldRequired')]"
           />
         </q-card-section>
 
         <q-card-section v-if="type === 'rest'">
           <q-select
             v-model="localAction.rest_method"
-            label="Method"
+            :label="$t('urlActionsForm.method')"
             :options="URLActionMethods"
             outlined
             dense
@@ -77,11 +71,15 @@
             <q-tabs v-model="tab" dense shrink>
               <q-tab
                 name="body"
-                label="Request Body"
+                :label="$t('urlActionsForm.requestBody')"
                 :ripple="false"
                 :disable="disableBodyTab"
               />
-              <q-tab name="headers" label="Request Headers" :ripple="false" />
+              <q-tab
+                name="headers"
+                :label="$t('urlActionsForm.requestHeaders')"
+                :ripple="false"
+              />
             </q-tabs>
           </q-toolbar>
           <div ref="editorDiv" :style="{ height: '30vh' }"></div>
@@ -92,12 +90,17 @@
         <q-btn
           v-if="type === 'rest'"
           flat
-          label="Test"
+          :label="$t('urlActionsForm.test')"
           color="primary"
           @click="testWebHook"
         />
-        <q-btn flat label="Cancel" v-close-popup />
-        <q-btn flat label="Submit" color="primary" @click="submit" />
+        <q-btn flat :label="$t('urlActionsCommon.cancel')" v-close-popup />
+        <q-btn
+          flat
+          :label="$t('urlActionsCommon.submit')"
+          color="primary"
+          @click="submit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -106,6 +109,7 @@
 <script setup lang="ts">
 // composition imports
 import { ref, computed, reactive, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent, useQuasar, extend } from "quasar";
 import { editURLAction, saveURLAction } from "@/api/core";
 import { notifySuccess } from "@/utils/notify";
@@ -125,6 +129,19 @@ const props = defineProps<{ type: URLActionType; action?: URLAction }>();
 // setup quasar
 const $q = useQuasar();
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
+const { t } = useI18n();
+
+// dialog title depends on edit/add mode and action type
+const title = computed(() => {
+  if (props.action) {
+    return props.type === "web"
+      ? t("urlActionsForm.titleEditWeb")
+      : t("urlActionsForm.titleEditHook");
+  }
+  return props.type === "web"
+    ? t("urlActionsForm.titleAddWeb")
+    : t("urlActionsForm.titleAddHook");
+});
 
 // static data
 const URLActionMethods = [
@@ -167,7 +184,7 @@ async function submit() {
       ? await editURLAction(localAction.id, localAction)
       : await saveURLAction(localAction);
     onDialogOK();
-    notifySuccess("Url Action was edited!");
+    notifySuccess(t("urlActionsForm.notifyEdited"));
   } catch (e) {}
 
   $q.loading.hide();

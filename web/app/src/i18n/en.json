@@ -1671,5 +1671,37 @@
     "idTooltip": "ID: {id}",
     "deleteTitle": "Delete custom field {name}?",
     "notifyDeleted": "Custom Field {name} was deleted!"
+  },
+  "urlActionsCommon": {
+    "name": "Name",
+    "description": "Description",
+    "urlPattern": "URL Pattern",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "cancel": "Cancel",
+    "submit": "Submit"
+  },
+  "urlActionsForm": {
+    "titleEditWeb": "Edit URL Action",
+    "titleEditHook": "Edit Web Hook",
+    "titleAddWeb": "Add URL Action",
+    "titleAddHook": "Add Web Hook",
+    "fieldRequired": "*Required",
+    "method": "Method",
+    "requestBody": "Request Body",
+    "requestHeaders": "Request Headers",
+    "test": "Test",
+    "notifyEdited": "Url Action was edited!"
+  },
+  "urlActionsTable": {
+    "titleWeb": "URL Actions",
+    "titleHook": "Web Hooks for Alert Failure/Resolved Actions",
+    "addWeb": "Add URL Action",
+    "addHook": "Add Web Hook",
+    "noDataWeb": "No URL Actions added yet",
+    "noDataHook": "No Web Hooks added yet",
+    "deleteTitle": "Delete URL Action: {name}?",
+    "notifyDeleted": "URL Action: {name} was deleted!"
   }
 }

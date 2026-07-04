@@ -258,6 +258,15 @@ module.exports = {
         // renderizado en la tabla (capitalize(type)) es dato, NO se traduce.
         "src/components/modals/coresettings/CustomFieldsForm.vue",
         "src/components/modals/coresettings/CustomFieldsTable.vue",
+        // Ola 15: coresettings/ URLActions — URLActionsForm + URLActionsTable.
+        // Par form/tabla (script setup, useI18n). Namespace COMPARTIDO
+        // urlActionsCommon (name/description/urlPattern/edit/delete/close/cancel/
+        // submit). Títulos/labels dependen de type (web=acción de URL vs Web Hook)
+        // vía computed. "Web Hook" es tecnología: se mantiene en ambos idiomas.
+        // Los métodos HTTP (GET/POST/...) vienen de un array JS, no de literales
+        // en la vista, así que no los marca no-raw-text.
+        "src/components/modals/coresettings/URLActionsForm.vue",
+        "src/components/modals/coresettings/URLActionsTable.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
