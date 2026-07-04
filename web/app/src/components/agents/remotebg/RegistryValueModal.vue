@@ -7,16 +7,28 @@
     <q-card style="min-width: 420px; max-width: 480px">
       <q-card-section class="q-pb-none">
         <div class="text-subtitle1">
-          {{ row.name ? "Edit" : "Create" }}
-          <span v-if="row.type === 'REG_DWORD'">DWORD (32-bit) Value</span>
-          <span v-else-if="row.type === 'REG_QWORD'">QWORD (64-bit) Value</span>
-          <span v-else-if="row.type === 'REG_MULTI_SZ'">Multi-String</span>
-          <span v-else>String</span>
+          {{
+            row.name
+              ? $t("registryValueModal.edit")
+              : $t("registryValueModal.create")
+          }}
+          <span v-if="row.type === 'REG_DWORD'">{{
+            $t("registryValueModal.dwordValue")
+          }}</span>
+          <span v-else-if="row.type === 'REG_QWORD'">{{
+            $t("registryValueModal.qwordValue")
+          }}</span>
+          <span v-else-if="row.type === 'REG_MULTI_SZ'">{{
+            $t("registryValueModal.multiString")
+          }}</span>
+          <span v-else>{{ $t("registryValueModal.string") }}</span>
         </div>
       </q-card-section>
 
       <q-card-section class="q-pb-none">
-        <div class="text-body2 q-mb-xs">Value name:</div>
+        <div class="text-body2 q-mb-xs">
+          {{ $t("registryValueModal.valueName") }}
+        </div>
         <q-input
           v-model="localRow.name"
           ref="nameInputRef"
@@ -25,13 +37,15 @@
           :readonly="!!row.name"
           :disable="!!row.name"
           :autofocus="!row.name"
-          :rules="[(val) => !!val || 'Name is required']"
+          :rules="[(val) => !!val || $t('registryValueModal.nameRequired')]"
           lazy-rules
           class="q-pb-sm"
         />
       </q-card-section>
       <q-card-section>
-        <div class="text-body2 q-mb-sm">Value data:</div>
+        <div class="text-body2 q-mb-sm">
+          {{ $t("registryValueModal.valueData") }}
+        </div>
         <q-input
           v-if="row.type === 'REG_MULTI_SZ'"
           v-model="multiStringData"
@@ -57,12 +71,14 @@
             />
           </div>
           <div class="col-5 q-py-none">
-            <div class="text-body2 q-mb-xs">Base</div>
+            <div class="text-body2 q-mb-xs">
+              {{ $t("registryValueModal.base") }}
+            </div>
             <q-option-group
               v-model="localBase"
               :options="[
-                { label: 'Hexadecimal', value: 'hex' },
-                { label: 'Decimal', value: 'dec' },
+                { label: $t('registryValueModal.hexadecimal'), value: 'hex' },
+                { label: $t('registryValueModal.decimal'), value: 'dec' },
               ]"
               type="radio"
               dense
@@ -75,14 +91,19 @@
       </q-card-section>
       <q-card-actions align="right" class="q-gutter-sm">
         <q-btn
-          label="OK"
+          :label="$t('registryValueModal.ok')"
           color="primary"
           unelevated
           @click="onSave"
           :loading="isSaving"
           :disable="isSaving"
         />
-        <q-btn label="Cancel" flat v-close-popup :disable="isSaving" />
+        <q-btn
+          :label="$t('registryValueModal.cancel')"
+          flat
+          v-close-popup
+          :disable="isSaving"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -90,8 +111,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { QInput } from "quasar";
 import { RegistryValue } from "@/types/agents";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -199,15 +223,15 @@ async function onSave() {
         : Number.MAX_SAFE_INTEGER; // 9,007,199,254,740,991 (safe 64-bit limit)
 
     if (numericValue.value < 0) {
-      numericError.value = "Value cannot be negative.";
+      numericError.value = t("registryValueModal.errNegative");
       return;
     }
 
     if (numericValue.value > maxValue) {
       numericError.value =
         localRow.value.type === "REG_DWORD"
-          ? "DWORD (32-bit) value cannot exceed 4,294,967,295."
-          : "QWORD (64-bit) value cannot exceed 9,007,199,254,740,991.";
+          ? t("registryValueModal.errDwordMax")
+          : t("registryValueModal.errQwordMax");
       return;
     }
   }

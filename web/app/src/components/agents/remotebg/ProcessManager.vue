@@ -25,7 +25,7 @@
           push
           @click="stopPoll"
           icon="stop"
-          label="Stop Live Refresh"
+          :label="$t('processManager.stopLiveRefresh')"
         />
         <q-btn
           v-else
@@ -34,24 +34,27 @@
           push
           @click="startPoll"
           icon="play_arrow"
-          label="Resume Live Refresh"
+          :label="$t('processManager.resumeLiveRefresh')"
         />
 
         <div class="flex flex-center q-ml-md">
           <q-icon name="fas fa-microchip" class="q-mr-xs" />
           <div class="text-caption q-mr-sm">
-            CPU Usage:
-            <span class="text-body1 text-weight-medium"
-              >{{ totalCpuUsage }}%</span
-            >
+            {{ $t("processManager.cpuUsage") }}
+            <span class="text-body1 text-weight-medium">{{
+              $t("processManager.percent", { value: totalCpuUsage })
+            }}</span>
           </div>
 
           <q-icon name="fas fa-memory" class="q-mr-xs" />
           <div class="text-caption">
-            RAM Usage:
-            <span class="text-body1 text-weight-medium"
-              >{{ bytes2Human(totalRamUsage) }}/{{ total_ram }} GB</span
-            >
+            {{ $t("processManager.ramUsage") }}
+            <span class="text-body1 text-weight-medium">{{
+              $t("processManager.ramValue", {
+                used: bytes2Human(totalRamUsage),
+                total: total_ram,
+              })
+            }}</span>
           </div>
         </div>
 
@@ -85,12 +88,18 @@
             color="blue"
             :label="pollInterval"
           />
-          Refresh interval (seconds)
+          {{ $t("processManager.refreshInterval") }}
         </div>
 
         <q-space />
 
-        <q-input v-model="filter" outlined label="Search" dense clearable>
+        <q-input
+          v-model="filter"
+          outlined
+          :label="$t('processManager.search')"
+          dense
+          clearable
+        >
           <template v-slot:prepend>
             <q-icon name="search" />
           </template>
@@ -108,16 +117,20 @@
               <q-item-section side>
                 <q-icon name="fas fa-trash-alt" size="xs" />
               </q-item-section>
-              <q-item-section>End Process</q-item-section>
+              <q-item-section>{{
+                $t("processManager.endProcess")
+              }}</q-item-section>
             </q-item>
             <q-separator />
             <q-item clickable>
-              <q-item-section>Close</q-item-section>
+              <q-item-section>{{ $t("processManager.close") }}</q-item-section>
             </q-item>
           </q-list>
         </q-menu>
         <q-td>{{ props.row.name }}</q-td>
-        <q-td>{{ props.row.cpu_percent }}%</q-td>
+        <q-td>{{
+          $t("processManager.percent", { value: props.row.cpu_percent })
+        }}</q-td>
         <q-td>{{ bytes2Human(props.row.membytes) }}</q-td>
         <q-td>{{ props.row.username }}</q-td>
         <q-td>{{ props.row.pid }}</q-td>
@@ -128,6 +141,7 @@
 
 <script>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   fetchAgent,
   fetchAgentProcesses,
@@ -136,51 +150,55 @@ import {
 import { bytes2Human } from "@/utils/format";
 import { notifySuccess } from "@/utils/notify";
 
-const columns = [
-  {
-    name: "name",
-    label: "Name",
-    field: "name",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "cpu_percent",
-    label: "CPU",
-    field: "cpu_percent",
-    align: "left",
-    sortable: true,
-    sort: (a, b) => parseFloat(b) < parseFloat(a),
-  },
-  {
-    name: "membytes",
-    label: "Memory",
-    field: "membytes",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "username",
-    label: "User",
-    field: "username",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "pid",
-    label: "PID",
-    field: "pid",
-    align: "left",
-    sortable: true,
-  },
-];
-
 export default {
   name: "ProcessManager",
   props: {
     agent_id: !String,
   },
   setup(props) {
+    // i18n setup
+    const { t } = useI18n();
+
+    // columns (computed para reaccionar al cambio de idioma)
+    const columns = computed(() => [
+      {
+        name: "name",
+        label: t("processManager.colName"),
+        field: "name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "cpu_percent",
+        label: t("processManager.colCpu"),
+        field: "cpu_percent",
+        align: "left",
+        sortable: true,
+        sort: (a, b) => parseFloat(b) < parseFloat(a),
+      },
+      {
+        name: "membytes",
+        label: t("processManager.colMemory"),
+        field: "membytes",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "username",
+        label: t("processManager.colUser"),
+        field: "username",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "pid",
+        label: t("processManager.colPid"),
+        field: "pid",
+        align: "left",
+        sortable: true,
+      },
+    ]);
+
     // polling setup
     const pollInterval = ref(2);
     const poll = ref(null);

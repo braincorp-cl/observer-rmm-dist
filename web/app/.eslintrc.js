@@ -297,6 +297,19 @@ module.exports = {
         // scheduleCommon.daily/weekly/monthly (antes capitalize() del valor crudo).
         "src/core/settings/components/ScheduleForm.vue",
         "src/core/settings/components/ScheduleTable.vue",
+        // Ola 19: agents/remotebg/ restantes — EventLogManager + ProcessManager
+        // (Options API con setup(): columns movidas a computed con t() para
+        // reaccionar al cambio de idioma) + RegistryValueModal (<script setup>,
+        // useI18n; mensajes de error del validador vía t()). Cierran el dominio
+        // remotebg salvo el GRANDE RegistryManager. Ternario de título y spans de
+        // tipo (DWORD/QWORD/Multi-String/String) y símbolos sueltos ({value}%,
+        // {used}/{total} GB, "/") interpolados vía $t para no dejar VText crudo.
+        // Los val de los radios (Application/System/Security) y el {type} de
+        // totalRecords son valores del backend: se mantienen crudos; solo su label
+        // visible se traduce (Aplicación/Sistema/Seguridad).
+        "src/components/agents/remotebg/EventLogManager.vue",
+        "src/components/agents/remotebg/ProcessManager.vue",
+        "src/components/agents/remotebg/RegistryValueModal.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
