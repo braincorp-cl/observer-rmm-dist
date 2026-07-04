@@ -16,11 +16,15 @@
         {{ title }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("checkGraph.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <div class="row">
-        <span v-if="!showChart" class="q-pa-md">No Data</span>
+        <span v-if="!showChart" class="q-pa-md">{{
+          $t("checkGraph.noData")
+        }}</span>
         <q-space />
         <q-select
           v-model="timeFilter"
@@ -62,12 +66,6 @@ export default {
       history: [],
       results: [],
       timeFilter: 1,
-      timeFilterOptions: [
-        { value: 1, label: "Last 24 Hours" },
-        { value: 7, label: "Last 7 Days" },
-        { value: 30, label: "Last 30 Days" },
-        { value: 0, label: "Everything" },
-      ],
       chartOptions: {
         tooltip: {
           x: {
@@ -104,7 +102,7 @@ export default {
           },
         },
         noData: {
-          text: "No Data",
+          text: "",
         },
         theme: {
           mode: this.$q.dark.isActive ? "dark" : "light",
@@ -114,20 +112,34 @@ export default {
   },
   computed: {
     title() {
-      return this.check.readable_desc + " history";
+      return this.$t("checkGraph.title", { desc: this.check.readable_desc });
+    },
+    timeFilterOptions() {
+      return [
+        { value: 1, label: this.$t("checkGraph.last24Hours") },
+        { value: 7, label: this.$t("checkGraph.last7Days") },
+        { value: 30, label: this.$t("checkGraph.last30Days") },
+        { value: 0, label: this.$t("checkGraph.everything") },
+      ];
     },
     showChart() {
       return !this.$q.loading.isActive && this.history.length > 0;
     },
     seriesName() {
-      if (this.check.check_type === "cpuload") return "CPU Load";
-      else if (this.check.check_type === "memory") return "Memory Usage";
+      if (this.check.check_type === "cpuload")
+        return this.$t("checkGraph.seriesCpuLoad");
+      else if (this.check.check_type === "memory")
+        return this.$t("checkGraph.seriesMemory");
       else if (this.check.check_type === "diskspace")
-        return "Disk Space Remaining";
-      else if (this.check.check_type === "script") return "Script Results";
-      else if (this.check.check_type === "eventlog") return "Status";
-      else if (this.check.check_type === "winsvc") return "Status";
-      else if (this.check.check_type === "ping") return "Status";
+        return this.$t("checkGraph.seriesDiskSpace");
+      else if (this.check.check_type === "script")
+        return this.$t("checkGraph.seriesScript");
+      else if (this.check.check_type === "eventlog")
+        return this.$t("checkGraph.seriesStatus");
+      else if (this.check.check_type === "winsvc")
+        return this.$t("checkGraph.seriesStatus");
+      else if (this.check.check_type === "ping")
+        return this.$t("checkGraph.seriesStatus");
       else return "";
     },
   },
@@ -168,6 +180,8 @@ export default {
     },
   },
   mounted() {
+    this.chartOptions.noData.text = this.$t("checkGraph.noData");
+
     // create warning and error annotation on chart for certain check types
     if (
       this.check.check_type === "cpuload" ||
@@ -193,7 +207,7 @@ export default {
               color: "#FFF",
               background: "#C10015",
             },
-            text: "Error Threshold",
+            text: this.$t("checkGraph.errorThreshold"),
           },
         });
       }
@@ -212,7 +226,7 @@ export default {
               color: "#FFF",
               background: "#ff9800",
             },
-            text: "Warning Threshold",
+            text: this.$t("checkGraph.warningThreshold"),
           },
         });
       }
@@ -242,8 +256,8 @@ export default {
         labels: {
           minWidth: 50,
           formatter: (val) => {
-            if (val === 0) return "Passing";
-            else if (val === 1) return "Failing";
+            if (val === 0) return this.$t("checkGraph.passing");
+            else if (val === 1) return this.$t("checkGraph.failing");
             else return "";
           },
         },
@@ -260,19 +274,19 @@ export default {
           let formatted = "";
           if (this.check.check_type === "script") {
             formatted +=
-              "Return Code: " +
+              this.$t("checkGraph.returnCode") +
               this.results[dataPointIndex].results.retcode +
               "<br/>";
             formatted +=
-              "Std Out: " +
+              this.$t("checkGraph.stdOut") +
               this.results[dataPointIndex].results.stdout +
               "<br/>";
             formatted +=
-              "Err Out: " +
+              this.$t("checkGraph.errOut") +
               this.results[dataPointIndex].results.errout +
               "<br/>";
             formatted +=
-              "Execution Time: " +
+              this.$t("checkGraph.executionTime") +
               this.results[dataPointIndex].results.execution_time +
               "<br/>";
           } else {

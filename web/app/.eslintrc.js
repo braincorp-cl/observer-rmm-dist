@@ -333,6 +333,17 @@ module.exports = {
         "src/layouts/MainLayout.vue",
         "src/components/AlertsIcon.vue",
         "src/components/automation/modals/RelationsView.vue",
+        // ola 22 (long tail medianos dispersos): CheckGraph (Options API): gráfico
+        // apexcharts de historial de check — Close/No Data (VText), title/seriesName/
+        // timeFilterOptions a computed con this.$t, textos de config del chart
+        // (umbrales, Passing/Failing, tooltips de script) traducidos en mounted por
+        // calidad. FileBrowser (script setup ts): no-data-label + columnas
+        // Name/Type/Size (const→computed con t()). UpdateAgents (Options API):
+        // título/Close/banner auto-update/Select Version/Select Agent (VText),
+        // label/placeholder estáticos y notifySuccess vía this.$t.
+        "src/components/graphs/CheckGraph.vue",
+        "src/components/FileBrowser.vue",
+        "src/components/modals/agents/UpdateAgents.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

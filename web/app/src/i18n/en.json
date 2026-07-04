@@ -2008,5 +2008,44 @@
     "agents": "Agents",
     "appliedToServers": "Applied to Servers",
     "appliedToWorkstations": "Applied to Workstations"
+  },
+  "checkGraph": {
+    "close": "Close",
+    "noData": "No Data",
+    "title": "{desc} history",
+    "seriesCpuLoad": "CPU Load",
+    "seriesMemory": "Memory Usage",
+    "seriesDiskSpace": "Disk Space Remaining",
+    "seriesScript": "Script Results",
+    "seriesStatus": "Status",
+    "last24Hours": "Last 24 Hours",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "everything": "Everything",
+    "errorThreshold": "Error Threshold",
+    "warningThreshold": "Warning Threshold",
+    "passing": "Passing",
+    "failing": "Failing",
+    "returnCode": "Return Code: ",
+    "stdOut": "Std Out: ",
+    "errOut": "Err Out: ",
+    "executionTime": "Execution Time: "
+  },
+  "fileBrowser": {
+    "folderEmpty": "Folder is Empty",
+    "colName": "Name",
+    "colType": "Type",
+    "colSize": "Size"
+  },
+  "updateAgents": {
+    "title": "Update Agents",
+    "close": "Close",
+    "autoUpdateInfo": "If agent auto update is enabled in Global Settings, agents will automatically self update at 35 min past the hour, every hour. Use this tool to manually trigger an agent update cycle.",
+    "selectVersion": "Select Version",
+    "selectAgent": "Select Agent",
+    "search": "Search",
+    "selectAll": "Select All",
+    "update": "Update",
+    "updateStarted": "Agents will now be updated"
   }
 }

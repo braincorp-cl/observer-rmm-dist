@@ -2008,5 +2008,44 @@
     "agents": "Agentes",
     "appliedToServers": "Aplicada a Servidores",
     "appliedToWorkstations": "Aplicada a Estaciones de Trabajo"
+  },
+  "checkGraph": {
+    "close": "Cerrar",
+    "noData": "Sin datos",
+    "title": "Historial de {desc}",
+    "seriesCpuLoad": "Carga de CPU",
+    "seriesMemory": "Uso de memoria",
+    "seriesDiskSpace": "Espacio en disco restante",
+    "seriesScript": "Resultados del script",
+    "seriesStatus": "Estado",
+    "last24Hours": "Últimas 24 horas",
+    "last7Days": "Últimos 7 días",
+    "last30Days": "Últimos 30 días",
+    "everything": "Todo",
+    "errorThreshold": "Umbral de error",
+    "warningThreshold": "Umbral de advertencia",
+    "passing": "Correcto",
+    "failing": "Con fallo",
+    "returnCode": "Código de retorno: ",
+    "stdOut": "Salida estándar: ",
+    "errOut": "Salida de error: ",
+    "executionTime": "Tiempo de ejecución: "
+  },
+  "fileBrowser": {
+    "folderEmpty": "La carpeta está vacía",
+    "colName": "Nombre",
+    "colType": "Tipo",
+    "colSize": "Tamaño"
+  },
+  "updateAgents": {
+    "title": "Actualizar agentes",
+    "close": "Cerrar",
+    "autoUpdateInfo": "Si la actualización automática de agentes está habilitada en Configuración Global, los agentes se actualizarán automáticamente a los 35 minutos de cada hora, cada hora. Usa esta herramienta para iniciar manualmente un ciclo de actualización de agentes.",
+    "selectVersion": "Seleccionar versión",
+    "selectAgent": "Seleccionar agente",
+    "search": "Buscar",
+    "selectAll": "Seleccionar todo",
+    "update": "Actualizar",
+    "updateStarted": "Los agentes se actualizarán ahora"
   }
 }
