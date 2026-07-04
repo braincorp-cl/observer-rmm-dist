@@ -16,14 +16,16 @@
           size="xs"
           :disable="loading"
           dense
-          label="Generate Script"
+          :label="$t('scriptsCommon.generateScript')"
           color="primary"
           no-caps
           @click="generateScriptOpenAI"
         />
         <q-space />
         <q-btn dense flat icon="close" @click="closeEditor">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("scriptsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-banner
@@ -33,10 +35,21 @@
         class="text-black bg-warning"
       >
         <template v-slot:avatar>
-          <q-icon class="text-center" name="warning" color="black" /> </template
-        >Shell/Python scripts on Linux/Mac need a shebang at the top of the
-        script e.g. <code>#!/bin/bash</code> or <code>#!/usr/bin/python3</code
-        ><br />Add one to get rid of this warning. Ignore if windows.
+          <q-icon class="text-center" name="warning" color="black" />
+        </template>
+        <i18n-t
+          keypath="scriptFormModal.shebangWarning"
+          tag="span"
+          scope="global"
+        >
+          <template #bash
+            ><code>{{ $t("scriptFormModal.shebangBash") }}</code></template
+          >
+          <template #python
+            ><code>{{ $t("scriptFormModal.shebangPython") }}</code></template
+          >
+          <template #br><br /></template>
+        </i18n-t>
       </q-banner>
       <div class="row q-pa-sm">
         <q-scroll-area
@@ -61,8 +74,8 @@
               dense
               :readonly="readonly"
               v-model="script.name"
-              label="Name"
-              :rules="[(val) => !!val || '*Required']"
+              :label="$t('scriptsCommon.name')"
+              :rules="[(val) => !!val || $t('scriptsCommon.required')]"
               hide-bottom-space
             />
             <q-input
@@ -70,7 +83,7 @@
               dense
               :readonly="readonly"
               v-model="script.description"
-              label="Description"
+              :label="$t('scriptsCommon.description')"
               type="textarea"
               rows="2"
             />
@@ -83,12 +96,12 @@
               :options="shellOptions"
               emit-value
               map-options
-              label="Shell Type"
+              :label="$t('scriptsCommon.shellType')"
             />
             <observer-dropdown
               v-model="script.supported_platforms"
               :options="agentPlatformOptions"
-              label="Supported Platforms (All supported if blank)"
+              :label="$t('scriptsCommon.supportedPlatforms')"
               clearable
               mapOptions
               filled
@@ -103,13 +116,13 @@
               clearable
               new-value-mode="add-unique"
               filterable
-              label="Category"
+              :label="$t('scriptsCommon.category')"
               :readonly="readonly"
               hide-bottom-space
             />
             <observer-dropdown
               v-model="script.args"
-              label="Script Arguments (press Enter after typing each argument)"
+              :label="$t('scriptFormModal.scriptArgsLabel')"
               filled
               use-input
               multiple
@@ -135,12 +148,12 @@
               dense
               :readonly="readonly"
               v-model.number="script.default_timeout"
-              label="Timeout (seconds)"
-              :rules="[(val) => val >= 5 || 'Minimum is 5']"
+              :label="$t('scriptFormModal.timeoutSeconds')"
+              :rules="[(val) => val >= 5 || $t('scriptsCommon.minTimeout')]"
               hide-bottom-space
             />
             <q-input
-              label="Syntax"
+              :label="$t('scriptFormModal.syntax')"
               v-model="script.syntax"
               dense
               filled
@@ -149,14 +162,9 @@
             />
             <q-checkbox
               v-model="script.run_as_user"
-              label="Run As User (Windows only)"
+              :label="$t('scriptFormModal.runAsUser')"
             >
-              <q-tooltip
-                >Setting this value on the script model will always override any
-                'Run As User' checkboxes in the UI and force this script to
-                always be run in the context of the logged in user. If no user
-                is logged in, the script will run as SYSTEM.
-              </q-tooltip>
+              <q-tooltip>{{ $t("scriptFormModal.runAsUserTip") }}</q-tooltip>
             </q-checkbox>
           </div>
         </q-scroll-area>
@@ -174,7 +182,7 @@
           filled
           v-model="agent"
           :options="agentOptions"
-          label="Agent to run test script on"
+          :label="$t('scriptFormModal.agentToTest')"
           mapOptions
           filterable
         >
@@ -184,7 +192,7 @@
               color="primary"
               dense
               flat
-              label="Test Script"
+              :label="$t('scriptFormModal.testScript')"
               :disable="
                 !agent || !script.script_body || !script.default_timeout
               "
@@ -196,7 +204,7 @@
               color="secondary"
               dense
               flat
-              label="Test on Observer's Server"
+              :label="$t('scriptFormModal.testOnServer')"
               :disable="
                 !script.script_body ||
                 !script.default_timeout ||
@@ -211,24 +219,42 @@
                 transition-hide="fade"
               >
                 <div>
-                  <strong>Runs on Observer RMM local Linux Server.</strong
-                  ><br />
-                  Only available interpreters or frameworks will be used.<br />
-                  <em>Example:</em> PowerShell scripts require PowerShell to be
-                  installed on the system.
+                  <i18n-t
+                    keypath="scriptFormModal.testOnServerTip"
+                    tag="span"
+                    scope="global"
+                  >
+                    <template #strong>
+                      <strong>{{
+                        $t("scriptFormModal.testOnServerTipStrong")
+                      }}</strong>
+                    </template>
+                    <template #em>
+                      <em>{{
+                        $t("scriptFormModal.testOnServerTipExample")
+                      }}</em>
+                    </template>
+                    <template #br1><br /></template>
+                    <template #br2><br /></template>
+                  </i18n-t>
                 </div>
               </q-tooltip>
             </q-btn>
           </template>
         </observer-dropdown>
         <q-space />
-        <q-btn dense flat label="Cancel" @click="closeEditor" />
+        <q-btn
+          dense
+          flat
+          :label="$t('scriptsCommon.cancel')"
+          @click="closeEditor"
+        />
         <q-btn
           v-if="!readonly"
           :loading="loading"
           dense
           flat
-          label="Save"
+          :label="$t('scriptsCommon.save')"
           color="primary"
           @click="submit"
         />
@@ -240,6 +266,7 @@
 <script setup lang="ts">
 // composable imports
 import { ref, reactive, watch, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { saveScript, editScript, downloadScript } from "@/api/scripts";
@@ -309,6 +336,9 @@ defineEmits([...useDialogPluginComponent.emits]);
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 const $q = useQuasar();
 
+// i18n
+const { t } = useI18n();
+
 // setup store
 const store = useStore();
 const openAIEnabled = computed(() => store.state.openAIIntegrationEnabled);
@@ -333,7 +363,8 @@ const script: Script = props.script
       env_vars: [],
     });
 
-if (props.clone) script.name = `(Copy) ${script.name}`;
+if (props.clone)
+  script.name = t("scriptFormModal.copyName", { name: script.name });
 const loading = ref(false);
 const agentLoading = ref(false);
 
@@ -348,12 +379,12 @@ const missingShebang = computed(() => {
 const title = computed(() => {
   if (props.script) {
     return props.readonly
-      ? `Viewing ${script.name}`
+      ? t("scriptFormModal.titleViewing", { name: script.name })
       : props.clone
-        ? `Copying ${script.name}`
-        : `Editing ${script.name}`;
+        ? t("scriptFormModal.titleCopying", { name: script.name })
+        : t("scriptFormModal.titleEditing", { name: script.name });
   } else {
-    return "Adding new script";
+    return t("scriptFormModal.titleAdding");
   }
 });
 
@@ -400,10 +431,7 @@ async function submit() {
 
 function openTestScriptModal(ctx: string) {
   if (ctx === "server" && !script.script_body.startsWith("#!")) {
-    notifyError(
-      "A shebang is required at the top of the script to specify the interpreter's path. Please ensure your script begins with a shebang line.",
-      7000,
-    );
+    notifyError(t("scriptFormModal.shebangRequiredError"), 7000);
     return;
   }
   $q.dialog({
@@ -473,9 +501,9 @@ function unloadEditor() {
 
 function generateScriptOpenAI() {
   $q.dialog({
-    title: "Ask ChatGPT what you need!",
+    title: t("scriptsCommon.chatGptTitle"),
     prompt: {
-      model: `${lang.value} code that `,
+      model: t("scriptsCommon.chatGptPrompt", { lang: lang.value }),
       type: "text",
     },
     cancel: true,
@@ -494,7 +522,7 @@ const edited = ref(false);
 function closeEditor() {
   if (edited.value)
     $q.dialog({
-      title: "You have unsaved changes. Are you sure you want to close?",
+      title: t("scriptFormModal.unsavedChanges"),
       cancel: true,
       ok: true,
     }).onOk(async () => {

@@ -17,10 +17,12 @@
           flat
           push
           icon="refresh"
-        />Script Snippets
+        />{{ $t("scriptSnippets.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("scriptsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -46,12 +48,14 @@
             flat
             no-caps
             icon="add"
-            label="New"
+            :label="$t('scriptsCommon.newBtn')"
             @click="newSnippetModal"
           />
         </template>
         <template v-slot:header-cell-shell="props">
-          <q-th :props="props" auto-width> Shell </q-th>
+          <q-th :props="props" auto-width>
+            {{ $t("scriptSnippets.columnShell") }}
+          </q-th>
         </template>
 
         <template v-slot:body="props">
@@ -72,7 +76,9 @@
                   <q-item-section side>
                     <q-icon name="edit" />
                   </q-item-section>
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("scriptsCommon.edit")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -83,11 +89,15 @@
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("scriptsCommon.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item clickable v-close-popup>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("scriptsCommon.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -98,7 +108,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Powershell </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellPowershell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.row.shell === 'python'"
@@ -106,7 +116,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Python </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellPython") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.row.shell === 'cmd'"
@@ -114,7 +124,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Batch </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellBatch") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.row.shell === 'shell'"
@@ -122,7 +132,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Shell </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellShell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.row.shell === 'nushell'"
@@ -130,7 +140,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Nushell </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellNushell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.row.shell === 'deno'"
@@ -138,7 +148,7 @@
                 color="primary"
                 size="sm"
               >
-                <q-tooltip> Deno </q-tooltip>
+                <q-tooltip>{{ $t("scriptsCommon.shellDeno") }}</q-tooltip>
               </q-icon>
             </q-td>
             <!-- name -->
@@ -153,38 +163,14 @@
 
 <script>
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchScriptSnippets, removeScriptSnippet } from "@/api/scripts";
 import { notifySuccess } from "@/utils/notify";
 
 // ui imports
 import ScriptSnippetFormModal from "@/components/scripts/ScriptSnippetFormModal.vue";
-
-// static data
-const columns = [
-  {
-    name: "shell",
-    label: "Shell",
-    field: "shell",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "name",
-    label: "Name",
-    field: "name",
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "desc",
-    label: "Description",
-    field: "description",
-    align: "left",
-    sortable: false,
-  },
-];
 
 export default {
   name: "ScriptSnippetManager",
@@ -193,6 +179,34 @@ export default {
     // setup quasar plugins
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
     const $q = useQuasar();
+
+    // i18n
+    const { t } = useI18n();
+
+    // table columns (computed for language reactivity)
+    const columns = computed(() => [
+      {
+        name: "shell",
+        label: t("scriptSnippets.columnShell"),
+        field: "shell",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "name",
+        label: t("scriptsCommon.name"),
+        field: "name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "desc",
+        label: t("scriptsCommon.description"),
+        field: "description",
+        align: "left",
+        sortable: false,
+      },
+    ]);
 
     // script snippet manager logic
     const snippets = ref([]);
@@ -209,9 +223,9 @@ export default {
 
     function deleteSnippet(snippet) {
       $q.dialog({
-        title: `Delete script snippet: ${snippet.name}?`,
+        title: t("scriptSnippets.deleteTitle", { name: snippet.name }),
         cancel: true,
-        ok: { label: "Delete", color: "negative" },
+        ok: { label: t("scriptsCommon.delete"), color: "negative" },
       }).onOk(async () => {
         loading.value = true;
         try {

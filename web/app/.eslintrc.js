@@ -241,6 +241,16 @@ module.exports = {
         // con t. Valores del backend (start_type/status) NO se traducen.
         "src/components/agents/remotebg/ServicesManager.vue",
         "src/components/agents/remotebg/ServiceDetail.vue",
+        // Ola 13: scripts/ MEDIANOS — ScriptFormModal + ScriptSnippets +
+        // ScriptSnippetFormModal + ScriptUploadModal. Namespace COMPARTIDO
+        // scriptsCommon (campos name/description/shellType/category/... + nombres
+        // de shell idénticos es/en + botones save/cancel/close/add). i18n-t con
+        // slots para avisos con <code>/<strong>/<em> (shebang + test-on-server).
+        // Constante JS envVarsLabel NO se traduce; shellOptions vive en composable.
+        "src/components/scripts/ScriptFormModal.vue",
+        "src/components/scripts/ScriptSnippets.vue",
+        "src/components/scripts/ScriptSnippetFormModal.vue",
+        "src/components/scripts/ScriptUploadModal.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

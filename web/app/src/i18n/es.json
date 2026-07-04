@@ -1563,5 +1563,73 @@
     "serviceStatus": "Estado del servicio:",
     "cancel": "Cancelar",
     "save": "Guardar"
+  },
+  "scriptsCommon": {
+    "name": "Nombre",
+    "description": "Descripción",
+    "shellType": "Tipo de shell",
+    "category": "Categoría",
+    "supportedPlatforms": "Plataformas compatibles (todas si se deja en blanco)",
+    "scriptArguments": "Argumentos del script",
+    "environmentVariables": "Variables de entorno",
+    "required": "*Requerido",
+    "minTimeout": "El mínimo es 5",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "add": "Agregar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "newBtn": "Nuevo",
+    "generateScript": "Generar script",
+    "chatGptTitle": "¡Pregúntale a ChatGPT lo que necesitas!",
+    "chatGptPrompt": "código {lang} que ",
+    "shellPowershell": "Powershell",
+    "shellPython": "Python",
+    "shellBatch": "Batch",
+    "shellShell": "Shell",
+    "shellNushell": "Nushell",
+    "shellDeno": "Deno"
+  },
+  "scriptFormModal": {
+    "titleAdding": "Agregando nuevo script",
+    "titleViewing": "Viendo {name}",
+    "titleCopying": "Copiando {name}",
+    "titleEditing": "Editando {name}",
+    "copyName": "(Copia) {name}",
+    "shebangWarning": "Los scripts Shell/Python en Linux/Mac necesitan un shebang al inicio del script, p. ej. {bash} o {python}{br}Agrega uno para eliminar esta advertencia. Ignóralo en Windows.",
+    "scriptArgsLabel": "Argumentos del script (presiona Enter después de escribir cada argumento)",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
+    "syntax": "Sintaxis",
+    "runAsUser": "Ejecutar como usuario (solo Windows)",
+    "runAsUserTip": "Establecer este valor en el modelo del script siempre anulará cualquier casilla 'Ejecutar como usuario' de la interfaz y forzará que este script se ejecute siempre en el contexto del usuario conectado. Si no hay ningún usuario conectado, el script se ejecutará como SYSTEM.",
+    "agentToTest": "Agente donde probar el script",
+    "testScript": "Probar script",
+    "testOnServer": "Probar en el servidor de Observer",
+    "testOnServerTip": "{strong}{br1}Solo se usarán los intérpretes o frameworks disponibles.{br2}{em} los scripts de PowerShell requieren que PowerShell esté instalado en el sistema.",
+    "testOnServerTipStrong": "Se ejecuta en el servidor Linux local de Observer RMM.",
+    "testOnServerTipExample": "Ejemplo:",
+    "unsavedChanges": "Tienes cambios sin guardar. ¿Seguro que quieres cerrar?",
+    "shebangRequiredError": "Se requiere un shebang al inicio del script para especificar la ruta del intérprete. Asegúrate de que tu script comience con una línea shebang.",
+    "shebangBash": "#!/bin/bash",
+    "shebangPython": "#!/usr/bin/python3"
+  },
+  "scriptSnippetForm": {
+    "titleAdding": "Agregando nuevo fragmento de script",
+    "titleEditing": "Editando {name}"
+  },
+  "scriptSnippets": {
+    "title": "Fragmentos de script",
+    "columnShell": "Shell",
+    "deleteTitle": "¿Eliminar fragmento de script: {name}?"
+  },
+  "scriptUpload": {
+    "title": "Agregar script",
+    "categoryHint": "Presiona Enter o Tab al agregar un nuevo valor",
+    "scriptUploadLabel": "Subir script",
+    "type": "Tipo",
+    "argsPlaceholder": "(presiona Enter después de escribir cada argumento)",
+    "envVarsPlaceholder": "(presiona Enter después de escribir cada par clave=valor)",
+    "defaultTimeout": "Tiempo de espera predeterminado"
   }
 }

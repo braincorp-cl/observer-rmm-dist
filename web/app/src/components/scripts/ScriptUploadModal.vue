@@ -2,26 +2,28 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="width: 40vw">
       <q-bar>
-        Add Script
+        {{ $t("scriptUpload.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("scriptsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form id="scriptUploadForm" @submit="submitForm">
         <q-card-section>
           <q-input
-            label="Name"
+            :label="$t('scriptsCommon.name')"
             outlined
             dense
             v-model="script.name"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('scriptsCommon.required')]"
           />
         </q-card-section>
 
         <q-card-section>
           <q-input
-            label="Description"
+            :label="$t('scriptsCommon.description')"
             outlined
             dense
             v-model="script.description"
@@ -32,8 +34,8 @@
           <observer-dropdown
             v-model="script.category"
             :options="categories"
-            label="Category"
-            hint="Press Enter or Tab when adding a new value"
+            :label="$t('scriptsCommon.category')"
+            :hint="$t('scriptUpload.categoryHint')"
             outlined
             filterable
             clearable
@@ -42,7 +44,13 @@
         </q-card-section>
 
         <q-card-section>
-          <q-file label="Script Upload" v-model="file" filled dense counter>
+          <q-file
+            :label="$t('scriptUpload.scriptUploadLabel')"
+            v-model="file"
+            filled
+            dense
+            counter
+          >
             <template v-slot:prepend>
               <q-icon name="attach_file" />
             </template>
@@ -53,7 +61,7 @@
           <observer-dropdown
             v-model="script.shell"
             :options="shellOptions"
-            label="Type"
+            :label="$t('scriptUpload.type')"
             outlined
             mapOptions
           />
@@ -63,7 +71,7 @@
           <observer-dropdown
             v-model="script.supported_platforms"
             :options="agentPlatformOptions"
-            label="Supported Platforms (All supported if blank)"
+            :label="$t('scriptsCommon.supportedPlatforms')"
             clearable
             mapOptions
             filled
@@ -74,8 +82,8 @@
         <q-card-section>
           <observer-dropdown
             v-model="script.args"
-            label="Script Arguments"
-            placeholder="(press Enter after typing each argument)"
+            :label="$t('scriptsCommon.scriptArguments')"
+            :placeholder="$t('scriptUpload.argsPlaceholder')"
             filled
             use-input
             multiple
@@ -88,8 +96,8 @@
         <q-card-section>
           <observer-dropdown
             v-model="script.env_vars"
-            label="Environment Variables"
-            placeholder="(press Enter after typing each key=value pair)"
+            :label="$t('scriptsCommon.environmentVariables')"
+            :placeholder="$t('scriptUpload.envVarsPlaceholder')"
             filled
             use-input
             multiple
@@ -101,23 +109,23 @@
 
         <q-card-section>
           <q-input
-            label="Default Timeout"
+            :label="$t('scriptUpload.defaultTimeout')"
             type="number"
             outlined
             dense
             v-model.number="script.default_timeout"
-            :rules="[(val) => val >= 5 || 'Minimum is 5']"
+            :rules="[(val) => val >= 5 || $t('scriptsCommon.minTimeout')]"
           />
         </q-card-section>
 
         <q-card-actions>
           <q-space />
-          <q-btn dense flat label="Cancel" v-close-popup />
+          <q-btn dense flat :label="$t('scriptsCommon.cancel')" v-close-popup />
           <q-btn
             :loading="loading"
             dense
             flat
-            label="Add"
+            :label="$t('scriptsCommon.add')"
             color="primary"
             type="submit"
           />

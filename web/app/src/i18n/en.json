@@ -1563,5 +1563,73 @@
     "serviceStatus": "Service status:",
     "cancel": "Cancel",
     "save": "Save"
+  },
+  "scriptsCommon": {
+    "name": "Name",
+    "description": "Description",
+    "shellType": "Shell Type",
+    "category": "Category",
+    "supportedPlatforms": "Supported Platforms (All supported if blank)",
+    "scriptArguments": "Script Arguments",
+    "environmentVariables": "Environment Variables",
+    "required": "*Required",
+    "minTimeout": "Minimum is 5",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "newBtn": "New",
+    "generateScript": "Generate Script",
+    "chatGptTitle": "Ask ChatGPT what you need!",
+    "chatGptPrompt": "{lang} code that ",
+    "shellPowershell": "Powershell",
+    "shellPython": "Python",
+    "shellBatch": "Batch",
+    "shellShell": "Shell",
+    "shellNushell": "Nushell",
+    "shellDeno": "Deno"
+  },
+  "scriptFormModal": {
+    "titleAdding": "Adding new script",
+    "titleViewing": "Viewing {name}",
+    "titleCopying": "Copying {name}",
+    "titleEditing": "Editing {name}",
+    "copyName": "(Copy) {name}",
+    "shebangWarning": "Shell/Python scripts on Linux/Mac need a shebang at the top of the script e.g. {bash} or {python}{br}Add one to get rid of this warning. Ignore if windows.",
+    "scriptArgsLabel": "Script Arguments (press Enter after typing each argument)",
+    "timeoutSeconds": "Timeout (seconds)",
+    "syntax": "Syntax",
+    "runAsUser": "Run As User (Windows only)",
+    "runAsUserTip": "Setting this value on the script model will always override any 'Run As User' checkboxes in the UI and force this script to always be run in the context of the logged in user. If no user is logged in, the script will run as SYSTEM.",
+    "agentToTest": "Agent to run test script on",
+    "testScript": "Test Script",
+    "testOnServer": "Test on Observer's Server",
+    "testOnServerTip": "{strong}{br1}Only available interpreters or frameworks will be used.{br2}{em} PowerShell scripts require PowerShell to be installed on the system.",
+    "testOnServerTipStrong": "Runs on Observer RMM local Linux Server.",
+    "testOnServerTipExample": "Example:",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to close?",
+    "shebangRequiredError": "A shebang is required at the top of the script to specify the interpreter's path. Please ensure your script begins with a shebang line.",
+    "shebangBash": "#!/bin/bash",
+    "shebangPython": "#!/usr/bin/python3"
+  },
+  "scriptSnippetForm": {
+    "titleAdding": "Adding New Script Snippet",
+    "titleEditing": "Editing {name}"
+  },
+  "scriptSnippets": {
+    "title": "Script Snippets",
+    "columnShell": "Shell",
+    "deleteTitle": "Delete script snippet: {name}?"
+  },
+  "scriptUpload": {
+    "title": "Add Script",
+    "categoryHint": "Press Enter or Tab when adding a new value",
+    "scriptUploadLabel": "Script Upload",
+    "type": "Type",
+    "argsPlaceholder": "(press Enter after typing each argument)",
+    "envVarsPlaceholder": "(press Enter after typing each key=value pair)",
+    "defaultTimeout": "Default Timeout"
   }
 }
