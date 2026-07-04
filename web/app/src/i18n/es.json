@@ -1631,5 +1631,45 @@
     "argsPlaceholder": "(presiona Enter después de escribir cada argumento)",
     "envVarsPlaceholder": "(presiona Enter después de escribir cada par clave=valor)",
     "defaultTimeout": "Tiempo de espera predeterminado"
+  },
+  "customFieldsCommon": {
+    "name": "Nombre",
+    "fieldType": "Tipo de campo",
+    "defaultValue": "Valor predeterminado",
+    "required": "Requerido",
+    "hideInSummary": "Ocultar en la pestaña Resumen",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar"
+  },
+  "customFieldsForm": {
+    "titleEdit": "Editar campo personalizado",
+    "titleAdd": "Agregar campo personalizado",
+    "target": "Destino",
+    "fieldRequired": "*Requerido",
+    "inputOptions": "Opciones de entrada (presiona Enter después de escribir cada opción)",
+    "defaultValues": "Valor(es) predeterminado(s)",
+    "hideInDashboard": "Ocultar en el panel",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "modelClient": "Cliente",
+    "modelSite": "Sitio",
+    "modelAgent": "Agente",
+    "typeText": "Texto",
+    "typeNumber": "Número",
+    "typeSingle": "Lista desplegable simple",
+    "typeMultiple": "Lista desplegable múltiple",
+    "typeDateTime": "Fecha y hora",
+    "typeCheckbox": "Casilla de verificación",
+    "defaultValueRule": "Se debe establecer un valor predeterminado para los campos requeridos",
+    "notifyEdited": "¡Campo personalizado editado!",
+    "notifyAdded": "¡Campo personalizado agregado!"
+  },
+  "customFieldsTable": {
+    "noData": "Sin campos personalizados",
+    "hideInUi": "Ocultar en la interfaz",
+    "idTooltip": "ID: {id}",
+    "deleteTitle": "¿Eliminar el campo personalizado {name}?",
+    "notifyDeleted": "¡El campo personalizado {name} fue eliminado!"
   }
 }

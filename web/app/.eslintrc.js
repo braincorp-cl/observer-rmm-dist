@@ -251,6 +251,13 @@ module.exports = {
         "src/components/scripts/ScriptSnippets.vue",
         "src/components/scripts/ScriptSnippetFormModal.vue",
         "src/components/scripts/ScriptUploadModal.vue",
+        // Ola 14: coresettings/ CustomFields — CustomFieldsForm + CustomFieldsTable
+        // (Options API puro: modelOptions/typeOptions/columns a computed con
+        // this.$t). Namespace COMPARTIDO customFieldsCommon (name/fieldType/
+        // defaultValue/required/hideInSummary/edit/delete/close). El valor de tipo
+        // renderizado en la tabla (capitalize(type)) es dato, NO se traduce.
+        "src/components/modals/coresettings/CustomFieldsForm.vue",
+        "src/components/modals/coresettings/CustomFieldsTable.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

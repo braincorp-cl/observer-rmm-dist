@@ -1631,5 +1631,45 @@
     "argsPlaceholder": "(press Enter after typing each argument)",
     "envVarsPlaceholder": "(press Enter after typing each key=value pair)",
     "defaultTimeout": "Default Timeout"
+  },
+  "customFieldsCommon": {
+    "name": "Name",
+    "fieldType": "Field Type",
+    "defaultValue": "Default Value",
+    "required": "Required",
+    "hideInSummary": "Hide in Summary Tab",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close"
+  },
+  "customFieldsForm": {
+    "titleEdit": "Edit Custom Field",
+    "titleAdd": "Add Custom Field",
+    "target": "Target",
+    "fieldRequired": "*Required",
+    "inputOptions": "Input Options (press Enter after typing each option)",
+    "defaultValues": "Default Value(s)",
+    "hideInDashboard": "Hide in Dashboard",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "modelClient": "Client",
+    "modelSite": "Site",
+    "modelAgent": "Agent",
+    "typeText": "Text",
+    "typeNumber": "Number",
+    "typeSingle": "Dropdown Single",
+    "typeMultiple": "Dropdown Multiple",
+    "typeDateTime": "DateTime",
+    "typeCheckbox": "Checkbox",
+    "defaultValueRule": "Default Value needs to be set for required fields",
+    "notifyEdited": "Custom field edited!",
+    "notifyAdded": "Custom field added!"
+  },
+  "customFieldsTable": {
+    "noData": "No Custom Fields",
+    "hideInUi": "Hide in UI",
+    "idTooltip": "ID: {id}",
+    "deleteTitle": "Delete custom field {name}?",
+    "notifyDeleted": "Custom Field {name} was deleted!"
   }
 }

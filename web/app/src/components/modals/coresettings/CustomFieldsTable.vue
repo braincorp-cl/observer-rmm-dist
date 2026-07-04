@@ -9,7 +9,7 @@
     hide-pagination
     virtual-scroll
     :rows-per-page-options="[0]"
-    no-data-label="No Custom Fields"
+    :no-data-label="$t('customFieldsTable.noData')"
   >
     <!-- body slots -->
     <template v-slot:body="props">
@@ -25,7 +25,9 @@
               <q-item-section side>
                 <q-icon name="edit" />
               </q-item-section>
-              <q-item-section>Edit</q-item-section>
+              <q-item-section>{{
+                $t("customFieldsCommon.edit")
+              }}</q-item-section>
             </q-item>
             <q-item
               clickable
@@ -35,20 +37,26 @@
               <q-item-section side>
                 <q-icon name="delete" />
               </q-item-section>
-              <q-item-section>Delete</q-item-section>
+              <q-item-section>{{
+                $t("customFieldsCommon.delete")
+              }}</q-item-section>
             </q-item>
 
             <q-separator></q-separator>
 
             <q-item clickable v-close-popup>
-              <q-item-section>Close</q-item-section>
+              <q-item-section>{{
+                $t("customFieldsCommon.close")
+              }}</q-item-section>
             </q-item>
           </q-list>
         </q-menu>
         <!-- name -->
         <q-td>
           {{ props.row.name }}
-          <q-tooltip :delay="600">ID: {{ props.row.id }}</q-tooltip>
+          <q-tooltip :delay="600">{{
+            $t("customFieldsTable.idTooltip", { id: props.row.id })
+          }}</q-tooltip>
         </q-td>
         <!-- type -->
         <q-td>
@@ -106,51 +114,55 @@ export default {
         sortBy: "name",
         descending: true,
       },
-      columns: [
+    };
+  },
+  computed: {
+    columns() {
+      return [
         {
           name: "name",
-          label: "Name",
+          label: this.$t("customFieldsCommon.name"),
           field: "name",
           align: "left",
           sortable: true,
         },
         {
           name: "type",
-          label: "Field Type",
+          label: this.$t("customFieldsCommon.fieldType"),
           field: "type",
           align: "left",
           sortable: true,
         },
         {
           name: "hide_in_ui",
-          label: "Hide in UI",
+          label: this.$t("customFieldsTable.hideInUi"),
           field: "hide_in_ui",
           align: "left",
           sortable: true,
         },
         {
           name: "hide_in_summary",
-          label: "Hide in Summary Tab",
+          label: this.$t("customFieldsCommon.hideInSummary"),
           field: "hide_in_summary",
           align: "left",
           sortable: true,
         },
         {
           name: "default_value",
-          label: "Default Value",
+          label: this.$t("customFieldsCommon.defaultValue"),
           field: "default_value",
           align: "left",
           sortable: true,
         },
         {
           name: "required",
-          label: "Required",
+          label: this.$t("customFieldsCommon.required"),
           field: "required",
           align: "left",
           sortable: true,
         },
-      ],
-    };
+      ];
+    },
   },
   methods: {
     editCustomField(field) {
@@ -168,9 +180,12 @@ export default {
     deleteCustomField(field) {
       this.$q
         .dialog({
-          title: `Delete custom field ${field.name}?`,
+          title: this.$t("customFieldsTable.deleteTitle", { name: field.name }),
           cancel: true,
-          ok: { label: "Delete", color: "negative" },
+          ok: {
+            label: this.$t("customFieldsCommon.delete"),
+            color: "negative",
+          },
         })
         .onOk(() => {
           this.$q.loading.show();
@@ -179,7 +194,11 @@ export default {
             .then(() => {
               this.refresh();
               this.$q.loading.hide();
-              this.notifySuccess(`Custom Field ${field.name} was deleted!`);
+              this.notifySuccess(
+                this.$t("customFieldsTable.notifyDeleted", {
+                  name: field.name,
+                }),
+              );
             })
             .catch(() => {
               this.$q.loading.hide();

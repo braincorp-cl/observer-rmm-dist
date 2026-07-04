@@ -5,14 +5,16 @@
         {{ title }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("customFieldsCommon.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit="submit">
         <!-- model select -->
         <q-card-section>
           <q-select
-            label="Target"
+            :label="$t('customFieldsForm.target')"
             :options="modelOptions"
             map-options
             emit-value
@@ -20,23 +22,23 @@
             dense
             :disable="editing"
             v-model="localField.model"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('customFieldsForm.fieldRequired')]"
           />
         </q-card-section>
         <!-- name -->
         <q-card-section>
           <q-input
-            label="Name"
+            :label="$t('customFieldsCommon.name')"
             outlined
             dense
             v-model="localField.name"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('customFieldsForm.fieldRequired')]"
           />
         </q-card-section>
         <!-- type select -->
         <q-card-section>
           <q-select
-            label="Field Type"
+            :label="$t('customFieldsCommon.fieldType')"
             :options="typeOptions"
             @update:model-value="clear"
             map-options
@@ -45,7 +47,7 @@
             dense
             :disable="editing"
             v-model="localField.type"
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('customFieldsForm.fieldRequired')]"
           />
         </q-card-section>
         <!-- input options select for single and multiple input type -->
@@ -54,7 +56,7 @@
         >
           <q-select
             dense
-            label="Input Options (press Enter after typing each option)"
+            :label="$t('customFieldsForm.inputOptions')"
             filled
             v-model="localField.options"
             use-input
@@ -76,7 +78,7 @@
             v-if="localField.type === 'datetime'"
             type="datetime-local"
             dense
-            label="Default Value"
+            :label="$t('customFieldsCommon.defaultValue')"
             stack-label
             outlined
             v-model="localField.default_value_string"
@@ -87,7 +89,7 @@
           <!-- For Checkbox -->
           <q-toggle
             v-else-if="localField.type == 'checkbox'"
-            label="Default Value"
+            :label="$t('customFieldsCommon.defaultValue')"
             v-model="localField.default_value_bool"
             color="green"
           />
@@ -95,7 +97,7 @@
           <!-- Dropdown Single -->
           <q-select
             v-else-if="localField.type === 'single'"
-            label="Default Value"
+            :label="$t('customFieldsCommon.defaultValue')"
             :options="localField.options"
             outlined
             dense
@@ -107,7 +109,7 @@
           <!-- Dropdown Multiple -->
           <q-select
             v-else-if="localField.type === 'multiple'"
-            label="Default Value(s)"
+            :label="$t('customFieldsForm.defaultValues')"
             :options="localField.options"
             outlined
             dense
@@ -120,7 +122,7 @@
           <!-- For everything else -->
           <q-input
             v-else
-            label="Default Value"
+            :label="$t('customFieldsCommon.defaultValue')"
             :type="localField.type === 'text' ? 'text' : 'number'"
             outlined
             dense
@@ -133,24 +135,29 @@
         <q-card-section>
           <q-toggle
             v-if="localField.type !== 'checkbox'"
-            label="Required"
+            :label="$t('customFieldsCommon.required')"
             v-model="localField.required"
             color="green"
           />
           <q-toggle
-            label="Hide in Dashboard"
+            :label="$t('customFieldsForm.hideInDashboard')"
             v-model="localField.hide_in_ui"
             color="green"
           />
           <q-toggle
-            label="Hide in Summary Tab"
+            :label="$t('customFieldsCommon.hideInSummary')"
             v-model="localField.hide_in_summary"
             color="green"
           />
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Submit" color="primary" type="submit" />
+          <q-btn flat :label="$t('customFieldsForm.cancel')" v-close-popup />
+          <q-btn
+            flat
+            :label="$t('customFieldsForm.submit')"
+            color="primary"
+            type="submit"
+          />
         </q-card-actions>
       </q-form>
     </q-card>
@@ -179,33 +186,37 @@ export default {
         hide_in_ui: false,
         hide_in_summary: false,
       },
-      modelOptions: [
-        { label: "Client", value: "client" },
-        { label: "Site", value: "site" },
-        { label: "Agent", value: "agent" },
-      ],
-      typeOptions: [
-        { label: "Text", value: "text" },
-        { label: "Number", value: "number" },
-        { label: "Dropdown Single", value: "single" },
-        { label: "Dropdown Multiple", value: "multiple" },
-        { label: "DateTime", value: "datetime" },
-        { label: "Checkbox", value: "checkbox" },
-      ],
     };
   },
   computed: {
+    modelOptions() {
+      return [
+        { label: this.$t("customFieldsForm.modelClient"), value: "client" },
+        { label: this.$t("customFieldsForm.modelSite"), value: "site" },
+        { label: this.$t("customFieldsForm.modelAgent"), value: "agent" },
+      ];
+    },
+    typeOptions() {
+      return [
+        { label: this.$t("customFieldsForm.typeText"), value: "text" },
+        { label: this.$t("customFieldsForm.typeNumber"), value: "number" },
+        { label: this.$t("customFieldsForm.typeSingle"), value: "single" },
+        { label: this.$t("customFieldsForm.typeMultiple"), value: "multiple" },
+        { label: this.$t("customFieldsForm.typeDateTime"), value: "datetime" },
+        { label: this.$t("customFieldsForm.typeCheckbox"), value: "checkbox" },
+      ];
+    },
     title() {
-      return this.editing ? "Edit Custom Field" : "Add Custom Field";
+      return this.editing
+        ? this.$t("customFieldsForm.titleEdit")
+        : this.$t("customFieldsForm.titleAdd");
     },
     editing() {
       return !!this.field;
     },
     defaultValueRules() {
       if (this.localField.required) {
-        return [
-          (val) => !!val || "Default Value needs to be set for required fields",
-        ];
+        return [(val) => !!val || this.$t("customFieldsForm.defaultValueRule")];
       } else {
         return [];
       }
@@ -225,7 +236,7 @@ export default {
           .then(() => {
             this.$q.loading.hide();
             this.onOk();
-            this.notifySuccess("Custom field edited!");
+            this.notifySuccess(this.$t("customFieldsForm.notifyEdited"));
           })
           .catch(() => {
             this.$q.loading.hide();
@@ -236,7 +247,7 @@ export default {
           .then(() => {
             this.$q.loading.hide();
             this.onOk();
-            this.notifySuccess("Custom field added!");
+            this.notifySuccess(this.$t("customFieldsForm.notifyAdded"));
           })
           .catch(() => {
             this.$q.loading.hide();
