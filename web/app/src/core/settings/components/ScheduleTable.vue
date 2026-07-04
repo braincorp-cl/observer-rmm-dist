@@ -1,14 +1,14 @@
 <template>
   <div>
     <div class="row">
-      <div class="text-subtitle2">Schedules</div>
+      <div class="text-subtitle2">{{ $t("scheduleTable.title") }}</div>
       <q-space />
       <q-btn
         size="sm"
         color="grey-5"
         icon="fas fa-plus"
         text-color="black"
-        label="Add Schedule"
+        :label="$t('scheduleTable.addSchedule')"
         @click="openAddScheduleForm"
       />
     </div>
@@ -36,13 +36,13 @@
                 @click="openEditScheduleForm(row)"
               >
                 <q-item-section>
-                  <q-item-label>Edit</q-item-label>
+                  <q-item-label>{{ $t("scheduleCommon.edit") }}</q-item-label>
                 </q-item-section>
               </q-item>
 
               <q-item clickable v-close-popup @click="removeSchedule(row)">
                 <q-item-section>
-                  <q-item-label>Delete</q-item-label>
+                  <q-item-label>{{ $t("scheduleCommon.delete") }}</q-item-label>
                 </q-item-section>
               </q-item>
 
@@ -50,7 +50,7 @@
 
               <q-item clickable v-close-popup>
                 <q-item-section>
-                  <q-item-label>Close</q-item-label>
+                  <q-item-label>{{ $t("scheduleCommon.close") }}</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
@@ -66,8 +66,9 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from "vue";
+import { onMounted, computed } from "vue";
 import { QTableColumn, useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useScheduleShared } from "../api";
 import type { Schedule } from "../types";
 
@@ -75,118 +76,124 @@ import type { Schedule } from "../types";
 import ScheduleForm from "./ScheduleForm.vue";
 import ObserverTable from "src/core/dashboard/ui/ObserverTable.vue";
 import { until } from "@vueuse/shared";
-import { capitalize } from "@/utils/format";
 
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const { t } = useI18n();
 
-const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const columns = computed<QTableColumn[]>(() => {
+  const monthsAbbrev = [
+    t("scheduleTable.monthAbbrJan"),
+    t("scheduleTable.monthAbbrFeb"),
+    t("scheduleTable.monthAbbrMar"),
+    t("scheduleTable.monthAbbrApr"),
+    t("scheduleTable.monthAbbrMay"),
+    t("scheduleTable.monthAbbrJun"),
+    t("scheduleTable.monthAbbrJul"),
+    t("scheduleTable.monthAbbrAug"),
+    t("scheduleTable.monthAbbrSep"),
+    t("scheduleTable.monthAbbrOct"),
+    t("scheduleTable.monthAbbrNov"),
+    t("scheduleTable.monthAbbrDec"),
+  ];
 
-function getAbbrevMonth(n: number) {
-  return months[n - 1];
-}
+  const weekDaysAbbrev = [
+    t("scheduleTable.weekdayAbbrSun"),
+    t("scheduleTable.weekdayAbbrMon"),
+    t("scheduleTable.weekdayAbbrTue"),
+    t("scheduleTable.weekdayAbbrWed"),
+    t("scheduleTable.weekdayAbbrThu"),
+    t("scheduleTable.weekdayAbbrFri"),
+    t("scheduleTable.weekdayAbbrSat"),
+  ];
 
-function getAbbrevWeekday(n: number) {
-  return weekDays[n];
-}
+  const scheduleTypeLabels: Record<string, string> = {
+    daily: t("scheduleCommon.daily"),
+    weekly: t("scheduleCommon.weekly"),
+    monthly: t("scheduleCommon.monthly"),
+  };
 
-const columns: QTableColumn[] = [
-  {
-    name: "name",
-    label: "Name",
-    align: "left",
-    field: "name",
-    sortable: true,
-    required: true,
-  },
-  {
-    name: "schedule_type",
-    label: "Schedule Type",
-    align: "left",
-    field: "schedule_type",
-    sortable: true,
-    format: (val: string) => capitalize(val),
-  },
-  {
-    name: "run_time",
-    label: "Run Time",
-    align: "left",
-    field: "run_time",
-    sortable: true,
-    format: (val: string) => {
-      const parts = val.split(":");
-      return `${parts[0]}:${parts[1]}`;
+  const weekOrdinals: Record<number, string> = {
+    1: t("scheduleTable.ordFirst"),
+    2: t("scheduleTable.ordSecond"),
+    3: t("scheduleTable.ordThird"),
+    4: t("scheduleTable.ordFourth"),
+    5: t("scheduleTable.ordLast"),
+  };
+
+  return [
+    {
+      name: "name",
+      label: t("scheduleCommon.name"),
+      align: "left",
+      field: "name",
+      sortable: true,
+      required: true,
     },
-  },
-  {
-    name: "run_time_weekdays",
-    label: "Weekdays",
-    align: "left",
-    field: "run_time_weekdays",
-    format: (val: number[]) => {
-      if (val.length === 7) return "Every Weekday";
-      else return val.map((weekday) => getAbbrevWeekday(weekday)).join(", ");
+    {
+      name: "schedule_type",
+      label: t("scheduleTable.colScheduleType"),
+      align: "left",
+      field: "schedule_type",
+      sortable: true,
+      format: (val: string) => scheduleTypeLabels[val] ?? val,
     },
-  },
-  {
-    name: "monthly_months_of_year",
-    label: "Months",
-    align: "left",
-    field: "monthly_months_of_year",
-    format: (val: number[]) => {
-      if (val.length === 12) return "Every Month";
-      else {
-        return val.map((month) => getAbbrevMonth(month)).join(", ");
-      }
+    {
+      name: "run_time",
+      label: t("scheduleTable.colRunTime"),
+      align: "left",
+      field: "run_time",
+      sortable: true,
+      format: (val: string) => {
+        const parts = val.split(":");
+        return `${parts[0]}:${parts[1]}`;
+      },
     },
-  },
-  {
-    name: "monthly_days_of_month",
-    label: "Days of Month",
-    align: "left",
-    field: "monthly_days_of_month",
-    format: (val: number[]) => {
-      if (val.length >= 31) return "Every Day";
-      else return val.map((day) => (day !== 32 ? day : "Last")).join(", ");
+    {
+      name: "run_time_weekdays",
+      label: t("scheduleTable.colWeekdays"),
+      align: "left",
+      field: "run_time_weekdays",
+      format: (val: number[]) => {
+        if (val.length === 7) return t("scheduleTable.everyWeekday");
+        else return val.map((weekday) => weekDaysAbbrev[weekday]).join(", ");
+      },
     },
-  },
-  {
-    name: "monthly_weeks_of_month",
-    label: "Weeks of Month",
-    align: "left",
-    field: "monthly_weeks_of_month",
-    format: (val: number[]) => {
-      if (val.length === 5) return "Every week";
-      return val
-        .map((week) => {
-          if (week === 1) {
-            return "1st";
-          } else if (week === 2) {
-            return "2nd";
-          } else if (week === 3) {
-            return "3rd";
-          } else if (week === 4) {
-            return "4th";
-          } else if (week === 5) {
-            return "Last";
-          }
-        })
-        .join(", ");
+    {
+      name: "monthly_months_of_year",
+      label: t("scheduleTable.colMonths"),
+      align: "left",
+      field: "monthly_months_of_year",
+      format: (val: number[]) => {
+        if (val.length === 12) return t("scheduleTable.everyMonth");
+        else {
+          return val.map((month) => monthsAbbrev[month - 1]).join(", ");
+        }
+      },
     },
-  },
-];
+    {
+      name: "monthly_days_of_month",
+      label: t("scheduleTable.colDaysOfMonth"),
+      align: "left",
+      field: "monthly_days_of_month",
+      format: (val: number[]) => {
+        if (val.length >= 31) return t("scheduleTable.everyDay");
+        else
+          return val
+            .map((day) => (day !== 32 ? day : t("scheduleTable.ordLast")))
+            .join(", ");
+      },
+    },
+    {
+      name: "monthly_weeks_of_month",
+      label: t("scheduleTable.colWeeksOfMonth"),
+      align: "left",
+      field: "monthly_weeks_of_month",
+      format: (val: number[]) => {
+        if (val.length === 5) return t("scheduleTable.everyWeek");
+        return val.map((week) => weekOrdinals[week]).join(", ");
+      },
+    },
+  ];
+});
 
 const $q = useQuasar();
 
@@ -211,7 +218,7 @@ function openAddScheduleForm() {
 function removeSchedule(schedule: Schedule) {
   $q.dialog({
     color: "primary",
-    message: `Are you sure you want to delete schedule: ${schedule.name}?`,
+    message: t("scheduleTable.deleteConfirm", { name: schedule.name }),
     ok: {
       color: "negative",
     },

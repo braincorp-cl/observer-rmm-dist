@@ -285,6 +285,18 @@ module.exports = {
         "src/components/automation/modals/PolicyAdd.vue",
         "src/components/automation/modals/PolicyForm.vue",
         "src/components/automation/modals/PolicyExclusions.vue",
+        // Ola 18: core/settings/ schedules — ScheduleForm + ScheduleTable
+        // (par form/tabla, script setup, useI18n; se renderiza dentro de
+        // EditCoreSettings). Namespace COMPARTIDO scheduleCommon (name/edit/
+        // delete/close/cancel/save/required + daily/weekly/monthly). Arrays de
+        // opciones (días/meses/semanas) movidos a computed con t() para reaccionar
+        // al cambio de idioma en caliente. En la tabla, las funciones format() de
+        // las columnas (abreviaturas de mes/día, ordinales de semana, "Every X")
+        // NO las marca no-raw-text (son bindings {{col.value}}, no literales en la
+        // vista) pero se traducen igual por calidad; schedule_type se mapea a
+        // scheduleCommon.daily/weekly/monthly (antes capitalize() del valor crudo).
+        "src/core/settings/components/ScheduleForm.vue",
+        "src/core/settings/components/ScheduleTable.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
