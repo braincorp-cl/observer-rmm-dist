@@ -358,6 +358,19 @@ module.exports = {
         // → "Observer RMM" en AMBOS idiomas (precedente RolesForm). placeholder de
         // ejemplo (+12131231234) se mantiene literal (no es texto traducible).
         "src/components/modals/coresettings/EditCoreSettings.vue",
+        // Ola 24 (GRANDE): ScriptManager — modal gestor de scripts (vista árbol +
+        // tabla, menú contextual, dropdown "New"). Options API con setup()
+        // Composition (const { t } = useI18n()). REUSA namespace scriptsCommon
+        // (name/description/category/close/edit/delete/newBtn/shell*) de la ola 13
+        // + namespace propio scriptManager para lo específico. columns movido de
+        // const de módulo a computed dentro de setup() con t() (reactividad de
+        // idioma), igual que ScriptSnippets. VText (título, ítems de menú, tooltips
+        // de shell, headers, badge "All", no-data) → {{ $t }}; ternarios favorito/
+        // oculto dentro de {{}} → $t; labels/no-*-label estáticos → binding $t por
+        // calidad. Notificaciones (favorited/hidden) y diálogo de borrado vía t().
+        // "ID: {id}" con interpolación. trmmLogo es asset (logo scripts community
+        // builtin), no texto traducible.
+        "src/components/scripts/ScriptManager.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
