@@ -371,6 +371,18 @@ module.exports = {
         // "ID: {id}" con interpolación. trmmLogo es asset (logo scripts community
         // builtin), no texto traducible.
         "src/components/scripts/ScriptManager.vue",
+        // Ola 25 (long tail i18n, GRANDE 1013 líneas): AlertTemplateForm es el
+        // wizard de 5 pasos (q-stepper) para crear/editar plantillas de alerta:
+        // General/Actions/Agent Overdue/Check/Task Settings. <script setup>
+        // (const { t } = useI18n()). REUSA alertsModalsCommon (close/submit) de
+        // la ola 16 + namespace propio alertTemplate para lo específico (70 claves).
+        // VText de los subtítulos y tooltips → {{ $t }}; título ternario del q-bar
+        // → $t ambas ramas; labels/hints/titles estáticos → binding $t por calidad;
+        // mensajes de :rules → $t. severityOptions y staticActionTypeOptions movidos
+        // a computed con t() (reactividad de idioma); actionTypeOptions usa .value.
+        // Diálogos $q.dialog (Add email/Add number, HTML E.164) y notificaciones vía
+        // t(). Debranding: "TRMM Server" → "Observer RMM Server" en ambos idiomas.
+        "src/components/modals/alerts/AlertTemplateForm.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
