@@ -394,6 +394,15 @@ module.exports = {
         // registryManager (23 claves). "Computer" (token de path) y "New_Key"
         // (nombre real de clave escrito al registro) quedan como datos, no se traducen.
         "src/components/agents/remotebg/RegistryManager.vue",
+        // Ola 27 (long tail i18n, GRANDE 1293 líneas, ÚLTIMO GRANDE):
+        // AutomatedTaskForm — wizard q-stepper de 3 pasos (Options API con setup()).
+        // 8 constantes de opciones de módulo (severity/taskType/dayOfWeek/dayOfMonth/
+        // month/week/taskInstancePolicy/plat) usadas SOLO aquí → movidas a computed
+        // locales con t() (reactividad de idioma; toggle* usan .value). VText, labels,
+        // hints, placeholders, mensajes de reglas de validación y notifyError → $t/t().
+        // Namespace propio automatedTask (123 claves). envVarsLabel (constante de
+        // config compartida) se deja sin traducir por consistencia con el resto.
+        "src/components/tasks/AutomatedTaskForm.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
