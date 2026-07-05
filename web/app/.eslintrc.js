@@ -383,6 +383,17 @@ module.exports = {
         // Diálogos $q.dialog (Add email/Add number, HTML E.164) y notificaciones vía
         // t(). Debranding: "TRMM Server" → "Observer RMM Server" en ambos idiomas.
         "src/components/modals/alerts/AlertTemplateForm.vue",
+        // Ola 26 (long tail i18n, GRANDE 1066 líneas): RegistryManager — editor de
+        // registro de Windows (q-tree lazy + q-splitter + q-table de valores).
+        // <script setup>. Cierra el dominio agents/remotebg/. registryTableColumns
+        // y registryValueTypes se usaban SOLO aquí → movidos de constants.ts a
+        // computed locales con t() (reactividad de idioma; columns/valueTypes).
+        // VText de menús contextuales (New/Refresh/Rename/Delete/Modify) → {{ $t }};
+        // label="Load More" y no-data-label → binding; props title/message de los
+        // ConfirmDialog → $t; notify REG_BINARY → t(). Namespace propio
+        // registryManager (23 claves). "Computer" (token de path) y "New_Key"
+        // (nombre real de clave escrito al registro) quedan como datos, no se traducen.
+        "src/components/agents/remotebg/RegistryManager.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
