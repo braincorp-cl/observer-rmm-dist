@@ -2390,5 +2390,31 @@
     "selectAll": "Seleccionar todo",
     "update": "Actualizar",
     "updateStarted": "Los agentes se actualizarán ahora"
+  },
+  "agentDownload": {
+    "title": "Instrucciones de instalación manual",
+    "windowsIntro": "Descarga el agente y luego ejecuta el siguiente comando desde un símbolo del sistema con privilegios elevados en el dispositivo que quieres agregar.",
+    "darwinIntro": "Ejecuta el siguiente comando desde una terminal",
+    "copyToClipboard": "Copiar al portapapeles",
+    "copiedToClipboard": "Copiado al portapapeles",
+    "viewOptionalArgs": "Ver argumentos opcionales de línea de comandos",
+    "descLogDebug": "Para habilitar salida detallada durante la instalación",
+    "descSilent": "No mostrar ningún cuadro de mensaje durante la instalación",
+    "descLocalMesh": "Para omitir la descarga del Mesh Agent durante la instalación.",
+    "descMeshdir": "Especifica la ruta completa al directorio que contiene MeshAgent.exe si usas branding de agente personalizado",
+    "descNomesh": "No instalar el mesh agent",
+    "descCert": "Para usar una CA de dominio",
+    "descDesc": "Establecer el campo de descripción del agente durante la instalación",
+    "descProxy": "Usar un proxy http",
+    "authNote": "Nota: el token de autenticación anterior será válido por {expires} horas.",
+    "downloadAgent": "Descargar agente",
+    "argLogDebug": "-log debug",
+    "argSilent": "-silent",
+    "argLocalMesh": "-local-mesh \"C:\\\\<some folder or path>\\\\meshagent.exe\"",
+    "argMeshdir": "-meshdir \"C:\\Program Files\\Your Company Name\\Mesh Agent\"",
+    "argNomesh": "-nomesh",
+    "argCert": "-cert \"C:\\\\<some folder or path>\\\\ca.pem\"",
+    "argDesc": "-desc \"Desired custom description on agent\"",
+    "argProxy": "-proxy \"http://proxyserver:port\""
   }
 }

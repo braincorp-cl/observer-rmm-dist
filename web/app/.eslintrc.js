@@ -178,8 +178,8 @@ module.exports = {
         "src/components/modals/coresettings/KeyStoreForm.vue",
         "src/components/modals/coresettings/ResetPatchPolicy.vue",
         "src/components/modals/coresettings/TestURLAction.vue",
-        // Ola 8f: chicos varios (App/ObserverTable limpios). AgentDownload DIFERIDO
-        // (bloques <code> con flags CLI requieren decisión de config del gate).
+        // Ola 8f: chicos varios (App/ObserverTable limpios). AgentDownload se
+        // gateó en la ola 28 (ver más abajo; flags CLI en <code> vía $t es/en idéntico).
         "src/App.vue",
         "src/core/dashboard/ui/ObserverTable.vue",
         "src/components/agents/WmiDetail.vue",
@@ -403,6 +403,16 @@ module.exports = {
         // Namespace propio automatedTask (123 claves). envVarsLabel (constante de
         // config compartida) se deja sin traducir por consistencia con el resto.
         "src/components/tasks/AutomatedTaskForm.vue",
+        // Ola 28 (long tail i18n, ÚLTIMO de 128): AgentDownload — modal de
+        // instrucciones de instalación manual (Options API con setup()). Los
+        // literales de flags CLI dentro de <code> (-log debug, -silent, -nomesh,
+        // -cert "...", etc.) se enrutan por $t con clave de valor IDÉNTICO es/en
+        // (patrón token técnico, precedente shebangBash/Python de ScriptFormModal);
+        // NO se tocó la config del gate. Texto de UI (título, intros win/darwin,
+        // descripciones de cada flag, nota del auth token, labels) traducido normal.
+        // authNote usa interpolación {expires}. Namespace agentDownload (24 claves).
+        // CIERRA i18n UI 128/128.
+        "src/components/modals/agents/AgentDownload.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
