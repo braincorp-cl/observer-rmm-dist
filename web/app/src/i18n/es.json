@@ -2117,7 +2117,10 @@
     "required": "*Requerido",
     "daily": "Diaria",
     "weekly": "Semanal",
-    "monthly": "Mensual"
+    "monthly": "Mensual",
+    "addedSuccess": "Programación agregada correctamente.",
+    "modifiedSuccess": "Programación modificada correctamente.",
+    "deletedSuccess": "Programación eliminada correctamente."
   },
   "scheduleForm": {
     "titleAdd": "Agregar programación",
@@ -2416,5 +2419,8 @@
     "argCert": "-cert \"C:\\\\<some folder or path>\\\\ca.pem\"",
     "argDesc": "-desc \"Desired custom description on agent\"",
     "argProxy": "-proxy \"http://proxyserver:port\""
+  },
+  "common": {
+    "copiedToClipboard": "Copiado al portapapeles"
   }
 }

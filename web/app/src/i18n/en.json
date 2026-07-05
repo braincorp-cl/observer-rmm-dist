@@ -2117,7 +2117,10 @@
     "required": "*Required",
     "daily": "Daily",
     "weekly": "Weekly",
-    "monthly": "Monthly"
+    "monthly": "Monthly",
+    "addedSuccess": "Schedule was added successfully.",
+    "modifiedSuccess": "Schedule was modified successfully.",
+    "deletedSuccess": "Schedule successfully deleted."
   },
   "scheduleForm": {
     "titleAdd": "Add Schedule",
@@ -2416,5 +2419,8 @@
     "argCert": "-cert \"C:\\\\<some folder or path>\\\\ca.pem\"",
     "argDesc": "-desc \"Desired custom description on agent\"",
     "argProxy": "-proxy \"http://proxyserver:port\""
+  },
+  "common": {
+    "copiedToClipboard": "Copied to clipboard"
   }
 }
