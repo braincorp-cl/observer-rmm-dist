@@ -344,6 +344,20 @@ module.exports = {
         "src/components/graphs/CheckGraph.vue",
         "src/components/FileBrowser.vue",
         "src/components/modals/agents/UpdateAgents.vue",
+        // Ola 23 (primer GRANDE): EditCoreSettings — modal de configuración global
+        // con 11 pestañas (General/Email/SMS/MeshCentral/CustomFields/KeyStore/
+        // URLActions/WebHooks/Retention/APIKeys/Schedules). Options API ($t global
+        // en template, this.$t en script). Namespace propio editCoreSettings.
+        // Tabs/labels/hints estáticos → binding $t; VText (títulos, "col-*" labels,
+        // tooltips) → {{ $t }}; reglas de validación (:rules) e :hint traducidos
+        // por calidad aunque no los marque no-raw-text. logLevelOptions movido de
+        // data() a computed con this.$t (reactividad de idioma). Diálogos $q.dialog
+        // (confirmSync/addEmail/addNumber con HTML en message) + loading + notify
+        // vía this.$t. DEBRANDEO cero-tactical: 3 refs "TRMM" en textos visibles
+        // (tooltip server scripts + "Sync Mesh Perms with TRMM" + tooltip permisos)
+        // → "Observer RMM" en AMBOS idiomas (precedente RolesForm). placeholder de
+        // ejemplo (+12131231234) se mantiene literal (no es texto traducible).
+        "src/components/modals/coresettings/EditCoreSettings.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
