@@ -118,7 +118,12 @@ InstallMesh() {
 
 RemoveMesh() {
     if [ -f "${meshSystemBin}" ]; then
-        env XAUTHORITY=foo DISPLAY=bar ${meshSystemBin} -uninstall
+        # -fulluninstall (no -uninstall): el agente remueve su PROPIO nodo en el
+        # server MeshCentral al desconectarse, no sólo el servicio local. Evita
+        # el race del borrado de un agente vivo desde la UI, donde el keepalive
+        # del meshagent re-agrega el nodo justo después del removedevices del RMM
+        # y lo deja huérfano. En reinstalación, además limpia el nodo viejo.
+        env XAUTHORITY=foo DISPLAY=bar ${meshSystemBin} -fulluninstall
         sleep 1
     fi
 

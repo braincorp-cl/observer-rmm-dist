@@ -26,8 +26,13 @@ if TYPE_CHECKING:
     from django.db.models.query import QuerySet
 
 
+# Pasadas espaciadas del borrado del nodo Mesh (ver remove_mesh_node_task).
+MESH_NODE_REMOVE_PASSES = 3
+MESH_NODE_REMOVE_INTERVAL = 30
+
+
 @app.task(rate_limit="20/s")
-def remove_mesh_node_task(mesh_node_id: Optional[str]) -> str:
+def remove_mesh_node_task(mesh_node_id: Optional[str], _pass: int = 0) -> str:
     """Borra el nodo del agente en MeshCentral tras eliminarse el Agent.
 
     Se dispara desde la señal post_delete de Agent (ver agents/signals.py),
@@ -38,6 +43,15 @@ def remove_mesh_node_task(mesh_node_id: Optional[str]) -> str:
     worker evitan saturar el puerto de control 4430 (compartido con los
     agentes en vivo). Para limpieza masiva del backlog histórico se usa el
     runbook SQL vía bulk_delete_orphans_meshagents, no esta ruta.
+
+    Reintento diferido (defensa contra el race del agente vivo): al borrar un
+    agente ONLINE, la señal corre casi a la par del `uninstall` por NATS. El
+    meshagent sigue conectado unos segundos y RE-AGREGA el nodo (keepalive)
+    justo después de esta remoción, dejándolo huérfano. Como removedevices es
+    idempotente, reprogramamos pasadas espaciadas: una pasada posterior corre
+    cuando el agente ya se desconectó y deja el nodo borrado de forma estable.
+    Para agentes muertos/offline (el caso principal) la 1ª pasada ya basta y
+    las siguientes son no-ops baratos.
     """
     if not mesh_node_id:
         return "skipped: agent sin mesh_node_id"
@@ -50,7 +64,11 @@ def remove_mesh_node_task(mesh_node_id: Optional[str]) -> str:
             log_type=DebugLogType.AGENT_ISSUES,
         )
         return f"error: {e}"
-    return f"nodo mesh borrado: {mesh_node_id}"
+    if _pass < MESH_NODE_REMOVE_PASSES - 1:
+        remove_mesh_node_task.apply_async(
+            (mesh_node_id, _pass + 1), countdown=MESH_NODE_REMOVE_INTERVAL
+        )
+    return f"nodo mesh borrado (pasada {_pass}): {mesh_node_id}"
 
 
 @app.task
