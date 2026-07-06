@@ -104,6 +104,15 @@ class Command(BaseCommand):
         if delete:
             reload_nats()
             self.stdout.write(self.style.SUCCESS(f"Deleted {deleted_count} agents"))
+            # El nodo Mesh de cada agente se borra vía la señal post_delete de
+            # Agent (tarea Celery throttled), así que no quedan huérfanos.
+            self.stdout.write(
+                self.style.WARNING(
+                    "El borrado de los nodos MeshCentral se encolo en Celery "
+                    "(senal post_delete). Para limpiar huerfanos historicos ya "
+                    "acumulados usa: manage.py bulk_delete_orphans_meshagents --emit-sql"
+                )
+            )
         else:
             self.stdout.write(
                 self.style.SUCCESS(

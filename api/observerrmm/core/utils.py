@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -201,6 +202,17 @@ async def remove_mesh_agent(uri: str, mesh_node_id: str) -> None:
                 }
             )
         )
+        # MeshCentral responde 'ok' de inmediato pero ejecuta el db.Remove del
+        # nodo en un callback asíncrono POSTERIOR (ver meshuser.js, acción
+        # 'removedevices'). Si cerramos el websocket apenas hacemos el send,
+        # el borrado puede quedar sin ejecutarse y el nodo queda huérfano.
+        # Esperamos la respuesta del server (best-effort) para mantener el
+        # socket abierto mientras corre el callback. Confiable a 1 nodo; para
+        # volumen se usa el runbook SQL (bulk_delete_orphans_meshagents).
+        try:
+            await asyncio.wait_for(ws.recv(), timeout=10)
+        except Exception:
+            pass
 
 
 def sysd_svc_is_running(svc: str) -> bool:

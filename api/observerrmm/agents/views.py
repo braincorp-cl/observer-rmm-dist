@@ -25,7 +25,6 @@ from core.tasks import sync_mesh_perms_task
 from core.utils import (
     get_core_settings,
     get_mesh_ws_url,
-    remove_mesh_agent,
     token_is_valid,
     wake_on_lan,
 )
@@ -273,17 +272,11 @@ class GetUpdateDeleteAgent(APIView):
 
         asyncio.run(agent.nats_cmd({"func": "uninstall", "code": code}, wait=False))
         name = agent.hostname
-        mesh_id = agent.mesh_node_id
+        # El borrado del nodo en MeshCentral lo propaga la señal post_delete de
+        # Agent (agents/signals.py → remove_mesh_node_task), que cubre esta y
+        # todas las demás rutas de borrado.
         agent.delete()
         reload_nats()
-        try:
-            uri = get_mesh_ws_url()
-            asyncio.run(remove_mesh_agent(uri, mesh_id))
-        except Exception as e:
-            DebugLog.error(
-                message=f"Unable to remove agent {name} from meshcentral database: {e}",
-                log_type=DebugLogType.AGENT_ISSUES,
-            )
         sync_mesh_perms_task.delay()
         return Response(f"{name} will now be uninstalled.")
 

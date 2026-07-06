@@ -1,3 +1,4 @@
+import asyncio
 import datetime as dt
 from time import sleep
 from typing import TYPE_CHECKING, Optional
@@ -7,7 +8,7 @@ from django.core.management import call_command
 from django.utils import timezone as djangotime
 
 from agents.models import Agent
-from core.utils import get_core_settings
+from core.utils import get_core_settings, get_mesh_ws_url, remove_mesh_agent
 from logs.models import DebugLog
 from scripts.models import Script
 from observerrmm.celery import app
@@ -23,6 +24,33 @@ from observerrmm.utils import redis_lock
 
 if TYPE_CHECKING:
     from django.db.models.query import QuerySet
+
+
+@app.task(rate_limit="20/s")
+def remove_mesh_node_task(mesh_node_id: Optional[str]) -> str:
+    """Borra el nodo del agente en MeshCentral tras eliminarse el Agent.
+
+    Se dispara desde la señal post_delete de Agent (ver agents/signals.py),
+    de modo que CUALQUIER ruta de borrado (UI/API, admin, queryset, command
+    bulk_delete_agents) propaga el borrado al nodo Mesh y no deja huérfanos.
+
+    Corre uno a uno por el worker Celery: el rate_limit + la concurrencia del
+    worker evitan saturar el puerto de control 4430 (compartido con los
+    agentes en vivo). Para limpieza masiva del backlog histórico se usa el
+    runbook SQL vía bulk_delete_orphans_meshagents, no esta ruta.
+    """
+    if not mesh_node_id:
+        return "skipped: agent sin mesh_node_id"
+    try:
+        uri = get_mesh_ws_url()
+        asyncio.run(remove_mesh_agent(uri, mesh_node_id))
+    except Exception as e:
+        DebugLog.error(
+            message=f"No se pudo borrar el nodo {mesh_node_id} de MeshCentral: {e}",
+            log_type=DebugLogType.AGENT_ISSUES,
+        )
+        return f"error: {e}"
+    return f"nodo mesh borrado: {mesh_node_id}"
 
 
 @app.task
