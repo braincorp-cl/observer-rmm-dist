@@ -195,10 +195,13 @@ class Command(BaseCommand):
                     f.write(f"{prefijo}{base}\n")
 
         sql_path = str(Path(out_dir) / f"limpiar_mesh_huerfanos_{ts}.sql")
+        # Escapa la comilla simple para el literal de string de Postgres (por si
+        # --out-dir contuviera un ' en el nombre). Con /tmp es no-op.
+        ids_path_sql = ids_path.replace("'", "''")
         sql = (
             "\\timing on\n"
             "CREATE TEMP TABLE mesh_ids_eliminar (id TEXT PRIMARY KEY);\n"
-            f"COPY mesh_ids_eliminar FROM '{ids_path}';\n"
+            f"COPY mesh_ids_eliminar FROM '{ids_path_sql}';\n"
             "SELECT COUNT(*) AS ids_cargados FROM mesh_ids_eliminar;\n"
             "SELECT COUNT(*) AS registros_a_eliminar\n"
             "  FROM main m WHERE m.id IN (SELECT id FROM mesh_ids_eliminar);\n"
