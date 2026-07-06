@@ -206,11 +206,22 @@ async def remove_mesh_agent(uri: str, mesh_node_id: str) -> None:
         # nodo en un callback asíncrono POSTERIOR (ver meshuser.js, acción
         # 'removedevices'). Si cerramos el websocket apenas hacemos el send,
         # el borrado puede quedar sin ejecutarse y el nodo queda huérfano.
-        # Esperamos la respuesta del server (best-effort) para mantener el
-        # socket abierto mientras corre el callback. Confiable a 1 nodo; para
-        # volumen se usa el runbook SQL (bulk_delete_orphans_meshagents).
+        # OJO: al abrir control.ashx el server empuja frames NO solicitados
+        # (serverinfo/userinfo/...) ANTES de responder nuestro request, así que
+        # un recv() único atrapa el serverinfo del handshake y cierra el socket
+        # sin haber esperado el borrado. Por eso DRENAMOS los frames hasta ver
+        # el evento 'removenode' (que MeshCentral emite recién cuando el callback
+        # db.Remove ya corrió), manteniendo el socket abierto mientras tanto.
+        # Best-effort con tope de 10s. Confiable a 1 nodo; para volumen se usa el
+        # runbook SQL (bulk_delete_orphans_meshagents).
+        async def _wait_removenode() -> None:
+            async for message in ws:
+                r = json.loads(message)
+                if (r.get("event") or {}).get("action") == "removenode":
+                    return
+
         try:
-            await asyncio.wait_for(ws.recv(), timeout=10)
+            await asyncio.wait_for(_wait_removenode(), timeout=10)
         except Exception:
             pass
 
