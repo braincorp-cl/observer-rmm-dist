@@ -356,7 +356,19 @@ export default {
             link.href = window.URL.createObjectURL(blob);
             link.download = scriptName;
             link.click();
-            if (this.installMethod === "powershell") this.showDLMessage();
+            if (this.installMethod === "powershell") {
+              this.showDLMessage();
+            } else {
+              // bash / mac: además de bajar el script, mostrar cómo usarlo
+              // (requiere root, comando de ejemplo y, en Linux, desinstalación).
+              this.info = {
+                plat: this.agentOS,
+                expires: this.expires,
+                scriptName,
+                data: {},
+              };
+              this.showAgentDownload = true;
+            }
           })
           .catch(() => {
             this.$q.loading.hide();
