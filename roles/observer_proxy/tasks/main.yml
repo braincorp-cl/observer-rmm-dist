@@ -236,7 +236,7 @@
   # Valores soportados: en | es; cualquier otro degrada a 'en' en el cliente (RN-08).
   ansible.builtin.copy:
     dest: /var/www/observer/dist/env-config.js
-    content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\", DEFAULT_LANG: \"{{ observer_default_language | default('en') }}\"}\n"
+    content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\", DEFAULT_LANG: \"{{ observer_default_language | default('es') }}\"}\n"
     owner: "{{ observer_user }}"
     group: "{{ observer_group }}"
     mode: "0644"
