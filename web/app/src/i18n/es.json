@@ -2416,6 +2416,7 @@
     "nixInstallLabel": "Instalar (ejecutar en el equipo):",
     "nixUninstallLabel": "Desinstalar:",
     "nixHeadlessNote": "Ejecuta el instalador desde una sesión SSH normal. Si informa que detectó un display, corre 'unset DISPLAY' y vuelve a intentar. El Take Control / pantalla remota sigue funcionando después: el mesh agent corre como servicio del sistema, independiente de la shell del instalador.",
+    "macUninstallNote": "Para desinstalar en macOS, elimina el agente desde la consola de Observer RMM (Agentes → eliminar): eso envía el desinstalador al agente (borra el nodo mesh, descarga el servicio launchd y elimina los archivos). El script descargado no admite el argumento 'uninstall'.",
     "argDebug": "-debug",
     "argInsecure": "-insecure",
     "descInsecure": "Omitir la verificación del certificado TLS (autofirmado / CA interna)",

@@ -80,6 +80,16 @@
             {{ $t("agentDownload.nixHeadlessNote") }}
           </q-banner>
         </template>
+        <q-banner
+          v-if="info.plat === 'darwin'"
+          dense
+          class="bg-grey-3 text-black q-mb-sm"
+        >
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          {{ $t("agentDownload.macUninstallNote") }}
+        </q-banner>
       </template>
 
       <q-expansion-item
