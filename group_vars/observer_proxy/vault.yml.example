@@ -1,0 +1,12 @@
+---
+# Plantilla de secretos del proxy/TLS — cópiela a vault.yml, reemplace los CHANGEME y
+# cifre con `ansible-vault encrypt`.
+#   cp group_vars/observer_proxy/vault.yml.example group_vars/observer_proxy/vault.yml
+#
+# Estas credenciales SOLO se usan en observer_cert_mode: acme (emisión del certificado
+# wildcard *.<observer_base_domain> por DNS-01 contra la API de GoDaddy). Si usa
+# observer_cert_mode: byo (usted aporta el certificado), puede dejar los CHANGEME.
+
+# Credenciales de la API de producción de GoDaddy (https://developer.godaddy.com/keys).
+vault_godaddy_key: "CHANGEME_godaddy_api_key"
+vault_godaddy_secret: "CHANGEME_godaddy_api_secret"

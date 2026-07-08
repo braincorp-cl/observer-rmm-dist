@@ -1,0 +1,7 @@
+---
+# Plantilla de secretos de Redis — cópiela a vault.yml, reemplace el CHANGEME y cifre
+# con `ansible-vault encrypt`.
+#   cp group_vars/observer_redis/vault.yml.example group_vars/observer_redis/vault.yml
+
+# Password de autenticación de Redis (requirepass).
+vault_observer_redis_password: "CHANGEME_password_redis"

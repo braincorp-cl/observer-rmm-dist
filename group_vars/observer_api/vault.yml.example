@@ -1,0 +1,13 @@
+---
+# Plantilla de secretos del API — cópiela a vault.yml, reemplace los CHANGEME por
+# valores reales y cifre el resultado con `ansible-vault encrypt`.
+#   cp group_vars/observer_api/vault.yml.example group_vars/observer_api/vault.yml
+
+# Password del superusuario Django (usuario `observeradmin`). Es la credencial con la
+# que se entra por primera vez a la consola web RMM (https://<observer_app_domain>).
+# Se muestra al finalizar el install (play "Resumen de acceso").
+vault_observer_admin_password: "CHANGEME_password_admin_rmm"
+
+# SECRET_KEY de Django. Debe ser aleatoria y larga (>= 50 caracteres).
+# Genérela con:  python3 -c 'import secrets; print(secrets.token_urlsafe(64))'
+vault_django_secret_key: "CHANGEME_django_secret_key_aleatoria_larga"

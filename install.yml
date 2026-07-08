@@ -145,3 +145,40 @@
   hosts: observer_api
   roles:
     - observer_backup
+
+- name: Resumen de acceso — URLs y credenciales iniciales (= install.sh L1063-1068, GAP-058)
+  # Última tarea del install: imprime en CLARO las URLs y las credenciales de acceso
+  # iniciales, replicando el cierre del install.sh original (que terminaba con
+  # "Installation complete! / Access your rmm at / MeshCentral username+password").
+  # Las credenciales se leen del vault vía hostvars del primer host de cada grupo, por lo
+  # que funciona igual en all-in-one (un host en todos los grupos) y en multi-host.
+  # Este es el ÚNICO punto del playbook donde los secretos se muestran en claro, y solo al
+  # instalar: no_log queda desactivado A PROPÓSITO aquí. Guarde estas credenciales y limpie
+  # la salida del terminal / logs de CI después de leerlas.
+  hosts: observer_proxy
+  gather_facts: false
+  tags: [summary, access_summary]
+  tasks:
+    - name: Mostrar URLs y credenciales de acceso iniciales
+      ansible.builtin.debug:
+        msg:
+          - "============================================================"
+          - "  Observer RMM — instalación completa"
+          - "============================================================"
+          - "  Consola RMM (web):   https://{{ observer_app_domain }}"
+          - "  API backend:         https://{{ observer_domain }}"
+          - "  MeshCentral:         https://{{ observer_mesh_domain }}"
+          - "------------------------------------------------------------"
+          - "  CREDENCIALES INICIALES — guárdelas en un gestor seguro y"
+          - "  limpie esta salida del terminal después de leerlas."
+          - ""
+          - "  Consola RMM  (https://{{ observer_app_domain }})"
+          - "    usuario:  {{ observer_admin_user }}"
+          - "    password: {{ hostvars[groups['observer_api'][0]]['vault_observer_admin_password'] }}"
+          - "    (se le pedirá configurar 2FA/TOTP en el primer login web)"
+          - ""
+          - "  MeshCentral  (https://{{ observer_mesh_domain }})"
+          - "    usuario:  {{ hostvars[groups['observer_api'][0]]['observer_mesh_user'] }}"
+          - "    password: {{ hostvars[groups['observer_mesh'][0]]['vault_observer_mesh_password'] }}"
+          - "    (cuenta de administración total de MeshCentral)"
+          - "============================================================"

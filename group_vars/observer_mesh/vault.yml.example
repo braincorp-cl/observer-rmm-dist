@@ -1,0 +1,14 @@
+---
+# Plantilla de secretos de MeshCentral — cópiela a vault.yml, reemplace los CHANGEME y
+# cifre con `ansible-vault encrypt`.
+#   cp group_vars/observer_mesh/vault.yml.example group_vars/observer_mesh/vault.yml
+
+# Password de la cuenta de administración de MeshCentral (usuario `meshcentral_admin`).
+# Es la credencial para entrar como admin a https://<observer_mesh_domain>.
+# Se muestra al finalizar el install (play "Resumen de acceso").
+vault_observer_mesh_password: "CHANGEME_password_admin_meshcentral"
+
+# Password del rol PostgreSQL de MeshCentral (base de datos `meshcentral`).
+# IMPORTANTE: DEBE ser idéntico al vault_observer_mesh_db_password de
+# group_vars/observer_db/vault.yml.
+vault_observer_mesh_db_password: "CHANGEME_password_bd_meshcentral"
