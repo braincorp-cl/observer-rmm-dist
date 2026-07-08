@@ -33,8 +33,8 @@ WEB_VERSION = "0.101.59"
 # to alert user they need to manually refresh their browser
 APP_VER = "0.0.202"
 
-# https://github.com/amidaware/rmmagent
-LATEST_AGENT_VER = "2.10.6"
+# https://github.com/braincorp-cl/observer-agent-dist/releases
+LATEST_AGENT_VER = "2.10.7"
 
 MESH_VER = "1.1.32"
 
