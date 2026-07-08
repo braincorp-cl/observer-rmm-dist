@@ -35,7 +35,8 @@
 #      a esa BD). El comando nunca borra por sí mismo.
 #
 # El nombre del grupo NO se hardcodea: se lee de CoreSettings.mesh_device_group
-# (Observer = "ObserverRMM"; prod TacticalRMM = "TacticalRMM").
+# (en Observer vale "ObserverRMM"; en instalaciones heredadas del upstream el
+# valor por defecto era distinto).
 import asyncio
 import json
 import time
