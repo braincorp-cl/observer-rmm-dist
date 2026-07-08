@@ -718,20 +718,25 @@ def install_agent(request):
 
     elif request.data["installMethod"] == "manual":
         resp = {}
-        # El release es un instalador InnoSetup (setup.iss): se corre silencioso
-        # (/VERYSILENT) para copiar el binario a C:\Program Files\ObserverAgent,
-        # registrar el servicio y crear la entrada de desinstalación (unins*.exe +
-        # "Agregar o quitar programas"); luego se enrola corriendo el binario
-        # instalado con `-m install`. Flujo de 2 pasos (full-A / GAP-055).
+        # El release es un instalador InnoSetup (setup.iss). Es un ejecutable GUI,
+        # así que en cmd.exe hay que lanzarlo con `start /wait` para BLOQUEAR hasta
+        # que termine: sin `start`, cmd no espera a los programas GUI y el paso de
+        # enrolamiento correría antes de que exista el binario recién instalado
+        # ("El sistema no puede encontrar la ruta especificada"). El `ping` como
+        # sleep era una carrera frágil (~4 s) que fallaba si la instalación se
+        # demoraba. Corre silencioso (/VERYSILENT) para copiar el binario a
+        # C:\Program Files\ObserverAgent, registrar el servicio y crear la entrada
+        # de desinstalación (unins*.exe + "Agregar o quitar programas"); luego se
+        # enrola corriendo el binario instalado con `-m install`. Flujo de 2 pasos
+        # (full-A / GAP-055). Es un comando de cmd.exe (símbolo del sistema), NO de
+        # PowerShell: `&&` y `start` no son válidos en Windows PowerShell 5.x.
         cmd = [
+            "start",
+            "/wait",
+            '""',
             inno,
             "/VERYSILENT",
             "/SUPPRESSMSGBOXES",
-            "&&",
-            "ping",
-            "127.0.0.1",
-            "-n",
-            "5",
             "&&",
             r'"C:\Program Files\ObserverAgent\observeragent.exe"',
         ] + install_flags
