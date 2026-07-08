@@ -10,7 +10,10 @@
       </q-card-actions>
     </q-card-section>
     <q-card-section>
-      <p v-if="info.plat === 'windows'" class="text-subtitle1">
+      <p v-if="isWindowsPowershell" class="text-subtitle1">
+        {{ $t("agentDownload.winPsIntro") }}
+      </p>
+      <p v-else-if="isWindowsManual" class="text-subtitle1">
         {{ $t("agentDownload.windowsIntro") }}
       </p>
       <p v-else-if="info.plat === 'linux'" class="text-subtitle1">
@@ -20,8 +23,8 @@
         {{ $t("agentDownload.macIntro") }}
       </p>
 
-      <!-- Windows: comando de instalación manual (viene del backend) -->
-      <p v-if="info.plat === 'windows'">
+      <!-- Windows (EXE estándar): comando de instalación manual (viene del backend) -->
+      <p v-if="isWindowsManual">
         <q-field outlined :color="$q.dark.isActive ? 'white' : 'black'">
           <code>{{ info.data.cmd }}</code>
         </q-field>
@@ -35,6 +38,42 @@
         >
         </q-btn>
       </p>
+
+      <!-- Windows (PowerShell): ejecutar el .ps1 descargado y cómo desinstalar -->
+      <template v-if="isWindowsPowershell">
+        <div class="text-weight-medium q-mt-sm">
+          {{ $t("agentDownload.winPsInstallLabel") }}
+        </div>
+        <p>
+          <q-field outlined :color="$q.dark.isActive ? 'white' : 'black'">
+            <code>{{ psInstallCmd }}</code>
+          </q-field>
+          <q-btn
+            size="md"
+            flat
+            round
+            icon="content_copy"
+            :label="$t('agentDownload.copyToClipboard')"
+            @click="copyValueToClip(psInstallCmd)"
+          >
+          </q-btn>
+        </p>
+        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          {{ $t("agentDownload.winPsAdminNote") }}
+        </q-banner>
+        <div class="text-weight-medium q-mt-sm">
+          {{ $t("agentDownload.winPsUninstallLabel") }}
+        </div>
+        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          {{ $t("agentDownload.winPsUninstallNote") }}
+        </q-banner>
+      </template>
 
       <!-- Linux / macOS: instalar y (Linux) desinstalar con el .sh descargado -->
       <template v-if="isNix">
@@ -93,13 +132,14 @@
       </template>
 
       <q-expansion-item
+        v-if="isWindowsManual || isNix"
         switch-toggle-side
         header-class="text-primary"
         expand-separator
         :label="$t('agentDownload.viewOptionalArgs')"
       >
-        <!-- args del script Windows -->
-        <template v-if="info.plat === 'windows'">
+        <!-- args del instalador Windows (EXE estándar) -->
+        <template v-if="isWindowsManual">
           <div class="q-pa-xs q-gutter-xs">
             <q-badge
               class="text-caption q-mr-xs"
@@ -211,7 +251,7 @@
         {{ $t("agentDownload.authNote", { expires: info.expires }) }}
       </p>
       <q-btn
-        v-if="info.plat === 'windows'"
+        v-if="isWindowsManual"
         type="a"
         :href="info.data.url"
         color="primary"
@@ -235,11 +275,24 @@ export default {
     isNix() {
       return this.info.plat === "linux" || this.info.plat === "darwin";
     },
+    isWindowsPowershell() {
+      return (
+        this.info.plat === "windows" && this.info.installMethod === "powershell"
+      );
+    },
+    isWindowsManual() {
+      return (
+        this.info.plat === "windows" && this.info.installMethod !== "powershell"
+      );
+    },
     installCmd() {
       return `sudo bash ./${this.info.scriptName}`;
     },
     uninstallCmd() {
       return `sudo bash ./${this.info.scriptName} uninstall`;
+    },
+    psInstallCmd() {
+      return `powershell -ExecutionPolicy Bypass -File .\\${this.info.scriptName}`;
     },
   },
   setup() {

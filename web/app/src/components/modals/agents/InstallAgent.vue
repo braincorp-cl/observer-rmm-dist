@@ -287,6 +287,7 @@ export default {
         this.$axios.post("/agents/installer/", data).then((r) => {
           this.info = {
             expires: this.expires,
+            installMethod: this.installMethod,
             data: r.data,
             goarch: this.goarch,
             plat: this.agentOS,
@@ -356,19 +357,18 @@ export default {
             link.href = window.URL.createObjectURL(blob);
             link.download = scriptName;
             link.click();
-            if (this.installMethod === "powershell") {
-              this.showDLMessage();
-            } else {
-              // bash / mac: además de bajar el script, mostrar cómo usarlo
-              // (requiere root, comando de ejemplo y, en Linux, desinstalación).
-              this.info = {
-                plat: this.agentOS,
-                expires: this.expires,
-                scriptName,
-                data: {},
-              };
-              this.showAgentDownload = true;
-            }
+            // Tras bajar el script, mostrar cómo usarlo. Windows (PowerShell):
+            // requiere consola elevada, comando de ejemplo y desinstalación vía
+            // RMM/"Agregar o quitar programas". Linux/macOS: requiere root,
+            // comando de ejemplo y (Linux) desinstalación con el mismo .sh.
+            this.info = {
+              plat: this.agentOS,
+              installMethod: this.installMethod,
+              expires: this.expires,
+              scriptName,
+              data: {},
+            };
+            this.showAgentDownload = true;
           })
           .catch(() => {
             this.$q.loading.hide();
