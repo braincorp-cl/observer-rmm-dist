@@ -23,23 +23,31 @@
         {{ $t("agentDownload.macIntro") }}
       </p>
 
-      <!-- Windows (EXE estándar): comando de instalación manual (viene del backend) -->
-      <p v-if="isWindowsManual">
-        <q-field outlined :color="$q.dark.isActive ? 'white' : 'black'">
-          <code>{{ info.data.cmd }}</code>
-        </q-field>
-        <q-btn
-          size="md"
-          flat
-          round
-          icon="content_copy"
-          :label="$t('agentDownload.copyToClipboard')"
-          @click="copyValueToClip(info.data.cmd)"
-        >
-        </q-btn>
-      </p>
+      <!-- Windows (EXE estándar): comando de instalación manual + privilegios -->
+      <template v-if="isWindowsManual">
+        <p>
+          <q-field outlined :color="$q.dark.isActive ? 'white' : 'black'">
+            <code>{{ info.data.cmd }}</code>
+          </q-field>
+          <q-btn
+            size="md"
+            flat
+            round
+            icon="content_copy"
+            :label="$t('agentDownload.copyToClipboard')"
+            @click="copyValueToClip(info.data.cmd)"
+          >
+          </q-btn>
+        </p>
+        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          {{ $t("agentDownload.winExeAdminNote") }}
+        </q-banner>
+      </template>
 
-      <!-- Windows (PowerShell): ejecutar el .ps1 descargado y cómo desinstalar -->
+      <!-- Windows (PowerShell): ejecutar el .ps1 descargado + privilegios -->
       <template v-if="isWindowsPowershell">
         <div class="text-weight-medium q-mt-sm">
           {{ $t("agentDownload.winPsInstallLabel") }}
@@ -64,14 +72,18 @@
           </template>
           {{ $t("agentDownload.winPsAdminNote") }}
         </q-banner>
+      </template>
+
+      <!-- Windows (ambos métodos): desinstalación (idéntica, instalador InnoSetup) -->
+      <template v-if="isWindows">
         <div class="text-weight-medium q-mt-sm">
-          {{ $t("agentDownload.winPsUninstallLabel") }}
+          {{ $t("agentDownload.winUninstallLabel") }}
         </div>
         <q-banner dense class="bg-grey-3 text-black q-mb-sm">
           <template v-slot:avatar>
             <q-icon name="info" color="primary" />
           </template>
-          {{ $t("agentDownload.winPsUninstallNote") }}
+          {{ $t("agentDownload.winUninstallNote") }}
         </q-banner>
       </template>
 
@@ -274,6 +286,9 @@ export default {
   computed: {
     isNix() {
       return this.info.plat === "linux" || this.info.plat === "darwin";
+    },
+    isWindows() {
+      return this.info.plat === "windows";
     },
     isWindowsPowershell() {
       return (
