@@ -18,31 +18,22 @@ observer_db_allowed_hosts:
 patroni_enabled: false
 
 # ============================================================
-# Tuning PostgreSQL — extraído de producción MINSAL
-# 28.300 agentes, servidor 160 GB RAM, SSD NVMe
-# AJUSTAR pg_shared_buffers y pg_effective_cache_size según
-# la RAM real del host antes de desplegar:
-#   pg_shared_buffers    = 25% de RAM
-#   pg_effective_cache_size = 75% de RAM
+# Tuning PostgreSQL — el SIZING dependiente de RAM VA EN EL INVENTARIO
 # ============================================================
-
-observer_db_max_connections: 500
-
-pg_shared_buffers: "40GB"
+# NO fijar aquí los parámetros que dependen de la RAM/escala del host: romperían hosts
+# chicos (p.ej. shared_buffers=40GB en un box de 16GB → PG no arranca: "could not map
+# anonymous shared memory"). Se definen por-ambiente en el inventario:
+#   pg_shared_buffers (~15-25% RAM) · pg_effective_cache_size (~50-75% RAM) ·
+#   observer_db_max_connections · pg_maintenance_work_mem · pg_autovacuum_work_mem ·
+#   pg_min_wal_size · pg_max_wal_size
+# pg_vm_nr_hugepages lo DERIVA el rol de pg_shared_buffers (no fijarlo a mano). Si el
+# inventario no define un valor, rige el default del rol (dimensionado prod dedicado).
+# Acá quedan SOLO parámetros independientes de la RAM:
 pg_huge_pages: "try"
-pg_vm_nr_hugepages: 20500          # (shared_buffers + wal_buffers) / 2MB + margen
-
 pg_work_mem: "16MB"
-pg_maintenance_work_mem: "2GB"
-pg_autovacuum_work_mem: "2GB"
-
 pg_wal_buffers: "32MB"
 pg_checkpoint_timeout: "15min"
 pg_checkpoint_completion_target: "0.9"
-pg_min_wal_size: "1GB"
-pg_max_wal_size: "32GB"
-
-pg_effective_cache_size: "120GB"
 pg_random_page_cost: "1.1"         # SSD NVMe
 pg_effective_io_concurrency: 200   # SSD NVMe
 
