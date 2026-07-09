@@ -16,8 +16,9 @@ independientes que soportan dos modos:
 ## Requisitos
 
 - **Nodo de control** (la máquina desde donde ejecuta Ansible; puede ser su laptop):
-  - ansible-core >= 2.15
-  - Python 3.11+
+  - ansible-core **>= 2.18** (lo exige la colección `community.general` incluida)
+  - Python 3.11+ — en Kali/Debian/Ubuntu recientes instale dentro de un **venv**
+    (PEP 668; ver Paso 2)
   - Node.js 22.x + npm (el playbook compila el frontend SPA en el nodo de control)
   - `git`, acceso SSH al servidor
 - **Servidor target**:
@@ -25,7 +26,9 @@ independientes que soportan dos modos:
   - 2+ vCPU, 4+ GB RAM (8+ GB recomendado), 40+ GB disco
   - Acceso SSH con un usuario con `sudo`
   - Puertos 80 y 443 accesibles desde donde vivan los agentes/operadores
-- **DNS**: un dominio bajo su control con registros apuntando al servidor (§5).
+- **DNS**: registros de los 3 FQDN apuntando al servidor (§4). Puede ser DNS **interno**
+  (split-horizon); en modo `acme` solo el **dominio raíz** debe estar en GoDaddy, y
+  únicamente para el desafío DNS-01 (§5).
 
 ---
 
@@ -41,36 +44,56 @@ nodo de control y se conecta por SSH al servidor.
 ## Paso 1 — Preparar el servidor target
 
 1. Aprovisione una VM/servidor con **Ubuntu 22.04 LTS** (o 24.04) recién instalado.
-2. Cree un usuario de despliegue con `sudo` (esta guía usa `observer`):
+2. Fije la zona horaria y actualice el sistema:
    ```bash
-   sudo adduser observer
-   sudo usermod -aG sudo observer
+   sudo timedatectl set-timezone America/Santiago   # ajuste a su zona
+   sudo apt update && sudo apt upgrade -y
    ```
-3. Habilite acceso SSH por clave para ese usuario (copie su clave pública):
+3. Cree un usuario de despliegue con `sudo` (esta guía usa `observer`):
+   ```bash
+   sudo useradd -G sudo -m -s /bin/bash observer && sudo passwd observer
+   ```
+4. Habilite acceso SSH por clave para ese usuario (desde el nodo de control):
    ```bash
    ssh-copy-id observer@<IP_DEL_SERVIDOR>
    ```
-4. Verifique que puede entrar y usar sudo:
+5. Verifique que puede entrar y usar sudo:
    ```bash
    ssh observer@<IP_DEL_SERVIDOR> "sudo -n true && echo OK || echo 'sudo pedirá password'"
    ```
-   Si sudo pide password, más adelante ejecute el playbook con `-K`.
+   Si sudo pide password, más adelante ejecute el playbook con `-K` (o deje el grupo
+   `sudo` con `NOPASSWD` durante el install).
 
 ## Paso 2 — Preparar el nodo de control
 
+Use un **clon dedicado por ambiente** (no reutilice el checkout de dev/staging para
+producción): así cada ambiente tiene su propio inventario, vault y `.vault_pass`, y no
+hay riesgo de disparar el playbook contra el inventario equivocado.
+
 ```bash
-# 1. Clonar el repo
+# 1. Clonar el repo en una ruta dedicada al ambiente
 git clone https://github.com/braincorp-cl/observer-rmm-dist.git
 cd observer-rmm-dist
 
-# 2. Instalar dependencias de Python y las colecciones de Ansible
+# 2. Crear un venv e instalar las dependencias de Python.
+#    En Kali/Debian/Ubuntu recientes el pip "a sistema" falla con
+#    'externally-managed-environment' (PEP 668) → el venv es la vía soportada.
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+
+# 3. Instalar las colecciones de Ansible
 ansible-galaxy collection install -r requirements.yml
 
-# 3. Verificar que Node/npm están disponibles (el playbook compila el frontend aquí)
-node --version   # referencia: v22.x
+# 4. Verificar el toolchain (el frontend SPA se compila en el nodo de control)
+ansible --version   # ansible-core >= 2.18
+node --version      # referencia: v22.x
 npm --version
 ```
+
+> Reactive el venv (`source .venv/bin/activate`) en cada shell nueva antes de correr
+> Ansible para este ambiente. Si el prompt no muestra `(.venv)`, está usando el ansible
+> del sistema.
 
 ## Paso 3 — Configurar el inventario
 
@@ -86,12 +109,6 @@ all:
     ansible_user: observer
     ansible_python_interpreter: /usr/bin/python3
 
-    # Todos los servicios co-localizados → se hablan por loopback
-    observer_db_host: localhost
-    observer_redis_host: localhost
-    observer_mesh_host: localhost
-    observer_nats_host: 127.0.0.1
-
     # --- Dominios (REQUERIDOS) ---
     observer_domain: api.ejemplo.cl        # backend / API
     observer_app_domain: rmm.ejemplo.cl    # consola web (frontend SPA)
@@ -106,21 +123,40 @@ all:
     # Genere una vez con:  openssl rand -hex 20
     observer_admin_url: "CAMBIE_ESTO_por_una_cadena_aleatoria_larga"
 
-    # --- Tuning de PostgreSQL para una VM chica (~4 GB) ---
-    # Si el servidor es grande y dedicado a la BD, suba estos valores.
-    pg_vm_nr_hugepages: 0
-    pg_huge_pages: "off"
-    pg_shared_buffers: "256MB"
-    pg_effective_cache_size: "1GB"
-    pg_maintenance_work_mem: "64MB"
-    pg_autovacuum_work_mem: "64MB"
-    pg_min_wal_size: "128MB"
-    pg_max_wal_size: "1GB"
+    # --- Tuning de PostgreSQL — AJUSTAR A LA RAM DEL SERVIDOR ---
+    # El sizing dependiente de RAM se define AQUÍ (en el inventario), NO en group_vars.
+    # Regla: shared_buffers ~15-25% de RAM; effective_cache_size ~50-75% de RAM. En
+    # all-in-one PG convive con Mesh/API/Redis/NATS → no le dé el 25% completo.
+    # (Ejemplo abajo dimensionado para un servidor de ~16 GB.)
+    pg_shared_buffers: "2GB"
+    pg_effective_cache_size: "6GB"
+    pg_maintenance_work_mem: "256MB"
+    pg_autovacuum_work_mem: "256MB"
+    pg_min_wal_size: "512MB"
+    pg_max_wal_size: "2GB"
     observer_db_max_connections: 100
+    # HugePages (recomendado si hay RAM): el rol DERIVA nr_hugepages de shared_buffers
+    # y las reserva en dos capas — sysctl (runtime, best-effort) + grub (boot-time,
+    # robusto). NO fije pg_vm_nr_hugepages a mano. Tras el primer deploy con HugePages,
+    # REINICIE el servidor (Paso 8b) para que la reserva boot-time quede firme: el
+    # runtime puede quedar parcial por fragmentación de memoria.
+    # Para NO usar HugePages:  pg_huge_pages: "off"
+    pg_huge_pages: "try"
 
   children:
+    # En All-in-One los 5 grupos apuntan al MISMO host. La topología de conexión
+    # (todo por loopback) va como HOST-VARS de 'servidor', NO en all.vars: así le gana
+    # en precedencia a la expresión dinámica multi-host de los group_vars. Si fuera en
+    # all.vars, group_vars la pisaría y observer_db_host resolvería a la IP del host →
+    # rompería la conexión (pg_hba solo permite loopback).
     observer_db:
-      hosts: { servidor: { ansible_host: <IP_DEL_SERVIDOR> } }
+      hosts:
+        servidor:
+          ansible_host: <IP_DEL_SERVIDOR>
+          observer_db_host: localhost
+          observer_redis_host: localhost
+          observer_mesh_host: localhost
+          observer_nats_host: 127.0.0.1
     observer_redis:
       hosts: { servidor: { ansible_host: <IP_DEL_SERVIDOR> } }
     observer_mesh:
@@ -132,11 +168,14 @@ all:
 ```
 
 > ¿Ejecuta Ansible **en el propio servidor** (no desde un control node separado)? Use
-> el inventario `inventory/all-in-one.yml` que ya viene en el repo (usa conexión local).
+> el inventario `inventory/all-in-one.yml` que ya viene en el repo (usa conexión local
+> y no necesita el pin de host-vars de arriba).
 
 ## Paso 4 — Configurar DNS
 
-Cree registros **A** apuntando a la IP pública del servidor:
+Cree registros **A** de los 3 FQDN apuntando a la IP del servidor. Sirve DNS público o
+**interno** (split-horizon); no hace falta que resuelvan públicamente para que el RMM
+funcione — solo que los agentes/operadores los resuelvan a la IP del servidor.
 
 | Registro          | Tipo | Valor            |
 |-------------------|------|------------------|
@@ -144,9 +183,10 @@ Cree registros **A** apuntando a la IP pública del servidor:
 | `rmm.ejemplo.cl`  | A    | `<IP_DEL_SERVIDOR>` |
 | `mesh.ejemplo.cl` | A    | `<IP_DEL_SERVIDOR>` |
 
-En modo TLS `acme` el certificado wildcard `*.ejemplo.cl` se emite por **DNS-01**
-contra la API de GoDaddy, por lo que el dominio raíz `ejemplo.cl` debe estar
-gestionado en GoDaddy. Espere a que el DNS propague antes del Paso 7.
+En modo TLS `acme` el certificado wildcard `*.ejemplo.cl` se emite por **DNS-01** contra
+la API de GoDaddy: para eso el **dominio raíz `ejemplo.cl` debe estar gestionado en
+GoDaddy** (el TXT `_acme-challenge` se crea ahí). Esto es independiente de dónde vivan
+los registros A (pueden estar en el DNS interno).
 
 ## Paso 5 — Configurar TLS
 
@@ -162,16 +202,24 @@ gestionado en GoDaddy. Espere a que el DNS propague antes del Paso 7.
 Cada componente tiene una plantilla `vault.yml.example`. Cópielas a `vault.yml`,
 reemplace los `CHANGEME` por valores reales y cifre todo con un único password de vault.
 
+> Los `group_vars/*/vault.yml` están **gitignorados** — no se versionan: cada ambiente
+> tiene los suyos, con su propio `.vault_pass`. En el repo solo viven los `*.example`.
+
 ```bash
-# 1. Copiar las plantillas
+# 1. Definir el password de vault del ambiente en .vault_pass (gitignorado). GUÁRDELO en
+#    su gestor: es la ÚNICA copia y sin él no se descifra ni se despliega nada.
+openssl rand -base64 32 > .vault_pass && chmod 600 .vault_pass
+
+# 2. Copiar las plantillas
 for c in observer_api observer_db observer_mesh observer_proxy observer_redis; do
   cp group_vars/$c/vault.yml.example group_vars/$c/vault.yml
 done
 
-# 2. Editar cada group_vars/<componente>/vault.yml y reemplazar los CHANGEME.
+# 3. Editar cada group_vars/<componente>/vault.yml y reemplazar los CHANGEME.
 #    (ver la tabla de secretos más abajo)
 
-# 3. Cifrar TODOS los vault con el mismo password (guárdelo bien: sin él no hay deploy)
+# 4. Cifrar TODOS los vault. Toma el password de .vault_pass vía ansible.cfg; NO pase
+#    además --vault-password-file (daría "vault-ids default,default ...").
 ansible-vault encrypt group_vars/*/vault.yml
 ```
 
@@ -194,14 +242,17 @@ Secretos a definir:
 ## Paso 7 — Ejecutar el playbook
 
 ```bash
-ansible-playbook install.yml -i inventory/produccion.yml --ask-vault-pass
+ansible-playbook install.yml -i inventory/produccion.yml
 ```
 
-- Agregue `-K` si el usuario `observer` pide password para `sudo`.
+- Con `.vault_pass` presente (Paso 6) **no** necesita `--ask-vault-pass` (lo toma de
+  `ansible.cfg`). Agregue `-K` si el usuario `observer` pide password para `sudo`.
 - Ansible compila el frontend en el nodo de control y luego despliega los 6 roles en
   orden de dependencias. La primera corrida tarda varios minutos (compila Python desde
   fuente, instala PostgreSQL 15 PGDG, MeshCentral, etc.).
 - El playbook es idempotente: puede volver a correrlo sin problema.
+- Al terminar, revise el **PLAY RECAP**: debe decir `failed=0`. (Si envuelve el comando
+  en un script, capture el exit de `ansible-playbook`, no el del wrapper.)
 
 ## Paso 8 — Anotar las credenciales de acceso
 
@@ -231,13 +282,34 @@ credenciales iniciales en claro (replica el cierre del `install.sh` original):
 > después de leerlas. Son las mismas que definió en el vault; se muestran una vez para
 > comodidad del primer acceso.
 
+## Paso 8b — Reinicio para HugePages boot-time (si activó HugePages)
+
+Si dejó `pg_huge_pages: "try"`, **reinicie el servidor una vez** tras el primer deploy:
+
+```bash
+ssh observer@<IP_DEL_SERVIDOR> sudo reboot
+```
+
+Esto activa la reserva de HugePages en el **arranque** (vía el drop-in de grub que
+escribió el rol), que es la forma robusta: el kernel las aparta antes del userspace,
+sin depender de encontrar memoria contigua en runtime. Hasta el reboot rige solo la
+reserva runtime (sysctl), que en pools grandes puede quedar **parcial** por
+fragmentación. Verifique tras el reboot:
+
+```bash
+ssh observer@<IP_DEL_SERVIDOR> 'grep -o "hugepages=[0-9]*" /proc/cmdline; \
+  grep HugePages_Total /proc/meminfo; systemctl is-active postgresql@15-main'
+```
+
+Debe verse `hugepages=<N>` en el cmdline, `HugePages_Total = <N>` y PostgreSQL `active`.
+
 ## Paso 9 — Verificación post-install
 
 ```bash
-ansible-playbook healthcheck.yml -i inventory/produccion.yml --ask-vault-pass
+ansible-playbook healthcheck.yml -i inventory/produccion.yml
 ```
 
-Comprueba PostgreSQL, Redis, MeshCentral, el API y el proxy. Todo debe pasar.
+Comprueba PostgreSQL, Redis, MeshCentral, el API y el proxy. Todo debe pasar (`failed=0`).
 
 ## Paso 10 — Primer acceso
 
@@ -250,14 +322,33 @@ Comprueba PostgreSQL, Redis, MeshCentral, el API y el proxy. Todo debe pasar.
 
 - **`Se encontró 'CHANGEME' en ... vault`**: dejó placeholders sin reemplazar en algún
   `vault.yml`. Corríjalos y vuelva a cifrar.
+- **PostgreSQL no arranca / `could not map anonymous shared memory: Cannot allocate memory`**:
+  `pg_shared_buffers` (o un `pg_vm_nr_hugepages` fijado a mano) excede la RAM del host.
+  Baje `pg_shared_buffers` en el **inventario** (nunca lo fije en group_vars) y reejecute.
+- **HugePages no se reservan tras cambiar el tamaño**: reinicie el servidor (Paso 8b);
+  el runtime (sysctl) puede no encontrar memoria contigua, el boot-time (grub) sí.
 - **Falla la emisión del certificado (modo acme)**: verifique `vault_godaddy_key/secret`,
   que `ejemplo.cl` esté en GoDaddy y que el DNS haya propagado. Puede subir
   `observer_acme_dnssleep` si la propagación es lenta.
 - **`sudo: a password is required`**: reejecute con `-K`.
 - **Reejecutar solo el resumen de credenciales**:
-  `ansible-playbook install.yml -i inventory/produccion.yml --ask-vault-pass --tags access_summary`
+  `ansible-playbook install.yml -i inventory/produccion.yml --tags access_summary`
 
 ---
+
+## Notas sobre `group_vars` (importante si edita la configuración)
+
+- Cada grupo tiene un directorio `group_vars/<grupo>/` con `vars.yml` (config no
+  secreta) y `vault.yml` (secretos, gitignorado). **No** cree un archivo hermano
+  `group_vars/<grupo>.yml`: si coexiste con el directorio, Ansible carga el directorio
+  e **ignora el `.yml`** (la config quedaría muerta y regirían los defaults del rol).
+- El **sizing de PostgreSQL dependiente de la RAM** (shared_buffers, effective_cache_size,
+  max_connections, work_mem de mantenimiento, WAL) va en el **inventario** por ambiente,
+  no en `group_vars/observer_db/vars.yml` (que solo trae parámetros independientes de la
+  RAM). Así un host chico no hereda un sizing pensado para uno grande.
+- Los **intervalos de check-in** (`group_vars/observer_api/vars.yml`) traen un perfil
+  genérico de flota chica/media; para flotas muy grandes, súbalos overrideando en el
+  inventario. Regla dura: `SYNCMESH >= 3600`.
 
 ## Modo multi-host (por hacer)
 
