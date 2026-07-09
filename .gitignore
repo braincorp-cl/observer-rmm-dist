@@ -19,3 +19,4 @@ web/.env.development
 api/observer/coverage.xml
 api/observer/.coverage
 api/observer/htmlcov/
+group_vars/*/vault.yml
