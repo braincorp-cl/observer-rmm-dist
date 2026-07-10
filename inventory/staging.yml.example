@@ -6,14 +6,13 @@
 # USO: copiar a inventory/staging.yml y reemplazar los valores marcados.
 #      El archivo real (inventory/staging.yml) está en .gitignore — NO se versiona
 #      porque contiene la IP del lab y el admin_url ofuscado del ambiente.
+#
+# Mismo patrón que la guía de producción del README (host-vars de topología + HugePages
+# vía grub); solo cambia el sizing, dimensionado a una VM chica.
 all:
   vars:
     ansible_user: observer
     ansible_python_interpreter: /usr/bin/python3
-    observer_db_host: localhost
-    observer_redis_host: localhost
-    observer_mesh_host: localhost
-    observer_nats_host: 127.0.0.1
     # TLS: wildcard *.<base_domain> emitido por acme.sh vía API DNS de GoDaddy (dns_gd),
     # automatizado dentro del playbook (sin paso manual). Requiere vault_godaddy_key/secret
     # en group_vars/observer_proxy/vault.yml. Certs en /etc/ssl/observer/, renovación por cron.
@@ -28,9 +27,8 @@ all:
     # ambiente y única por instalación → definir en un vault, NUNCA en claro aquí.
     observer_admin_url: "{{ vault_admin_url }}" # ← definir en group_vars/observer_api/vault.yml
     # Tuning PostgreSQL para una VM all-in-one chica (~4 GB; los defaults del rol son
-    # de prod dedicado: 4GB shared_buffers + huge pages > RAM total). Ajustar a la VM.
-    pg_vm_nr_hugepages: 0
-    pg_huge_pages: "off"
+    # de prod dedicado: 4GB shared_buffers > RAM total). El sizing dependiente de RAM va
+    # AQUÍ (en el inventario), NO en group_vars. Ajustar a la VM.
     pg_shared_buffers: "256MB"
     pg_effective_cache_size: "1GB"
     pg_maintenance_work_mem: "64MB"
@@ -38,24 +36,30 @@ all:
     pg_min_wal_size: "128MB"
     pg_max_wal_size: "1GB"
     observer_db_max_connections: 100
+    # HugePages: el rol DERIVA nr_hugepages de shared_buffers (256MB → ~167 páginas/334MB)
+    # y las reserva en dos capas — sysctl (runtime, sin reboot) + grub (boot-time, robusto).
+    # NO fije pg_vm_nr_hugepages a mano. Tras el primer deploy REINICIE el host para que la
+    # reserva boot-time quede firme. Para NO usar HugePages: pg_huge_pages: "off".
+    pg_huge_pages: "try"
   children:
+    # En All-in-One los 5 grupos apuntan al MISMO host. La topología de conexión (todo por
+    # loopback) va como HOST-VARS de 'staging', NO en all.vars: así le gana en precedencia
+    # a la expresión dinámica multi-host de los group_vars. Si fuera en all.vars, group_vars
+    # la pisaría y observer_db_host resolvería a la IP del host → rompería la conexión
+    # (pg_hba solo permite loopback).
     observer_db:
       hosts:
         staging:
-          ansible_host: 10.20.0.10             # ← IP real del host de staging (reemplazar)
+          ansible_host: 10.20.0.10              # ← IP real del host de staging (reemplazar)
+          observer_db_host: localhost
+          observer_redis_host: localhost
+          observer_mesh_host: localhost
+          observer_nats_host: 127.0.0.1
     observer_redis:
-      hosts:
-        staging:
-          ansible_host: 10.20.0.10             # ← misma IP (topología co-localizada)
+      hosts: { staging: { ansible_host: 10.20.0.10 } }
     observer_mesh:
-      hosts:
-        staging:
-          ansible_host: 10.20.0.10
+      hosts: { staging: { ansible_host: 10.20.0.10 } }
     observer_api:
-      hosts:
-        staging:
-          ansible_host: 10.20.0.10
+      hosts: { staging: { ansible_host: 10.20.0.10 } }
     observer_proxy:
-      hosts:
-        staging:
-          ansible_host: 10.20.0.10
+      hosts: { staging: { ansible_host: 10.20.0.10 } }
