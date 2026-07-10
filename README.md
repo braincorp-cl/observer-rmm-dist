@@ -179,9 +179,8 @@ all:
     observer_cert_mode: acme               # 'acme' (wildcard vía DNS GoDaddy) o 'byo'
     observer_acme_email: ops@ejemplo.cl    # email de registro Let's Encrypt
 
-    # --- URL ofuscada del panel /admin de Django (estable por instalación) ---
-    # Genere una vez con:  openssl rand -hex 20
-    observer_admin_url: "CAMBIE_ESTO_por_una_cadena_aleatoria_larga"
+    # (La URL ofuscada del panel /admin de Django la genera el playbook automáticamente
+    #  en la primera corrida — ya no se define aquí; ver Paso 6.)
 
     # --- Tuning de PostgreSQL — AJUSTAR A LA RAM DEL SERVIDOR ---
     # El sizing dependiente de RAM se define AQUÍ (en el inventario), NO en group_vars.
@@ -259,45 +258,52 @@ los registros A (pueden estar en el DNS interno).
 
 ## Paso 6 — Configurar las credenciales (Ansible Vault)
 
-Cada componente tiene una plantilla `vault.yml.example`. Cópielas a `vault.yml`,
-reemplace los `CHANGEME` por valores reales y cifre todo con un único password de vault.
+El playbook **genera y cifra automáticamente** todas las contraseñas de los componentes
+en la primera corrida (con `secrets.SystemRandom`) y las reutiliza idempotentemente en
+las siguientes. Usted **no** define contraseñas a mano. Lo único que ingresa el humano
+son las credenciales de **GoDaddy** (necesarias solo en modo TLS `acme`).
 
-> Los `group_vars/*/vault.yml` están **gitignorados** — no se versionan: cada ambiente
-> tiene los suyos, con su propio `.vault_pass`. En el repo solo viven los `*.example`.
+> Corra todo esto desde el clon del ambiente **con el venv activo** (`ansible-vault` vive
+> en él): `cd <clon-del-ambiente> && source .venv/bin/activate`. Si el prompt no muestra
+> `(.venv)`, actívelo antes de continuar.
 
 ```bash
 # 1. Definir el password de vault del ambiente en .vault_pass (gitignorado). GUÁRDELO en
-#    su gestor: es la ÚNICA copia y sin él no se descifra ni se despliega nada.
+#    su gestor: es la ÚNICA copia y sin él no se descifra ni se despliega nada. El playbook
+#    lo usa para cifrar/descifrar todos los vault.yml.
 openssl rand -base64 32 > .vault_pass && chmod 600 .vault_pass
 
-# 2. Copiar las plantillas
-for c in observer_api observer_db observer_mesh observer_proxy observer_redis; do
-  cp group_vars/$c/vault.yml.example group_vars/$c/vault.yml
-done
-
-# 3. Editar cada group_vars/<componente>/vault.yml y reemplazar los CHANGEME.
-#    (ver la tabla de secretos más abajo)
-
-# 4. Cifrar TODOS los vault. Toma el password de .vault_pass vía ansible.cfg; NO pase
-#    además --vault-password-file (daría "vault-ids default,default ...").
-ansible-vault encrypt group_vars/*/vault.yml
+# 2. Poner las credenciales de GoDaddy (solo en modo acme). Copie la plantilla y edite
+#    vault_godaddy_key / vault_godaddy_secret con su API key/secret real
+#    (https://developer.godaddy.com/keys). El playbook lo cifra por usted si lo deja en claro.
+cp group_vars/observer_proxy/vault.yml.example group_vars/observer_proxy/vault.yml
+$EDITOR group_vars/observer_proxy/vault.yml
 ```
 
-Secretos a definir:
+Eso es todo lo que hace el humano. Al ejecutar el playbook (Paso 7):
 
-| Archivo                              | Clave                            | Qué es |
-|--------------------------------------|----------------------------------|--------|
-| `observer_api/vault.yml`             | `vault_observer_admin_password`  | Password del usuario **`observeradmin`** (login web RMM) |
-| `observer_api/vault.yml`             | `vault_django_secret_key`        | SECRET_KEY de Django (aleatoria, ≥50 chars) |
-| `observer_db/vault.yml`              | `vault_observer_db_password`     | Password del rol PostgreSQL principal |
-| `observer_db/vault.yml`              | `vault_observer_mesh_db_password`| Password del rol PostgreSQL de MeshCentral |
-| `observer_mesh/vault.yml`            | `vault_observer_mesh_password`   | Password del usuario **`meshcentral_admin`** (admin de MeshCentral) |
-| `observer_mesh/vault.yml`            | `vault_observer_mesh_db_password`| **Debe coincidir** con el de `observer_db` |
-| `observer_redis/vault.yml`           | `vault_observer_redis_password`  | Password de Redis |
-| `observer_proxy/vault.yml`           | `vault_godaddy_key` / `_secret`  | API de GoDaddy — **solo** en modo `acme` |
+- Genera y cifra `group_vars/observer_api/vault.yml`, `observer_db/vault.yml` y
+  `observer_mesh/vault.yml` con contraseñas aleatorias fuertes (incluida la `observer_admin_url`
+  ofuscada del panel /admin de Django). La contraseña de la BD de MeshCentral se genera una
+  vez y se escribe idéntica en `observer_db` y `observer_mesh`.
+- Cifra `group_vars/observer_proxy/vault.yml` (GoDaddy) si lo dejó en claro.
+- Al terminar imprime en claro, en el **Resumen de acceso** (Paso 8), las contraseñas de
+  `observeradmin` (consola RMM) y `meshcentral_admin` (MeshCentral) para el primer login.
 
-> ⚠️ Las claves `vault_observer_mesh_db_password` de `observer_db` y `observer_mesh`
-> deben tener **exactamente el mismo valor**.
+| Secreto | Origen |
+|---|---|
+| `vault_observer_admin_password` (login `observeradmin`) | **autogenerado** — se muestra al final |
+| `vault_django_secret_key` | **autogenerado** |
+| `observer_admin_url` (ruta ofuscada de `/admin`) | **autogenerado** |
+| `vault_observer_db_password` | **autogenerado** |
+| `vault_observer_mesh_db_password` (db↔mesh, idénticas) | **autogenerado** |
+| `vault_observer_mesh_password` (login `meshcentral_admin`) | **autogenerado** — se muestra al final |
+| `vault_godaddy_key` / `vault_godaddy_secret` | **humano** (solo modo `acme`) |
+
+> **Rotar contraseñas:** borre `group_vars/observer_api/vault.yml`,
+> `group_vars/observer_db/vault.yml` y `group_vars/observer_mesh/vault.yml`, y vuelva a
+> ejecutar el playbook (regenerará credenciales nuevas). En modo `byo` (usted aporta el
+> certificado) puede omitir por completo el Paso 2 de GoDaddy.
 
 ## Paso 7 — Ejecutar el playbook
 

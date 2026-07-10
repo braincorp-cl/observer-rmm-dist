@@ -111,6 +111,142 @@
           ansible.builtin.debug:
             msg: "web/dist/ regenerado en el control node — observer_proxy lo sincronizará al servidor."
 
+- name: Autogenerar y cifrar las credenciales de componente (idempotente, control node)
+  # El humano NO define contraseñas: el playbook las genera aleatoriamente (secrets.SystemRandom)
+  # UNA sola vez, las escribe cifradas con ansible-vault en group_vars/<componente>/vault.yml
+  # (gitignorados) y las reutiliza en cada corrida posterior. Las únicas credenciales que
+  # ingresa el humano son las de GoDaddy en group_vars/observer_proxy/vault.yml (modo acme);
+  # este play también las cifra si las dejó en claro. Las passwords de admin se muestran al
+  # final en el "Resumen de acceso". Rotar = borrar los vault.yml de componente y re-ejecutar.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: [secrets]
+  vars:
+    _gv: "{{ playbook_dir }}/group_vars"
+  tasks:
+    - name: Requerir .vault_pass (necesario para cifrar/descifrar)
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/.vault_pass"
+      register: _vault_pass
+
+    - name: Fallar si falta .vault_pass
+      ansible.builtin.fail:
+        msg: >
+          Falta .vault_pass en la raíz del repo. Créelo una vez con:
+          openssl rand -base64 32 > .vault_pass && chmod 600 .vault_pass
+      when: not _vault_pass.stat.exists
+
+    - name: ¿Ya se generaron las credenciales? (sentinela = observer_api/vault.yml)
+      ansible.builtin.stat:
+        path: "{{ _gv }}/observer_api/vault.yml"
+      register: _sentinel
+
+    - name: Generar + cifrar credenciales de componente (solo la primera vez)
+      when: not _sentinel.stat.exists
+      block:
+        - name: Sembrar credenciales aleatorias (mesh_db se comparte db↔mesh)
+          ansible.builtin.set_fact:
+            _s_admin: "{{ lookup('community.general.random_string', length=32, upper=true, lower=true, numbers=true, special=false) }}"
+            _s_django: "{{ lookup('community.general.random_string', length=64, upper=true, lower=true, numbers=true, special=false) }}"
+            _s_db: "{{ lookup('community.general.random_string', length=32, upper=true, lower=true, numbers=true, special=false) }}"
+            _s_meshdb: "{{ lookup('community.general.random_string', length=32, upper=true, lower=true, numbers=true, special=false) }}"
+            _s_mesh: "{{ lookup('community.general.random_string', length=32, upper=true, lower=true, numbers=true, special=false) }}"
+            _s_adminurl: "{{ lookup('community.general.random_string', length=32, upper=false, lower=true, numbers=true, special=false) }}"
+          no_log: true
+
+        - name: Escribir group_vars/observer_api/vault.yml
+          ansible.builtin.copy:
+            dest: "{{ _gv }}/observer_api/vault.yml"
+            mode: "0600"
+            content: |
+              ---
+              # AUTOGENERADO por install.yml (idempotente) — NO editar ni commitear (gitignored).
+              # Rotar = borrar los vault.yml de observer_api/observer_db/observer_mesh y re-ejecutar.
+              vault_observer_admin_password: "{{ _s_admin }}"
+              vault_django_secret_key: "{{ _s_django }}"
+              observer_admin_url: "{{ _s_adminurl }}"
+          no_log: true
+
+        - name: Escribir group_vars/observer_db/vault.yml
+          ansible.builtin.copy:
+            dest: "{{ _gv }}/observer_db/vault.yml"
+            mode: "0600"
+            content: |
+              ---
+              # AUTOGENERADO por install.yml (idempotente) — NO editar ni commitear (gitignored).
+              vault_observer_db_password: "{{ _s_db }}"
+              vault_observer_mesh_db_password: "{{ _s_meshdb }}"
+          no_log: true
+
+        - name: Escribir group_vars/observer_mesh/vault.yml
+          ansible.builtin.copy:
+            dest: "{{ _gv }}/observer_mesh/vault.yml"
+            mode: "0600"
+            content: |
+              ---
+              # AUTOGENERADO por install.yml (idempotente) — NO editar ni commitear (gitignored).
+              # vault_observer_mesh_db_password DEBE coincidir con el de observer_db (aquí se garantiza).
+              vault_observer_mesh_password: "{{ _s_mesh }}"
+              vault_observer_mesh_db_password: "{{ _s_meshdb }}"
+          no_log: true
+
+        - name: Cifrar los vault de componente recién generados
+          ansible.builtin.command:
+            cmd: ansible-vault encrypt group_vars/observer_api/vault.yml group_vars/observer_db/vault.yml group_vars/observer_mesh/vault.yml
+            chdir: "{{ playbook_dir }}"
+          changed_when: true
+          no_log: true
+
+    - name: Cifrar GoDaddy (observer_proxy/vault.yml) si el humano lo dejó en claro
+      when: observer_cert_mode | default('acme') == 'acme'
+      block:
+        - name: ¿Existe observer_proxy/vault.yml?
+          ansible.builtin.stat:
+            path: "{{ _gv }}/observer_proxy/vault.yml"
+          register: _proxy_vault
+
+        - name: Fallar si falta observer_proxy/vault.yml (credenciales GoDaddy, modo acme)
+          ansible.builtin.fail:
+            msg: >
+              Falta group_vars/observer_proxy/vault.yml con las credenciales de GoDaddy.
+              Cópielo de la plantilla y ponga su API key/secret:
+              cp group_vars/observer_proxy/vault.yml.example group_vars/observer_proxy/vault.yml
+          when: not _proxy_vault.stat.exists
+
+        - name: Leer cabecera de observer_proxy/vault.yml
+          ansible.builtin.slurp:
+            src: "{{ _gv }}/observer_proxy/vault.yml"
+          register: _proxy_raw
+          no_log: true
+
+        - name: Cifrar observer_proxy/vault.yml si aún está en claro
+          ansible.builtin.command:
+            cmd: ansible-vault encrypt group_vars/observer_proxy/vault.yml
+            chdir: "{{ playbook_dir }}"
+          when: "'$ANSIBLE_VAULT' not in (_proxy_raw.content | b64decode)"
+          changed_when: true
+          no_log: true
+
+- name: Propagar las credenciales recién generadas a los hosts (solo en la primera corrida)
+  # En la primera corrida los vault.yml se crean DESPUÉS del parseo de group_vars, así que este
+  # run no los auto-cargó: los inyectamos por set_fact desde el control node. En corridas
+  # posteriores (_s_* no está definido) los hosts ya los tienen por auto-carga de group_vars.
+  hosts: all
+  gather_facts: false
+  tags: [secrets]
+  tasks:
+    - name: Inyectar credenciales generadas en esta corrida
+      when: hostvars['localhost']['_s_admin'] is defined
+      ansible.builtin.set_fact:
+        vault_observer_admin_password: "{{ hostvars['localhost']['_s_admin'] }}"
+        vault_django_secret_key: "{{ hostvars['localhost']['_s_django'] }}"
+        observer_admin_url: "{{ hostvars['localhost']['_s_adminurl'] }}"
+        vault_observer_db_password: "{{ hostvars['localhost']['_s_db'] }}"
+        vault_observer_mesh_db_password: "{{ hostvars['localhost']['_s_meshdb'] }}"
+        vault_observer_mesh_password: "{{ hostvars['localhost']['_s_mesh'] }}"
+      no_log: true
+
 - name: Dependencias comunes — todos los hosts
   hosts: all
   roles:
