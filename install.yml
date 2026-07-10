@@ -120,6 +120,9 @@
   # final en el "Resumen de acceso". Rotar = borrar los vault.yml de componente y re-ejecutar.
   hosts: localhost
   connection: local
+  become: false   # escribe los vault.yml en el control node como el usuario que corre Ansible,
+                  # NO como root (ansible.cfg fija become=true global): si no, quedan root:root
+                  # 0600 y el parseo de group_vars de los plays siguientes falla con EACCES.
   gather_facts: false
   tags: [secrets]
   vars:
