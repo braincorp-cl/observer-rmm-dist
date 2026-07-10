@@ -122,6 +122,8 @@
         cmd: >-
           /root/.acme.sh/acme.sh --install-cert -d {{ observer_base_domain }}
           --key-file /etc/ssl/observer/privkey.pem
+          --cert-file /etc/ssl/observer/cert.pem
+          --ca-file /etc/ssl/observer/chain.pem
           --fullchain-file /etc/ssl/observer/fullchain.pem
           --reloadcmd "systemctl reload-or-restart nginx"
       changed_when: true
