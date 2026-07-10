@@ -43,32 +43,92 @@ nodo de control y se conecta por SSH al servidor.
 
 ## Paso 1 — Preparar el servidor target
 
-1. Aprovisione una VM/servidor con **Ubuntu 22.04 LTS** (o 24.04) recién instalado.
-2. Fije la zona horaria y actualice el sistema:
+1. **Instale Ubuntu 22.04 LTS** (o 24.04) recién instalado. Selecciones recomendadas
+   del instalador:
+   - **Idioma (Language):** English
+   - **Keyboard layout / variant:** Spanish (Latin American)
+   - **Tipo de instalación:** Ubuntu Server (minimized)
+   - **Install OpenSSH Server:** sí
+
+2. **Tras el primer boot**, fije la zona horaria:
    ```bash
    sudo timedatectl set-timezone America/Santiago   # ajuste a su zona
-   sudo apt update && sudo apt upgrade -y
    ```
-3. Cree un usuario de despliegue con `sudo` (esta guía usa `observer`):
+
+3. Actualice repositorios e instale los paquetes base del administrador:
    ```bash
-   sudo useradd -G sudo -m -s /bin/bash observer && sudo passwd observer
+   sudo apt update
+   sudo apt install -y \
+     dialog vim tasksel apt-utils logrotate net-tools iputils-ping \
+     bind9-dnsutils procps psmisc bash-completion plocate \
+     curl wget traceroute sosreport lsof rsync
    ```
-4. Habilite acceso SSH por clave para ese usuario (desde el nodo de control):
+
+4. **Solo si es una VM sobre vSphere**, instale VMware Tools:
    ```bash
-   ssh-copy-id observer@<IP_DEL_SERVIDOR>
+   sudo apt install -y open-vm-tools
+   sudo systemctl enable --now open-vm-tools
    ```
-5. Verifique que puede entrar y usar sudo:
+
+5. Actualice todo el sistema:
    ```bash
-   ssh observer@<IP_DEL_SERVIDOR> "sudo -n true && echo OK || echo 'sudo pedirá password'"
+   sudo apt upgrade -y
    ```
-   Si sudo pide password, más adelante ejecute el playbook con `-K` (o deje el grupo
-   `sudo` con `NOPASSWD` durante el install).
+
+6. Para que el instalador (Ansible) corra sin pedir password, deje el grupo `sudo`
+   con `NOPASSWD:ALL` en `/etc/sudoers` (edite con `sudo visudo`):
+   ```bash
+   sudo grep '^%sudo' /etc/sudoers
+   # %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
+   ```
+   > Alternativa más restrictiva: dejar el sudo con password y ejecutar el playbook
+   > con `-K`. El `NOPASSWD` simplifica el greenfield; puede endurecerlo tras el install.
+
+7. Cree el usuario que ejecuta los servicios (esta guía usa `observer`):
+   ```bash
+   sudo useradd -G sudo -c "Observer RMM User" -m -d /home/observer -s /bin/bash observer
+   sudo passwd observer
+   ```
+
+8. Registre los 3 FQDN del ambiente en `/etc/hosts` (resolución local por loopback).
+   Con el dominio de ejemplo `ejemplo.cl` y los FQDN `rmm.` / `mesh.` / `api.ejemplo.cl`,
+   reemplace la línea de `127.0.1.1` (deje el hostname del host al inicio):
+   ```bash
+   # antes:
+   127.0.1.1 <hostname>
+   # después:
+   127.0.1.1 <hostname> rmm.ejemplo.cl mesh.ejemplo.cl api.ejemplo.cl
+   ```
+
+9. Reinicie para cargar el sistema parchado:
+   ```bash
+   sudo shutdown -r now
+   ```
+
+> El acceso SSH por clave desde el nodo de control (`ssh-keygen` + `ssh-copy-id`) se
+> configura en el **Paso 2**.
 
 ## Paso 2 — Preparar el nodo de control
 
-Use un **clon dedicado por ambiente** (no reutilice el checkout de dev/staging para
-producción): así cada ambiente tiene su propio inventario, vault y `.vault_pass`, y no
-hay riesgo de disparar el playbook contra el inventario equivocado.
+Todo esto ocurre en **el equipo del técnico** (control-plane).
+
+**2.a — Acceso SSH por clave al servidor** (preparado en el Paso 1):
+
+```bash
+# Genere una llave si no tiene (ejemplo RSA):
+ssh-keygen -t rsa -b 2048
+
+# Copie la llave pública al usuario 'observer' del servidor:
+ssh-copy-id observer@<IP_DEL_SERVIDOR>
+
+# Verifique acceso + sudo sin password (debe imprimir OK):
+ssh observer@<IP_DEL_SERVIDOR> "sudo -n true && echo OK || echo 'sudo pedirá password'"
+```
+
+**2.b — Clon dedicado + dependencias.** Use un **clon dedicado por ambiente** (no
+reutilice el checkout de dev/staging para producción): así cada ambiente tiene su propio
+inventario, vault y `.vault_pass`, y no hay riesgo de disparar el playbook contra el
+inventario equivocado.
 
 ```bash
 # 1. Clonar el repo en una ruta dedicada al ambiente
