@@ -10,6 +10,7 @@
 
 - name: Pre-checks
   hosts: localhost
+  become: false   # play del control node: no escalar (ansible.cfg fija become=true global)
   gather_facts: false
   tags: [pre_checks]
   tasks:
@@ -56,6 +57,8 @@
   # Omitir con -e observer_frontend_build=false (p.ej. re-deploy sin cambios de frontend,
   # usando el web/dist/ ya construido) o seleccionar con --tags frontend_build.
   hosts: localhost
+  become: false   # play del control node: no escalar (ansible.cfg fija become=true global);
+                  # npm/quasar corren como el usuario, dejando web/dist y node_modules a su nombre
   gather_facts: false
   tags: [frontend_build]
   vars:
