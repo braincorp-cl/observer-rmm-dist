@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observer RMM · Documentación</title>
+<meta name="description" content="Documentación oficial de Observer RMM: primeros pasos, permisos y seguridad, y preguntas frecuentes.">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones">
+    <p class="rail-label">Documentación</p>
+    <a href="/" class="active">Inicio</a>
+    <a href="/guide_gettingstarted/">Primeros pasos</a>
+    <a href="/functions/permissions/">Permisos y seguridad</a>
+    <a href="/faq/">Preguntas frecuentes</a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow">Centro de documentación</p>
+      <h1>Documentación de Observer RMM</h1>
+      <p class="lead">Todo lo que necesitas para operar tu plataforma de monitoreo y administración remota: puesta en marcha, control de acceso y resolución de incidentes. Escrita para el equipo que opera el deck.</p>
+
+      <div class="callout note">
+        <span class="tag">Nota</span>
+        <p>Esta documentación es propia de Observer RMM. Reemplaza los enlaces externos que antes salían de la plataforma: ahora todo vive en tu propio dominio.</p>
+      </div>
+
+      <div class="cards">
+        <a class="card" href="/guide_gettingstarted/">
+          <span class="k">Guía</span>
+          <h3>Primeros pasos</h3>
+          <p>Del primer inicio de sesión al primer agente enrolado: clientes, sitios y despliegue.</p>
+        </a>
+        <a class="card" href="/functions/permissions/">
+          <span class="k">Referencia</span>
+          <h3>Permisos y seguridad</h3>
+          <p>El modelo de roles y los permisos con implicancias de seguridad que conviene restringir.</p>
+        </a>
+        <a class="card" href="/faq/">
+          <span class="k">Ayuda</span>
+          <h3>Preguntas frecuentes</h3>
+          <p>Agentes inesperados, advertencias del instalador y otras dudas comunes.</p>
+        </a>
+        <a class="card" href="https://github.com/braincorp-cl/observer-rmm-dist/" target="_blank" rel="noopener">
+          <span class="k">Proyecto</span>
+          <h3>Repositorio</h3>
+          <p>Código, reporte de errores y solicitudes de mejora en GitHub.</p>
+        </a>
+      </div>
+
+      <h2 id="que-es">¿Qué es Observer RMM?</h2>
+      <p>Observer RMM es una plataforma de <strong>monitoreo y administración remota</strong> (RMM) para flotas de equipos Windows, Linux y macOS. Desde una sola consola puedes vigilar el estado de cada equipo, ejecutar scripts y tareas, tomar control remoto y mantener el software al día.</p>
+      <p>La plataforma se organiza en tres niveles: <strong>clientes</strong> (organizaciones), <strong>sitios</strong> (ubicaciones dentro de un cliente) y <strong>agentes</strong> (los equipos administrados). Empieza por <a href="/guide_gettingstarted/">Primeros pasos</a> para dejar esa estructura lista y enrolar tu primer equipo.</p>
+
+      <footer>
+        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

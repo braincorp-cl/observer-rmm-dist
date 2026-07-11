@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preguntas frecuentes · Observer RMM</title>
+<meta name="description" content="Preguntas frecuentes de Observer RMM: agentes inesperados, advertencias del instalador y seguridad.">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones">
+    <p class="rail-label">Documentación</p>
+    <a href="/">Inicio</a>
+    <a href="/guide_gettingstarted/">Primeros pasos</a>
+    <a href="/functions/permissions/">Permisos y seguridad</a>
+    <a href="/faq/" class="active">Preguntas frecuentes</a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow">Ayuda</p>
+      <h1>Preguntas frecuentes</h1>
+      <p class="lead">Respuestas a las dudas más comunes al operar Observer RMM, con foco en seguridad e instalación de agentes.</p>
+
+      <h2 id="agentes-inesperados">Aparecen agentes desconocidos o inesperados en mi consola</h2>
+      <p>Si ves equipos que no reconoces, o el número de agentes crece más de lo que instalaste, trátalo como un incidente de seguridad y actúa de inmediato. Un agente enrolado tiene acceso legítimo a tu plataforma, así que un agente no autorizado es una vía de entrada real.</p>
+
+      <div class="callout danger">
+        <span class="tag">Acción inmediata</span>
+        <p>No ignores agentes que no reconozcas. Aíslalos y elimínalos, y luego cierra la vía por la que entraron.</p>
+      </div>
+
+      <h3 id="como-ocurre">¿Cómo ocurre esto?</h3>
+      <p>Casi siempre la causa es que alguien reutilizó un artefacto de instalación que no debía compartirse:</p>
+      <ul>
+        <li>Se compartió un <strong>instalador o un comando de enrolamiento</strong> que sigue siendo válido, y un tercero lo ejecutó en otros equipos.</li>
+        <li>Se publicó por error un instalador con su token en un lugar accesible (un ticket, un chat, un repositorio).</li>
+        <li>Se usó el método de <strong>EXE dinámico</strong>, que facilita reutilizar el mismo instalador en equipos no previstos.</li>
+      </ul>
+      <p>El enrolamiento de agentes se apoya en tokens. Mientras un token siga vigente, cualquiera que lo tenga puede sumar equipos a tu plataforma.</p>
+
+      <h3 id="que-hacer">Qué hacer ahora</h3>
+      <ol>
+        <li><strong>Identifica</strong> los agentes que no reconoces en la lista de agentes.</li>
+        <li><strong>Elimínalos</strong> desde la consola. Al quitar el agente de Observer también se corta su acceso; asegúrate de desinstalar el software del equipo si tienes acceso a él.</li>
+        <li><strong>Invalida los tokens de enrolamiento</strong> que puedan haberse filtrado y genera nuevos. Un instalador viejo dejará de servir para sumar equipos.</li>
+        <li><strong>Revisa quién tiene permisos sensibles</strong> (ver <a href="/functions/permissions/#permisos-con-implicancias-de-seguridad">Permisos con implicancias de seguridad</a>) y confirma que ningún usuario ni script se haya alterado.</li>
+        <li><strong>Cambia credenciales</strong> si sospechas que alguna se expuso, y confirma que la 2FA esté activa en todas las cuentas.</li>
+      </ol>
+
+      <h3 id="como-prevenir">Cómo prevenirlo</h3>
+      <ul>
+        <li>Trata los instaladores y comandos de enrolamiento como <strong>secretos</strong>: no los compartas por canales abiertos ni los dejes en tickets o repositorios.</li>
+        <li>Prefiere el <strong>instalador EXE estándar</strong> o <strong>PowerShell</strong> antes que el EXE dinámico.</li>
+        <li>Genera instaladores por sitio y con vigencia acotada cuando sea posible.</li>
+        <li>Revisa periódicamente la lista de agentes y da de baja los que ya no correspondan.</li>
+      </ul>
+
+      <hr>
+
+      <h2 id="advertencia-instalador">El instalador dispara advertencias de antivirus o SmartScreen</h2>
+      <p>Algunos métodos de instalación —en particular el <strong>EXE dinámico</strong>— pueden generar advertencias de antivirus, de Windows SmartScreen o de "Editor no confiable", <strong>incluso con la firma de código habilitada</strong>. Es un comportamiento conocido de ese método.</p>
+      <div class="callout note">
+        <span class="tag">Recomendación</span>
+        <p>Usa el <strong>instalador EXE estándar</strong> o el instalador de <strong>PowerShell</strong>. Además de evitar estas advertencias, reducen el riesgo de que aparezcan agentes inesperados.</p>
+      </div>
+
+      <h2 id="control-remoto">Instalé el agente pero no puedo tomar control remoto</h2>
+      <p>El control remoto se apoya en un componente adicional que se enrola junto con el agente. Si el equipo aparece en línea pero el control remoto figura como fuera de línea, verifica la conectividad del equipo hacia el servidor y que no haya un antivirus o filtro TLS interceptando la conexión, que puede romper la validación del canal de control.</p>
+
+      <footer>
+        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

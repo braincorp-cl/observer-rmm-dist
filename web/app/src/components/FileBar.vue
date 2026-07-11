@@ -334,18 +334,18 @@ export default {
       let url;
       switch (mode) {
         case "github":
-          url = "https://github.com/braincorp-cl/observer-rmm/";
+          url = "https://github.com/braincorp-cl/observer-rmm-dist/";
           break;
         case "docs":
           url = "https://docs.observer.cl";
           break;
         case "bug":
           url =
-            "https://github.com/braincorp-cl/observer-rmm/issues/new?template=bug_report.md";
+            "https://github.com/braincorp-cl/observer-rmm-dist/issues/new?template=bug_report.md";
           break;
         case "feature":
           url =
-            "https://github.com/braincorp-cl/observer-rmm/issues/new?template=feature_request.md";
+            "https://github.com/braincorp-cl/observer-rmm-dist/issues/new?template=feature_request.md";
           break;
         case "discord":
           url = "https://discord.gg/upGTkWp";

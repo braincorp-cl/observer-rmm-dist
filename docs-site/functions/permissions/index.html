@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permisos y seguridad · Observer RMM</title>
+<meta name="description" content="Modelo de roles y permisos de Observer RMM, con foco en los permisos y ajustes con implicancias de seguridad.">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones">
+    <p class="rail-label">Documentación</p>
+    <a href="/">Inicio</a>
+    <a href="/guide_gettingstarted/">Primeros pasos</a>
+    <a href="/functions/permissions/" class="active">Permisos y seguridad</a>
+    <a href="/faq/">Preguntas frecuentes</a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow">Referencia</p>
+      <h1>Permisos y seguridad</h1>
+      <p class="lead">Observer RMM controla lo que cada usuario puede ver y hacer mediante roles. Entender el modelo —y qué permisos son especialmente sensibles— es clave para operar con seguridad.</p>
+
+      <h2 id="modelo-de-roles">El modelo de roles</h2>
+      <p>El acceso se asigna con <strong>roles</strong>. Un rol es un conjunto de permisos; a cada usuario se le asigna uno o más roles, y su acceso efectivo es la suma de ellos. Los permisos cubren dos dimensiones:</p>
+      <ul>
+        <li><strong>Qué puede hacer</strong> — acciones sobre agentes, scripts, tareas, alertas, informes, usuarios, etc. (ver, crear, editar, eliminar, ejecutar).</li>
+        <li><strong>Sobre qué puede hacerlo</strong> — el alcance: todos los agentes, o solo determinados clientes y sitios.</li>
+      </ul>
+      <p>Aplica siempre el <strong>principio de mínimo privilegio</strong>: entrega a cada usuario solo los permisos que su función necesita, y limita el alcance a los clientes y sitios que le corresponden.</p>
+
+      <div class="callout note">
+        <span class="tag">Recomendación</span>
+        <p>Crea roles por función (por ejemplo, "Soporte nivel 1", "Administrador de flota", "Solo lectura") en lugar de dar permisos totales a cada persona. Es más fácil de auditar y de revocar.</p>
+      </div>
+
+      <h2 id="permisos-con-implicancias-de-seguridad">Permisos con implicancias de seguridad</h2>
+      <p>Algunos permisos y ajustes otorgan capacidades que, mal usadas o en manos equivocadas, pueden comprometer los equipos administrados o el propio servidor. Trátalos como privilegios excepcionales: concédelos solo a administradores de confianza y revísalos periódicamente.</p>
+
+      <div class="callout danger">
+        <span class="tag">Alto riesgo</span>
+        <p>Los permisos de esta sección permiten ejecutar código con privilegios elevados sobre los equipos e incluso sobre el servidor. Un usuario con estas capacidades puede, en la práctica, hacer casi cualquier cosa en tu entorno.</p>
+      </div>
+
+      <h3 id="ejecutar-scripts">Ejecutar y administrar scripts</h3>
+      <p>Poder ejecutar scripts en los agentes equivale a ejecutar comandos arbitrarios con privilegios de sistema en esos equipos. Poder <em>administrar</em> (crear o editar) scripts es aún más sensible: quien edita un script cambia lo que se ejecutará en toda la flota. Limita ambos permisos a un grupo reducido.</p>
+
+      <h3 id="scripts-de-servidor">Habilitar scripts de servidor</h3>
+      <p>Este ajuste global permite que ciertos scripts corran <strong>en el propio servidor de Observer</strong>, no en los agentes. Es una capacidad potente para automatizaciones, pero un script malicioso o defectuoso puede afectar a toda la plataforma. Mantenlo <strong>desactivado</strong> salvo que tengas una necesidad concreta y controles quién puede crear scripts.</p>
+
+      <h3 id="terminal-web">Terminal web</h3>
+      <p>La terminal web abre una shell interactiva contra el servidor desde el navegador. Es cómoda para tareas administrativas, pero entrega acceso directo de línea de comandos. Habilítala solo si es necesaria y restríngela a administradores; considérala equivalente a dar acceso SSH al servidor.</p>
+
+      <h3 id="gestion-de-usuarios-y-roles">Gestión de usuarios y roles</h3>
+      <p>Quien puede crear o editar usuarios y roles puede, indirectamente, <strong>elevarse a sí mismo o a otros</strong> a permisos totales. Este permiso debe quedar reservado a los administradores de la plataforma.</p>
+
+      <h2 id="buenas-practicas">Buenas prácticas</h2>
+      <ul>
+        <li>Mantén desactivados <strong>scripts de servidor</strong> y <strong>terminal web</strong> mientras no los uses.</li>
+        <li>Separa las cuentas de uso diario de las cuentas con privilegios elevados.</li>
+        <li>Exige 2FA a todos los usuarios (es obligatoria en Observer).</li>
+        <li>Revisa periódicamente quién tiene permisos sensibles y revoca los que ya no correspondan.</li>
+        <li>Prefiere roles acotados por cliente/sitio antes que acceso global.</li>
+      </ul>
+
+      <footer>
+        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

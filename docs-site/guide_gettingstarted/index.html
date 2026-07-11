@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primeros pasos · Observer RMM</title>
+<meta name="description" content="Guía de puesta en marcha de Observer RMM: primer inicio de sesión, clientes y sitios, y el primer agente enrolado.">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones">
+    <p class="rail-label">Documentación</p>
+    <a href="/">Inicio</a>
+    <a href="/guide_gettingstarted/" class="active">Primeros pasos</a>
+    <a href="/functions/permissions/">Permisos y seguridad</a>
+    <a href="/faq/">Preguntas frecuentes</a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow">Guía</p>
+      <h1>Primeros pasos</h1>
+      <p class="lead">Ya tienes Observer RMM instalado. Esta guía te lleva del primer inicio de sesión hasta tu primer equipo administrado, en el orden que conviene seguir.</p>
+
+      <div class="callout note">
+        <span class="tag">Antes de empezar</span>
+        <p>Necesitas la URL de tu consola y las credenciales del primer usuario administrador que se mostraron al terminar la instalación. Si no las tienes a mano, revísalas en el resumen de acceso del despliegue.</p>
+      </div>
+
+      <h2 id="acceso">1. Primer inicio de sesión y 2FA</h2>
+      <p>Abre la consola web en tu navegador e inicia sesión con el usuario administrador. En el primer acceso, Observer te pedirá configurar la <strong>autenticación en dos pasos (2FA)</strong>:</p>
+      <ol>
+        <li>Escanea el código QR con una app de autenticación (Google Authenticator, Authy, 1Password u otra compatible con TOTP).</li>
+        <li>Ingresa el código de seis dígitos para confirmar.</li>
+        <li>Guarda el código de respaldo en un lugar seguro: te permite recuperar el acceso si pierdes el dispositivo.</li>
+      </ol>
+      <p>La 2FA es obligatoria y no puede desactivarse a nivel de plataforma. Cada usuario configura la suya en su primer ingreso.</p>
+
+      <h2 id="estructura">2. Crea tu estructura: clientes y sitios</h2>
+      <p>Observer organiza los equipos en dos niveles antes del agente:</p>
+      <ul>
+        <li><strong>Cliente</strong> — una organización o unidad (por ejemplo, una empresa o un departamento).</li>
+        <li><strong>Sitio</strong> — una ubicación o subgrupo dentro de un cliente (por ejemplo, una sucursal o una sala).</li>
+      </ul>
+      <p>Todo agente pertenece a un sitio, y todo sitio pertenece a un cliente. Al terminar la configuración inicial ya defines tu primer cliente y su primer sitio; desde <em>Agentes → gestionar clientes/sitios</em> puedes agregar los que necesites.</p>
+
+      <div class="callout note">
+        <span class="tag">Consejo</span>
+        <p>Piensa la estructura como la usarás para filtrar y aplicar políticas: agrupar por cliente/sitio facilita asignar tareas de monitoreo, alertas y permisos más adelante.</p>
+      </div>
+
+      <h2 id="primer-agente">3. Enrola tu primer agente</h2>
+      <p>Un <strong>agente</strong> es el software que corre en cada equipo administrado y lo conecta con la consola. Para instalar el primero:</p>
+      <ol>
+        <li>Ve a <em>Agentes → Instalar agente</em>.</li>
+        <li>Elige el <strong>cliente</strong> y el <strong>sitio</strong> de destino.</li>
+        <li>Selecciona el <strong>sistema operativo</strong> y la <strong>arquitectura</strong> del equipo.</li>
+        <li>Elige el <strong>método de instalación</strong>. Para Windows recomendamos el <strong>instalador EXE estándar</strong> o <strong>PowerShell</strong>; en Linux y macOS se usa el script de instalación entregado por la consola.</li>
+        <li>Ejecuta el instalador en el equipo de destino con privilegios de administrador/root.</li>
+      </ol>
+      <p>En un par de minutos el equipo aparecerá en línea en la consola, con su inventario y sus métricas.</p>
+
+      <div class="callout warn">
+        <span class="tag">Advertencia</span>
+        <p>Evita el método de instalación de <strong>EXE dinámico</strong> salvo que sea estrictamente necesario: puede disparar advertencias de antivirus o SmartScreen y abre la puerta a agentes inesperados. Consulta <a href="/faq/#agentes-inesperados">Preguntas frecuentes</a>.</p>
+      </div>
+
+      <h2 id="siguientes">4. Siguientes pasos</h2>
+      <ul>
+        <li>Revisa <a href="/functions/permissions/">Permisos y seguridad</a> antes de crear usuarios adicionales.</li>
+        <li>Define tareas de monitoreo y alertas para tus sitios.</li>
+        <li>Prueba el control remoto sobre el agente recién enrolado.</li>
+      </ul>
+
+      <footer>
+        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>
