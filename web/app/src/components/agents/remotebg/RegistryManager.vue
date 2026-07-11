@@ -305,7 +305,7 @@
       @confirm="confirmDeleteKey"
       type="confirm"
       icon="warning"
-      iconColor="orange"
+      iconColor="warning"
     />
     <ConfirmDialog
       v-model="confirmDeleteValueDialog"
@@ -314,7 +314,7 @@
       @confirm="confirmDeleteValue"
       type="confirm"
       icon="warning"
-      iconColor="orange"
+      iconColor="warning"
     />
     <ConfirmDialog
       v-model="warningDialog"
@@ -322,7 +322,7 @@
       :message="$t('registryManager.selectionRequiredMessage')"
       :showConfirm="false"
       icon="warning"
-      iconColor="orange"
+      iconColor="warning"
     />
     <RegistryValueModal
       v-model="modifyDialog"

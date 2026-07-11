@@ -1,1 +1,22 @@
 // app global css in Sass form
+// Tema "Observation Deck" — ajustes globales de ambos modos.
+// Los colores de marca viven en quasar.variables.sass; aquí van los
+// neutros de página y la firma tipográfica.
+
+// Firma tipográfica: cifras alineadas en columnas, como telemetría
+// (tablas de agentes, contadores, timestamps). Roboto se conserva.
+body
+  font-variant-numeric: tabular-nums
+
+// --- Modo día ---
+// Fondo neutro-frío elegido (sesgo azul), no gris muerto; tarjetas blancas.
+body.body--light
+  background: #EEF2F7
+  color: #16202E
+  .q-page
+    background: #EEF2F7
+
+// --- Modo noche ---
+// El page/surface navy los define $dark-page/$dark en quasar.variables.sass.
+body.body--dark
+  color: #E6EDF5

@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header elevated class="bg-grey-9 text-white">
+    <q-header elevated class="bg-dark text-white">
       <q-banner
         v-if="needRefresh"
         inline-actions
@@ -95,9 +95,14 @@
           dense
           borderless
           options-dense
-          class="q-mr-sm"
-          style="min-width: 96px"
-        />
+          dropdown-icon="expand_more"
+          class="lang-select q-mr-sm"
+          style="min-width: 104px"
+        >
+          <template v-slot:prepend>
+            <q-icon name="language" size="18px" />
+          </template>
+        </q-select>
         <!-- temp dark mode toggle -->
         <q-toggle
           v-model="darkMode"
@@ -385,3 +390,24 @@ onBeforeUnmount(() => {
   clearInterval(poll.value);
 });
 </script>
+
+<style scoped lang="sass">
+// El selector de idioma vive sobre el header navy en ambos modos.
+// Le damos afordancia de control (pill translúcido) para que no se
+// confunda con texto plano — el problema que se notaba en modo día.
+.lang-select
+  background: rgba(255, 255, 255, 0.06)
+  border: 1px solid rgba(255, 255, 255, 0.16)
+  border-radius: 7px
+  padding: 0 8px
+  transition: background 0.15s ease, border-color 0.15s ease
+  color: #fff
+  &:hover
+    background: rgba(255, 255, 255, 0.12)
+    border-color: rgba(255, 255, 255, 0.28)
+  // El header es navy en día y noche → el texto y los íconos del selector
+  // deben ser siempre blancos. En modo día Quasar los pintaría oscuros por
+  // defecto (ignora el text-white del header en su lógica interna de q-field).
+  :deep(.q-field__native), :deep(.q-field__native span), :deep(.q-icon)
+    color: #fff !important
+</style>

@@ -2,6 +2,20 @@
 
 Formato: las entradas más recientes arriba. Cada entrada cita la feature del ciclo forward (`_reversa_forward/NNN-<short-name>/`), la decisión que la origina y, cuando corresponda, los hallazgos cross-repo del hub `observer-rmm`.
 
+## 2026-07-11 — Tema visual "Observation Deck": navy + cian-señal (rediseño de la UI)
+
+**Resumen:** se reemplazan los dos temas genéricos (Quasar default + acento naranjo `#E8500A`) por una identidad "sala de monitoreo" acorde al nombre *Observer*: **navy profundo + un cian-señal `#0E8FA8` como acento único**. El naranjo desaparece de la marca; el tono cálido sobrevive solo como `warning` ámbar (`#F5A524`) en alertas.
+
+**Disparador:** pedido del usuario — los botones naranjos se veían "horribles" y el selector de idioma se deslucía en modo día; quería colores/tipografía parecidos a un dashboard de referencia (Datto Endpoint Security).
+
+**Cambios:**
+- `src/css/quasar.variables.sass` — paleta nueva: `$primary #0E8FA8`, `$accent #22C3D6`, `$secondary #3A4E68`, `$dark-page #0F1A2A` / `$dark #17253A`, status refinados. Propaga a los ~92 `.vue` que usan `color="primary"` (siguen el token, no hex sueltos).
+- `src/css/app.sass` — page día `#EEF2F7` (neutro-frío) + `.q-page`; `font-variant-numeric: tabular-nums` global (columnas numéricas alineadas como telemetría). Roboto conservado.
+- `src/layouts/MainLayout.vue` — header `bg-grey-9`→`bg-dark` (**navy en día y noche**); selector de idioma con ícono `language` + pill translúcido; `:deep(.q-field__native/.q-icon){color:#fff}` para que el texto siga blanco sobre el header navy también en modo día.
+- `src/components/modals/alerts/AlertsOverview.vue` (severidad `"orange"/"red"`→`warning`/`negative`) + `src/components/agents/remotebg/RegistryManager.vue` (3× `iconColor="orange"`→`warning`).
+
+**Verificación:** `eslint` de los 3 archivos con lógica exit 0; cero `#E8500A`/`orange` residual en `src`; `quasar build` (Node 22.22.2) "Build succeeded"; desplegado a staging (`10.20.0.104`, `deploy-frontend.yml` `failed=0`) y validado visualmente (modo noche + modo día con selector blanco). Verificado en assets servidos: cian `#0e8fa8` presente, `#e8500a`=0. Pendiente: promover a prod tier1.
+
 ## 2026-06-17 — Descarte de módulos Reportes y SSO (ADR-010, sweep directo)
 
 **Resumen:** se descartan los módulos Enterprise Edition **Reportes** (`src/ee/reporting/`) y **SSO** (`src/ee/sso/`). Ambas carpetas quedan **vacías** (solo un `README.md` placeholder), pendientes de reimplementación desde cero, y se eliminan/ocultan todos los links, menús, botones, rutas e imports que apuntaban a ellos. 36 archivos eliminados.
