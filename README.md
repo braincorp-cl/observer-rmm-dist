@@ -455,6 +455,25 @@ Esto activa el módulo `real_ip` de nginx confiando **solo** en esa IP: reescrib
 comportamiento intacto. Es a nivel `http`, aplica a los 3 vhosts. Reejecute el playbook
 (o `--tags` del proxy) para regenerar `/etc/nginx/nginx.conf`.
 
+### Cómo verificar que `real_ip` funciona (probado en producción)
+
+Los clientes en la **LAN/VPN** resuelven los FQDN por DNS interno **directo al servidor** —
+no pasan por el NPM—, así que para ejercitar el proxy hay que acceder **desde fuera de la
+red** (p. ej. datos móviles del celular). Cargue la consola por la URL pública y revise
+`/var/log/nginx/access.log` en el servidor: debe aparecer la **IP pública real del cliente**,
+no la IP del NPM. Verificado end-to-end en producción:
+
+- **HTTP** — `GET /`, `/v2/login/`, `/core/dashinfo/` quedaron registrados con la IP pública
+  real del cliente externo (no la del proxy); el login completo funciona a través del doble proxy.
+- **WebSocket** — `/ws/dashinfo/` registrado con la IP real y handshake `101 Switching
+  Protocols` → el realtime del dashboard funciona E2E por el doble proxy. La línea del WS se
+  escribe al **cerrar** la conexión (es de larga vida, `proxy_read_timeout 86400`), no al
+  abrirla; mientras está abierta se ve viva con `ss -tn state established '( sport = :443 )'`
+  (conexión desde la IP del NPM) y `ss -xn | grep daphne.sock`.
+
+El acceso directo LAN/VPN queda intacto: `real_ip` solo reescribe conexiones que llegan
+**desde** la IP del proxy declarada.
+
 ## Solución de problemas
 
 - **`Se encontró 'CHANGEME' en ... vault`**: dejó placeholders sin reemplazar en algún
