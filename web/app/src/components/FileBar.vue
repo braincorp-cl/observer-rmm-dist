@@ -337,8 +337,7 @@ export default {
           url = "https://github.com/braincorp-cl/observer-rmm/";
           break;
         case "docs":
-          // TODO F007.2: switch to https://docs.observer.cl when R-03 (BrainCorp CDN) is published
-          url = "https://docs.tacticalrmm.com";
+          url = "https://docs.observer.cl";
           break;
         case "bug":
           url =

@@ -88,8 +88,7 @@
                     icon="warning"
                     @click="
                       openURL(
-                        // TODO F007.2: switch to docs.observer.cl when R-03 (BrainCorp CDN) is published
-                        'https://docs.tacticalrmm.com/functions/permissions/#permissions-with-extra-security-implications',
+                        'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
                       )
                     "
                   >
@@ -112,8 +111,7 @@
                     icon="warning"
                     @click="
                       openURL(
-                        // TODO F007.2: switch to docs.observer.cl when R-03 (BrainCorp CDN) is published
-                        'https://docs.tacticalrmm.com/functions/permissions/#permissions-with-extra-security-implications',
+                        'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
                       )
                     "
                   >

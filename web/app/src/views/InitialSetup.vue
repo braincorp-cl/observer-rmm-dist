@@ -5,12 +5,11 @@
       <div class="col">
         <q-card>
           <q-card-actions align="center">
-            <!-- TODO F007.2: switch href to https://docs.observer.cl/guide_gettingstarted/ when R-03 (BrainCorp CDN) is published -->
             <q-btn
               :label="$t('setup.gettingStarted')"
               color="info"
               class="full-width"
-              href="https://docs.tacticalrmm.com/guide_gettingstarted/"
+              href="https://docs.observer.cl/guide_gettingstarted/"
               target="_blank"
             />
           </q-card-actions>

@@ -211,7 +211,7 @@
     "methodStandardExe": "EXE estándar",
     "methodGeneratedExe": "EXE generado",
     "warningTitle": "Advertencia",
-    "exeWarningMessage": "Este método de instalación puede disparar advertencias de Antivirus (AV), Windows SmartScreen o de Editor no confiable, <strong>incluso con la firma de código habilitada</strong>.<br><br>Recomendamos enfáticamente usar el instalador EXE estándar o PowerShell en su lugar.<br><br>Este método también puede exponer tu entorno al riesgo de que aparezcan agentes no autorizados o inesperados. Por favor lee <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://docs.tacticalrmm.com/faq/#help-ive-been-hacked-and-there-are-weird-agents-appearing-in-my-tactical-rmm\">esta guía</a> antes de continuar.<br><br>Continúa solo si entiendes y aceptas estos riesgos.",
+    "exeWarningMessage": "Este método de instalación puede disparar advertencias de Antivirus (AV), Windows SmartScreen o de Editor no confiable, <strong>incluso con la firma de código habilitada</strong>.<br><br>Recomendamos enfáticamente usar el instalador EXE estándar o PowerShell en su lugar.<br><br>Este método también puede exponer tu entorno al riesgo de que aparezcan agentes no autorizados o inesperados. Por favor lee <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://docs.observer.cl/faq/#agentes-inesperados\">esta guía</a> antes de continuar.<br><br>Continúa solo si entiendes y aceptas estos riesgos.",
     "continueLabel": "Sí, continuar",
     "cancel": "Cancelar",
     "generatingExe": "Generando ejecutable...",

@@ -302,9 +302,8 @@ export default {
               width: "40vw",
               maxWidth: "50vw",
             },
-            // TODO F007.2: el enlace docs.tacticalrmm.com (y su slug "tactical-rmm") vive en
-            // installAgent.exeWarningMessage de los catálogos i18n; migrar a docs.observer.cl/faq/...
-            // cuando R-03 (BrainCorp CDN) se publique.
+            // El enlace de esta advertencia vive en installAgent.exeWarningMessage
+            // (catálogos i18n) y apunta a docs.observer.cl/faq/#agentes-inesperados.
             message: this.$t("installAgent.exeWarningMessage"),
             color: "negative",
             ok: {
