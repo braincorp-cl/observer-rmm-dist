@@ -73,7 +73,6 @@
     "githubRepo": "GitHub Repo",
     "bugReport": "Bug Report",
     "featureRequest": "Feature Request",
-    "joinDiscord": "Join Discord",
     "bulkRecoverTitle": "Bulk Recover All Agents?",
     "bulkRecoverMessage": "This will restart the Observer and Mesh Agent services on all agents",
     "reportingTierWarning": "Reporting feature requires a Tier 2 or higher sponsorship. Please check the docs for more info."

@@ -73,7 +73,6 @@
     "githubRepo": "Repositorio GitHub",
     "bugReport": "Reportar error",
     "featureRequest": "Solicitar función",
-    "joinDiscord": "Unirse a Discord",
     "bulkRecoverTitle": "¿Recuperar todos los agentes?",
     "bulkRecoverMessage": "Esto reiniciará los servicios del agente Observer y Mesh en todos los agentes",
     "reportingTierWarning": "La función de reportes requiere un patrocinio Tier 2 o superior. Consulta la documentación para más información."

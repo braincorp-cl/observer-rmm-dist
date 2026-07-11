@@ -213,9 +213,6 @@
               <q-item clickable v-close-popup @click="openHelp('feature')">
                 <q-item-section>{{ $t("nav.featureRequest") }}</q-item-section>
               </q-item>
-              <q-item clickable v-close-popup @click="openHelp('discord')">
-                <q-item-section>{{ $t("nav.joinDiscord") }}</q-item-section>
-              </q-item>
             </q-list>
           </q-menu>
         </q-btn>
@@ -346,9 +343,6 @@ export default {
         case "feature":
           url =
             "https://github.com/braincorp-cl/observer-rmm-dist/issues/new?template=feature_request.md";
-          break;
-        case "discord":
-          url = "https://discord.gg/upGTkWp";
           break;
       }
       window.open(url, "_blank");
