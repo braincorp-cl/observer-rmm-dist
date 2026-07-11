@@ -37,3 +37,12 @@ observer_acme_dnssleep: 600         # espera de propagación DNS GoDaddy (s) —
 
 observer_cert_path: /etc/ssl/observer/fullchain.pem
 observer_cert_key_path: /etc/ssl/observer/privkey.pem
+
+# --- Proxy reverso corporativo delante de nginx (ej. Nginx Proxy Manager) -----------
+# IP(s) del proxy reverso confiable. Si se define, nginx activa el módulo real_ip para
+# recuperar la IP REAL del cliente desde X-Forwarded-For (reescribe $remote_addr →
+# REMOTE_ADDR para TODO el backend: ipware/logs, throttling DRF, auditoría) confiando
+# SOLO en estas IP → ignora X-Forwarded-For spoofeado por clientes no confiables.
+# Acepta un string ("10.20.0.254") o una lista (["10.20.0.254", "10.20.0.0/24"]).
+# Vacío por defecto = SIN proxy reverso, comportamiento intacto (no se emite real_ip).
+observer_trusted_proxy_ip: ""

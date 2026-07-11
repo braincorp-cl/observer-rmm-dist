@@ -182,6 +182,13 @@ all:
     # (La URL ofuscada del panel /admin de Django la genera el playbook automáticamente
     #  en la primera corrida — ya no se define aquí; ver Paso 6.)
 
+    # --- Proxy reverso corporativo delante de nginx (OPCIONAL) ---
+    # Descomente SOLO si publica detrás de un proxy reverso (ej. Nginx Proxy Manager).
+    # Activa el módulo real_ip para que los logs/auditoría registren la IP real del
+    # cliente (no la del proxy) e ignora X-Forwarded-For spoofeado. Ponga la IP LAN del
+    # proxy. Acepta un valor o una lista. Ver sección "Publicación tras NPM" más abajo.
+    # observer_trusted_proxy_ip: "10.20.0.254"
+
     # --- Tuning de PostgreSQL — AJUSTAR A LA RAM DEL SERVIDOR ---
     # El sizing dependiente de RAM se define AQUÍ (en el inventario), NO en group_vars.
     # Regla: shared_buffers ~15-25% de RAM; effective_cache_size ~50-75% de RAM. En
@@ -383,6 +390,70 @@ Comprueba PostgreSQL, Redis, MeshCentral, el API y el proxy. Todo debe pasar (`f
 2. Configure el **2FA (TOTP)** cuando se lo pida (obligatorio).
 3. A `https://mesh.ejemplo.cl` puede entrar como `meshcentral_admin`, pero el control
    remoto desde la consola RMM (botón "Tomar control") funciona vía SSO sin login manual.
+
+## Publicación tras un proxy reverso corporativo (NPM double-proxy)
+
+Si no expone el servidor directo a Internet sino detrás de un proxy reverso (aquí, **Nginx
+Proxy Manager**), Observer sigue **terminando su propio TLS** en el servidor (no lo
+desactive) y el proxy hace **re-encrypt** hacia él por HTTPS. Así el servidor queda
+publicable directo a futuro sin rehacer nada. Cadena:
+
+```
+Internet ──HTTPS(cert del NPM)──► NPM ──HTTPS(cert wildcard de Observer)──► servidor:443
+```
+
+### Un Proxy Host por FQDN (los 3 apuntan al servidor, puerto 443)
+
+| Campo | `rmm.ejemplo.cl` (consola) | `api.ejemplo.cl` (API) | `mesh.ejemplo.cl` (MeshCentral) |
+|---|---|---|---|
+| Scheme | https | https | https |
+| Forward Hostname | el **FQDN** (no la IP) | el **FQDN** | el **FQDN** |
+| Forward Port | 443 | 443 | 443 |
+| Block Common Exploits | ON | ON | ON |
+| **Websockets Support** | ON | **ON** | **ON** |
+| SSL | cert LE propio del NPM (puede ser multi-dominio api+rmm+mesh) | idem | idem |
+
+**Custom Nginx Configuration** por host (alta carga / sesiones largas):
+
+- `api.*` — `client_max_body_size 300m;` `proxy_read_timeout 86400;` `proxy_send_timeout 86400;`
+- `mesh.*` — `proxy_read_timeout 86400;` `proxy_send_timeout 86400;`
+- `rmm.*` — nada extra.
+
+### Gotchas verificados (no saltárselos)
+
+1. **DNS interno en el NPM (crítico).** El NPM debe resolver `rmm/api/mesh.ejemplo.cl` a la
+   IP LAN del servidor (split-horizon o `/etc/hosts` del NPM). Si resuelve el DNS público
+   apunta **a sí mismo → loop**. Con el FQDN resuelto a la IP interna, el SNI matchea el
+   wildcard y el cert valida limpio (no necesita "Ignore invalid SSL").
+2. **`client_max_body_size` en el NPM.** Su default (~1M) es menor que los 300M del API →
+   sin el override, subidas/exports grandes dan **413** en el borde.
+3. **Timeouts de WebSocket.** El toggle "Websockets Support" arma los headers Upgrade, pero
+   el `proxy_read_timeout` default (~60s) corta las sesiones largas → el "Tomar control" de
+   Mesh y el realtime del dashboard se caen. De ahí los `86400`.
+4. **NO poner `X-Frame-Options`/`Content-Security-Policy: frame-ancestors` en el host
+   `mesh.*`.** La consola embebe MeshCentral en un `<iframe>` (Tomar control / WebVNC /
+   Remote Background) desde `rmm.*` (otro origen) → esos headers **bloquean** el control
+   remoto. En `rmm.*`/`api.*` sí puede dejarlos.
+5. **No hace falta copiar certificados al NPM.** El servidor ya sirve un wildcard Let's
+   Encrypt público-confiable; el NPM lo valida al re-encriptar. (Si algún día necesita los
+   `.pem` sueltos —`cert.pem`/`chain.pem`— el rol ya los deja en `/etc/ssl/observer/`.)
+
+### IP real del cliente en los logs (anti-spoofing) — `observer_trusted_proxy_ip`
+
+Tras el proxy, el backend vería la IP del proxy como origen. Para que los logs, la
+auditoría y el throttling registren la **IP real del cliente**, defina en el inventario la
+IP LAN del proxy:
+
+```yaml
+# inventory/produccion.yml → all.vars
+observer_trusted_proxy_ip: "10.20.0.254"     # IP LAN del NPM (o lista: ["10.20.0.254", ...])
+```
+
+Esto activa el módulo `real_ip` de nginx confiando **solo** en esa IP: reescribe
+`$remote_addr` con la IP real del cliente (tomada de `X-Forwarded-For`) e **ignora un
+`X-Forwarded-For` spoofeado** por clientes no confiables. Vacío (default) = sin proxy,
+comportamiento intacto. Es a nivel `http`, aplica a los 3 vhosts. Reejecute el playbook
+(o `--tags` del proxy) para regenerar `/etc/nginx/nginx.conf`.
 
 ## Solución de problemas
 
