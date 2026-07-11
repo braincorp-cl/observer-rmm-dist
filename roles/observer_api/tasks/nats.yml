@@ -1,7 +1,7 @@
 ---
 - name: Establecer arquitectura NATS
   ansible.builtin.set_fact:
-    nats_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+    nats_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
 
 - name: Descargar NATS Server v{{ observer_nats_version }}
   ansible.builtin.get_url:

@@ -16,7 +16,7 @@
 - name: Registrar repositorio nginx stable con signed-by
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/nginx.list
-    content: "deb [signed-by=/etc/apt/keyrings/nginx.asc] https://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx\n"
+    content: "deb [signed-by=/etc/apt/keyrings/nginx.asc] https://nginx.org/packages/ubuntu {{ ansible_facts['distribution_release'] }} nginx\n"
     owner: root
     group: root
     mode: "0644"

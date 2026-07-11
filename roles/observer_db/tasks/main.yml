@@ -65,7 +65,7 @@
 - name: Registrar repositorio PostgreSQL con signed-by
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/pgdg.list
-    content: "deb [signed-by=/etc/apt/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main\n"
+    content: "deb [signed-by=/etc/apt/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_facts['distribution_release'] }}-pgdg main\n"
     owner: root
     group: root
     mode: "0644"

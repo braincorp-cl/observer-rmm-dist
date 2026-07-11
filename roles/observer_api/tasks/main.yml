@@ -98,7 +98,7 @@
 # user viejo y choca con "nats: Authorization Violation". Al cambiar, reiniciar el servicio.
 - name: Copiar nats-api binary
   ansible.builtin.copy:
-    src: "nats-api{{ '-arm64' if ansible_architecture == 'aarch64' else '' }}"
+    src: "nats-api{{ '-arm64' if ansible_facts['architecture'] == 'aarch64' else '' }}"
     dest: /usr/local/bin/nats-api
     owner: root
     group: root
