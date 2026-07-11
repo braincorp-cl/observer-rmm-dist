@@ -1,41 +1,55 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-title-es="Observer RMM · Documentación" data-title-en="Observer RMM · Documentation">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Observer RMM · Documentación</title>
-<meta name="description" content="Documentación oficial de Observer RMM: primeros pasos, permisos y seguridad, y preguntas frecuentes.">
+<meta name="description" content="Documentación de Observer RMM: primeros pasos, permisos y seguridad, y preguntas frecuentes. / Observer RMM documentation: getting started, permissions & security, and FAQ.">
 <link rel="stylesheet" href="/assets/style.css">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
 </head>
 <body>
 <header class="deck">
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
 </header>
 
 <div class="shell">
-  <nav class="rail" aria-label="Secciones">
-    <p class="rail-label">Documentación</p>
-    <a href="/" class="active">Inicio</a>
-    <a href="/guide_gettingstarted/">Primeros pasos</a>
-    <a href="/functions/permissions/">Permisos y seguridad</a>
-    <a href="/faq/">Preguntas frecuentes</a>
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/" class="active"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
   </nav>
 
   <main>
     <div class="content">
-      <p class="eyebrow">Centro de documentación</p>
-      <h1>Documentación de Observer RMM</h1>
-      <p class="lead">Todo lo que necesitas para operar tu plataforma de monitoreo y administración remota: puesta en marcha, control de acceso y resolución de incidentes. Escrita para el equipo que opera el deck.</p>
+      <p class="eyebrow lang-es">Centro de documentación</p>
+      <p class="eyebrow lang-en">Documentation center</p>
+      <h1><span class="lang-es">Documentación de Observer RMM</span><span class="lang-en">Observer RMM documentation</span></h1>
+      <p class="lead lang-es">Todo lo que necesitas para operar tu plataforma de monitoreo y administración remota: puesta en marcha, control de acceso y resolución de incidentes. Escrita para el equipo que opera el deck.</p>
+      <p class="lead lang-en">Everything you need to run your remote monitoring and management platform: setup, access control, and incident response. Written for the team operating the deck.</p>
 
-      <div class="callout note">
-        <span class="tag">Nota</span>
-        <p>Esta documentación es propia de Observer RMM. Reemplaza los enlaces externos que antes salían de la plataforma: ahora todo vive en tu propio dominio.</p>
-      </div>
-
-      <div class="cards">
+      <div class="cards lang-es">
         <a class="card" href="/guide_gettingstarted/">
           <span class="k">Guía</span>
           <h3>Primeros pasos</h3>
@@ -57,13 +71,37 @@
           <p>Código, reporte de errores y solicitudes de mejora en GitHub.</p>
         </a>
       </div>
+      <div class="cards lang-en">
+        <a class="card" href="/guide_gettingstarted/">
+          <span class="k">Guide</span>
+          <h3>Getting started</h3>
+          <p>From the first sign-in to your first enrolled agent: clients, sites, and deployment.</p>
+        </a>
+        <a class="card" href="/functions/permissions/">
+          <span class="k">Reference</span>
+          <h3>Permissions &amp; security</h3>
+          <p>The role model and the security-sensitive permissions worth restricting.</p>
+        </a>
+        <a class="card" href="/faq/">
+          <span class="k">Help</span>
+          <h3>FAQ</h3>
+          <p>Unexpected agents, installer warnings, and other common questions.</p>
+        </a>
+        <a class="card" href="https://github.com/braincorp-cl/observer-rmm-dist/" target="_blank" rel="noopener">
+          <span class="k">Project</span>
+          <h3>Repository</h3>
+          <p>Code, bug reports, and feature requests on GitHub.</p>
+        </a>
+      </div>
 
-      <h2 id="que-es">¿Qué es Observer RMM?</h2>
-      <p>Observer RMM es una plataforma de <strong>monitoreo y administración remota</strong> (RMM) para flotas de equipos Windows, Linux y macOS. Desde una sola consola puedes vigilar el estado de cada equipo, ejecutar scripts y tareas, tomar control remoto y mantener el software al día.</p>
-      <p>La plataforma se organiza en tres niveles: <strong>clientes</strong> (organizaciones), <strong>sitios</strong> (ubicaciones dentro de un cliente) y <strong>agentes</strong> (los equipos administrados). Empieza por <a href="/guide_gettingstarted/">Primeros pasos</a> para dejar esa estructura lista y enrolar tu primer equipo.</p>
+      <h2 id="que-es"><span class="lang-es">¿Qué es Observer RMM?</span><span class="lang-en">What is Observer RMM?</span></h2>
+      <p class="lang-es">Observer RMM es una plataforma de <strong>monitoreo y administración remota</strong> (RMM) para flotas de equipos Windows, Linux y macOS. Desde una sola consola puedes vigilar el estado de cada equipo, ejecutar scripts y tareas, tomar control remoto y mantener el software al día.</p>
+      <p class="lang-en">Observer RMM is a <strong>remote monitoring and management</strong> (RMM) platform for fleets of Windows, Linux, and macOS machines. From a single console you can watch the health of every machine, run scripts and tasks, take remote control, and keep software up to date.</p>
+      <p class="lang-es">La plataforma se organiza en tres niveles: <strong>clientes</strong> (organizaciones), <strong>sitios</strong> (ubicaciones dentro de un cliente) y <strong>agentes</strong> (los equipos administrados). Empieza por <a href="/guide_gettingstarted/">Primeros pasos</a> para dejar esa estructura lista y enrolar tu primer equipo.</p>
+      <p class="lang-en">The platform is organized in three levels: <strong>clients</strong> (organizations), <strong>sites</strong> (locations within a client), and <strong>agents</strong> (the managed machines). Start with <a href="/guide_gettingstarted/">Getting started</a> to set up that structure and enroll your first machine.</p>
 
       <footer>
-        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
       </footer>
     </div>
   </main>
@@ -71,15 +109,32 @@
 
 <script>
 (function () {
-  var t = localStorage.getItem('observer-docs-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  var btn = document.getElementById('themeToggle');
-  btn.addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme');
-    var isDark = cur ? cur === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     var next = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
+    d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
   });
 })();

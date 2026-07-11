@@ -1,79 +1,124 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-title-es="Permisos y seguridad · Observer RMM" data-title-en="Permissions & security · Observer RMM">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Permisos y seguridad · Observer RMM</title>
-<meta name="description" content="Modelo de roles y permisos de Observer RMM, con foco en los permisos y ajustes con implicancias de seguridad.">
+<meta name="description" content="Modelo de roles y permisos con implicancias de seguridad de Observer RMM. / Observer RMM role model and security-sensitive permissions.">
 <link rel="stylesheet" href="/assets/style.css">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
 </head>
 <body>
 <header class="deck">
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
 </header>
 
 <div class="shell">
-  <nav class="rail" aria-label="Secciones">
-    <p class="rail-label">Documentación</p>
-    <a href="/">Inicio</a>
-    <a href="/guide_gettingstarted/">Primeros pasos</a>
-    <a href="/functions/permissions/" class="active">Permisos y seguridad</a>
-    <a href="/faq/">Preguntas frecuentes</a>
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/permissions/" class="active"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
   </nav>
 
   <main>
     <div class="content">
-      <p class="eyebrow">Referencia</p>
-      <h1>Permisos y seguridad</h1>
-      <p class="lead">Observer RMM controla lo que cada usuario puede ver y hacer mediante roles. Entender el modelo —y qué permisos son especialmente sensibles— es clave para operar con seguridad.</p>
+      <p class="eyebrow lang-es">Referencia</p>
+      <p class="eyebrow lang-en">Reference</p>
+      <h1><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></h1>
+      <p class="lead lang-es">Observer RMM controla lo que cada usuario puede ver y hacer mediante roles. Entender el modelo —y qué permisos son especialmente sensibles— es clave para operar con seguridad.</p>
+      <p class="lead lang-en">Observer RMM controls what each user can see and do through roles. Understanding the model —and which permissions are especially sensitive— is key to operating securely.</p>
 
-      <h2 id="modelo-de-roles">El modelo de roles</h2>
-      <p>El acceso se asigna con <strong>roles</strong>. Un rol es un conjunto de permisos; a cada usuario se le asigna uno o más roles, y su acceso efectivo es la suma de ellos. Los permisos cubren dos dimensiones:</p>
-      <ul>
+      <h2 id="modelo-de-roles"><span class="lang-es">El modelo de roles</span><span class="lang-en">The role model</span></h2>
+      <p class="lang-es">El acceso se asigna con <strong>roles</strong>. Un rol es un conjunto de permisos; a cada usuario se le asigna uno o más roles, y su acceso efectivo es la suma de ellos. Los permisos cubren dos dimensiones:</p>
+      <p class="lang-en">Access is granted through <strong>roles</strong>. A role is a set of permissions; each user is assigned one or more roles, and their effective access is the sum of them. Permissions cover two dimensions:</p>
+      <ul class="lang-es">
         <li><strong>Qué puede hacer</strong> — acciones sobre agentes, scripts, tareas, alertas, informes, usuarios, etc. (ver, crear, editar, eliminar, ejecutar).</li>
         <li><strong>Sobre qué puede hacerlo</strong> — el alcance: todos los agentes, o solo determinados clientes y sitios.</li>
       </ul>
-      <p>Aplica siempre el <strong>principio de mínimo privilegio</strong>: entrega a cada usuario solo los permisos que su función necesita, y limita el alcance a los clientes y sitios que le corresponden.</p>
+      <ul class="lang-en">
+        <li><strong>What they can do</strong> — actions on agents, scripts, tasks, alerts, reports, users, etc. (view, create, edit, delete, run).</li>
+        <li><strong>What they can do it to</strong> — the scope: all agents, or only specific clients and sites.</li>
+      </ul>
+      <p class="lang-es">Aplica siempre el <strong>principio de mínimo privilegio</strong>: entrega a cada usuario solo los permisos que su función necesita, y limita el alcance a los clientes y sitios que le corresponden.</p>
+      <p class="lang-en">Always apply the <strong>principle of least privilege</strong>: give each user only the permissions their role needs, and limit the scope to the clients and sites they're responsible for.</p>
 
-      <div class="callout note">
+      <div class="callout note lang-es">
         <span class="tag">Recomendación</span>
         <p>Crea roles por función (por ejemplo, "Soporte nivel 1", "Administrador de flota", "Solo lectura") en lugar de dar permisos totales a cada persona. Es más fácil de auditar y de revocar.</p>
       </div>
+      <div class="callout note lang-en">
+        <span class="tag">Recommendation</span>
+        <p>Create roles by function (for example, "Tier 1 support", "Fleet administrator", "Read only") instead of granting full permissions to each person. It's easier to audit and to revoke.</p>
+      </div>
 
-      <h2 id="permisos-con-implicancias-de-seguridad">Permisos con implicancias de seguridad</h2>
-      <p>Algunos permisos y ajustes otorgan capacidades que, mal usadas o en manos equivocadas, pueden comprometer los equipos administrados o el propio servidor. Trátalos como privilegios excepcionales: concédelos solo a administradores de confianza y revísalos periódicamente.</p>
+      <h2 id="permisos-con-implicancias-de-seguridad"><span class="lang-es">Permisos con implicancias de seguridad</span><span class="lang-en">Security-sensitive permissions</span></h2>
+      <p class="lang-es">Algunos permisos y ajustes otorgan capacidades que, mal usadas o en manos equivocadas, pueden comprometer los equipos administrados o el propio servidor. Trátalos como privilegios excepcionales: concédelos solo a administradores de confianza y revísalos periódicamente.</p>
+      <p class="lang-en">Some permissions and settings grant capabilities that, if misused or in the wrong hands, can compromise the managed machines or the server itself. Treat them as exceptional privileges: grant them only to trusted administrators and review them periodically.</p>
 
-      <div class="callout danger">
+      <div class="callout danger lang-es">
         <span class="tag">Alto riesgo</span>
         <p>Los permisos de esta sección permiten ejecutar código con privilegios elevados sobre los equipos e incluso sobre el servidor. Un usuario con estas capacidades puede, en la práctica, hacer casi cualquier cosa en tu entorno.</p>
       </div>
+      <div class="callout danger lang-en">
+        <span class="tag">High risk</span>
+        <p>The permissions in this section allow running code with elevated privileges on the machines and even on the server. A user with these capabilities can, in practice, do almost anything in your environment.</p>
+      </div>
 
-      <h3 id="ejecutar-scripts">Ejecutar y administrar scripts</h3>
-      <p>Poder ejecutar scripts en los agentes equivale a ejecutar comandos arbitrarios con privilegios de sistema en esos equipos. Poder <em>administrar</em> (crear o editar) scripts es aún más sensible: quien edita un script cambia lo que se ejecutará en toda la flota. Limita ambos permisos a un grupo reducido.</p>
+      <h3 id="ejecutar-scripts"><span class="lang-es">Ejecutar y administrar scripts</span><span class="lang-en">Run and manage scripts</span></h3>
+      <p class="lang-es">Poder ejecutar scripts en los agentes equivale a ejecutar comandos arbitrarios con privilegios de sistema en esos equipos. Poder <em>administrar</em> (crear o editar) scripts es aún más sensible: quien edita un script cambia lo que se ejecutará en toda la flota. Limita ambos permisos a un grupo reducido.</p>
+      <p class="lang-en">Being able to run scripts on agents is equivalent to running arbitrary commands with system privileges on those machines. Being able to <em>manage</em> (create or edit) scripts is even more sensitive: whoever edits a script changes what will run across the entire fleet. Limit both permissions to a small group.</p>
 
-      <h3 id="scripts-de-servidor">Habilitar scripts de servidor</h3>
-      <p>Este ajuste global permite que ciertos scripts corran <strong>en el propio servidor de Observer</strong>, no en los agentes. Es una capacidad potente para automatizaciones, pero un script malicioso o defectuoso puede afectar a toda la plataforma. Mantenlo <strong>desactivado</strong> salvo que tengas una necesidad concreta y controles quién puede crear scripts.</p>
+      <h3 id="scripts-de-servidor"><span class="lang-es">Habilitar scripts de servidor</span><span class="lang-en">Enable server scripts</span></h3>
+      <p class="lang-es">Este ajuste global permite que ciertos scripts corran <strong>en el propio servidor de Observer</strong>, no en los agentes. Es una capacidad potente para automatizaciones, pero un script malicioso o defectuoso puede afectar a toda la plataforma. Mantenlo <strong>desactivado</strong> salvo que tengas una necesidad concreta y controles quién puede crear scripts.</p>
+      <p class="lang-en">This global setting lets certain scripts run <strong>on the Observer server itself</strong>, not on the agents. It's a powerful capability for automation, but a malicious or faulty script can affect the whole platform. Keep it <strong>disabled</strong> unless you have a concrete need and control who can create scripts.</p>
 
-      <h3 id="terminal-web">Terminal web</h3>
-      <p>La terminal web abre una shell interactiva contra el servidor desde el navegador. Es cómoda para tareas administrativas, pero entrega acceso directo de línea de comandos. Habilítala solo si es necesaria y restríngela a administradores; considérala equivalente a dar acceso SSH al servidor.</p>
+      <h3 id="terminal-web"><span class="lang-es">Terminal web</span><span class="lang-en">Web terminal</span></h3>
+      <p class="lang-es">La terminal web abre una shell interactiva contra el servidor desde el navegador. Es cómoda para tareas administrativas, pero entrega acceso directo de línea de comandos. Habilítala solo si es necesaria y restríngela a administradores; considérala equivalente a dar acceso SSH al servidor.</p>
+      <p class="lang-en">The web terminal opens an interactive shell to the server from the browser. It's convenient for administrative tasks, but it grants direct command-line access. Enable it only if needed and restrict it to administrators; treat it as equivalent to giving SSH access to the server.</p>
 
-      <h3 id="gestion-de-usuarios-y-roles">Gestión de usuarios y roles</h3>
-      <p>Quien puede crear o editar usuarios y roles puede, indirectamente, <strong>elevarse a sí mismo o a otros</strong> a permisos totales. Este permiso debe quedar reservado a los administradores de la plataforma.</p>
+      <h3 id="gestion-de-usuarios-y-roles"><span class="lang-es">Gestión de usuarios y roles</span><span class="lang-en">User and role management</span></h3>
+      <p class="lang-es">Quien puede crear o editar usuarios y roles puede, indirectamente, <strong>elevarse a sí mismo o a otros</strong> a permisos totales. Este permiso debe quedar reservado a los administradores de la plataforma.</p>
+      <p class="lang-en">Whoever can create or edit users and roles can indirectly <strong>elevate themselves or others</strong> to full permissions. This permission should be reserved for platform administrators.</p>
 
-      <h2 id="buenas-practicas">Buenas prácticas</h2>
-      <ul>
+      <h2 id="buenas-practicas"><span class="lang-es">Buenas prácticas</span><span class="lang-en">Best practices</span></h2>
+      <ul class="lang-es">
         <li>Mantén desactivados <strong>scripts de servidor</strong> y <strong>terminal web</strong> mientras no los uses.</li>
         <li>Separa las cuentas de uso diario de las cuentas con privilegios elevados.</li>
         <li>Exige 2FA a todos los usuarios (es obligatoria en Observer).</li>
         <li>Revisa periódicamente quién tiene permisos sensibles y revoca los que ya no correspondan.</li>
         <li>Prefiere roles acotados por cliente/sitio antes que acceso global.</li>
       </ul>
+      <ul class="lang-en">
+        <li>Keep <strong>server scripts</strong> and the <strong>web terminal</strong> disabled while you're not using them.</li>
+        <li>Separate day-to-day accounts from accounts with elevated privileges.</li>
+        <li>Require 2FA for all users (it's mandatory in Observer).</li>
+        <li>Periodically review who holds sensitive permissions and revoke the ones no longer needed.</li>
+        <li>Prefer roles scoped by client/site over global access.</li>
+      </ul>
 
       <footer>
-        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
       </footer>
     </div>
   </main>
@@ -81,15 +126,32 @@
 
 <script>
 (function () {
-  var t = localStorage.getItem('observer-docs-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  var btn = document.getElementById('themeToggle');
-  btn.addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme');
-    var isDark = cur ? cur === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     var next = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
+    d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
   });
 })();

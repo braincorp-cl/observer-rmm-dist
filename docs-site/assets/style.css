@@ -101,6 +101,22 @@ body {
   border-radius: 7px; padding: 5px 9px; cursor: pointer; font-size: .95rem; line-height: 1;
 }
 .deck .theme-toggle:hover { border-color: var(--cyan); }
+/* selector de idioma (segmentado, mismo lenguaje visual que el toggle de tema) */
+.lang-toggle {
+  display: inline-flex; border: 1px solid #2f4763; border-radius: 7px; overflow: hidden;
+}
+.lang-toggle button {
+  background: transparent; border: 0; color: var(--header-text);
+  font-family: var(--mono); font-size: .72rem; letter-spacing: 1px; font-weight: 600;
+  padding: 5px 9px; cursor: pointer; line-height: 1;
+}
+.lang-toggle button + button { border-left: 1px solid #2f4763; }
+.lang-toggle button[aria-pressed="true"] { background: var(--cyan); color: #fff; }
+.lang-toggle button[aria-pressed="false"]:hover { color: var(--cyan-bright); }
+
+/* i18n: se muestra solo el idioma activo (data-lang en <html> lo fija el script de <head>) */
+html[data-lang="es"] .lang-en { display: none !important; }
+html[data-lang="en"] .lang-es { display: none !important; }
 
 /* ---------- Shell ---------- */
 .shell {

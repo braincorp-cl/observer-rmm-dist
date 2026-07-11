@@ -1,87 +1,145 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-title-es="Primeros pasos · Observer RMM" data-title-en="Getting started · Observer RMM">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Primeros pasos · Observer RMM</title>
-<meta name="description" content="Guía de puesta en marcha de Observer RMM: primer inicio de sesión, clientes y sitios, y el primer agente enrolado.">
+<meta name="description" content="Guía de puesta en marcha de Observer RMM. / Observer RMM getting-started guide.">
 <link rel="stylesheet" href="/assets/style.css">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
 </head>
 <body>
 <header class="deck">
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
 </header>
 
 <div class="shell">
-  <nav class="rail" aria-label="Secciones">
-    <p class="rail-label">Documentación</p>
-    <a href="/">Inicio</a>
-    <a href="/guide_gettingstarted/" class="active">Primeros pasos</a>
-    <a href="/functions/permissions/">Permisos y seguridad</a>
-    <a href="/faq/">Preguntas frecuentes</a>
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/guide_gettingstarted/" class="active"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
   </nav>
 
   <main>
     <div class="content">
-      <p class="eyebrow">Guía</p>
-      <h1>Primeros pasos</h1>
-      <p class="lead">Ya tienes Observer RMM instalado. Esta guía te lleva del primer inicio de sesión hasta tu primer equipo administrado, en el orden que conviene seguir.</p>
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></h1>
+      <p class="lead lang-es">Ya tienes Observer RMM instalado. Esta guía te lleva del primer inicio de sesión hasta tu primer equipo administrado, en el orden que conviene seguir.</p>
+      <p class="lead lang-en">Observer RMM is already installed. This guide takes you from your first sign-in to your first managed machine, in the order worth following.</p>
 
-      <div class="callout note">
+      <div class="callout note lang-es">
         <span class="tag">Antes de empezar</span>
         <p>Necesitas la URL de tu consola y las credenciales del primer usuario administrador que se mostraron al terminar la instalación. Si no las tienes a mano, revísalas en el resumen de acceso del despliegue.</p>
       </div>
+      <div class="callout note lang-en">
+        <span class="tag">Before you begin</span>
+        <p>You need your console URL and the first administrator account credentials shown at the end of the installation. If you don't have them handy, check the deployment's access summary.</p>
+      </div>
 
-      <h2 id="acceso">1. Primer inicio de sesión y 2FA</h2>
-      <p>Abre la consola web en tu navegador e inicia sesión con el usuario administrador. En el primer acceso, Observer te pedirá configurar la <strong>autenticación en dos pasos (2FA)</strong>:</p>
-      <ol>
+      <h2 id="acceso"><span class="lang-es">1. Primer inicio de sesión y 2FA</span><span class="lang-en">1. First sign-in and 2FA</span></h2>
+      <p class="lang-es">Abre la consola web en tu navegador e inicia sesión con el usuario administrador. En el primer acceso, Observer te pedirá configurar la <strong>autenticación en dos pasos (2FA)</strong>:</p>
+      <p class="lang-en">Open the web console in your browser and sign in with the administrator account. On first sign-in, Observer will ask you to set up <strong>two-factor authentication (2FA)</strong>:</p>
+      <ol class="lang-es">
         <li>Escanea el código QR con una app de autenticación (Google Authenticator, Authy, 1Password u otra compatible con TOTP).</li>
         <li>Ingresa el código de seis dígitos para confirmar.</li>
         <li>Guarda el código de respaldo en un lugar seguro: te permite recuperar el acceso si pierdes el dispositivo.</li>
       </ol>
-      <p>La 2FA es obligatoria y no puede desactivarse a nivel de plataforma. Cada usuario configura la suya en su primer ingreso.</p>
+      <ol class="lang-en">
+        <li>Scan the QR code with an authenticator app (Google Authenticator, Authy, 1Password, or any TOTP-compatible app).</li>
+        <li>Enter the six-digit code to confirm.</li>
+        <li>Store the backup code somewhere safe: it lets you regain access if you lose your device.</li>
+      </ol>
+      <p class="lang-es">La 2FA es obligatoria y no puede desactivarse a nivel de plataforma. Cada usuario configura la suya en su primer ingreso.</p>
+      <p class="lang-en">2FA is mandatory and cannot be disabled at the platform level. Each user sets up their own on first sign-in.</p>
 
-      <h2 id="estructura">2. Crea tu estructura: clientes y sitios</h2>
-      <p>Observer organiza los equipos en dos niveles antes del agente:</p>
-      <ul>
+      <h2 id="estructura"><span class="lang-es">2. Crea tu estructura: clientes y sitios</span><span class="lang-en">2. Build your structure: clients and sites</span></h2>
+      <p class="lang-es">Observer organiza los equipos en dos niveles antes del agente:</p>
+      <p class="lang-en">Observer organizes machines in two levels above the agent:</p>
+      <ul class="lang-es">
         <li><strong>Cliente</strong> — una organización o unidad (por ejemplo, una empresa o un departamento).</li>
         <li><strong>Sitio</strong> — una ubicación o subgrupo dentro de un cliente (por ejemplo, una sucursal o una sala).</li>
       </ul>
-      <p>Todo agente pertenece a un sitio, y todo sitio pertenece a un cliente. Al terminar la configuración inicial ya defines tu primer cliente y su primer sitio; desde <em>Agentes → gestionar clientes/sitios</em> puedes agregar los que necesites.</p>
+      <ul class="lang-en">
+        <li><strong>Client</strong> — an organization or unit (for example, a company or a department).</li>
+        <li><strong>Site</strong> — a location or subgroup within a client (for example, a branch or a room).</li>
+      </ul>
+      <p class="lang-es">Todo agente pertenece a un sitio, y todo sitio pertenece a un cliente. Al terminar la configuración inicial ya defines tu primer cliente y su primer sitio; desde <em>Agentes → gestionar clientes/sitios</em> puedes agregar los que necesites.</p>
+      <p class="lang-en">Every agent belongs to a site, and every site belongs to a client. When you finish the initial setup you've already defined your first client and its first site; from <em>Agents → manage clients/sites</em> you can add as many as you need.</p>
 
-      <div class="callout note">
+      <div class="callout note lang-es">
         <span class="tag">Consejo</span>
         <p>Piensa la estructura como la usarás para filtrar y aplicar políticas: agrupar por cliente/sitio facilita asignar tareas de monitoreo, alertas y permisos más adelante.</p>
       </div>
+      <div class="callout note lang-en">
+        <span class="tag">Tip</span>
+        <p>Design your structure the way you'll use it to filter and apply policies: grouping by client/site makes it easier to assign monitoring tasks, alerts, and permissions later.</p>
+      </div>
 
-      <h2 id="primer-agente">3. Enrola tu primer agente</h2>
-      <p>Un <strong>agente</strong> es el software que corre en cada equipo administrado y lo conecta con la consola. Para instalar el primero:</p>
-      <ol>
+      <h2 id="primer-agente"><span class="lang-es">3. Enrola tu primer agente</span><span class="lang-en">3. Enroll your first agent</span></h2>
+      <p class="lang-es">Un <strong>agente</strong> es el software que corre en cada equipo administrado y lo conecta con la consola. Para instalar el primero:</p>
+      <p class="lang-en">An <strong>agent</strong> is the software that runs on each managed machine and connects it to the console. To install your first one:</p>
+      <ol class="lang-es">
         <li>Ve a <em>Agentes → Instalar agente</em>.</li>
         <li>Elige el <strong>cliente</strong> y el <strong>sitio</strong> de destino.</li>
         <li>Selecciona el <strong>sistema operativo</strong> y la <strong>arquitectura</strong> del equipo.</li>
         <li>Elige el <strong>método de instalación</strong>. Para Windows recomendamos el <strong>instalador EXE estándar</strong> o <strong>PowerShell</strong>; en Linux y macOS se usa el script de instalación entregado por la consola.</li>
         <li>Ejecuta el instalador en el equipo de destino con privilegios de administrador/root.</li>
       </ol>
-      <p>En un par de minutos el equipo aparecerá en línea en la consola, con su inventario y sus métricas.</p>
+      <ol class="lang-en">
+        <li>Go to <em>Agents → Install agent</em>.</li>
+        <li>Choose the target <strong>client</strong> and <strong>site</strong>.</li>
+        <li>Select the machine's <strong>operating system</strong> and <strong>architecture</strong>.</li>
+        <li>Choose the <strong>installation method</strong>. For Windows we recommend the <strong>standard EXE installer</strong> or <strong>PowerShell</strong>; on Linux and macOS you use the install script provided by the console.</li>
+        <li>Run the installer on the target machine with administrator/root privileges.</li>
+      </ol>
+      <p class="lang-es">En un par de minutos el equipo aparecerá en línea en la consola, con su inventario y sus métricas.</p>
+      <p class="lang-en">Within a couple of minutes the machine will appear online in the console, with its inventory and metrics.</p>
 
-      <div class="callout warn">
+      <div class="callout warn lang-es">
         <span class="tag">Advertencia</span>
         <p>Evita el método de instalación de <strong>EXE dinámico</strong> salvo que sea estrictamente necesario: puede disparar advertencias de antivirus o SmartScreen y abre la puerta a agentes inesperados. Consulta <a href="/faq/#agentes-inesperados">Preguntas frecuentes</a>.</p>
       </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Warning</span>
+        <p>Avoid the <strong>dynamic EXE</strong> installation method unless strictly necessary: it can trigger antivirus or SmartScreen warnings and opens the door to unexpected agents. See the <a href="/faq/#agentes-inesperados">FAQ</a>.</p>
+      </div>
 
-      <h2 id="siguientes">4. Siguientes pasos</h2>
-      <ul>
+      <h2 id="siguientes"><span class="lang-es">4. Siguientes pasos</span><span class="lang-en">4. Next steps</span></h2>
+      <ul class="lang-es">
         <li>Revisa <a href="/functions/permissions/">Permisos y seguridad</a> antes de crear usuarios adicionales.</li>
         <li>Define tareas de monitoreo y alertas para tus sitios.</li>
         <li>Prueba el control remoto sobre el agente recién enrolado.</li>
       </ul>
+      <ul class="lang-en">
+        <li>Review <a href="/functions/permissions/">Permissions &amp; security</a> before creating additional users.</li>
+        <li>Define monitoring tasks and alerts for your sites.</li>
+        <li>Try remote control on the agent you just enrolled.</li>
+      </ul>
 
       <footer>
-        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
       </footer>
     </div>
   </main>
@@ -89,15 +147,32 @@
 
 <script>
 (function () {
-  var t = localStorage.getItem('observer-docs-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  var btn = document.getElementById('themeToggle');
-  btn.addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme');
-    var isDark = cur ? cur === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     var next = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
+    d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
   });
 })();

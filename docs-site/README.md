@@ -15,8 +15,34 @@ Solo se documentan las páginas que la UI enlaza:
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
 
-Contenido en español, adaptado al entorno Observer. Sin dependencias externas
-(CSS propio en `assets/style.css`, tema "Observation Deck" espejando la UI).
+Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
+dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"
+espejando la UI).
+
+## i18n (bilingüe en el cliente)
+
+El sitio es bilingüe **sin duplicar URLs ni tocar la UI**: los enlaces que la
+consola llama son estáticos y sus anclas (`#agentes-inesperados`,
+`#permisos-con-implicancias-de-seguridad`) se mantienen en español. El idioma se
+resuelve en el navegador:
+
+- Cada texto visible existe en dos variantes marcadas con la clase `lang-es` o
+  `lang-en`. El CSS muestra solo la del idioma activo
+  (`html[data-lang="es"] .lang-en { display:none }` y viceversa).
+- Los `id` de los encabezados **no cambian** (siguen en español) para no romper
+  las anclas que llama la UI; solo se intercambia el texto visible (spans
+  `lang-es`/`lang-en` dentro del mismo `<h_>`). Regla: nunca duplicar un `id`.
+- Un script en `<head>` fija `data-lang` **antes del primer render** (sin
+  parpadeo): usa el idioma guardado en `localStorage` (`observer-docs-lang`) o,
+  si no hay, autodetecta con `navigator.language` (`en*` → inglés; resto →
+  español, default del producto). También ajusta `document.title` y el atributo
+  `lang` del `<html>`.
+- El selector **ES / EN** del header permite forzar el idioma; la elección se
+  persiste en `localStorage`.
+
+Al agregar contenido: por cada bloque en español, agregar su gemelo `lang-en`
+(mismo elemento/estructura). El chequeo `grep -c lang-es` vs `grep -c lang-en`
+debe dar igual por archivo.
 
 ## Despliegue
 

@@ -1,83 +1,133 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-title-es="Preguntas frecuentes · Observer RMM" data-title-en="FAQ · Observer RMM">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Preguntas frecuentes · Observer RMM</title>
-<meta name="description" content="Preguntas frecuentes de Observer RMM: agentes inesperados, advertencias del instalador y seguridad.">
+<meta name="description" content="Preguntas frecuentes de Observer RMM: agentes inesperados, advertencias del instalador y seguridad. / Observer RMM FAQ: unexpected agents, installer warnings, and security.">
 <link rel="stylesheet" href="/assets/style.css">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
 </head>
 <body>
 <header class="deck">
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
-  <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
 </header>
 
 <div class="shell">
-  <nav class="rail" aria-label="Secciones">
-    <p class="rail-label">Documentación</p>
-    <a href="/">Inicio</a>
-    <a href="/guide_gettingstarted/">Primeros pasos</a>
-    <a href="/functions/permissions/">Permisos y seguridad</a>
-    <a href="/faq/" class="active">Preguntas frecuentes</a>
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/" class="active"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
   </nav>
 
   <main>
     <div class="content">
-      <p class="eyebrow">Ayuda</p>
-      <h1>Preguntas frecuentes</h1>
-      <p class="lead">Respuestas a las dudas más comunes al operar Observer RMM, con foco en seguridad e instalación de agentes.</p>
+      <p class="eyebrow lang-es">Ayuda</p>
+      <p class="eyebrow lang-en">Help</p>
+      <h1><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">Frequently asked questions</span></h1>
+      <p class="lead lang-es">Respuestas a las dudas más comunes al operar Observer RMM, con foco en seguridad e instalación de agentes.</p>
+      <p class="lead lang-en">Answers to the most common questions when operating Observer RMM, with a focus on security and agent installation.</p>
 
-      <h2 id="agentes-inesperados">Aparecen agentes desconocidos o inesperados en mi consola</h2>
-      <p>Si ves equipos que no reconoces, o el número de agentes crece más de lo que instalaste, trátalo como un incidente de seguridad y actúa de inmediato. Un agente enrolado tiene acceso legítimo a tu plataforma, así que un agente no autorizado es una vía de entrada real.</p>
+      <h2 id="agentes-inesperados"><span class="lang-es">Aparecen agentes desconocidos o inesperados en mi consola</span><span class="lang-en">Unknown or unexpected agents appear in my console</span></h2>
+      <p class="lang-es">Si ves equipos que no reconoces, o el número de agentes crece más de lo que instalaste, trátalo como un incidente de seguridad y actúa de inmediato. Un agente enrolado tiene acceso legítimo a tu plataforma, así que un agente no autorizado es una vía de entrada real.</p>
+      <p class="lang-en">If you see machines you don't recognize, or the agent count grows beyond what you installed, treat it as a security incident and act immediately. An enrolled agent has legitimate access to your platform, so an unauthorized agent is a real entry point.</p>
 
-      <div class="callout danger">
+      <div class="callout danger lang-es">
         <span class="tag">Acción inmediata</span>
         <p>No ignores agentes que no reconozcas. Aíslalos y elimínalos, y luego cierra la vía por la que entraron.</p>
       </div>
+      <div class="callout danger lang-en">
+        <span class="tag">Immediate action</span>
+        <p>Don't ignore agents you don't recognize. Isolate and remove them, then close the path they came in through.</p>
+      </div>
 
-      <h3 id="como-ocurre">¿Cómo ocurre esto?</h3>
-      <p>Casi siempre la causa es que alguien reutilizó un artefacto de instalación que no debía compartirse:</p>
-      <ul>
+      <h3 id="como-ocurre"><span class="lang-es">¿Cómo ocurre esto?</span><span class="lang-en">How does this happen?</span></h3>
+      <p class="lang-es">Casi siempre la causa es que alguien reutilizó un artefacto de instalación que no debía compartirse:</p>
+      <p class="lang-en">Almost always the cause is that someone reused an installation artifact that shouldn't have been shared:</p>
+      <ul class="lang-es">
         <li>Se compartió un <strong>instalador o un comando de enrolamiento</strong> que sigue siendo válido, y un tercero lo ejecutó en otros equipos.</li>
         <li>Se publicó por error un instalador con su token en un lugar accesible (un ticket, un chat, un repositorio).</li>
         <li>Se usó el método de <strong>EXE dinámico</strong>, que facilita reutilizar el mismo instalador en equipos no previstos.</li>
       </ul>
-      <p>El enrolamiento de agentes se apoya en tokens. Mientras un token siga vigente, cualquiera que lo tenga puede sumar equipos a tu plataforma.</p>
+      <ul class="lang-en">
+        <li>An <strong>installer or enrollment command</strong> that's still valid was shared, and a third party ran it on other machines.</li>
+        <li>An installer with its token was accidentally posted somewhere accessible (a ticket, a chat, a repository).</li>
+        <li>The <strong>dynamic EXE</strong> method was used, which makes it easy to reuse the same installer on unintended machines.</li>
+      </ul>
+      <p class="lang-es">El enrolamiento de agentes se apoya en tokens. Mientras un token siga vigente, cualquiera que lo tenga puede sumar equipos a tu plataforma.</p>
+      <p class="lang-en">Agent enrollment relies on tokens. As long as a token remains valid, anyone who has it can add machines to your platform.</p>
 
-      <h3 id="que-hacer">Qué hacer ahora</h3>
-      <ol>
+      <h3 id="que-hacer"><span class="lang-es">Qué hacer ahora</span><span class="lang-en">What to do now</span></h3>
+      <ol class="lang-es">
         <li><strong>Identifica</strong> los agentes que no reconoces en la lista de agentes.</li>
         <li><strong>Elimínalos</strong> desde la consola. Al quitar el agente de Observer también se corta su acceso; asegúrate de desinstalar el software del equipo si tienes acceso a él.</li>
         <li><strong>Invalida los tokens de enrolamiento</strong> que puedan haberse filtrado y genera nuevos. Un instalador viejo dejará de servir para sumar equipos.</li>
         <li><strong>Revisa quién tiene permisos sensibles</strong> (ver <a href="/functions/permissions/#permisos-con-implicancias-de-seguridad">Permisos con implicancias de seguridad</a>) y confirma que ningún usuario ni script se haya alterado.</li>
         <li><strong>Cambia credenciales</strong> si sospechas que alguna se expuso, y confirma que la 2FA esté activa en todas las cuentas.</li>
       </ol>
+      <ol class="lang-en">
+        <li><strong>Identify</strong> the agents you don't recognize in the agent list.</li>
+        <li><strong>Remove them</strong> from the console. Removing the agent from Observer also cuts off its access; make sure to uninstall the software on the machine if you have access to it.</li>
+        <li><strong>Invalidate any enrollment tokens</strong> that may have leaked and generate new ones. An old installer will no longer work to add machines.</li>
+        <li><strong>Review who holds sensitive permissions</strong> (see <a href="/functions/permissions/#permisos-con-implicancias-de-seguridad">Security-sensitive permissions</a>) and confirm no user or script has been altered.</li>
+        <li><strong>Rotate credentials</strong> if you suspect any were exposed, and confirm 2FA is active on all accounts.</li>
+      </ol>
 
-      <h3 id="como-prevenir">Cómo prevenirlo</h3>
-      <ul>
+      <h3 id="como-prevenir"><span class="lang-es">Cómo prevenirlo</span><span class="lang-en">How to prevent it</span></h3>
+      <ul class="lang-es">
         <li>Trata los instaladores y comandos de enrolamiento como <strong>secretos</strong>: no los compartas por canales abiertos ni los dejes en tickets o repositorios.</li>
         <li>Prefiere el <strong>instalador EXE estándar</strong> o <strong>PowerShell</strong> antes que el EXE dinámico.</li>
         <li>Genera instaladores por sitio y con vigencia acotada cuando sea posible.</li>
         <li>Revisa periódicamente la lista de agentes y da de baja los que ya no correspondan.</li>
       </ul>
+      <ul class="lang-en">
+        <li>Treat installers and enrollment commands as <strong>secrets</strong>: don't share them over open channels or leave them in tickets or repositories.</li>
+        <li>Prefer the <strong>standard EXE installer</strong> or <strong>PowerShell</strong> over the dynamic EXE.</li>
+        <li>Generate per-site installers with limited validity whenever possible.</li>
+        <li>Periodically review the agent list and decommission the ones that no longer belong.</li>
+      </ul>
 
       <hr>
 
-      <h2 id="advertencia-instalador">El instalador dispara advertencias de antivirus o SmartScreen</h2>
-      <p>Algunos métodos de instalación —en particular el <strong>EXE dinámico</strong>— pueden generar advertencias de antivirus, de Windows SmartScreen o de "Editor no confiable", <strong>incluso con la firma de código habilitada</strong>. Es un comportamiento conocido de ese método.</p>
-      <div class="callout note">
+      <h2 id="advertencia-instalador"><span class="lang-es">El instalador dispara advertencias de antivirus o SmartScreen</span><span class="lang-en">The installer triggers antivirus or SmartScreen warnings</span></h2>
+      <p class="lang-es">Algunos métodos de instalación —en particular el <strong>EXE dinámico</strong>— pueden generar advertencias de antivirus, de Windows SmartScreen o de "Editor no confiable", <strong>incluso con la firma de código habilitada</strong>. Es un comportamiento conocido de ese método.</p>
+      <p class="lang-en">Some installation methods —in particular the <strong>dynamic EXE</strong>— can raise antivirus, Windows SmartScreen, or "Unknown publisher" warnings, <strong>even with code signing enabled</strong>. This is known behavior for that method.</p>
+      <div class="callout note lang-es">
         <span class="tag">Recomendación</span>
         <p>Usa el <strong>instalador EXE estándar</strong> o el instalador de <strong>PowerShell</strong>. Además de evitar estas advertencias, reducen el riesgo de que aparezcan agentes inesperados.</p>
       </div>
+      <div class="callout note lang-en">
+        <span class="tag">Recommendation</span>
+        <p>Use the <strong>standard EXE installer</strong> or the <strong>PowerShell</strong> installer. Besides avoiding these warnings, they reduce the risk of unexpected agents appearing.</p>
+      </div>
 
-      <h2 id="control-remoto">Instalé el agente pero no puedo tomar control remoto</h2>
-      <p>El control remoto se apoya en un componente adicional que se enrola junto con el agente. Si el equipo aparece en línea pero el control remoto figura como fuera de línea, verifica la conectividad del equipo hacia el servidor y que no haya un antivirus o filtro TLS interceptando la conexión, que puede romper la validación del canal de control.</p>
+      <h2 id="control-remoto"><span class="lang-es">Instalé el agente pero no puedo tomar control remoto</span><span class="lang-en">I installed the agent but can't take remote control</span></h2>
+      <p class="lang-es">El control remoto se apoya en un componente adicional que se enrola junto con el agente. Si el equipo aparece en línea pero el control remoto figura como fuera de línea, verifica la conectividad del equipo hacia el servidor y que no haya un antivirus o filtro TLS interceptando la conexión, que puede romper la validación del canal de control.</p>
+      <p class="lang-en">Remote control relies on an additional component that enrolls alongside the agent. If the machine shows online but remote control shows as offline, check the machine's connectivity to the server and make sure no antivirus or TLS filter is intercepting the connection, which can break the validation of the control channel.</p>
 
       <footer>
-        <span class="mono">Observer RMM</span> — Documentación operativa · Uso interno.
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
       </footer>
     </div>
   </main>
@@ -85,15 +135,32 @@
 
 <script>
 (function () {
-  var t = localStorage.getItem('observer-docs-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  var btn = document.getElementById('themeToggle');
-  btn.addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme');
-    var isDark = cur ? cur === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     var next = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
+    d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
   });
 })();
