@@ -197,21 +197,14 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <!-- help -->
-        <q-btn v-if="false" size="md" dense no-caps flat :label="$t('nav.help')">
+        <!-- help — solo "Documentación" → docs.observer.cl. Los submenús GitHub /
+             Bug Report / Feature Request quedan OCULTOS a propósito (openHelp mantiene
+             sus URLs listas por si se re-habilitan); Discord ya fue eliminado. -->
+        <q-btn size="md" dense no-caps flat :label="$t('nav.help')">
           <q-menu auto-close>
             <q-list dense style="min-width: 100px">
               <q-item clickable v-close-popup @click="openHelp('docs')">
                 <q-item-section>{{ $t("nav.documentation") }}</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup @click="openHelp('github')">
-                <q-item-section>{{ $t("nav.githubRepo") }}</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup @click="openHelp('bug')">
-                <q-item-section>{{ $t("nav.bugReport") }}</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup @click="openHelp('feature')">
-                <q-item-section>{{ $t("nav.featureRequest") }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>

@@ -56,6 +56,16 @@ CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syn
 CHECK_INTERVAL_JITTER = ({{ observer_check_interval_jitter_min }}, {{ observer_check_interval_jitter_max }})
 NATS_MAX_CONNECTIONS = {{ observer_nats_max_connections }}
 
+# TLS: Observer usa el modelo de certs distribuido en /etc/ssl/observer/ (ADR TLS
+# distribuido: modos acme|byo dejan ambos el cert ahí; "path único"), NO la ruta
+# estándar /etc/letsencrypt/live/<domain>/. Sin CERT_FILE/KEY_FILE, get_certs()
+# (helpers.py) cae al default letsencrypt inexistente y days_until_cert_expires()
+# lanza FileNotFoundError. Eso rompe TODO consumidor de get_certs: el consumer
+# DashInfo deja el CONTEO DE AGENTES en 0 (el payload agentcount nunca se envía),
+# los endpoints core de expiración de cert fallan, y get_config revienta. GAP-059.
+CERT_FILE = "{{ observer_cert_path | default('/etc/ssl/observer/fullchain.pem') }}"
+KEY_FILE = "{{ observer_cert_key_path | default('/etc/ssl/observer/privkey.pem') }}"
+
 ALLOWED_HOSTS = ['{{ observer_domain | default("*") }}']
 
 CORS_ORIGIN_WHITELIST = [
