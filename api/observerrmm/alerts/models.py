@@ -759,7 +759,7 @@ class Alert(models.Model):
                     "retcode": retcode,
                 }
 
-            elif alert_template.action_type == AlertTemplateActionType.REST:
+            elif alert_template.resolved_action_type == AlertTemplateActionType.REST:
                 if (
                     alert.severity == AlertSeverity.INFO
                     and not core.notify_on_info_alerts
