@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Alertas por correo · Observer RMM" data-title-en="Email alerts · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alertas por correo · Observer RMM</title>
+<meta name="description" content="Cómo configurar el envío de correos de alerta en Observer RMM: SMTP, destinatarios, prueba y plantillas de alertas. / How to set up alert emails in Observer RMM: SMTP, recipients, testing, and alert templates.">
+<link rel="stylesheet" href="/assets/style.css">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/email_alerts/" class="active"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></h1>
+      <p class="lead lang-es">Configura Observer RMM para que te avise por correo cuando un equipo se cae o cuando falla un chequeo o una tarea. Se hace una sola vez a nivel de plataforma y luego se enruta con plantillas de alertas.</p>
+      <p class="lead lang-en">Set up Observer RMM to email you when a machine goes down or when a check or task fails. You configure it once at the platform level, then route it with alert templates.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Antes de empezar</span>
+        <p>Necesitas un usuario con acceso a <em>Configuración global</em> y los datos de una casilla de correo saliente (servidor SMTP): dirección, puerto, y usuario/contraseña si requiere autenticación.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Before you begin</span>
+        <p>You need a user with access to <em>Global Settings</em> and the details of an outgoing mailbox (SMTP server): address, port, and username/password if it requires authentication.</p>
+      </div>
+
+      <h2 id="smtp"><span class="lang-es">1. Configura el servidor de correo (SMTP)</span><span class="lang-en">1. Set up the mail server (SMTP)</span></h2>
+      <p class="lang-es">Ve a <em>Configuración → Configuración global → Alertas por correo</em> y completa la sección <strong>Configuración SMTP</strong>:</p>
+      <p class="lang-en">Go to <em>Settings → Global Settings → Email Alerts</em> and fill in the <strong>SMTP Settings</strong> section:</p>
+      <ul class="lang-es">
+        <li><strong>Correo del remitente</strong> — la dirección desde la que salen las alertas (por ejemplo <code>alerta@tu-dominio</code>).</li>
+        <li><strong>Nombre del remitente</strong> — el nombre visible del remitente (por ejemplo <code>Observer RMM</code>).</li>
+        <li><strong>Host</strong> — el servidor SMTP de tu proveedor de correo.</li>
+        <li><strong>Puerto</strong> — <code>587</code> para envío autenticado (recomendado), o <code>25</code> para un relay interno sin autenticación.</li>
+        <li><strong>Requiere autenticación</strong> — marca esta casilla si tu servidor pide usuario y contraseña, y complétalos abajo.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>From email</strong> — the address alerts are sent from (for example <code>alerts@your-domain</code>).</li>
+        <li><strong>From name</strong> — the visible sender name (for example <code>Observer RMM</code>).</li>
+        <li><strong>Host</strong> — your mail provider's SMTP server.</li>
+        <li><strong>Port</strong> — <code>587</code> for authenticated sending (recommended), or <code>25</code> for an internal relay without authentication.</li>
+        <li><strong>Requires authentication</strong> — check this box if your server needs a username and password, and fill them in below.</li>
+      </ul>
+
+      <div class="callout warn lang-es">
+        <span class="tag">Puerto</span>
+        <p>Usa <strong>587</strong> (con autenticación) o <strong>25</strong> (relay interno). El puerto <strong>465 (SSL/TLS implícito) no está soportado</strong> y no funcionará.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Port</span>
+        <p>Use <strong>587</strong> (authenticated) or <strong>25</strong> (internal relay). Port <strong>465 (implicit SSL/TLS) is not supported</strong> and will not work.</p>
+      </div>
+
+      <h2 id="destinatarios"><span class="lang-es">2. Agrega los destinatarios</span><span class="lang-en">2. Add recipients</span></h2>
+      <p class="lang-es">En la misma pantalla, en <strong>Destinatarios</strong>, agrega los correos que recibirán las alertas. Estos son los destinatarios por defecto: se usan cuando una plantilla de alertas no define los suyos propios.</p>
+      <p class="lang-en">On the same screen, under <strong>Recipients</strong>, add the addresses that will receive alerts. These are the default recipients: they're used whenever an alert template doesn't define its own.</p>
+
+      <h2 id="prueba"><span class="lang-es">3. Envía un correo de prueba</span><span class="lang-en">3. Send a test email</span></h2>
+      <p class="lang-es">Pulsa <strong>Guardar y probar correo</strong>. Debe llegar un mensaje con el asunto <em>“Test from Observer RMM”</em> y la consola mostrará <em>“Email test ok!”</em>. Si algo está mal, el error real (autenticación, tiempo de espera, TLS) aparece aquí mismo — no lo verás en las alertas normales.</p>
+      <p class="lang-en">Click <strong>Save and Test Email</strong>. A message with the subject <em>“Test from Observer RMM”</em> should arrive, and the console will show <em>“Email test ok!”</em>. If something is wrong, the actual error (authentication, timeout, TLS) appears right here — you won't see it in normal alerts.</p>
+
+      <h2 id="plantilla"><span class="lang-es">4. Crea una plantilla de alertas</span><span class="lang-en">4. Create an alert template</span></h2>
+      <p class="lang-es">El SMTP define <em>cómo</em> se envía; la <strong>plantilla de alertas</strong> define <em>qué</em> dispara un correo y <em>a quién</em>. En <em>Configuración → Gestor de alertas → Agregar</em>:</p>
+      <p class="lang-en">SMTP defines <em>how</em> mail is sent; the <strong>alert template</strong> defines <em>what</em> triggers an email and <em>who</em> receives it. In <em>Settings → Alerts Manager → Add</em>:</p>
+      <ul class="lang-es">
+        <li>Activa <strong>Correo</strong> en las condiciones que te interesan: agente caído (overdue), chequeos fallidos y/o tareas fallidas.</li>
+        <li>Opcional: define <strong>destinatarios</strong> y <strong>remitente</strong> propios de la plantilla (sobrescriben los globales).</li>
+        <li>Opcional: activa la <strong>notificación periódica</strong> (reenvío cada N días si el problema sigue) y el <strong>aviso de resuelto</strong>.</li>
+        <li>Asigna la plantilla como <strong>predeterminada</strong> o a un cliente, sitio o política concretos.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Enable <strong>Email</strong> on the conditions you care about: agent overdue, failed checks, and/or failed tasks.</li>
+        <li>Optional: set the template's own <strong>recipients</strong> and <strong>from address</strong> (these override the global ones).</li>
+        <li>Optional: enable <strong>periodic notification</strong> (resend every N days while unresolved) and the <strong>resolved notice</strong>.</li>
+        <li>Assign the template as the <strong>default</strong>, or to a specific client, site, or policy.</li>
+      </ul>
+      <p class="lang-es">Cuando una plantilla aplica por varias vías, Observer resuelve la más específica en este orden: política + sitio, sitio, política + cliente, cliente y, por último, la plantilla predeterminada.</p>
+      <p class="lang-en">When more than one template could apply, Observer resolves the most specific one in this order: policy + site, site, policy + client, client, and finally the default template.</p>
+
+      <h2 id="activar"><span class="lang-es">5. Activa las alertas en tus chequeos y tareas</span><span class="lang-en">5. Turn on alerts in your checks and tasks</span></h2>
+      <p class="lang-es">La plantilla define el canal, pero cada <strong>chequeo</strong> y <strong>tarea automatizada</strong> debe tener marcada su casilla de <strong>alerta por correo</strong> (y el agente, su alerta de caída). Sin esto, aunque el SMTP funcione, no saldrá correo.</p>
+      <p class="lang-en">The template defines the channel, but each <strong>check</strong> and <strong>automated task</strong> must have its <strong>email alert</strong> box checked (and the agent, its overdue alert). Without this, no email goes out even if SMTP works.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Cómo verificar</span>
+        <p>Fuerza una condición (detén un servicio monitoreado o deja un agente sin reportar) y confirma que llega el correo. Recuerda: un envío correcto no genera ningún registro — la evidencia es el correo recibido. Solo los envíos con error quedan registrados.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">How to verify</span>
+        <p>Force a condition (stop a monitored service or let an agent stop reporting) and confirm the email arrives. Remember: a successful send produces no log entry — the evidence is the received email. Only failed sends are recorded.</p>
+      </div>
+
+      <h2 id="no-llega"><span class="lang-es">¿No llega el correo?</span><span class="lang-en">Email not arriving?</span></h2>
+      <ul class="lang-es">
+        <li>Vuelve a <strong>Guardar y probar correo</strong>: es la forma más rápida de ver el error real.</li>
+        <li>Revisa la carpeta de <strong>spam</strong> del destinatario y que la dirección esté bien escrita.</li>
+        <li>Confirma el <strong>puerto</strong> (587 o 25, nunca 465) y, si usas autenticación, el usuario y la contraseña.</li>
+        <li>Verifica que la condición realmente disparó una alerta y que la casilla de correo del chequeo/tarea está activa.</li>
+        <li>Si la prueba funciona pero las alertas no, casi siempre es el paso 5 (casilla de correo sin marcar) o la plantilla sin asignar.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Run <strong>Save and Test Email</strong> again: it's the fastest way to see the actual error.</li>
+        <li>Check the recipient's <strong>spam</strong> folder and that the address is spelled correctly.</li>
+        <li>Confirm the <strong>port</strong> (587 or 25, never 465) and, if using authentication, the username and password.</li>
+        <li>Make sure the condition actually raised an alert and that the check/task email box is enabled.</li>
+        <li>If the test works but alerts don't, it's almost always step 5 (unchecked email box) or an unassigned template.</li>
+      </ul>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

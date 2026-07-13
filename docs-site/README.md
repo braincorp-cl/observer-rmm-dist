@@ -6,12 +6,13 @@ R-03): la consola ya no envía usuarios fuera del dominio propio.
 
 ## Contenido
 
-Solo se documentan las páginas que la UI enlaza:
+Páginas enlazadas desde la UI, más guías operativas independientes:
 
 | Ruta | Enlazada desde |
 |---|---|
 | `/` | `FileBar.vue` — botón "Docs" |
 | `/guide_gettingstarted/` | `InitialSetup.vue` — botón "Primeros pasos" |
+| `/functions/email_alerts/` | Guía independiente (no enlazada desde la UI): configuración de correos de alerta |
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
 
