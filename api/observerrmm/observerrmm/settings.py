@@ -139,6 +139,11 @@ TRMM_LOG_LEVEL = "ERROR"
 TRMM_LOG_TO = "file"
 TRMM_PROTO = "https"
 TRMM_BACKEND_PORT = None
+# Rate limiting de los endpoints de login (configurable por env; defaults propios)
+TRMM_CHECK_CREDS_MIN_THROTTLE = int(os.getenv("TRMM_CHECK_CREDS_MIN_THROTTLE", 50))
+TRMM_CHECK_CREDS_DAY_THROTTLE = int(os.getenv("TRMM_CHECK_CREDS_DAY_THROTTLE", 1000))
+TRMM_LOGIN_MIN_THROTTLE = int(os.getenv("TRMM_LOGIN_MIN_THROTTLE", 50))
+TRMM_LOGIN_DAY_THROTTLE = int(os.getenv("TRMM_LOGIN_DAY_THROTTLE", 1000))
 
 if not DOCKER_BUILD:
     ALLOWED_HOSTS = []
@@ -208,10 +213,10 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
-        "check_creds_min": "50/minute",
-        "login_min": "50/minute",
-        "check_creds_day": "1000/day",
-        "login_day": "1000/day",
+        "check_creds_min": f"{TRMM_CHECK_CREDS_MIN_THROTTLE}/minute",
+        "login_min": f"{TRMM_LOGIN_MIN_THROTTLE}/minute",
+        "check_creds_day": f"{TRMM_CHECK_CREDS_DAY_THROTTLE}/day",
+        "login_day": f"{TRMM_LOGIN_DAY_THROTTLE}/day",
     },
 }
 
