@@ -36,7 +36,10 @@ def get_agent_url(*, goarch: str, plat: str, token: str = "") -> str:
         return settings.AGENTS_URL + urllib.parse.urlencode(params)
 
     ext = ".exe" if plat == "windows" else ""
-    return f"https://github.com/braincorp-cl/observer-agent-dist/releases/download/v{ver}/observeragent-v{ver}-{plat}-{goarch}{ext}"
+    # CDN propio agents.observer.cl (AGENT_BASE_URL): sirve los binarios desde
+    # infra propia en vez de github.com/.../releases. Mismo path que el release
+    # de observer-agent-dist, poblado por scripts/appserver/observer-agents-cdn-sync.sh.
+    return f"{settings.AGENT_BASE_URL}/releases/download/v{ver}/observeragent-v{ver}-{plat}-{goarch}{ext}"
 
 
 def generate_linux_install(
