@@ -1,4 +1,5 @@
 import smtplib
+import ssl
 import traceback
 from contextlib import suppress
 from email.headerregistry import Address
@@ -315,27 +316,38 @@ class CoreSettings(BaseAuditModel):
                         filename=f"{attachment_filename}.{ext}",
                     )
 
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=20) as server:
+            # puerto 465 = TLS implícito (SMTP_SSL): el canal se cifra al conectar.
+            # 587/25 = SMTP plano + STARTTLS cuando corresponde.
+            use_ssl = self.smtp_port == 465
+            if use_ssl:
+                server = smtplib.SMTP_SSL(
+                    self.smtp_host,
+                    self.smtp_port,
+                    timeout=20,
+                    context=ssl.create_default_context(),
+                )
+            else:
+                server = smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=20)
+
+            with server:
                 if self.smtp_requires_auth:
                     server.ehlo()
-                    server.starttls()
+                    # STARTTLS solo si el canal no viene ya cifrado por SMTP_SSL.
+                    if not use_ssl:
+                        server.starttls()
+                        server.ehlo()
                     server.login(
                         self.smtp_host_user,
                         self.smtp_host_password,
                     )
                     server.send_message(msg)
-                    server.quit()
                 else:
                     # gmail smtp relay specific handling.
-                    if self.smtp_host == "smtp-relay.gmail.com":
+                    if not use_ssl and self.smtp_host == "smtp-relay.gmail.com":
                         server.ehlo()
                         server.starttls()
-                        server.send_message(msg)
-                        server.quit()
-                    else:
-                        # smtp relay. no auth required
-                        server.send_message(msg)
-                        server.quit()
+                    # smtp relay / envío directo. no auth required
+                    server.send_message(msg)
 
         except Exception as e:
             logger.error(traceback.format_exc())

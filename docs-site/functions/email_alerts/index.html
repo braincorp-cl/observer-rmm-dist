@@ -66,24 +66,24 @@
         <li><strong>Correo del remitente</strong> — la dirección desde la que salen las alertas (por ejemplo <code>alerta@tu-dominio</code>).</li>
         <li><strong>Nombre del remitente</strong> — el nombre visible del remitente (por ejemplo <code>Observer RMM</code>).</li>
         <li><strong>Host</strong> — el servidor SMTP de tu proveedor de correo.</li>
-        <li><strong>Puerto</strong> — <code>587</code> para envío autenticado (recomendado), o <code>25</code> para un relay interno sin autenticación.</li>
+        <li><strong>Puerto</strong> — <code>587</code> (STARTTLS, autenticado, recomendado), <code>465</code> (SSL/TLS implícito, autenticado) o <code>25</code> (relay interno sin autenticación). Observer elige el modo automáticamente según el puerto.</li>
         <li><strong>Requiere autenticación</strong> — marca esta casilla si tu servidor pide usuario y contraseña, y complétalos abajo.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>From email</strong> — the address alerts are sent from (for example <code>alerts@your-domain</code>).</li>
         <li><strong>From name</strong> — the visible sender name (for example <code>Observer RMM</code>).</li>
         <li><strong>Host</strong> — your mail provider's SMTP server.</li>
-        <li><strong>Port</strong> — <code>587</code> for authenticated sending (recommended), or <code>25</code> for an internal relay without authentication.</li>
+        <li><strong>Port</strong> — <code>587</code> (STARTTLS, authenticated, recommended), <code>465</code> (implicit SSL/TLS, authenticated), or <code>25</code> (internal relay without authentication). Observer picks the mode automatically based on the port.</li>
         <li><strong>Requires authentication</strong> — check this box if your server needs a username and password, and fill them in below.</li>
       </ul>
 
-      <div class="callout warn lang-es">
-        <span class="tag">Puerto</span>
-        <p>Usa <strong>587</strong> (con autenticación) o <strong>25</strong> (relay interno). El puerto <strong>465 (SSL/TLS implícito) no está soportado</strong> y no funcionará.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Qué puerto usar</span>
+        <p><strong>587</strong> (STARTTLS) es lo más común y el recomendado. <strong>465</strong> usa TLS implícito: el canal se cifra desde la conexión. <strong>25</strong> es para un relay interno sin autenticación. No necesitas indicar el modo de cifrado: Observer lo deduce del puerto.</p>
       </div>
-      <div class="callout warn lang-en">
-        <span class="tag">Port</span>
-        <p>Use <strong>587</strong> (authenticated) or <strong>25</strong> (internal relay). Port <strong>465 (implicit SSL/TLS) is not supported</strong> and will not work.</p>
+      <div class="callout note lang-en">
+        <span class="tag">Which port to use</span>
+        <p><strong>587</strong> (STARTTLS) is the most common and the recommended one. <strong>465</strong> uses implicit TLS: the channel is encrypted from the connection. <strong>25</strong> is for an internal relay without authentication. You don't need to set the encryption mode — Observer infers it from the port.</p>
       </div>
 
       <h2 id="destinatarios"><span class="lang-es">2. Agrega los destinatarios</span><span class="lang-en">2. Add recipients</span></h2>
@@ -129,14 +129,14 @@
       <ul class="lang-es">
         <li>Vuelve a <strong>Guardar y probar correo</strong>: es la forma más rápida de ver el error real.</li>
         <li>Revisa la carpeta de <strong>spam</strong> del destinatario y que la dirección esté bien escrita.</li>
-        <li>Confirma el <strong>puerto</strong> (587 o 25, nunca 465) y, si usas autenticación, el usuario y la contraseña.</li>
+        <li>Confirma el <strong>puerto</strong> (587, 465 o 25) y, si usas autenticación, el usuario y la contraseña.</li>
         <li>Verifica que la condición realmente disparó una alerta y que la casilla de correo del chequeo/tarea está activa.</li>
         <li>Si la prueba funciona pero las alertas no, casi siempre es el paso 5 (casilla de correo sin marcar) o la plantilla sin asignar.</li>
       </ul>
       <ul class="lang-en">
         <li>Run <strong>Save and Test Email</strong> again: it's the fastest way to see the actual error.</li>
         <li>Check the recipient's <strong>spam</strong> folder and that the address is spelled correctly.</li>
-        <li>Confirm the <strong>port</strong> (587 or 25, never 465) and, if using authentication, the username and password.</li>
+        <li>Confirm the <strong>port</strong> (587, 465, or 25) and, if using authentication, the username and password.</li>
         <li>Make sure the condition actually raised an alert and that the check/task email box is enabled.</li>
         <li>If the test works but alerts don't, it's almost always step 5 (unchecked email box) or an unassigned template.</li>
       </ul>
