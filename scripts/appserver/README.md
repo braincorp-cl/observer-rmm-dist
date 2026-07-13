@@ -9,7 +9,7 @@ se sirven desde infra propia (`appserver 10.20.0.52`, Apache) en vez de depender
 | Archivo | Rol |
 |---|---|
 | `agents.observer.cl.conf` | vhost Apache `:83`. Sirve los binarios por dos rutas hacia el mismo archivo. Provenance del `/etc/apache2/sites-available/agents.observer.cl.conf` del appserver. |
-| `observer-agents-cdn-sync.sh` | Mecanismo de copia: baja el release de `observer-agent-dist` y lo publica en el docroot. Instalado en el appserver como `/usr/local/sbin/observer-agents-cdn-sync`. |
+| `observer-agents-cdn-publish.sh` | Mecanismo de copia. **Corre en el control-plane**: baja el release de `observer-agent-dist` con `gh` (autenticado) y lo publica en el docroot del appserver por SSH. Funciona aunque el repo sea **privado** (la credencial vive solo en el control-plane; el appserver no guarda secretos de GitHub). |
 
 ## Rutas que sirve el vhost
 
@@ -32,20 +32,21 @@ ruta que no sea un binario `observeragent-v*` (descarga solo por ruta exacta).
 
 ## Operación
 
-Cada vez que se publique un nuevo release de binarios en `observer-agent-dist`:
+Cada vez que se publique un nuevo release de binarios en `observer-agent-dist`, correr
+**desde el control-plane** (donde `gh` está autenticado con scope `repo`):
 
 ```bash
-# En el appserver (root/sudo). Sin argumento = release 'latest'.
-sudo /usr/local/sbin/observer-agents-cdn-sync            # latest
-sudo /usr/local/sbin/observer-agents-cdn-sync v2.10.7    # versión concreta
+# Sin argumento = release 'latest'.
+./scripts/appserver/observer-agents-cdn-publish.sh            # latest
+./scripts/appserver/observer-agents-cdn-publish.sh v2.10.7    # versión concreta
 
-# Desde el control-plane:
-ssh observer@10.20.0.52 'sudo /usr/local/sbin/observer-agents-cdn-sync'
+# Destino por defecto observer@10.20.0.52; override con OBSERVER_APPSERVER=user@host.
 ```
 
-Además hay que fijar `LATEST_AGENT_VER` en `settings.py` a la versión servida.
+Requisitos: `gh` con acceso al repo (funciona aunque sea **privado**) + `ssh`/`scp` con
+sudo NOPASS al appserver. El appserver NO necesita credenciales de GitHub.
 
-Opcional (no configurado): cron en el appserver para sincronizar `latest` periódicamente.
+Además hay que fijar `LATEST_AGENT_VER` en `settings.py` a la versión servida.
 
 ## Fuera de alcance (requieren backend dinámico, hoy no cableados)
 
