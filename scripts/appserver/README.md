@@ -71,6 +71,17 @@ Para evitar ambigüedad de merge entre contenedores, todo se define por método:
 Verificado en `:83`: lectura pública 200, `/api/v2/agents/` 200, hardening 403, `PUT` sin
 auth 401, `MKCOL`+`PUT` con auth 201, `PROPFIND`/`DELETE` 403.
 
+## Descarga forzada (no render inline)
+
+Los binarios Linux/macOS **no tienen extensión**, así que Apache no les asigna
+`Content-Type` y el navegador los mostraba como texto al hacer clic (el `.exe` sí baja por
+su tipo `application/x-msdos-program`). El bloque `<FilesMatch "^observeragent-v[0-9]">`
+fuerza `ForceType application/octet-stream` (mod_mime, del core) + `Content-Disposition:
+attachment` (bajo `<IfModule mod_headers.c>`). **No afecta al instalador** (`curl`/`wget`
+ignoran estas cabeceras). Para que la cabecera `Content-Disposition` surta efecto, el
+appserver necesita `mod_headers` (`a2enmod headers && systemctl reload apache2`); si no está,
+`ForceType octet-stream` ya basta para que el navegador descargue.
+
 ## Cableado en el backend
 
 `api/observerrmm/agents/utils.py::get_agent_url` (rama sin token) apunta a
@@ -81,8 +92,17 @@ auth 401, `MKCOL`+`PUT` con auth 201, `PROPFIND`/`DELETE` 403.
 `/api/v2/checktoken`, `/api/v2/exe` (exe-gen on-demand), `/api/v2/webtar/`. Solo se
 necesitan para firma/generación on-demand; devuelven `403/404`. Ver ADR-018.
 
-## Pendiente del usuario (fuera del appserver)
+## Publicación por el NPM (✅ hecho, verificado 2026-07-13)
 
-DNS de `agents.observer.cl` + proxy host en el NPM corporativo (`→ 10.20.0.52:83`) + TLS.
-Mismo patrón que `docs.observer.cl`. Necesario tanto para servir a los endpoints como para
-que el job `publish-cdn` (GitHub Actions) alcance el CDN por HTTPS.
+DNS `agents.observer.cl → 164.77.113.189` + proxy host en el NPM corporativo (proxy-host-54:
+`forward_scheme http` → `10.20.0.52:83`, cert LE, Force-SSL, **`client_max_body_size 50m`**) +
+TLS. Mismo patrón que `docs.observer.cl`. El `client_max_body_size 50m` es imprescindible: sin
+él, el `PUT` WebDAV del binario Linux (~10 MB) chocaría con el default del NPM (~1M) → `413`.
+Verificado E2E vía el NPM interno (`10.20.0.254`, `--resolve` + SNI): READ 200 por HTTPS,
+hardening 403, `PUT` 2 MB sin auth → 401 (no 413).
+
+## Redeploy tras cambios en el vhost
+
+El vhost vive en `/etc/apache2/sites-available/agents.observer.cl.conf` del appserver. Tras
+editar aquí, el usuario copia el `.conf`, y si se tocaron cabeceras `Header`:
+`a2enmod headers`; luego `apache2ctl configtest && systemctl reload apache2`.
