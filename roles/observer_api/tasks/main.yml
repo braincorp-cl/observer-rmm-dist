@@ -1,4 +1,16 @@
 ---
+# Kernel tuning (backport v1.5.1 B2): la cola de escucha de uWSGI (`listen` en app.ini,
+# default 1024) queda recortada por net.core.somaxconn. Subirla persiste en
+# /etc/sysctl.d/ y se aplica al vuelo (reload), sin reboot. Debe correr antes de arrancar
+# el servicio rmm (uWSGI). Espejo del patrón sysctl usado en observer_db (HugePages).
+- name: Subir net.core.somaxconn para la cola de escucha de uWSGI
+  ansible.posix.sysctl:
+    name: net.core.somaxconn
+    value: "{{ observer_api_somaxconn }}"
+    sysctl_file: /etc/sysctl.d/60-observer-somaxconn.conf
+    reload: true
+    state: present
+
 # Python 3.11.8 compilado desde fuente — método del install.sh original.
 # Reemplaza el PPA deadsnakes (no oficial): ver roles/observer_python.
 - name: Instalar Python desde fuente (método install.sh)

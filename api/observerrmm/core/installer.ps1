@@ -41,6 +41,7 @@ If (Get-Service $serviceName -ErrorAction SilentlyContinue) {
             Add-MpPreference -ExclusionPath 'C:\Program Files\ObserverAgent\*'
             Add-MpPreference -ExclusionPath 'C:\Program Files\Mesh Agent\*'
             Add-MpPreference -ExclusionPath 'C:\ProgramData\ObserverRMM\*'
+            Add-MpPreference -ExclusionProcess 'C:\Windows\Temp\is-*.tmp\observeragent*'
         }
     }
     Catch {
@@ -63,6 +64,8 @@ If (Get-Service $serviceName -ErrorAction SilentlyContinue) {
             # 1) instalar en silencio (copia el binario a Program Files, registra el servicio
             #    y crea la entrada de desinstalacion en "Agregar o quitar programas").
             Start-Process -FilePath $OutPath\$output -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES') -Wait
+            # dar margen a que el servicio quede asentado en equipos lentos antes de enrolar (backport v1.5.1 B3).
+            Start-Sleep -s 7
             # 2) enrolar desde el binario ya instalado.
             Start-Process -FilePath 'C:\Program Files\ObserverAgent\observeragent.exe' -ArgumentList $installArgs -Wait
             exit 0

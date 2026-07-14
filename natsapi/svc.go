@@ -57,8 +57,10 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var p shared.CheckInNats
 				if err := dec.Decode(&p); err == nil {
-					loc, _ := time.LoadLocation("UTC")
-					now := time.Now().In(loc)
+					if !validAgent(logger, msg.Subject, p.Agentid) {
+						return
+					}
+					now := time.Now().UTC()
 					logger.Debugln("Hello", p, now)
 					stmt := `
 					UPDATE agents_agent
@@ -77,6 +79,9 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var p shared.PublicIPNats
 				if err := dec.Decode(&p); err == nil {
+					if !validAgent(logger, msg.Subject, p.Agentid) {
+						return
+					}
 					logger.Debugln("Public IP", p)
 					stmt := `
 					UPDATE agents_agent SET public_ip=$1 WHERE agents_agent.agent_id=$2;`
@@ -91,6 +96,9 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var r shared.AgentInfoNats
 				if err := dec.Decode(&r); err == nil {
+					if !validAgent(logger, msg.Subject, r.Agentid) {
+						return
+					}
 					stmt := `
 						UPDATE agents_agent
 						SET hostname=$1, operating_system=$2,
@@ -118,6 +126,9 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var r shared.WinDisksNats
 				if err := dec.Decode(&r); err == nil {
+					if !validAgent(logger, msg.Subject, r.Agentid) {
+						return
+					}
 					logger.Debugln("Disks", r)
 					b, err := json.Marshal(r.Disks)
 					if err != nil {
@@ -138,6 +149,9 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var r shared.WinSvcNats
 				if err := dec.Decode(&r); err == nil {
+					if !validAgent(logger, msg.Subject, r.Agentid) {
+						return
+					}
 					logger.Debugln("WinSvc", r)
 					b, err := json.Marshal(r.WinSvcs)
 					if err != nil {
@@ -159,6 +173,9 @@ func Svc(logger *logrus.Logger, cfg string) {
 			go func() {
 				var r shared.WinWMINats
 				if err := dec.Decode(&r); err == nil {
+					if !validAgent(logger, msg.Subject, r.Agentid) {
+						return
+					}
 					logger.Debugln("WMI", r)
 					b, err := json.Marshal(r.WMI)
 					if err != nil {
@@ -183,4 +200,12 @@ func Svc(logger *logrus.Logger, cfg string) {
 		logger.Fatalln(err)
 	}
 	runtime.Goexit()
+}
+
+func validAgent(logger *logrus.Logger, subject, agentid string) bool {
+	if agentid != subject {
+		logger.Errorf("agent_id mismatch: subject=%s agent_id=%s", subject, agentid)
+		return false
+	}
+	return true
 }

@@ -32,6 +32,13 @@ observer_check_interval_jitter_min: 3
 observer_check_interval_jitter_max: 120
 observer_nats_max_connections: 50000
 
+# Cola de escucha del socket uWSGI (backport v1.5.1 B2): create_uwsgi_conf emite
+# `listen = {{ UWSGI_LISTEN_QUEUE|default(1024) }}`, pero el kernel recorta el backlog
+# real de listen() al valor de net.core.somaxconn. Con flotas grandes y check-ins
+# simultáneos, un somaxconn bajo (128/4096 según kernel) produce "connection refused"
+# en picos. Debe ser >= UWSGI_LISTEN_QUEUE. Si subes la cola de uWSGI, sube esto también.
+observer_api_somaxconn: 1024
+
 # sslmode del cliente nats-api (Go/lib/pq) → PostgreSQL, leído por settings.DB_SSL en
 # create_natsapi_conf. lib/pq solo soporta disable/require/verify-ca/verify-full (NO 'prefer').
 # 'require' cifra sin verificar CA (correcto con el cert snakeoil del rol observer_db, ssl=on).

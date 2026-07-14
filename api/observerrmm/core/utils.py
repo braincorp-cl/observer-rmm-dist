@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -15,7 +16,8 @@ import websockets
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
-from django.http import FileResponse
+from django.core.exceptions import SuspiciousOperation
+from django.http import HttpResponse
 from meshctrl.utils import get_auth_token
 from requests.utils import requote_uri
 
@@ -26,6 +28,7 @@ from observerrmm.constants import (
     ROLE_CACHE_PREFIX,
     TRMM_WS_MAX_SIZE,
     AgentPlat,
+    GoArch,
     MeshAgentIdent,
 )
 from observerrmm.logger import logger
@@ -128,16 +131,54 @@ async def get_mesh_device_id(uri: str, device_group: str) -> None:
                 return filtered[0]["_id"].split("mesh//")[1]
 
 
-def download_mesh_agent(dl_url: str) -> FileResponse:
-    with tempfile.NamedTemporaryFile(prefix="mesh-", dir=settings.EXE_DIR) as fp:
-        r = requests.get(dl_url, stream=True, timeout=15, verify=False)
-        with open(fp.name, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
-        del r
+def download_mesh_agent(dl_url: str) -> HttpResponse:
+    r = requests.get(dl_url, timeout=15, verify=False)
+    r.raise_for_status()
+    response = HttpResponse(r.content, content_type="application/octet-stream")
+    response["Content-Disposition"] = 'attachment; filename="meshagent"'
+    return response
 
-        return FileResponse(open(fp.name, "rb"), as_attachment=True, filename=fp.name)
+
+def get_mesh_installer(goarch: GoArch, dl_url: str, plat: AgentPlat):
+    if plat not in AgentPlat.values or goarch not in GoArch.values:
+        raise SuspiciousOperation("invalid args")
+
+    mesh_installer = os.path.join(settings.EXE_DIR, f"mesh-{plat}-{goarch}")
+    hasher = hashlib.sha256()
+    chunks = []
+    with requests.get(dl_url, stream=True, timeout=15, verify=False) as r:
+        r.raise_for_status()
+        for chunk in r.iter_content(chunk_size=64 * 1024):
+            if chunk:
+                hasher.update(chunk)
+                chunks.append(chunk)
+
+    new_digest = hasher.digest()
+
+    if os.path.exists(mesh_installer):
+        existing_hasher = hashlib.sha256()
+
+        with open(mesh_installer, "rb") as f:
+            for block in iter(lambda: f.read(64 * 1024), b""):
+                existing_hasher.update(block)
+        if existing_hasher.digest() == new_digest:
+            return mesh_installer
+
+    fp = tempfile.NamedTemporaryFile(
+        prefix="mesh", dir=settings.EXE_DIR, delete=False, mode="wb"
+    )
+    try:
+        for chunk in chunks:
+            fp.write(chunk)
+        fp.close()
+        os.replace(fp.name, mesh_installer)
+    except Exception:
+        fp.close()
+        if os.path.exists(fp.name):
+            os.unlink(fp.name)
+        raise
+
+    return mesh_installer
 
 
 def _b64_to_hex(h: str) -> str:
