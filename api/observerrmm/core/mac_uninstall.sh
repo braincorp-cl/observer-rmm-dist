@@ -14,3 +14,4 @@ rm -rf /opt/observermesh
 rm -f /etc/observeragent
 rm -rf /opt/observeragent
 rm -f /Library/LaunchDaemons/observeragent.plist
+rm -f /Library/LaunchAgents/meshagent-agent.plist
