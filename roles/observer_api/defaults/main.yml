@@ -35,9 +35,13 @@ observer_nats_max_connections: 50000
 # Cola de escucha del socket uWSGI (backport v1.5.1 B2): create_uwsgi_conf emite
 # `listen = {{ UWSGI_LISTEN_QUEUE|default(1024) }}`, pero el kernel recorta el backlog
 # real de listen() al valor de net.core.somaxconn. Con flotas grandes y check-ins
-# simultáneos, un somaxconn bajo (128/4096 según kernel) produce "connection refused"
-# en picos. Debe ser >= UWSGI_LISTEN_QUEUE. Si subes la cola de uWSGI, sube esto también.
-observer_api_somaxconn: 1024
+# simultáneos, un somaxconn bajo (128 en kernels viejos) produce "connection refused"
+# en picos. Este valor es un PISO: debe ser >= UWSGI_LISTEN_QUEUE (1024) y, como el
+# task usa sysctl con valor absoluto, NO debe rebajar hosts ya bien configurados. Se fija
+# en 4096 = default de Ubuntu moderno (kernel >= 5.4): en esos hosts el task es no-op, y en
+# kernels viejos sube de verdad (128 -> 4096). Si subes UWSGI_LISTEN_QUEUE por encima de
+# 4096, sube esto también. (Verificado en staging 2026-07-14: host ya en 4096 -> no-op.)
+observer_api_somaxconn: 4096
 
 # sslmode del cliente nats-api (Go/lib/pq) → PostgreSQL, leído por settings.DB_SSL en
 # create_natsapi_conf. lib/pq solo soporta disable/require/verify-ca/verify-full (NO 'prefer').
