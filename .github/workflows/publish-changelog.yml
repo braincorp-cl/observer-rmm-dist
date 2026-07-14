@@ -1,0 +1,55 @@
+---
+# Publica el changelog del producto en el CDN propio agents.observer.cl.
+#
+# Genera un HTML autocontenido desde CHANGELOG.md (scripts/build_changelog.py) y lo
+# sube por WebDAV a https://agents.observer.cl/changelog/index.html en cada push a main
+# que toque el changelog (o manualmente). El vhost agents.observer.cl.conf sirve
+# /changelog/ (DirectoryIndex index.html) y acepta PUT/MKCOL autenticado.
+#
+# La consola enlaza a ese sitio desde el aviso de "versión disponible" (MainLayout.vue,
+# ancla #v{TRMM_VERSION}). Al vivir en agents.observer.cl (público, escribible desde CI)
+# el changelog se mantiene al día sin deploy manual — a diferencia de docs.observer.cl.
+#
+# Requiere los secrets CDN_UPLOAD_USER / CDN_UPLOAD_PASSWORD del repo (los mismos que usa
+# el job publish-cdn del agente; hay que agregarlos también a este repo). No bloquea el
+# pipeline si faltan o si el CDN no responde (continue-on-error).
+
+name: Publish changelog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - CHANGELOG.md
+      - scripts/build_changelog.py
+      - .github/workflows/publish-changelog.yml
+  workflow_dispatch: {}
+
+jobs:
+  publish-changelog:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build changelog HTML
+        run: python3 scripts/build_changelog.py CHANGELOG.md changelog.html
+
+      - name: Publish to agents.observer.cl CDN (WebDAV)
+        continue-on-error: true
+        env:
+          CDN_USER: ${{ secrets.CDN_UPLOAD_USER }}
+          CDN_PASS: ${{ secrets.CDN_UPLOAD_PASSWORD }}
+        run: |
+          if [ -z "$CDN_USER" ] || [ -z "$CDN_PASS" ]; then
+            echo "::warning::Secrets CDN_UPLOAD_USER/PASSWORD ausentes; se omite la publicacion del changelog."
+            exit 0
+          fi
+          base="https://agents.observer.cl/changelog"
+          curl -fsS -u "$CDN_USER:$CDN_PASS" -X MKCOL "$base/" || true
+          curl -fsS -u "$CDN_USER:$CDN_PASS" -T changelog.html "$base/index.html"
+          echo "Changelog publicado en $base/index.html"

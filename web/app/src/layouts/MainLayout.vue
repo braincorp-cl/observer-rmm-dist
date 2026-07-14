@@ -314,8 +314,11 @@ const dash_warning_color = computed(() => store.state.dash_warning_color);
 const dash_negative_color = computed(() => store.state.dash_negative_color);
 
 const latestReleaseURL = computed(() => {
+  // Changelog público servido por el CDN propio agents.observer.cl (escribible desde
+  // CI por WebDAV → siempre al día). NO GitHub: los repos son privados. El ancla
+  // v{ver} la publica el workflow publish-changelog.yml a partir de CHANGELOG.md.
   return latestVersion.value
-    ? `https://github.com/braincorp-cl/observer-rmm/releases/tag/v${latestVersion.value}`
+    ? `https://agents.observer.cl/changelog/#v${latestVersion.value}`
     : "";
 });
 
