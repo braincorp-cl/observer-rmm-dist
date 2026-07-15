@@ -314,6 +314,14 @@ export default {
           label: this.$t("alertsOverview.colSeverity"),
           field: "severity",
           align: "left",
+          sort: (a, b) => {
+            const severityRank = {
+              error: 0,
+              warning: 1,
+              info: 2,
+            };
+            return (severityRank[a] ?? 3) - (severityRank[b] ?? 3);
+          },
           sortable: true,
         },
         {

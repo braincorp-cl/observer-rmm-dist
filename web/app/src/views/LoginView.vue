@@ -15,6 +15,7 @@
               <q-input
                 filled
                 v-model="credentials.username"
+                autocomplete="username"
                 :label="$t('login.username')"
                 lazy-rules
                 :rules="[
@@ -24,6 +25,7 @@
               <q-input
                 v-model="credentials.password"
                 filled
+                autocomplete="current-password"
                 :type="showPassword ? 'password' : 'text'"
                 :label="$t('login.password')"
                 lazy-rules
@@ -66,6 +68,7 @@
                   autofocus
                   outlined
                   autocomplete="one-time-code"
+                  inputmode="numeric"
                   v-model="twofactor"
                   :rules="[
                     (val) =>

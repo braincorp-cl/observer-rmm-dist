@@ -1,6 +1,7 @@
 import axios from "axios";
 import { openURL } from "quasar";
 import { router } from "@/router";
+import { getCenteredWindowOptions } from "@/utils/helpers";
 
 import type {
   URLAction,
@@ -85,14 +86,7 @@ export async function checkWebTermPerms(): Promise<{
 export function openWebTerminal(): void {
   const url: string = router.resolve("/webterm").href;
   openURL(url, undefined, {
-    popup: true,
-    scrollbars: false,
-    location: false,
-    status: false,
-    toolbar: false,
-    menubar: false,
-    width: 1280,
-    height: 720,
+    ...getCenteredWindowOptions(1280, 720),
   });
 }
 
