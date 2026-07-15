@@ -206,6 +206,30 @@ pre code { background: none; border: 0; padding: 0; }
 .callout.warn    { border-left-color: var(--amber); } .callout.warn .tag    { color: var(--amber); }
 .callout.danger  { border-left-color: var(--red);   } .callout.danger .tag  { color: var(--red); }
 
+/* ---------- Features (página de características) ---------- */
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 22px 0 6px; }
+.feature {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan); border-radius: 12px; padding: 15px 17px;
+}
+.feature h3 { margin: 0 0 4px; font-size: 1rem; }
+.feature h3 a { color: var(--text); }
+.feature h3 a:hover { color: var(--cyan); }
+.feature p  { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
+
+.platforms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 22px 0 8px; }
+.platform {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+}
+.platform h3 { margin: 0 0 4px; font-size: 1.02rem; }
+.platform ul { margin: 8px 0 0; padding-left: 18px; }
+.platform li { font-size: .89rem; margin: 3px 0; }
+.platform-note {
+  margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border);
+  font-size: .82rem; color: var(--muted);
+}
+.platform-note code { font-size: .82em; }
+
 /* ---------- Footer ---------- */
 footer {
   border-top: 1px solid var(--border); margin-top: 60px; padding: 22px 0;
@@ -225,5 +249,7 @@ footer .mono { font-family: var(--mono); }
   .rail a { border-left: 0; }
   .rail a.active { border-left: 0; }
   .cards { grid-template-columns: 1fr; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .platforms { grid-template-columns: 1fr; }
   h1 { font-size: 1.7rem; }
 }

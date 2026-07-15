@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Características · Observer RMM" data-title-en="Features · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Características · Observer RMM</title>
+<meta name="description" content="Características de Observer RMM: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario y plataformas soportadas. / Observer RMM features: remote control, script execution, monitoring with alerting, patch management, inventory, and supported platforms.">
+<link rel="stylesheet" href="/assets/style.css">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/" class="active"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Características</p>
+      <p class="eyebrow lang-en">Features</p>
+      <h1><span class="lang-es">Qué puedes hacer con Observer RMM</span><span class="lang-en">What you can do with Observer RMM</span></h1>
+      <p class="lead lang-es">Observer RMM reúne, en una sola consola, todo lo necesario para monitorear y administrar remotamente una flota de equipos Windows, Linux y macOS: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches e inventario.</p>
+      <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, and inventory.</p>
+
+      <h2 id="acceso-remoto"><span class="lang-es">Acceso y control remoto</span><span class="lang-en">Remote access &amp; control</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Control remoto de escritorio (tipo TeamViewer)</span><span class="lang-en">Remote desktop control (TeamViewer-like)</span></h3>
+          <p><span class="lang-es">Toma el escritorio de un equipo Windows, macOS o Linux desde el navegador, sin instalar software adicional en el equipo del usuario.</span><span class="lang-en">Take over a Windows, macOS, or Linux desktop from the browser, with no extra software to install on the user's machine.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Shell remoto en tiempo real</span><span class="lang-en">Real-time remote shell</span></h3>
+          <p><span class="lang-es">Abre una consola interactiva contra el equipo y ejecuta comandos en vivo, viendo la salida al instante.</span><span class="lang-en">Open an interactive console against the machine and run commands live, seeing output instantly.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Terminal web</span><span class="lang-en">Web terminal</span></h3>
+          <p><span class="lang-es">Terminal servida por WebSocket dentro de la consola, sin necesidad de un cliente SSH aparte.</span><span class="lang-en">A WebSocket terminal served inside the console, with no separate SSH client needed.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Explorador de archivos remoto</span><span class="lang-en">Remote file browser</span></h3>
+          <p><span class="lang-es">Navega el sistema de archivos del equipo y sube o baja archivos directamente desde la consola.</span><span class="lang-en">Browse the machine's file system and upload or download files directly from the console.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Editor del Registro de Windows</span><span class="lang-en">Windows Registry Editor</span></h3>
+          <p><span class="lang-es">Lee y modifica claves del Registro de Windows de forma remota, sin tomar control del equipo.</span><span class="lang-en">Read and edit Windows Registry keys remotely, without taking over the machine.</span></p>
+        </div>
+      </div>
+
+      <h2 id="ejecucion-automatizacion"><span class="lang-es">Ejecución y automatización</span><span class="lang-en">Execution &amp; automation</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Ejecución remota de comandos y scripts</span><span class="lang-en">Remote command &amp; script execution</span></h3>
+          <p><span class="lang-es">Corre comandos y scripts en varios lenguajes: <strong>bash, batch, PowerShell, Python, Nushell y Deno</strong>.</span><span class="lang-en">Run commands and scripts in several languages: <strong>bash, batch, PowerShell, Python, Nushell, and Deno</strong>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Biblioteca de scripts y snippets</span><span class="lang-en">Script library &amp; snippets</span></h3>
+          <p><span class="lang-es">Gestiona tu propia biblioteca de scripts, con snippets reutilizables y un catálogo de <em>community scripts</em>.</span><span class="lang-en">Manage your own script library, with reusable snippets and a <em>community scripts</em> catalog.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Ejecutor de tareas automatizadas</span><span class="lang-en">Automated task runner</span></h3>
+          <p><span class="lang-es">Programa scripts para que corran en un horario definido, por equipo o por política de automatización.</span><span class="lang-en">Schedule scripts to run on a defined schedule, per machine or per automation policy.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Políticas de automatización</span><span class="lang-en">Automation policies</span></h3>
+          <p><span class="lang-es">Agrupa chequeos, tareas y ajustes y aplícalos a clientes, sitios o agentes, con herencia configurable.</span><span class="lang-en">Bundle checks, tasks, and settings and apply them to clients, sites, or agents, with configurable inheritance.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Horarios reutilizables</span><span class="lang-en">Reusable schedules</span></h3>
+          <p><span class="lang-es">Define programaciones (semanal o mensual) una sola vez y reúsalas en tareas y automatizaciones.</span><span class="lang-en">Define schedules (weekly or monthly) once and reuse them across tasks and automations.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">URL Actions</span><span class="lang-en">URL Actions</span></h3>
+          <p><span class="lang-es">Integra sistemas externos abriendo URLs web o disparando llamadas REST (GET/POST) contextualizadas al agente o cliente.</span><span class="lang-en">Integrate external systems by opening web URLs or firing REST calls (GET/POST) scoped to the agent or client.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Almacén global clave-valor</span><span class="lang-en">Global key-value store</span></h3>
+          <p><span class="lang-es">Guarda secretos y valores reutilizables para usarlos de forma segura en scripts y URL actions.</span><span class="lang-en">Store secrets and reusable values to use securely across scripts and URL actions.</span></p>
+        </div>
+      </div>
+
+      <h2 id="monitoreo-alertas"><span class="lang-es">Monitoreo y alertas</span><span class="lang-en">Monitoring &amp; alerting</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Chequeos automatizados</span><span class="lang-en">Automated checks</span></h3>
+          <p><span class="lang-es">Vigila <strong>CPU, disco, memoria, servicios, salida de scripts y registro de eventos</strong>, con umbrales configurables.</span><span class="lang-en">Watch <strong>CPU, disk, memory, services, script output, and event logs</strong>, with configurable thresholds.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Alertas por email, SMS y Webhook</span><span class="lang-en">Email, SMS &amp; webhook alerting</span></h3>
+          <p><span class="lang-es">Notifica por correo, mensaje de texto o webhook cuando falla un chequeo o una tarea, o cuando un equipo se cae.</span><span class="lang-en">Notify by email, text message, or webhook when a check or task fails, or when a machine goes down.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Envío de correo para las alertas</span><span class="lang-en">Email delivery for alerts</span></h3>
+          <p><span class="lang-es">Configura tu propio servidor SMTP para que los correos de alerta lleguen a tu equipo. Ver la <a href="/functions/email_alerts/">guía de alertas por correo</a>.</span><span class="lang-en">Configure your own SMTP server so alert emails reach your team. See the <a href="/functions/email_alerts/">email alerts guide</a>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Plantillas de alertas</span><span class="lang-en">Alert templates</span></h3>
+          <p><span class="lang-es">Define umbrales, canales y acciones una vez y aplícalos por política, cliente o sitio.</span><span class="lang-en">Define thresholds, channels, and actions once and apply them by policy, client, or site.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Alertas de equipo caído o atrasado</span><span class="lang-en">Offline &amp; overdue alerts</span></h3>
+          <p><span class="lang-es">Avisa cuando un agente deja de reportar o supera su ventana de contacto, por email, SMS o en el dashboard.</span><span class="lang-en">Alerts when an agent stops reporting or exceeds its check-in window, by email, SMS, or on the dashboard.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Modo mantenimiento</span><span class="lang-en">Maintenance mode</span></h3>
+          <p><span class="lang-es">Silencia las alertas de un equipo durante ventanas de mantenimiento planificadas.</span><span class="lang-en">Mute a machine's alerts during planned maintenance windows.</span></p>
+        </div>
+      </div>
+
+      <h2 id="gestion-equipos"><span class="lang-es">Gestión de equipos</span><span class="lang-en">Endpoint management</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Gestión de servicios</span><span class="lang-en">Services management</span></h3>
+          <p><span class="lang-es">Lista, inicia, detiene y reinicia servicios de Windows desde la consola.</span><span class="lang-en">List, start, stop, and restart Windows services from the console.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Visor de registro de eventos</span><span class="lang-en">Event log viewer</span></h3>
+          <p><span class="lang-es">Consulta el Visor de eventos de Windows del equipo sin tomar control remoto.</span><span class="lang-en">Query the machine's Windows Event Viewer without taking remote control.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Gestión de parches de Windows</span><span class="lang-en">Windows patch management</span></h3>
+          <p><span class="lang-es">Aprueba, programa e instala actualizaciones de Windows por severidad, a nivel de equipo o de política.</span><span class="lang-en">Approve, schedule, and install Windows updates by severity, at the machine or policy level.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Instalación remota de software (Chocolatey)</span><span class="lang-en">Remote software installation (Chocolatey)</span></h3>
+          <p><span class="lang-es">Instala software en equipos Windows a través de Chocolatey, directamente desde la consola.</span><span class="lang-en">Install software on Windows machines through Chocolatey, straight from the console.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Inventario de software y hardware</span><span class="lang-en">Software &amp; hardware inventory</span></h3>
+          <p><span class="lang-es">Recolecta el software instalado y el detalle de hardware de cada equipo (vía WMI en Windows).</span><span class="lang-en">Collect installed software and hardware detail for each machine (via WMI on Windows).</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Reinicio remoto</span><span class="lang-en">Remote reboot</span></h3>
+          <p><span class="lang-es">Reinicia equipos de forma remota y detecta cuáles quedaron pendientes de reinicio.</span><span class="lang-en">Reboot machines remotely and detect which ones are pending a reboot.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Wake-on-LAN</span><span class="lang-en">Wake-on-LAN</span></h3>
+          <p><span class="lang-es">Enciende equipos por red enviando el paquete mágico de Wake-on-LAN.</span><span class="lang-en">Power on machines over the network by sending the Wake-on-LAN magic packet.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Recuperación de agente</span><span class="lang-en">Agent recovery</span></h3>
+          <p><span class="lang-es">Recupera de forma remota el servicio del agente o el de control remoto cuando dejan de responder.</span><span class="lang-en">Remotely recover the agent service or the remote-control service when they stop responding.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Notas de agente</span><span class="lang-en">Agent notes</span></h3>
+          <p><span class="lang-es">Adjunta notas de texto a cada equipo para el resto del equipo operador.</span><span class="lang-en">Attach text notes to each machine for the rest of the operating team.</span></p>
+        </div>
+      </div>
+
+      <h2 id="organizacion-flota"><span class="lang-es">Organización de la flota</span><span class="lang-en">Fleet organization</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Clientes y sitios</span><span class="lang-en">Clients &amp; sites</span></h3>
+          <p><span class="lang-es">Organiza los equipos en una jerarquía de clientes (organizaciones) y sitios (ubicaciones dentro de un cliente).</span><span class="lang-en">Organize machines in a hierarchy of clients (organizations) and sites (locations within a client).</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Enlaces de despliegue</span><span class="lang-en">Deployment links</span></h3>
+          <p><span class="lang-es">Genera instaladores y enlaces para desplegar agentes de forma masiva y desatendida.</span><span class="lang-en">Generate installers and links to deploy agents en masse and unattended.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Acciones masivas</span><span class="lang-en">Bulk actions</span></h3>
+          <p><span class="lang-es">Ejecuta comandos, scripts y operaciones sobre muchos equipos a la vez.</span><span class="lang-en">Run commands, scripts, and operations across many machines at once.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Campos personalizados</span><span class="lang-en">Custom fields</span></h3>
+          <p><span class="lang-es">Define campos propios para agentes, clientes y sitios, y úsalos en scripts y reportes.</span><span class="lang-en">Define your own fields for agents, clients, and sites, and use them in scripts and reports.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Historial del agente</span><span class="lang-en">Agent history</span></h3>
+          <p><span class="lang-es">Revisa el historial de comandos y scripts ejecutados sobre cada equipo.</span><span class="lang-en">Review the history of commands and scripts run against each machine.</span></p>
+        </div>
+      </div>
+
+      <h2 id="seguridad-acceso"><span class="lang-es">Seguridad, acceso y auditoría</span><span class="lang-en">Security, access &amp; auditing</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Roles y permisos (RBAC)</span><span class="lang-en">Roles &amp; permissions (RBAC)</span></h3>
+          <p><span class="lang-es">Controla el acceso con roles de permisos granulares y visibilidad de objetos por cliente y sitio. Ver <a href="/functions/permissions/">Permisos y seguridad</a>.</span><span class="lang-en">Control access with granular permission roles and per-client/site object visibility. See <a href="/functions/permissions/">Permissions &amp; security</a>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Autenticación en dos factores (2FA)</span><span class="lang-en">Two-factor authentication (2FA)</span></h3>
+          <p><span class="lang-es">Segundo factor TOTP para el inicio de sesión en la consola.</span><span class="lang-en">TOTP second factor for signing in to the console.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Claves de API</span><span class="lang-en">API keys</span></h3>
+          <p><span class="lang-es">Acceso programático a la API mediante claves con fecha de expiración.</span><span class="lang-en">Programmatic API access through keys with an expiration date.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Registro de auditoría</span><span class="lang-en">Audit log</span></h3>
+          <p><span class="lang-es">Bitácora de toda acción de usuario: sesiones remotas, ejecución de scripts, cambios, acciones masivas y logins.</span><span class="lang-en">A log of every user action: remote sessions, script runs, changes, bulk actions, and logins.</span></p>
+        </div>
+      </div>
+
+      <h2 id="personalizacion"><span class="lang-es">Personalización</span><span class="lang-en">Personalization</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Preferencias de usuario</span><span class="lang-en">User preferences</span></h3>
+          <p><span class="lang-es">Modo oscuro, idioma, formato de fecha y colores del dashboard, configurables por usuario.</span><span class="lang-en">Dark mode, language, date format, and dashboard colors, configurable per user.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Consola bilingüe</span><span class="lang-en">Bilingual console</span></h3>
+          <p><span class="lang-es">Interfaz disponible en español e inglés, seleccionable por cada usuario.</span><span class="lang-en">Interface available in Spanish and English, selectable by each user.</span></p>
+        </div>
+      </div>
+
+      <h2 id="plataformas"><span class="lang-es">Agentes y plataformas soportadas</span><span class="lang-en">Supported agents &amp; platforms</span></h2>
+      <p class="lang-es">Observer RMM administra equipos <strong>Windows, Linux y macOS</strong> con un agente ligero.</p>
+      <p class="lang-en">Observer RMM manages <strong>Windows, Linux, and macOS</strong> machines with a lightweight agent.</p>
+
+      <div class="platforms">
+        <div class="platform">
+          <h3><span class="lang-es">Agente Windows</span><span class="lang-en">Windows agent</span></h3>
+          <ul class="lang-es">
+            <li>Windows 7, 8.1, 10 y 11</li>
+            <li>Server 2008 R2, 2012 R2, 2016, 2019, 2022 y 2025</li>
+          </ul>
+          <ul class="lang-en">
+            <li>Windows 7, 8.1, 10, and 11</li>
+            <li>Server 2008 R2, 2012 R2, 2016, 2019, 2022, and 2025</li>
+          </ul>
+        </div>
+        <div class="platform">
+          <h3><span class="lang-es">Agente Linux</span><span class="lang-en">Linux agent</span></h3>
+          <ul class="lang-es">
+            <li>Cualquier distribución con <strong>systemd</strong>, incluyendo (sin limitarse a): Debian (10, 11), Ubuntu x86_64 (18.04, 20.04, 22.04), Synology 7, CentOS, FreePBX, Raspberry Pi con Raspbian, y más.</li>
+          </ul>
+          <ul class="lang-en">
+            <li>Any distribution with <strong>systemd</strong>, including but not limited to: Debian (10, 11), Ubuntu x86_64 (18.04, 20.04, 22.04), Synology 7, CentOS, FreePBX, Raspberry Pi with Raspbian, and more.</li>
+          </ul>
+          <p class="platform-note"><span class="lang-es">¿Usa systemd? Verifícalo con </span><span class="lang-en">Check for systemd with </span><code>ps --no-headers -o comm 1</code></p>
+        </div>
+        <div class="platform">
+          <h3><span class="lang-es">Agente Mac</span><span class="lang-en">Mac agent</span></h3>
+          <ul class="lang-es">
+            <li>Intel de 64 bits y Apple Silicon (procesadores serie M).</li>
+          </ul>
+          <ul class="lang-en">
+            <li>64-bit Intel and Apple Silicon (M-series processors).</li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>
