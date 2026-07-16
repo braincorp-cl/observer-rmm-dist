@@ -160,7 +160,7 @@
           </q-menu>
         </q-btn>
         <!-- integrations -->
-        <q-btn v-show="false" size="md" dense no-caps flat :label="$t('nav.reporting')">
+        <q-btn size="md" dense no-caps flat :label="$t('nav.reporting')">
           <q-menu auto-close>
             <q-list
               v-if="
@@ -187,11 +187,7 @@
               </q-item>
             </q-list>
             <q-list v-else dense style="min-width: 100px">
-              <q-item
-                clickable
-                v-close-popup
-                @click="notifyWarning($t('nav.reportingTierWarning'), 10000)"
-              >
+              <q-item clickable v-close-popup @click="showReportsManager">
                 <q-item-section>{{ $t("nav.reportingManager") }}</q-item-section>
               </q-item>
             </q-list>
@@ -271,6 +267,7 @@ import DeploymentTable from "@/components/clients/DeploymentTable.vue";
 import ServerMaintenance from "@/components/modals/core/ServerMaintenance.vue";
 import CodeSign from "@/components/modals/coresettings/CodeSign.vue";
 import PermissionsManager from "@/components/accounts/PermissionsManager.vue";
+import ReportsManager from "@/ee/reporting/components/ReportsManager.vue";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { notifyWarning } from "@/utils/notify";
@@ -433,8 +430,13 @@ export default {
         component: DeploymentTable,
       });
     },
-    // Reportes descartado (ADR-010, 2026-06-17): módulo ee/reporting vaciado;
-    // el método showReportsManager (huérfano, sin invocación ni import) fue eliminado.
+    // Reporting re-adoptado (feature 022, 2026-07-15): módulo ee/reporting
+    // recuperado desde f6a1e5a^ (rebrandeado) y re-cableado al FileBar.
+    showReportsManager() {
+      this.$q.dialog({
+        component: ReportsManager,
+      });
+    },
   },
 };
 </script>

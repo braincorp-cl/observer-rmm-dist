@@ -1,10 +1,27 @@
-# Reportes — módulo descartado, pendiente de reimplementación desde cero
+# Reportes — módulo re-adoptado (Observer Reporting)
 
-> **Estado:** vacío a propósito. Ver `_reversa_sdd/adrs/010-descarte-modulos-reportes-sso.md`.
+> **Estado:** re-adoptado desde nuestro propio linaje forkeado (feature `022`, 2026-07-15).
+> Reemplaza el descarte de ADR-010 (2026-06-17). Ver la reconciliación en Reversa.
 
-El módulo de Reportes (heredado del upstream EE legado) fue **descartado** el 2026-06-17 (ADR-010):
+El módulo de Reportes fue **recuperado** desde el historial git rebrandeado (`f6a1e5a^`) —
+la misma operación que los backports de código upstream que ya están en producción, **no**
+una importación de contenido de terceros:
 
-- La implementación legada dependía de **sitios externos** (repositorios de plantillas de terceros y de la comunidad) para cargar/importar reportes — inviable como base propia.
-- La feature `002-remove-shared-templates` ya había removido la importación de plantillas compartidas; ADR-010 completa el descarte del módulo entero.
+- El **motor es 100 % local** (Jinja2 sandboxed + Markdown + WeasyPrint para PDF). No hay
+  llamadas HTTP salientes: la dependencia del catálogo de plantillas de la comunidad
+  (`SharedTemplatesRepo` → upstream) ya fue eliminada (ADR-014) y **no** se restaura.
+- El importador per-archivo (`ImportReportTemplate`) sí queda disponible: las plantillas se
+  autoran localmente y sus assets caen a `/opt/observer/reporting/assets` (filesystem local).
 
-**No restaurar el código legado.** La reimplementación debe hacerse **desde cero**, sin dependencias externas de repos de terceros/comunidad. Las specs del legado quedan como referencia funcional en `_reversa_sdd/reportes/` (marcadas con cabecera de DESCARTE).
+## Toques de infra pendientes (ver roadmap de la feature 022)
+
+- **plotly.js**: los gráficos en formato HTML referencian `include_plotlyjs="cdn"` →
+  auto-hospedar (patrón `agents.observer.cl`) o pasar a `inline`.
+- **chromium**: Kaleido (gráficos como imagen/SVG) requiere un runtime Chrome que Ansible
+  aún no provisiona → agregar al rol `observer_api` (igual que las libs de WeasyPrint).
+
+## Plantillas curadas
+
+Las de `amidaware/reporting-templates` **no** se importan tal cual (licencia propietaria
+AmidaWare + strings legacy). Se usan como **referencia** para autorar plantillas propias
+BrainCorp (mismas queries, schema compartido), bajo licencia BrainCorp.
