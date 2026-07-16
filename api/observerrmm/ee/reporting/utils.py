@@ -702,7 +702,13 @@ def generate_chart(
         fig.update_layout(**layout)
 
     if format == "html":
-        return cast(str, fig.to_html(full_html=False, include_plotlyjs="cdn"))
+        # W005: plotly.js embebido (inline) en vez de "cdn". El motor de reportes es
+        # 100% local (0 salidas HTTP): con "cdn" el HTML resultante referencia
+        # cdn.plot.ly y los gráficos no cargan en redes cerradas/aisladas (flotas
+        # grandes) ni respetan ese principio. Inline auto-contiene cada reporte
+        # (plotly.js es MIT, redistribuible). El costo (~3.5MB por HTML con gráficos)
+        # solo aplica a dashboards; para archivar/PDF se usa la ruta "image" (Kaleido).
+        return cast(str, fig.to_html(full_html=False, include_plotlyjs="inline"))
     elif format == "image":
         return cast(str, fig.to_image(format="svg").decode("utf-8"))
 

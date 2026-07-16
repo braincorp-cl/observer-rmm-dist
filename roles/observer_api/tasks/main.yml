@@ -105,6 +105,51 @@
 - name: Setup Django (código + dependencias + migrate + collectstatic + reload_nats)
   ansible.builtin.include_tasks: django_deploy.yml
 
+# Reporting (ee/reporting) — chromium para Kaleido (W005). Los reportes con gráficos en
+# formato "image" (SVG; obligatorio en PDF porque WeasyPrint no ejecuta JS) usan Kaleido,
+# que desde 1.x ya NO empaqueta su propio chromium: lo lanza del sistema. plotly.io.get_chrome()
+# descarga un chromium versión-matcheada a la caché de Kaleido, que Kaleido autodescubre al
+# renderizar. HOME se fija a {{ observer_root }} (= HOME de rmm/daphne/celery) para que la
+# caché quede donde esos servicios la encuentran. DEBE correr DESPUÉS de django_deploy (que
+# instala plotly/kaleido en el venv). Idempotente vía marcador (una sola descarga por host).
+- name: Provisionar chromium para Kaleido (reportes con gráficos)
+  when: observer_reporting_charts_enabled | bool
+  block:
+    - name: Verificar si el chromium de Kaleido ya está provisionado
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
+      register: observer_kaleido_chrome_marker
+
+    - name: Descargar chromium para Kaleido (plotly.io.get_chrome)
+      ansible.builtin.command:
+        cmd: >-
+          {{ observer_root }}/api/env/bin/python -c
+          "import plotly.io as pio; pio.get_chrome()"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        HOME: "{{ observer_root }}"
+      register: observer_kaleido_chrome_install
+      changed_when: observer_kaleido_chrome_install.rc == 0
+      when: not observer_kaleido_chrome_marker.stat.exists
+
+    - name: Marcar el chromium de Kaleido como provisionado
+      ansible.builtin.file:
+        path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
+        state: touch
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0644"
+      when: observer_kaleido_chrome_install is changed
+
+- name: Aviso si no se provisiona chromium para gráficos de reportes
+  ansible.builtin.debug:
+    msg: >
+      observer_reporting_charts_enabled=false — se omite la provisión de chromium para
+      Kaleido. Los reportes de texto/tabla y los PDF sin gráficos funcionan igual; los
+      dashboards con gráficos (formato image/SVG y HTML interactivo) requieren habilitarlo.
+  when: not (observer_reporting_charts_enabled | bool)
+
 # nats-api binary (Go). Debe estar recompilado desde el fuente actual (natsapi/svc.go
 # conecta como user NATS `observerrmm`); un binario stale pre-rebrand conecta con el
 # user viejo y choca con "nats: Authorization Violation". Al cambiar, reiniciar el servicio.

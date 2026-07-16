@@ -57,3 +57,12 @@ observer_db_sslmode: require
 # Post-consolidación F008: el dist es self-contained (D-03)
 observer_source_path: "{{ playbook_dir }}/api/observerrmm/"
 observer_django_requirements: "requirements.txt"
+
+# Reporting (ee/reporting) — dashboards con gráficos (W005). Kaleido 1.x NO empaqueta
+# chromium; genera los gráficos-imagen (SVG, obligatorio en PDF: WeasyPrint no ejecuta JS)
+# lanzando un chromium del sistema. Con esto en true, plotly_get_chrome descarga un chromium
+# versión-matcheada a la caché de Kaleido (bajo HOME={{ observer_root }}, el mismo HOME con
+# que corren rmm/daphne/celery → autodescubierto al renderizar). Es una descarga externa
+# (storage.googleapis.com) SOLO en provisión, análoga a Python/NATS. Poner en false para
+# instalaciones mínimas: los reportes de texto/tabla y PDF-sin-gráfico funcionan sin chromium.
+observer_reporting_charts_enabled: true
