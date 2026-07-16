@@ -234,7 +234,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Base template OK: {BASE_NAME}"))
 
         for tpl in CURATED:
-            _import_report_template(dict(tpl), base_id, overwrite)
+            data = dict(tpl)
+            # template_css NUNCA null: el serializer de Preview lo valida como
+            # CharField(allow_blank=True) sin allow_null → null da 400. Los
+            # estilos viven en la base "Observer Base v1", así que "" es correcto.
+            data.setdefault("template_css", "")
+            _import_report_template(data, base_id, overwrite)
             self.stdout.write(self.style.SUCCESS(f"Plantilla OK: {tpl['name']}"))
 
         self.stdout.write(
