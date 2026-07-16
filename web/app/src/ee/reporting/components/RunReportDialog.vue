@@ -2,24 +2,24 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 400px">
       <q-bar>
-        {{ download ? "Download" : "Run" }} {{ capitalize(type) }} Report
+        {{ title }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
       <q-card-section v-if="reportTemplates.length === 0">
-        There are no report templates that depend on {{ capitalize(type) }}. You
-        must select a dependency in the Report Template of type {{ type }} using
-        the dependencies dropdown.
+        {{ $t("reporting.runDialog.noTemplates", { type: typeLabel }) }}
       </q-card-section>
       <div v-else>
         <q-card-section>
           <observer-dropdown
             v-model="reportTemplate"
             :options="reportTemplateOptions"
-            label="Report Template"
+            :label="$t('reporting.runDialog.reportTemplateLabel')"
             outlined
             mapOptions
             filterable
@@ -35,13 +35,18 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn v-close-popup dense flat label="Cancel" />
+          <q-btn
+            v-close-popup
+            dense
+            flat
+            :label="$t('reporting.common.cancel')"
+          />
           <q-btn
             :loading="isLoading"
             :disable="!reportTemplate"
             dense
             flat
-            label="Run Report"
+            :label="$t('reporting.runDialog.runReport')"
             color="primary"
             @click="submit"
           />
@@ -54,8 +59,8 @@
 <script setup lang="ts">
 // composition imports
 import { ref, computed, onBeforeMount } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent } from "quasar";
-import { capitalize } from "@/utils/format";
 import { useSharedReportTemplates } from "../api/reporting";
 import { notifyError } from "@/utils/notify";
 
@@ -75,8 +80,20 @@ const props = defineProps<{
   download: boolean;
 }>();
 
+// i18n setup
+const { t } = useI18n();
+
 // quasar dialog setup
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
+
+// i18n-aware title/type label (computed for language reactivity)
+const typeLabel = computed(() => t(`reporting.runDialog.type_${props.type}`));
+
+const title = computed(() =>
+  props.download
+    ? t("reporting.runDialog.titleDownload", { type: typeLabel.value })
+    : t("reporting.runDialog.titleRun", { type: typeLabel.value }),
+);
 
 const {
   reportTemplates,
@@ -113,14 +130,14 @@ const reportFormatOptions = computed(() => {
     else
       return [
         { label: "PDF", value: "pdf" },
-        { label: "Text", value: "plaintext" },
+        { label: t("reporting.runDialog.formatText"), value: "plaintext" },
       ];
   } else return [];
 });
 
 async function submit() {
   if (reportTemplate.value === null) {
-    notifyError("Report Template is required.");
+    notifyError(t("reporting.runDialog.errorRequired"));
     return;
   }
 

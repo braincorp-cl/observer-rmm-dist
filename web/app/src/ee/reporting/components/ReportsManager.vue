@@ -9,10 +9,12 @@
           push
           icon="refresh"
           @click="getReportTemplates()"
-        />Reports Manager
+        />{{ $t("reporting.manager.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -37,7 +39,7 @@
           <q-btn-dropdown
             class="q-ml-sm"
             icon="add"
-            label="Template"
+            :label="$t('reporting.manager.templateDropdown')"
             no-caps
             dense
             flat
@@ -49,7 +51,9 @@
                 @click="openNewReportTemplateForm('markdown')"
               >
                 <q-item-section>
-                  <q-item-label>Markdown Template</q-item-label>
+                  <q-item-label>{{
+                    $t("reporting.manager.markdownTemplate")
+                  }}</q-item-label>
                 </q-item-section>
               </q-item>
 
@@ -59,7 +63,9 @@
                 @click="openNewReportTemplateForm('html')"
               >
                 <q-item-section>
-                  <q-item-label>HTML Template</q-item-label>
+                  <q-item-label>{{
+                    $t("reporting.manager.htmlTemplate")
+                  }}</q-item-label>
                 </q-item-section>
               </q-item>
 
@@ -69,7 +75,9 @@
                 @click="openNewReportTemplateForm('plaintext')"
               >
                 <q-item-section>
-                  <q-item-label>Plain Text Template</q-item-label>
+                  <q-item-label>{{
+                    $t("reporting.manager.plainTextTemplate")
+                  }}</q-item-label>
                 </q-item-section>
               </q-item>
 
@@ -77,14 +85,16 @@
 
               <q-item clickable v-close-popup @click="importReportTemplate">
                 <q-item-section>
-                  <q-item-label>Import Report Template</q-item-label>
+                  <q-item-label>{{
+                    $t("reporting.manager.importReportTemplate")
+                  }}</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
           </q-btn-dropdown>
           <q-btn
             class="q-ml-sm"
-            label="Base Templates"
+            :label="$t('reporting.manager.baseTemplates')"
             no-caps
             dense
             flat
@@ -92,7 +102,7 @@
           />
           <q-btn
             class="q-ml-sm"
-            label="Report Assets"
+            :label="$t('reporting.manager.reportAssets')"
             no-caps
             dense
             flat
@@ -100,7 +110,7 @@
           />
           <q-btn
             class="q-ml-sm"
-            label="Data Queries"
+            :label="$t('reporting.manager.dataQueries')"
             no-caps
             dense
             flat
@@ -109,7 +119,7 @@
           <q-btn
             @click="openReportSchedules"
             class="q-ml-sm"
-            label="Report Schedules"
+            :label="$t('reporting.manager.reportSchedules')"
             no-caps
             dense
             flat
@@ -117,7 +127,7 @@
           <q-btn
             @click="openReportHistory"
             class="q-ml-sm"
-            label="Report Run History"
+            :label="$t('reporting.manager.reportRunHistory')"
             no-caps
             dense
             flat
@@ -126,7 +136,7 @@
           <q-input
             v-model="search"
             style="width: 300px"
-            label="Search"
+            :label="$t('reporting.common.search')"
             dense
             outlined
             clearable
@@ -152,7 +162,9 @@
                   clickable
                   @click="openEditReportTemplateForm(props.row)"
                 >
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.edit")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -160,7 +172,9 @@
                   clickable
                   @click="cloneTemplate(props.row)"
                 >
-                  <q-item-section>Clone</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.manager.clone")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -172,7 +186,9 @@
                     openReport(props.row.id, 'pdf', props.row.depends_on, {})
                   "
                 >
-                  <q-item-section>Open PDF Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.manager.openPdfReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -187,11 +203,14 @@
                     )
                   "
                 >
-                  <q-item-section
-                    >Open
-                    {{ props.row.type !== "plaintext" ? "HTML" : "Text" }}
-                    Report</q-item-section
-                  >
+                  <q-item-section>{{
+                    $t("reporting.manager.openReport", {
+                      type:
+                        props.row.type !== "plaintext"
+                          ? "HTML"
+                          : $t("reporting.manager.formatText"),
+                    })
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -201,7 +220,9 @@
                   clickable
                   @click="downloadReport(props.row, 'pdf', {})"
                 >
-                  <q-item-section>Download PDF Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.manager.downloadPdfReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -215,11 +236,14 @@
                     )
                   "
                 >
-                  <q-item-section
-                    >Download
-                    {{ props.row.type !== "plaintext" ? "HTML" : "Text" }}
-                    Report</q-item-section
-                  >
+                  <q-item-section>{{
+                    $t("reporting.manager.downloadReport", {
+                      type:
+                        props.row.type !== "plaintext"
+                          ? "HTML"
+                          : $t("reporting.manager.formatText"),
+                    })
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -229,11 +253,15 @@
                   clickable
                   @click="scheduleReport(props.row)"
                 >
-                  <q-item-section>Schedule Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.manager.scheduleReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item v-close-popup clickable @click="emailReport(props.row)">
-                  <q-item-section>Email Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.manager.emailReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -243,7 +271,9 @@
                   clickable
                   @click="exportReport(props.row.id)"
                 >
-                  <q-item-section>Export</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.export")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -253,13 +283,17 @@
                   clickable
                   @click="deleteTemplate(props.row)"
                 >
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
 
                 <q-item v-close-popup clickable>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -283,7 +317,8 @@
 
 <script setup lang="ts">
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
 import { useSharedReportTemplates } from "../api/reporting";
 import { capitalize } from "@/utils/format";
@@ -301,29 +336,32 @@ import ReportScheduleForm from "./ReportScheduleForm.vue";
 // type imports
 import type { ReportTemplate } from "../types/reporting";
 
-const columns: QTableColumn[] = [
+const { t } = useI18n();
+
+// i18n-aware columns (computed for language reactivity)
+const columns = computed<QTableColumn[]>(() => [
   {
     name: "name",
-    label: "Name",
+    label: t("reporting.common.name"),
     field: "name",
     align: "left",
     sortable: true,
   },
   {
     name: "type",
-    label: "Template Type",
+    label: t("reporting.manager.colType"),
     field: "type",
     align: "left",
     sortable: true,
   },
   {
     name: "depends_on",
-    label: "Template Dependencies",
+    label: t("reporting.manager.colDependencies"),
     field: "depends_on",
     align: "left",
     sortable: true,
   },
-];
+]);
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -415,9 +453,9 @@ function emailReport(template: ReportTemplate) {
 
 function deleteTemplate(template: ReportTemplate) {
   $q.dialog({
-    title: `Delete template: ${template.name}?`,
+    title: t("reporting.manager.deleteTitle", { name: template.name }),
     cancel: true,
-    ok: { label: "Delete", color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "negative" },
   }).onOk(() => {
     deleteReportTemplate(template.id);
   });

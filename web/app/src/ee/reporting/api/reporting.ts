@@ -17,6 +17,7 @@ import type {
 } from "../types/reporting";
 import type { QTreeFileNode } from "@/types/filebrowser";
 import { notifySuccess } from "@/utils/notify";
+import { i18n } from "@/boot/i18n";
 import { exportFile, Dialog } from "quasar";
 import { until } from "@vueuse/shared";
 
@@ -60,7 +61,7 @@ export function useReportTemplates() {
         reportTemplates.value = reportTemplates.value.filter(
           (template) => template.id != id,
         );
-        notifySuccess("The report template was successfully removed");
+        notifySuccess(i18n.global.t("reporting.notify.tplRemoved"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -73,7 +74,7 @@ export function useReportTemplates() {
       .post(`${baseUrl}/templates/`, payload)
       .then(({ data }: { data: ReportTemplate }) => {
         reportTemplates.value.push(data);
-        notifySuccess("The report template was added successfully");
+        notifySuccess(i18n.global.t("reporting.notify.tplAdded"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -94,7 +95,7 @@ export function useReportTemplates() {
         );
         reportTemplates.value[index] = data;
         options?.dontNotify ||
-          notifySuccess("The report template was edited successfully");
+          notifySuccess(i18n.global.t("reporting.notify.tplEdited"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -179,7 +180,7 @@ export function useReportTemplates() {
 
     // get filename
     Dialog.create({
-      title: "Confirm File Name",
+      title: i18n.global.t("reporting.notify.confirmFileName"),
       prompt: {
         model: `${template.name}.${extension}`,
         isValid: (val) => !!val,
@@ -276,7 +277,7 @@ export function useReportTemplates() {
         if (index !== -1) reportTemplates.value[index] = data;
         else reportTemplates.value.push(data);
 
-        notifySuccess("Report Template was successfully imported.");
+        notifySuccess(i18n.global.t("reporting.notify.tplImported"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -312,7 +313,7 @@ export function useReportTemplates() {
       .post(`${baseUrl}/templates/${id}/email/`, payload)
       .then(() => {
         notifySuccess(
-          "Report was generated and the email is queued for delivery",
+          i18n.global.t("reporting.notify.emailQueued"),
         );
       })
       .catch(() => {
@@ -435,7 +436,7 @@ export function useReportingHTMLTemplates() {
       .post(`${baseUrl}/htmltemplates/`, payload)
       .then(({ data }: { data: ReportHTMLTemplate }) => {
         reportHTMLTemplates.value.push(data);
-        notifySuccess("HTML Template was added successfully");
+        notifySuccess(i18n.global.t("reporting.notify.htmlAdded"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -451,7 +452,7 @@ export function useReportingHTMLTemplates() {
         );
         reportHTMLTemplates.value[index] = data;
 
-        notifySuccess("HTML Template was edited successfully");
+        notifySuccess(i18n.global.t("reporting.notify.htmlEdited"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -465,7 +466,7 @@ export function useReportingHTMLTemplates() {
         reportHTMLTemplates.value = reportHTMLTemplates.value.filter(
           (template) => template.id != id,
         );
-        notifySuccess("The HTML template was successfully removed");
+        notifySuccess(i18n.global.t("reporting.notify.htmlRemoved"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -508,7 +509,7 @@ export function useReportingDataQueries() {
       .then(({ data }: { data: ReportDataQuery }) => {
         isLoading.value = true;
         reportDataQueries.value.push(data);
-        notifySuccess("Data Query was added successfully");
+        notifySuccess(i18n.global.t("reporting.notify.dqAdded"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -523,7 +524,7 @@ export function useReportingDataQueries() {
           (template) => template.id === id,
         );
         reportDataQueries.value[index] = data;
-        notifySuccess("Data Query was edited successfully");
+        notifySuccess(i18n.global.t("reporting.notify.dqEdited"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -536,7 +537,7 @@ export function useReportingDataQueries() {
         reportDataQueries.value = reportDataQueries.value.filter(
           (template) => template.id != id,
         );
-        notifySuccess("The Data Query was successfully removed");
+        notifySuccess(i18n.global.t("reporting.notify.dqRemoved"));
       })
       .catch(() => (isError.value = true))
       .finally(() => (isLoading.value = false));
@@ -586,7 +587,7 @@ export function useReportingSchedules() {
       .post<ReportSchedule>(`${baseUrl}/schedules/`, payload)
       .then(({ data }) => {
         reportSchedules.value.push(data);
-        notifySuccess("Report Schedule was added successfully");
+        notifySuccess(i18n.global.t("reporting.notify.schedAdded"));
       })
       .catch(() => {
         isError.value = true;
@@ -607,7 +608,7 @@ export function useReportingSchedules() {
         if (idx !== -1) {
           reportSchedules.value[idx] = data;
         }
-        notifySuccess("Report Schedule was updated successfully");
+        notifySuccess(i18n.global.t("reporting.notify.schedUpdated"));
       })
       .catch(() => {
         isError.value = true;
@@ -627,7 +628,7 @@ export function useReportingSchedules() {
         reportSchedules.value = reportSchedules.value.filter(
           (r) => r.id !== id,
         );
-        notifySuccess("Report Schedule was deleted successfully");
+        notifySuccess(i18n.global.t("reporting.notify.schedDeleted"));
       })
       .catch(() => {
         isError.value = true;
@@ -645,7 +646,7 @@ export function useReportingSchedules() {
       .post(`${baseUrl}/schedules/${id}/run/`)
       .then(() => {
         notifySuccess(
-          "Report Schedule was run. Check the Report History for the status.",
+          i18n.global.t("reporting.notify.schedRun"),
         );
       })
       .catch(() => {
@@ -701,7 +702,7 @@ export function useReportingHistory() {
       .delete(`${baseUrl}/history/${id}/`)
       .then(() => {
         reportHistory.value = reportHistory.value.filter((r) => r.id !== id);
-        notifySuccess("Report History entry was deleted successfully");
+        notifySuccess(i18n.global.t("reporting.notify.historyDeleted"));
       })
       .catch(() => {
         isError.value = true;
@@ -759,7 +760,7 @@ export function useReportingHistory() {
 
     // get filename
     Dialog.create({
-      title: "Confirm File Name",
+      title: i18n.global.t("reporting.notify.confirmFileName"),
       prompt: {
         model: `${template_name}-${Date.now()}.${extension}`,
         isValid: (val) => !!val,

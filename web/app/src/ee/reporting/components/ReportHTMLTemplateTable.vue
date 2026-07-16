@@ -9,10 +9,12 @@
           push
           icon="refresh"
           @click="getReportHTMLTemplates"
-        />Base Templates
+        />{{ $t("reporting.htmlTemplateTable.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -37,7 +39,7 @@
           <q-btn
             class="q-ml-sm"
             icon="add"
-            label="New"
+            :label="$t('reporting.htmlTemplateTable.new')"
             no-caps
             dense
             flat
@@ -47,7 +49,7 @@
           <q-input
             v-model="search"
             style="width: 300px"
-            label="Search"
+            :label="$t('reporting.common.search')"
             dense
             outlined
             clearable
@@ -73,7 +75,9 @@
                   clickable
                   @click="openEditHTMLTemplate(props.row)"
                 >
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.edit")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -81,7 +85,9 @@
                   clickable
                   @click="cloneHTMLTemplate(props.row)"
                 >
-                  <q-item-section>Clone</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.htmlTemplateTable.clone")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -89,13 +95,17 @@
                   clickable
                   @click="deleteHTMLTemplate(props.row)"
                 >
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
 
                 <q-item v-close-popup clickable>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -111,8 +121,9 @@
 
 <script setup lang="ts">
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useSharedReportHTMLTemplates } from "../api/reporting";
 
 // ui imports
@@ -121,15 +132,18 @@ import ReportHTMLTemplateForm from "./ReportHTMLTemplateForm.vue";
 // type imports
 import type { ReportHTMLTemplate } from "../types/reporting";
 
-const columns: QTableColumn[] = [
+const { t } = useI18n();
+
+// i18n-aware columns (computed for language reactivity)
+const columns = computed<QTableColumn[]>(() => [
   {
     name: "name",
-    label: "Name",
+    label: t("reporting.common.name"),
     field: "name",
     align: "left",
     sortable: true,
   },
-];
+]);
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -163,11 +177,12 @@ function openEditHTMLTemplate(template: ReportHTMLTemplate) {
 
 function deleteHTMLTemplate(template: ReportHTMLTemplate) {
   $q.dialog({
-    title: `Delete HTML Template: ${template.name}?`,
-    message:
-      "If this template is in use you will need to change it in every report template",
+    title: t("reporting.htmlTemplateTable.deleteTitle", {
+      name: template.name,
+    }),
+    message: t("reporting.htmlTemplateTable.deleteMessage"),
     cancel: true,
-    ok: { label: "Delete", color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "negative" },
   }).onOk(() => {
     deleteReportHTMLTemplate(template.id);
   });

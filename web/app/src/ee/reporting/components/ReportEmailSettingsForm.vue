@@ -2,7 +2,7 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent>
     <q-card class="q-dialog-plugin" style="width: 90vw; max-width: 600px">
       <q-bar>
-        Customize Email Options
+        {{ $t("reporting.emailSettings.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
@@ -10,10 +10,10 @@
       <q-card-section class="q-pa-md">
         <q-input
           v-model="localEmailSettings.subject"
-          label="Subject"
+          :label="$t('reporting.emailSettings.subjectLabel')"
           dense
           filled
-          hint="Default if left blank: 'Scheduled Report: <report name>'"
+          :hint="$t('reporting.emailSettings.subjectHint')"
         />
       </q-card-section>
 
@@ -21,20 +21,20 @@
         <q-input
           v-model="localEmailSettings.body"
           type="textarea"
-          label="Body"
+          :label="$t('reporting.emailSettings.bodyLabel')"
           dense
           filled
-          hint="Default if blank: 'Your report is attached.'"
+          :hint="$t('reporting.emailSettings.bodyHint')"
         />
       </q-card-section>
 
       <q-card-section class="q-pa-md">
         <q-input
           v-model="localEmailSettings.attachment_name"
-          label="Attachment Name"
+          :label="$t('reporting.emailSettings.attachmentNameLabel')"
           dense
           filled
-          hint="Do not include the extension."
+          :hint="$t('reporting.emailSettings.attachmentNameHint')"
         />
       </q-card-section>
 
@@ -45,30 +45,30 @@
       >
         <q-input
           v-model="localEmailSettings.attachment_extension"
-          label="Attachment Extension"
+          :label="$t('reporting.emailSettings.attachmentExtensionLabel')"
           dense
           filled
           prefix="."
-          hint="Enter the desired extension without a dot (e.g., csv, json, txt). Defaults to 'txt' if blank."
+          :hint="$t('reporting.emailSettings.attachmentExtensionHint')"
         />
       </q-card-section>
 
       <q-card-section v-if="props.format === 'html'" class="q-pa-md">
         <q-checkbox
           v-model="localEmailSettings.include_report_link"
-          label="Include a direct link to view the report online (requires Observer account authentication)."
+          :label="$t('reporting.emailSettings.includeReportLinkLabel')"
         >
           <q-tooltip class="text-caption">
-            The link will be automatically added at the end of the email body.
+            {{ $t("reporting.emailSettings.includeReportLinkTooltip") }}
           </q-tooltip>
         </q-checkbox>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Cancel" v-close-popup dense />
+        <q-btn flat :label="$t('reporting.common.cancel')" v-close-popup dense />
         <q-btn
           flat
-          label="Save"
+          :label="$t('reporting.common.save')"
           color="primary"
           class="q-ml-sm"
           @click="submit"

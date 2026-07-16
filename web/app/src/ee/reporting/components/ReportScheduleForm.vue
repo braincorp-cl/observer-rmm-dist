@@ -3,9 +3,13 @@
     <q-card class="q-dialog-plugin" style="width: 90vw; max-width: 600px">
       <q-bar>
         <template v-if="!emailOnly">
-          {{ schedule && !clone ? "Edit" : "Add" }} Report Schedule
+          {{
+            schedule && !clone
+              ? $t("reporting.scheduleForm.editTitle")
+              : $t("reporting.scheduleForm.addTitle")
+          }}
         </template>
-        <template v-else> Email Report </template>
+        <template v-else> {{ $t("reporting.scheduleForm.emailReportTitle") }} </template>
         <q-space />
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
@@ -15,16 +19,16 @@
           <q-input
             v-if="!emailOnly"
             v-model="localSchedule.name"
-            label="Name"
+            :label="$t('reporting.common.name')"
             dense
             filled
-            :rules="[(val: string) => !!val || '*Required']"
+            :rules="[(val: string) => !!val || $t('reporting.scheduleForm.requiredField')]"
           />
 
           <q-toggle
             v-if="!emailOnly"
             v-model="localSchedule.enabled"
-            label="Enabled"
+            :label="$t('reporting.scheduleForm.enabledLabel')"
             dense
             dense-toggle
             class="q-mb-sm"
@@ -33,14 +37,14 @@
           <observer-dropdown
             v-model="localSchedule.report_template"
             :options="reportTemplateOptions"
-            label="Report Template"
+            :label="$t('reporting.scheduleForm.reportTemplateLabel')"
             dense
             filled
             map-options
             emit-value
             options-dense
             filterable
-            :rules="[(val: number) => !!val || '*Required']"
+            :rules="[(val: number) => !!val || $t('reporting.scheduleForm.requiredField')]"
           >
             <template #after v-if="hasDependencies">
               <q-btn
@@ -49,7 +53,7 @@
                 no-caps
                 :icon="!areDependenciesMet ? 'warning' : undefined"
                 :color="!areDependenciesMet ? 'warning' : 'primary'"
-                label="Dependencies"
+                :label="$t('reporting.scheduleForm.dependenciesLabel')"
                 @click="openDependenciesForm"
               />
             </template>
@@ -58,25 +62,25 @@
           <q-option-group
             v-model="localSchedule.format"
             :options="formatOptions"
-            label="Format"
+            :label="$t('reporting.scheduleForm.formatLabel')"
             inline
             dense
             class="q-mb-sm"
-            :rules="[(val: number) => !!val || '*Required']"
+            :rules="[(val: number) => !!val || $t('reporting.scheduleForm.requiredField')]"
           />
 
           <observer-dropdown
             v-if="!emailOnly"
             v-model="localSchedule.schedule"
             :options="scheduleOptions"
-            label="Schedule"
+            :label="$t('reporting.scheduleForm.scheduleLabel')"
             map-options
             emit-value
             options-dense
             dense
             filled
             filterable
-            :rules="[(val: string) => !!val || '*Required']"
+            :rules="[(val: string) => !!val || $t('reporting.scheduleForm.requiredField')]"
           >
             <template #after>
               <q-btn
@@ -86,7 +90,7 @@
                 flat
                 no-caps
                 dense
-                label="Create New Schedule"
+                :label="$t('reporting.scheduleForm.createNewScheduleLabel')"
               />
             </template>
           </observer-dropdown>
@@ -95,24 +99,31 @@
             v-if="!emailOnly"
             v-model="localSchedule.timezone"
             :options="settings?.all_timezones || []"
-            label="Timezone"
+            :label="$t('reporting.scheduleForm.timezoneLabel')"
             options-dense
             dense
             filled
             filterable
             clearable
-            :hint="`Default timezone ${settings?.default_time_zone} will be used if blank`"
+            :hint="
+              $t('reporting.scheduleForm.timezoneHint', {
+                tz: settings?.default_time_zone,
+              })
+            "
           />
 
           <div class="row q-pt-sm">
             <div class="col-9 text-weight-medium">
-              Email recipients
+              {{ $t("reporting.scheduleForm.emailRecipientsLabel") }}
               <q-icon name="info" size="xs" class="cursor-pointer">
                 <q-tooltip max-width="300px">{{
                   settings?.email_alert_recipients &&
                   settings.email_alert_recipients.length > 0
-                    ? `Default email recipients: ${settings.email_alert_recipients.join(", ")}`
-                    : "No email recipients configured"
+                    ? $t("reporting.scheduleForm.defaultEmailRecipients", {
+                        recipients:
+                          settings.email_alert_recipients.join(", "),
+                      })
+                    : $t("reporting.scheduleForm.noEmailRecipients")
                 }}</q-tooltip>
               </q-icon>
             </div>
@@ -123,7 +134,7 @@
                 flat
                 icon="fas fa-plus"
                 color="primary"
-                label="Add email"
+                :label="$t('reporting.scheduleForm.addEmailLabel')"
                 @click="toggleAddEmail"
               />
             </div>
@@ -149,11 +160,9 @@
               </q-list>
               <q-list v-else>
                 <q-item-section>
-                  <q-item-label
-                    >No recipients added yet. Emails will be sent to the default
-                    recipients from global settings. Adding recipients here will
-                    override those defaults.</q-item-label
-                  >
+                  <q-item-label>{{
+                    $t("reporting.scheduleForm.noRecipientsHint")
+                  }}</q-item-label>
                 </q-item-section>
               </q-list>
             </div>
@@ -161,7 +170,7 @@
           <q-checkbox
             v-if="!emailOnly"
             v-model="localSchedule.send_report_email"
-            label="Send report via Email"
+            :label="$t('reporting.scheduleForm.sendReportEmailLabel')"
             class="q-pt-md"
             dense
           />
@@ -172,15 +181,19 @@
             dense
             flat
             color="primary"
-            label=" Customize Email Content"
+            :label="$t('reporting.scheduleForm.customizeEmailContentLabel')"
             @click="openEmailSettings"
           />
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup dense />
+          <q-btn flat :label="$t('reporting.common.cancel')" v-close-popup dense />
           <q-btn
             flat
-            :label="!emailOnly ? 'Save' : 'Send'"
+            :label="
+              !emailOnly
+                ? $t('reporting.common.save')
+                : $t('reporting.scheduleForm.sendLabel')
+            "
             color="primary"
             :loading="isLoading"
             class="q-ml-sm"
@@ -194,6 +207,7 @@
 
 <script lang="ts" setup>
 import { ref, watch, unref, reactive, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, extend } from "quasar";
 import { until } from "@vueuse/shared";
 import {
@@ -228,6 +242,8 @@ const props = defineProps<{
   emailOnly?: boolean;
 }>();
 
+const { t } = useI18n();
+
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 defineEmits(useDialogPluginComponent.emits);
 
@@ -241,11 +257,11 @@ const $q = useQuasar();
 const { reportTemplateOptions } = useReportTemplateDropdown();
 const { scheduleOptions } = useScheduleDropdown();
 
-const formatOptions: { label: string; value: ReportFormat }[] = [
+const formatOptions = computed<{ label: string; value: ReportFormat }[]>(() => [
   { label: "HTML", value: "html" },
   { label: "PDF", value: "pdf" },
-  { label: "Plain Text (or CSV)", value: "plaintext" },
-];
+  { label: t("reporting.scheduleForm.formatPlaintext"), value: "plaintext" },
+]);
 
 const localSchedule = reactive<ReportSchedule>(
   props.schedule
@@ -348,7 +364,7 @@ function openEmailSettings() {
 
 function toggleAddEmail() {
   $q.dialog({
-    title: "Add email",
+    title: t("reporting.scheduleForm.addEmailLabel"),
     prompt: {
       model: "",
       isValid: (val) => isValidEmail(val),
@@ -356,7 +372,7 @@ function toggleAddEmail() {
     },
     color: "primary",
     cancel: true,
-    ok: { label: "Add", color: "primary" },
+    ok: { label: t("reporting.common.add"), color: "primary" },
     persistent: false,
   }).onOk((data) => {
     localSchedule.email_recipients.push(data);
@@ -372,7 +388,9 @@ async function submit() {
   // make sure dependencies are set
   if (!areDependenciesMet.value) {
     notifyWarning(
-      `All required dependencies must be set before ${!props.emailOnly ? "saving" : "sending"}.`,
+      !props.emailOnly
+        ? t("reporting.scheduleForm.depsRequiredSave")
+        : t("reporting.scheduleForm.depsRequiredSend"),
     );
     return;
   }

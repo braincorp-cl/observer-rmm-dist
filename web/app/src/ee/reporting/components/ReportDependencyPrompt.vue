@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 400px">
       <q-bar>
-        Select Report Dependencies
+        {{ $t("reporting.dependencyPrompt.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -50,12 +52,17 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn v-close-popup dense flat label="Cancel" />
+        <q-btn
+          v-close-popup
+          dense
+          flat
+          :label="$t('reporting.common.cancel')"
+        />
         <q-btn
           :loading="loading"
           dense
           flat
-          label="Submit"
+          :label="$t('reporting.dependencyPrompt.submit')"
           color="primary"
           @click="submit"
         />
@@ -66,6 +73,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onBeforeMount } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent } from "quasar";
 import { notifyError } from "@/utils/notify";
 import { capitalize } from "@/utils/format";
@@ -84,6 +92,9 @@ const props = defineProps<{
   dependsOn: string[];
   values?: ReportDependencies;
 }>();
+
+// i18n setup
+const { t } = useI18n();
 
 // quasar dialog setup
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
@@ -115,7 +126,7 @@ function validate() {
 
 function submit() {
   if (validate()) onDialogOK(dependencies);
-  else notifyError("All fields must have a value");
+  else notifyError(t("reporting.dependencyPrompt.errorAllFields"));
 }
 
 onBeforeMount(() => {

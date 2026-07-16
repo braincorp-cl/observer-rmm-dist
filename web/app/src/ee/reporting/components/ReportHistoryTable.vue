@@ -9,10 +9,12 @@
           push
           icon="refresh"
           @click="getReportHistory"
-        />Report History
+        />{{ $t("reporting.historyTable.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -43,7 +45,7 @@
           <q-input
             v-model="search"
             style="width: 300px"
-            label="Search"
+            :label="$t('reporting.common.search')"
             dense
             outlined
             clearable
@@ -72,7 +74,9 @@
                   <q-item-section side>
                     <q-icon name="mdi-file-pdf-box" />
                   </q-item-section>
-                  <q-item-section>Open PDF Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.historyTable.openPdfReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -97,15 +101,14 @@
                       "
                     />
                   </q-item-section>
-                  <q-item-section
-                    >Open
-                    {{
-                      props.row.report_template_type !== "plaintext"
-                        ? "HTML"
-                        : "Text"
-                    }}
-                    Report</q-item-section
-                  >
+                  <q-item-section>{{
+                    $t("reporting.historyTable.openTypeReport", {
+                      type:
+                        props.row.report_template_type !== "plaintext"
+                          ? "HTML"
+                          : $t("reporting.historyTable.typeText"),
+                    })
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -125,7 +128,9 @@
                   <q-item-section side>
                     <q-icon name="mdi-download" />
                   </q-item-section>
-                  <q-item-section>Download PDF Report</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.historyTable.downloadPdfReport")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -145,15 +150,14 @@
                   <q-item-section side>
                     <q-icon name="mdi-download" />
                   </q-item-section>
-                  <q-item-section
-                    >Download
-                    {{
-                      props.row.report_template_type !== "plaintext"
-                        ? "HTML"
-                        : "Text"
-                    }}
-                    Report</q-item-section
-                  >
+                  <q-item-section>{{
+                    $t("reporting.historyTable.downloadTypeReport", {
+                      type:
+                        props.row.report_template_type !== "plaintext"
+                          ? "HTML"
+                          : $t("reporting.historyTable.typeText"),
+                    })
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
@@ -166,12 +170,16 @@
                   <q-item-section side>
                     <q-icon name="delete" />
                   </q-item-section>
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator />
                 <q-item v-close-popup clickable>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -200,16 +208,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
 import { formatDate, capitalize } from "@/utils/format";
 import { useSharedReportHistory } from "../api/reporting";
 import type { ReportHistory } from "../types/reporting";
 
-const columns: QTableColumn[] = [
+const { t } = useI18n();
+
+// i18n-aware columns (computed for language reactivity)
+const columns = computed<QTableColumn[]>(() => [
   {
     name: "report_template_name",
-    label: "Template",
+    label: t("reporting.historyTable.colTemplate"),
     field: "report_template_name",
     align: "left",
     sortable: true,
@@ -223,7 +235,7 @@ const columns: QTableColumn[] = [
   },
   {
     name: "report_template_type",
-    label: "Template Type",
+    label: t("reporting.historyTable.colTemplateType"),
     field: "report_template_type",
     align: "left",
     sortable: true,
@@ -231,13 +243,13 @@ const columns: QTableColumn[] = [
   },
   {
     name: "date_created",
-    label: "Date Created",
+    label: t("reporting.historyTable.colDateCreated"),
     field: "date_created",
     align: "left",
     sortable: true,
     format: (val: string) => formatDate(val),
   },
-];
+]);
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -259,11 +271,13 @@ const search = ref("");
 // Confirm and delete
 function deleteHistory(entry: ReportHistory) {
   $q.dialog({
-    title: `Delete History for ${entry.report_template_name}?`,
-    message: "This will remove the history entry permanently.",
+    title: t("reporting.historyTable.deleteTitle", {
+      name: entry.report_template_name,
+    }),
+    message: t("reporting.historyTable.deleteMessage"),
     color: "primary",
     cancel: true,
-    ok: { label: "Delete", color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "negative" },
   }).onOk(() => {
     deleteReportHistory(entry.id);
   });

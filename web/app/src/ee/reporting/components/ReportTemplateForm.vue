@@ -8,7 +8,7 @@
   >
     <q-card>
       <q-bar>
-        New Report Template
+        {{ $t("reporting.templateForm.title") }}
         <!-- <q-btn
           icon="help"
           round
@@ -18,13 +18,15 @@
         /> -->
         <q-space />
         <q-btn dense flat icon="close" @click="openClosePrompt">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-toolbar>
         <q-input
           v-model="state.name"
-          label="Report Name"
+          :label="$t('reporting.templateForm.reportNameLabel')"
           class="q-pr-sm"
           filled
           dense
@@ -37,7 +39,7 @@
           style="width: 250px"
           class="q-pr-sm"
           :options="HTMLTemplateOptions"
-          label="Base Templates"
+          :label="$t('reporting.templateForm.baseTemplatesLabel')"
           map-options
           emit-value
           dense
@@ -50,7 +52,7 @@
           style="width: 250px"
           class="q-pr-sm"
           :options="dependsOnFilterOptions"
-          label="Template Dependencies"
+          :label="$t('reporting.templateForm.templateDependenciesLabel')"
           multiple
           dense
           filled
@@ -60,9 +62,11 @@
           @filter="filterFn"
         >
           <template v-slot:selected>
-            <span v-if="state.depends_on && state.depends_on?.length > 0"
-              >{{ state.depends_on?.length }} Selected</span
-            >
+            <span v-if="state.depends_on && state.depends_on?.length > 0">{{
+              $t("reporting.templateForm.selectedCount", {
+                n: state.depends_on?.length,
+              })
+            }}</span>
           </template>
         </q-select>
 
@@ -73,30 +77,44 @@
           color="primary"
           :disable="debug"
         />
-        <q-toggle v-model="debug" dense label="Debug" class="q-pl-sm" />
+        <q-toggle
+          v-model="debug"
+          dense
+          :label="$t('reporting.templateForm.debugLabel')"
+          class="q-pl-sm"
+        />
         <q-space />
 
         <q-tabs v-model="tab" dense shrink>
           <q-tab
             v-if="templateType === 'markdown'"
             name="markdown"
-            label="Markdown"
+            :label="$t('reporting.templateForm.tabMarkdown')"
             :ripple="false"
           />
           <q-tab
             v-else-if="templateType === 'html'"
             name="html"
-            label="Html"
+            :label="$t('reporting.templateForm.tabHtml')"
             :ripple="false"
           />
-          <q-tab v-else name="plaintext" label="Plain Text" :ripple="false" />
+          <q-tab
+            v-else
+            name="plaintext"
+            :label="$t('reporting.templateForm.tabPlainText')"
+            :ripple="false"
+          />
           <q-tab
             v-if="templateType !== 'plaintext'"
             name="css"
-            label="CSS"
+            :label="$t('reporting.templateForm.tabCss')"
             :ripple="false"
           />
-          <q-tab name="preview" label="Preview" :ripple="false" />
+          <q-tab
+            name="preview"
+            :label="$t('reporting.templateForm.tabPreview')"
+            :ripple="false"
+          />
         </q-tabs>
       </q-toolbar>
 
@@ -179,23 +197,27 @@
                       flat
                       dense
                       :ripple="false"
-                      label="vars"
+                      :label="$t('reporting.templateForm.varsBtn')"
                       no-caps
                       @click="splitter > 3 ? (splitter = 3) : (splitter = 35)"
                     >
                       <q-tooltip :delay="500">{{
-                        splitter >= 3 ? "Hide variables" : "Show variables"
+                        splitter >= 3
+                          ? $t("reporting.templateForm.hideVariables")
+                          : $t("reporting.templateForm.showVariables")
                       }}</q-tooltip>
                     </q-btn>
                     <q-btn
                       flat
                       dense
                       :ripple="false"
-                      label="base"
+                      :label="$t('reporting.templateForm.baseBtn')"
                       no-caps
                       @click="openBaseTemplateForm"
                     >
-                      <q-tooltip :delay="500">Add Base Template</q-tooltip>
+                      <q-tooltip :delay="500">{{
+                        $t("reporting.templateForm.addBaseTemplate")
+                      }}</q-tooltip>
                     </q-btn>
                   </template>
                 </EditorToolbar>
@@ -224,7 +246,7 @@
                   ></q-btn>
 
                   <div v-if="splitter > 8" class="q-pl-xs text-subtitle">
-                    Variables
+                    {{ $t("reporting.templateForm.variables") }}
                   </div>
                 </q-bar>
                 <div
@@ -249,7 +271,7 @@
       <q-inner-loading
         v-if="tab == 'preview'"
         :showing="isLoading"
-        label="Generating Report..."
+        :label="$t('reporting.templateForm.generatingReport')"
         label-class="text-teal"
         label-style="font-size: 1.1em"
       />
@@ -258,18 +280,25 @@
         <q-toggle
           v-if="reportTemplate"
           v-model="autoSave"
-          label="Auto-save"
+          :label="$t('reporting.templateForm.autoSave')"
           dense
         />
-        <span class="q-pl-sm" v-if="showSaved">Template Saved!</span>
+        <span class="q-pl-sm" v-if="showSaved">{{
+          $t("reporting.templateForm.templateSaved")
+        }}</span>
         <q-space />
-        <q-btn dense flat label="Cancel" @click="openClosePrompt" />
+        <q-btn
+          dense
+          flat
+          :label="$t('reporting.common.cancel')"
+          @click="openClosePrompt"
+        />
         <q-btn
           v-if="reportTemplate"
           :loading="isLoading"
           dense
           flat
-          label="Apply"
+          :label="$t('reporting.templateForm.apply')"
           color="primary"
           @click="applyChanges"
         />
@@ -277,7 +306,7 @@
           :loading="isLoading"
           dense
           flat
-          label="Save"
+          :label="$t('reporting.common.save')"
           color="primary"
           @click="submit"
         />
@@ -309,6 +338,7 @@ import {
   useSharedReportHTMLTemplates,
 } from "../api/reporting";
 import { notifyError } from "@/utils/notify";
+import { useI18n } from "vue-i18n";
 import * as monaco from "monaco-editor";
 import { parseDocument } from "yaml";
 
@@ -344,12 +374,17 @@ const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 // quasar setup
 const $q = useQuasar();
 
+// i18n
+const { t } = useI18n();
+
 // new report logic
 const state: ReportTemplate = props.reportTemplate
   ? reactive(extend({}, props.reportTemplate))
   : reactive({
       id: 0,
-      name: props.cloneTemplate ? `Copy of ${props.cloneTemplate.name}` : "",
+      name: props.cloneTemplate
+        ? t("reporting.templateForm.copyOf", { name: props.cloneTemplate.name })
+        : "",
       template_md: props.cloneTemplate ? props.cloneTemplate.template_md : "",
       template_css: props.cloneTemplate ? props.cloneTemplate.template_css : "",
       template_html: props.cloneTemplate
@@ -377,8 +412,8 @@ watch(
 function openClosePrompt() {
   if (edited.value) {
     $q.dialog({
-      title: "You have unsaved changes",
-      message: "Would you like to close?",
+      title: t("reporting.templateForm.unsavedChangesTitle"),
+      message: t("reporting.templateForm.unsavedChangesMessage"),
       cancel: true,
       persistent: true,
     }).onOk(() => {
@@ -405,19 +440,19 @@ const previewFormat = ref<ReportFormat>(
     : "plaintext",
 );
 
-const formatOptions = [
+const formatOptions = computed(() => [
   {
     label:
       props.templateType === "html" || props.templateType === "markdown"
-        ? "HTML"
-        : "Text",
+        ? t("reporting.templateForm.formatHtml")
+        : t("reporting.templateForm.formatText"),
     value:
       props.templateType === "html" || props.templateType === "markdown"
         ? "html"
         : "plaintext",
   },
-  { label: "PDF", value: "pdf" },
-];
+  { label: t("reporting.templateForm.formatPdf"), value: "pdf" },
+]);
 
 const dependencies = ref<ReportDependencies>({});
 
@@ -688,12 +723,12 @@ function validate(dontNotify = false): boolean {
   let isValid = true;
 
   if (!state.template_md) {
-    dontNotify || notifyError("Template Text is required");
+    dontNotify || notifyError(t("reporting.templateForm.templateTextRequired"));
     isValid = false;
   }
 
   if (!state.name) {
-    dontNotify || notifyError("Template Name is required");
+    dontNotify || notifyError(t("reporting.templateForm.templateNameRequired"));
     isNameValid.value = false;
     isValid = false;
   }
@@ -702,7 +737,12 @@ function validate(dontNotify = false): boolean {
   const doc = parseDocument(state.template_variables, { prettyErrors: true });
   if (doc.errors.length > 0) {
     dontNotify ||
-      notifyError("Error in variables: " + doc.errors[0].message, 5000);
+      notifyError(
+        t("reporting.templateForm.variablesError", {
+          message: doc.errors[0].message,
+        }),
+        5000,
+      );
     isValid = false;
   }
 

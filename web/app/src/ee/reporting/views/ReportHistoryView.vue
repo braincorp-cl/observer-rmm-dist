@@ -2,7 +2,7 @@
   <div>
     <q-inner-loading
       :showing="isLoading"
-      label="Please wait..."
+      :label='$t("reporting.common.pleaseWait")'
       label-class="text-teal"
       label-style="font-size: 1.1em"
     />

@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" maximized @hide="onDialogHide">
     <q-card>
       <q-bar>
-        Report Assets
+        {{ $t("reporting.assets.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <FileBrowser
@@ -19,7 +21,7 @@
           <q-btn
             class="q-ml-sm"
             icon="add"
-            label="Upload"
+            :label="$t('reporting.assets.upload')"
             no-caps
             dense
             flat
@@ -27,7 +29,7 @@
           />
           <q-btn
             class="q-ml-sm"
-            label="New Folder"
+            :label="$t('reporting.assets.newFolder')"
             no-caps
             dense
             flat
@@ -40,7 +42,7 @@
             outline
             dense
             no-caps
-            label="Bulk Actions"
+            :label="$t('reporting.assets.bulkActions')"
           >
             <q-list>
               <q-item
@@ -53,7 +55,9 @@
                   <q-icon name="delete" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>Delete</q-item-label>
+                  <q-item-label>{{
+                    $t("reporting.common.delete")
+                  }}</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
@@ -67,13 +71,17 @@
                 <q-item-section side>
                   <q-icon name="edit" />
                 </q-item-section>
-                <q-item-section>Rename</q-item-section>
+                <q-item-section>{{
+                  $t("reporting.assets.rename")
+                }}</q-item-section>
               </q-item>
               <q-item v-close-popup clickable @click="downloadFile(item)">
                 <q-item-section side>
                   <q-icon name="cloud_download" />
                 </q-item-section>
-                <q-item-section>Download</q-item-section>
+                <q-item-section>{{
+                  $t("reporting.assets.download")
+                }}</q-item-section>
               </q-item>
 
               <q-item
@@ -84,13 +92,17 @@
                 <q-item-section side>
                   <q-icon name="delete" />
                 </q-item-section>
-                <q-item-section>Delete</q-item-section>
+                <q-item-section>{{
+                  $t("reporting.common.delete")
+                }}</q-item-section>
               </q-item>
 
               <q-separator></q-separator>
 
               <q-item v-close-popup clickable>
-                <q-item-section>Close</q-item-section>
+                <q-item-section>{{
+                  $t("reporting.common.close")
+                }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -103,6 +115,7 @@
 <script lang="ts" setup>
 // composition imports
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useFileBrowser } from "@/composables/filebrowser";
 import {
   fetchReportAssets,
@@ -127,6 +140,8 @@ import { UploadAssetsResponse } from "../types/reporting";
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
+
+const { t } = useI18n();
 
 // setup quasar
 const $q = useQuasar();
@@ -189,7 +204,7 @@ function uploadFiles(node: QTreeFileNode) {
 
 function newFolder(node: QTreeFileNode) {
   $q.dialog({
-    title: "Enter a folder name",
+    title: t("reporting.assets.enterFolderName"),
     prompt: {
       model: "",
       isValid: (val) => val.length > 0,
@@ -217,7 +232,7 @@ function newFolder(node: QTreeFileNode) {
 
 function sendRename(node: FileSystemNodeTable) {
   $q.dialog({
-    title: `Enter a new ${node.type} name`,
+    title: t("reporting.assets.enterNewName", { type: node.type }),
     prompt: {
       model: node.name,
       isValid: (val) => val.length > 0,
@@ -271,11 +286,15 @@ function deleteFiles(
   nodes: FileSystemNodeTable[],
   selectedTreeNode: QTreeFileNode
 ) {
+  const assetsPhrase =
+    nodes.length > 1
+      ? t("reporting.assets.nAssets", { n: nodes.length })
+      : t("reporting.assets.oneAsset");
   $q.dialog({
-    title: "Are you sure?",
-    message: `You are about to delete ${
-      nodes.length > 1 ? nodes.length + " assets" : "an asset"
-    }. This action isn't reversible`,
+    title: t("reporting.assets.confirmTitle"),
+    message: t("reporting.assets.deleteConfirmMessage", {
+      assets: assetsPhrase,
+    }),
     cancel: true,
     persistent: true,
   }).onOk(async () => {

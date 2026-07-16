@@ -2,14 +2,21 @@
   <q-dialog ref="dialogRef" @hide="unloadEditor" @show="loadEditor">
     <q-card style="width: 600px">
       <q-bar>
-        Add Chart
+        {{ $t("reporting.chartSelect.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
-        <q-input v-model="chartName" outlined dense label="Chart Name" />
+        <q-input
+          v-model="chartName"
+          outlined
+          dense
+          :label="$t('reporting.chartSelect.chartNameLabel')"
+        />
       </q-card-section>
       <q-card-section>
         <q-select
@@ -17,7 +24,7 @@
           :options="chartOptions"
           outlined
           dense
-          label="Chart Type"
+          :label="$t('reporting.chartSelect.chartTypeLabel')"
           map-options
           emit-value
         />
@@ -38,8 +45,14 @@
       </q-card-section>
       <q-card-actions>
         <q-space />
-        <q-btn dense flat label="Cancel" v-close-popup />
-        <q-btn @click="submit" dense flat label="Select" color="primary" />
+        <q-btn dense flat :label="$t('reporting.common.cancel')" v-close-popup />
+        <q-btn
+          @click="submit"
+          dense
+          flat
+          :label="$t('reporting.chartSelect.selectBtn')"
+          color="primary"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -48,10 +61,14 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import { useDialogPluginComponent, useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 import * as monaco from "monaco-editor";
 
 // setup quasar
 const $q = useQuasar();
+
+// setup i18n
+const { t } = useI18n();
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -59,16 +76,17 @@ defineEmits([...useDialogPluginComponent.emits]);
 // quasar dialog setup
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
-const chartOptions = [
-  { value: "bar", label: "Bar" },
-  { value: "pie", label: "Pie" },
-  { value: "line", label: "Line" },
-];
+// i18n-aware options (computed for language reactivity)
+const chartOptions = computed(() => [
+  { value: "bar", label: t("reporting.chartSelect.chartBar") },
+  { value: "pie", label: t("reporting.chartSelect.chartPie") },
+  { value: "line", label: t("reporting.chartSelect.chartLine") },
+]);
 
-const outputOptions = [
-  { value: "image", label: "Image" },
-  { value: "html", label: "Html" },
-];
+const outputOptions = computed(() => [
+  { value: "image", label: t("reporting.chartSelect.outputImage") },
+  { value: "html", label: t("reporting.chartSelect.outputHtml") },
+]);
 
 const chartName = ref("");
 const chartType = ref("bar");

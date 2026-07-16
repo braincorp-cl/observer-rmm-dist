@@ -1,8 +1,10 @@
 <template>
   <q-list dense>
     <q-item-label header
-      >Base Template Blocks
-      <span v-if="copiedBlock" class="float-right">Copied!</span></q-item-label
+      >{{ $t("reporting.variablesSelector.baseTemplateBlocks") }}
+      <span v-if="copiedBlock" class="float-right">{{
+        $t("reporting.variablesSelector.copied")
+      }}</span></q-item-label
     >
     <q-item
       v-for="block in templateBlocks"
@@ -11,10 +13,9 @@
     >
       <q-item-section avatar v-if="block.warning">
         <q-icon name="warning" color="warning">
-          <q-tooltip
-            >Block not found in template. Click on the block to copy and paste
-            into template</q-tooltip
-          >
+          <q-tooltip>{{
+            $t("reporting.variablesSelector.blockNotFound")
+          }}</q-tooltip>
         </q-icon>
       </q-item-section>
       <q-item-section>
@@ -31,7 +32,10 @@
     <q-separator />
 
     <q-item-label header>
-      Variables <span v-if="copiedVariable" class="float-right">Copied!</span>
+      {{ $t("reporting.variablesSelector.variables") }}
+      <span v-if="copiedVariable" class="float-right">{{
+        $t("reporting.variablesSelector.copied")
+      }}</span>
     </q-item-label>
     <q-item
       v-for="warning in [...dependencyWarnings, ...variableWarnings]"
@@ -79,7 +83,7 @@
       >
         <q-badge
           class="cursor-pointer"
-          label="for loop"
+          :label="$t('reporting.variablesSelector.forLoop')"
           @click="copy(prop.toString(), true)"
         />
       </q-item-section>
@@ -89,6 +93,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { ReportDependencies } from "../types/reporting";
 import {
   useSharedReportTemplates,
@@ -97,6 +102,9 @@ import {
 import { onMounted } from "vue";
 import { copyToClipboard } from "quasar";
 import { watchDebounced, until } from "@vueuse/core";
+
+// setup i18n
+const { t } = useI18n();
 
 const props = defineProps<{
   variables: string;
@@ -159,7 +167,9 @@ async function getVariables() {
   // check if any data queries returned empty results
   for (let key in variableAnalysis.value) {
     if (variableAnalysis.value[key].includes("0 Results")) {
-      variableWarnings.value.push(`Data Query: ${key} returned no results`);
+      variableWarnings.value.push(
+        t("reporting.variablesSelector.dataQueryNoResults", { key })
+      );
     }
 
     if (variableAnalysis.value[key].toLowerCase().substring(0, 5) === "array") {
@@ -187,7 +197,7 @@ function checkDependencies(
   dependsOn?.forEach((dep) => {
     !dependencies?.[dep] &&
       dependencyWarnings.value.push(
-        `Missing value for dependency: ${dep} . Open Preview to set values`
+        t("reporting.variablesSelector.missingDependency", { dep })
       );
   });
 }

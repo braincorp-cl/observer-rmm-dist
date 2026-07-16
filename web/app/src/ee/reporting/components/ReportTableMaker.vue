@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 80vw">
       <q-bar>
-        Insert Table
+        {{ $t("reporting.tableMaker.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
@@ -22,15 +24,26 @@
           :options="arrayOptions"
           outlined
           dense
-          label="Data Source"
+          :label="$t('reporting.tableMaker.dataSourceLabel')"
         />
       </q-card-section>
       <q-card-section style="max-height: 60vh" class="scroll">
         <q-input v-model="output" filled type="textarea" autogrow />
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn v-close-popup dense flat label="Cancel" />
-        <q-btn dense flat label="Insert" color="primary" @click="insert" />
+        <q-btn
+          v-close-popup
+          dense
+          flat
+          :label="$t('reporting.common.cancel')"
+        />
+        <q-btn
+          dense
+          flat
+          :label="$t('reporting.tableMaker.insertBtn')"
+          color="primary"
+          @click="insert"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -39,21 +52,26 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useDialogPluginComponent } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useSharedReportTemplates } from "../api/reporting";
 import { capitalize } from "@/utils/format";
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
 
+// setup i18n
+const { t } = useI18n();
+
 const { variableAnalysis } = useSharedReportTemplates;
 
 // quasar dialog setup
 const { dialogRef, onDialogHide, onDialogOK } = useDialogPluginComponent();
 
-const tableTypeOptions = [
-  { value: "blank", label: "Blank" },
-  { value: "variables", label: "From Variables" },
-];
+// i18n-aware options (computed for language reactivity)
+const tableTypeOptions = computed(() => [
+  { value: "blank", label: t("reporting.tableMaker.optBlank") },
+  { value: "variables", label: t("reporting.tableMaker.optFromVariables") },
+]);
 
 const blankOutput = `<table>
   <thead>
@@ -123,7 +141,7 @@ function generateTable(columns: string[]) {
   });
 
   if (!headers) {
-    headers = "\t<th>Column Name</th>";
+    headers = `\t<th>${t("reporting.tableMaker.columnNameFallback")}</th>`;
   }
 
   if (!cells) {

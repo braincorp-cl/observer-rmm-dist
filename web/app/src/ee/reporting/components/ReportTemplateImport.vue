@@ -2,10 +2,12 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card>
       <q-bar>
-        Import Report Template
+        {{ $t("reporting.import.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
@@ -13,28 +15,28 @@
           v-model="file"
           dense
           filled
-          label="Import File"
+          :label="$t('reporting.import.fileLabel')"
           style="width: 400px"
           accept=".json"
-          hint="Only accepts exported report template json files"
+          :hint="$t('reporting.import.fileHint')"
         />
       </q-card-section>
 
       <q-card-section>
         <q-checkbox
           v-model="overwriteOnNameConflict"
-          label="Overwrite if name exists"
+          :label="$t('reporting.import.overwriteLabel')"
         />
       </q-card-section>
 
       <q-card-actions>
         <q-space />
-        <q-btn v-close-popup dense flat label="Cancel" />
+        <q-btn v-close-popup dense flat :label="$t('reporting.common.cancel')" />
         <q-btn
           :loading="isLoading"
           dense
           flat
-          label="Import"
+          :label="$t('reporting.common.import')"
           color="primary"
           @click="submit"
         />
@@ -45,10 +47,13 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { until } from "@vueuse/shared";
 import { useDialogPluginComponent } from "quasar";
 import { useSharedReportTemplates } from "../api/reporting";
 import { notifyError } from "@/utils/notify";
+
+const { t } = useI18n();
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -73,7 +78,7 @@ async function submit() {
 
     onDialogOK();
   } else {
-    notifyError("File is required");
+    notifyError(t("reporting.import.fileRequired"));
   }
 }
 </script>

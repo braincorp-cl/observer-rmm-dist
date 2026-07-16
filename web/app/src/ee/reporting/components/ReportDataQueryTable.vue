@@ -9,10 +9,12 @@
           push
           icon="refresh"
           @click="getReportDataQueries"
-        />Data Queries
+        />{{ $t("reporting.dataQueryTable.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table
@@ -37,7 +39,7 @@
           <q-btn
             class="q-ml-sm"
             icon="add"
-            label="New"
+            :label="$t('reporting.dataQueryTable.new')"
             no-caps
             dense
             flat
@@ -47,7 +49,7 @@
           <q-input
             v-model="search"
             style="width: 300px"
-            label="Search"
+            :label="$t('reporting.common.search')"
             dense
             outlined
             clearable
@@ -69,7 +71,9 @@
             <q-menu context-menu>
               <q-list dense style="min-width: 200px">
                 <q-item v-close-popup clickable @click="cloneQuery(props.row)">
-                  <q-item-section>Clone</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.dataQueryTable.clone")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -77,7 +81,9 @@
                   clickable
                   @click="openEditDataQuery(props.row)"
                 >
-                  <q-item-section>Edit</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.edit")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item
@@ -85,13 +91,17 @@
                   clickable
                   @click="deleteDataQuery(props.row)"
                 >
-                  <q-item-section>Delete</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.delete")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-separator></q-separator>
 
                 <q-item v-close-popup clickable>
-                  <q-item-section>Close</q-item-section>
+                  <q-item-section>{{
+                    $t("reporting.common.close")
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -107,8 +117,9 @@
 
 <script setup lang="ts">
 // composition imports
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useSharedReportDataQueries } from "../api/reporting";
 
 // ui imports
@@ -117,21 +128,22 @@ import ReportDataQueryForm from "./ReportDataQueryForm.vue";
 // type imports
 import type { ReportDataQuery } from "../types/reporting";
 
-const columns: QTableColumn[] = [
-  {
-    name: "name",
-    label: "Name",
-    field: "name",
-    align: "left",
-    sortable: true,
-  },
-];
-
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
 
 const { dialogRef, onDialogHide } = useDialogPluginComponent();
 const $q = useQuasar();
+const { t } = useI18n();
+
+const columns = computed<QTableColumn[]>(() => [
+  {
+    name: "name",
+    label: t("reporting.common.name"),
+    field: "name",
+    align: "left",
+    sortable: true,
+  },
+]);
 
 // reports manager logic
 const {
@@ -159,11 +171,10 @@ function openEditDataQuery(dataQuery: ReportDataQuery) {
 
 function deleteDataQuery(dataQuery: ReportDataQuery) {
   $q.dialog({
-    title: `Delete Data Query: ${dataQuery.name}?`,
-    message:
-      "If this query is in use you will need to change it in every report template",
+    title: t("reporting.dataQueryTable.deleteTitle", { name: dataQuery.name }),
+    message: t("reporting.dataQueryTable.deleteMessage"),
     cancel: true,
-    ok: { label: "Delete", color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "negative" },
   }).onOk(() => {
     deleteReportDataQuery(dataQuery.id);
   });

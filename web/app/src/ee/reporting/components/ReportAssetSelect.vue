@@ -2,28 +2,51 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 400px">
       <q-bar>
-        Report Asset Select
+        {{ $t("reporting.assetSelect.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
 
       <q-card-section class="q-gutter-sm">
-        <q-radio dense v-model="imageType" val="link" label="Link" />
-        <q-radio dense v-model="imageType" val="asset" label="Report Asset" />
+        <q-radio
+          dense
+          v-model="imageType"
+          val="link"
+          :label="$t('reporting.assetSelect.link')"
+        />
+        <q-radio
+          dense
+          v-model="imageType"
+          val="asset"
+          :label="$t('reporting.assetSelect.reportAsset')"
+        />
       </q-card-section>
 
       <q-card-section v-if="imageType === 'link'">
         <q-input
           v-model="linkText"
-          label="Text"
+          :label="$t('reporting.assetSelect.text')"
           dense
           outlined
           class="q-pb-sm"
         />
-        <q-input v-model="linkUrl" label="Url" dense outlined class="q-pb-sm" />
-        <q-input v-model="output" label="Output" readonly dense />
+        <q-input
+          v-model="linkUrl"
+          :label="$t('reporting.assetSelect.url')"
+          dense
+          outlined
+          class="q-pb-sm"
+        />
+        <q-input
+          v-model="output"
+          :label="$t('reporting.assetSelect.output')"
+          readonly
+          dense
+        />
       </q-card-section>
       <q-card-section
         v-if="imageType === 'asset'"
@@ -31,8 +54,7 @@
         class="scroll"
       >
         <div v-if="tree.length === 0">
-          No Report Assets found. Go to Reporting Manager and use the Report
-          Assets button to upload
+          {{ $t("reporting.assetSelect.noAssets") }}
         </div>
         <q-tree
           v-else
@@ -48,7 +70,7 @@
       <q-card-section v-if="imageType === 'asset'">
         <q-input
           v-model="output"
-          label="Selected"
+          :label="$t('reporting.assetSelect.selected')"
           readonly
           dense
           class="q-pb-sm"
@@ -56,12 +78,12 @@
       </q-card-section>
       <q-card-actions>
         <q-space />
-        <q-btn dense flat label="Cancel" v-close-popup />
+        <q-btn dense flat :label="$t('reporting.common.cancel')" v-close-popup />
         <q-btn
           @click="onDialogOK(output)"
           dense
           flat
-          label="Select"
+          :label="$t('reporting.assetSelect.select')"
           color="primary"
         />
       </q-card-actions>

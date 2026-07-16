@@ -2,29 +2,31 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card style="width: 400px">
       <q-bar>
-        Data Query Select
+        {{ $t("reporting.dataQuerySelect.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-tooltip class="bg-white text-primary">{{
+            $t("reporting.common.close")
+          }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>
         <observer-dropdown
           v-model="selectedQuery"
           :options="queryOptions"
-          label="Data Queries"
+          :label="$t('reporting.dataQuerySelect.queriesLabel')"
           outlined
         />
       </q-card-section>
       <q-card-actions>
         <q-space />
-        <q-btn dense flat label="Cancel" v-close-popup />
+        <q-btn dense flat :label="$t('reporting.common.cancel')" v-close-popup />
         <q-btn
           :loading="loading"
           @click="submit"
           dense
           flat
-          label="Select"
+          :label="$t('reporting.dataQuerySelect.select')"
           color="primary"
         />
       </q-card-actions>
@@ -36,6 +38,7 @@
 // composition imports
 import { ref, computed, onMounted } from "vue";
 import { useDialogPluginComponent } from "quasar";
+import { useI18n } from "vue-i18n";
 import { useSharedReportDataQueries } from "../api/reporting";
 import { notifyError } from "@/utils/notify";
 
@@ -44,6 +47,8 @@ import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 
 // emits
 defineEmits([...useDialogPluginComponent.emits]);
+
+const { t } = useI18n();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const props = defineProps<{ dataSources?: any }>();
@@ -64,7 +69,7 @@ const queryOptions = computed(() => {
 
 function submit() {
   if (selectedQuery.value === null)
-    notifyError("Select a query from the dropdown");
+    notifyError(t("reporting.dataQuerySelect.selectPrompt"));
   else {
     let dataQuery;
     if (props.dataSources === undefined) {

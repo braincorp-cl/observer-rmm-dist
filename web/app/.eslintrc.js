@@ -413,6 +413,35 @@ module.exports = {
         // authNote usa interpolación {expires}. Namespace agentDownload (24 claves).
         // CIERRA i18n UI 128/128.
         "src/components/modals/agents/AgentDownload.vue",
+        // Ola 30: módulo ee/reporting (Reportería, re-adoptada ADR-022). 23
+        // componentes + 2 vistas. Namespace raíz `reporting.*` (hijo por
+        // componente + `common`/`notify` compartidos). Options/setup mixtos:
+        // columnas/opciones visibles movidas a computed con t() por reactividad.
+        "src/ee/reporting/components/AssetFileUpload.vue",
+        "src/ee/reporting/components/DataQuerySelect.vue",
+        "src/ee/reporting/components/EditorToolbar.vue",
+        "src/ee/reporting/components/ReportAssetSelect.vue",
+        "src/ee/reporting/components/ReportAssets.vue",
+        "src/ee/reporting/components/ReportChartSelect.vue",
+        "src/ee/reporting/components/ReportDataQueryForm.vue",
+        "src/ee/reporting/components/ReportDataQueryTable.vue",
+        "src/ee/reporting/components/ReportDependencyPrompt.vue",
+        "src/ee/reporting/components/ReportEmailSettingsForm.vue",
+        "src/ee/reporting/components/ReportHistoryTable.vue",
+        "src/ee/reporting/components/ReportHTMLTemplateForm.vue",
+        "src/ee/reporting/components/ReportHTMLTemplateTable.vue",
+        "src/ee/reporting/components/ReportingHelpMenu.vue",
+        "src/ee/reporting/components/ReportScheduleForm.vue",
+        "src/ee/reporting/components/ReportScheduleTable.vue",
+        "src/ee/reporting/components/ReportsManager.vue",
+        "src/ee/reporting/components/ReportTableMaker.vue",
+        "src/ee/reporting/components/ReportTemplateForm.vue",
+        "src/ee/reporting/components/ReportTemplateImport.vue",
+        "src/ee/reporting/components/ReportTemplatePreview.vue",
+        "src/ee/reporting/components/RunReportDialog.vue",
+        "src/ee/reporting/components/VariablesSelector.vue",
+        "src/ee/reporting/views/ReportHistoryView.vue",
+        "src/ee/reporting/views/ReportView.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

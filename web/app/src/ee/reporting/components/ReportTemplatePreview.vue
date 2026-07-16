@@ -25,7 +25,11 @@
       <q-splitter v-if="debug" v-model="verticalSplitter">
         <template v-slot:before>
           <div class="q-pa-xs">
-            {{ previewFormat === "plaintext" ? "Text" : "HTML" }}
+            {{
+              previewFormat === "plaintext"
+                ? $t("reporting.preview.text")
+                : $t("reporting.preview.html")
+            }}
           </div>
           <div
             id="templateDiv"
@@ -33,7 +37,7 @@
           ></div>
         </template>
         <template v-slot:after>
-          <div class="q-pa-xs">Variables</div>
+          <div class="q-pa-xs">{{ $t("reporting.preview.variables") }}</div>
           <div
             id="variablesDiv"
             :style="{ height: `${splitterHeight - horizontalSplitter - 33}px` }"
