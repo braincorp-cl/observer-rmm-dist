@@ -55,6 +55,7 @@ BASE_HTML = """<html>
 # ---------------------------------------------------------------------------
 def _header(title, extra):
     return (
+        "{% block content %}\n"
         "{% set now = datetime.datetime.now(ZoneInfo('America/Santiago')) %}\n"
         '<div class="report-header">\n'
         '  <div><div class="brand">Observer RMM</div><h1>' + title + "</h1></div>\n"
@@ -94,6 +95,7 @@ INVENTARIO_AGENTES_MD = _header(
   {% endfor %}
   </tbody>
 </table>
+{% endblock %}
 """
 
 INVENTARIO_AGENTES_VARS = """data_sources:
@@ -135,6 +137,7 @@ WINUPDATES_MD = _header(
   {% endfor %}
   </tbody>
 </table>
+{% endblock %}
 """
 
 WINUPDATES_VARS = """data_sources:
@@ -177,6 +180,7 @@ SOFTWARE_MD = _header(
   </tbody>
 </table>
 {% endfor %}
+{% endblock %}
 """
 
 SOFTWARE_VARS = """data_sources:
