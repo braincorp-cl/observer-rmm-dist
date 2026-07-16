@@ -109,12 +109,27 @@
 # formato "image" (SVG; obligatorio en PDF porque WeasyPrint no ejecuta JS) usan Kaleido,
 # que desde 1.x ya NO empaqueta su propio chromium: lo lanza del sistema. plotly.io.get_chrome()
 # descarga un chromium versión-matcheada a la caché de Kaleido, que Kaleido autodescubre al
-# renderizar. HOME se fija a {{ observer_root }} (= HOME de rmm/daphne/celery) para que la
-# caché quede donde esos servicios la encuentran. DEBE correr DESPUÉS de django_deploy (que
-# instala plotly/kaleido en el venv). Idempotente vía marcador (una sola descarga por host).
+# renderizar bajo $HOME/.local/share/choreographer/. HOME debe fijarse al HOME REAL del usuario
+# de servicio (el de passwd, p.ej. /home/observer) — NO {{ observer_root }}: las unidades systemd
+# (daphne/celery/celerybeat/rmm) NO setean Environment=HOME, así que systemd lo deriva del passwd
+# de User={{ observer_user }}. Si se provisiona con otro HOME, la caché queda donde los servicios
+# no la buscan y el render falla con "Kaleido requires Google Chrome". DEBE correr DESPUÉS de
+# django_deploy (que instala plotly/kaleido en el venv). Idempotente y auto-sanador: chequea el
+# binario en el HOME de servicio (un cambio de HOME re-provisiona sin borrar marcador aparte).
 - name: Provisionar chromium para Kaleido (reportes con gráficos)
   when: observer_reporting_charts_enabled | bool
   block:
+    # HOME real del usuario de servicio (índice 4 de la entrada passwd): a ese $HOME
+    # apuntan daphne/celery/rmm en runtime, así que la caché de Kaleido debe vivir ahí.
+    - name: Resolver el HOME real del usuario de servicio (passwd)
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ observer_user }}"
+
+    - name: Fijar observer_service_home desde passwd
+      ansible.builtin.set_fact:
+        observer_service_home: "{{ ansible_facts.getent_passwd[observer_user][4] }}"
+
     # El chromium que baja plotly.io.get_chrome() es solo el binario: en un servidor mínimo
     # NO arranca por falta de sus librerías de sistema (BrowserFailedError). Espejo del patrón
     # de WeasyPrint (arriba). Lista derivada de `ldd chrome | grep "not found"` en Ubuntu 22.04.
@@ -137,10 +152,13 @@
         state: present
         update_cache: true
 
-    - name: Verificar si el chromium de Kaleido ya está provisionado
+    # Idempotencia auto-sanadora: se chequea el binario en el HOME de servicio (donde los
+    # servicios lo autodescubren), NO un marcador desacoplado — si el HOME cambia o la caché
+    # quedó en el lugar equivocado, se re-provisiona. Ruta estable en Kaleido 1.x/choreographer.
+    - name: Verificar si el chromium de Kaleido ya está en el HOME de servicio
       ansible.builtin.stat:
-        path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
-      register: observer_kaleido_chrome_marker
+        path: "{{ observer_service_home }}/.local/share/choreographer/deps/chrome-linux64/chrome"
+      register: observer_kaleido_chrome_bin
 
     - name: Descargar chromium para Kaleido (plotly.io.get_chrome)
       ansible.builtin.command:
@@ -150,19 +168,10 @@
       become: true
       become_user: "{{ observer_user }}"
       environment:
-        HOME: "{{ observer_root }}"
+        HOME: "{{ observer_service_home }}"
       register: observer_kaleido_chrome_install
       changed_when: observer_kaleido_chrome_install.rc == 0
-      when: not observer_kaleido_chrome_marker.stat.exists
-
-    - name: Marcar el chromium de Kaleido como provisionado
-      ansible.builtin.file:
-        path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
-        state: touch
-        owner: "{{ observer_user }}"
-        group: "{{ observer_group }}"
-        mode: "0644"
-      when: observer_kaleido_chrome_install is changed
+      when: not observer_kaleido_chrome_bin.stat.exists
 
 - name: Aviso si no se provisiona chromium para gráficos de reportes
   ansible.builtin.debug:
