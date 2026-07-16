@@ -97,6 +97,28 @@
     - name: Provisionar chromium para Kaleido (reportes con gráficos)
       when: observer_reporting_charts_enabled | default(true) | bool
       block:
+        # El binario que baja plotly.io.get_chrome() NO arranca en un servidor mínimo sin sus
+        # librerías de sistema (BrowserFailedError). Espejo del bloque del rol observer_api.
+        # Lista derivada de `ldd chrome | grep "not found"` en Ubuntu 22.04.
+        - name: Instalar dependencias de sistema de chromium (Kaleido)
+          ansible.builtin.apt:
+            name:
+              - libxcomposite1
+              - libxdamage1
+              - libxfixes3
+              - libxrandr2
+              - libasound2
+              - libatk1.0-0
+              - libatk-bridge2.0-0
+              - libatspi2.0-0
+              - libcairo2
+              - libcups2
+              - libgbm1
+              - libxkbcommon0
+              - fonts-liberation
+            state: present
+            update_cache: true
+
         - name: Verificar si el chromium de Kaleido ya está provisionado
           ansible.builtin.stat:
             path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
