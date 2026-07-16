@@ -8,16 +8,23 @@ ni strings legacy ni assets externos. Cubren la totalidad de los tipos de
 reporte reales, deduplicando las variantes de formato (csv/md/pdf/html del
 mismo reporte: el motor rinde cualquier plantilla en HTML/PDF/plaintext).
 
+Incluye dashboards con gráficos (NOC/Alertas, chequeos, flota, parches) que
+rinden plotly vía Kaleido→SVG (W005): el SVG rinde idéntico en Preview, HTML
+export y PDF (WeasyPrint no ejecuta JS) y pesa ~6KB por gráfico (vs ~4.8MB del
+plotly.js inline). Requiere chromium provisionado (rol observer_api, gate
+observer_reporting_charts_enabled); sin él, solo esos 4 dashboards fallan al
+renderizar — las 14 plantillas de tabla no dependen de gráficos.
+
 Fuera de alcance (a propósito):
   - "All Fields *": volcados de schema para autores de plantillas, no reportes.
   - Antivirus: no hay fuente de datos AV confiable en el modelo.
   - Bitlocker / Custom Fields: dependen de custom fields inexistentes en fresh.
-  - Dashboards con gráficos (NOC/Alerts): dependen de plotly/chromium (W005).
 
 Idempotente: re-ejecutar actualiza en su lugar (--overwrite, por defecto True).
 Uso:  python manage.py load_curated_reports [--no-overwrite]
 """
 
+import yaml
 from django.core.management.base import BaseCommand
 
 from ee.reporting.utils import _import_base_template, _import_report_template
@@ -53,6 +60,26 @@ BASE_HTML = """<html>
   .sev-moderate { background: #e08e0b; }
   .sev-low, .sev-optional, .sev- { background: #5a7d8a; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
+  /* --- Dashboards con graficos (W005) — clases aditivas, no tocan lo anterior --- */
+  .kpi-row { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+  .kpi { flex: 1; min-width: 130px; background: #f3f9fb; border: 1px solid #dbe6ea;
+    border-left: 4px solid #0E8FA8; border-radius: 6px; padding: 10px 14px; }
+  .kpi-num { font-size: 26px; font-weight: bold; color: #0b6b7f; line-height: 1.1;
+    font-variant-numeric: tabular-nums; }
+  .kpi-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #7a929b; margin-top: 2px; }
+  .kpi-crit { border-left-color: #c0392b; } .kpi-crit .kpi-num { color: #c0392b; }
+  .kpi-warn { border-left-color: #e08e0b; } .kpi-warn .kpi-num { color: #e08e0b; }
+  .kpi-ok { border-left-color: #2e9e6b; } .kpi-ok .kpi-num { color: #2e9e6b; }
+  .chart-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+  .chart-card { border: 1px solid #dbe6ea; border-radius: 6px; padding: 6px; background: #fff; }
+  .chart-card svg { display: block; max-width: 100%; height: auto; }
+  .section-title { color: #0b6b7f; border-bottom: 2px solid #0E8FA8; margin: 18px 0 4px; font-size: 14px; }
+  .ok { color: #2e9e6b; }
+  .sev-error, .sev-failing, .st-offline { background: #c0392b; }
+  .sev-warning, .sev-pending, .st-overdue { background: #e08e0b; }
+  .sev-info { background: #0E8FA8; }
+  .sev-passing, .st-online { background: #2e9e6b; }
 </style>
 </head>
 <body>
@@ -456,6 +483,256 @@ AUDITORIA_VARS = """data_sources:
 """
 
 
+# ===========================================================================
+# DASHBOARDS CON GRÁFICOS (W005 — plotly/Kaleido → SVG)
+# ---------------------------------------------------------------------------
+# Los template_variables de estos dashboards llevan, además de data_sources, un
+# bloque `charts:` que el motor (process_chart_variables) resuelve a SVG ANTES
+# de renderizar la plantilla; en la plantilla se inyecta con {{ charts.<clave> }}.
+# Se construyen con yaml.dump desde dicts Python: garantiza YAML válido y evita
+# el escape manual de los colores "#hex" (en YAML crudo, # inicia comentario).
+#
+# outputType: image (SVG) — a propósito, NO "html":
+#   · el SVG rinde idéntico en Preview, HTML export y PDF (WeasyPrint no ejecuta JS),
+#   · pesa ~6KB vs ~4.8MB por gráfico del plotly.js inline (un dashboard = varios).
+# Conteos: pie(names) e histogram(x) AGREGAN por categoría al renderizar (validado
+# E2E contra Kaleido+chromium). Colores semánticos vía color_discrete_map donde la
+# categoría es conocida (severidad, estado); paleta cian on-brand en el resto.
+# ===========================================================================
+
+_FONT = {"family": "Helvetica Neue, Arial", "size": 12}
+_CYAN_SEQ = ["#0E8FA8", "#5AB4C5", "#0b6b7f", "#8fd0dc", "#7a929b"]
+_SEV_MAP = {"error": "#c0392b", "warning": "#e08e0b", "info": "#0E8FA8"}
+_CHK_MAP = {"passing": "#2e9e6b", "failing": "#c0392b", "pending": "#e08e0b"}
+_AGENT_MAP = {"online": "#2e9e6b", "offline": "#c0392b", "overdue": "#e08e0b"}
+
+
+def _pie(df, names, title, cmap=None):
+    options = {"data_frame": df, "names": names}
+    if cmap:
+        # color semántico: color=<campo> + mapa categoría→hex
+        options["color"] = names
+        options["color_discrete_map"] = cmap
+    else:
+        options["color_discrete_sequence"] = _CYAN_SEQ
+    return {
+        "chartType": "pie",
+        "outputType": "image",
+        "options": options,
+        "traces": {"textinfo": "value+percent", "textposition": "inside"},
+        "layout": {
+            "title": {"text": title},
+            "width": 430, "height": 300,
+            "margin": {"t": 40, "b": 10, "l": 10, "r": 10},
+            "paper_bgcolor": "white", "font": _FONT,
+        },
+    }
+
+
+def _hist(df, x, title, tickangle=0):
+    layout = {
+        "title": {"text": title},
+        "width": 430, "height": 300,
+        "margin": {"t": 40, "b": 80 if tickangle else 45, "l": 45, "r": 15},
+        "yaxis_title": "Cantidad", "xaxis_title": "",
+        "showlegend": False, "bargap": 0.3,
+        "paper_bgcolor": "white", "plot_bgcolor": "#f8fbfc", "font": _FONT,
+    }
+    if tickangle:
+        layout["xaxis"] = {"tickangle": tickangle}
+    return {
+        "chartType": "histogram",
+        "outputType": "image",
+        "options": {"data_frame": df, "x": x, "color_discrete_sequence": ["#0E8FA8"]},
+        "layout": layout,
+    }
+
+
+def _dash_vars(data_sources, charts):
+    return yaml.dump(
+        {"data_sources": data_sources, "charts": charts},
+        sort_keys=False, allow_unicode=True,
+    )
+
+
+# 15) Panel de Alertas (NOC) — alertas activas
+ALERTAS = _header("Panel de Alertas", "Activas: {{ data_sources.alerts | length }}") + """
+{% set al = data_sources.alerts %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ al | length }}</div><div class="kpi-lbl">Alertas activas</div></div>
+  <div class="kpi kpi-crit"><div class="kpi-num">{{ al | selectattr('severity','equalto','error') | list | length }}</div><div class="kpi-lbl">Errores</div></div>
+  <div class="kpi kpi-warn"><div class="kpi-num">{{ al | selectattr('severity','equalto','warning') | list | length }}</div><div class="kpi-lbl">Advertencias</div></div>
+  <div class="kpi"><div class="kpi-num">{{ al | selectattr('severity','equalto','info') | list | length }}</div><div class="kpi-lbl">Informativas</div></div>
+</div>
+{% if al | length %}
+<div class="chart-grid">
+  {% if charts.sev %}<div class="chart-card">{{ charts.sev }}</div>{% endif %}
+  {% if charts.tipo %}<div class="chart-card">{{ charts.tipo }}</div>{% endif %}
+  {% if charts.cliente %}<div class="chart-card">{{ charts.cliente }}</div>{% endif %}
+</div>
+<div class="section-title">Detalle de alertas activas</div>
+<table class="report-table">
+  <thead><tr><th>Severidad</th><th>Tipo</th><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Mensaje</th><th>Fecha</th></tr></thead>
+  <tbody>
+  {% for a in al %}
+    <tr>
+      <td><span class="badge sev-{{ (a.severity or '')|lower }}">{{ a.severity or 'N/D' }}</span></td>
+      <td>{{ a.alert_type }}</td>
+      <td>{{ a.agent__site__client__name or '—' }}</td><td>{{ a.agent__site__name or '—' }}</td>
+      <td><b>{{ a.agent__hostname or '—' }}</b></td>
+      <td>{{ (a.message or '—') | truncate(80) }}</td>
+      <td>{% if a.alert_time %}{{ a.alert_time.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y %H:%M') }}{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="ok" style="font-size:14px;margin-top:16px;">Sin alertas activas. Toda la flota est&aacute; en verde.</p>
+{% endif %}""" + END
+ALERTAS_VARS = _dash_vars(
+    {"alerts": {
+        "model": "alert",
+        "filter": {"resolved": False, "hidden": False},
+        "only": ["severity", "alert_type", "message", "alert_time",
+                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
+    }},
+    {"sev": _pie("data_sources.alerts", "severity", "Alertas por severidad", _SEV_MAP),
+     "tipo": _hist("data_sources.alerts", "alert_type", "Alertas por tipo"),
+     "cliente": _hist("data_sources.alerts", "agent__site__client__name", "Alertas por cliente", -30)},
+)
+
+# 16) Estado de Chequeos (NOC) — salud de monitoreo
+CHEQUEOS = _header("Estado de Chequeos", "Resultados: {{ data_sources.checks | length }}") + """
+{% set ch = data_sources.checks %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ ch | length }}</div><div class="kpi-lbl">Chequeos</div></div>
+  <div class="kpi kpi-ok"><div class="kpi-num">{{ ch | selectattr('status','equalto','passing') | list | length }}</div><div class="kpi-lbl">OK</div></div>
+  <div class="kpi kpi-crit"><div class="kpi-num">{{ ch | selectattr('status','equalto','failing') | list | length }}</div><div class="kpi-lbl">Fallando</div></div>
+  <div class="kpi kpi-warn"><div class="kpi-num">{{ ch | selectattr('status','equalto','pending') | list | length }}</div><div class="kpi-lbl">Pendientes</div></div>
+</div>
+{% if ch | length %}
+<div class="chart-grid">
+  {% if charts.estado %}<div class="chart-card">{{ charts.estado }}</div>{% endif %}
+  {% if charts.fallos %}<div class="chart-card">{{ charts.fallos }}</div>{% endif %}
+</div>
+<div class="section-title">Chequeos fallando ({{ data_sources.fallando | length }})</div>
+{% if data_sources.fallando | length %}
+<table class="report-table">
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Tipo</th><th>Detalle</th><th>&Uacute;ltima ejecuci&oacute;n</th></tr></thead>
+  <tbody>
+  {% for c in data_sources.fallando %}
+    <tr><td>{{ c.agent__site__client__name or '—' }}</td><td>{{ c.agent__site__name or '—' }}</td>
+      <td><b>{{ c.agent__hostname or '—' }}</b></td><td>{{ c.assigned_check__check_type or '—' }}</td>
+      <td>{{ (c.more_info or '—') | truncate(70) }}</td>
+      <td>{% if c.last_run %}{{ c.last_run.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y %H:%M') }}{% else %}—{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="ok">Ning&uacute;n chequeo est&aacute; fallando.</p>{% endif %}
+{% else %}
+<p class="muted" style="margin-top:16px;">No hay resultados de chequeos registrados.</p>
+{% endif %}""" + END
+CHEQUEOS_VARS = _dash_vars(
+    {"checks": {
+        "model": "checkresult",
+        "only": ["status", "assigned_check__check_type", "last_run",
+                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
+     },
+     "fallando": {
+        "model": "checkresult",
+        "filter": {"status": "failing"},
+        "only": ["status", "assigned_check__check_type", "more_info", "last_run",
+                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
+     }},
+    {"estado": _pie("data_sources.checks", "status", "Chequeos por estado", _CHK_MAP),
+     "fallos": _hist("data_sources.fallando", "assigned_check__check_type", "Fallos por tipo de chequeo", -30)},
+)
+
+# 17) Estado de la Flota — panorama de agentes
+FLOTA = _header("Estado de la Flota", "Equipos: {{ data_sources.agents | length }}") + """
+{% set ag = data_sources.agents %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ ag | length }}</div><div class="kpi-lbl">Equipos</div></div>
+  <div class="kpi kpi-ok"><div class="kpi-num">{{ ag | selectattr('status','equalto','online') | list | length }}</div><div class="kpi-lbl">En l&iacute;nea</div></div>
+  <div class="kpi kpi-crit"><div class="kpi-num">{{ ag | selectattr('status','equalto','offline') | list | length }}</div><div class="kpi-lbl">Fuera de l&iacute;nea</div></div>
+  <div class="kpi kpi-warn"><div class="kpi-num">{{ ag | selectattr('status','equalto','overdue') | list | length }}</div><div class="kpi-lbl">Atrasados</div></div>
+</div>
+{% if ag | length %}
+<div class="chart-grid">
+  {% if charts.estado %}<div class="chart-card">{{ charts.estado }}</div>{% endif %}
+  {% if charts.plataforma %}<div class="chart-card">{{ charts.plataforma }}</div>{% endif %}
+  {% if charts.so %}<div class="chart-card">{{ charts.so }}</div>{% endif %}
+  {% if charts.cliente %}<div class="chart-card">{{ charts.cliente }}</div>{% endif %}
+</div>
+{% set attention = ag | rejectattr('status','equalto','online') | list %}
+<div class="section-title">Equipos que requieren atenci&oacute;n ({{ attention | length }})</div>
+{% if attention | length %}
+<table class="report-table">
+  <thead><tr><th>Estado</th><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Sistema Operativo</th><th>&Uacute;ltima conexi&oacute;n</th></tr></thead>
+  <tbody>
+  {% for a in attention | sort(attribute='status') %}
+    <tr><td><span class="badge st-{{ (a.status or '')|lower }}">{{ a.status or 'N/D' }}</span></td>
+      <td>{{ a.site__client__name }}</td><td>{{ a.site__name }}</td>
+      <td><b>{{ a.hostname }}</b></td><td>{{ a.operating_system }}</td>
+      {% if a.last_seen %}<td class="stale">{{ a.last_seen.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y %H:%M') }}</td>{% else %}<td class="muted">—</td>{% endif %}</tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="ok">Toda la flota est&aacute; en l&iacute;nea.</p>{% endif %}
+{% else %}
+<p class="muted" style="margin-top:16px;">No hay equipos registrados.</p>
+{% endif %}""" + END
+FLOTA_VARS = _dash_vars(
+    {"agents": {
+        "model": "agent",
+        "only": ["hostname", "operating_system", "plat", "last_seen",
+                 "site__name", "site__client__name"],
+        "properties": ["status"],
+    }},
+    {"estado": _pie("data_sources.agents", "status", "Estado de la flota", _AGENT_MAP),
+     "plataforma": _pie("data_sources.agents", "plat", "Por plataforma"),
+     "so": _hist("data_sources.agents", "operating_system", "Por sistema operativo", -30),
+     "cliente": _hist("data_sources.agents", "site__client__name", "Por cliente", -30)},
+)
+
+# 18) Panorama de Parches — Windows Updates pendientes
+PARCHES = _header("Panorama de Parches", "Pendientes: {{ data_sources.updates | length }}") + """
+{% set up = data_sources.updates %}
+<div class="kpi-row">
+  <div class="kpi kpi-warn"><div class="kpi-num">{{ up | length }}</div><div class="kpi-lbl">Parches pendientes</div></div>
+  <div class="kpi"><div class="kpi-num">{{ up | map(attribute='agent__hostname') | select | unique | list | length }}</div><div class="kpi-lbl">Equipos afectados</div></div>
+  <div class="kpi"><div class="kpi-num">{{ up | map(attribute='agent__site__client__name') | select | unique | list | length }}</div><div class="kpi-lbl">Clientes afectados</div></div>
+</div>
+{% if up | length %}
+<div class="chart-grid">
+  {% if charts.sev %}<div class="chart-card">{{ charts.sev }}</div>{% endif %}
+  {% if charts.cliente %}<div class="chart-card">{{ charts.cliente }}</div>{% endif %}
+</div>
+<div class="section-title">Pendientes por cliente</div>
+<table class="report-table" style="max-width: 560px;">
+  <thead><tr><th>Cliente</th><th>Pendientes</th><th>Equipos</th></tr></thead>
+  <tbody>
+  {% for client, rows in up | sort(attribute='agent__site__client__name') | groupby('agent__site__client__name') %}
+    <tr><td>{{ client or '(sin cliente)' }}</td><td class="num">{{ rows | length }}</td>
+      <td class="num">{{ rows | map(attribute='agent__hostname') | select | unique | list | length }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="ok" style="font-size:14px;margin-top:16px;">No hay actualizaciones pendientes.</p>
+{% endif %}""" + END
+PARCHES_VARS = _dash_vars(
+    {"updates": {
+        "model": "winupdate",
+        "filter": {"installed": False},
+        "only": ["severity", "kb", "title",
+                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
+    }},
+    {"sev": _pie("data_sources.updates", "severity", "Pendientes por severidad"),
+     "cliente": _hist("data_sources.updates", "agent__site__client__name", "Pendientes por cliente", -30)},
+)
+
+
 CURATED = [
     {"name": "Inventario de Agentes", "type": "html", "template_md": INV_AGENTES, "template_variables": INV_AGENTES_VARS},
     {"name": "Especificaciones de Equipos", "type": "html", "template_md": SPECS, "template_variables": SPECS_VARS},
@@ -471,6 +748,11 @@ CURATED = [
     {"name": "Actualizaciones Pendientes por Sitio", "type": "html", "template_md": WU_SITIO, "template_variables": WU_SITIO_VARS},
     {"name": "Ultimas Actualizaciones Instaladas", "type": "html", "template_md": WU_INSTALADAS, "template_variables": WU_INSTALADAS_VARS},
     {"name": "Registro de Auditoria", "type": "html", "template_md": AUDITORIA, "template_variables": AUDITORIA_VARS},
+    # --- Dashboards con gráficos (W005 — requieren chromium provisionado) ---
+    {"name": "Panel de Alertas", "type": "html", "template_md": ALERTAS, "template_variables": ALERTAS_VARS},
+    {"name": "Estado de Chequeos", "type": "html", "template_md": CHEQUEOS, "template_variables": CHEQUEOS_VARS},
+    {"name": "Estado de la Flota", "type": "html", "template_md": FLOTA, "template_variables": FLOTA_VARS},
+    {"name": "Panorama de Parches", "type": "html", "template_md": PARCHES, "template_variables": PARCHES_VARS},
 ]
 
 
