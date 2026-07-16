@@ -88,6 +88,42 @@
         - restart daphne
         - restart celery
 
+    # Reporting (ee/reporting) — chromium para Kaleido (W005). Espejo del bloque homónimo del
+    # rol observer_api (roles/observer_api/tasks/main.yml): Kaleido 1.x ya NO empaqueta chromium;
+    # los gráficos-imagen (SVG, obligatorio en PDF porque WeasyPrint no ejecuta JS) lo requieren.
+    # Va tras el pip install (venv con plotly/kaleido). HOME={{ observer_root }} = HOME de
+    # rmm/daphne/celery → caché autodescubierta. Idempotente por marcador (una descarga por host).
+    # Role default no se carga aquí → se usa | default(true) en el gate.
+    - name: Provisionar chromium para Kaleido (reportes con gráficos)
+      when: observer_reporting_charts_enabled | default(true) | bool
+      block:
+        - name: Verificar si el chromium de Kaleido ya está provisionado
+          ansible.builtin.stat:
+            path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
+          register: observer_kaleido_chrome_marker
+
+        - name: Descargar chromium para Kaleido (plotly.io.get_chrome)
+          ansible.builtin.command:
+            cmd: >-
+              {{ observer_root }}/api/env/bin/python -c
+              "import plotly.io as pio; pio.get_chrome()"
+          become: true
+          become_user: "{{ observer_user }}"
+          environment:
+            HOME: "{{ observer_root }}"
+          register: observer_kaleido_chrome_install
+          changed_when: observer_kaleido_chrome_install.rc == 0
+          when: not observer_kaleido_chrome_marker.stat.exists
+
+        - name: Marcar el chromium de Kaleido como provisionado
+          ansible.builtin.file:
+            path: "{{ observer_root }}/reporting/.kaleido-chrome-provisioned"
+            state: touch
+            owner: "{{ observer_user }}"
+            group: "{{ observer_group }}"
+            mode: "0644"
+          when: observer_kaleido_chrome_install is changed
+
     - name: Ejecutar Django migrate
       ansible.builtin.command:
         cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"
