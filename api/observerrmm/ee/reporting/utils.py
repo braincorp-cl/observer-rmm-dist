@@ -710,7 +710,12 @@ def generate_chart(
         # solo aplica a dashboards; para archivar/PDF se usa la ruta "image" (Kaleido).
         return cast(str, fig.to_html(full_html=False, include_plotlyjs="inline"))
     elif format == "image":
-        return cast(str, fig.to_image(format="svg").decode("utf-8"))
+        # Kaleido/chromium AISLADO en un proceso hijo (spawn): imprescindible bajo
+        # uWSGI, que reapea SIGCHLD y rompe el subproceso chromium de asyncio si se
+        # corre in-process ("browser seemed to close immediately"). Ver chart_render.
+        from .chart_render import render_svg
+
+        return cast(str, render_svg(fig))
 
 
 def create_report_history(
