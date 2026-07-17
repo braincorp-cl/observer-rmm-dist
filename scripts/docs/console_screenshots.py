@@ -169,7 +169,7 @@ class Capturer:
         self.d.quit()
 
 
-# Datos ÚTILES descubiertos (consola en español, ORMS ~v1.4.0 / rmmver 0.0.202):
+# Datos ÚTILES descubiertos (consola en español, ORMS ~v1.4.1 / rmmver 0.0.202):
 #  - Barra de menús: Archivo · Ver · Agentes · Configuración · Herramientas · Reportes · Ayuda
 #  - Reportes → "Gestor de reportes" (abre el Administrador de reportes)
 #  - Pestañas de detalle de agente: Resumen · Chequeos · Tareas · Parches · Software ·
