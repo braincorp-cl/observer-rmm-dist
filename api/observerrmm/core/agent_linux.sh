@@ -13,12 +13,13 @@ if [ "${HAS_SYSTEMD}" != 'systemd' ]; then
 fi
 
 if [[ $DISPLAY ]]; then
-    echo "ERROR: Display detected. Installer only supports running headless, i.e from ssh."
-    echo "If you cannot ssh in then please run 'sudo systemctl isolate multi-user.target' to switch to a non-graphical user session and run the installer again."
-    echo "If you are already running headless, then you are probably running with X forwarding which is setting DISPLAY, if so then simply run"
-    echo "unset DISPLAY"
-    echo "to unset the variable and then try running the installer again"
-    exit 1
+    # A set DISPLAY only matters to the mesh agent installer, which would try to
+    # launch in interactive/GUI mode instead of installing as a headless service.
+    # The mesh calls below already force DISPLAY=bar XAUTHORITY=foo, so we can
+    # simply clear these here and continue: a graphical workstation is fine to
+    # install on. (Remote control via the mesh agent still works afterwards.)
+    echo "Display detected; clearing DISPLAY/XAUTHORITY for a headless install."
+    unset DISPLAY XAUTHORITY
 fi
 
 DEBUG=0
