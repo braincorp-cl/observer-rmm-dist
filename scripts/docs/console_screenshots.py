@@ -53,9 +53,36 @@ def read_session_from_profile(domain, profiles_dir=None):
     tmp = tempfile.mktemp(suffix=".sqlite")
     shutil.copy(src, tmp)  # copia para no chocar con el Firefox vivo (WAL/lock)
     con = sqlite3.connect(tmp)
-    rows = con.execute("SELECT key, value FROM data;").fetchall()
+    # Firefox guarda value como BLOB: conversion_type (0=UTF-16, 1=UTF-8) y
+    # compression_type (0=sin comprimir, 1=snappy). Hay que decodificar a str,
+    # porque webdriver serializa a JSON (bytes no es serializable).
+    rows = con.execute(
+        "SELECT key, value, conversion_type, compression_type FROM data;"
+    ).fetchall()
     con.close(); os.unlink(tmp)
-    sess = {k: v for k, v in rows}
+
+    def _decode(val, conv, comp):
+        if isinstance(val, str):
+            return val
+        b = val
+        if comp == 1:  # snappy
+            try:
+                import snappy
+                b = snappy.decompress(b)
+            except Exception:
+                raise SystemExit(
+                    "El valor de localStorage está comprimido (snappy) y falta "
+                    "python3-snappy. Instálalo o vuelve a iniciar sesión."
+                )
+        try:
+            return b.decode("utf-16-le") if conv == 0 else b.decode("utf-8")
+        except Exception:
+            return b.decode("utf-8", "replace")
+
+    sess = {
+        (k.decode() if isinstance(k, bytes) else k): _decode(v, ct, cp)
+        for k, v, ct, cp in rows
+    }
     if "access_token" not in sess:
         raise SystemExit(f"El perfil tiene storage de {domain} pero sin access_token "
                          f"(sesión expirada). Vuelve a iniciar sesión.")
@@ -84,12 +111,36 @@ class Capturer:
         return ok
 
     def click_text(self, text, tags=("div", "span", "button", "a", "td"), nth=0):
-        xp = " | ".join(f"//{t}[normalize-space(text())={json.dumps(text)}]" for t in tags)
+        xp = " | ".join(f"//{t}[normalize-space(text())={json.dumps(text, ensure_ascii=False)}]" for t in tags)
         els = [e for e in self.d.find_elements(By.XPATH, xp) if e.is_displayed()]
         if len(els) > nth:
             self.d.execute_script("arguments[0].scrollIntoView({block:'center'});", els[nth])
             time.sleep(0.3); els[nth].click(); return True
         print(f"  ⚠ no encontré texto {text!r}")
+        return False
+
+    def click_contains(self, text, tags=("div", "span", "button", "a"), nth=0):
+        """Como click_text pero por subcadena (contains), útil para etiquetas
+        largas que Quasar parte en varios nodos o trunca visualmente."""
+        xp = " | ".join(f"//{t}[contains(normalize-space(.), {json.dumps(text, ensure_ascii=False)})]" for t in tags)
+        els = [e for e in self.d.find_elements(By.XPATH, xp) if e.is_displayed()]
+        # el más específico = el que tiene menos elementos descendientes
+        els.sort(key=lambda e: len(e.find_elements(By.XPATH, ".//*")))
+        if len(els) > nth:
+            self.d.execute_script("arguments[0].scrollIntoView({block:'center'});", els[nth])
+            time.sleep(0.3); els[nth].click(); return True
+        print(f"  ⚠ no encontré (contains) {text!r}")
+        return False
+
+    def dblclick_text(self, text, tags=("td", "div", "span"), nth=0):
+        """Doble-click sobre un texto (p.ej. una fila de tabla Quasar para abrir
+        su editor). Útil cuando la acción está en @dblclick del componente."""
+        xp = " | ".join(f"//{t}[normalize-space(text())={json.dumps(text, ensure_ascii=False)}]" for t in tags)
+        els = [e for e in self.d.find_elements(By.XPATH, xp) if e.is_displayed()]
+        if len(els) > nth:
+            self.d.execute_script("arguments[0].scrollIntoView({block:'center'});", els[nth])
+            time.sleep(0.3); ActionChains(self.d).double_click(els[nth]).perform(); return True
+        print(f"  ⚠ no encontré texto {text!r} (dblclick)")
         return False
 
     def esc(self):
@@ -100,11 +151,13 @@ class Capturer:
         print(f"  📸 {name}.png ({os.path.getsize(p)//1024}KB)")
 
     def run_step(self, step):
-        """step = {name, actions:[...]}; actions: get/click/tab/esc/sleep/shot."""
+        """step = {name, actions:[...]}; actions: get/click/dblclick/tab/esc/sleep/shot."""
         for a in step.get("actions", []):
             typ = a[0]
             if typ == "get":      self.d.get(self.base + a[1]); time.sleep(a[2] if len(a) > 2 else 3)
             elif typ == "click":  self.click_text(a[1], tuple(a[2]) if len(a) > 2 else ("div","span","button","a","td"))
+            elif typ == "clickc":   self.click_contains(a[1], tuple(a[2]) if len(a) > 2 else ("div","span","button","a"))
+            elif typ == "dblclick": self.dblclick_text(a[1], tuple(a[2]) if len(a) > 2 else ("td","div","span")); time.sleep(3)
             elif typ == "tab":    self.click_text(a[1], ("div", "span")); time.sleep(2)
             elif typ == "esc":    self.esc()
             elif typ == "sleep":  time.sleep(a[1])

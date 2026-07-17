@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Generar reportes · Observer RMM" data-title-en="Generating reports · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generar reportes · Observer RMM</title>
+<meta name="description" content="Guía práctica para generar tus propios reportes en Observer RMM con el Gestor de reportes: plantillas, recursos, consultas de datos y calendarización. / Practical guide to generating your own reports in Observer RMM with the report manager: templates, assets, data queries, and scheduling.">
+<link rel="stylesheet" href="/assets/style.css">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang');
+  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/" class="active"><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></h1>
+      <p class="lead lang-es">El <strong>Gestor de reportes</strong> convierte los datos de tu flota en documentos presentables —inventario, parches, alertas, antivirus y más—. Esta guía va del camino más simple (usar una plantilla ya lista) hasta armar y calendarizar tus propios reportes.</p>
+      <p class="lead lang-en">The <strong>report manager</strong> turns your fleet data into presentable documents —inventory, patches, alerts, antivirus, and more—. This guide goes from the simplest path (using a ready-made template) to building and scheduling your own reports.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Antes de empezar</span>
+        <p>Necesitas un usuario con permiso de <strong>Reportería</strong> (ver <a href="/functions/permissions/">Permisos y seguridad</a>) y al menos un <a href="/guide_gettingstarted/#primer-agente">agente enrolado</a> con datos, para que los reportes tengan de dónde leer. Encontrarás todo en el menú <em>Reportes → Gestor de reportes</em>.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Before you begin</span>
+        <p>You need a user with the <strong>Reporting</strong> permission (see <a href="/functions/permissions/">Permissions &amp; security</a>) and at least one <a href="/guide_gettingstarted/#primer-agente">enrolled agent</a> with data, so reports have something to read. You'll find everything under the <em>Reports → Report manager</em> menu.</p>
+      </div>
+
+      <h2 id="como-se-organiza"><span class="lang-es">Cómo se organiza el Gestor de reportes</span><span class="lang-en">How the report manager is organized</span></h2>
+      <p class="lang-es">El Gestor agrupa todo lo relacionado con reportes en unas pocas piezas. Conviene reconocerlas antes de empezar, porque las guías siguientes las usan por nombre:</p>
+      <p class="lang-en">The manager groups everything report-related into a few pieces. It helps to recognize them up front, because the sections below refer to them by name:</p>
+      <ul class="lang-es">
+        <li><strong>Plantillas de reportes</strong> — el documento en sí. Define qué información aparece y cómo se ve, combinando texto (Markdown), variables dinámicas, tablas y gráficos. Vienen varias <em>plantillas curadas</em> listas para usar, y puedes crear las tuyas.</li>
+        <li><strong>Plantillas base (HTML)</strong> — el "marco" visual reutilizable —encabezado, pie de página, estilos— que envuelve a una o varias plantillas para darles una apariencia común.</li>
+        <li><strong>Recursos (assets)</strong> — imágenes, logos y archivos que insertas en tus reportes, organizados en carpetas.</li>
+        <li><strong>Consultas de datos (data queries)</strong> — consultas reutilizables sobre los datos de la flota; alimentan las tablas y gráficos de tus plantillas sin repetir la misma definición en cada una.</li>
+        <li><strong>Programaciones</strong> — generación automática de un reporte según un calendario, con envío por correo a los destinatarios que elijas.</li>
+        <li><strong>Historial</strong> — el registro de reportes ya generados, desde donde puedes volver a verlos, descargarlos o re-ejecutarlos.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Report templates</strong> — the document itself. It defines what information appears and how it looks, combining text (Markdown), dynamic variables, tables, and charts. Several <em>curated templates</em> ship ready to use, and you can create your own.</li>
+        <li><strong>Base templates (HTML)</strong> — the reusable visual "frame" —header, footer, styles— that wraps one or more templates to give them a common look.</li>
+        <li><strong>Assets</strong> — images, logos, and files you insert into your reports, organized in folders.</li>
+        <li><strong>Data queries</strong> — reusable queries over your fleet data; they feed the tables and charts in your templates without repeating the same definition in each one.</li>
+        <li><strong>Schedules</strong> — automatic generation of a report on a calendar, emailed to the recipients you choose.</li>
+        <li><strong>History</strong> — the log of already-generated reports, from where you can view, download, or re-run them.</li>
+      </ul>
+
+      <div class="callout note lang-es">
+        <span class="tag">Por dónde empezar</span>
+        <p>Si solo quieres un reporte ya, no necesitas entender todas las piezas: salta a <a href="#camino-simple">El camino más simple</a> y genera uno desde una plantilla curada. Vuelve al resto cuando quieras personalizar.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Where to start</span>
+        <p>If you just want a report now, you don't need to understand every piece: jump to <a href="#camino-simple">The simplest path</a> and generate one from a curated template. Come back to the rest when you want to customize.</p>
+      </div>
+
+      <p class="lang-es">Lo que cubre esta guía, en orden:</p>
+      <p class="lang-en">What this guide covers, in order:</p>
+      <ol class="lang-es">
+        <li><a href="#camino-simple">El camino más simple</a> — generar un reporte desde una plantilla curada.</li>
+        <li><a href="#plantillas">Plantillas</a> — crear y editar las tuyas: base HTML, variables, tablas y gráficos.</li>
+        <li><a href="#recursos-consultas">Recursos y consultas de datos</a> — logos e imágenes, y consultas reutilizables.</li>
+        <li><a href="#calendarizar">Calendarizar e historial</a> — automatizar la generación y el envío por correo.</li>
+      </ol>
+      <ol class="lang-en">
+        <li><a href="#camino-simple">The simplest path</a> — generate a report from a curated template.</li>
+        <li><a href="#plantillas">Templates</a> — create and edit your own: HTML base, variables, tables, and charts.</li>
+        <li><a href="#recursos-consultas">Assets and data queries</a> — logos and images, and reusable queries.</li>
+        <li><a href="#calendarizar">Scheduling and history</a> — automate generation and email delivery.</li>
+      </ol>
+
+      <h2 id="camino-simple"><span class="lang-es">1. El camino más simple: una plantilla curada</span><span class="lang-en">1. The simplest path: a curated template</span></h2>
+      <p class="lang-es">No necesitas diseñar nada para tu primer reporte. Observer trae un conjunto de <strong>plantillas curadas</strong> listas para usar: eliges una, indicas sobre qué equipos aplicarla y obtienes un PDF con datos reales. Este es el camino recomendado para empezar.</p>
+      <p class="lang-en">You don't need to design anything for your first report. Observer ships a set of ready-to-use <strong>curated templates</strong>: you pick one, tell it which machines to cover, and get a PDF with real data. This is the recommended way to start.</p>
+
+      <h3 id="generar-desde-gestor"><span class="lang-es">Generar desde el Gestor de reportes</span><span class="lang-en">Generate from the report manager</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-gestor.png" alt="Administrador de reportes con las plantillas curadas">
+        <figcaption><span class="lang-es">El Gestor de reportes con el conjunto de plantillas curadas listas para usar.</span><span class="lang-en">The report manager with the set of ready-to-use curated templates.</span></figcaption>
+      </figure>
+      <ol class="lang-es">
+        <li>Abre el menú <em>Reportes → Gestor de reportes</em>.</li>
+        <li>En la pestaña de plantillas verás la lista. Cada fila muestra el <strong>Nombre</strong>, el <strong>Tipo de plantilla</strong> y sus <strong>Dependencias</strong> (qué necesita para ejecutarse).</li>
+        <li>En la plantilla que quieras, abre su menú de <strong>Acciones</strong> y elige <strong>Abrir reporte</strong> (lo ves en el navegador) o <strong>Descargar reporte</strong> (lo guardas en tu equipo).</li>
+        <li>Si la plantilla pide dependencias, aparece el diálogo <strong>«Seleccionar dependencias del reporte»</strong>: elige el <strong>Cliente</strong>, <strong>Sitio</strong> o <strong>Agente</strong> correspondiente y pulsa <strong>Enviar</strong>.</li>
+        <li>Elige el <strong>formato</strong>: <strong>PDF</strong> (por defecto) o <strong>HTML</strong>.</li>
+        <li>El reporte se genera con los datos reales de tu flota y se abre o se descarga.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>Open the <em>Reports → Report manager</em> menu.</li>
+        <li>On the templates tab you'll see the list. Each row shows the <strong>Name</strong>, the <strong>Template type</strong>, and its <strong>Dependencies</strong> (what it needs to run).</li>
+        <li>On the template you want, open its <strong>Actions</strong> menu and choose <strong>Open report</strong> (view it in the browser) or <strong>Download report</strong> (save it to your machine).</li>
+        <li>If the template asks for dependencies, the <strong>«Select report dependencies»</strong> dialog appears: pick the matching <strong>Client</strong>, <strong>Site</strong>, or <strong>Agent</strong> and click <strong>Submit</strong>.</li>
+        <li>Choose the <strong>format</strong>: <strong>PDF</strong> (default) or <strong>HTML</strong>.</li>
+        <li>The report is generated with your fleet's real data and opens or downloads.</li>
+      </ol>
+
+      <div class="callout note lang-es">
+        <span class="tag">Aún más rápido</span>
+        <p>Desde la ficha de un <strong>equipo, cliente o sitio</strong> también puedes generar un reporte directo con su menú de acciones (<em>Ejecutar reporte de…</em> / <em>Descargar reporte de…</em>). Ahí solo aparecen las plantillas aplicables a ese nivel y la dependencia ya viene resuelta: solo eliges plantilla y formato.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Even faster</span>
+        <p>From a <strong>machine, client, or site</strong> view you can also generate a report straight from its actions menu (<em>Run report for…</em> / <em>Download report for…</em>). There only the templates applicable to that level appear and the dependency is already resolved: you just pick a template and format.</p>
+      </div>
+
+      <h3 id="que-dependencias"><span class="lang-es">Entender la columna «Dependencias»</span><span class="lang-en">Understanding the «Dependencies» column</span></h3>
+      <p class="lang-es">La columna <strong>Dependencias</strong> te dice qué debe indicar antes de ejecutar una plantilla:</p>
+      <p class="lang-en">The <strong>Dependencies</strong> column tells you what you must provide before running a template:</p>
+      <ul class="lang-es">
+        <li><strong>cliente</strong>, <strong>sitio</strong> o <strong>agente</strong> — la plantilla se acota a ese cliente, sitio o equipo; te lo pedirá al ejecutar.</li>
+        <li><strong>Sin dependencias</strong> — la plantilla corre sobre toda la flota y se ejecuta de inmediato, sin diálogo previo.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>client</strong>, <strong>site</strong>, or <strong>agent</strong> — the template is scoped to that client, site, or machine; it will ask you when you run it.</li>
+        <li><strong>No dependencies</strong> — the template runs over the whole fleet and executes right away, with no prompt.</li>
+      </ul>
+
+      <h3 id="catalogo-curadas"><span class="lang-es">Qué plantillas vienen listas</span><span class="lang-en">Which templates come ready</span></h3>
+      <p class="lang-es">Estas son las plantillas curadas que trae Observer, agrupadas por tema. Cualquiera se genera con los pasos de arriba:</p>
+      <p class="lang-en">These are the curated templates Observer ships, grouped by topic. Any of them generates with the steps above:</p>
+      <ul class="lang-es">
+        <li><strong>Equipos e inventario</strong> — Inventario de Agentes · Especificaciones de Equipos · Agentes por Cliente y Sitio · Reporte Integral de Equipos · Distribución de Sistemas Operativos · Tiempo de Actividad de Equipos · Equipos con Reinicio Pendiente · Fecha de Instalación del Agente.</li>
+        <li><strong>Software</strong> — Inventario de Software · Software por Cliente · Cobertura de Antivirus.</li>
+        <li><strong>Parches y actualizaciones</strong> — Actualizaciones de Windows Pendientes · Actualizaciones Pendientes por Sitio · Últimas Actualizaciones Instaladas · Panorama de Parches.</li>
+        <li><strong>Monitoreo y alertas</strong> — Estado de la Flota · Estado de Chequeos · Panel de Alertas · Registro de Auditoría.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Machines &amp; inventory</strong> — Agent Inventory · Machine Specifications · Agents by Client and Site · Comprehensive Machine Report · Operating System Distribution · Machine Uptime · Machines Pending Reboot · Agent Installation Date.</li>
+        <li><strong>Software</strong> — Software Inventory · Software by Client · Antivirus Coverage.</li>
+        <li><strong>Patches &amp; updates</strong> — Pending Windows Updates · Pending Updates by Site · Latest Installed Updates · Patch Overview.</li>
+        <li><strong>Monitoring &amp; alerts</strong> — Fleet Status · Checks Status · Alerts Panel · Audit Log.</li>
+      </ul>
+      <div class="callout note lang-es">
+        <span class="tag">Nota</span>
+        <p>Los nombres y el contenido de los reportes se muestran en español. Varias plantillas incluyen tablas y gráficos; algunas cubren solo Windows (por ejemplo, Actualizaciones de Windows y Cobertura de Antivirus). ¿Quieres una versión propia? Parte de una curada y <a href="#clonar">clónala</a> en la sección siguiente.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Note</span>
+        <p>Report names and content are shown in Spanish. Several templates include tables and charts; some cover Windows only (for example, Windows Updates and Antivirus Coverage). Want your own version? Start from a curated one and <a href="#clonar">clone it</a> in the next section.</p>
+      </div>
+
+      <div class="callout note lang-es">
+        <span class="tag">Enviar por correo una vez</span>
+        <p>Además de abrir o descargar, la acción <strong>Enviar reporte por correo</strong> despacha el reporte por email en el momento. Para que se genere y se envíe solo, de forma recurrente, usa las <a href="#calendarizar">programaciones</a>.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Email it once</span>
+        <p>Besides opening or downloading, the <strong>Email report</strong> action sends the report by email on the spot. To have it generated and sent automatically on a recurring basis, use <a href="#calendarizar">schedules</a>.</p>
+      </div>
+
+      <h2 id="plantillas"><span class="lang-es">2. Plantillas: crea las tuyas</span><span class="lang-en">2. Templates: build your own</span></h2>
+      <p class="lang-es">Cuando una plantilla curada casi te sirve pero quieres cambiar el logo, el texto o las columnas, no la edites directamente: <strong>clónala</strong> y trabaja sobre la copia. Editar plantillas es más técnico que generarlas (combina Markdown, variables y un poco de Jinja), así que si solo necesitas el reporte, con el <a href="#camino-simple">camino más simple</a> basta.</p>
+      <p class="lang-en">When a curated template almost fits but you want to change the logo, the text, or the columns, don't edit it directly: <strong>clone it</strong> and work on the copy. Editing templates is more technical than generating them (it mixes Markdown, variables, and a bit of Jinja), so if you just need the report, the <a href="#camino-simple">simplest path</a> is enough.</p>
+
+      <h3 id="clonar"><span class="lang-es">2.1 Lo más simple: clonar una plantilla curada</span><span class="lang-en">2.1 The simplest: clone a curated template</span></h3>
+      <ol class="lang-es">
+        <li>En <em>Reportes → Gestor de reportes</em>, ubica la plantilla curada más parecida a lo que quieres.</li>
+        <li>En su menú de <strong>Acciones</strong>, elige <strong>Clonar</strong>. Se crea una copia llamada <em>«Copia de …»</em>; la original queda intacta.</li>
+        <li>Abre la copia con <strong>Editar</strong> y ajústala. Renómbrala con un nombre claro.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>In <em>Reports → Report manager</em>, find the curated template closest to what you want.</li>
+        <li>In its <strong>Actions</strong> menu, choose <strong>Clone</strong>. A copy named <em>«Copy of …»</em> is created; the original stays untouched.</li>
+        <li>Open the copy with <strong>Edit</strong> and adjust it. Rename it to something clear.</li>
+      </ol>
+
+      <h3 id="editor"><span class="lang-es">2.2 El editor de plantillas</span><span class="lang-en">2.2 The template editor</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-editor.png" alt="Editor de plantilla de reporte">
+        <figcaption><span class="lang-es">El editor de una plantilla: nombre y plantilla base, pestañas HTML/CSS/Vista previa, la barra de herramientas y el panel de Variables con <code>data_sources</code>.</span><span class="lang-en">The template editor: name and base template, HTML/CSS/Preview tabs, the toolbar, and the Variables panel with <code>data_sources</code>.</span></figcaption>
+      </figure>
+      <p class="lang-es">El editor tiene, arriba, el <strong>Nombre del reporte</strong> y las <strong>Dependencias de plantilla</strong> (si eliges <em>cliente</em>, <em>sitio</em> o <em>agente</em>, la consola te pedirá ese dato al ejecutar). El cuerpo se organiza en pestañas:</p>
+      <p class="lang-en">The editor has, at the top, the <strong>Report name</strong> and the <strong>Template dependencies</strong> (if you pick <em>client</em>, <em>site</em>, or <em>agent</em>, the console will ask for it when you run the report). The body is organized in tabs:</p>
+      <ul class="lang-es">
+        <li><strong>Markdown</strong> — el contenido del reporte (texto, tablas, gráficos y variables).</li>
+        <li><strong>HTML</strong> / <strong>Texto plano</strong> — según el tipo de plantilla, si prefieres escribir el cuerpo directamente en ese formato.</li>
+        <li><strong>CSS</strong> — estilos propios de esta plantilla (colores, tipografías, márgenes).</li>
+        <li><strong>Vista previa</strong> — el resultado renderizado con datos reales, para revisar antes de generar.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Markdown</strong> — the report content (text, tables, charts, and variables).</li>
+        <li><strong>HTML</strong> / <strong>Plain text</strong> — depending on the template type, if you prefer to write the body directly in that format.</li>
+        <li><strong>CSS</strong> — styles specific to this template (colors, fonts, margins).</li>
+        <li><strong>Preview</strong> — the rendered result with real data, to review before generating.</li>
+      </ul>
+      <p class="lang-es">Los botones <strong>vars</strong> y <strong>base</strong> muestran, respectivamente, el panel de <strong>Variables</strong> (fuentes de datos) y la asignación de <strong>Plantillas base</strong>. La barra de herramientas del editor inserta encabezados, secciones, negrita/cursiva, listas, imágenes, <strong>tablas</strong>, <strong>gráficos</strong>, consultas de datos y bloques <strong>Jinja</strong> (datos, bucles <code>for</code> y condiciones <code>if</code>). Los cambios se guardan con <strong>Autoguardado</strong>.</p>
+      <p class="lang-en">The <strong>vars</strong> and <strong>base</strong> buttons show, respectively, the <strong>Variables</strong> panel (data sources) and the <strong>Base templates</strong> assignment. The editor toolbar inserts headings, sections, bold/italic, lists, images, <strong>tables</strong>, <strong>charts</strong>, data queries, and <strong>Jinja</strong> blocks (data, <code>for</code> loops, and <code>if</code> conditions). Changes are kept with <strong>Autosave</strong>.</p>
+
+      <h3 id="plantilla-base"><span class="lang-es">2.3 Plantilla base: el marco visual</span><span class="lang-en">2.3 Base template: the visual frame</span></h3>
+      <p class="lang-es">Una <strong>plantilla base</strong> es el envoltorio HTML común —encabezado, pie de página y estilos— que se aplica a tus reportes para que todos luzcan igual. Observer trae la base <strong>«Observer Base v1»</strong>. Para asignarla, en el editor abre <strong>base</strong> y usa <strong>Agregar plantilla base</strong>. Puedes crear y editar tus propias bases desde la pestaña <strong>Plantillas base</strong> del Gestor (por ejemplo, para poner el logo de un cliente en el encabezado).</p>
+      <p class="lang-en">A <strong>base template</strong> is the shared HTML wrapper —header, footer, and styles— applied to your reports so they all look alike. Observer ships the <strong>«Observer Base v1»</strong> base. To assign it, in the editor open <strong>base</strong> and use <strong>Add base template</strong>. You can create and edit your own bases from the <strong>Base templates</strong> tab in the manager (for example, to put a client's logo in the header).</p>
+
+      <h3 id="variables-datos"><span class="lang-es">2.4 Variables y fuentes de datos</span><span class="lang-en">2.4 Variables and data sources</span></h3>
+      <p class="lang-es">El panel <strong>Variables</strong> es un documento en formato <strong>YAML</strong> donde defines los valores y, sobre todo, las <strong>fuentes de datos</strong> (clave <code>data_sources</code>) que la plantilla consulta —agentes, software, parches, etc.—. Luego, en el cuerpo Markdown, referencias esos datos con Jinja: <code>{{ nombre_variable }}</code> para un valor, o un bucle <code>for</code> para recorrer una lista. Las <a href="#recursos-consultas">consultas de datos</a> reutilizables (Bloque 4) se enganchan aquí, en <code>data_sources</code>.</p>
+      <p class="lang-en">The <strong>Variables</strong> panel is a <strong>YAML</strong> document where you define values and, above all, the <strong>data sources</strong> (<code>data_sources</code> key) the template queries —agents, software, patches, etc.—. Then, in the Markdown body, you reference that data with Jinja: <code>{{ variable_name }}</code> for a value, or a <code>for</code> loop to iterate a list. Reusable <a href="#recursos-consultas">data queries</a> (Block 4) plug in here, under <code>data_sources</code>.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Consejo</span>
+        <p>La forma más fácil de aprender las variables es partir de una plantilla curada clonada: abre su panel <strong>vars</strong> y observa cómo declara sus <code>data_sources</code> y cómo el Markdown las usa. Copia ese patrón.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Tip</span>
+        <p>The easiest way to learn variables is to start from a cloned curated template: open its <strong>vars</strong> panel and see how it declares its <code>data_sources</code> and how the Markdown uses them. Copy that pattern.</p>
+      </div>
+
+      <h3 id="tablas-graficos"><span class="lang-es">2.5 Tablas y gráficos</span><span class="lang-en">2.5 Tables and charts</span></h3>
+      <p class="lang-es">Con la fuente de datos ya declarada en Variables, la barra del editor te deja insertarlos visualmente:</p>
+      <p class="lang-en">With the data source declared in Variables, the editor toolbar lets you insert them visually:</p>
+      <ul class="lang-es">
+        <li><strong>Tabla</strong> (<em>Insertar tabla</em>) — elige la <strong>Fuente de datos</strong> y crea la tabla <em>En blanco</em> o <em>Desde variables</em> (con las columnas de la consulta).</li>
+        <li><strong>Gráfico</strong> (<em>Agregar gráfico</em>) — dale un <strong>Nombre</strong>, elige el <strong>Tipo</strong> (<em>Barras</em>, <em>Circular</em> o <em>Líneas</em>) y la salida <em>Imagen</em> (recomendada para PDF) o <em>HTML</em>.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Table</strong> (<em>Insert table</em>) — pick the <strong>Data source</strong> and create the table <em>Blank</em> or <em>From variables</em> (with the query's columns).</li>
+        <li><strong>Chart</strong> (<em>Add chart</em>) — give it a <strong>Name</strong>, choose the <strong>Type</strong> (<em>Bar</em>, <em>Pie</em>, or <em>Line</em>) and the output <em>Image</em> (recommended for PDF) or <em>HTML</em>.</li>
+      </ul>
+      <p class="lang-es">Los reportes de tipo <strong>panel</strong> combinan varios gráficos e indicadores. Por ejemplo, al abrir el panel «Estado de la Flota» y pulsar <strong>Vista previa</strong>, la consola genera el reporte con datos reales; el mismo reporte se puede ver en <strong>HTML</strong> o cambiar el formato a <strong>PDF</strong>:</p>
+      <p class="lang-en">Dashboard-type reports combine several charts and indicators. For example, opening the «Fleet Status» dashboard and clicking <strong>Preview</strong> makes the console generate the report with real data; the same report can be viewed as <strong>HTML</strong> or switched to <strong>PDF</strong>:</p>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-preview-html.png" alt="Vista previa HTML del dashboard Estado de la Flota">
+        <figcaption><span class="lang-es">Vista previa en <strong>HTML</strong> del panel «Estado de la Flota»: indicadores y gráficos generados con datos reales.</span><span class="lang-en">Live <strong>HTML</strong> preview of the «Fleet Status» dashboard: indicators and charts generated from real data.</span></figcaption>
+      </figure>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-preview-pdf.png" alt="Vista previa PDF del mismo reporte">
+        <figcaption><span class="lang-es">El mismo reporte cambiando el formato a <strong>PDF</strong>: la vista previa muestra el documento paginado, listo para descargar.</span><span class="lang-en">The same report switched to <strong>PDF</strong>: the preview shows the paginated document, ready to download.</span></figcaption>
+      </figure>
+      <div class="callout warn lang-es">
+        <span class="tag">Prueba en PDF</span>
+        <p>La <strong>Vista previa</strong> es útil, pero cuando tu reporte incluye gráficos conviene <strong>generarlo en PDF</strong> al menos una vez: es el formato final más usado y confirma que los gráficos se renderizan como esperas.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Test in PDF</span>
+        <p>The <strong>Preview</strong> is handy, but when your report includes charts it's worth <strong>generating it as PDF</strong> at least once: it's the most-used final format and confirms the charts render as you expect.</p>
+      </div>
+
+      <h2 id="recursos-consultas"><span class="lang-es">3. Recursos y consultas de datos</span><span class="lang-en">3. Assets and data queries</span></h2>
+      <p class="lang-es">Dos piezas reutilizables que enriquecen tus plantillas: los <strong>recursos</strong> (imágenes y archivos, como un logo) y las <strong>consultas de datos</strong> (definiciones de qué información traer de la flota). Ambas se administran desde sus pestañas en el Gestor de reportes.</p>
+      <p class="lang-en">Two reusable pieces that enrich your templates: <strong>assets</strong> (images and files, like a logo) and <strong>data queries</strong> (definitions of what information to pull from the fleet). Both are managed from their tabs in the report manager.</p>
+
+      <h3 id="recursos"><span class="lang-es">3.1 Recursos (imágenes y archivos)</span><span class="lang-en">3.1 Assets (images and files)</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-recursos.png" alt="Pestaña Recursos de reportes">
+        <figcaption><span class="lang-es">La pestaña de recursos: sube, organiza en carpetas y administra las imágenes de tus reportes.</span><span class="lang-en">The assets tab: upload, organize into folders, and manage the images for your reports.</span></figcaption>
+      </figure>
+      <p class="lang-es">En la pestaña <strong>Recursos de reportes</strong> subes y organizas los archivos que aparecerán en tus reportes —lo más típico, un <strong>logo</strong> para el encabezado—. Es un gestor de archivos sencillo:</p>
+      <p class="lang-en">On the <strong>Report assets</strong> tab you upload and organize the files that will appear in your reports —most typically, a <strong>logo</strong> for the header—. It's a simple file manager:</p>
+      <ul class="lang-es">
+        <li><strong>Subir</strong> — carga imágenes u otros archivos.</li>
+        <li><strong>Nueva carpeta</strong> — organiza los recursos (por ejemplo, una carpeta por cliente).</li>
+        <li><strong>Renombrar</strong> y <strong>Descargar</strong> — sobre un recurso seleccionado.</li>
+        <li><strong>Acciones masivas</strong> — renombrar, descargar o eliminar varios a la vez.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Upload</strong> — load images or other files.</li>
+        <li><strong>New folder</strong> — organize assets (for example, one folder per client).</li>
+        <li><strong>Rename</strong> and <strong>Download</strong> — on a selected asset.</li>
+        <li><strong>Bulk actions</strong> — rename, download, or delete several at once.</li>
+      </ul>
+      <p class="lang-es">Para usar un recurso dentro de una plantilla, en el editor pulsa <strong>Imagen</strong> y elige <strong>«Seleccionar activo de reporte»</strong>. Puedes insertarlo como <strong>Imagen</strong> (se ve en el reporte) o como <strong>Enlace</strong>. Si no ves recursos, súbelos primero desde esta pestaña.</p>
+      <p class="lang-en">To use an asset inside a template, in the editor click <strong>Image</strong> and choose <strong>«Select report asset»</strong>. You can insert it as an <strong>Image</strong> (shown in the report) or as a <strong>Link</strong>. If you don't see any assets, upload them from this tab first.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Cuidado al eliminar</span>
+        <p>Borrar un recurso <strong>no es reversible</strong>. Si una plantilla lo usa, quedará roto: revisa antes de eliminar.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Careful when deleting</span>
+        <p>Deleting an asset <strong>can't be undone</strong>. If a template uses it, it will break: check before deleting.</p>
+      </div>
+
+      <h3 id="consultas-datos"><span class="lang-es">3.2 Consultas de datos</span><span class="lang-en">3.2 Data queries</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-consultas.png" alt="Lista de consultas de datos">
+        <figcaption><span class="lang-es">La pestaña de consultas de datos: cada consulta guardada, reutilizable en varias plantillas.</span><span class="lang-en">The data queries tab: each saved query, reusable across templates.</span></figcaption>
+      </figure>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-consulta.png" alt="Editor JSON de una consulta de datos">
+        <figcaption><span class="lang-es">El editor de una consulta: el <strong>JSON</strong> define el modelo, los campos y los filtros, con validación en vivo.</span><span class="lang-en">A query's editor: the <strong>JSON</strong> defines the model, fields, and filters, with live validation.</span></figcaption>
+      </figure>
+      <p class="lang-es">Una <strong>consulta de datos</strong> define, una sola vez y con nombre, qué información traer de la flota (por ejemplo, «todos los agentes de Windows con reinicio pendiente»). Luego la reutilizas en cuantas plantillas quieras sin repetir la definición. Se administran en la pestaña <strong>Consultas de datos</strong>.</p>
+      <p class="lang-en">A <strong>data query</strong> defines, once and by name, what information to pull from the fleet (for example, "all Windows agents pending reboot"). You then reuse it in as many templates as you like without repeating the definition. They're managed on the <strong>Data queries</strong> tab.</p>
+      <ol class="lang-es">
+        <li>En <em>Consultas de datos</em>, pulsa <strong>Nueva</strong>.</li>
+        <li>Ponle un <strong>Nombre de la consulta</strong> descriptivo.</li>
+        <li>Define la consulta en el editor <strong>JSON</strong>: eliges el <strong>modelo</strong> de datos y sus filtros. El editor <strong>valida en vivo</strong> contra el esquema y te autocompleta los campos válidos.</li>
+        <li><strong>Guarda</strong>. También puedes <strong>Clonar</strong> una existente para partir de algo que ya funciona.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>In <em>Data queries</em>, click <strong>New</strong>.</li>
+        <li>Give it a descriptive <strong>Data query name</strong>.</li>
+        <li>Define the query in the <strong>JSON</strong> editor: you pick the data <strong>model</strong> and its filters. The editor <strong>validates live</strong> against the schema and autocompletes the valid fields.</li>
+        <li><strong>Save</strong>. You can also <strong>Clone</strong> an existing one to start from something that already works.</li>
+      </ol>
+      <p class="lang-es">Los modelos disponibles cubren lo que administra Observer: <strong>Agentes</strong>, <strong>Clientes</strong> y <strong>Sitios</strong>, <strong>Alertas</strong>, <strong>Chequeos</strong> y sus resultados, <strong>Tareas</strong>, <strong>Software instalado</strong>, <strong>Actualizaciones de Windows</strong>, <strong>Registro de auditoría</strong>, entre otros.</p>
+      <p class="lang-en">The available models cover what Observer manages: <strong>Agents</strong>, <strong>Clients</strong> and <strong>Sites</strong>, <strong>Alerts</strong>, <strong>Checks</strong> and their results, <strong>Tasks</strong>, <strong>Installed software</strong>, <strong>Windows updates</strong>, <strong>Audit log</strong>, and more.</p>
+      <p class="lang-es">Para usar una consulta guardada en una plantilla, en el editor pulsa <strong>Insertar consulta de datos guardada</strong>: queda enganchada en las <a href="#variables-datos">Variables</a> (bajo <code>data_sources</code>) y desde ahí alimenta tus <a href="#tablas-graficos">tablas y gráficos</a>.</p>
+      <p class="lang-en">To use a saved query in a template, in the editor click <strong>Insert saved data query</strong>: it hooks into the <a href="#variables-datos">Variables</a> (under <code>data_sources</code>) and from there feeds your <a href="#tablas-graficos">tables and charts</a>.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Nota</span>
+        <p>Si cambias una consulta que ya está <strong>en uso</strong>, el cambio afecta a <strong>todas</strong> las plantillas que la usan. Si solo quieres ajustar una, <strong>clónala</strong> y edita la copia.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Note</span>
+        <p>If you change a query that's already <strong>in use</strong>, the change affects <strong>every</strong> template that uses it. If you only want to tweak one, <strong>clone it</strong> and edit the copy.</p>
+      </div>
+
+      <h2 id="calendarizar"><span class="lang-es">4. Calendarizar e historial</span><span class="lang-en">4. Scheduling and history</span></h2>
+      <p class="lang-es">En vez de generar un reporte a mano cada vez, puedes <strong>programarlo</strong> para que se genere y se envíe por correo solo, de forma recurrente. Y en el <strong>historial</strong> encuentras todo lo que ya se generó.</p>
+      <p class="lang-en">Instead of generating a report by hand every time, you can <strong>schedule it</strong> so it's generated and emailed automatically on a recurring basis. And in the <strong>history</strong> you'll find everything already generated.</p>
+
+      <h3 id="programaciones"><span class="lang-es">4.1 Programaciones</span><span class="lang-en">4.1 Schedules</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-programacion.png" alt="Formulario de programación de reporte">
+        <figcaption><span class="lang-es">El formulario de programación: plantilla, formato, recurrencia, zona horaria y envío por correo.</span><span class="lang-en">The schedule form: template, format, recurrence, timezone, and email delivery.</span></figcaption>
+      </figure>
+      <p class="lang-es">Desde la pestaña <strong>Programaciones de reportes</strong>, pulsa <strong>Nuevo</strong> y completa:</p>
+      <p class="lang-en">From the <strong>Report schedules</strong> tab, click <strong>New</strong> and fill in:</p>
+      <ol class="lang-es">
+        <li><strong>Plantilla de reporte</strong> — cuál se generará. Si tiene <strong>Dependencias</strong> (cliente/sitio/agente), las fijas aquí para que corran siempre igual.</li>
+        <li><strong>Formato</strong> — <strong>PDF</strong>, <strong>HTML</strong> o <strong>Texto plano (o CSV)</strong>.</li>
+        <li><strong>Programación</strong> — elige una existente o usa <strong>Crear nueva programación</strong>. El editor de recurrencia es visual, no requiere sintaxis: eliges el <strong>Tipo de ejecución</strong> (<em>Diaria</em>, <em>Semanal</em> o <em>Mensual</em>), la <strong>Hora:Minuto</strong> y, según el caso, los días de la semana, los días del mes o los meses.</li>
+        <li><strong>Zona horaria</strong> — la hora se interpreta en esta zona; si la dejas en blanco se usa la zona horaria por defecto de la plataforma.</li>
+        <li><strong>Habilitado</strong> — deja la programación activa (o desactívala sin borrarla).</li>
+      </ol>
+      <ol class="lang-en">
+        <li><strong>Report template</strong> — which one is generated. If it has <strong>Dependencies</strong> (client/site/agent), you fix them here so runs are always consistent.</li>
+        <li><strong>Format</strong> — <strong>PDF</strong>, <strong>HTML</strong>, or <strong>Plain text (or CSV)</strong>.</li>
+        <li><strong>Schedule</strong> — pick an existing one or use <strong>Create new schedule</strong>. The recurrence editor is visual, no syntax needed: you choose the <strong>Run type</strong> (<em>Daily</em>, <em>Weekly</em>, or <em>Monthly</em>), the <strong>Hour:Minute</strong> and, as applicable, the weekdays, days of month, or months.</li>
+        <li><strong>Timezone</strong> — the time is interpreted in this zone; leave it blank to use the platform's default timezone.</li>
+        <li><strong>Enabled</strong> — leave the schedule active (or disable it without deleting).</li>
+      </ol>
+
+      <h4 id="programaciones-correo"><span class="lang-es">Envío por correo</span><span class="lang-en">Email delivery</span></h4>
+      <p class="lang-es">Con <strong>Enviar reporte por correo</strong> activo, defines los <strong>Destinatarios de correo</strong> con <strong>Agregar correo</strong>. Si no agregas ninguno, se usan los <strong>destinatarios por defecto</strong> de la configuración global; los que agregues aquí <strong>anulan</strong> ese valor por defecto. Con <strong>Personalizar contenido del correo</strong> puedes fijar el <strong>Asunto</strong>, el <strong>Cuerpo</strong>, el <strong>nombre y la extensión del adjunto</strong> (p. ej. <code>csv</code>) e incluir un enlace directo para ver el reporte en línea.</p>
+      <p class="lang-en">With <strong>Send report by email</strong> on, you set the <strong>Email recipients</strong> using <strong>Add email</strong>. If you add none, the <strong>default recipients</strong> from the global settings are used; the ones you add here <strong>override</strong> that default. With <strong>Customize email content</strong> you can set the <strong>Subject</strong>, the <strong>Body</strong>, the <strong>attachment name and extension</strong> (e.g. <code>csv</code>), and include a direct link to view the report online.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Requiere correo saliente</span>
+        <p>El envío automático solo funciona si el servidor SMTP está configurado. Revisa <a href="/functions/email_alerts/">Alertas por correo</a> para dejar el correo saliente operativo.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Requires outbound email</span>
+        <p>Automatic delivery only works if the SMTP server is configured. See <a href="/functions/email_alerts/">Email alerts</a> to get outbound email working.</p>
+      </div>
+      <div class="callout note lang-es">
+        <span class="tag">Probar sin esperar</span>
+        <p>Con <strong>Ejecutar reporte programado</strong> disparas la programación en el momento —útil para comprobar que el reporte y el correo salen bien antes de confiar en el calendario—. La columna <strong>Última ejecución</strong> te muestra cuándo corrió por última vez. También puedes <strong>Clonar</strong> una programación.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Test without waiting</span>
+        <p>With <strong>Run scheduled report</strong> you trigger the schedule on the spot —handy to confirm the report and email come out right before trusting the calendar—. The <strong>Last run</strong> column shows when it last ran. You can also <strong>Clone</strong> a schedule.</p>
+      </div>
+
+      <h3 id="historial"><span class="lang-es">4.2 Historial</span><span class="lang-en">4.2 History</span></h3>
+      <figure class="doc-shot">
+        <img src="/assets/shots/reportes-historial.png" alt="Pestaña Historial de reportes">
+        <figcaption><span class="lang-es">El historial: cada reporte generado, con su plantilla, tipo y fecha, listo para abrir o descargar.</span><span class="lang-en">The history: every generated report, with its template, type, and date, ready to open or download.</span></figcaption>
+      </figure>
+      <p class="lang-es">La pestaña <strong>Historial de ejecución de reportes</strong> guarda cada reporte generado —manual o programado—. Para cada entrada ves la <strong>Plantilla</strong>, el <strong>Tipo de plantilla</strong> y la <strong>Fecha de creación</strong>, y puedes <strong>Abrir</strong> o <strong>Descargar</strong> el PDF (o el formato correspondiente) sin volver a generarlo. También puedes eliminar entradas que ya no necesites.</p>
+      <p class="lang-en">The <strong>Report run history</strong> tab keeps every generated report —manual or scheduled—. For each entry you see the <strong>Template</strong>, the <strong>Template type</strong>, and the <strong>Date created</strong>, and you can <strong>Open</strong> or <strong>Download</strong> the PDF (or the matching format) without regenerating it. You can also delete entries you no longer need.</p>
+
+      <h2 id="resumen"><span class="lang-es">En resumen</span><span class="lang-en">In summary</span></h2>
+      <ul class="lang-es">
+        <li>¿Solo quieres un reporte? Usa una <a href="#camino-simple">plantilla curada</a>: elígela, indica el cliente/sitio/agente y descárgala en PDF.</li>
+        <li>¿Quieres personalizar? <a href="#clonar">Clona</a> una curada y ajústala en el <a href="#editor">editor</a> (Markdown, variables, tablas y gráficos).</li>
+        <li>¿Un logo o imágenes? Súbelos como <a href="#recursos">recursos</a>. ¿Datos reutilizables? Define <a href="#consultas-datos">consultas de datos</a>.</li>
+        <li>¿Que salga solo? <a href="#calendarizar">Prográmalo</a> y envíalo por correo a quien corresponda.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Just want a report? Use a <a href="#camino-simple">curated template</a>: pick it, choose the client/site/agent, and download the PDF.</li>
+        <li>Want to customize? <a href="#clonar">Clone</a> a curated one and tweak it in the <a href="#editor">editor</a> (Markdown, variables, tables, and charts).</li>
+        <li>A logo or images? Upload them as <a href="#recursos">assets</a>. Reusable data? Define <a href="#consultas-datos">data queries</a>.</li>
+        <li>Hands-free? <a href="#calendarizar">Schedule it</a> and email it to the right people.</li>
+      </ul>
+
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa · Uso interno.</span><span class="lang-en"> — Operational documentation · Internal use.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>
