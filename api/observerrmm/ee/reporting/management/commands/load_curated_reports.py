@@ -13,11 +13,15 @@ rinden plotly vía Kaleido→SVG (W005): el SVG rinde idéntico en Preview, HTML
 export y PDF (WeasyPrint no ejecuta JS) y pesa ~6KB por gráfico (vs ~4.8MB del
 plotly.js inline). Requiere chromium provisionado (rol observer_api, gate
 observer_reporting_charts_enabled); sin él, solo esos 4 dashboards fallan al
-renderizar — las 14 plantillas de tabla no dependen de gráficos.
+renderizar — las 15 plantillas de tabla no dependen de gráficos.
+
+"Cobertura de Antivirus" deriva el AV instalado del inventario de software
+(installedsoftware.software, JSONB; solo Windows): heurística por lista editable
+de firmas de vendors + detección PARCIAL de Defender integrado (aparte). Refleja
+el AV instalado, no su estado activo. KPIs+tabla, no requiere chromium.
 
 Fuera de alcance (a propósito):
   - "All Fields *": volcados de schema para autores de plantillas, no reportes.
-  - Antivirus: no hay fuente de datos AV confiable en el modelo.
   - Bitlocker / Custom Fields: dependen de custom fields inexistentes en fresh.
 
 Idempotente: re-ejecutar actualiza en su lugar (--overwrite, por defecto True).
@@ -733,6 +737,117 @@ PARCHES_VARS = _dash_vars(
 )
 
 
+# ===========================================================================
+# SEGURIDAD
+# ---------------------------------------------------------------------------
+# 19) Cobertura de Antivirus. Deriva el AV instalado del inventario de software
+# (installedsoftware.software, JSONB), acotado a Windows. NO usa gráficos W005:
+# la clasificación con/sin AV se computa en la PLANTILLA (namespace + do), y el
+# resolver de charts navega data_sources ANTES del render, así que no podría
+# consumir un campo derivado. Al ser KPIs+tabla, tampoco depende de chromium.
+# Salvedades (documentadas en la nota del propio reporte): refleja AV
+# INSTALADO, no su estado activo/firmas; Defender integrado se detecta APARTE
+# (decisión 1a) y de forma PARCIAL —por ser componente del SO no siempre figura
+# como programa instalado—; la lista de firmas es EDITABLE en la plantilla.
+# ===========================================================================
+ANTIVIRUS = _header("Cobertura de Antivirus", "Equipos Windows: {{ data_sources.avinv | length }}") + """
+{= ===================================================================== =}
+{=  FIRMAS DE AV DE TERCEROS — LISTA EDITABLE                            =}
+{=  Formato: [subcadena_en_minusculas, etiqueta]. El match es por        =}
+{=  subcadena sobre (name + publisher) en minusculas. Para agregar o     =}
+{=  quitar un producto, edita esta lista.                                =}
+{= ===================================================================== =}
+{% set av_signatures = [
+  ["eset", "ESET"], ["kaspersky", "Kaspersky"], ["bitdefender", "Bitdefender"],
+  ["sophos", "Sophos"], ["crowdstrike", "CrowdStrike"], ["sentinelone", "SentinelOne"],
+  ["norton", "Norton"], ["symantec", "Symantec"], ["mcafee", "McAfee"],
+  ["trellix", "Trellix"], ["trend micro", "Trend Micro"], ["avast", "Avast"],
+  ["avg ", "AVG"], ["webroot", "Webroot"], ["malwarebytes", "Malwarebytes"]
+] %}
+{= Defender integrado se detecta APARTE (deteccion parcial: por ser        =}
+{= componente del SO no siempre figura como programa instalado).          =}
+{% set defender_signatures = ["windows defender", "microsoft defender"] %}
+{% set rows = [] %}
+{% for r in data_sources.avinv %}
+  {% set ns = namespace(third=[], defender=false) %}
+  {% for sw in r.software or [] %}
+    {% set hay = ((sw.name or '') ~ ' ' ~ (sw.publisher or '')) | lower %}
+    {% for sig, label in av_signatures %}
+      {% if sig in hay and label not in ns.third %}{% do ns.third.append(label) %}{% endif %}
+    {% endfor %}
+    {% for dsig in defender_signatures %}
+      {% if dsig in hay %}{% set ns.defender = true %}{% endif %}
+    {% endfor %}
+  {% endfor %}
+  {% do rows.append({
+    "hostname": r.agent__hostname, "site": r.agent__site__name,
+    "client": r.agent__site__client__name, "third": ns.third, "defender": ns.defender,
+    "status": ("third" if ns.third else ("defender" if ns.defender else "none"))
+  }) %}
+{% endfor %}
+{% set con3 = rows | selectattr("status","equalto","third") | list %}
+{% set solod = rows | selectattr("status","equalto","defender") | list %}
+{% set sinav = rows | selectattr("status","equalto","none") | list %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ rows | length }}</div><div class="kpi-lbl">Equipos Windows</div></div>
+  <div class="kpi kpi-ok"><div class="kpi-num">{{ con3 | length }}</div><div class="kpi-lbl">Con AV de terceros</div></div>
+  <div class="kpi kpi-warn"><div class="kpi-num">{{ solod | length }}</div><div class="kpi-lbl">Solo Defender detectado</div></div>
+  <div class="kpi kpi-crit"><div class="kpi-num">{{ sinav | length }}</div><div class="kpi-lbl">Sin AV detectado</div></div>
+</div>
+<p class="muted" style="font-size:10px; margin:6px 0 14px;">
+  Detecci&oacute;n por <b>inventario de software</b> (solo Windows): refleja el AV <b>instalado</b>,
+  no su estado activo ni sus firmas al d&iacute;a. Microsoft Defender integrado puede no figurar como
+  programa instalado, por lo que su detecci&oacute;n aqu&iacute; es parcial. Lista de productos editable en la plantilla.
+</p>
+{% if sinav | length %}
+<div class="section-title">Equipos sin AV detectado ({{ sinav | length }})</div>
+<table class="report-table">
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th></tr></thead>
+  <tbody>
+  {% for a in sinav | sort(attribute="hostname") %}
+    <tr><td>{{ a.client or '—' }}</td><td>{{ a.site or '—' }}</td><td><b>{{ a.hostname }}</b></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="ok" style="margin-top:12px;">Todos los equipos Windows tienen un AV detectado.</p>
+{% endif %}
+<div class="section-title">Equipos con AV de terceros ({{ con3 | length }})</div>
+{% if con3 | length %}
+<table class="report-table">
+  <thead><tr><th>Cliente</th><th>Equipo</th><th>Producto(s) detectado(s)</th></tr></thead>
+  <tbody>
+  {% for a in con3 | sort(attribute="hostname") %}
+    <tr><td>{{ a.client or '—' }}</td><td><b>{{ a.hostname }}</b></td>
+      <td>{{ a.third | join(', ') }}{% if a.third | length > 1 %} <span class="badge sev-moderate">m&uacute;ltiples</span>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="muted">Ning&uacute;n equipo con AV de terceros detectado.</p>{% endif %}
+{% if solod | length %}
+<div class="section-title">Solo Microsoft Defender detectado ({{ solod | length }})</div>
+<table class="report-table">
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th></tr></thead>
+  <tbody>
+  {% for a in solod | sort(attribute="hostname") %}
+    <tr><td>{{ a.client or '—' }}</td><td>{{ a.site or '—' }}</td><td><b>{{ a.hostname }}</b></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}""" + END
+ANTIVIRUS_VARS = """data_sources:
+  avinv:
+    model: installedsoftware
+    filter:
+      agent__plat: windows
+    only:
+    - software
+    - agent__hostname
+    - agent__site__name
+    - agent__site__client__name
+"""
+
+
 CURATED = [
     {"name": "Inventario de Agentes", "type": "html", "template_md": INV_AGENTES, "template_variables": INV_AGENTES_VARS},
     {"name": "Especificaciones de Equipos", "type": "html", "template_md": SPECS, "template_variables": SPECS_VARS},
@@ -748,6 +863,7 @@ CURATED = [
     {"name": "Actualizaciones Pendientes por Sitio", "type": "html", "template_md": WU_SITIO, "template_variables": WU_SITIO_VARS},
     {"name": "Ultimas Actualizaciones Instaladas", "type": "html", "template_md": WU_INSTALADAS, "template_variables": WU_INSTALADAS_VARS},
     {"name": "Registro de Auditoria", "type": "html", "template_md": AUDITORIA, "template_variables": AUDITORIA_VARS},
+    {"name": "Cobertura de Antivirus", "type": "html", "template_md": ANTIVIRUS, "template_variables": ANTIVIRUS_VARS},
     # --- Dashboards con gráficos (W005 — requieren chromium provisionado) ---
     {"name": "Panel de Alertas", "type": "html", "template_md": ALERTAS, "template_variables": ALERTAS_VARS},
     {"name": "Estado de Chequeos", "type": "html", "template_md": CHEQUEOS, "template_variables": CHEQUEOS_VARS},
