@@ -8,6 +8,17 @@ observer_meshcentral_version: "1.1.44"
 observer_mesh_db_name: meshcentral
 observer_mesh_db_user: meshcentral
 
+# Verificación del hash de cert de web que el agente reporta contra el cert que
+# MeshCentral fija (ignoreAgentHashCheck). Default false = pin ESTRICTO (correcto
+# cuando el agente ve el MISMO cert que MeshCentral: single-proxy / tlsOffload +
+# nginx local con LE válido, como staging).
+# Poner TRUE cuando hay un reverse-proxy que RE-ENCRIPTA delante del mesh (p.ej. el
+# NPM corporativo double-proxy de tier1): el agente ve el cert LE del NPM y su hash
+# NO calza con el cert interno que MeshCentral fija -> "Agent bad web cert hash ...
+# holding connection" -> el nodo nunca registra y "Tomar control" no funciona.
+# En true el TLS SIGUE validándose (cadena LE); solo se omite el pin del hash exacto.
+observer_mesh_ignore_agent_hash_check: false
+
 # Cuenta admin de MeshCentral (= install.sh meshusername/letsemail). El usuario debe
 # coincidir con MESH_USERNAME de Django (local_settings.j2 default: meshcentral_admin),
 # porque get_mesh_ws_url mina el token de auth para ESTE usuario. La contraseña vive en

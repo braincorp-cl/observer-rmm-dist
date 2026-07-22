@@ -21,12 +21,17 @@
       "https://{{ observer_app_domain }}"
     ],
 {#
-  ignoreAgentHashCheck en false (verificación de hash de cert del agente ACTIVA).
-  El 'true' es un workaround específico de issues en PRODUCCIÓN (legado) y NO debe
-  replicarse en ambientes nuevos. Requiere que MeshCentral cargue el cert externo vía
-  certUrl al arrancar; con tlsOffload + LE válido detrás de nginx, el hash calza.
+  ignoreAgentHashCheck: variable observer_mesh_ignore_agent_hash_check (default false).
+  false = pin ESTRICTO del hash de cert del agente (correcto en single-proxy: el agente
+  ve el mismo cert LE que MeshCentral fija tras tlsOffload+nginx local, como staging).
+  true = necesario cuando un reverse-proxy RE-ENCRIPTA delante del mesh (NPM corporativo
+  double-proxy de tier1): el agente ve el cert LE del NPM, cuyo hash NO calza con el cert
+  interno -> "Agent bad web cert hash ... holding connection" -> el nodo nunca registra y
+  "Tomar control" no funciona. En true el TLS igual se valida (cadena LE); solo se omite
+  el pin del hash exacto. Verificado en PROD tier1 2026-07-22 (nodo TESLADRP registró tras
+  el cambio). Se activa por-entorno en el inventario, NO globalmente.
 #}
-    "ignoreAgentHashCheck": false,
+    "ignoreAgentHashCheck": {{ observer_mesh_ignore_agent_hash_check | to_json }},
 {#
   autoBackup nativo de MeshCentral.
   DESACTIVADO (observer_mesh_autobackup_enabled=false) al CIERRE DEL PROYECTO 2026-07-03,
