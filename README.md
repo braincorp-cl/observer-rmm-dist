@@ -4,6 +4,8 @@ Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
 (backend Django en `api/observerrmm/`, capa Go NATS, frontend Vue/Quasar en
 `web/`) + despliegue con Ansible.
 
+**Versión actual: 1.4.1** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (v2.10.8)
+
 El despliegue reemplaza el script monolítico `install.sh` con 6 roles Ansible
 independientes que soportan dos modos:
 
