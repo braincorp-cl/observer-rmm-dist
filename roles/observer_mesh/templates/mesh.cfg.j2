@@ -22,14 +22,15 @@
     ],
 {#
   ignoreAgentHashCheck: variable observer_mesh_ignore_agent_hash_check (default false).
-  false = pin ESTRICTO del hash de cert del agente (correcto en single-proxy: el agente
-  ve el mismo cert LE que MeshCentral fija tras tlsOffload+nginx local, como staging).
+  false = pin ESTRICTO del hash de cert del agente (correcto solo en single-proxy: el
+  agente ve el mismo cert LE que MeshCentral fija tras tlsOffload+nginx local).
   true = necesario cuando un reverse-proxy RE-ENCRIPTA delante del mesh (NPM corporativo
-  double-proxy de tier1): el agente ve el cert LE del NPM, cuyo hash NO calza con el cert
-  interno -> "Agent bad web cert hash ... holding connection" -> el nodo nunca registra y
-  "Tomar control" no funciona. En true el TLS igual se valida (cadena LE); solo se omite
-  el pin del hash exacto. Verificado en PROD tier1 2026-07-22 (nodo TESLADRP registró tras
-  el cambio). Se activa por-entorno en el inventario, NO globalmente.
+  double-proxy): el agente ve el cert LE del NPM, cuyo hash NO calza con el cert interno
+  -> "Agent bad web cert hash ... holding connection" -> el nodo nunca registra y "Tomar
+  control" no funciona. En true el TLS igual se valida (cadena LE); solo se omite el pin
+  del hash exacto. tier1 (PROD) Y staging quedan tras el NPM double-proxy (incluso por
+  LAN) -> AMBOS lo activan en su inventario. Verificado 2026-07-22 (PROD: nodo TESLADRP
+  registró tras el cambio; staging: 7 nodos reconectaron, 0 rechazos). NO global.
 #}
     "ignoreAgentHashCheck": {{ observer_mesh_ignore_agent_hash_check | to_json }},
 {#

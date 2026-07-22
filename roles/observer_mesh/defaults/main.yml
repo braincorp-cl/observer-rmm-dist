@@ -10,13 +10,16 @@ observer_mesh_db_user: meshcentral
 
 # Verificación del hash de cert de web que el agente reporta contra el cert que
 # MeshCentral fija (ignoreAgentHashCheck). Default false = pin ESTRICTO (correcto
-# cuando el agente ve el MISMO cert que MeshCentral: single-proxy / tlsOffload +
-# nginx local con LE válido, como staging).
-# Poner TRUE cuando hay un reverse-proxy que RE-ENCRIPTA delante del mesh (p.ej. el
-# NPM corporativo double-proxy de tier1): el agente ve el cert LE del NPM y su hash
-# NO calza con el cert interno que MeshCentral fija -> "Agent bad web cert hash ...
-# holding connection" -> el nodo nunca registra y "Tomar control" no funciona.
-# En true el TLS SIGUE validándose (cadena LE); solo se omite el pin del hash exacto.
+# solo cuando el agente ve el MISMO cert que MeshCentral: single-proxy / tlsOffload +
+# nginx local con LE válido, sin reverse-proxy que re-encripte delante).
+# Poner TRUE cuando hay un reverse-proxy que RE-ENCRIPTA delante del mesh (el NPM
+# corporativo double-proxy): el agente ve el cert LE del NPM y su hash NO calza con el
+# cert interno que MeshCentral fija -> "Agent bad web cert hash ... holding connection"
+# -> el nodo nunca registra y "Tomar control" no funciona. En true el TLS SIGUE
+# validándose (cadena LE); solo se omite el pin del hash exacto.
+# NOTA: tier1 (PROD) Y staging quedan detrás del NPM double-proxy (incluso por LAN),
+# así que AMBOS lo activan en su inventario (true). El default se deja false para
+# instalaciones nuevas single-proxy.
 observer_mesh_ignore_agent_hash_check: false
 
 # Cuenta admin de MeshCentral (= install.sh meshusername/letsemail). El usuario debe
