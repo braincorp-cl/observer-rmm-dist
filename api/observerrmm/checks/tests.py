@@ -1162,3 +1162,96 @@ class TestCheckPermissions(ObserverTestCase):
 
         self.check_authorized("patch", url)
         self.check_not_authorized("patch", unauthorized_url)
+
+
+class TestGeolocationHistory(ObserverTestCase):
+    """Feature 023: la ubicación se guarda en CheckHistory (mismo almacén y misma
+    retención que los demás checks). El agente/natsapi hacen el INSERT; aquí se
+    valida el lado lectura (endpoints de agents) y que el prune existente purga
+    los puntos geo por antigüedad."""
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+
+    def _make_point(self, agent, lat, long, accuracy, source, minutes_ago=0):
+        from observerrmm.constants import GEO_CHECK_HISTORY_ID
+
+        ch = CheckHistory.objects.create(
+            check_id=GEO_CHECK_HISTORY_ID,
+            agent_id=agent.agent_id,
+            y=accuracy,
+            results={
+                "lat": lat,
+                "long": long,
+                "source": source,
+                "captured_at": "2026-07-23T12:00:00Z",
+            },
+        )
+        if minutes_ago:
+            # x es auto_now_add → hay que forzarlo con un UPDATE que lo saltea.
+            CheckHistory.objects.filter(pk=ch.pk).update(
+                x=djangotime.now() - djangotime.timedelta(minutes=minutes_ago)
+            )
+        return ch
+
+    def test_get_latest_location(self):
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = True
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+
+        # dos puntos: el más reciente debe ganar
+        self._make_point(agent, -33.10, -70.10, 80, "ip", minutes_ago=60)
+        self._make_point(agent, -33.4489, -70.6693, 35, "native", minutes_ago=1)
+
+        url = f"/agents/{agent.agent_id}/location/"
+        resp = self.client.get(url, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.data["enabled"])
+        self.assertEqual(resp.data["lat"], -33.4489)
+        self.assertEqual(resp.data["source"], "native")
+
+        self.check_not_authenticated("get", url)
+
+    def test_latest_location_switch_off(self):
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = False
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+        # aun habiendo puntos históricos, con el switch global apagado no se exponen
+        self._make_point(agent, -33.4489, -70.6693, 35, "native", minutes_ago=1)
+
+        url = f"/agents/{agent.agent_id}/location/"
+        resp = self.client.get(url, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.data["enabled"])
+        self.assertNotIn("lat", resp.data)
+
+    def test_location_history(self):
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = True
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+        self._make_point(agent, -33.44, -70.66, 40, "native", minutes_ago=30)
+        self._make_point(agent, -33.45, -70.67, 35, "native", minutes_ago=5)
+
+        url = f"/agents/{agent.agent_id}/location/history/"
+        resp = self.client.get(url, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data["points"]), 2)
+
+        self.check_not_authenticated("get", url)
+
+    def test_prune_removes_geo_points(self):
+        from checks.tasks import prune_check_history
+
+        agent = baker.make_recipe("agents.agent")
+        # un punto reciente y uno más viejo que la retención (30 días por defecto)
+        self._make_point(agent, -33.45, -70.67, 35, "native", minutes_ago=1)
+        self._make_point(
+            agent, -33.10, -70.10, 80, "ip", minutes_ago=60 * 24 * 45
+        )  # 45 días
+
+        self.assertEqual(CheckHistory.objects.count(), 2)
+        prune_check_history(self.coresettings.check_history_prune_days)
+        # el prune (agnóstico al check_id) borra el punto geo viejo, igual que
+        # cualquier otro historial de check → confirma reutilización de retención.
+        self.assertEqual(CheckHistory.objects.count(), 1)

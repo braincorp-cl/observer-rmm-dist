@@ -86,6 +86,12 @@ class CoreSettings(BaseAuditModel):
     mesh_company_name = models.CharField(max_length=255, null=True, blank=True)
     sync_mesh_with_trmm = models.BooleanField(default=True)
     agent_auto_update = models.BooleanField(default=True)
+    # Interruptor GLOBAL de geolocalización de la flota (feature 023). Apagado por
+    # defecto: mientras sea False el agente no captura ni publica ubicación y el
+    # backend ignora cualquier punto entrante (defensa en profundidad). El histórico
+    # se guarda en CheckHistory y respeta check_history_prune_days. No es por-agente:
+    # activos corporativos, no requiere consentimiento del usuario final.
+    geo_tracking_enabled = models.BooleanField(default=False)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="default_workstation_policy",

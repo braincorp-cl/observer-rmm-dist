@@ -21,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from checks.models import CheckHistory
 from core.tasks import sync_mesh_perms_task
 from core.utils import (
     get_core_settings,
@@ -35,6 +36,7 @@ from observerrmm.constants import (
     AGENT_DEFER,
     AGENT_STATUS_OFFLINE,
     AGENT_STATUS_ONLINE,
+    GEO_CHECK_HISTORY_ID,
     AgentHistoryType,
     AgentMonType,
     AgentPlat,
@@ -1194,6 +1196,97 @@ class AgentHistoryView(APIView):
             history = AgentHistory.objects.filter_by_role(request.user)  # type: ignore
         ctx = {"default_tz": get_default_timezone()}
         return Response(AgentHistorySerializer(history, many=True, context=ctx).data)
+
+
+class AgentLocation(APIView):
+    """Feature 023: última ubicación conocida del equipo.
+
+    La posición "actual" se deriva de la última fila geo de CheckHistory (no se
+    denormaliza en agents_agent). Si el interruptor global está apagado, responde
+    {"enabled": false} — nunca 404 por estar apagado (eso se reserva para agente
+    inexistente). Toda consulta queda auditada (RF-09 / RN-02).
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        AuditLog.audit_agent_location_viewed(
+            username=request.user.username, agent=agent
+        )
+
+        if not get_core_settings().geo_tracking_enabled:
+            return Response({"enabled": False})
+
+        latest = (
+            CheckHistory.objects.filter(
+                agent_id=agent.agent_id, check_id=GEO_CHECK_HISTORY_ID
+            )
+            .order_by("-x")
+            .first()
+        )
+        if not latest or not latest.results:
+            return Response({"enabled": True, "lat": None, "long": None})
+
+        r = latest.results
+        return Response(
+            {
+                "enabled": True,
+                "lat": r.get("lat"),
+                "long": r.get("long"),
+                "accuracy_m": latest.y,
+                "source": r.get("source"),
+                "captured_at": latest.x,
+            }
+        )
+
+
+class AgentLocationHistory(APIView):
+    """Feature 023: histórico de trayectoria (secuencia de puntos con timestamp).
+
+    Lee de CheckHistory por rango de x. Respeta la retención existente
+    (check_history_prune_days): no hay puntos más viejos que la ventana. Tope
+    server-side con bandera `truncated` para no devolver series enormes.
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        AuditLog.audit_agent_location_viewed(
+            username=request.user.username, agent=agent
+        )
+
+        qs = CheckHistory.objects.filter(
+            agent_id=agent.agent_id, check_id=GEO_CHECK_HISTORY_ID
+        ).order_by("x")
+
+        start = request.query_params.get("from")
+        end = request.query_params.get("to")
+        if start and parse_datetime(start):
+            qs = qs.filter(x__gte=parse_datetime(start))
+        if end and parse_datetime(end):
+            qs = qs.filter(x__lte=parse_datetime(end))
+
+        try:
+            limit = int(request.query_params.get("limit", 500))
+        except (TypeError, ValueError):
+            limit = 500
+        limit = max(1, min(limit, 5000))
+
+        total = qs.count()
+        points = [
+            {
+                "lat": row.results.get("lat"),
+                "long": row.results.get("long"),
+                "accuracy_m": row.y,
+                "source": row.results.get("source"),
+                "captured_at": row.x,
+            }
+            for row in qs[:limit]
+            if row.results
+        ]
+        return Response({"points": points, "truncated": total > limit})
 
 
 class ScriptRunHistory(APIView):

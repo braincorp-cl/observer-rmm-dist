@@ -80,6 +80,16 @@
         class="q-mr-sm"
         @click="runTakeControl(selectedAgent)"
       />
+      <q-btn
+        dense
+        flat
+        :label="$t('agentTabs.location.button')"
+        icon="place"
+        size="md"
+        no-caps
+        class="q-mr-sm"
+        @click="showLocation = true"
+      />
       <q-btn-dropdown
         dense
         flat
@@ -286,6 +296,12 @@
       <div class="col-2"></div>
     </div>
     <q-inner-loading :showing="loading" color="primary" />
+
+    <AgentLocationDialog
+      v-model="showLocation"
+      :agent-id="selectedAgent"
+      :hostname="summary.hostname"
+    />
   </div>
 </template>
 
@@ -304,11 +320,13 @@ import { fetchCustomFields } from "@/api/core";
 
 // ui imports
 import AgentActionMenu from "@/components/agents/AgentActionMenu.vue";
+import AgentLocationDialog from "@/components/agents/AgentLocationDialog.vue";
 
 export default {
   name: "SummaryTab",
   components: {
     AgentActionMenu,
+    AgentLocationDialog,
   },
   setup() {
     // vuex setup
@@ -324,6 +342,7 @@ export default {
     const summary = ref(null);
     const customFieldsDefinitions = ref(null);
     const loading = ref(false);
+    const showLocation = ref(false); // feature 023: diálogo de ubicación
 
     const serial_number = computed(() => {
       if (summary.value.plat === "windows") {
@@ -436,6 +455,7 @@ export default {
       summary,
       customFields,
       loading,
+      showLocation,
       selectedAgent,
       disks,
       dash_info_color,

@@ -366,7 +366,9 @@
     "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='text-red'>country code</span>, followed by the <span class='text-green'>phone number</span> e.g. <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
     "sendingTestEmail": "Sending test email...",
     "sendingTestSms": "Sending test SMS...",
-    "settingsEdited": "Settings were edited!"
+    "settingsEdited": "Settings were edited!",
+    "geoTracking": "Enable fleet geolocation",
+    "geoTrackingTooltip": "Global switch. When enabled, agents report their approximate location (corporate devices). History follows the check-history retention."
   },
   "bulkAction": {
     "close": "Close",
@@ -633,6 +635,19 @@
       "smsAlert": "SMS Alert",
       "emailAlert": "Email Alert",
       "dashboardAlert": "Dashboard Alert"
+    },
+    "location": {
+      "button": "Location",
+      "title": "Location of {hostname}",
+      "close": "Close",
+      "disabled": "Geolocation is disabled in global settings.",
+      "noFix": "No location recorded for this device yet.",
+      "meta": "Source: {source} · accuracy ~{accuracy} m · {when}",
+      "source_native": "GPS/native",
+      "source_wifi": "WiFi",
+      "source_ip": "IP (approximate)",
+      "source_denied": "permission denied",
+      "source_unavailable": "unavailable"
     }
   },
   "agentActions": {

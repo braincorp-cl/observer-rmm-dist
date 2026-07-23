@@ -87,6 +87,22 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
+    def audit_agent_location_viewed(
+        username: str, agent: "Agent", debug_info: Dict[Any, Any] = {}
+    ) -> None:
+        # Feature 023 (RF-09 / RN-02): cada consulta de la ubicación de un equipo
+        # queda registrada (quién y cuándo). No se guardan coordenadas en el log.
+        AuditLog.objects.create(
+            username=username,
+            agent=agent.hostname,
+            agent_id=agent.agent_id,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.VIEW,
+            message=f"{username} viewed the location of {agent.hostname}.",
+            debug_info=debug_info,
+        )
+
+    @staticmethod
     def audit_raw_command(
         username: str,
         agent: "Agent",

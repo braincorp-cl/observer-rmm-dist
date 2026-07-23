@@ -13,6 +13,12 @@ import (
 	"github.com/braincorp-cl/observer-rmm/natsapi/shared"
 )
 
+// geoCheckHistoryID: centinela de check_id para las filas de geolocalización en
+// checks_checkhistory (feature 023). DEBE coincidir con el literal de
+// observerrmm/constants.py#GEO_CHECK_HISTORY_ID; el endpoint de lectura filtra
+// por este mismo valor.
+const geoCheckHistoryID = 2000000000
+
 func Svc(logger *logrus.Logger, cfg string) {
 	logger.Debugln("Starting Svc()")
 	db, r, err := GetConfig(cfg)
@@ -189,6 +195,55 @@ func Svc(logger *logrus.Logger, cfg string) {
 					if err != nil {
 						logger.Errorln(err)
 					}
+				}
+			}()
+
+		case "agent-geolocation":
+			// Feature 023: la ubicación se guarda como una fila en
+			// checks_checkhistory (mismo almacén y misma retención que los demás
+			// checks). No hay UPDATE a agents_agent: la posición "actual" es la
+			// última fila. Ver CONTRACT-01.
+			go func() {
+				var p shared.GeoNats
+				if err := dec.Decode(&p); err != nil {
+					return
+				}
+				if !validAgent(logger, msg.Subject, p.Agentid) {
+					return
+				}
+				// Interruptor GLOBAL (defensa en profundidad): si está apagado,
+				// ignorar aunque un agente publique.
+				var geoEnabled bool
+				if err := db.QueryRow(`SELECT geo_tracking_enabled FROM core_coresettings ORDER BY id LIMIT 1;`).Scan(&geoEnabled); err != nil || !geoEnabled {
+					logger.Debugln("Geo: interruptor global apagado o no leído, descartando punto")
+					return
+				}
+				// Estados sin fix: NO se guardan filas con coordenadas nulas
+				// (CONTRACT-01 punto 3). No se loggean coordenadas a nivel normal.
+				if p.Source == "denied" || p.Source == "unavailable" {
+					logger.Debugln("Geo: sin fix, no se inserta punto")
+					return
+				}
+				if p.Lat < -90 || p.Lat > 90 || p.Long < -180 || p.Long > 180 || (p.Lat == 0 && p.Long == 0) {
+					logger.Debugln("Geo: coordenadas fuera de rango, descartando")
+					return
+				}
+				results, err := json.Marshal(map[string]interface{}{
+					"lat":         p.Lat,
+					"long":        p.Long,
+					"source":      p.Source,
+					"captured_at": p.CapturedAt,
+				})
+				if err != nil {
+					logger.Errorln(err)
+					return
+				}
+				stmt := `
+				INSERT INTO checks_checkhistory (check_id, agent_id, x, y, results)
+				VALUES ($1, $2, $3, $4, $5);`
+				_, err = db.Exec(stmt, geoCheckHistoryID, p.Agentid, time.Now().UTC(), p.AccuracyM, results)
+				if err != nil {
+					logger.Errorln(err)
 				}
 			}()
 		}

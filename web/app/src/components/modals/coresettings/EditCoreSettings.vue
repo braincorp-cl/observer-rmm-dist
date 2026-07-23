@@ -71,6 +71,16 @@
                     </q-tooltip>
                   </q-checkbox>
                 </q-card-section>
+                <q-card-section class="row">
+                  <q-checkbox
+                    v-model="settings.geo_tracking_enabled"
+                    :label="$t('editCoreSettings.geoTracking')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.geoTrackingTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
                 <q-card-section v-if="!hosted" class="row">
                   <q-checkbox
                     v-model="settings.enable_server_scripts"

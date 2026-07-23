@@ -133,6 +133,11 @@ CHECKIN_DISKS = (1000, 2000)
 CHECKIN_SW = (2800, 3500)
 CHECKIN_WMI = (3000, 4000)
 CHECKIN_SYNCMESH = (3600, 7200)
+# Feature 023: captura de geolocalización de baja frecuencia (~25-35 min). Solo se
+# usa cuando el interruptor global CoreSettings.geo_tracking_enabled está activo; el
+# agente también captura al detectar cambio de red, así que este intervalo es un piso
+# conservador, no la única fuente de puntos. Subir vía local_settings.py si se quiere.
+CHECKIN_GEO = (1500, 2100)
 CHECK_INTERVAL_JITTER = (3, 120)
 NATS_MAX_CONNECTIONS = 50000
 TRMM_LOG_LEVEL = "ERROR"

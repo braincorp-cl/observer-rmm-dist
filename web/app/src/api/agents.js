@@ -60,6 +60,20 @@ export async function editAgent(agent_id, payload) {
   return data;
 }
 
+// Feature 023: geolocalización. La última ubicación se deriva de CheckHistory en
+// el backend; el histórico devuelve la secuencia de puntos (trayectoria).
+export async function fetchAgentLocation(agent_id) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/location/`);
+  return data;
+}
+
+export async function fetchAgentLocationHistory(agent_id, params = {}) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/location/history/`, {
+    params: params,
+  });
+  return data;
+}
+
 export async function removeAgent(agent_id) {
   const { data } = await axios.delete(`${baseUrl}/${agent_id}/`);
   return data;

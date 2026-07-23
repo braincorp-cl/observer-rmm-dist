@@ -265,6 +265,15 @@ class URLActionType(models.TextChoices):
     REST = "rest", "Rest"
 
 
+# Feature 023 (geolocalización): las filas de ubicación se guardan en CheckHistory
+# reutilizando la infraestructura de retención (prune_check_history, agnóstico al
+# check_id). check_id es un PositiveIntegerField (NO una FK), así que usamos un valor
+# centinela reservado, muy por encima de cualquier PK real de checks_check, para
+# distinguir los puntos geo del historial de checks normales. El consumidor natsapi
+# escribe este MISMO literal en su INSERT por SQL raw — mantener ambos en sincronía.
+GEO_CHECK_HISTORY_ID = 2000000000
+
+
 class URLActionRestMethod(models.TextChoices):
     GET = "get", "Get"
     POST = "post", "Post"

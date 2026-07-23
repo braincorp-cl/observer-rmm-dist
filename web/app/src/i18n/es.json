@@ -366,7 +366,9 @@
     "addNumberMessage": "Usa el formato E.164: debe tener el símbolo <b>+</b> y el <span class='text-red'>código de país</span>, seguido del <span class='text-green'>número de teléfono</span>, por ejemplo <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
     "sendingTestEmail": "Enviando correo de prueba...",
     "sendingTestSms": "Enviando SMS de prueba...",
-    "settingsEdited": "¡La configuración fue editada!"
+    "settingsEdited": "¡La configuración fue editada!",
+    "geoTracking": "Habilitar geolocalización de la flota",
+    "geoTrackingTooltip": "Interruptor global. Con esto activo, los agentes reportan su ubicación aproximada (equipos corporativos). El historial respeta la retención del historial de chequeos."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -633,6 +635,19 @@
       "smsAlert": "Alerta por SMS",
       "emailAlert": "Alerta por correo",
       "dashboardAlert": "Alerta en el panel"
+    },
+    "location": {
+      "button": "Ubicación",
+      "title": "Ubicación de {hostname}",
+      "close": "Cerrar",
+      "disabled": "La geolocalización está desactivada en la configuración global.",
+      "noFix": "Aún no hay una ubicación registrada para este equipo.",
+      "meta": "Fuente: {source} · precisión ~{accuracy} m · {when}",
+      "source_native": "GPS/nativa",
+      "source_wifi": "WiFi",
+      "source_ip": "IP (aproximada)",
+      "source_denied": "permiso denegado",
+      "source_unavailable": "no disponible"
     }
   },
   "agentActions": {

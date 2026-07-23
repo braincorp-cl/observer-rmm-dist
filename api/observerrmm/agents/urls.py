@@ -33,6 +33,9 @@ urlpatterns = [
     # agent history
     path("history/", views.AgentHistoryView.as_view()),
     path("<agent:agent_id>/history/", views.AgentHistoryView.as_view()),
+    # agent geolocation (feature 023)
+    path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
+    path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),
     # agent notes
     path("notes/", views.GetAddNotes.as_view()),
     path("notes/<int:pk>/", views.GetEditDeleteNote.as_view()),

@@ -22,6 +22,22 @@ type PublicIPNats struct {
 	PublicIP string `json:"public_ip"`
 }
 
+// GeoNats is sent by the agent on NATS subject "agent-geolocation".
+// Espejo EXACTO de observer-agent/shared/types.go#GeoNats: mismas claves de
+// wire `json:` (GAP-051). Cambiar una clave aquí sin cambiarla en el agente
+// rompe el decode silenciosamente (struct vacío → INSERT sin agente). Ver
+// CONTRACT-01 (023-geolocalizacion-agente).
+type GeoNats struct {
+	Func       string  `json:"func"`
+	Agentid    string  `json:"agent_id"`
+	Version    string  `json:"version"`
+	Lat        float64 `json:"lat"`
+	Long       float64 `json:"long"`
+	AccuracyM  int     `json:"accuracy_m"`
+	Source     string  `json:"source"`
+	CapturedAt int64   `json:"captured_at"`
+}
+
 // AgentInfoNats is sent by the agent on NATS subject "agent-agentinfo".
 type AgentInfoNats struct {
 	Agentid      string  `json:"agent_id"`

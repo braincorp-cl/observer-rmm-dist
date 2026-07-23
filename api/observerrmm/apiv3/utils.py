@@ -5,6 +5,17 @@ from django.conf import settings
 from observerrmm.structs import AgentCheckInConfig
 
 
+def _geo_tracking_enabled() -> bool:
+    # Feature 023: interruptor GLOBAL. Se lee de CoreSettings; ante cualquier
+    # problema se asume apagado (fail-safe: nunca activar geolocalización por error).
+    try:
+        from core.utils import get_core_settings
+
+        return bool(get_core_settings().geo_tracking_enabled)
+    except Exception:
+        return False
+
+
 def get_agent_config() -> AgentCheckInConfig:
     return AgentCheckInConfig(
         # Fallbacks aligned to the anti-OOM production defaults in settings.py:
@@ -34,4 +45,6 @@ def get_agent_config() -> AgentCheckInConfig:
         install_deno_version=getattr(settings, "INSTALL_DENO_VERSION", ""),
         install_deno_url=getattr(settings, "INSTALL_DENO_URL", ""),
         deno_default_permissions=getattr(settings, "DENO_DEFAULT_PERMISSIONS", ""),
+        geo_enabled=_geo_tracking_enabled(),
+        checkin_geo=random.randint(*getattr(settings, "CHECKIN_GEO", (1500, 2100))),
     )

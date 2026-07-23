@@ -26,3 +26,7 @@ class AgentCheckInConfig(TRMMStruct):
     install_deno_version: str
     install_deno_url: str
     deno_default_permissions: str
+    # Feature 023: interruptor GLOBAL (mismo valor para toda la flota) + intervalo
+    # de captura de baja frecuencia. Claves aditivas; un agente antiguo las ignora.
+    geo_enabled: bool
+    checkin_geo: int
