@@ -1,0 +1,4 @@
+# /etc/cron.d/observer-agents-cdn-sync
+# Publica al CDN local los binarios de nuevos releases de observer-agent-dist (pull-based).
+# script: /usr/local/bin/observer-agents-cdn-sync.sh  ·  token: /etc/observer-agents-sync/token (600 root)
+*/5 * * * * root /usr/local/bin/observer-agents-cdn-sync.sh >> /var/log/observer-agents-cdn-sync.log 2>&1

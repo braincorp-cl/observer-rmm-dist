@@ -106,3 +106,24 @@ hardening 403, `PUT` 2 MB sin auth → 401 (no 413).
 El vhost vive en `/etc/apache2/sites-available/agents.observer.cl.conf` del appserver. Tras
 editar aquí, el usuario copia el `.conf`, y si se tocaron cabeceras `Header`:
 `a2enmod headers`; luego `apache2ctl configtest && systemctl reload apache2`.
+
+## Auto-publicación por cron en el appserver (pull-based) — 2026-07-24
+
+Desde 2026-07-24 el **push del runner (primario) dejó de funcionar**: tras estrechar el FW a
+`*.github.com`, el runner de GitHub (IPs Azure, ~7.3k CIDRs dinámicos publicados en
+`api.github.com/meta`→`.actions`, no cubiertas por ese FQDN) ya no conecta a
+`agents.observer.cl:443` (`curl 28`). Para no depender del runner se instaló una variante
+**AUTO pull-based que corre EN el appserver**:
+
+- `observer-agents-cdn-sync.sh` → `/usr/local/bin/` (root:root 750) — idempotente, baja los
+  assets del GitHub release por API y los publica en `releases/download/<tag>/`.
+- `observer-agents-cdn-sync.cron` → `/etc/cron.d/observer-agents-cdn-sync` (cada 5 min).
+- Token en `/etc/observer-agents-sync/token` (600 root).
+
+⚠️ **Divergencia a reconciliar:** tanto el primario (credencial de subida dedicada) como el
+fallback (control-plane) evitaban a propósito **tener un PAT de GitHub en el appserver**. Esta
+variante sí lo requiere. Preferir un **fine-grained PAT read-only** (Contents:read, repo
+`observer-agent-dist`). Decisión pendiente: (a) mover la automatización al control-plane
+(cron que invoque `observer-agents-cdn-publish.sh` al detectar tags nuevos), o (b) mantener
+este cron con un token de alcance mínimo. Alternativa de fondo: arreglar el FW para el push
+del runner (difícil: IPs dinámicas) o quitar ese paso de `release.yml`.
