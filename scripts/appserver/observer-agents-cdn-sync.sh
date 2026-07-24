@@ -12,9 +12,9 @@
 # de forma automática (detecta tags nuevos y los publica), sin depender del runner.
 #
 # MECANISMO OFICIAL (decidido 2026-07-24): el control-plane no debe ser crítico y no se abre
-# nada de entrada en el FW, así que la automatización vive aquí (appserver, always-on). El costo
-# es un token de GitHub en el appserver (/etc/observer-agents-sync/token): usar un fine-grained
-# PAT read-only (Contents:read, repo observer-agent-dist), NO un token amplio. El push del runner
+# nada de entrada en el FW, así que la automatización vive aquí (appserver, always-on). Requiere
+# un token de GitHub en /etc/observer-agents-sync/token, protegido a 600 root:root (decisión
+# operativa: se mantiene el token actual, sin migrar a fine-grained PAT). El push del runner
 # (release.yml) se conserva para el futuro (requeriría un self-hosted runner de IP fija). Ver README.md.
 #
 # Idempotente: solo publica tags que aún no están en el docroot. Instalado por cron.d

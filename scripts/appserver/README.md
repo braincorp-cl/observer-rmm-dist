@@ -125,10 +125,8 @@ binarios del release. Es una variante **AUTO pull-based que corre EN el appserve
 - `observer-agents-cdn-sync.cron` → `/etc/cron.d/observer-agents-cdn-sync` (cada 5 min).
 - Token en `/etc/observer-agents-sync/token` (600 root).
 
-⚠️ **Divergencia a reconciliar:** tanto el primario (credencial de subida dedicada) como el
-fallback (control-plane) evitaban a propósito **tener un PAT de GitHub en el appserver**. Esta
-variante sí lo requiere. Preferir un **fine-grained PAT read-only** (Contents:read, repo
-`observer-agent-dist`). Decisión pendiente: (a) mover la automatización al control-plane
-(cron que invoque `observer-agents-cdn-publish.sh` al detectar tags nuevos), o (b) mantener
-este cron con un token de alcance mínimo. Alternativa de fondo: arreglar el FW para el push
-del runner (difícil: IPs dinámicas) o quitar ese paso de `release.yml`.
+**Nota de seguridad:** esta variante requiere un token de GitHub en el appserver
+(`/etc/observer-agents-sync/token`), protegido con permisos de archivo **`600 root:root`**. Por
+**decisión operativa (2026-07-24) se mantiene el token tal cual** (no se migra a un fine-grained
+PAT read-only). El push del runner (`release.yml`) se conserva para reactivarlo a futuro con un
+self-hosted runner de IP de egress fija.
