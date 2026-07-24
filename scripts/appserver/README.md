@@ -11,7 +11,14 @@ se sirven desde infra propia (`appserver 10.20.0.52`, Apache) en vez de depender
 | `agents.observer.cl.conf` | vhost Apache `:83`. **Lee** (público) por dos rutas y **recibe** (WebDAV autenticado) las subidas. Provenance del `/etc/apache2/sites-available/agents.observer.cl.conf` del appserver. |
 | `observer-agents-cdn-publish.sh` | **Fallback manual** (control-plane → SSH). Ver más abajo. |
 
-## Mecanismo de copia — push desde GitHub en cada release (primario)
+## Mecanismo de copia — push desde GitHub en cada release (conservado para el futuro)
+
+> ⚠️ **No operativo desde 2026-07-24.** Tras restringir el FW de entrada a `*.github.com`, el
+> runner de GitHub (IPs Azure dinámicas, sin reverse-DNS, ~7.3k CIDRs en `api.github.com/meta`
+> → `.actions`) ya no conecta a `agents.observer.cl:443`. **Se conserva** este job para reactivarlo
+> a futuro **con un self-hosted runner de IP de egress fija** (allowlistar esa única IP) — un FQDN
+> tipo `*.azure.com` NO sirve (entrante, sin PTR, y sería "todo Azure"). El **mecanismo oficial
+> actual** es la auto-publicación por cron en el appserver (ver más abajo).
 
 El job **`publish-cdn`** del `release.yml` del agente (`observer-agent-dist`) sube los 8
 binarios al CDN por **WebDAV autenticado sobre HTTPS** en cada release:
@@ -107,13 +114,11 @@ El vhost vive en `/etc/apache2/sites-available/agents.observer.cl.conf` del apps
 editar aquí, el usuario copia el `.conf`, y si se tocaron cabeceras `Header`:
 `a2enmod headers`; luego `apache2ctl configtest && systemctl reload apache2`.
 
-## Auto-publicación por cron en el appserver (pull-based) — 2026-07-24
+## Auto-publicación por cron en el appserver (pull-based) — MECANISMO OFICIAL (2026-07-24)
 
-Desde 2026-07-24 el **push del runner (primario) dejó de funcionar**: tras estrechar el FW a
-`*.github.com`, el runner de GitHub (IPs Azure, ~7.3k CIDRs dinámicos publicados en
-`api.github.com/meta`→`.actions`, no cubiertas por ese FQDN) ya no conecta a
-`agents.observer.cl:443` (`curl 28`). Para no depender del runner se instaló una variante
-**AUTO pull-based que corre EN el appserver**:
+**Este es el mecanismo oficial de publicación al CDN.** El control-plane no participa (no es
+equipo crítico) y no se abre nada de entrada en el FW: el appserver **sale** a GitHub y baja los
+binarios del release. Es una variante **AUTO pull-based que corre EN el appserver**:
 
 - `observer-agents-cdn-sync.sh` → `/usr/local/bin/` (root:root 750) — idempotente, baja los
   assets del GitHub release por API y los publica en `releases/download/<tag>/`.

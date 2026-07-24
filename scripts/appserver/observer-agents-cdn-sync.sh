@@ -11,12 +11,11 @@
 # no cruza el firewall que solo permite `*.github.com`. Este cron cierra ese hueco
 # de forma automática (detecta tags nuevos y los publica), sin depender del runner.
 #
-# TRADEOFF / DIVERGENCIA a reconciliar: a diferencia de observer-agents-cdn-publish.sh
-# (fallback manual que corre en el CONTROL-PLANE y NO deja secretos en el appserver),
-# esta variante requiere un token de GitHub EN el appserver (/etc/observer-agents-sync/token).
-# Preferir un fine-grained PAT read-only (Contents:read, repo observer-agent-dist).
-# Decisión pendiente: (a) mover la automatización al control-plane usando el script
-# manual, o (b) mantener este cron con un token de alcance mínimo. Ver README.md.
+# MECANISMO OFICIAL (decidido 2026-07-24): el control-plane no debe ser crítico y no se abre
+# nada de entrada en el FW, así que la automatización vive aquí (appserver, always-on). El costo
+# es un token de GitHub en el appserver (/etc/observer-agents-sync/token): usar un fine-grained
+# PAT read-only (Contents:read, repo observer-agent-dist), NO un token amplio. El push del runner
+# (release.yml) se conserva para el futuro (requeriría un self-hosted runner de IP fija). Ver README.md.
 #
 # Idempotente: solo publica tags que aún no están en el docroot. Instalado por cron.d
 # cada 5 min (observer-agents-cdn-sync.cron). Log: syslog + /var/log/observer-agents-cdn-sync.log
