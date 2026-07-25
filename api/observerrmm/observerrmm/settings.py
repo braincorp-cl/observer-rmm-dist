@@ -138,6 +138,14 @@ CHECKIN_SYNCMESH = (3600, 7200)
 # agente también captura al detectar cambio de red, así que este intervalo es un piso
 # conservador, no la única fuente de puntos. Subir vía local_settings.py si se quiere.
 CHECKIN_GEO = (1500, 2100)
+# Feature 023 · F4: resolución WiFi→coordenadas (modelo Prey, key server-side).
+# El endpoint /api/v3/geolocate/ reenvía las antenas WiFi que reporta el agente a
+# Google Geolocation API usando esta key, que vive SOLO en el backend (nunca en la
+# flota). Vacía = resolución WiFi apagada → el agente degrada a IP. Setear la key
+# real vía local_settings.py o la env var GOOGLE_GEOLOCATION_API_KEY; NO versionar
+# la key en git. Precio Google: 10.000 consultas/mes gratis, luego US$5/1.000.
+GOOGLE_GEOLOCATION_API_KEY = os.getenv("GOOGLE_GEOLOCATION_API_KEY", "")
+GOOGLE_GEOLOCATION_URL = "https://www.googleapis.com/geolocation/v1/geolocate"
 CHECK_INTERVAL_JITTER = (3, 120)
 NATS_MAX_CONNECTIONS = 50000
 TRMM_LOG_LEVEL = "ERROR"

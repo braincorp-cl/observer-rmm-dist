@@ -1,6 +1,7 @@
 import asyncio
 import os
 
+import requests
 from django.conf import settings
 from django.db.models import Prefetch
 from django.http import FileResponse
@@ -660,3 +661,67 @@ class AgentConfig(APIView):
     def get(self, request, agentid):
         ret = get_agent_config()
         return Response(ret._to_dict())
+
+
+class Geolocate(APIView):
+    """Feature 023 · F4: resolver WiFi→coordenadas (modelo Prey).
+
+    El agente manda las antenas WiFi visibles ({considerIp, wifiAccessPoints})
+    y el backend las resuelve contra Google Geolocation API usando una key que
+    vive SOLO aquí (settings.GOOGLE_GEOLOCATION_API_KEY), nunca en la flota.
+    Devuelve {location:{lat,lng},accuracy} (mismo formato que consume el agente)
+    o {} cuando no hay key/fix → el agente degrada a IP. No persiste nada: el
+    reporte de geolocalización sigue su flujo normal por NATS.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        key = getattr(settings, "GOOGLE_GEOLOCATION_API_KEY", "")
+        if not key:
+            # Resolución WiFi no configurada → el agente degrada a IP.
+            return Response({})
+
+        # Normaliza cada antena a los campos válidos de Google Geolocation API
+        # (homologado con Prey: macAddress + signalStrength + channel; se aceptan
+        # también age/signalToNoiseRatio si el agente los envía). Se descarta
+        # cualquier otro campo (p.ej. ssid) y las antenas sin macAddress.
+        raw_aps = request.data.get("wifiAccessPoints") or []
+        google_fields = ("macAddress", "signalStrength", "channel", "age", "signalToNoiseRatio")
+        aps = [
+            {k: ap[k] for k in google_fields if k in ap}
+            for ap in raw_aps
+            if isinstance(ap, dict) and ap.get("macAddress")
+        ]
+        # Google requiere al menos 2 antenas para un fix WiFi fiable; con menos,
+        # dejamos que el agente caiga a IP en vez de gastar una consulta.
+        if len(aps) < 2:
+            return Response({})
+
+        payload = {
+            "considerIp": bool(request.data.get("considerIp", False)),
+            "wifiAccessPoints": aps,
+        }
+        try:
+            r = requests.post(
+                settings.GOOGLE_GEOLOCATION_URL,
+                params={"key": key},
+                json=payload,
+                timeout=10,
+            )
+        except requests.RequestException as e:
+            DebugLog.error(message=f"geolocate: fallo consultando Google Geolocation: {e}")
+            return Response({})
+
+        # 200 = fix; 404 = Google no ubicó las antenas; otros = error de cuota/key.
+        # En todos los casos que no sean 200 el agente degrada a IP (no rompe el
+        # check-in). Se devuelve el cuerpo de Google tal cual (mismo formato).
+        if r.status_code != 200:
+            if r.status_code != 404:
+                DebugLog.error(
+                    message=f"geolocate: Google respondió {r.status_code}: {r.text[:200]}"
+                )
+            return Response({})
+
+        return Response(r.json())
