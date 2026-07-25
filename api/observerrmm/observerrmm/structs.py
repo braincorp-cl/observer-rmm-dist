@@ -30,3 +30,5 @@ class AgentCheckInConfig(TRMMStruct):
     # de captura de baja frecuencia. Claves aditivas; un agente antiguo las ignora.
     geo_enabled: bool
     checkin_geo: int
+    # Gap 3: force-on del sensor de ubicación/radio WiFi en el endpoint corporativo.
+    geo_force_on: bool

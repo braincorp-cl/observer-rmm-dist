@@ -81,6 +81,17 @@
                     </q-tooltip>
                   </q-checkbox>
                 </q-card-section>
+                <q-card-section class="row q-pl-lg">
+                  <q-checkbox
+                    v-model="settings.geo_force_location_on"
+                    :disable="!settings.geo_tracking_enabled"
+                    :label="$t('editCoreSettings.geoForceLocation')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.geoForceLocationTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
                 <q-card-section v-if="!hosted" class="row">
                   <q-checkbox
                     v-model="settings.enable_server_scripts"

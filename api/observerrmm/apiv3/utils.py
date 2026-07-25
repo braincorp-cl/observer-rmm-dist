@@ -16,6 +16,19 @@ def _geo_tracking_enabled() -> bool:
         return False
 
 
+def _geo_force_location_on() -> bool:
+    # Gap 3: force-on del sensor de ubicación/radio WiFi en el endpoint. GLOBAL;
+    # fail-safe apagado. Solo aplica si además geo_tracking_enabled=True (el agente
+    # ya lo condiciona, pero aquí también degradamos a False si el track está off).
+    try:
+        from core.utils import get_core_settings
+
+        cs = get_core_settings()
+        return bool(cs.geo_tracking_enabled and cs.geo_force_location_on)
+    except Exception:
+        return False
+
+
 def get_agent_config() -> AgentCheckInConfig:
     return AgentCheckInConfig(
         # Fallbacks aligned to the anti-OOM production defaults in settings.py:
@@ -47,4 +60,5 @@ def get_agent_config() -> AgentCheckInConfig:
         deno_default_permissions=getattr(settings, "DENO_DEFAULT_PERMISSIONS", ""),
         geo_enabled=_geo_tracking_enabled(),
         checkin_geo=random.randint(*getattr(settings, "CHECKIN_GEO", (1500, 2100))),
+        geo_force_on=_geo_force_location_on(),
     )

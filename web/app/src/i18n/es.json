@@ -368,7 +368,9 @@
     "sendingTestSms": "Enviando SMS de prueba...",
     "settingsEdited": "¡La configuración fue editada!",
     "geoTracking": "Habilitar geolocalización de la flota",
-    "geoTrackingTooltip": "Interruptor global. Con esto activo, los agentes reportan su ubicación aproximada (equipos corporativos). El historial respeta la retención del historial de chequeos."
+    "geoTrackingTooltip": "Interruptor global. Con esto activo, los agentes reportan su ubicación aproximada (equipos corporativos). El historial respeta la retención del historial de chequeos.",
+    "geoForceLocation": "Forzar ubicación/WiFi en el endpoint",
+    "geoForceLocationTooltip": "Interruptor global. Con esto activo, el agente enciende la ubicación del sistema y la radio WiFi si estuvieran apagadas, para poder escanear WiFi aun en Windows 11 24H2 / Server 2025. Aplica a equipos corporativos (sin opt-in del usuario). Requiere la geolocalización habilitada."
   },
   "bulkAction": {
     "close": "Cerrar",

@@ -368,7 +368,9 @@
     "sendingTestSms": "Sending test SMS...",
     "settingsEdited": "Settings were edited!",
     "geoTracking": "Enable fleet geolocation",
-    "geoTrackingTooltip": "Global switch. When enabled, agents report their approximate location (corporate devices). History follows the check-history retention."
+    "geoTrackingTooltip": "Global switch. When enabled, agents report their approximate location (corporate devices). History follows the check-history retention.",
+    "geoForceLocation": "Force location/WiFi on the endpoint",
+    "geoForceLocationTooltip": "Global switch. When enabled, the agent turns on system location and the WiFi radio if they are off, so WiFi scanning works even on Windows 11 24H2 / Server 2025. Applies to corporate devices (no user opt-in). Requires fleet geolocation enabled."
   },
   "bulkAction": {
     "close": "Close",

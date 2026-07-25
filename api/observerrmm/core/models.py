@@ -92,6 +92,14 @@ class CoreSettings(BaseAuditModel):
     # se guarda en CheckHistory y respeta check_history_prune_days. No es por-agente:
     # activos corporativos, no requiere consentimiento del usuario final.
     geo_tracking_enabled = models.BooleanField(default=False)
+    # Force-on del sensor de ubicación en el endpoint (feature 023 · gap 3). Apagado
+    # por defecto y GLOBAL. Cuando está activo, el agente (que corre como SYSTEM /
+    # root sobre un ACTIVO CORPORATIVO) habilita la ubicación del dispositivo y la
+    # radio WiFi si estuvieran apagadas, para que el escaneo de BSSIDs funcione aun
+    # en Windows 11 24H2 / Server 2025 (que exigen Location del SO ON). Política:
+    # el endpoint es de la empresa; no hay opt-in del usuario final. Requiere
+    # geo_tracking_enabled=True para tener efecto.
+    geo_force_location_on = models.BooleanField(default=False)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="default_workstation_policy",
