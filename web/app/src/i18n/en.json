@@ -645,7 +645,7 @@
       "disabled": "Geolocation is disabled in global settings.",
       "noFix": "No location recorded for this device yet.",
       "meta": "Source: {source} · accuracy ~{accuracy} m · {when}",
-      "source_native": "GPS/native",
+      "source_native": "native (OS)",
       "source_wifi": "WiFi",
       "source_ip": "IP (approximate)",
       "source_denied": "permission denied",

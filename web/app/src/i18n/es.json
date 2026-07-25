@@ -645,7 +645,7 @@
       "disabled": "La geolocalización está desactivada en la configuración global.",
       "noFix": "Aún no hay una ubicación registrada para este equipo.",
       "meta": "Fuente: {source} · precisión ~{accuracy} m · {when}",
-      "source_native": "GPS/nativa",
+      "source_native": "nativa (SO)",
       "source_wifi": "WiFi",
       "source_ip": "IP (aproximada)",
       "source_denied": "permiso denegado",
