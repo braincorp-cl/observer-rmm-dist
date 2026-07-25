@@ -1,8 +1,10 @@
 import asyncio
+import hashlib
 import os
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Prefetch
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -699,8 +701,24 @@ class Geolocate(APIView):
         if len(aps) < 2:
             return Response({})
 
+        consider_ip = bool(request.data.get("considerIp", False))
+
+        # Caché de flota (F4 · 4a): la misma constelación de antenas se resuelve UNA
+        # vez y sirve a todos los equipos que la ven (una oficina con N máquinas = 1
+        # consulta a Google, no N). Protege la cuota/costo. La clave es estable por el
+        # conjunto ORDENADO de MACs + considerIp; señal y canal varían por equipo y no
+        # deben fragmentar la caché.
+        macs = sorted(ap["macAddress"].lower() for ap in aps)
+        cache_key = "geo:wifi:" + hashlib.sha1(
+            (str(consider_ip) + "|" + "|".join(macs)).encode()
+        ).hexdigest()
+        cached = cache.get(cache_key)
+        if cached is not None:
+            # "" = centinela de "Google no ubicó estas antenas" (miss cacheado).
+            return Response({} if cached == "" else cached)
+
         payload = {
-            "considerIp": bool(request.data.get("considerIp", False)),
+            "considerIp": consider_ip,
             "wifiAccessPoints": aps,
         }
         try:
@@ -718,10 +736,16 @@ class Geolocate(APIView):
         # En todos los casos que no sean 200 el agente degrada a IP (no rompe el
         # check-in). Se devuelve el cuerpo de Google tal cual (mismo formato).
         if r.status_code != 200:
-            if r.status_code != 404:
+            if r.status_code == 404:
+                # Antenas no ubicables: cachear el miss (TTL corto) para no
+                # reconsultar Google por cada tick del mismo entorno WiFi.
+                cache.set(cache_key, "", settings.GOOGLE_GEOLOCATION_CACHE_MISS_TTL)
+            else:
                 DebugLog.error(
                     message=f"geolocate: Google respondió {r.status_code}: {r.text[:200]}"
                 )
             return Response({})
 
-        return Response(r.json())
+        data = r.json()
+        cache.set(cache_key, data, settings.GOOGLE_GEOLOCATION_CACHE_TTL)
+        return Response(data)

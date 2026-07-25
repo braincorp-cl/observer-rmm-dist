@@ -146,6 +146,14 @@ CHECKIN_GEO = (1500, 2100)
 # la key en git. Precio Google: 10.000 consultas/mes gratis, luego US$5/1.000.
 GOOGLE_GEOLOCATION_API_KEY = os.getenv("GOOGLE_GEOLOCATION_API_KEY", "")
 GOOGLE_GEOLOCATION_URL = "https://www.googleapis.com/geolocation/v1/geolocate"
+# Caché del resolver (Redis): el mismo conjunto de antenas se resuelve UNA vez y
+# sirve a toda la flota que las ve (una oficina con N máquinas = 1 consulta a
+# Google). Protege la cuota/costo. TTL del fix y TTL negativo (antenas que Google
+# no ubica) separados; el negativo es corto por si es transitorio.
+GOOGLE_GEOLOCATION_CACHE_TTL = int(os.getenv("GOOGLE_GEOLOCATION_CACHE_TTL", "3600"))
+GOOGLE_GEOLOCATION_CACHE_MISS_TTL = int(
+    os.getenv("GOOGLE_GEOLOCATION_CACHE_MISS_TTL", "600")
+)
 CHECK_INTERVAL_JITTER = (3, 120)
 NATS_MAX_CONNECTIONS = 50000
 TRMM_LOG_LEVEL = "ERROR"
