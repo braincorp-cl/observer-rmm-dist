@@ -649,7 +649,10 @@
       "source_wifi": "WiFi",
       "source_ip": "IP (approximate)",
       "source_denied": "permission denied",
-      "source_unavailable": "unavailable"
+      "source_unavailable": "unavailable",
+      "showHistory": "History",
+      "hideHistory": "Hide history",
+      "historyCount": "{count} previous locations"
     }
   },
   "agentActions": {
