@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Características · Observer RMM</title>
-<meta name="description" content="Características de Observer RMM: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario, reportería y plataformas soportadas. / Observer RMM features: remote control, script execution, monitoring with alerting, patch management, inventory, reporting, and supported platforms.">
+<meta name="description" content="Características de Observer RMM: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario, ubicación de la flota con geocerca, respuesta rápida en el equipo, reportería y plataformas soportadas. / Observer RMM features: remote control, script execution, monitoring with alerting, patch management, inventory, fleet location with geofencing, on-device quick response, reporting, and supported platforms.">
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -50,8 +50,17 @@
       <p class="eyebrow lang-es">Características</p>
       <p class="eyebrow lang-en">Features</p>
       <h1><span class="lang-es">Qué puedes hacer con Observer RMM</span><span class="lang-en">What you can do with Observer RMM</span></h1>
-      <p class="lead lang-es">Observer RMM reúne, en una sola consola, todo lo necesario para monitorear y administrar remotamente una flota de equipos Windows, Linux y macOS: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches e inventario.</p>
-      <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, and inventory.</p>
+      <p class="lead lang-es">Observer RMM reúne, en una sola consola, todo lo necesario para monitorear y administrar remotamente una flota de equipos Windows, Linux y macOS: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario, ubicación de los activos y respuesta inmediata sobre el equipo.</p>
+      <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, inventory, asset location, and immediate response on the machine itself.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Novedades en 1.4.2</span>
+        <p>Las dos capacidades más recientes son <a href="#ubicacion">ubicación de la flota con geocerca</a> y <a href="#respuesta-endpoint">respuesta rápida en el equipo</a> (bloqueo de pantalla, mensaje al usuario y alarma sonora). Ambas requieren el agente 2.14 o superior, que se instala solo en los equipos con auto-actualización activada.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">New in 1.4.2</span>
+        <p>The two newest capabilities are <a href="#ubicacion">fleet location with geofencing</a> and <a href="#respuesta-endpoint">on-device quick response</a> (screen lock, on-screen message, and audible alarm). Both need agent 2.14 or later, which installs itself on machines that have auto-update enabled.</p>
+      </div>
 
       <figure class="doc-shot">
         <img src="/assets/shots/dashboard.png" alt="Consola principal de Observer RMM">
@@ -67,6 +76,14 @@
         <div class="feature">
           <h3><span class="lang-es">Control remoto de escritorio (tipo TeamViewer)</span><span class="lang-en">Remote desktop control (TeamViewer-like)</span></h3>
           <p><span class="lang-es">Toma el escritorio de un equipo Windows, macOS o Linux desde el navegador, sin instalar software adicional en el equipo del usuario.</span><span class="lang-en">Take over a Windows, macOS, or Linux desktop from the browser, with no extra software to install on the user's machine.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Sesión VNC</span><span class="lang-en">VNC session</span></h3>
+          <p><span class="lang-es">Abre en el navegador una sesión VNC contra el puerto que indiques del equipo, tunelizada por el relay de control remoto. Requiere que el equipo tenga un servidor VNC escuchando.</span><span class="lang-en">Open a VNC session in the browser against the port you specify on the machine, tunneled through the remote-control relay. Requires a VNC server listening on the machine.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Administración en segundo plano</span><span class="lang-en">Background management</span></h3>
+          <p><span class="lang-es">Terminal, archivos y procesos —y en Windows también servicios, eventos y Registro— en una sola ventana, <strong>sin tomar la pantalla ni interrumpir</strong> a quien esté trabajando en el equipo.</span><span class="lang-en">Terminal, files, and processes —plus services, event logs, and Registry on Windows— in a single window, <strong>without taking over the screen or interrupting</strong> whoever is working on the machine.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Shell remoto en tiempo real</span><span class="lang-en">Real-time remote shell</span></h3>
@@ -97,6 +114,14 @@
           <p><span class="lang-es">Gestiona tu propia biblioteca de scripts, con snippets reutilizables y un catálogo de <em>community scripts</em>.</span><span class="lang-en">Manage your own script library, with reusable snippets and a <em>community scripts</em> catalog.</span></p>
         </div>
         <div class="feature">
+          <h3><span class="lang-es">Scripts favoritos</span><span class="lang-en">Favorite scripts</span></h3>
+          <p><span class="lang-es">Marca los scripts que más usas como favoritos y ejecútalos en dos clics desde el menú de cualquier equipo.</span><span class="lang-en">Flag the scripts you use most as favorites and run them in two clicks from any machine's menu.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Borrador de script con IA (opcional)</span><span class="lang-en">AI script draft (optional)</span></h3>
+          <p><span class="lang-es">Si configuras un token de OpenAI, el editor puede redactar un borrador de script a partir de una descripción en lenguaje natural. Sin token configurado, la opción no aparece.</span><span class="lang-en">If you configure an OpenAI token, the editor can draft a script from a plain-language description. With no token configured, the option doesn't appear.</span></p>
+        </div>
+        <div class="feature">
           <h3><span class="lang-es">Ejecutor de tareas automatizadas</span><span class="lang-en">Automated task runner</span></h3>
           <p><span class="lang-es">Programa scripts para que corran en un horario definido, por equipo o por política de automatización.</span><span class="lang-en">Schedule scripts to run on a defined schedule, per machine or per automation policy.</span></p>
         </div>
@@ -122,7 +147,7 @@
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Chequeos automatizados</span><span class="lang-en">Automated checks</span></h3>
-          <p><span class="lang-es">Vigila <strong>CPU, disco, memoria, servicios, salida de scripts y registro de eventos</strong>, con umbrales configurables.</span><span class="lang-en">Watch <strong>CPU, disk, memory, services, script output, and event logs</strong>, with configurable thresholds.</span></p>
+          <p><span class="lang-es">Vigila <strong>CPU, disco, memoria, servicios, ping, salida de scripts y registro de eventos</strong>, con umbrales configurables y un número de fallos consecutivos antes de alertar.</span><span class="lang-en">Watch <strong>CPU, disk, memory, services, ping, script output, and event logs</strong>, with configurable thresholds and a number of consecutive failures before alerting.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Alertas por email, SMS y Webhook</span><span class="lang-en">Email, SMS &amp; webhook alerting</span></h3>
@@ -143,6 +168,14 @@
         <div class="feature">
           <h3><span class="lang-es">Modo mantenimiento</span><span class="lang-en">Maintenance mode</span></h3>
           <p><span class="lang-es">Silencia las alertas de un equipo durante ventanas de mantenimiento planificadas.</span><span class="lang-en">Mute a machine's alerts during planned maintenance windows.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Exclusiones de alerta</span><span class="lang-en">Alert exclusions</span></h3>
+          <p><span class="lang-es">Deja fuera de una plantilla de alerta a clientes, sitios o equipos puntuales, o distingue estaciones de trabajo de servidores.</span><span class="lang-en">Exclude specific clients, sites, or machines from an alert template, or treat workstations and servers differently.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Registro de depuración</span><span class="lang-en">Debug log</span></h3>
+          <p><span class="lang-es">Los mensajes que reportan los agentes, centralizados y filtrables por equipo, tipo (actualizaciones, scripting, problemas del sistema) y nivel de severidad.</span><span class="lang-en">The messages agents report, centralized and filterable by machine, type (updates, scripting, system issues), and severity level.</span></p>
         </div>
       </div>
 
@@ -177,8 +210,16 @@
           <p><span class="lang-es">Recolecta el software instalado y el detalle de hardware de cada equipo (vía WMI en Windows).</span><span class="lang-en">Collect installed software and hardware detail for each machine (via WMI on Windows).</span></p>
         </div>
         <div class="feature">
-          <h3><span class="lang-es">Reinicio remoto</span><span class="lang-en">Remote reboot</span></h3>
-          <p><span class="lang-es">Reinicia equipos de forma remota y detecta cuáles quedaron pendientes de reinicio.</span><span class="lang-en">Reboot machines remotely and detect which ones are pending a reboot.</span></p>
+          <h3><span class="lang-es">Administrador de procesos remoto</span><span class="lang-en">Remote process manager</span></h3>
+          <p><span class="lang-es">Lista los procesos del equipo con su CPU, memoria, usuario y PID, se refresca en vivo (con el intervalo que definas) y permite finalizar un proceso. Funciona en Windows, Linux y macOS.</span><span class="lang-en">Lists the machine's processes with CPU, memory, user, and PID, refreshes live (at the interval you set), and lets you end a process. Works on Windows, Linux, and macOS.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Reinicio y apagado remoto</span><span class="lang-en">Remote reboot &amp; shutdown</span></h3>
+          <p><span class="lang-es">Reinicia o apaga equipos de forma remota —ahora o programado para más tarde— y detecta cuáles quedaron pendientes de reinicio.</span><span class="lang-en">Reboot or shut down machines remotely —now or scheduled for later— and detect which ones are pending a reboot.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Acciones pendientes</span><span class="lang-en">Pending actions</span></h3>
+          <p><span class="lang-es">La cola de lo que quedó agendado y todavía no se ejecuta —reinicios programados, instalación de parches— por equipo o para toda la flota, con su salida y la opción de cancelar.</span><span class="lang-en">The queue of what's scheduled but not yet executed —scheduled reboots, patch installs— per machine or fleet-wide, with its output and the option to cancel.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Wake-on-LAN</span><span class="lang-en">Wake-on-LAN</span></h3>
@@ -191,6 +232,82 @@
         <div class="feature">
           <h3><span class="lang-es">Notas de agente</span><span class="lang-en">Agent notes</span></h3>
           <p><span class="lang-es">Adjunta notas de texto a cada equipo para el resto del equipo operador.</span><span class="lang-en">Attach text notes to each machine for the rest of the operating team.</span></p>
+        </div>
+      </div>
+
+      <h2 id="ubicacion"><span class="lang-es">Ubicación de la flota y geocerca</span><span class="lang-en">Fleet location &amp; geofencing</span></h2>
+      <p class="lang-es">Cada equipo puede reportar dónde está, y la consola avisa cuando un activo se sale del perímetro de su sitio. La función viene <strong>desactivada</strong>: se enciende con un interruptor global en la configuración del servidor.</p>
+      <p class="lang-en">Every machine can report where it is, and the console warns you when an asset leaves its site's perimeter. The feature ships <strong>disabled</strong>: you turn it on with a global switch in the server settings.</p>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Ubicación en el mapa</span><span class="lang-en">Location on a map</span></h3>
+          <p><span class="lang-es">El botón <em>Ubicación</em> del panel de un equipo abre un mapa con su último punto reportado, la precisión estimada y cuándo se midió.</span><span class="lang-en">The <em>Location</em> button on a machine's panel opens a map with its latest reported point, the estimated accuracy, and when it was measured.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Cuatro orígenes, con su precisión a la vista</span><span class="lang-en">Four sources, with accuracy in plain sight</span></h3>
+          <p><span class="lang-es">La ficha dice siempre <strong>de dónde salió</strong> el dato: <em>nativa (SO)</em> y <em>WiFi</em> las mide el propio equipo, con unos 20 metros de error típico; <em>sitio (declarada)</em> son las coordenadas del sitio; <em>IP</em> es la aproximación de último recurso, con error de cientos de kilómetros.</span><span class="lang-en">The card always states <strong>where the reading came from</strong>: <em>native (OS)</em> and <em>WiFi</em> are measured by the machine itself, with roughly 20 metres of typical error; <em>site (declared)</em> are the site's coordinates; <em>IP</em> is the last-resort approximation, off by hundreds of kilometres.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Posición por redes WiFi vecinas</span><span class="lang-en">Positioning from nearby WiFi networks</span></h3>
+          <p><span class="lang-es">El agente lista las antenas WiFi que alcanza y el servidor las resuelve contra un servicio de geolocalización de redes. Es lo que baja el error de cientos de kilómetros a unas decenas de metros, sin GPS. En macOS se usa la ubicación nativa del sistema operativo.</span><span class="lang-en">The agent lists the WiFi access points it can see and the server resolves them against a network geolocation service. That's what brings the error down from hundreds of kilometres to tens of metres, with no GPS involved. On macOS the operating system's native location is used instead.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Histórico de posiciones</span><span class="lang-en">Location history</span></h3>
+          <p><span class="lang-es">El mapa abre en el último punto; el botón <em>Histórico</em> muestra los anteriores y la trayectoria que siguió el equipo.</span><span class="lang-en">The map opens on the latest point; the <em>History</em> button reveals the earlier ones and the path the machine followed.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Coordenadas declaradas por sitio</span><span class="lang-en">Declared per-site coordinates</span></h3>
+          <p><span class="lang-es">Campos opcionales de latitud y longitud en el formulario del sitio. Los equipos fijos que no logran medir su posición —los sin radio WiFi, típicamente máquinas virtuales— se muestran ahí en vez de en el punto grueso de la IP.</span><span class="lang-en">Optional latitude and longitude fields on the site form. Stationary machines that can't measure their position —those without a WiFi radio, typically virtual machines— show up there instead of at the coarse IP point.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Geocerca por sitio</span><span class="lang-en">Per-site geofence</span></h3>
+          <p><span class="lang-es">Compara cada cinco minutos la ubicación <strong>medida</strong> de cada equipo con las coordenadas de su sitio y alerta cuando queda fuera del radio, con aviso en la consola y correo. El radio es configurable (desde 50 metros) y solo se evalúan los orígenes medidos: una coordenada declarada o una IP no disparan una falsa alarma.</span><span class="lang-en">Every five minutes it compares each machine's <strong>measured</strong> location against its site's coordinates and alerts when it falls outside the radius, both in the console and by email. The radius is configurable (from 50 metres up) and only measured sources are evaluated: a declared coordinate or an IP reading can't trigger a false alarm.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Excepción para equipos móviles</span><span class="lang-en">Exception for mobile machines</span></h3>
+          <p><span class="lang-es">La casilla <em>Autorizado a salir del sitio</em> excluye de la geocerca a los notebooks y equipos de terreno, que por definición se mueven.</span><span class="lang-en">The <em>Allowed off site</em> checkbox excludes laptops and field machines —which move by definition— from the geofence.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Forzar ubicación y WiFi en el equipo</span><span class="lang-en">Force location &amp; WiFi on the machine</span></h3>
+          <p><span class="lang-es">Interruptor global aparte: con él activo, el agente enciende el servicio de ubicación del sistema y la radio WiFi si estaban apagados, para que el equipo pueda medirse.</span><span class="lang-en">A separate global switch: with it on, the agent turns on the system location service and the WiFi radio if they were off, so the machine can measure itself.</span></p>
+        </div>
+      </div>
+      <div class="callout note lang-es">
+        <span class="tag">Alcance</span>
+        <p>La geolocalización está pensada para <strong>activos corporativos</strong>: se activa a nivel de servidor, aplica a toda la flota y cada punto queda registrado en el historial del equipo. Decide con esa premisa antes de encenderla.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Scope</span>
+        <p>Location tracking is meant for <strong>corporate assets</strong>: it's enabled at the server level, applies to the whole fleet, and every point is recorded in the machine's history. Decide with that in mind before turning it on.</p>
+      </div>
+
+      <h2 id="respuesta-endpoint"><span class="lang-es">Respuesta rápida en el equipo</span><span class="lang-en">On-device quick response</span></h2>
+      <p class="lang-es">Tres acciones que actúan sobre la persona que está frente al equipo, no sobre el sistema: avisarle, dejarlo bloqueado o hacerlo sonar. Sirven para intervenir antes de un mantenimiento y para reaccionar cuando un equipo se extravía.</p>
+      <p class="lang-en">Three actions that address the person sitting at the machine rather than the system: warn them, lock it, or make it sound. Useful both to give notice before maintenance and to react when a machine goes missing.</p>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Mensaje en pantalla</span><span class="lang-en">On-screen message</span></h3>
+          <p><span class="lang-es">Muestra un cuadro de diálogo con el título y el texto que escribas sobre el escritorio del usuario. El texto se entrega <strong>tal cual</strong>, sin traducir: conviene redactarlo en el idioma de quien lo va a leer.</span><span class="lang-en">Shows a dialog with the title and text you write on the user's desktop. The text is delivered <strong>verbatim</strong>, untranslated: write it in the language of whoever will read it.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Bloquear pantalla</span><span class="lang-en">Lock screen</span></h3>
+          <p><span class="lang-es">Dispara el bloqueo <strong>nativo del sistema operativo</strong>: la sesión queda abierta pero el usuario tiene que volver a autenticarse para seguir.</span><span class="lang-en">Triggers the operating system's <strong>native lock</strong>: the session stays open but the user has to authenticate again to continue.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Alarma sonora</span><span class="lang-en">Audible alarm</span></h3>
+          <p><span class="lang-es">Hace sonar el equipo entre 5 y 300 segundos —para ubicarlo físicamente— y se puede cortar antes desde la consola con <em>Detener alarma</em>.</span><span class="lang-en">Makes the machine sound for 5 to 300 seconds —to locate it physically— and can be cut short from the console with <em>Stop alarm</em>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Equipo por equipo o en masa</span><span class="lang-en">One machine or many</span></h3>
+          <p><span class="lang-es">Las cuatro acciones están en el menú de cada equipo y también como acción masiva sobre una selección. El envío masivo confirma el despacho, pero no informa el resultado equipo por equipo: para eso, usa la acción individual.</span><span class="lang-en">All four actions live in each machine's menu and also as a bulk action over a selection. The bulk send confirms dispatch but doesn't report per-machine results: for that, use the individual action.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Dice por qué no se pudo</span><span class="lang-en">It tells you why it couldn't</span></h3>
+          <p><span class="lang-es">Si nadie tiene una sesión abierta, si el escritorio no tiene con qué mostrar un diálogo o si el equipo está sin red, la consola devuelve <strong>ese</strong> motivo. Un "listo" significa que la acción ocurrió en el equipo, no solo que el mensaje salió del servidor.</span><span class="lang-en">If nobody has a session open, if the desktop has no way to show a dialog, or if the machine is off the network, the console returns <strong>that</strong> reason. A "done" means the action actually happened on the machine, not merely that the message left the server.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Permiso propio y auditoría</span><span class="lang-en">Its own permission, and auditing</span></h3>
+          <p><span class="lang-es">Mensaje, bloqueo y alarma tienen cada uno su permiso de rol, que se otorga por separado, y las tres quedan en el registro de auditoría tanto si funcionan como si fallan.</span><span class="lang-en">Message, lock, and alarm each have their own role permission, granted separately, and all three land in the audit log whether they succeed or fail.</span></p>
         </div>
       </div>
 
@@ -215,6 +332,10 @@
         <div class="feature">
           <h3><span class="lang-es">Historial del agente</span><span class="lang-en">Agent history</span></h3>
           <p><span class="lang-es">Revisa el historial de comandos y scripts ejecutados sobre cada equipo.</span><span class="lang-en">Review the history of commands and scripts run against each machine.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Exportación de tablas a CSV</span><span class="lang-en">CSV table export</span></h3>
+          <p><span class="lang-es">Cualquier tabla de la consola —flota, software, parches, auditoría— se baja como CSV para trabajarla fuera.</span><span class="lang-en">Any table in the console —fleet, software, patches, audit— downloads as CSV to work on elsewhere.</span></p>
         </div>
       </div>
 
@@ -269,8 +390,40 @@
           <p><span class="lang-es">Acceso programático a la API mediante claves con fecha de expiración.</span><span class="lang-en">Programmatic API access through keys with an expiration date.</span></p>
         </div>
         <div class="feature">
+          <h3><span class="lang-es">Sesiones de usuario activas</span><span class="lang-en">Active user sessions</span></h3>
+          <p><span class="lang-es">Revisa qué sesiones tiene abiertas cada usuario de la consola —cuándo se creó y cuándo expira cada una— y desconéctalas, de a una o todas juntas.</span><span class="lang-en">Review which sessions each console user has open —when each was created and when it expires— and disconnect them, one at a time or all at once.</span></p>
+        </div>
+        <div class="feature">
           <h3><span class="lang-es">Registro de auditoría</span><span class="lang-en">Audit log</span></h3>
           <p><span class="lang-es">Bitácora de toda acción de usuario: sesiones remotas, ejecución de scripts, cambios, acciones masivas y logins.</span><span class="lang-en">A log of every user action: remote sessions, script runs, changes, bulk actions, and logins.</span></p>
+        </div>
+      </div>
+
+      <h2 id="operacion-servidor"><span class="lang-es">Operación del servidor</span><span class="lang-en">Server operation</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Auto-actualización de la flota</span><span class="lang-en">Fleet auto-update</span></h3>
+          <p><span class="lang-es">Cuando se publica una versión nueva del agente, los equipos se actualizan solos en su siguiente contacto con el servidor. Se puede desactivar para congelar la flota en una versión conocida.</span><span class="lang-en">When a new agent version is published, machines update themselves on their next check-in. It can be switched off to freeze the fleet on a known version.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Distribución propia de los agentes</span><span class="lang-en">Self-hosted agent distribution</span></h3>
+          <p><span class="lang-es">Los instaladores y binarios del agente se sirven desde infraestructura propia en <code>agents.observer.cl</code>, sin depender de descargas de terceros.</span><span class="lang-en">Agent installers and binaries are served from our own infrastructure at <code>agents.observer.cl</code>, with no third-party downloads involved.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Mantenimiento del servidor</span><span class="lang-en">Server maintenance</span></h3>
+          <p><span class="lang-es">Desde la consola: recargar la configuración de la mensajería, eliminar tareas huérfanas y purgar tablas de la base de datos.</span><span class="lang-en">From the console: reload the messaging configuration, remove orphaned tasks, and prune database tables.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Retención de datos configurable</span><span class="lang-en">Configurable data retention</span></h3>
+          <p><span class="lang-es">Define cuántos días se guardan el historial de chequeos, las alertas resueltas, el historial de agentes, el registro de depuración, la auditoría y el historial de reportes.</span><span class="lang-en">Set how many days to keep check history, resolved alerts, agent history, the debug log, the audit trail, and report history.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Versión y notas de cada release</span><span class="lang-en">Version &amp; release notes</span></h3>
+          <p><span class="lang-es">La consola muestra la versión instalada y avisa cuando hay una nueva, con enlace directo al detalle de los cambios.</span><span class="lang-en">The console shows the installed version and flags when a new one is out, linking straight to the change detail.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Zona horaria y formato de fecha</span><span class="lang-en">Time zone &amp; date format</span></h3>
+          <p><span class="lang-es">Zona horaria del servidor y formato de fecha por defecto para toda la consola, con la opción de que cada usuario los ajuste.</span><span class="lang-en">Server time zone and default date format for the whole console, with the option for each user to adjust them.</span></p>
         </div>
       </div>
 
