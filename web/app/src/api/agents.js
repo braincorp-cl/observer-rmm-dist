@@ -206,6 +206,32 @@ export async function agentShutdown(agent_id) {
   return data;
 }
 
+// Feature 028 · respuesta rápida de endpoint (lock / alert / alarm).
+//
+// El backend responde 400 con `endpoint_response:<código>` cuando el equipo
+// contestó que no pudo. El interceptor de axios (src/boot/axios.js) traduce ese
+// código, así que acá no hay nada que manejar más allá de propagar el error.
+
+export async function agentLockScreen(agent_id) {
+  const { data } = await axios.post(`${baseUrl}/${agent_id}/lock/`);
+  return data;
+}
+
+export async function agentSendAlert(agent_id, payload) {
+  const { data } = await axios.post(`${baseUrl}/${agent_id}/alert/`, payload);
+  return data;
+}
+
+export async function agentSoundAlarm(agent_id, payload) {
+  const { data } = await axios.post(`${baseUrl}/${agent_id}/alarm/`, payload);
+  return data;
+}
+
+export async function agentStopAlarm(agent_id) {
+  const { data } = await axios.delete(`${baseUrl}/${agent_id}/alarm/`);
+  return data;
+}
+
 export async function sendAgentRecoverMesh(agent_id, params = {}) {
   const { data } = await axios.post(
     `${baseUrl}/${agent_id}/meshcentral/recover/`,

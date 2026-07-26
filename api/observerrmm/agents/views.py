@@ -36,18 +36,28 @@ from observerrmm.constants import (
     AGENT_DEFER,
     AGENT_STATUS_OFFLINE,
     AGENT_STATUS_ONLINE,
+    ALARM_DEFAULT_SECONDS,
+    ALARM_MAX_SECONDS,
+    ALARM_MIN_SECONDS,
+    ALERT_MAX_MESSAGE_LEN,
+    ALERT_MAX_TITLE_LEN,
+    ENDPOINT_RESPONSE_CODES,
+    ENDPOINT_RESPONSE_PREFIX,
     GEO_CHECK_HISTORY_ID,
+    NATS_UNREACHABLE,
     AgentHistoryType,
     AgentMonType,
     AgentPlat,
     CustomFieldModel,
     DebugLogType,
+    EndpointResponseAction,
     EvtLogNames,
     PAAction,
     PAStatus,
 )
 from observerrmm.helpers import date_is_in_past, notify_error
 from observerrmm.permissions import (
+    _has_perm,
     _has_perm_on_agent,
     _has_perm_on_client,
     _has_perm_on_site,
@@ -66,13 +76,16 @@ from .permissions import (
     AgentWOLPerms,
     EvtLogPerms,
     InstallAgentPerms,
+    LockAgentPerms,
     ManageProcPerms,
     MeshPerms,
     RebootAgentPerms,
     RecoverAgentPerms,
     RunBulkPerms,
     RunScriptPerms,
+    SendAlertPerms,
     SendCMDPerms,
+    SoundAlarmPerms,
     UpdateAgentPerms,
 )
 from .serializers import (
@@ -84,6 +97,7 @@ from .serializers import (
     AgentTableSerializer,
 )
 from .tasks import (
+    bulk_endpoint_response_task,
     bulk_recover_agents_task,
     run_script_email_results_task,
     send_agent_update_task,
@@ -623,6 +637,133 @@ class Reboot(APIView):
         )
 
 
+# Feature 028 · respuesta rápida de endpoint (lock / alert / alarm).
+#
+# Homologación de las acciones `lock`, `alert` y `alarm` de Prey (backlog 024).
+# `lock` acá es el bloqueo de sesión nativo del SO (Tier 1), NO el overlay
+# antirrobo tipo kiosco de Prey, que quedó fuera de alcance por ser una app de UI
+# nativa por plataforma.
+#
+# Las tres comparten la forma de responder, y esa forma es deliberada: se devuelve
+# un CÓDIGO que la consola traduce, no una frase. El agente no sabe en qué idioma
+# trabaja el operador y no debería inventárselo.
+
+
+def _endpoint_response(agent: "Agent", nats_data: dict) -> Response:
+    """Manda la acción al agente y traduce su respuesta a HTTP.
+
+    Se distinguen tres desenlaces porque al operador le importan distinto:
+
+    - `ok`: la acción se ejecutó.
+    - agente incomunicado (`timeout`/`natsdown`): problema de conectividad; el
+      equipo puede estar apagado o sin red.
+    - código de error del agente: el equipo contestó y explicó por qué no pudo.
+      El caso típico es `no_user_session` — nadie tiene sesión abierta, así que el
+      mensaje NO se vio. Reportar "ok" ahí sería mentirle al operador.
+    """
+    r = asyncio.run(agent.nats_cmd(nats_data, timeout=15))
+
+    if r == "ok":
+        return Response("ok")
+
+    if r in NATS_UNREACHABLE:
+        return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}agent_unreachable")
+
+    # Un código desconocido (agente viejo que no entiende el comando y devuelve
+    # otra cosa) se normaliza a "error" en vez de mostrarse crudo en pantalla.
+    code = r if r in ENDPOINT_RESPONSE_CODES else "error"
+    return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}{code}")
+
+
+class LockAgent(APIView):
+    permission_classes = [IsAuthenticated, LockAgentPerms]
+
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        AuditLog.audit_endpoint_response(
+            username=request.user.username,
+            agent=agent,
+            action=EndpointResponseAction.LOCK,
+            debug_info={"ip": request._client_ip},
+        )
+
+        return _endpoint_response(agent, {"func": "lock"})
+
+
+class SendAlert(APIView):
+    permission_classes = [IsAuthenticated, SendAlertPerms]
+
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        title = str(request.data.get("title", "")).strip()
+        message = str(request.data.get("message", "")).strip()
+
+        # Se valida acá además de en el agente para no gastar un viaje por NATS en
+        # algo que ya se sabe inválido, y para dar el error de inmediato en la UI.
+        if not message:
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}empty_message")
+
+        title = title[:ALERT_MAX_TITLE_LEN]
+        message = message[:ALERT_MAX_MESSAGE_LEN]
+
+        AuditLog.audit_endpoint_response(
+            username=request.user.username,
+            agent=agent,
+            action=EndpointResponseAction.ALERT,
+            # El texto que el usuario vio queda registrado: es la respuesta a
+            # "¿qué decía el mensaje que me apareció?".
+            detail=message,
+            debug_info={"ip": request._client_ip},
+        )
+
+        return _endpoint_response(
+            agent,
+            {"func": "alert", "payload": {"title": title, "message": message}},
+        )
+
+
+class SoundAlarm(APIView):
+    permission_classes = [IsAuthenticated, SoundAlarmPerms]
+
+    # hacer sonar la alarma
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        try:
+            duration = int(request.data.get("duration", ALARM_DEFAULT_SECONDS))
+        except (TypeError, ValueError):
+            duration = ALARM_DEFAULT_SECONDS
+
+        duration = max(ALARM_MIN_SECONDS, min(duration, ALARM_MAX_SECONDS))
+
+        AuditLog.audit_endpoint_response(
+            username=request.user.username,
+            agent=agent,
+            action=EndpointResponseAction.ALARM,
+            detail=f"{duration}s",
+            debug_info={"ip": request._client_ip},
+        )
+
+        return _endpoint_response(
+            agent, {"func": "alarm", "payload": {"duration": str(duration)}}
+        )
+
+    # detener la alarma
+    def delete(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        AuditLog.audit_endpoint_response(
+            username=request.user.username,
+            agent=agent,
+            action=EndpointResponseAction.STOP_ALARM,
+            debug_info={"ip": request._client_ip},
+        )
+
+        return _endpoint_response(agent, {"func": "stopalarm"})
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, InstallAgentPerms])
 def install_agent(request):
@@ -1067,6 +1208,20 @@ def bulk(request):
     if not agents:
         return notify_error("No agents were found meeting the selected criteria")
 
+    # Feature 028: los modos de respuesta rápida exigen SU permiso además de
+    # `can_run_bulk`. Sin esto, cualquiera con permiso de acciones masivas podría
+    # bloquear la flota completa aunque no tenga `can_lock_agents` — la superficie
+    # bulk se convertiría en una forma de saltarse los tres permisos nuevos.
+    bulk_response_perms = {
+        "lock": "can_lock_agents",
+        "alert": "can_send_alerts",
+        "alarm": "can_sound_alarm",
+        "stopalarm": "can_sound_alarm",
+    }
+    required_perm = bulk_response_perms.get(request.data["mode"])
+    if required_perm and not _has_perm(request, required_perm):
+        raise PermissionDenied()
+
     AuditLog.audit_bulk_action(
         request.user,
         request.data["mode"],
@@ -1129,6 +1284,36 @@ def bulk(request):
         elif request.data["patchMode"] == "scan":
             bulk_check_for_updates_task.delay(agents)
             return Response(f"Patch status scan will now run on {len(agents)} agents")
+
+    # Feature 028 · respuesta rápida en masa.
+    elif request.data["mode"] in ("lock", "alarm", "stopalarm"):
+        payload = None
+        if request.data["mode"] == "alarm":
+            try:
+                duration = int(request.data.get("duration", ALARM_DEFAULT_SECONDS))
+            except (TypeError, ValueError):
+                duration = ALARM_DEFAULT_SECONDS
+            duration = max(ALARM_MIN_SECONDS, min(duration, ALARM_MAX_SECONDS))
+            payload = {"duration": str(duration)}
+
+        bulk_endpoint_response_task.delay(
+            agent_pks=agents, func=request.data["mode"], payload=payload
+        )
+        return Response({"mode": request.data["mode"], "count": len(agents)})
+
+    elif request.data["mode"] == "alert":
+        title = str(request.data.get("title", "")).strip()[:ALERT_MAX_TITLE_LEN]
+        message = str(request.data.get("message", "")).strip()[:ALERT_MAX_MESSAGE_LEN]
+
+        if not message:
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}empty_message")
+
+        bulk_endpoint_response_task.delay(
+            agent_pks=agents,
+            func="alert",
+            payload={"title": title, "message": message},
+        )
+        return Response({"mode": "alert", "count": len(agents)})
 
     return notify_error("Something went wrong")
 

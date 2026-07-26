@@ -138,6 +138,19 @@
                 v-model="localRole.can_use_registry"
                 :label="$t('rolesForm.useRegistry')"
               />
+              <!-- respuesta rápida de endpoint (feature 028) -->
+              <q-checkbox
+                v-model="localRole.can_send_alerts"
+                :label="$t('rolesForm.sendAlerts')"
+              />
+              <q-checkbox
+                v-model="localRole.can_lock_agents"
+                :label="$t('rolesForm.lockAgents')"
+              />
+              <q-checkbox
+                v-model="localRole.can_sound_alarm"
+                :label="$t('rolesForm.soundAlarm')"
+              />
             </div>
           </q-card-section>
           <div class="text-subtitle2">{{ $t("rolesForm.secCore") }}</div>
@@ -564,6 +577,10 @@ export default {
           can_view_reports: false,
           can_manage_reports: false,
           can_use_registry: false,
+          // respuesta rápida de endpoint (feature 028)
+          can_send_alerts: false,
+          can_lock_agents: false,
+          can_sound_alarm: false,
         });
 
     const loading = ref(false);

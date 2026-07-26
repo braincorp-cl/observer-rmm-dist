@@ -140,6 +140,27 @@
                   $t("nav.bulkPatchManagement")
                 }}</q-item-section>
               </q-item>
+              <!-- respuesta rápida de endpoint en masa (feature 028) -->
+              <q-separator />
+              <q-item clickable v-close-popup @click="showBulkAction('alert')">
+                <q-item-section>{{
+                  $t("nav.bulkSendAlert")
+                }}</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="showBulkAction('lock')">
+                <q-item-section>{{ $t("nav.bulkLock") }}</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="showBulkAction('alarm')">
+                <q-item-section>{{ $t("nav.bulkAlarm") }}</q-item-section>
+              </q-item>
+              <q-item
+                clickable
+                v-close-popup
+                @click="showBulkAction('stopalarm')"
+              >
+                <q-item-section>{{ $t("nav.bulkStopAlarm") }}</q-item-section>
+              </q-item>
+              <q-separator />
               <!-- server maintenance -->
               <q-item
                 clickable

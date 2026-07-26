@@ -75,6 +75,37 @@ class RebootAgentPerms(permissions.BasePermission):
         )
 
 
+# Feature 028 · respuesta rápida de endpoint.
+#
+# Los tres permisos comparten forma pero no se colapsan en una clase
+# parametrizada: DRF instancia las clases de `permission_classes` sin argumentos,
+# así que una clase por permiso es lo que el framework espera.
+#
+# Todos verifican además `_has_perm_on_agent`: tener el permiso global no alcanza
+# si el rol no llega a ese cliente o sitio.
+
+
+class SendAlertPerms(permissions.BasePermission):
+    def has_permission(self, r, view) -> bool:
+        return _has_perm(r, "can_send_alerts") and _has_perm_on_agent(
+            r.user, view.kwargs["agent_id"]
+        )
+
+
+class LockAgentPerms(permissions.BasePermission):
+    def has_permission(self, r, view) -> bool:
+        return _has_perm(r, "can_lock_agents") and _has_perm_on_agent(
+            r.user, view.kwargs["agent_id"]
+        )
+
+
+class SoundAlarmPerms(permissions.BasePermission):
+    def has_permission(self, r, view) -> bool:
+        return _has_perm(r, "can_sound_alarm") and _has_perm_on_agent(
+            r.user, view.kwargs["agent_id"]
+        )
+
+
 class InstallAgentPerms(permissions.BasePermission):
     def has_permission(self, r, view) -> bool:
         return _has_perm(r, "can_install_agents")

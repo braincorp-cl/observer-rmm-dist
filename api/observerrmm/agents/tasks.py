@@ -20,6 +20,7 @@ from observerrmm.constants import (
     DebugLogType,
 )
 from observerrmm.helpers import rand_range
+from observerrmm.nats_utils import abulk_nats_command
 from observerrmm.utils import redis_lock
 
 if TYPE_CHECKING:
@@ -516,4 +517,39 @@ def _send_geofence_email(agent: "Agent", subject_prefix: str, message: str) -> N
             agent=agent,
             log_type=DebugLogType.AGENT_ISSUES,
             message=f"Geofence email failed: {e}",
+        )
+
+
+# Feature 028 · fan-out masivo de lock / alert / alarm.
+@app.task
+def bulk_endpoint_response_task(
+    *, agent_pks: list[int], func: str, payload: Optional[dict] = None
+) -> None:
+    """Manda la misma acción de respuesta a varios agentes.
+
+    A diferencia de las vistas por agente, acá NO se espera respuesta: el envío es
+    "fire and forget" (`abulk_nats_command`). Es una decisión de escala, no de
+    comodidad — un mensaje a toda la flota son cientos de peticiones NATS, y
+    esperar 15 s por cada agente apagado convertiría la acción en un cuelgue de
+    varios minutos ([[project_production_context]]: flotas grandes).
+
+    El precio es que el operador no ve por qué falló equipo por equipo. Se asume a
+    conciencia: para el diagnóstico individual está la acción por agente, que sí
+    devuelve el código.
+    """
+    nats_data: dict = {"func": func}
+    if payload:
+        nats_data["payload"] = payload
+
+    items = [
+        (agent.agent_id, nats_data)
+        for agent in Agent.objects.defer(*AGENT_DEFER).filter(pk__in=agent_pks)
+    ]
+
+    try:
+        asyncio.run(abulk_nats_command(items=items))
+    except Exception as e:
+        DebugLog.error(
+            log_type=DebugLogType.AGENT_ISSUES,
+            message=f"bulk_endpoint_response_task ({func}) failed: {e}",
         )

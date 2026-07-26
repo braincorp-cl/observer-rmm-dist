@@ -75,7 +75,11 @@
     "featureRequest": "Solicitar función",
     "bulkRecoverTitle": "¿Recuperar todos los agentes?",
     "bulkRecoverMessage": "Esto reiniciará los servicios del agente Observer y Mesh en todos los agentes",
-    "reportingTierWarning": "La función de reportes requiere un patrocinio Tier 2 o superior. Consulta la documentación para más información."
+    "reportingTierWarning": "La función de reportes requiere un patrocinio Tier 2 o superior. Consulta la documentación para más información.",
+    "bulkSendAlert": "Mensaje en pantalla masivo",
+    "bulkLock": "Bloqueo de pantalla masivo",
+    "bulkAlarm": "Alarma sonora masiva",
+    "bulkStopAlarm": "Detener alarma en masa"
   },
   "setup": {
     "gettingStarted": "Primeros pasos",
@@ -866,7 +870,10 @@
     "manageWinServices": "Gestionar servicios de Windows",
     "listSoftware": "Listar software",
     "manageSoftware": "Gestionar software",
-    "manageWinUpdates": "Gestionar actualizaciones de Windows"
+    "manageWinUpdates": "Gestionar actualizaciones de Windows",
+    "sendAlerts": "Enviar mensajes en pantalla",
+    "lockAgents": "Bloquear pantalla",
+    "soundAlarm": "Hacer sonar la alarma"
   },
   "uiConfirmDialog": {
     "yes": "Sí",
@@ -1680,7 +1687,8 @@
     "time1Year": "Hace 1 año",
     "timeEverything": "Todo",
     "noDataSearched": "No se encontraron datos. Intenta refinar tu búsqueda",
-    "noDataInitial": "Haz clic en Buscar para encontrar registros de auditoría"
+    "noDataInitial": "Haz clic en Buscar para encontrar registros de auditoría",
+    "actEndpointResponse": "Respuesta de endpoint"
   },
   "debugLog": {
     "title": "Registro de depuración",
@@ -2811,6 +2819,49 @@
       "fieldModel": "* model (*string)",
       "fieldModelDesc": "Este es el único campo requerido. Especifica la tabla a consultar.",
       "fieldFilter": "* filter (object)"
+    }
+  },
+  "endpointResponse": {
+    "menu": "Respuesta rápida",
+    "sendAlert": "Mensaje en pantalla",
+    "lock": "Bloquear pantalla",
+    "alarm": "Alarma sonora",
+    "stopAlarm": "Detener alarma",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "send": "Enviar",
+    "alertTitle": "Mensaje en pantalla para {hostname}",
+    "alertDefaultTitle": "Mensaje del área de TI",
+    "alertFieldTitle": "Título",
+    "alertFieldTitleHint": "Encabezado del cuadro de diálogo que verá el usuario",
+    "alertFieldMessage": "Mensaje",
+    "alertRequired": "El mensaje no puede quedar vacío",
+    "alertPreviewNote": "El texto se muestra tal cual en el equipo, sin traducir: escríbelo en el idioma del usuario.",
+    "alertSuccess": "Mensaje entregado a {hostname}",
+    "verbLock": "bloqueo de pantalla",
+    "confirmLockTitle": "Confirmar bloqueo de pantalla",
+    "lockSuccess": "Se bloqueó la pantalla de {hostname}",
+    "alarmDurationTitle": "Duración de la alarma",
+    "alarmDurationMessage": "¿Cuántos segundos debe sonar la alarma en {hostname}? (5 a 300)",
+    "alarmDurationLabel": "Duración en segundos",
+    "alarmDurationHint": "Entre 5 y 300 segundos",
+    "alarmSuccess": "Alarma sonando en {hostname}",
+    "stopAlarmSuccess": "Alarma detenida en {hostname}",
+    "bulkTitleAlert": "Mensaje en pantalla masivo",
+    "bulkTitleLock": "Bloqueo de pantalla masivo",
+    "bulkTitleAlarm": "Alarma sonora masiva",
+    "bulkTitleStopAlarm": "Detener alarma en masa",
+    "bulkSuccess": "La acción se envió a {count} equipos",
+    "bulkNoPerAgentResult": "El envío masivo no informa el resultado equipo por equipo. Para ver por qué falló un equipo en particular, usa la acción desde su menú.",
+    "codes": {
+      "ok": "Listo",
+      "no_user_session": "Nadie tiene una sesión abierta en el equipo, así que no había pantalla donde mostrarlo ni sesión que bloquear.",
+      "no_dialog_tool": "El equipo no tiene instalada ninguna herramienta para mostrar un cuadro de diálogo.",
+      "no_audio_player": "El equipo no tiene reproductor de audio ni un sonido del sistema disponible.",
+      "lock_unavailable": "Ningún método de bloqueo funcionó en el escritorio de este equipo.",
+      "empty_message": "El mensaje no puede quedar vacío.",
+      "agent_unreachable": "No se pudo contactar al agente. El equipo puede estar apagado o sin red.",
+      "error": "La acción falló en el equipo. Revisa el log del agente para ver el detalle."
     }
   }
 }

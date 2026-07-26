@@ -75,7 +75,11 @@
     "featureRequest": "Feature Request",
     "bulkRecoverTitle": "Bulk Recover All Agents?",
     "bulkRecoverMessage": "This will restart the Observer and Mesh Agent services on all agents",
-    "reportingTierWarning": "Reporting feature requires a Tier 2 or higher sponsorship. Please check the docs for more info."
+    "reportingTierWarning": "Reporting feature requires a Tier 2 or higher sponsorship. Please check the docs for more info.",
+    "bulkSendAlert": "Bulk on-screen message",
+    "bulkLock": "Bulk screen lock",
+    "bulkAlarm": "Bulk sound alarm",
+    "bulkStopAlarm": "Bulk stop alarm"
   },
   "setup": {
     "gettingStarted": "Getting Started",
@@ -866,7 +870,10 @@
     "manageWinServices": "Manage Windows Services",
     "listSoftware": "List Software",
     "manageSoftware": "Manage Software",
-    "manageWinUpdates": "Manage Windows Updates"
+    "manageWinUpdates": "Manage Windows Updates",
+    "sendAlerts": "Send on-screen messages",
+    "lockAgents": "Lock screen",
+    "soundAlarm": "Sound the alarm"
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -1680,7 +1687,8 @@
     "time1Year": "1 Year Ago",
     "timeEverything": "Everything",
     "noDataSearched": "No data found. Try to refine you search",
-    "noDataInitial": "Click search to find audit logs"
+    "noDataInitial": "Click search to find audit logs",
+    "actEndpointResponse": "Endpoint response"
   },
   "debugLog": {
     "title": "Debug Log",
@@ -2811,6 +2819,49 @@
       "fieldModel": "* model (*string)",
       "fieldModelDesc": "This is the only required field. This specifies the table to query.",
       "fieldFilter": "* filter (object)"
+    }
+  },
+  "endpointResponse": {
+    "menu": "Endpoint response",
+    "sendAlert": "On-screen message",
+    "lock": "Lock screen",
+    "alarm": "Sound alarm",
+    "stopAlarm": "Stop alarm",
+    "close": "Close",
+    "cancel": "Cancel",
+    "send": "Send",
+    "alertTitle": "On-screen message for {hostname}",
+    "alertDefaultTitle": "Message from IT",
+    "alertFieldTitle": "Title",
+    "alertFieldTitleHint": "Heading of the dialog box the user will see",
+    "alertFieldMessage": "Message",
+    "alertRequired": "The message cannot be empty",
+    "alertPreviewNote": "The text is shown on the device exactly as written, untranslated: write it in the user's language.",
+    "alertSuccess": "Message delivered to {hostname}",
+    "verbLock": "screen lock",
+    "confirmLockTitle": "Confirm screen lock",
+    "lockSuccess": "Locked the screen on {hostname}",
+    "alarmDurationTitle": "Alarm duration",
+    "alarmDurationMessage": "How many seconds should the alarm sound on {hostname}? (5 to 300)",
+    "alarmDurationLabel": "Duration in seconds",
+    "alarmDurationHint": "Between 5 and 300 seconds",
+    "alarmSuccess": "Alarm sounding on {hostname}",
+    "stopAlarmSuccess": "Alarm stopped on {hostname}",
+    "bulkTitleAlert": "Bulk on-screen message",
+    "bulkTitleLock": "Bulk screen lock",
+    "bulkTitleAlarm": "Bulk sound alarm",
+    "bulkTitleStopAlarm": "Bulk stop alarm",
+    "bulkSuccess": "The action was sent to {count} devices",
+    "bulkNoPerAgentResult": "Bulk sending does not report the result device by device. To see why it failed on a specific device, use the action from its own menu.",
+    "codes": {
+      "ok": "Done",
+      "no_user_session": "Nobody is logged in on the device, so there was no screen to show it on and no session to lock.",
+      "no_dialog_tool": "The device has no tool installed to display a dialog box.",
+      "no_audio_player": "The device has no audio player or system sound available.",
+      "lock_unavailable": "No lock method worked on this device's desktop.",
+      "empty_message": "The message cannot be empty.",
+      "agent_unreachable": "Could not reach the agent. The device may be powered off or offline.",
+      "error": "The action failed on the device. Check the agent log for details."
     }
   }
 }

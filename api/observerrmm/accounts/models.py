@@ -131,6 +131,17 @@ class Role(BaseAuditModel):
     can_send_wol = models.BooleanField(default=False)
     can_use_registry = models.BooleanField(default=False)
 
+    # agents · respuesta rápida de endpoint (feature 028)
+    #
+    # Tres permisos separados y no uno compartido, porque el impacto de cada
+    # acción sobre el usuario del equipo es muy distinto: mandar un mensaje es
+    # inocuo, bloquear la sesión lo interrumpe, y la alarma sonora lo expone
+    # frente a quien tenga al lado. Un rol de mesa de ayuda puede necesitar el
+    # primero sin los otros dos.
+    can_send_alerts = models.BooleanField(default=False)
+    can_lock_agents = models.BooleanField(default=False)
+    can_sound_alarm = models.BooleanField(default=False)
+
     # core
     can_list_notes = models.BooleanField(default=False)
     can_manage_notes = models.BooleanField(default=False)

@@ -226,6 +226,12 @@ class AuditActionType(models.TextChoices):
     EXEC_COMMAND = "execute_command", "Execute Command"
     BULK_ACTION = "bulk_action", "Bulk Action"
     URL_ACTION = "url_action", "URL Action"
+    # Feature 028: categoría propia para lock / alert / alarm en vez de reusar
+    # EXEC_COMMAND. Estas acciones son visibles para el usuario del equipo —lo
+    # interrumpen, le hablan o hacen ruido— así que tienen que poder filtrarse en
+    # el registro de auditoría por sí solas, sin quedar mezcladas con la ejecución
+    # de comandos.
+    ENDPOINT_RESPONSE = "endpoint_response", "Endpoint Response"
 
 
 class AuditObjType(models.TextChoices):
@@ -288,6 +294,57 @@ GEO_SOURCE_IP = "ip"
 # Los únicos orígenes con precisión suficiente para decidir si un equipo salió de su
 # geocerca. natsapi escribe estos MISMOS literales — mantener en sincronía.
 GEO_MEASURED_SOURCES = (GEO_SOURCE_NATIVE, GEO_SOURCE_WIFI)
+
+
+# Feature 028 · respuesta rápida de endpoint (lock / alert / alarm).
+#
+# Estos límites están DUPLICADOS a propósito en el agente (`agent/response.go`):
+# el servidor valida para dar un error claro antes de gastar un viaje por NATS, y
+# el agente valida porque no puede confiar en que el mensaje venga de este
+# servidor. Si se cambian acá, cambiarlos allá.
+ALERT_MAX_TITLE_LEN = 120
+ALERT_MAX_MESSAGE_LEN = 2000
+
+# Duración de la alarma. El tope existe porque la alarma sirve para encontrar un
+# equipo, no para castigar a quien lo tenga: sin límite, un comando mal enviado
+# deja una máquina sonando y la única salida es apagarla.
+ALARM_MIN_SECONDS = 5
+ALARM_DEFAULT_SECONDS = 30
+ALARM_MAX_SECONDS = 300
+
+# Códigos que puede devolver el agente. NO son texto para mostrar: son claves que
+# la consola traduce (`endpointResponse.codes.*` en es.json/en.json). El agente
+# nunca manda una frase, justamente para que el operador la vea en su idioma.
+#
+# El prefijo evita colisiones: el interceptor de axios en la consola muestra el
+# cuerpo del error 400 tal cual, y sin marcar estos códigos de forma inequívoca
+# tendría que adivinar si un "error" cualquiera es uno de los nuestros.
+ENDPOINT_RESPONSE_PREFIX = "endpoint_response:"
+ENDPOINT_RESPONSE_CODES = (
+    "ok",
+    "no_user_session",
+    "no_dialog_tool",
+    "no_audio_player",
+    "lock_unavailable",
+    "empty_message",
+    "error",
+    # Este último NO lo produce el agente: lo agrega el servidor cuando no pudo
+    # hablar con él. Se mezcla acá porque para la consola es un código más de la
+    # misma familia y se traduce por el mismo camino.
+    "agent_unreachable",
+)
+
+# Respuestas de nats_cmd que significan "no se pudo hablar con el agente", y no
+# "el agente contestó que falló". La diferencia le importa al operador: una es un
+# problema de conectividad y la otra es una condición del equipo.
+NATS_UNREACHABLE = ("timeout", "natsdown")
+
+
+class EndpointResponseAction(models.TextChoices):
+    LOCK = "lock", "Lock Screen"
+    ALERT = "alert", "On-screen Message"
+    ALARM = "alarm", "Sound Alarm"
+    STOP_ALARM = "stopalarm", "Stop Alarm"
 
 
 class URLActionRestMethod(models.TextChoices):

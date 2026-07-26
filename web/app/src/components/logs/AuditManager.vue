@@ -275,6 +275,12 @@ export default {
       { value: "execute_command", label: t("auditManager.actExecuteCommand") },
       { value: "execute_script", label: t("auditManager.actExecuteScript") },
       { value: "remote_session", label: t("auditManager.actRemoteSession") },
+      {
+        // feature 028: lock / alert / alarm. Es su propia categoría para poder
+        // responder "¿quién me bloqueó la sesión?" sin filtrar entre comandos.
+        value: "endpoint_response",
+        label: t("auditManager.actEndpointResponse"),
+      },
       { value: "url_action", label: t("auditManager.actUrlAction") },
     ]);
 

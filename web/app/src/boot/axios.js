@@ -1,6 +1,36 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { Notify } from "quasar";
+import { i18n } from "@/boot/i18n";
+
+// Feature 028 · traducción de los códigos de respuesta rápida de endpoint.
+//
+// El agente devuelve un CÓDIGO (`no_user_session`, `no_audio_player`, ...) y no
+// una frase, para que el operador lea el motivo en su idioma. El backend lo
+// reenvía como cuerpo de un 400 con el prefijo `endpoint_response:`.
+//
+// La traducción va acá y no en cada componente por dos razones: este interceptor
+// muestra el toast ANTES de que el componente pueda reaccionar (así que traducir
+// abajo llegaría tarde), y de este modo las acciones por agente y las masivas
+// quedan cubiertas por el mismo código.
+const ENDPOINT_RESPONSE_PREFIX = "endpoint_response:";
+
+function translateEndpointResponse(text) {
+  if (typeof text !== "string" || !text.startsWith(ENDPOINT_RESPONSE_PREFIX)) {
+    return text;
+  }
+
+  const code = text.slice(ENDPOINT_RESPONSE_PREFIX.length);
+  const key = `endpointResponse.codes.${code}`;
+  const translated = i18n.global.t(key);
+
+  // vue-i18n devuelve la propia clave cuando no existe. Ante un código nuevo que
+  // el frontend todavía no conoce se muestra el error genérico: es peor dejarle
+  // al operador un `endpointResponse.codes.algo` en pantalla.
+  return translated === key
+    ? i18n.global.t("endpointResponse.codes.error")
+    : translated;
+}
 
 export const getBaseUrl = () => {
   if (process.env.NODE_ENV === "production") {
@@ -98,6 +128,8 @@ export default function ({ app, router }) {
           }
         }
       }
+
+      text = translateEndpointResponse(text);
 
       if ((text || error.response) && error.response.status !== 423) {
         Notify.create({

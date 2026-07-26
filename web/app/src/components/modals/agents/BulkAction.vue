@@ -236,6 +236,54 @@
           />
         </q-card-section>
 
+        <!-- respuesta rápida de endpoint (feature 028) -->
+        <q-card-section v-if="mode === 'alert'" class="q-pt-none">
+          <q-input
+            outlined
+            dense
+            v-model="state.title"
+            :label="$t('endpointResponse.alertFieldTitle')"
+            :maxlength="120"
+            counter
+          />
+        </q-card-section>
+
+        <q-card-section v-if="mode === 'alert'" class="q-pt-none">
+          <q-input
+            outlined
+            dense
+            type="textarea"
+            autogrow
+            v-model="state.message"
+            :label="$t('endpointResponse.alertFieldMessage')"
+            :maxlength="2000"
+            counter
+            :rules="[
+              (val) => !!val.trim() || $t('endpointResponse.alertRequired'),
+            ]"
+          />
+        </q-card-section>
+
+        <q-card-section v-if="mode === 'alarm'" class="q-pt-none">
+          <q-input
+            outlined
+            dense
+            type="number"
+            v-model.number="state.duration"
+            :label="$t('endpointResponse.alarmDurationLabel')"
+            :min="5"
+            :max="300"
+            :hint="$t('endpointResponse.alarmDurationHint')"
+          />
+        </q-card-section>
+
+        <q-card-section
+          v-if="['lock', 'alarm', 'stopalarm', 'alert'].includes(mode)"
+          class="q-pt-none text-caption text-grey-7"
+        >
+          {{ $t("endpointResponse.bulkNoPerAgentResult") }}
+        </q-card-section>
+
         <q-card-section v-show="false">
           <q-checkbox
             v-model="state.offlineAgents"
@@ -381,6 +429,10 @@ export default defineComponent({
       save_to_agent_note: false,
       patchMode: "scan",
       offlineAgents: false,
+      // respuesta rápida de endpoint (feature 028)
+      title: "",
+      message: "",
+      duration: 30,
       client,
       site,
       agents,
@@ -401,6 +453,13 @@ export default defineComponent({
         agents.value = [];
       },
     );
+
+    // Los modos de respuesta rápida aplican a los tres SO. Dejar el default en
+    // "windows" acotaría en silencio un mensaje a toda la flota, que es el caso de
+    // uso principal, a solo los equipos Windows.
+    if (["lock", "alert", "alarm", "stopalarm"].includes(props.mode)) {
+      state.osType = "all";
+    }
 
     plat.value = state.osType;
 
@@ -427,7 +486,16 @@ export default defineComponent({
 
       try {
         const data = await runBulkAction(state);
-        notifySuccess(data);
+        // Los modos de respuesta rápida devuelven {mode, count} en vez de una
+        // frase, justamente para poder traducir el aviso acá. Los modos heredados
+        // devuelven texto ya armado por el backend (que todavía no tiene i18n).
+        if (data && typeof data === "object" && data.mode) {
+          notifySuccess(
+            t("endpointResponse.bulkSuccess", { count: data.count }),
+          );
+        } else {
+          notifySuccess(data);
+        }
         onDialogHide();
       } catch (e) {}
 
@@ -447,7 +515,15 @@ export default defineComponent({
           ? t("bulkAction.titleScript")
           : props.mode === "patch"
             ? t("bulkAction.titlePatch")
-            : "";
+            : props.mode === "alert"
+              ? t("endpointResponse.bulkTitleAlert")
+              : props.mode === "lock"
+                ? t("endpointResponse.bulkTitleLock")
+                : props.mode === "alarm"
+                  ? t("endpointResponse.bulkTitleAlarm")
+                  : props.mode === "stopalarm"
+                    ? t("endpointResponse.bulkTitleStopAlarm")
+                    : "";
     });
 
     // component lifecycle hooks

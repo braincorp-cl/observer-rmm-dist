@@ -122,6 +122,32 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
+    def audit_endpoint_response(
+        username: str,
+        agent: "Agent",
+        action: str,
+        detail: str = "",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 028: quién bloqueó, alertó o hizo sonar qué equipo, y cuándo.
+        #
+        # Estas tres acciones las percibe el usuario del equipo, así que la
+        # pregunta "¿quién me bloqueó la sesión?" tiene que tener respuesta. El
+        # texto del mensaje se guarda en `after_value` (igual que el comando en
+        # audit_raw_command): es el contenido que el usuario vio y no debería
+        # perderse.
+        AuditLog.objects.create(
+            username=username,
+            agent=agent.hostname,
+            agent_id=agent.agent_id,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.ENDPOINT_RESPONSE,
+            message=f"{username} sent endpoint response action '{action}' to {agent.hostname}.",
+            after_value=detail or None,
+            debug_info=debug_info,
+        )
+
+    @staticmethod
     def audit_object_changed(
         username: str,
         object_type: str,

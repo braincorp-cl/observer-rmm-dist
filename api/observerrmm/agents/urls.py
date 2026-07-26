@@ -33,6 +33,11 @@ urlpatterns = [
     # agent history
     path("history/", views.AgentHistoryView.as_view()),
     path("<agent:agent_id>/history/", views.AgentHistoryView.as_view()),
+    # respuesta rápida de endpoint (feature 028)
+    path("<agent:agent_id>/lock/", views.LockAgent.as_view()),
+    path("<agent:agent_id>/alert/", views.SendAlert.as_view()),
+    # POST hace sonar la alarma, DELETE la detiene
+    path("<agent:agent_id>/alarm/", views.SoundAlarm.as_view()),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

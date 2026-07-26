@@ -207,6 +207,58 @@
       <q-item-section>{{ $t("agentActions.shutdown") }}</q-item-section>
     </q-item>
 
+    <!-- respuesta rápida de endpoint (feature 028) -->
+    <q-item clickable>
+      <q-item-section side>
+        <q-icon size="xs" name="crisis_alert" />
+      </q-item-section>
+      <q-item-section>{{ $t("endpointResponse.menu") }}</q-item-section>
+      <q-item-section side>
+        <q-icon name="keyboard_arrow_right" />
+      </q-item-section>
+
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <!-- mensaje en pantalla -->
+          <q-item clickable v-ripple @click="showAlertModal(agent)">
+            <q-item-section side>
+              <q-icon size="xs" name="chat" />
+            </q-item-section>
+            <q-item-section>{{
+              $t("endpointResponse.sendAlert")
+            }}</q-item-section>
+          </q-item>
+
+          <!-- bloqueo de pantalla -->
+          <q-item clickable v-ripple @click="lockScreen(agent)">
+            <q-item-section side>
+              <q-icon size="xs" name="lock" />
+            </q-item-section>
+            <q-item-section>{{ $t("endpointResponse.lock") }}</q-item-section>
+          </q-item>
+
+          <q-separator />
+
+          <!-- alarma sonora -->
+          <q-item clickable v-ripple @click="soundAlarm(agent)">
+            <q-item-section side>
+              <q-icon size="xs" name="volume_up" />
+            </q-item-section>
+            <q-item-section>{{ $t("endpointResponse.alarm") }}</q-item-section>
+          </q-item>
+
+          <q-item clickable v-ripple @click="stopAlarm(agent)">
+            <q-item-section side>
+              <q-icon size="xs" name="volume_off" />
+            </q-item-section>
+            <q-item-section>{{
+              $t("endpointResponse.stopAlarm")
+            }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-item>
+
     <q-item clickable v-close-popup @click="showPolicyAdd(agent)">
       <q-item-section side>
         <q-icon size="xs" name="policy" />
@@ -264,6 +316,9 @@ import {
   editAgent,
   agentRebootNow,
   agentShutdown,
+  agentLockScreen,
+  agentSoundAlarm,
+  agentStopAlarm,
   sendAgentPing,
   removeAgent,
   runRemoteBackground,
@@ -286,6 +341,13 @@ import SendCommand from "@/components/modals/agents/SendCommand.vue";
 import RunScript from "@/components/modals/agents/RunScript.vue";
 import IntegrationsContextMenu from "@/components/ui/IntegrationsContextMenu.vue";
 import ConfirmYesDialog from "@/components/agents/ConfirmYesDialog.vue";
+import SendEndpointAlert from "@/components/modals/agents/SendEndpointAlert.vue";
+
+// Feature 028: duplicados de observerrmm/constants.py (ALARM_*). Sólo acotan lo
+// que el operador puede escribir; el servidor y el agente validan igual.
+const ALARM_MIN_SECONDS = 5;
+const ALARM_DEFAULT_SECONDS = 30;
+const ALARM_MAX_SECONDS = 300;
 
 export default {
   name: "AgentActionMenu",
@@ -514,6 +576,92 @@ export default {
       });
     }
 
+    // Feature 028 · respuesta rápida de endpoint.
+    //
+    // `lock` y `alarm` piden confirmación porque el usuario del equipo las nota
+    // de inmediato: una le corta la sesión y la otra hace ruido a su alrededor.
+    // `alert` no la pide: el propio modal donde se redacta el mensaje ya es el
+    // paso deliberado, y pedir dos confirmaciones para mandar un texto sobra.
+    // `stopAlarm` tampoco: detener el ruido tiene que ser inmediato.
+
+    function showAlertModal(agent) {
+      $q.dialog({
+        component: SendEndpointAlert,
+        componentProps: {
+          agent_id: agent.agent_id,
+          hostname: agent.hostname,
+        },
+      });
+    }
+
+    function lockScreen(agent) {
+      $q.dialog({
+        component: ConfirmYesDialog,
+        componentProps: {
+          hostname: agent.hostname,
+          actionVerb: t("endpointResponse.verbLock"),
+          title: t("endpointResponse.confirmLockTitle"),
+          okLabel: t("endpointResponse.lock"),
+          okColor: "negative",
+        },
+      }).onOk(async () => {
+        $q.loading.show();
+        try {
+          await agentLockScreen(agent.agent_id);
+          notifySuccess(
+            t("endpointResponse.lockSuccess", { hostname: agent.hostname }),
+          );
+        } catch (e) {
+          console.error(e);
+        }
+        $q.loading.hide();
+      });
+    }
+
+    function soundAlarm(agent) {
+      $q.dialog({
+        title: t("endpointResponse.alarmDurationTitle"),
+        message: t("endpointResponse.alarmDurationMessage", {
+          hostname: agent.hostname,
+        }),
+        prompt: {
+          model: String(ALARM_DEFAULT_SECONDS),
+          type: "number",
+          // El tope también está en el servidor y en el agente; acá es sólo para
+          // que el operador no escriba un valor que le van a recortar en silencio.
+          min: ALARM_MIN_SECONDS,
+          max: ALARM_MAX_SECONDS,
+        },
+        cancel: true,
+        persistent: true,
+        ok: { label: t("endpointResponse.alarm"), color: "negative" },
+      }).onOk(async (duration) => {
+        $q.loading.show();
+        try {
+          await agentSoundAlarm(agent.agent_id, { duration: Number(duration) });
+          notifySuccess(
+            t("endpointResponse.alarmSuccess", { hostname: agent.hostname }),
+          );
+        } catch (e) {
+          console.error(e);
+        }
+        $q.loading.hide();
+      });
+    }
+
+    async function stopAlarm(agent) {
+      $q.loading.show();
+      try {
+        await agentStopAlarm(agent.agent_id);
+        notifySuccess(
+          t("endpointResponse.stopAlarmSuccess", { hostname: agent.hostname }),
+        );
+      } catch (e) {
+        console.error(e);
+      }
+      $q.loading.hide();
+    }
+
     function showPolicyAdd(agent) {
       $q.dialog({
         component: PolicyAdd,
@@ -614,6 +762,13 @@ export default {
       showRebootLaterModal,
       rebootNow,
       shutdown,
+      showAlertModal,
+      lockScreen,
+      soundAlarm,
+      stopAlarm,
+      ALARM_MIN_SECONDS,
+      ALARM_DEFAULT_SECONDS,
+      ALARM_MAX_SECONDS,
       showPolicyAdd,
       showAgentRecovery,
       pingAgent,
