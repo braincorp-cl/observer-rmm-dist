@@ -21,6 +21,24 @@ Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
 dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"
 espejando la UI).
 
+## `robots.txt` — fuera de los buscadores
+
+El sitio **es alcanzable desde Internet** (`docs.observer.cl` resuelve en DNS
+público y el NPM le termina TLS), pero su contenido es de uso interno: describe la
+superficie de administración de la flota y sus capturas son de la consola real.
+Por eso `robots.txt` lleva `Disallow: /` para todos los agentes.
+
+**No es un control de acceso**, es una petición a los rastreadores que la
+respetan. Si en algún momento se necesita restringir el sitio de verdad, el lugar
+es el **NPM** (allowlist de red o autenticación), no este archivo.
+
+Corolario para las **capturas de pantalla**: como el sitio es público, no se
+publican datos que identifiquen el equipo de una persona. Las capturas de
+ubicación se toman sobre **VMs del datacenter** (que además, al no tener radio
+WiFi, heredan las coordenadas de su sitio y hacen visible el círculo de
+incertidumbre), nunca sobre un notebook real, y se les recorta el bloque de serial
+e IPs del panel de hardware.
+
 ## i18n (bilingüe en el cliente)
 
 El sitio es bilingüe **sin duplicar URLs ni tocar la UI**: los enlaces que la
