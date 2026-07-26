@@ -24,14 +24,14 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-TRMM_VERSION = "1.4.1"
+TRMM_VERSION = "1.4.2"
 
 # (upstream attribution: amidaware fork origin)
 WEB_VERSION = "0.101.59"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.0.202"
+APP_VER = "0.0.203"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
 LATEST_AGENT_VER = "2.10.8"
