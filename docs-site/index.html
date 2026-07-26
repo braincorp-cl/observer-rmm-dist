@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Observer RMM · Documentación" data-title-en="Observer RMM · Documentation">
+<html lang="es" data-title-es="Observer RMM · Software de monitoreo y administración remota" data-title-en="Observer RMM · Remote monitoring and management software">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Observer RMM · Documentación</title>
-<meta name="description" content="Documentación de Observer RMM: primeros pasos, permisos y seguridad, y preguntas frecuentes. / Observer RMM documentation: getting started, permissions & security, and FAQ.">
+<title>Observer RMM · Software de monitoreo y administración remota</title>
+<meta name="description" content="Software RMM para monitorear y administrar equipos Windows, Linux y macOS: control remoto, scripts, parches, inventario, geolocalización y antirrobo.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/">
+<meta property="og:title" content="Observer RMM · Software de monitoreo y administración remota">
+<meta property="og:description" content="Software RMM para monitorear y administrar equipos Windows, Linux y macOS: control remoto, scripts, parches, inventario, geolocalización y antirrobo.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,13 +29,68 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);
   if (tt) document.title = tt;
 })();
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebSite",
+   "@id": "https://docs.observer.cl/#website",
+   "url": "https://docs.observer.cl/",
+   "name": "Observer RMM · Documentación",
+   "inLanguage": "es-CL",
+   "publisher": {
+    "@id": "https://docs.observer.cl/#org"
+   }
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://docs.observer.cl/#org",
+   "name": "BrainCorp",
+   "url": "https://www.observer.cl/"
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://docs.observer.cl/#software",
+   "name": "Observer RMM",
+   "applicationCategory": "BusinessApplication",
+   "applicationSubCategory": "Remote Monitoring and Management (RMM)",
+   "operatingSystem": "Windows, Linux, macOS",
+   "softwareVersion": "1.4.2",
+   "inLanguage": [
+    "es",
+    "en"
+   ],
+   "url": "https://docs.observer.cl/",
+   "publisher": {
+    "@id": "https://docs.observer.cl/#org"
+   },
+   "description": "Plataforma de monitoreo y administración remota (RMM) para flotas de equipos Windows, Linux y macOS: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario, geolocalización de activos con geocerca y respuesta antirrobo en el equipo.",
+   "featureList": [
+    "Control remoto de escritorio y shell",
+    "Ejecución remota de comandos y scripts",
+    "Monitoreo con alertas por correo, SMS y webhook",
+    "Gestión de parches de Windows",
+    "Inventario de software y hardware",
+    "Geolocalización de activos con geocerca por sitio",
+    "Bloqueo remoto de pantalla, mensaje al usuario y alarma sonora",
+    "Reportería con plantillas y envío programado"
+   ]
+  }
+ ]
+}
 </script>
 </head>
 <body>
@@ -50,8 +122,8 @@
       <p class="eyebrow lang-es">Centro de documentación</p>
       <p class="eyebrow lang-en">Documentation center</p>
       <h1><span class="lang-es">Documentación de Observer RMM</span><span class="lang-en">Observer RMM documentation</span></h1>
-      <p class="lead lang-es">Todo lo que necesitas para operar tu plataforma de monitoreo y administración remota: puesta en marcha, control de acceso y resolución de incidentes. Escrita para el equipo que opera el deck.</p>
-      <p class="lead lang-en">Everything you need to run your remote monitoring and management platform: setup, access control, and incident response. Written for the team operating the deck.</p>
+      <p class="lead lang-es">Todo lo que necesitas para operar Observer RMM, el <strong>software RMM</strong> con el que monitoreas y administras a distancia tus equipos Windows, Linux y macOS: puesta en marcha, control de acceso, geolocalización de activos, respuesta antirrobo y resolución de incidentes. Escrita para el equipo que opera el deck.</p>
+      <p class="lead lang-en">Everything you need to run Observer RMM, the <strong>RMM software</strong> you use to monitor and manage your Windows, Linux, and macOS machines remotely: setup, access control, asset location, anti-theft response, and incident handling. Written for the team operating the deck.</p>
 
       <div class="cards lang-es">
         <a class="card" href="/features/">
@@ -121,6 +193,8 @@
       <h2 id="que-es"><span class="lang-es">¿Qué es Observer RMM?</span><span class="lang-en">What is Observer RMM?</span></h2>
       <p class="lang-es">Observer RMM es una plataforma de <strong>monitoreo y administración remota</strong> (RMM) para flotas de equipos Windows, Linux y macOS. Desde una sola consola puedes vigilar el estado de cada equipo, ejecutar scripts y tareas, tomar control remoto y mantener el software al día.</p>
       <p class="lang-en">Observer RMM is a <strong>remote monitoring and management</strong> (RMM) platform for fleets of Windows, Linux, and macOS machines. From a single console you can watch the health of every machine, run scripts and tasks, take remote control, and keep software up to date.</p>
+      <p class="lang-es">Además de administrar, <strong>protege los activos</strong>: puede reportar la <a href="/features/#ubicacion">ubicación de cada equipo</a> con precisión de decenas de metros y avisar cuando uno sale del perímetro de su sitio, y permite <a href="/features/#respuesta-endpoint">bloquear un equipo a distancia</a>, hacerlo sonar o mostrarle un mensaje en pantalla si se pierde o lo roban.</p>
+      <p class="lang-en">Beyond managing them, it also <strong>protects the assets</strong>: it can report <a href="/features/#ubicacion">each machine's location</a> to within tens of metres and alert you when one leaves its site's perimeter, and it lets you <a href="/features/#respuesta-endpoint">lock a machine remotely</a>, make it sound, or show an on-screen message if it is lost or stolen.</p>
       <p class="lang-es">La plataforma se organiza en tres niveles: <strong>clientes</strong> (organizaciones), <strong>sitios</strong> (ubicaciones dentro de un cliente) y <strong>agentes</strong> (los equipos administrados). Empieza por <a href="/guide_gettingstarted/">Primeros pasos</a> para dejar esa estructura lista y enrolar tu primer equipo.</p>
       <p class="lang-en">The platform is organized in three levels: <strong>clients</strong> (organizations), <strong>sites</strong> (locations within a client), and <strong>agents</strong> (the managed machines). Start with <a href="/guide_gettingstarted/">Getting started</a> to set up that structure and enroll your first machine.</p>
 

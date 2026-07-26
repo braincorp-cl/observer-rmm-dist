@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Alertas por correo · Observer RMM" data-title-en="Email alerts · Observer RMM">
+<html lang="es" data-title-es="Alertas por correo · Configurar SMTP en Observer RMM" data-title-en="Email alerts · Configuring SMTP in Observer RMM">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Alertas por correo · Observer RMM</title>
-<meta name="description" content="Cómo configurar el envío de correos de alerta en Observer RMM: SMTP, destinatarios, prueba y plantillas de alertas. / How to set up alert emails in Observer RMM: SMTP, recipients, testing, and alert templates.">
+<title>Alertas por correo · Configurar SMTP en Observer RMM</title>
+<meta name="description" content="Cómo configurar el envío de correos de alerta en Observer RMM: servidor SMTP, puertos 587 y 465, destinatarios y prueba de envío desde la consola.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/email_alerts/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/email_alerts/">
+<meta property="og:title" content="Alertas por correo · Configurar SMTP en Observer RMM">
+<meta property="og:description" content="Cómo configurar el envío de correos de alerta en Observer RMM: servidor SMTP, puertos 587 y 465, destinatarios y prueba de envío desde la consola.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,8 +29,12 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);

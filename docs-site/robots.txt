@@ -1,12 +1,14 @@
-# docs.observer.cl — documentación operativa de Observer RMM, de uso interno.
+# docs.observer.cl — documentación de Observer RMM.
 #
-# No se quiere en buscadores: el sitio describe la superficie de administración
-# de la flota y sus capturas son de la consola real.
+# El sitio es público y SE QUIERE indexado: es la documentación que consultan los
+# clientes y la que debe aparecer en búsquedas de software RMM y antirrobo.
 #
-# OJO: robots.txt es una PETICIÓN a los rastreadores que se portan bien, NO un
-# control de acceso. El sitio sigue siendo alcanzable por HTTPS desde Internet.
-# Si hace falta restringirlo de verdad, va en el NPM (allowlist de red o auth),
-# no acá.
+# ⚠️ Corolario para las capturas: al ser un sitio indexado, no se publican datos
+# que identifiquen el equipo de una persona (hostname + ubicación + IP). Las
+# capturas de ubicación se toman sobre VMs del datacenter y se les recorta el
+# bloque de serial e IPs. Ver docs-site/README.md.
 
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://docs.observer.cl/sitemap.xml

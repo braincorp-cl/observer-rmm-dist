@@ -50,15 +50,23 @@ DISPLAY=:0 python3 scripts/docs/console_screenshots.py --steps mis_pasos.json --
 ## 2) Elegir + optimizar
 
 Revisar (una hoja de contactos ayuda) y quedarse con las **ricas en contenido**,
-1 representativa por sección de docs. Optimizar a ~1400px:
+1 representativa por sección de docs. El sitio sirve **WebP** (el PNG pesaba ~5×):
 
 ```bash
-convert origen.png -resize 1400 -strip docs-site/assets/shots/<nombre>.png
-# si hay pngquant: pngquant --force --quality=65-85 --output <f> <f>
+# recorte + escala + WebP en un paso
+convert origen.png -crop 1632x715+0+0 +repage -resize 1400 \
+        -quality 82 -define webp:method=6 docs-site/assets/shots/<nombre>.webp
 ```
 
-Guardar en `docs-site/assets/shots/` (nombres descriptivos: `dashboard.png`,
-`parches.png`, `software.png`, `reportes.png`, …).
+Guardar en `docs-site/assets/shots/` (nombres descriptivos: `dashboard.webp`,
+`parches.webp`, `ubicacion-mapa.webp`, …). El `-crop` de arriba es el que **deja
+fuera el bloque de serial e IPs** del panel de hardware; ajustar la geometría a la
+captura, pero no publicarla con esos datos.
+
+⚠️ **El sitio está indexado** (`robots.txt` con `Allow`), así que la captura es
+contenido público: no debe identificar el equipo de una persona. Las de ubicación
+van sobre **VMs del datacenter**, no sobre notebooks reales — detalle y razones en
+`docs-site/README.md`.
 
 ## 3) Embeber en la página de docs
 
@@ -68,7 +76,8 @@ sección, **con caption bilingüe** (mantener paridad `lang-es`/`lang-en`):
 
 ```html
 <figure class="doc-shot">
-  <img src="/assets/shots/parches.png" alt="Gestión de parches de Windows">
+  <img src="/assets/shots/parches.webp" width="1400" height="613"
+       loading="lazy" decoding="async" alt="Gestión de parches de Windows">
   <figcaption><span class="lang-es">Texto ES.</span><span class="lang-en">EN text.</span></figcaption>
 </figure>
 ```

@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Preguntas frecuentes · Observer RMM" data-title-en="FAQ · Observer RMM">
+<html lang="es" data-title-es="Preguntas frecuentes · Agentes, instalador y control remoto" data-title-en="FAQ · Agents, installer and remote control">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Preguntas frecuentes · Observer RMM</title>
-<meta name="description" content="Preguntas frecuentes de Observer RMM: agentes inesperados, advertencias del instalador y seguridad. / Observer RMM FAQ: unexpected agents, installer warnings, and security.">
+<title>Preguntas frecuentes · Agentes, instalador y control remoto</title>
+<meta name="description" content="Preguntas frecuentes de Observer RMM: agentes inesperados en la consola, advertencias del antivirus al instalar y qué hacer si no puedes tomar control remoto.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/faq/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/faq/">
+<meta property="og:title" content="Preguntas frecuentes · Agentes, instalador y control remoto">
+<meta property="og:description" content="Preguntas frecuentes de Observer RMM: agentes inesperados en la consola, advertencias del antivirus al instalar y qué hacer si no puedes tomar control remoto.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,13 +29,50 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);
   if (tt) document.title = tt;
 })();
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "inLanguage": "es-CL",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "Aparecen agentes desconocidos o inesperados en mi consola",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Si ves equipos que no reconoces, o el número de agentes crece más de lo que instalaste, trátalo como un incidente de seguridad y actúa de inmediato. Un agente enrolado tiene acceso legítimo a tu plataforma, así que un agente no autorizado es una vía de entrada real."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "El instalador dispara advertencias de antivirus o SmartScreen",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Algunos métodos de instalación —en particular el EXE dinámico— pueden generar advertencias de antivirus, de Windows SmartScreen o de \"Editor no confiable\", incluso con la firma de código habilitada. Es un comportamiento conocido de ese método."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Instalé el agente pero no puedo tomar control remoto",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "El control remoto se apoya en un componente adicional que se enrola junto con el agente. Si el equipo aparece en línea pero el control remoto figura como fuera de línea, verifica la conectividad del equipo hacia el servidor y que no haya un antivirus o filtro TLS interceptando la conexión, que puede romper la validación del canal de control."
+   }
+  }
+ ]
+}
 </script>
 </head>
 <body>

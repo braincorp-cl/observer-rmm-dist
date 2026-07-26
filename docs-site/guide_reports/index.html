@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Generar reportes · Observer RMM" data-title-en="Generating reports · Observer RMM">
+<html lang="es" data-title-es="Generar reportes · Plantillas, gráficos y envío programado" data-title-en="Generating reports · Templates, charts and scheduled delivery">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generar reportes · Observer RMM</title>
-<meta name="description" content="Guía práctica para generar tus propios reportes en Observer RMM con el Gestor de reportes: plantillas, recursos, consultas de datos y calendarización. / Practical guide to generating your own reports in Observer RMM with the report manager: templates, assets, data queries, and scheduling.">
+<title>Generar reportes · Plantillas, gráficos y envío programado</title>
+<meta name="description" content="Cómo generar reportes en Observer RMM: 19 plantillas curadas, editor con variables, consultas de datos, gráficos y envío programado por correo en PDF o HTML.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/guide_reports/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/guide_reports/">
+<meta property="og:title" content="Generar reportes · Plantillas, gráficos y envío programado">
+<meta property="og:description" content="Cómo generar reportes en Observer RMM: 19 plantillas curadas, editor con variables, consultas de datos, gráficos y envío programado por correo en PDF o HTML.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,8 +29,12 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);
@@ -112,7 +133,7 @@
 
       <h3 id="generar-desde-gestor"><span class="lang-es">Generar desde el Gestor de reportes</span><span class="lang-en">Generate from the report manager</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-gestor.png" alt="Administrador de reportes con las plantillas curadas">
+        <img src="/assets/shots/reportes-gestor.webp?v=1" width="1400" height="758" loading="eager" fetchpriority="high" alt="Administrador de reportes con las plantillas curadas">
         <figcaption><span class="lang-es">El Gestor de reportes con el conjunto de plantillas curadas listas para usar.</span><span class="lang-en">The report manager with the set of ready-to-use curated templates.</span></figcaption>
       </figure>
       <ol class="lang-es">
@@ -204,7 +225,7 @@
 
       <h3 id="editor"><span class="lang-es">2.2 El editor de plantillas</span><span class="lang-en">2.2 The template editor</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-editor.png" alt="Editor de plantilla de reporte">
+        <img src="/assets/shots/reportes-editor.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Editor de plantilla de reporte">
         <figcaption><span class="lang-es">El editor de una plantilla: nombre y plantilla base, pestañas HTML/CSS/Vista previa, la barra de herramientas y el panel de Variables con <code>data_sources</code>.</span><span class="lang-en">The template editor: name and base template, HTML/CSS/Preview tabs, the toolbar, and the Variables panel with <code>data_sources</code>.</span></figcaption>
       </figure>
       <p class="lang-es">El editor tiene, arriba, el <strong>Nombre del reporte</strong> y las <strong>Dependencias de plantilla</strong> (si eliges <em>cliente</em>, <em>sitio</em> o <em>agente</em>, la consola te pedirá ese dato al ejecutar). El cuerpo se organiza en pestañas:</p>
@@ -254,11 +275,11 @@
       <p class="lang-es">Los reportes de tipo <strong>panel</strong> combinan varios gráficos e indicadores. Por ejemplo, al abrir el panel «Estado de la Flota» y pulsar <strong>Vista previa</strong>, la consola genera el reporte con datos reales; el mismo reporte se puede ver en <strong>HTML</strong> o cambiar el formato a <strong>PDF</strong>:</p>
       <p class="lang-en">Dashboard-type reports combine several charts and indicators. For example, opening the «Fleet Status» dashboard and clicking <strong>Preview</strong> makes the console generate the report with real data; the same report can be viewed as <strong>HTML</strong> or switched to <strong>PDF</strong>:</p>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-preview-html.png" alt="Vista previa HTML del dashboard Estado de la Flota">
+        <img src="/assets/shots/reportes-preview-html.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Vista previa HTML del dashboard Estado de la Flota">
         <figcaption><span class="lang-es">Vista previa en <strong>HTML</strong> del panel «Estado de la Flota»: indicadores y gráficos generados con datos reales.</span><span class="lang-en">Live <strong>HTML</strong> preview of the «Fleet Status» dashboard: indicators and charts generated from real data.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-preview-pdf.png" alt="Vista previa PDF del mismo reporte">
+        <img src="/assets/shots/reportes-preview-pdf.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Vista previa PDF del mismo reporte">
         <figcaption><span class="lang-es">El mismo reporte cambiando el formato a <strong>PDF</strong>: la vista previa muestra el documento paginado, listo para descargar.</span><span class="lang-en">The same report switched to <strong>PDF</strong>: the preview shows the paginated document, ready to download.</span></figcaption>
       </figure>
       <div class="callout warn lang-es">
@@ -276,7 +297,7 @@
 
       <h3 id="recursos"><span class="lang-es">3.1 Recursos (imágenes y archivos)</span><span class="lang-en">3.1 Assets (images and files)</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-recursos.png" alt="Pestaña Recursos de reportes">
+        <img src="/assets/shots/reportes-recursos.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Pestaña Recursos de reportes">
         <figcaption><span class="lang-es">La pestaña de recursos: sube, organiza en carpetas y administra las imágenes de tus reportes.</span><span class="lang-en">The assets tab: upload, organize into folders, and manage the images for your reports.</span></figcaption>
       </figure>
       <p class="lang-es">En la pestaña <strong>Recursos de reportes</strong> subes y organizas los archivos que aparecerán en tus reportes —lo más típico, un <strong>logo</strong> para el encabezado—. Es un gestor de archivos sencillo:</p>
@@ -306,11 +327,11 @@
 
       <h3 id="consultas-datos"><span class="lang-es">3.2 Consultas de datos</span><span class="lang-en">3.2 Data queries</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-consultas.png" alt="Lista de consultas de datos">
+        <img src="/assets/shots/reportes-consultas.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Lista de consultas de datos">
         <figcaption><span class="lang-es">La pestaña de consultas de datos: cada consulta guardada, reutilizable en varias plantillas.</span><span class="lang-en">The data queries tab: each saved query, reusable across templates.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-consulta.png" alt="Editor JSON de una consulta de datos">
+        <img src="/assets/shots/reportes-consulta.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Editor JSON de una consulta de datos">
         <figcaption><span class="lang-es">El editor de una consulta: el <strong>JSON</strong> define el modelo, los campos y los filtros, con validación en vivo.</span><span class="lang-en">A query's editor: the <strong>JSON</strong> defines the model, fields, and filters, with live validation.</span></figcaption>
       </figure>
       <p class="lang-es">Una <strong>consulta de datos</strong> define, una sola vez y con nombre, qué información traer de la flota (por ejemplo, «todos los agentes de Windows con reinicio pendiente»). Luego la reutilizas en cuantas plantillas quieras sin repetir la definición. Se administran en la pestaña <strong>Consultas de datos</strong>.</p>
@@ -346,7 +367,7 @@
 
       <h3 id="programaciones"><span class="lang-es">4.1 Programaciones</span><span class="lang-en">4.1 Schedules</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-programacion.png" alt="Formulario de programación de reporte">
+        <img src="/assets/shots/reportes-programacion.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Formulario de programación de reporte">
         <figcaption><span class="lang-es">El formulario de programación: plantilla, formato, recurrencia, zona horaria y envío por correo.</span><span class="lang-en">The schedule form: template, format, recurrence, timezone, and email delivery.</span></figcaption>
       </figure>
       <p class="lang-es">Desde la pestaña <strong>Programaciones de reportes</strong>, pulsa <strong>Nuevo</strong> y completa:</p>
@@ -388,7 +409,7 @@
 
       <h3 id="historial"><span class="lang-es">4.2 Historial</span><span class="lang-en">4.2 History</span></h3>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes-historial.png" alt="Pestaña Historial de reportes">
+        <img src="/assets/shots/reportes-historial.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Pestaña Historial de reportes">
         <figcaption><span class="lang-es">El historial: cada reporte generado, con su plantilla, tipo y fecha, listo para abrir o descargar.</span><span class="lang-en">The history: every generated report, with its template, type, and date, ready to open or download.</span></figcaption>
       </figure>
       <p class="lang-es">La pestaña <strong>Historial de ejecución de reportes</strong> guarda cada reporte generado —manual o programado—. Para cada entrada ves la <strong>Plantilla</strong>, el <strong>Tipo de plantilla</strong> y la <strong>Fecha de creación</strong>, y puedes <strong>Abrir</strong> o <strong>Descargar</strong> el PDF (o el formato correspondiente) sin volver a generarlo. También puedes eliminar entradas que ya no necesites.</p>

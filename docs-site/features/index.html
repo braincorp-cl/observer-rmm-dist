@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Características · Observer RMM" data-title-en="Features · Observer RMM">
+<html lang="es" data-title-es="Características · Software RMM con geolocalización y antirrobo" data-title-en="Features · RMM software with asset location and anti-theft">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Características · Observer RMM</title>
-<meta name="description" content="Características de Observer RMM: control remoto, ejecución de scripts, monitoreo con alertas, gestión de parches, inventario, ubicación de la flota con geocerca, respuesta rápida en el equipo, reportería y plataformas soportadas. / Observer RMM features: remote control, script execution, monitoring with alerting, patch management, inventory, fleet location with geofencing, on-device quick response, reporting, and supported platforms.">
+<title>Características · Software RMM con geolocalización y antirrobo</title>
+<meta name="description" content="Control remoto, scripts, monitoreo con alertas, parches, inventario, ubicación de la flota con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/features/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/features/">
+<meta property="og:title" content="Características · Software RMM con geolocalización y antirrobo">
+<meta property="og:description" content="Control remoto, scripts, monitoreo con alertas, parches, inventario, ubicación de la flota con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,8 +29,12 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);
@@ -63,13 +84,13 @@
       </div>
 
       <figure class="doc-shot">
-        <img src="/assets/shots/dashboard.png" alt="Consola principal de Observer RMM">
+        <img src="/assets/shots/dashboard.webp?v=1" width="1400" height="758" loading="eager" fetchpriority="high" alt="Consola principal de Observer RMM">
         <figcaption><span class="lang-es">La consola principal: flota de equipos por cliente y sitio, con estado en tiempo real.</span><span class="lang-en">The main console: fleet of machines by client and site, with real-time status.</span></figcaption>
       </figure>
 
       <h2 id="acceso-remoto"><span class="lang-es">Acceso y control remoto</span><span class="lang-en">Remote access &amp; control</span></h2>
       <figure class="doc-shot">
-        <img src="/assets/shots/agente-panel.png" alt="Panel del agente con control remoto">
+        <img src="/assets/shots/agente-panel.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Panel del agente con control remoto">
         <figcaption><span class="lang-es">Panel de un equipo: control remoto, resumen de hardware, discos y estado de chequeos.</span><span class="lang-en">A machine's panel: remote control, hardware summary, disks, and check status.</span></figcaption>
       </figure>
       <div class="feature-grid">
@@ -181,11 +202,11 @@
 
       <h2 id="gestion-equipos"><span class="lang-es">Gestión de equipos</span><span class="lang-en">Endpoint management</span></h2>
       <figure class="doc-shot">
-        <img src="/assets/shots/parches.png" alt="Gestión de parches de Windows">
+        <img src="/assets/shots/parches.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Gestión de parches de Windows">
         <figcaption><span class="lang-es">Gestión de parches: actualizaciones pendientes por severidad, aprobables desde la consola.</span><span class="lang-en">Patch management: pending updates by severity, approvable from the console.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/software.png" alt="Inventario de software instalado">
+        <img src="/assets/shots/software.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Inventario de software instalado">
         <figcaption><span class="lang-es">Inventario de software: programas instalados en cada equipo, con versión y editor.</span><span class="lang-en">Software inventory: installed programs on each machine, with version and publisher.</span></figcaption>
       </figure>
       <div class="feature-grid">
@@ -236,14 +257,14 @@
       </div>
 
       <h2 id="ubicacion"><span class="lang-es">Ubicación de la flota y geocerca</span><span class="lang-en">Fleet location &amp; geofencing</span></h2>
-      <p class="lang-es">Cada equipo puede reportar dónde está, y la consola avisa cuando un activo se sale del perímetro de su sitio. La función viene <strong>desactivada</strong>: se enciende con un interruptor global en la configuración del servidor.</p>
-      <p class="lang-en">Every machine can report where it is, and the console warns you when an asset leaves its site's perimeter. The feature ships <strong>disabled</strong>: you turn it on with a global switch in the server settings.</p>
+      <p class="lang-es"><strong>Geolocalización de activos:</strong> cada equipo puede reportar dónde está —notebooks, equipos de terreno, servidores— y la consola avisa cuando uno se sale del perímetro de su sitio. La función viene <strong>desactivada</strong>: se enciende con un interruptor global en la configuración del servidor.</p>
+      <p class="lang-en"><strong>Asset location:</strong> every machine can report where it is —laptops, field machines, servers— and the console warns you when one leaves its site's perimeter. The feature ships <strong>disabled</strong>: you turn it on with a global switch in the server settings.</p>
       <figure class="doc-shot">
-        <img src="/assets/shots/ubicacion-mapa.png" alt="Mapa con la ubicación de un equipo">
+        <img src="/assets/shots/ubicacion-mapa.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Mapa con la ubicación de un equipo">
         <figcaption><span class="lang-es">El mapa de un equipo, con el origen del dato, la precisión y la hora de la medición. Esta máquina virtual no tiene radio WiFi, así que hereda las coordenadas declaradas de su sitio: el círculo es la incertidumbre de ese dato.</span><span class="lang-en">A machine's map, with the source of the reading, its accuracy, and when it was taken. This virtual machine has no WiFi radio, so it inherits its site's declared coordinates: the circle is that reading's uncertainty.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/ubicacion-historico.png" alt="Trayectoria histórica de un equipo en el mapa">
+        <img src="/assets/shots/ubicacion-historico.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Trayectoria histórica de un equipo en el mapa">
         <figcaption><span class="lang-es">Con <em>Histórico</em> aparecen los puntos anteriores y la trayectoria. Acá, un notebook que se movió entre regiones: el mapa se ajusta solo para que quepan todos los puntos.</span><span class="lang-en">With <em>History</em>, the earlier points and the path appear. Here, a laptop that moved across regions: the map zooms out on its own to fit every point.</span></figcaption>
       </figure>
       <div class="feature-grid">
@@ -289,15 +310,15 @@
         <p>Location tracking is meant for <strong>corporate assets</strong>: it's enabled at the server level, applies to the whole fleet, and every point is recorded in the machine's history. Decide with that in mind before turning it on.</p>
       </div>
 
-      <h2 id="respuesta-endpoint"><span class="lang-es">Respuesta rápida en el equipo</span><span class="lang-en">On-device quick response</span></h2>
-      <p class="lang-es">Tres acciones que actúan sobre la persona que está frente al equipo, no sobre el sistema: avisarle, dejarlo bloqueado o hacerlo sonar. Sirven para intervenir antes de un mantenimiento y para reaccionar cuando un equipo se extravía.</p>
-      <p class="lang-en">Three actions that address the person sitting at the machine rather than the system: warn them, lock it, or make it sound. Useful both to give notice before maintenance and to react when a machine goes missing.</p>
+      <h2 id="respuesta-endpoint"><span class="lang-es">Respuesta rápida y antirrobo</span><span class="lang-en">Quick response &amp; anti-theft</span></h2>
+      <p class="lang-es">Tres acciones que actúan sobre la persona que está frente al equipo, no sobre el sistema: avisarle, dejarlo bloqueado o hacerlo sonar. Sirven para avisar antes de un mantenimiento, y también para reaccionar cuando <strong>un equipo se pierde o lo roban</strong>: bloquearlo a distancia, hacerlo sonar para ubicarlo y dejar un mensaje en pantalla para quien lo tenga, junto con <a href="#ubicacion">su ubicación en el mapa</a>.</p>
+      <p class="lang-en">Three actions that address the person sitting at the machine rather than the system: warn them, lock it, or make it sound. Useful to give notice before maintenance, and also to react when <strong>a machine is lost or stolen</strong>: lock it remotely, make it sound so you can find it, and leave an on-screen message for whoever has it, alongside <a href="#ubicacion">its location on the map</a>.</p>
       <figure class="doc-shot">
-        <img src="/assets/shots/respuesta-menu.png" alt="Menú de respuesta rápida en el menú de acciones del equipo">
+        <img src="/assets/shots/respuesta-menu.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Menú de respuesta rápida en el menú de acciones del equipo">
         <figcaption><span class="lang-es">Las cuatro acciones, en el menú de acciones de cada equipo.</span><span class="lang-en">The four actions, in each machine's action menu.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/respuesta-mensaje.png" alt="Diálogo para redactar el mensaje en pantalla">
+        <img src="/assets/shots/respuesta-mensaje.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Diálogo para redactar el mensaje en pantalla">
         <figcaption><span class="lang-es">El mensaje que verá el usuario se redacta acá; la consola recuerda que el texto se entrega tal cual, sin traducir.</span><span class="lang-en">The message the user will see is written here; the console reminds you that the text is delivered verbatim, untranslated.</span></figcaption>
       </figure>
       <div class="feature-grid">
@@ -357,7 +378,7 @@
 
       <h2 id="reporteria"><span class="lang-es">Reportería</span><span class="lang-en">Reporting</span></h2>
       <figure class="doc-shot">
-        <img src="/assets/shots/reportes.png" alt="Gestor de reportes con plantillas curadas">
+        <img src="/assets/shots/reportes.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Gestor de reportes con plantillas curadas">
         <figcaption><span class="lang-es">Gestor de reportes: conjunto curado de plantillas listas para usar, más las que crees.</span><span class="lang-en">Report manager: a curated set of ready-to-use templates, plus the ones you create.</span></figcaption>
       </figure>
       <div class="feature-grid">

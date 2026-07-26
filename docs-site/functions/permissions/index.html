@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" data-title-es="Permisos y seguridad · Observer RMM" data-title-en="Permissions & security · Observer RMM">
+<html lang="es" data-title-es="Permisos y seguridad · Roles, RBAC y 2FA" data-title-en="Permissions & security · Roles, RBAC and 2FA">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Permisos y seguridad · Observer RMM</title>
-<meta name="description" content="Modelo de roles y permisos con implicancias de seguridad de Observer RMM. / Observer RMM role model and security-sensitive permissions.">
+<title>Permisos y seguridad · Roles, RBAC y 2FA</title>
+<meta name="description" content="Modelo de roles y permisos de Observer RMM: RBAC granular, visibilidad por cliente y sitio, 2FA y los permisos sensibles que conviene restringir.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/permissions/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/permissions/">
+<meta property="og:title" content="Permisos y seguridad · Roles, RBAC y 2FA">
+<meta property="og:description" content="Modelo de roles y permisos de Observer RMM: RBAC granular, visibilidad por cliente y sitio, 2FA y los permisos sensibles que conviene restringir.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
@@ -12,8 +29,12 @@
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
-  var l = localStorage.getItem('observer-docs-lang');
-  if (!l) l = (navigator.language || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
   var tt = d.getAttribute('data-title-' + l);
