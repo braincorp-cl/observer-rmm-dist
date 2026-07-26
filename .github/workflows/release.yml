@@ -1,0 +1,85 @@
+---
+name: Release
+
+# Crea la release de GitHub del PRODUCTO al pushear un tag vX.Y.Z.
+#
+# Antes se hacian a mano con `gh release create`, y eso fallo de las dos formas
+# posibles: v1.4.1 existia como release pero sin entrada en el CHANGELOG (el ancla
+# #v1.4.1 que enlaza la consola no resolvia), y v1.4.2 tenia entrada en el
+# CHANGELOG pero nunca se creo la release. Ahora el tag es el unico paso manual.
+#
+# El cuerpo sale de release-notes/<tag>.md, versionado y revisable en el commit.
+# Ver release-notes/README.md. Mismo criterio que el repo del agente.
+#
+# Este repo NO publica binarios: el producto se despliega con Ansible desde el
+# codigo, asi que la release es solo el registro de la version y sus notas.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-notes:
+    name: Validate release notes
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure release-notes/<tag>.md exists and is not a stub
+        run: |
+          NOTES="release-notes/${GITHUB_REF_NAME}.md"
+          if [ ! -f "$NOTES" ]; then
+            echo "::error::Falta $NOTES. Todo release debe traer el detalle de los cambios de la version (ver release-notes/README.md)."
+            exit 1
+          fi
+          if ! grep -q '^## Cambios en esta versión' "$NOTES"; then
+            echo "::error::$NOTES no tiene la seccion '## Cambios en esta versión'."
+            exit 1
+          fi
+          # Un archivo con el encabezado pero sin vinetas debajo es un stub.
+          if ! awk '/^## Cambios en esta versión/{f=1; next} /^## /{f=0} f && /^- /{found=1} END{exit !found}' "$NOTES"; then
+            echo "::error::$NOTES no lista ningun cambio bajo '## Cambios en esta versión'."
+            exit 1
+          fi
+          echo "OK: $NOTES ($(wc -l < "$NOTES") lineas)"
+
+      - name: Ensure the tag matches TRMM_VERSION and has a CHANGELOG entry
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          TRMM=$(grep -oP '^TRMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
+          if [ "$VER" != "$TRMM" ]; then
+            echo "::error::El tag ${GITHUB_REF_NAME} no coincide con TRMM_VERSION=${TRMM}. Se taggeo el commit equivocado, o falta subir la version."
+            exit 1
+          fi
+          if ! grep -q "^## v${VER} " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md no tiene la entrada '## v${VER}'. La consola enlaza el ancla #v${VER} y quedaria roto."
+            exit 1
+          fi
+          echo "OK: tag ${GITHUB_REF_NAME} == TRMM_VERSION ${TRMM}, con entrada en el CHANGELOG."
+
+  release:
+    name: Create release
+    runs-on: ubuntu-22.04
+    needs: [validate-notes]
+    steps:
+      - uses: actions/checkout@v4
+
+      # El titulo va sin la "v" para no romper la consistencia con las releases
+      # ya publicadas ("Observer RMM 1.4.1").
+      - name: Set version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # El cuerpo sale del archivo versionado, NO de generate_release_notes
+          # (que solo emite un enlace "Full Changelog").
+          name: Observer RMM ${{ steps.version.outputs.VERSION }}
+          body_path: release-notes/${{ github.ref_name }}.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
