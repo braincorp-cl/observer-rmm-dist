@@ -48,11 +48,35 @@ class SiteSerializer(ModelSerializer):
             "block_policy_inheritance",
             "maintenance_mode",
             "failing_checks",
+            "latitude",
+            "longitude",
         )
 
     def validate(self, val):
         if "name" in val.keys() and "|" in val["name"]:
             raise ValidationError("Site name cannot contain the | character")
+
+        # Coordenadas del sitio (feature 026): opcionales, pero no a medias. Se toma
+        # el valor entrante si viene en el payload y el ya guardado si no, porque los
+        # PATCH parciales de la consola mandan un solo campo a la vez.
+        lat = val.get("latitude", getattr(self.instance, "latitude", None))
+        lng = val.get("longitude", getattr(self.instance, "longitude", None))
+
+        if (lat is None) != (lng is None):
+            raise ValidationError(
+                "Latitude and longitude must be set together, or both left empty"
+            )
+
+        if lat is not None and not (-90 <= lat <= 90):
+            raise ValidationError("Latitude must be between -90 and 90")
+
+        if lng is not None and not (-180 <= lng <= 180):
+            raise ValidationError("Longitude must be between -180 and 180")
+
+        # (0, 0) es el "null island" del Atlántico: en la práctica siempre es un campo
+        # a medio llenar, nunca una oficina. Se rechaza para que no active la geocerca.
+        if lat == 0 and lng == 0:
+            raise ValidationError("Coordinates (0, 0) are not a valid site location")
 
         return val
 

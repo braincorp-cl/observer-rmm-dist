@@ -92,6 +92,35 @@
                     </q-tooltip>
                   </q-checkbox>
                 </q-card-section>
+                <!-- Geocerca por sitio (feature 026) -->
+                <q-card-section class="row items-center q-pl-lg q-gutter-md">
+                  <q-checkbox
+                    v-model="settings.geo_geofence_enabled"
+                    :disable="!settings.geo_tracking_enabled"
+                    :label="$t('editCoreSettings.geoGeofence')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.geoGeofenceTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 12rem"
+                    v-model.number="settings.geo_geofence_radius_m"
+                    :disable="
+                      !settings.geo_tracking_enabled ||
+                      !settings.geo_geofence_enabled
+                    "
+                    :label="$t('editCoreSettings.geoGeofenceRadius')"
+                    :rules="[
+                      (val) =>
+                        (val >= 50 && val <= 1000000) ||
+                        $t('editCoreSettings.geoGeofenceRadiusRule'),
+                    ]"
+                  />
+                </q-card-section>
                 <q-card-section v-if="!hosted" class="row">
                   <q-checkbox
                     v-model="settings.enable_server_scripts"

@@ -73,6 +73,13 @@ app.conf.beat_schedule = {
         "task": "core.tasks.scheduled_task_runner",
         "schedule": crontab(),
     },
+    # Geocerca por sitio (feature 026). Cada 5 min: la ubicación se reporta en el
+    # check-in del agente (300 s por defecto), así que una pasada más frecuente no
+    # tendría datos nuevos que evaluar.
+    "geofence-check-task": {
+        "task": "agents.tasks.geofence_check_task",
+        "schedule": crontab(minute="*/5"),
+    },
     "trmm-reports-scheduler": {
         "task": "ee.reporting.tasks.scheduled_reports_runner",
         "schedule": crontab(),

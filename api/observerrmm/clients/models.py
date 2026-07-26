@@ -97,6 +97,17 @@ class Site(BaseAuditModel):
     name = models.CharField(max_length=255)
     block_policy_inheritance = models.BooleanField(default=False)
     failing_checks = models.JSONField(default=_default_failing_checks_data)
+    # Ubicación física declarada del sitio (feature 026). OPCIONALES: un Site se crea
+    # sin coordenadas y se editan después. Cumplen dos funciones, ambas inactivas
+    # mientras estén en null:
+    #   1. Fallback de posición: un agente estacionario que sólo consigue un fix por
+    #      IP (típicamente una VM sin radio WiFi) se reporta en las coordenadas del
+    #      sitio con source="site" en vez de a cientos de km. Ver natsapi/svc.go.
+    #   2. Geocerca: un fix MEDIDO (native/wifi) a más de geo_geofence_radius_m de
+    #      aquí levanta alerta. Ver agents.tasks.geofence_check_task.
+    # Se guardan las dos o ninguna (validado en el serializer).
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="workstation_sites",

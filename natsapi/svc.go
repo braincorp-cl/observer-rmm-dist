@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"reflect"
 	"runtime"
@@ -18,6 +19,17 @@ import (
 // observerrmm/constants.py#GEO_CHECK_HISTORY_ID; el endpoint de lectura filtra
 // por este mismo valor.
 const geoCheckHistoryID = 2000000000
+
+// Orígenes de un punto de ubicación. Espejo EXACTO de
+// observerrmm/constants.py#GEO_SOURCE_* y de los literales que emite el agente
+// (observer-agent/agent/geolocation.go). "site" NO lo emite el agente: lo produce
+// este servicio como fallback declarado (feature 026).
+const (
+	geoSourceSite        = "site"
+	geoSourceIP          = "ip"
+	geoSourceDenied      = "denied"
+	geoSourceUnavailable = "unavailable"
+)
 
 func Svc(logger *logrus.Logger, cfg string) {
 	logger.Debugln("Starting Svc()")
@@ -214,24 +226,58 @@ func Svc(logger *logrus.Logger, cfg string) {
 				// Interruptor GLOBAL (defensa en profundidad): si está apagado,
 				// ignorar aunque un agente publique.
 				var geoEnabled bool
-				if err := db.QueryRow(`SELECT geo_tracking_enabled FROM core_coresettings ORDER BY id LIMIT 1;`).Scan(&geoEnabled); err != nil || !geoEnabled {
+				var geofenceRadius int
+				if err := db.QueryRow(`SELECT geo_tracking_enabled, geo_geofence_radius_m FROM core_coresettings ORDER BY id LIMIT 1;`).Scan(&geoEnabled, &geofenceRadius); err != nil || !geoEnabled {
 					logger.Debugln("Geo: interruptor global apagado o no leído, descartando punto")
 					return
 				}
+
+				lat, long, accuracy, source := p.Lat, p.Long, p.AccuracyM, p.Source
+
+				// Fallback de sitio (feature 026): un equipo ESTACIONARIO que no logró
+				// medir su posición hereda las coordenadas declaradas de su Site. El caso
+				// que lo motiva es la VM sin radio WiFi: su único origen posible es "ip",
+				// y el bloque público está registrado en la casa matriz del ISP — 238 km
+				// de error medidos (Entel/Santiago vs. el datacenter real en Talca). Las
+				// coordenadas declaradas del sitio son estrictamente mejores.
+				//
+				// NO aplica a "denied": ahí el problema es de permisos y taparlo con la
+				// posición del sitio esconde el diagnóstico en la consola. NO aplica a
+				// equipos con geo_offsite_allowed: un notebook que se mueve no debe
+				// aparecer clavado en la oficina.
+				if source == geoSourceIP || source == geoSourceUnavailable {
+					var siteLat, siteLong sql.NullFloat64
+					var offsiteAllowed bool
+					err := db.QueryRow(`
+					SELECT s.latitude, s.longitude, a.geo_offsite_allowed
+					FROM agents_agent a
+					JOIN clients_site s ON a.site_id = s.id
+					WHERE a.agent_id = $1;`, p.Agentid).Scan(&siteLat, &siteLong, &offsiteAllowed)
+					if err != nil {
+						logger.Debugln("Geo: no se pudo leer el sitio del agente:", err)
+					} else if !offsiteAllowed && siteLat.Valid && siteLong.Valid {
+						// La incertidumbre declarada es el propio perímetro del sitio:
+						// lo que se afirma es "este equipo está dentro del sitio".
+						lat, long, source = siteLat.Float64, siteLong.Float64, geoSourceSite
+						accuracy = geofenceRadius
+						logger.Debugln("Geo: sin fix medido, heredando coordenadas del sitio")
+					}
+				}
+
 				// Estados sin fix: NO se guardan filas con coordenadas nulas
 				// (CONTRACT-01 punto 3). No se loggean coordenadas a nivel normal.
-				if p.Source == "denied" || p.Source == "unavailable" {
+				if source == geoSourceDenied || source == geoSourceUnavailable {
 					logger.Debugln("Geo: sin fix, no se inserta punto")
 					return
 				}
-				if p.Lat < -90 || p.Lat > 90 || p.Long < -180 || p.Long > 180 || (p.Lat == 0 && p.Long == 0) {
+				if lat < -90 || lat > 90 || long < -180 || long > 180 || (lat == 0 && long == 0) {
 					logger.Debugln("Geo: coordenadas fuera de rango, descartando")
 					return
 				}
 				results, err := json.Marshal(map[string]interface{}{
-					"lat":         p.Lat,
-					"long":        p.Long,
-					"source":      p.Source,
+					"lat":         lat,
+					"long":        long,
+					"source":      source,
 					"captured_at": p.CapturedAt,
 				})
 				if err != nil {
@@ -241,7 +287,7 @@ func Svc(logger *logrus.Logger, cfg string) {
 				stmt := `
 				INSERT INTO checks_checkhistory (check_id, agent_id, x, y, results)
 				VALUES ($1, $2, $3, $4, $5);`
-				_, err = db.Exec(stmt, geoCheckHistoryID, p.Agentid, time.Now().UTC(), p.AccuracyM, results)
+				_, err = db.Exec(stmt, geoCheckHistoryID, p.Agentid, time.Now().UTC(), accuracy, results)
 				if err != nil {
 					logger.Errorln(err)
 				}

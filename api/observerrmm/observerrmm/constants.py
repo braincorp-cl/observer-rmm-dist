@@ -102,6 +102,8 @@ class AlertType(models.TextChoices):
     CHECK = "check", "Check"
     TASK = "task", "Task"
     CUSTOM = "custom", "Custom"
+    # Feature 026: el equipo se midió fuera del radio de su sitio.
+    GEOFENCE = "geofence", "Geofence"
 
 
 class AlertTemplateActionType(models.TextChoices):
@@ -272,6 +274,20 @@ class URLActionType(models.TextChoices):
 # distinguir los puntos geo del historial de checks normales. El consumidor natsapi
 # escribe este MISMO literal en su INSERT por SQL raw — mantener ambos en sincronía.
 GEO_CHECK_HISTORY_ID = 2000000000
+
+# Orígenes posibles de un punto de ubicación, del más al menos preciso. "native" y
+# "wifi" son MEDIDOS por el endpoint (decenas de metros) y son los únicos que la
+# geocerca evalúa. "site" es DECLARADO: son las coordenadas del Site heredadas por un
+# equipo estacionario que no logró medir (feature 026) — no se evalúa porque
+# compararlo contra el sitio del que salió sería tautológico. "ip" es aproximado con
+# error de cientos de km y tampoco se evalúa.
+GEO_SOURCE_NATIVE = "native"
+GEO_SOURCE_WIFI = "wifi"
+GEO_SOURCE_SITE = "site"
+GEO_SOURCE_IP = "ip"
+# Los únicos orígenes con precisión suficiente para decidir si un equipo salió de su
+# geocerca. natsapi escribe estos MISMOS literales — mantener en sincronía.
+GEO_MEASURED_SOURCES = (GEO_SOURCE_NATIVE, GEO_SOURCE_WIFI)
 
 
 class URLActionRestMethod(models.TextChoices):

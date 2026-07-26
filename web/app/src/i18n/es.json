@@ -241,6 +241,8 @@
     "overdueEmailAlerts": "Recibir alertas por email de atraso",
     "overdueSmsAlerts": "Recibir alertas por SMS de atraso",
     "overdueDashboardAlerts": "Recibir alertas en el dashboard de atraso",
+    "geoOffsiteAllowed": "Autorizado a salir del sitio",
+    "geoOffsiteAllowedTooltip": "Márcalo en equipos móviles (notebooks, equipos de terreno). Quedan excluidos de la alerta de geocerca y no heredan las coordenadas del sitio cuando no logran medir su ubicación.",
     "noCustomFields": "No se encontraron campos personalizados de agente. Ve a **Configuración > Configuración global > Configuración personalizada**",
     "policies": "Políticas",
     "none": "Ninguna",
@@ -370,7 +372,11 @@
     "geoTracking": "Habilitar geolocalización de la flota",
     "geoTrackingTooltip": "Interruptor global. Con esto activo, los agentes reportan su ubicación aproximada (equipos corporativos). El historial respeta la retención del historial de chequeos.",
     "geoForceLocation": "Forzar ubicación/WiFi en el endpoint",
-    "geoForceLocationTooltip": "Interruptor global. Con esto activo, el agente enciende la ubicación del sistema y la radio WiFi si estuvieran apagadas, para poder escanear WiFi aun en Windows 11 24H2 / Server 2025. Aplica a equipos corporativos (sin opt-in del usuario). Requiere la geolocalización habilitada."
+    "geoForceLocationTooltip": "Interruptor global. Con esto activo, el agente enciende la ubicación del sistema y la radio WiFi si estuvieran apagadas, para poder escanear WiFi aun en Windows 11 24H2 / Server 2025. Aplica a equipos corporativos (sin opt-in del usuario). Requiere la geolocalización habilitada.",
+    "geoGeofence": "Alertar cuando un equipo sale de su sitio",
+    "geoGeofenceTooltip": "Interruptor global. Compara la ubicación MEDIDA de cada equipo (WiFi o nativa del SO) con las coordenadas de su sitio y genera una alerta si supera el radio. Requiere que el sitio tenga coordenadas. Los equipos marcados como autorizados a salir quedan excluidos. Las ubicaciones aproximadas por IP no se evalúan.",
+    "geoGeofenceRadius": "Radio (m)",
+    "geoGeofenceRadiusRule": "Entre 50 y 1.000.000 metros"
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -647,6 +653,7 @@
       "meta": "Fuente: {source} · precisión ~{accuracy} m · {when}",
       "source_native": "nativa (SO)",
       "source_wifi": "WiFi",
+      "source_site": "sitio (declarada)",
       "source_ip": "IP (aproximada)",
       "source_denied": "permiso denegado",
       "source_unavailable": "no disponible",
@@ -1409,6 +1416,12 @@
     "name": "Nombre",
     "nameRequired": "El nombre es obligatorio",
     "customFields": "Campos personalizados",
+    "locationHint": "Ubicación física del sitio (opcional). Si la completas, los equipos fijos sin WiFi se muestran acá en vez de la ubicación aproximada por IP, y se puede alertar cuando un equipo se aleja del sitio.",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "latitudeInvalid": "Latitud inválida: debe ir entre -90 y 90, junto con la longitud",
+    "longitudeInvalid": "Longitud inválida: debe ir entre -180 y 180, junto con la latitud",
+    "nullIslandInvalid": "(0, 0) no es una ubicación válida",
     "cancel": "Cancelar",
     "save": "Guardar"
   },

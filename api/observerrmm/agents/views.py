@@ -186,6 +186,7 @@ class GetUpdateDeleteAgent(APIView):
                 "check_interval",
                 "time_zone",
                 "site",
+                "geo_offsite_allowed",  # feature 026: excluye de la geocerca
             ]
 
     # get agent details

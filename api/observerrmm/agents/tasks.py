@@ -307,3 +307,213 @@ def prune_agent_history(older_than_days: int) -> str:
 @app.task
 def bulk_recover_agents_task() -> None:
     call_command("bulk_restart_agents")
+
+
+# --- Geocerca por sitio (feature 026) -----------------------------------------
+# Sólo se evalúan fixes MEDIDOS (native/wifi). Deliberadamente NO se evalúa "ip":
+# su error típico contra un bloque de ISP registrado en la casa matriz es de
+# cientos de km (238 km medidos en el bloque de Entel que usa el datacenter de
+# Talca), así que evaluarlo generaría un falso positivo por cada equipo sin radio
+# WiFi. Tampoco "site", que sería tautológico: esas coordenadas SON las del sitio.
+
+# Un punto más viejo que esto no se evalúa: si el equipo dejó de reportar
+# ubicación hace un día, lo que corresponde es la alerta de disponibilidad, no
+# afirmar dónde está en base a un dato rancio.
+GEOFENCE_MAX_FIX_AGE = dt.timedelta(hours=24)
+
+
+def _format_distance(meters: float) -> str:
+    return f"{meters / 1000:.1f} km" if meters >= 1000 else f"{round(meters)} m"
+
+
+@app.task
+def geofence_check_task() -> str:
+    """Compara la última posición medida de cada agente contra su sitio.
+
+    Corre desde celerybeat. Crea una alerta cuando el equipo se midió fuera del
+    radio y la resuelve cuando vuelve a entrar (o cuando deja de ser evaluable,
+    p. ej. si se le quitan las coordenadas al sitio o se lo marca como
+    autorizado a salir) — así no quedan alertas colgadas para siempre.
+    """
+    from alerts.models import Alert
+    from checks.models import CheckHistory
+    from core.geo import haversine_m
+    from observerrmm.constants import (
+        GEO_CHECK_HISTORY_ID,
+        GEO_MEASURED_SOURCES,
+        AlertType,
+    )
+
+    core = get_core_settings()
+    if not core.geo_tracking_enabled or not core.geo_geofence_enabled:
+        return "geofence disabled"
+
+    radius = core.geo_geofence_radius_m
+
+    # Candidatos: equipos estacionarios cuyo sitio TIENE coordenadas. Un sitio sin
+    # coordenadas no define ninguna cerca, así que sus equipos no se evalúan.
+    agents = {
+        a.agent_id: a
+        for a in Agent.objects.select_related("site", "site__client")
+        .filter(
+            site__latitude__isnull=False,
+            site__longitude__isnull=False,
+            geo_offsite_allowed=False,
+            maintenance_mode=False,
+        )
+        .only(
+            "agent_id",
+            "hostname",
+            "alert_template",
+            "site__name",
+            "site__latitude",
+            "site__longitude",
+            "site__client__name",
+        )
+    }
+
+    # Última fila geo por agente en UNA consulta (DISTINCT ON de Postgres) en vez
+    # de una por equipo: esto corre cada pocos minutos sobre toda la flota.
+    latest = (
+        CheckHistory.objects.filter(
+            check_id=GEO_CHECK_HISTORY_ID,
+            agent_id__in=agents.keys(),
+            x__gte=djangotime.now() - GEOFENCE_MAX_FIX_AGE,
+        )
+        .order_by("agent_id", "-x")
+        .distinct("agent_id")
+    )
+
+    outside: dict[str, float] = {}
+    inside: set[str] = set()
+
+    for row in latest:
+        results = row.results or {}
+        if results.get("source") not in GEO_MEASURED_SOURCES:
+            continue
+
+        lat, long = results.get("lat"), results.get("long")
+        if lat is None or long is None:
+            continue
+
+        site = agents[row.agent_id].site
+        distance = haversine_m(lat, long, site.latitude, site.longitude)
+
+        # El radio del fix se descuenta del margen: un equipo a 1.010 m con un
+        # fix de ±20 m puede estar perfectamente dentro de la cerca. Se alerta
+        # sólo cuando estar fuera es la única lectura posible del dato.
+        if distance - (row.y or 0) > radius:
+            outside[row.agent_id] = distance
+        else:
+            inside.add(row.agent_id)
+
+    for agent_id, distance in outside.items():
+        _open_geofence_alert(agents[agent_id], distance, radius)
+
+    # Se resuelve sólo con evidencia POSITIVA de que la alerta ya no aplica:
+    #   a) el equipo se volvió a medir dentro del radio, o
+    #   b) dejó de ser evaluable por configuración (se le quitaron las coordenadas
+    #      al sitio, se lo marcó como autorizado a salir, entró en mantención).
+    # Deliberadamente NO se resuelve por falta de datos frescos: si un equipo se
+    # fue del sitio y después dejó de reportar, cerrar la alerta sería justo lo
+    # contrario de lo que el operador necesita ver.
+    open_alerts = Alert.objects.filter(
+        alert_type=AlertType.GEOFENCE, resolved=False
+    ).select_related("agent", "agent__site", "agent__site__client")
+
+    resolved = 0
+    for alert in open_alerts:
+        if not alert.agent:
+            continue
+        agent_id = alert.agent.agent_id
+        if agent_id in inside:
+            _resolve_geofence_alert(alert, back_inside=True)
+            resolved += 1
+        elif agent_id not in agents:
+            _resolve_geofence_alert(alert, back_inside=False)
+            resolved += 1
+
+    return (
+        f"geofence: {len(outside)} outside, {len(inside)} inside, {resolved} resolved"
+    )
+
+
+def _open_geofence_alert(agent: "Agent", distance: float, radius: int) -> None:
+    from alerts.models import Alert
+    from observerrmm.constants import AlertSeverity, AlertType
+
+    # Ya hay una alerta abierta: no se duplica ni se re-notifica en cada pasada.
+    # El operador la resuelve o la silencia con la maquinaria estándar de alertas.
+    if Alert.objects.filter(
+        agent=agent, alert_type=AlertType.GEOFENCE, resolved=False
+    ).exists():
+        return
+
+    message = (
+        f"{agent.hostname} se midió a {_format_distance(distance)} de "
+        f"{agent.site.client.name} / {agent.site.name}, "
+        f"fuera del radio autorizado de {_format_distance(radius)}."
+    )
+
+    Alert.objects.create(
+        agent=agent,
+        alert_type=AlertType.GEOFENCE,
+        severity=AlertSeverity.WARNING,
+        message=message,
+        # hidden=False a propósito: la alerta debe aparecer en el widget de la
+        # consola de inmediato (el listado filtra hidden=False).
+        hidden=False,
+    )
+
+    DebugLog.warning(
+        agent=agent,
+        log_type=DebugLogType.AGENT_ISSUES,
+        message=message,
+    )
+
+    _send_geofence_email(agent, subject_prefix="Geocerca", message=message)
+
+
+def _resolve_geofence_alert(alert, *, back_inside: bool) -> None:
+    """Cierra la alerta. `back_inside` distingue los dos motivos posibles para
+    que el correo diga la verdad: el equipo volvió al sitio, o la geocerca dejó
+    de aplicarle por un cambio de configuración."""
+    agent = alert.agent
+    alert.resolve()
+
+    if not agent:
+        return
+
+    site = f"{agent.site.client.name} / {agent.site.name}"
+    message = (
+        f"{agent.hostname} volvió al radio autorizado de {site}."
+        if back_inside
+        else (
+            f"{agent.hostname} ya no se evalúa contra la geocerca de {site} "
+            f"(cambió su configuración: coordenadas del sitio, permiso de salida "
+            f"o modo mantención)."
+        )
+    )
+    _send_geofence_email(agent, subject_prefix="Geocerca resuelta", message=message)
+
+
+def _send_geofence_email(agent: "Agent", subject_prefix: str, message: str) -> None:
+    """Envía el correo con la maquinaria de email existente.
+
+    Best-effort: si el SMTP no está configurado, send_mail devuelve False y la
+    alerta igual queda en el widget. Un problema de correo nunca debe romper la
+    pasada de la geocerca ni el resto de la flota.
+    """
+    core = get_core_settings()
+    try:
+        core.send_mail(
+            f"{subject_prefix}: {agent.hostname}",
+            message,
+            alert_template=agent.alert_template,
+        )
+    except Exception as e:
+        DebugLog.error(
+            agent=agent,
+            log_type=DebugLogType.AGENT_ISSUES,
+            message=f"Geofence email failed: {e}",
+        )

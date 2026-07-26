@@ -100,6 +100,17 @@ class CoreSettings(BaseAuditModel):
     # el endpoint es de la empresa; no hay opt-in del usuario final. Requiere
     # geo_tracking_enabled=True para tener efecto.
     geo_force_location_on = models.BooleanField(default=False)
+    # Geocerca por sitio (feature 026). Apagado por defecto y GLOBAL, igual que los
+    # otros dos interruptores geo: activarlo en una flota que ya venía reportando
+    # puede levantar un lote de alertas de golpe (equipos cuyo Site está asignado de
+    # forma nominal y no coincide con su ubicación física real), así que la decisión
+    # de encenderlo es explícita del operador. Requiere geo_tracking_enabled=True.
+    geo_geofence_enabled = models.BooleanField(default=False)
+    # Radio de la geocerca en metros. Un fix MEDIDO (native/wifi) más lejos que esto
+    # de las coordenadas del Site del agente genera alerta, salvo que el agente esté
+    # marcado con geo_offsite_allowed. Los fixes por IP nunca se evalúan: su error
+    # típico es de cientos de km (ver feature 026) y dispararían falsos positivos.
+    geo_geofence_radius_m = models.PositiveIntegerField(default=1000)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="default_workstation_policy",

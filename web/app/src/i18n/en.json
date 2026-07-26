@@ -241,6 +241,8 @@
     "overdueEmailAlerts": "Get overdue email alerts",
     "overdueSmsAlerts": "Get overdue sms alerts",
     "overdueDashboardAlerts": "Get overdue dashboard alerts",
+    "geoOffsiteAllowed": "Allowed off-site",
+    "geoOffsiteAllowedTooltip": "Check this on mobile machines (laptops, field equipment). They are excluded from the geofence alert and do not inherit the site coordinates when they cannot measure their own location.",
     "noCustomFields": "No agent custom fields found. Go to **Settings > Global Settings > Custom Settings**",
     "policies": "Policies",
     "none": "None",
@@ -370,7 +372,11 @@
     "geoTracking": "Enable fleet geolocation",
     "geoTrackingTooltip": "Global switch. When enabled, agents report their approximate location (corporate devices). History follows the check-history retention.",
     "geoForceLocation": "Force location/WiFi on the endpoint",
-    "geoForceLocationTooltip": "Global switch. When enabled, the agent turns on system location and the WiFi radio if they are off, so WiFi scanning works even on Windows 11 24H2 / Server 2025. Applies to corporate devices (no user opt-in). Requires fleet geolocation enabled."
+    "geoForceLocationTooltip": "Global switch. When enabled, the agent turns on system location and the WiFi radio if they are off, so WiFi scanning works even on Windows 11 24H2 / Server 2025. Applies to corporate devices (no user opt-in). Requires fleet geolocation enabled.",
+    "geoGeofence": "Alert when a machine leaves its site",
+    "geoGeofenceTooltip": "Global switch. Compares each machine's MEASURED location (WiFi or OS-native) against its site coordinates and raises an alert when it exceeds the radius. Requires the site to have coordinates. Machines marked as allowed off-site are excluded. Approximate IP locations are never evaluated.",
+    "geoGeofenceRadius": "Radius (m)",
+    "geoGeofenceRadiusRule": "Between 50 and 1,000,000 meters"
   },
   "bulkAction": {
     "close": "Close",
@@ -647,6 +653,7 @@
       "meta": "Source: {source} · accuracy ~{accuracy} m · {when}",
       "source_native": "native (OS)",
       "source_wifi": "WiFi",
+      "source_site": "site (declared)",
       "source_ip": "IP (approximate)",
       "source_denied": "permission denied",
       "source_unavailable": "unavailable",
@@ -1409,6 +1416,12 @@
     "name": "Name",
     "nameRequired": "Name is required",
     "customFields": "Custom Fields",
+    "locationHint": "Physical location of the site (optional). If set, stationary machines without WiFi are shown here instead of at their approximate IP location, and you can be alerted when a machine moves away from the site.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "latitudeInvalid": "Invalid latitude: must be between -90 and 90, together with the longitude",
+    "longitudeInvalid": "Invalid longitude: must be between -180 and 180, together with the latitude",
+    "nullIslandInvalid": "(0, 0) is not a valid location",
     "cancel": "Cancel",
     "save": "Save"
   },

@@ -101,6 +101,14 @@ class Agent(BaseAuditModel):
     )
     maintenance_mode = models.BooleanField(default=False)
     block_policy_inheritance = models.BooleanField(default=False)
+    # Equipo autorizado a salir del sitio físico (feature 026). Se marca en los
+    # equipos móviles — notebooks, equipos de terreno — y tiene dos efectos:
+    #   1. Queda EXCLUIDO de la alerta de geocerca (puede alejarse sin generar ruido).
+    #   2. NO hereda las coordenadas del Site como fallback: un equipo que se mueve
+    #      no debe aparecer clavado en la oficina cuando sólo logró un fix por IP;
+    #      es más honesto mostrar la posición aproximada real.
+    # Por defecto False: el caso mayoritario de un RMM corporativo es el equipo fijo.
+    geo_offsite_allowed = models.BooleanField(default=False)
     alert_template = models.ForeignKey(
         "alerts.AlertTemplate",
         related_name="agents",

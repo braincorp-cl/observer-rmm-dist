@@ -181,6 +181,17 @@
                       :label="$t('editAgent.overdueDashboardAlerts')"
                     />
                   </q-card-section>
+                  <!-- Geocerca por sitio (feature 026) -->
+                  <q-card-section class="row q-pt-none">
+                    <q-checkbox
+                      v-model="agent.geo_offsite_allowed"
+                      :label="$t('editAgent.geoOffsiteAllowed')"
+                    >
+                      <q-tooltip>{{
+                        $t("editAgent.geoOffsiteAllowedTooltip")
+                      }}</q-tooltip>
+                    </q-checkbox>
+                  </q-card-section>
                 </q-tab-panel>
 
                 <!-- custom fields -->
