@@ -51,3 +51,15 @@ observer_checkin_syncmesh_max: 7200
 observer_check_interval_jitter_min: 3
 observer_check_interval_jitter_max: 120
 observer_nats_max_connections: 50000
+
+# Geolocalización (feature 023). El agente además captura al detectar cambio de red,
+# así que este intervalo es un piso, no la única fuente de puntos. Mismos valores que
+# el default de settings.py; bajarlo en el inventario del ambiente si se quiere geo
+# más frecuente (staging usa 300/300 para validar).
+observer_checkin_geo_min: 1500
+observer_checkin_geo_max: 2100
+
+# Key de Google Geolocation (features 023/026) — SERVER-SIDE, jamás en git ni en la
+# flota. Se define en el vault del ambiente como vault_google_geolocation_api_key.
+# Vacía = resolución WiFi apagada y el agente degrada a IP (no rompe nada).
+observer_google_geolocation_api_key: "{{ vault_google_geolocation_api_key | default('') }}"

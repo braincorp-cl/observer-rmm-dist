@@ -312,6 +312,15 @@ Eso es todo lo que hace el humano. Al ejecutar el playbook (Paso 7):
 | `vault_observer_mesh_db_password` (db↔mesh, idénticas) | **autogenerado** |
 | `vault_observer_mesh_password` (login `meshcentral_admin`) | **autogenerado** — se muestra al final |
 | `vault_godaddy_key` / `vault_godaddy_secret` | **humano** (solo modo `acme`) |
+| `vault_google_geolocation_api_key` | **humano** (opcional — ver abajo) |
+
+> **Geolocalización por WiFi (opcional).** Si quiere que los equipos se ubiquen por las
+> redes WiFi que ven (precisión típica ~20 m) en vez de solo por dirección IP, agregue
+> `vault_google_geolocation_api_key: "<su key de Google Geolocation API>"` a
+> `group_vars/observer_api/vault.yml`. La key queda **solo en el servidor** (nunca viaja a
+> los equipos) y **no se versiona**. Sin ella la función queda apagada y el agente cae a
+> ubicación por IP, sin errores. Google da 10.000 consultas/mes gratis; el servidor
+> cachea por conjunto de antenas, así que una oficina entera cuesta una consulta.
 
 > **Rotar contraseñas:** borre `group_vars/observer_api/vault.yml`,
 > `group_vars/observer_db/vault.yml` y `group_vars/observer_mesh/vault.yml`, y vuelva a

@@ -30,7 +30,12 @@ observer_checkin_syncmesh_min: 3600
 observer_checkin_syncmesh_max: 7200
 observer_check_interval_jitter_min: 3
 observer_check_interval_jitter_max: 120
+observer_checkin_geo_min: 1500
+observer_checkin_geo_max: 2100
 observer_nats_max_connections: 50000
+# Feature 023/026 — key de Google Geolocation, server-side. Vacía por default: sin key
+# la resolución WiFi queda apagada y el agente degrada a IP. Se setea por vault.
+observer_google_geolocation_api_key: ""
 
 # Cola de escucha del socket uWSGI (backport v1.5.1 B2): create_uwsgi_conf emite
 # `listen = {{ UWSGI_LISTEN_QUEUE|default(1024) }}`, pero el kernel recorta el backlog

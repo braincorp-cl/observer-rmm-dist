@@ -54,7 +54,18 @@ CHECKIN_SW = ({{ observer_checkin_sw_inventory_min }}, {{ observer_checkin_sw_in
 CHECKIN_WMI = ({{ observer_checkin_hw_assets_min }}, {{ observer_checkin_hw_assets_max }})
 CHECKIN_SYNCMESH = ({{ observer_checkin_syncmesh_min }}, {{ observer_checkin_syncmesh_max }})
 CHECK_INTERVAL_JITTER = ({{ observer_check_interval_jitter_min }}, {{ observer_check_interval_jitter_max }})
+CHECKIN_GEO = ({{ observer_checkin_geo_min }}, {{ observer_checkin_geo_max }})
 NATS_MAX_CONNECTIONS = {{ observer_nats_max_connections }}
+
+# Feature 023/026 — resolución WiFi→coordenadas (/api/v3/geolocate/, modelo Prey).
+# La key vive SOLO acá, en el backend, nunca en la flota, y NO se versiona: viene del
+# vault del ambiente (vault_google_geolocation_api_key). Si está vacía no se emite la
+# línea y settings.py deja la resolución WiFi apagada → el agente degrada a IP.
+# Este bloque existe porque este archivo se RE-RENDERIZA en cada install.yml: una key
+# puesta a mano acá se perdería en el próximo deploy, en silencio.
+{% if observer_google_geolocation_api_key | default('') | length > 0 %}
+GOOGLE_GEOLOCATION_API_KEY = '{{ observer_google_geolocation_api_key }}'
+{% endif %}
 
 # TLS: Observer usa el modelo de certs distribuido en /etc/ssl/observer/ (ADR TLS
 # distribuido: modos acme|byo dejan ambos el cert ahí; "path único"), NO la ruta
