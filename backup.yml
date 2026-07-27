@@ -15,23 +15,60 @@
         group: "{{ observer_group }}"
         mode: "0750"
 
-    - name: pg_dump observerrmm
+    # El rol de PG es `postgres`, pero el directorio de backups es de {{ observer_user }}
+    # con modo 0750: si postgres escribe el archivo directo (pg_dump -f) falla con
+    # "Permission denied" y el backup NO se hace. Por eso se dumpea a stdout como
+    # postgres y redirige root, que sí puede escribir ahí.
+    - name: pg_dump de las bases (observerrmm y meshcentral)
       become: true
-      become_user: postgres
-      ansible.builtin.command: >
-        pg_dump -Fc observerrmm
-        -f {{ observer_root }}/backups/observerrmm_{{ backup_ts }}.dump
+      ansible.builtin.shell:
+        cmd: >
+          set -o pipefail &&
+          sudo -u postgres pg_dump -Fc {{ item }}
+          > {{ observer_root }}/backups/{{ item }}_{{ backup_ts }}.dump
+        executable: /bin/bash
+      loop:
+        - observerrmm
+        - meshcentral
       changed_when: true
 
-    - name: pg_dump meshcentral
+    - name: Dueño y permisos de los dumps
       become: true
-      become_user: postgres
-      ansible.builtin.command: >
-        pg_dump -Fc meshcentral
-        -f {{ observer_root }}/backups/meshcentral_{{ backup_ts }}.dump
-      changed_when: true
+      ansible.builtin.file:
+        path: "{{ observer_root }}/backups/{{ item }}_{{ backup_ts }}.dump"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0640"
+      loop:
+        - observerrmm
+        - meshcentral
+
+    # Un pg_dump puede salir 0 y dejar un archivo inservible (disco lleno, redirección
+    # rota). El backup solo cuenta si el archivo existe y tiene contenido.
+    - name: Comprobar que los dumps existen y no están vacíos
+      become: true
+      ansible.builtin.stat:
+        path: "{{ observer_root }}/backups/{{ item }}_{{ backup_ts }}.dump"
+      register: observer_dump_stat
+      loop:
+        - observerrmm
+        - meshcentral
+
+    - name: Fallar si algún dump quedó vacío
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.size > 1024
+        fail_msg: >
+          El dump {{ item.item }} no se generó o quedó vacío
+          ({{ item.stat.size | default(0) }} bytes) — NO continuar con el deploy.
+        success_msg: "Dump {{ item.item }} OK ({{ item.stat.size }} bytes)"
+      loop: "{{ observer_dump_stat.results }}"
+      loop_control:
+        label: "{{ item.item }}"
 
     - name: Verificar que backups no contienen vault_ en texto
+      become: true
       ansible.builtin.shell: >
         strings {{ observer_root }}/backups/observerrmm_{{ backup_ts }}.dump |
         grep -c "vault_" || true
@@ -63,6 +100,7 @@
     backup_ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
   tasks:
     - name: Tarball de configuración MeshCentral
+      become: true      # /meshcentral/config.json no es legible por {{ observer_user }}
       ansible.builtin.archive:
         path: /meshcentral/config.json
         dest: "{{ observer_root }}/backups/meshcentral_config_{{ backup_ts }}.tar.gz"
