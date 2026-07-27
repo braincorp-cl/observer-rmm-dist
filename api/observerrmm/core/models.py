@@ -86,25 +86,41 @@ class CoreSettings(BaseAuditModel):
     mesh_company_name = models.CharField(max_length=255, null=True, blank=True)
     sync_mesh_with_trmm = models.BooleanField(default=True)
     agent_auto_update = models.BooleanField(default=True)
-    # Interruptor GLOBAL de geolocalización de la flota (feature 023). Apagado por
-    # defecto: mientras sea False el agente no captura ni publica ubicación y el
-    # backend ignora cualquier punto entrante (defensa en profundidad). El histórico
+    # Interruptor GLOBAL de geolocalización de la flota (feature 023). ENCENDIDO por
+    # defecto (ADR-024): mientras sea False el agente no captura ni publica ubicación y
+    # el backend ignora cualquier punto entrante (defensa en profundidad). El histórico
     # se guarda en CheckHistory y respeta check_history_prune_days. No es por-agente:
     # activos corporativos, no requiere consentimiento del usuario final.
-    geo_tracking_enabled = models.BooleanField(default=False)
-    # Force-on del sensor de ubicación en el endpoint (feature 023 · gap 3). Apagado
+    #
+    # Ojo con lo que HABILITA encenderlo de fábrica, porque no era cierto antes: hasta
+    # el agente 2.14.3 el switch se leía UNA sola vez al arrancar, así que APAGAR la geo
+    # desde la consola no surtía efecto hasta reiniciar el agente. Un interruptor de
+    # privacidad que no se puede apagar no puede venir encendido. Desde la 2.14.4 se
+    # re-evalúa en cada captura, en las dos direcciones ⇒ es reversible en un clic.
+    geo_tracking_enabled = models.BooleanField(default=True)
+    # Force-on del sensor de ubicación en el endpoint (feature 023 · gap 3). ENCENDIDO
     # por defecto y GLOBAL. Cuando está activo, el agente (que corre como SYSTEM /
     # root sobre un ACTIVO CORPORATIVO) habilita la ubicación del dispositivo y la
     # radio WiFi si estuvieran apagadas, para que el escaneo de BSSIDs funcione aun
     # en Windows 11 24H2 / Server 2025 (que exigen Location del SO ON). Política:
     # el endpoint es de la empresa; no hay opt-in del usuario final. Requiere
     # geo_tracking_enabled=True para tener efecto.
-    geo_force_location_on = models.BooleanField(default=False)
-    # Geocerca por sitio (feature 026). Apagado por defecto y GLOBAL, igual que los
-    # otros dos interruptores geo: activarlo en una flota que ya venía reportando
-    # puede levantar un lote de alertas de golpe (equipos cuyo Site está asignado de
-    # forma nominal y no coincide con su ubicación física real), así que la decisión
-    # de encenderlo es explícita del operador. Requiere geo_tracking_enabled=True.
+    #
+    # Viaja junto al tracking a propósito: `tracking=True` + `force=False` no es un
+    # estado a medio configurar, es un estado que produce datos MALOS. Sin el force-on
+    # esos dos SO no entregan BSSIDs y el agente se repliega a ubicación por IP, donde
+    # está medido que 0 de 14 proveedores aciertan el sitio (error de cientos de km,
+    # feature 026). Puntos plausibles y equivocados son peores que ningún punto.
+    geo_force_location_on = models.BooleanField(default=True)
+    # Geocerca por sitio (feature 026). APAGADA por defecto — es el único de los tres
+    # interruptores geo que no viene encendido, y es por diseño, no por prudencia
+    # (ADR-024). La razón que basta sola: compara contra las coordenadas del Site, y una
+    # instalación nueva no tiene Sites ni coordenadas, así que encendida no podría
+    # evaluar nada. La segunda: activarla en una flota que ya venía reportando puede
+    # levantar un lote de alertas de golpe (equipos cuyo Site está asignado de forma
+    # nominal y no coincide con su ubicación física real). La enciende el administrador
+    # después de declarar coordenadas y de marcar los móviles con geo_offsite_allowed.
+    # Requiere geo_tracking_enabled=True.
     geo_geofence_enabled = models.BooleanField(default=False)
     # Radio de la geocerca en metros. Un fix MEDIDO (native/wifi) más lejos que esto
     # de las coordenadas del Site del agente genera alerta, salvo que el agente esté
