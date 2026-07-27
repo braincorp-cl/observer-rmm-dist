@@ -8,8 +8,9 @@
     # OJO: un lookup() en `vars` se REEVALÚA en cada referencia, así que `date` daba
     # un timestamp distinto por tarea y el chown/verificación buscaban un archivo que
     # no existía (el dump quedaba huérfano, con otro nombre). ansible_date_time viene
-    # de los facts: se calcula una vez por host y es estable en todo el playbook.
-    backup_ts: "{{ ansible_date_time.iso8601_basic_short }}"
+    # de los facts (bajo ansible_facts, porque ansible.cfg tiene inject_facts_as_vars=false):
+    # se calcula una vez por host y es estable en todo el playbook.
+    backup_ts: "{{ ansible_facts.date_time.iso8601_basic_short }}"
   tasks:
     - name: Crear directorio de backups
       ansible.builtin.file:
@@ -87,7 +88,7 @@
 - name: Backup — API (configuración y código)
   hosts: observer_api
   vars:
-    backup_ts: "{{ ansible_date_time.iso8601_basic_short }}"
+    backup_ts: "{{ ansible_facts.date_time.iso8601_basic_short }}"
   tasks:
     - name: Tarball de configuración API
       ansible.builtin.archive:
@@ -101,7 +102,7 @@
 - name: Backup — MeshCentral (configuración)
   hosts: observer_mesh
   vars:
-    backup_ts: "{{ ansible_date_time.iso8601_basic_short }}"
+    backup_ts: "{{ ansible_facts.date_time.iso8601_basic_short }}"
   tasks:
     - name: Tarball de configuración MeshCentral
       become: true      # /meshcentral/config.json no es legible por {{ observer_user }}
