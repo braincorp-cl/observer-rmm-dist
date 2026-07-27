@@ -130,9 +130,32 @@
       ansible.builtin.set_fact:
         observer_service_home: "{{ ansible_facts.getent_passwd[observer_user][4] }}"
 
+    # Idempotencia auto-sanadora: se chequea el binario en el HOME de servicio (donde los
+    # servicios lo autodescubren), NO un marcador desacoplado — si el HOME cambia o la caché
+    # quedó en el lugar equivocado, se re-provisiona. Ruta estable en Kaleido 1.x/choreographer.
+    #
+    # ESTE CHEQUEO VA PRIMERO A PROPÓSITO, y el orden importa más de lo que parece. Antes el
+    # `apt` de abajo corría SIEMPRE, incluso con chromium ya provisionado, y con `update_cache`
+    # ⇒ cada deploy golpeaba los repos apt del servidor, entre ellos los de TERCEROS. El
+    # 2026-07-27 una caída transitoria de deb.nodesource.com (403 del origen S3, ~30 min) abortó
+    # así un `deploy-api.yml` que sólo cambiaba un modelo Django: el bloque no tenía nada que
+    # hacer —el binario estaba desde el 16-07— y aun así tumbó el playbook DESPUÉS del rsync y
+    # ANTES del migrate, dejando el servidor con código nuevo, sin migrar y sin reiniciar.
+    # Chequear primero hace que el caso normal (ya provisionado) no toque la red de nadie.
+    - name: Verificar si el chromium de Kaleido ya está en el HOME de servicio
+      ansible.builtin.stat:
+        path: "{{ observer_service_home }}/.local/share/choreographer/deps/chrome-linux64/chrome"
+      register: observer_kaleido_chrome_bin
+
     # El chromium que baja plotly.io.get_chrome() es solo el binario: en un servidor mínimo
     # NO arranca por falta de sus librerías de sistema (BrowserFailedError). Espejo del patrón
     # de WeasyPrint (arriba). Lista derivada de `ldd chrome | grep "not found"` en Ubuntu 22.04.
+    #
+    # Va condicionado al mismo `stat` que la descarga. CONTRAPARTIDA ASUMIDA: si alguien borra
+    # estas librerías pero deja el binario, el deploy ya no las repone y el render fallaría con
+    # BrowserFailedError. Se acepta porque la presencia del binario es exactamente la señal en
+    # la que la descarga ya confiaba, y la salida es la misma que para cualquier otro problema
+    # de la caché: borrar el binario y volver a correr, que re-provisiona ambas cosas.
     - name: Instalar dependencias de sistema de chromium (Kaleido)
       ansible.builtin.apt:
         name:
@@ -151,14 +174,7 @@
           - fonts-liberation
         state: present
         update_cache: true
-
-    # Idempotencia auto-sanadora: se chequea el binario en el HOME de servicio (donde los
-    # servicios lo autodescubren), NO un marcador desacoplado — si el HOME cambia o la caché
-    # quedó en el lugar equivocado, se re-provisiona. Ruta estable en Kaleido 1.x/choreographer.
-    - name: Verificar si el chromium de Kaleido ya está en el HOME de servicio
-      ansible.builtin.stat:
-        path: "{{ observer_service_home }}/.local/share/choreographer/deps/chrome-linux64/chrome"
-      register: observer_kaleido_chrome_bin
+      when: not observer_kaleido_chrome_bin.stat.exists
 
     - name: Descargar chromium para Kaleido (plotly.io.get_chrome)
       ansible.builtin.command:
