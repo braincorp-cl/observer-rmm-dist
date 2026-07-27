@@ -34,7 +34,7 @@ WEB_VERSION = "0.101.59"
 APP_VER = "0.0.203"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
-LATEST_AGENT_VER = "2.10.8"
+LATEST_AGENT_VER = "2.14.3"
 
 MESH_VER = "1.1.32"
 
