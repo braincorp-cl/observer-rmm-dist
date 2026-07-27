@@ -119,7 +119,10 @@
     - name: Fallar si el tarball de MeshCentral no se generó
       ansible.builtin.assert:
         that:
-          - observer_mesh_archive.dest_state == "archive"
+          # Un solo archivo de origen ⇒ el módulo comprime en vez de empaquetar y
+          # devuelve dest_state=compress; con varios devolvería archive. Los estados
+          # que sí denuncian un respaldo fallido son `absent` e `incomplete`.
+          - observer_mesh_archive.dest_state in ["archive", "compress"]
           - observer_mesh_archive.missing | length == 0
         fail_msg: >
           El respaldo de MeshCentral no se generó
