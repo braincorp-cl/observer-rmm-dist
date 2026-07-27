@@ -104,9 +104,25 @@
   vars:
     backup_ts: "{{ ansible_facts.date_time.iso8601_basic_short }}"
   tasks:
+    # La ruta era /meshcentral/config.json, que NO existe: el config vive en
+    # meshcentral-data/ (WorkingDirectory=/meshcentral). Y `archive` con un origen
+    # inexistente reporta `ok` con dest_state=absent — o sea que este respaldo decía
+    # que sí y no guardaba nada. Por eso abajo se verifica el archivo resultante.
     - name: Tarball de configuración MeshCentral
-      become: true      # /meshcentral/config.json no es legible por {{ observer_user }}
+      become: true
       ansible.builtin.archive:
-        path: /meshcentral/config.json
+        path: /meshcentral/meshcentral-data/config.json
         dest: "{{ observer_root }}/backups/meshcentral_config_{{ backup_ts }}.tar.gz"
         format: gz
+      register: observer_mesh_archive
+
+    - name: Fallar si el tarball de MeshCentral no se generó
+      ansible.builtin.assert:
+        that:
+          - observer_mesh_archive.dest_state == "archive"
+          - observer_mesh_archive.missing | length == 0
+        fail_msg: >
+          El respaldo de MeshCentral no se generó
+          (estado: {{ observer_mesh_archive.dest_state }},
+          faltantes: {{ observer_mesh_archive.missing | default([]) | join(', ') }}).
+        success_msg: "Respaldo de MeshCentral OK ({{ observer_mesh_archive.dest }})"
