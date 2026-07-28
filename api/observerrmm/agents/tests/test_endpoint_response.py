@@ -161,8 +161,17 @@ class TestEndpointResponse(ObserverTestCase):
         self.assertEqual(r.status_code, 200)
         # La duración viaja como TEXTO: el payload NATS es map[string]string en el
         # agente. Mandarla como int haría que el agente la ignore.
+        #
+        # Las dos banderas de la Fase 2 viajan SIEMPRE, aunque estén apagadas: el
+        # agente las lee con `natsBoolFlag`, que falla cerrado, así que omitirlas
+        # también funcionaría — pero mandarlas explícitas hace que un payload
+        # capturado en un log diga qué se pidió, y no sólo qué no se pidió.
         nats_cmd.assert_called_with(
-            {"func": "alarm", "payload": {"duration": "45"}}, timeout=15
+            {
+                "func": "alarm",
+                "payload": {"duration": "45", "forever": "0", "max_volume": "0"},
+            },
+            timeout=15,
         )
 
         self.check_not_authenticated("post", url)
@@ -189,6 +198,129 @@ class TestEndpointResponse(ObserverTestCase):
                 str(esperado),
                 msg=f"duration={entrada!r} debía acotarse a {esperado}",
             )
+
+    # ------------------------------------------- alarma antirrobo (Fase 2)
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_alarma_eterna_no_viaja_como_duracion_cero(self, nats_cmd):
+        """La eterna es una bandera propia, no un valor especial de la duración.
+
+        `PlayAlarm` interpreta `seconds <= 0` como "usa el default de 30 s", así
+        que codificar la eterna con un cero daría una alarma de medio minuto sin
+        ningún aviso. Esta prueba fija el contrato: la bandera va aparte y la
+        duración sigue siendo un número válido y acotado.
+        """
+        url = f"{base_url}/{self.agent.agent_id}/alarm/"
+        nats_cmd.return_value = "ok"
+
+        self.client.post(url, {"duration": 45, "forever": True}, format="json")
+
+        payload = nats_cmd.call_args[0][0]["payload"]
+        self.assertEqual(payload["forever"], "1")
+        self.assertEqual(
+            payload["duration"],
+            "45",
+            msg="la duración debe seguir siendo válida: un agente viejo ignora "
+            "`forever` y sonaría los segundos pedidos, no un cero",
+        )
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_las_banderas_fallan_cerrado(self, nats_cmd):
+        """Un valor que no se entiende NO enciende la opción.
+
+        Son las dos opciones más peligrosas de la feature —sonar sin límite, y al
+        máximo—, así que el default de cualquier basura tiene que ser apagado.
+        """
+        url = f"{base_url}/{self.agent.agent_id}/alarm/"
+        nats_cmd.return_value = "ok"
+
+        encienden = [True, "true", "TRUE", "1", "yes", "on"]
+        no_encienden = [False, "false", "0", "no", "off", "", None, "sí", "2", 7]
+
+        for valor in encienden:
+            self.client.post(
+                url, {"duration": 30, "max_volume": valor}, format="json"
+            )
+            self.assertEqual(
+                nats_cmd.call_args[0][0]["payload"]["max_volume"],
+                "1",
+                msg=f"max_volume={valor!r} debía encender la opción",
+            )
+
+        for valor in no_encienden:
+            self.client.post(
+                url, {"duration": 30, "max_volume": valor}, format="json"
+            )
+            self.assertEqual(
+                nats_cmd.call_args[0][0]["payload"]["max_volume"],
+                "0",
+                msg=f"max_volume={valor!r} NO debía encender la opción",
+            )
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_la_auditoria_registra_las_dos_banderas(self, nats_cmd):
+        """"¿Quién dejó este equipo sonando para siempre al máximo?"
+
+        Antes de la Fase 2 el detalle era `"45s"` a secas. Con las banderas
+        nuevas ese formato dejaría sin respuesta la pregunta que la auditoría de
+        respuesta rápida existe para contestar.
+        """
+        url = f"{base_url}/{self.agent.agent_id}/alarm/"
+        nats_cmd.return_value = "ok"
+
+        casos = [
+            ({"duration": 45}, "45s"),
+            ({"duration": 45, "max_volume": True}, "45s+max_volume"),
+            ({"duration": 45, "forever": True}, "forever"),
+            (
+                {"duration": 45, "forever": True, "max_volume": True},
+                "forever+max_volume",
+            ),
+        ]
+
+        for cuerpo, esperado in casos:
+            self.client.post(url, cuerpo, format="json")
+            log = AuditLog.objects.filter(
+                action=AuditActionType.ENDPOINT_RESPONSE
+            ).last()
+            self.assertEqual(
+                log.after_value,
+                esperado,
+                msg=f"{cuerpo!r} debía auditarse como {esperado!r}",
+            )
+
+    @patch("agents.tasks.bulk_endpoint_response_task.delay")
+    def test_bulk_propaga_las_banderas(self, bulk_task):
+        """La masiva admite las dos opciones (decisión del usuario, 2026-07-27).
+
+        Duplicar la lectura de las banderas entre la vista por agente y ésta era
+        la forma más fácil de que la masiva quedara con un comportamiento
+        distinto; por eso las dos pasan por `_alarm_payload`.
+        """
+        url = f"{base_url}/actions/bulk/"
+
+        self.client.post(
+            url,
+            {
+                "mode": "alarm",
+                "target": "all",
+                "monType": "all",
+                "osType": "all",
+                "agents": [],
+                "client": None,
+                "site": None,
+                "duration": 60,
+                "forever": True,
+                "max_volume": True,
+            },
+            format="json",
+        )
+
+        bulk_task.assert_called_once()
+        payload = bulk_task.call_args.kwargs["payload"]
+        self.assertEqual(payload["forever"], "1")
+        self.assertEqual(payload["max_volume"], "1")
+        self.assertEqual(payload["duration"], "60")
 
     @patch("agents.models.Agent.nats_cmd")
     def test_stop_alarm(self, nats_cmd):

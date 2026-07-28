@@ -442,6 +442,16 @@ module.exports = {
         "src/ee/reporting/components/VariablesSelector.vue",
         "src/ee/reporting/views/ReportHistoryView.vue",
         "src/ee/reporting/views/ReportView.vue",
+        // Ola 31 (feature 028): modales de respuesta rápida de endpoint.
+        //
+        // ⚠️ Los DOS estaban en la lista de `lint:i18n` de package.json pero NO
+        // acá, o sea que el gate los recorría con las reglas base y sin
+        // `no-raw-text` ni `no-missing-keys`. `SendEndpointAlert.vue` arrastraba
+        // ese hueco desde la Fase 1 de la 028: figuraba en el comando y parecía
+        // gateado. Las dos listas tienen que coincidir — comprobado con un
+        // literal sintético que antes de este cambio pasaba sin quejas.
+        "src/components/modals/agents/SendEndpointAlert.vue",
+        "src/components/modals/agents/SoundEndpointAlarm.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

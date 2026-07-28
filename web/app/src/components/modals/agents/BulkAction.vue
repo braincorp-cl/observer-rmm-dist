@@ -270,11 +270,41 @@
             dense
             type="number"
             v-model.number="state.duration"
+            :disable="state.forever"
             :label="$t('endpointResponse.alarmDurationLabel')"
             :min="5"
             :max="300"
             :hint="$t('endpointResponse.alarmDurationHint')"
           />
+        </q-card-section>
+
+        <!-- Feature 028 Fase 2 · las dos casillas antirrobo, también en masiva. -->
+        <q-card-section v-if="mode === 'alarm'" class="q-pt-none">
+          <q-checkbox
+            dense
+            v-model="state.max_volume"
+            :label="$t('endpointResponse.alarmMaxVolume')"
+          />
+          <div class="text-caption text-grey-7 q-ml-lg q-mb-sm">
+            {{ $t("endpointResponse.alarmMaxVolumeHint") }}
+          </div>
+          <q-checkbox
+            dense
+            v-model="state.forever"
+            :label="$t('endpointResponse.alarmForever')"
+          />
+          <div class="text-caption text-grey-7 q-ml-lg">
+            {{ $t("endpointResponse.alarmForeverHint") }}
+          </div>
+        </q-card-section>
+
+        <q-card-section v-if="alarmWarning" class="q-pt-none">
+          <q-banner dense class="bg-red-1 text-negative">
+            <template v-slot:avatar>
+              <q-icon name="warning" color="negative" />
+            </template>
+            {{ alarmWarning }}
+          </q-banner>
         </q-card-section>
 
         <q-card-section
@@ -318,7 +348,7 @@ import {
   onMounted,
   defineComponent,
 } from "vue";
-import { useDialogPluginComponent, openURL } from "quasar";
+import { useDialogPluginComponent, openURL, useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useScriptDropdown } from "@/composables/scripts";
 import { useAgentDropdown } from "@/composables/agents";
@@ -393,6 +423,7 @@ export default defineComponent({
 
     // quasar dialog setup
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
+    const $q = useQuasar();
 
     // dropdown setup
     const {
@@ -433,6 +464,10 @@ export default defineComponent({
       title: "",
       message: "",
       duration: 30,
+      // Fase 2 · alarma antirrobo. Apagadas por omisión, igual que en la acción
+      // individual: en masiva el descuido cuesta una flota, no un equipo.
+      forever: false,
+      max_volume: false,
       client,
       site,
       agents,
@@ -481,7 +516,41 @@ export default defineComponent({
       },
     );
 
-    async function submit() {
+    // Feature 028 Fase 2 · aviso de la alarma antirrobo en masiva.
+    //
+    // Tres frases completas y no una armada por partes: componer "sin límite de
+    // tiempo" + conjunción + "al volumen máximo" impone un orden y una conjunción
+    // que no son iguales en todos los idiomas.
+    const alarmWarning = computed(() => {
+      if (props.mode !== "alarm") return "";
+      if (state.forever && state.max_volume)
+        return t("endpointResponse.bulkAlarmWarnBoth");
+      if (state.forever) return t("endpointResponse.bulkAlarmWarnForever");
+      if (state.max_volume) return t("endpointResponse.bulkAlarmWarnMaxVolume");
+      return "";
+    });
+
+    // La masiva es fire-and-forget: no informa el resultado equipo por equipo y
+    // no hay forma de deshacerla. Con alguna de las dos casillas encendidas se
+    // pide una confirmación aparte que NOMBRA lo que está activo — es el caso de
+    // máximo daño de toda la feature, y el aviso del formulario se puede pasar por
+    // alto sin leerlo.
+    function submit() {
+      if (!alarmWarning.value) {
+        run();
+        return;
+      }
+
+      $q.dialog({
+        title: t("endpointResponse.bulkAlarmConfirmTitle"),
+        message: alarmWarning.value,
+        cancel: { label: t("endpointResponse.cancel"), flat: true },
+        ok: { label: t("bulkAction.run"), color: "negative" },
+        persistent: true,
+      }).onOk(run);
+    }
+
+    async function run() {
       loading.value = true;
 
       try {
@@ -557,6 +626,7 @@ export default defineComponent({
       syntax,
 
       //computed
+      alarmWarning,
       modalTitle,
 
       //methods

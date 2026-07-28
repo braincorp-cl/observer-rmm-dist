@@ -317,7 +317,6 @@ import {
   agentRebootNow,
   agentShutdown,
   agentLockScreen,
-  agentSoundAlarm,
   agentStopAlarm,
   sendAgentPing,
   removeAgent,
@@ -342,12 +341,7 @@ import RunScript from "@/components/modals/agents/RunScript.vue";
 import IntegrationsContextMenu from "@/components/ui/IntegrationsContextMenu.vue";
 import ConfirmYesDialog from "@/components/agents/ConfirmYesDialog.vue";
 import SendEndpointAlert from "@/components/modals/agents/SendEndpointAlert.vue";
-
-// Feature 028: duplicados de observerrmm/constants.py (ALARM_*). Sólo acotan lo
-// que el operador puede escribir; el servidor y el agente validan igual.
-const ALARM_MIN_SECONDS = 5;
-const ALARM_DEFAULT_SECONDS = 30;
-const ALARM_MAX_SECONDS = 300;
+import SoundEndpointAlarm from "@/components/modals/agents/SoundEndpointAlarm.vue";
 
 export default {
   name: "AgentActionMenu",
@@ -618,34 +612,18 @@ export default {
       });
     }
 
+    // Feature 028 Fase 2: dejó de ser un `$q.dialog` con `prompt`.
+    //
+    // El `prompt` de Quasar admite un solo campo y NO admite casillas, así que la
+    // alarma antirrobo —sonido máximo y sin límite de tiempo— obligó a un modal
+    // propio. El envío, la validación y el aviso viven ahí dentro.
     function soundAlarm(agent) {
       $q.dialog({
-        title: t("endpointResponse.alarmDurationTitle"),
-        message: t("endpointResponse.alarmDurationMessage", {
+        component: SoundEndpointAlarm,
+        componentProps: {
+          agent_id: agent.agent_id,
           hostname: agent.hostname,
-        }),
-        prompt: {
-          model: String(ALARM_DEFAULT_SECONDS),
-          type: "number",
-          // El tope también está en el servidor y en el agente; acá es sólo para
-          // que el operador no escriba un valor que le van a recortar en silencio.
-          min: ALARM_MIN_SECONDS,
-          max: ALARM_MAX_SECONDS,
         },
-        cancel: true,
-        persistent: true,
-        ok: { label: t("endpointResponse.alarm"), color: "negative" },
-      }).onOk(async (duration) => {
-        $q.loading.show();
-        try {
-          await agentSoundAlarm(agent.agent_id, { duration: Number(duration) });
-          notifySuccess(
-            t("endpointResponse.alarmSuccess", { hostname: agent.hostname }),
-          );
-        } catch (e) {
-          console.error(e);
-        }
-        $q.loading.hide();
       });
     }
 
@@ -766,9 +744,6 @@ export default {
       lockScreen,
       soundAlarm,
       stopAlarm,
-      ALARM_MIN_SECONDS,
-      ALARM_DEFAULT_SECONDS,
-      ALARM_MAX_SECONDS,
       showPolicyAdd,
       showAgentRecovery,
       pingAgent,

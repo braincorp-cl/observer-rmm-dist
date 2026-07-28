@@ -308,6 +308,12 @@ ALERT_MAX_MESSAGE_LEN = 2000
 # Duración de la alarma. El tope existe porque la alarma sirve para encontrar un
 # equipo, no para castigar a quien lo tenga: sin límite, un comando mal enviado
 # deja una máquina sonando y la única salida es apagarla.
+#
+# Feature 028 Fase 2: el tope SE CONSERVA como el camino normal. La "alarma
+# eterna" no lo afloja ni lo reemplaza — es una bandera aparte (`forever`) que lo
+# saltea, apagada por omisión y con confirmación explícita en la consola. Así el
+# camino de todos los días sigue acotado y la excepción antirrobo se ve en el
+# payload, en la auditoría y en lo que el operador tuvo que confirmar.
 ALARM_MIN_SECONDS = 5
 ALARM_DEFAULT_SECONDS = 30
 ALARM_MAX_SECONDS = 300

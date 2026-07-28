@@ -724,6 +724,62 @@ class SendAlert(APIView):
         )
 
 
+# Feature 028 Fase 2 · las dos banderas antirrobo de la alarma.
+#
+# Van en helpers de módulo porque las comparten la acción por agente y la masiva,
+# y porque las tres decisiones que encierran —cómo se leen, cómo viajan y cómo se
+# auditan— tienen que ser idénticas en los dos caminos. Duplicarlas era la forma
+# más fácil de que la masiva quedara sin auditoría del "para siempre".
+
+
+def _alarm_flag(value: object) -> bool:
+    """Lee una bandera de la alarma fallando CERRADO.
+
+    Son las dos opciones más peligrosas de la feature —sonar sin límite, y al
+    máximo—, así que cualquier valor que no sea un verdadero reconocible se lee
+    como falso. Acepta el bool nativo de JSON y también su forma en texto, que es
+    como llega desde un formulario.
+    """
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _alarm_payload(duration: int, forever: bool, max_volume: bool) -> dict[str, str]:
+    """Arma el payload NATS.
+
+    Todo va como texto porque del otro lado `NatsMsg.Data` es un
+    `map[string]string` (`agent/rpc.go`), igual que la duración de siempre.
+
+    ⚠️ La eterna NO se codifica como `duration=0`: `PlayAlarm` interpreta un
+    `<= 0` como "usa el default de 30 s", así que reutilizar el cero daría una
+    alarma de medio minuto sin ningún aviso. Por eso es un campo propio.
+    """
+    return {
+        "duration": str(duration),
+        "forever": "1" if forever else "0",
+        "max_volume": "1" if max_volume else "0",
+    }
+
+
+def _alarm_audit_detail(duration: int, forever: bool, max_volume: bool) -> str:
+    """Describe la alarma para el registro de auditoría.
+
+    Antes de la Fase 2 esto era `f"{duration}s"` a secas, y con las dos banderas
+    nuevas eso dejaría sin respuesta la pregunta "¿quién dejó este equipo sonando
+    para siempre al máximo?" — que es justo lo que la auditoría de respuesta
+    rápida existe para contestar.
+
+    El caso de siempre conserva EXACTAMENTE el formato anterior (`"30s"`), para
+    no romper a nadie que ya esté leyendo estos registros; las banderas sólo
+    agregan texto cuando están encendidas.
+    """
+    detail = "forever" if forever else f"{duration}s"
+    if max_volume:
+        detail += "+max_volume"
+    return detail
+
+
 class SoundAlarm(APIView):
     permission_classes = [IsAuthenticated, SoundAlarmPerms]
 
@@ -731,23 +787,34 @@ class SoundAlarm(APIView):
     def post(self, request, agent_id):
         agent = get_object_or_404(Agent, agent_id=agent_id)
 
+        forever = _alarm_flag(request.data.get("forever"))
+        max_volume = _alarm_flag(request.data.get("max_volume"))
+
         try:
             duration = int(request.data.get("duration", ALARM_DEFAULT_SECONDS))
         except (TypeError, ValueError):
             duration = ALARM_DEFAULT_SECONDS
 
+        # El clamp se conserva y se calcula SIEMPRE, incluso con `forever`: así el
+        # valor que viaja en el payload sigue siendo válido si el agente que lo
+        # recibe es uno viejo, que ignora la bandera y sonaría los segundos
+        # pedidos en vez de interpretar un cero como "para siempre".
         duration = max(ALARM_MIN_SECONDS, min(duration, ALARM_MAX_SECONDS))
 
         AuditLog.audit_endpoint_response(
             username=request.user.username,
             agent=agent,
             action=EndpointResponseAction.ALARM,
-            detail=f"{duration}s",
+            detail=_alarm_audit_detail(duration, forever, max_volume),
             debug_info={"ip": request._client_ip},
         )
 
         return _endpoint_response(
-            agent, {"func": "alarm", "payload": {"duration": str(duration)}}
+            agent,
+            {
+                "func": "alarm",
+                "payload": _alarm_payload(duration, forever, max_volume),
+            },
         )
 
     # detener la alarma
@@ -1294,7 +1361,21 @@ def bulk(request):
             except (TypeError, ValueError):
                 duration = ALARM_DEFAULT_SECONDS
             duration = max(ALARM_MIN_SECONDS, min(duration, ALARM_MAX_SECONDS))
-            payload = {"duration": str(duration)}
+
+            # Feature 028 Fase 2: las dos banderas también en masiva, por decisión
+            # del usuario del 2026-07-27. La masiva es fire-and-forget y no
+            # devuelve resultado por equipo, así que la salvaguarda no está acá
+            # sino en la confirmación de la consola, que tiene que nombrar las dos
+            # opciones activas y la cantidad de equipos alcanzados.
+            #
+            # La auditoría de este camino no necesita nada extra: `audit_bulk_action`
+            # guarda `request.data` entera en `after_value`, o sea que `forever` y
+            # `max_volume` quedan registradas tal como se pidieron.
+            payload = _alarm_payload(
+                duration,
+                _alarm_flag(request.data.get("forever")),
+                _alarm_flag(request.data.get("max_volume")),
+            )
 
         bulk_endpoint_response_task.delay(
             agent_pks=agents, func=request.data["mode"], payload=payload
