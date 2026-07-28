@@ -189,6 +189,23 @@
       changed_when: observer_kaleido_chrome_install.rc == 0
       when: not observer_kaleido_chrome_bin.stat.exists
 
+  # NO FATAL a propósito (2026-07-27). Cuando chromium ya está, el `stat` de arriba evita
+  # tocar la red; pero cuando NO está —instalación nueva, o caché borrada— el `apt` y la
+  # descarga sí corren, y antes cualquier tropiezo de ahí abortaba TODO el rol: se caía la
+  # instalación entera por una capacidad opcional. La desproporción es el punto: chromium
+  # acá sirve sólo para los gráficos en imagen de los reportes, y el propio rol ya contempla
+  # operar sin él (ver el aviso de observer_reporting_charts_enabled=false más abajo).
+  # Peor aún en deploy-api.yml, donde reventaba DESPUÉS del rsync y ANTES del migrate.
+  rescue:
+    - name: Avisar que la provisión de chromium falló, sin abortar
+      ansible.builtin.debug:
+        msg: >-
+          ⚠️ No se pudo provisionar chromium para Kaleido; el resto del despliegue continúa.
+          Los reportes de texto/tabla y los PDF sin gráficos funcionan igual; los que llevan
+          gráficos en imagen fallarán con "Kaleido requires Google Chrome". Causa habitual:
+          un repo apt inalcanzable. Para reintentar, volver a correr el playbook cuando la
+          red esté sana — es idempotente y sólo re-provisiona si falta el binario.
+
 - name: Aviso si no se provisiona chromium para gráficos de reportes
   ansible.builtin.debug:
     msg: >

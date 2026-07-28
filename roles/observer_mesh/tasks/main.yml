@@ -1,20 +1,64 @@
 ---
-# Node.js via nodesource
-- name: Descargar script de instalación nodesource
-  ansible.builtin.get_url:
-    url: "https://deb.nodesource.com/setup_{{ observer_nodejs_version }}.x"
-    dest: /tmp/nodesource_setup.sh
-    mode: "0755"
+# Node.js via nodesource. MeshCentral corre sobre Node, así que esto NO es opcional:
+# es lo que sostiene "Tomar control". Por eso no se puede quitar el repo de terceros;
+# lo que sí se puede es dejar de golpearlo cuando no hace falta.
+#
+# GUARDA DE IDEMPOTENCIA (2026-07-27). Antes las tres tareas de abajo corrían SIEMPRE:
+# se bajaba y ejecutaba `setup_{{ observer_nodejs_version }}.x` desde deb.nodesource.com
+# y se hacía `apt update` en CADA corrida de install.yml/upgrade.yml, incluso en un
+# servidor que ya tenía la versión correcta. Como este rol corre ANTES que observer_api,
+# una caída del tercero mataba la corrida temprano, sin llegar siquiera al backend — y no
+# sólo en greenfield: cualquier re-ejecución sobre un servidor ya instalado.
+# Medido el 27-07: deb.nodesource.com devolvió 403 (origen S3) durante ~30 min
+# ⇒ ver el arreglo hermano del bloque Kaleido en roles/observer_api/tasks/main.yml.
+- name: Consultar la versión de Node ya instalada
+  ansible.builtin.command: node --version
+  register: observer_node_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
 
-- name: Ejecutar script nodesource
-  ansible.builtin.command: bash /tmp/nodesource_setup.sh
-  changed_when: true
+# Queda vacía si Node no está (rc != 0), y si la salida fuera inesperada la comparación de
+# abajo igual da distinto ⇒ se instala. Cualquier duda cae del lado seguro.
+#
+# Se extrae con `regex_replace('^v','') | split('.') | first` y NO con un regex de captura
+# a propósito: dentro de un escalar folded (>-) el backslash es literal, así que
+# `regex_replace('^v([0-9]+)\\..*$', '\\1')` le llega a Jinja con la barra doble, NO matchea
+# y devuelve la cadena ENTERA sin avisar. Medido: daba 'v20.20.2' en vez de '20', con lo cual
+# la guarda nunca se cumplía y el rol seguía bajando nodesource en cada corrida — el arreglo
+# habría quedado como un no-op silencioso. Esta forma no lleva backslashes y no tiene esa trampa.
+- name: Fijar la major de Node instalada (vacía si no hay Node)
+  ansible.builtin.set_fact:
+    observer_node_major: >-
+      {{ (observer_node_installed.stdout | default('') | trim
+          | regex_replace('^v', '') | split('.') | first)
+         if (observer_node_installed.rc | default(1)) == 0 else '' }}
 
-- name: Instalar Node.js {{ observer_nodejs_version }}
-  ansible.builtin.apt:
-    name: nodejs
-    state: present
-    update_cache: true
+- name: Provisionar Node.js desde nodesource si falta o no coincide la major
+  when: observer_node_major | string != observer_nodejs_version | string
+  block:
+    - name: Descargar script de instalación nodesource
+      ansible.builtin.get_url:
+        url: "https://deb.nodesource.com/setup_{{ observer_nodejs_version }}.x"
+        dest: /tmp/nodesource_setup.sh
+        mode: "0755"
+
+    - name: Ejecutar script nodesource
+      ansible.builtin.command: bash /tmp/nodesource_setup.sh
+      changed_when: true
+
+    - name: Instalar Node.js {{ observer_nodejs_version }}
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: true
+
+- name: Informar que Node ya está en la versión pedida
+  ansible.builtin.debug:
+    msg: >-
+      Node {{ observer_node_installed.stdout | default('') | trim }} ya coincide con
+      observer_nodejs_version={{ observer_nodejs_version }} — se omite nodesource.
+  when: observer_node_major | string == observer_nodejs_version | string
 
 # MeshCentral — NO usa MongoDB; usa PostgreSQL via dbPath
 - name: Crear directorio /meshcentral

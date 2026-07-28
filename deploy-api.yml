@@ -167,6 +167,21 @@
           changed_when: observer_kaleido_chrome_install.rc == 0
           when: not observer_kaleido_chrome_bin.stat.exists
 
+      # NO FATAL a propósito (2026-07-27). Con chromium ya provisto el `stat` evita tocar la
+      # red; pero si NO está —servidor nuevo, o caché borrada— el `apt` y la descarga corren,
+      # y antes un tropiezo ahí abortaba el playbook JUSTO entre el rsync y el migrate: código
+      # nuevo en disco, base sin migrar, servicios sin reiniciar. Que un deploy de backend
+      # quede a medias por los gráficos de los reportes es la desproporción que esto corta.
+      rescue:
+        - name: Avisar que la provisión de chromium falló, sin abortar el deploy
+          ansible.builtin.debug:
+            msg: >-
+              ⚠️ No se pudo provisionar chromium para Kaleido; el deploy continúa con migrate,
+              collectstatic y los reinicios. Los reportes de texto/tabla y los PDF sin gráficos
+              funcionan igual; los que llevan gráficos en imagen fallarán con "Kaleido requires
+              Google Chrome". Causa habitual: un repo apt inalcanzable. Reintentar corriendo el
+              playbook de nuevo cuando la red esté sana.
+
     - name: Ejecutar Django migrate
       ansible.builtin.command:
         cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"
