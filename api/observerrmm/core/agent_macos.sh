@@ -51,6 +51,33 @@ RemoveMesh() {
     rm -rf "${meshDir}"
 }
 
+# ValidateMeshNodeID descarta cualquier respuesta que no sea un identificador.
+#
+# MESH_NODE_ID se concatena más abajo en INSTALL_CMD, que termina pasando por
+# `eval`: si lo que vuelve no es un id, el shell EJECUTA esas líneas. El binario
+# que MeshCentral entrega para instalar no es el agente sino un AUTO-INSTALADOR,
+# con un script JS anexado que corre ante cualquier argumento, así que
+# `meshagent -nodeid` puede devolver la salida entera de una reinstalación. Se
+# detectó en Linux (equipo con el servicio del mesh caído y registrado con su
+# MAC como node id) y acá vale igual: el instalador de macOS baja el binario por
+# la misma vía.
+#
+# Desde v2.14.7 el agente pide el id con `--no-embedded=1`; esto cubre a los
+# anteriores. Quedarse sin id no impide instalar: SyncMeshNodeID lo corrige.
+ValidateMeshNodeID() {
+    # La expresión va en una variable y SIN comillas en el [[ =~ ]]: es la única
+    # forma en que bash la trata como patrón y no vuelve a expandirla.
+    local meshNodeIdRe='^[0-9A-Fa-f]{64,}$'
+
+    if [[ "${MESH_NODE_ID}" =~ ${meshNodeIdRe} ]]; then
+        return 0
+    fi
+
+    echo "WARNING: el mesh node id recibido no tiene forma de identificador."
+    echo "         Se continúa sin él; el agente lo sincronizará al conectarse."
+    MESH_NODE_ID=""
+}
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -debug | --debug | debug) DEBUG=1 ;;
@@ -86,6 +113,7 @@ else
     sleep 2
     echo "Getting mesh node id..."
     MESH_NODE_ID=$("${agentBin}" -m nixmeshnodeid)
+    ValidateMeshNodeID
 fi
 
 INSTALL_CMD="${agentBin} -m install -api ${apiURL} -client-id ${clientID} -site-id ${siteID} -agent-type ${agentType} -auth ${token}"
