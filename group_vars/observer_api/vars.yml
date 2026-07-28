@@ -52,14 +52,28 @@ observer_check_interval_jitter_min: 3
 observer_check_interval_jitter_max: 120
 observer_nats_max_connections: 50000
 
-# Geolocalización (feature 023). El agente además captura al detectar cambio de red,
-# así que este intervalo es un piso, no la única fuente de puntos. Mismos valores que
-# el default de settings.py; bajarlo en el inventario del ambiente si se quiere geo
-# más frecuente (staging usa 300/300 para validar).
-observer_checkin_geo_min: 1500
-observer_checkin_geo_max: 2100
+# Geolocalización (feature 023) e intervalos por ambiente — NO declarar acá.
+#
+# ⚠️ PRECEDENCIA: este archivo es group_vars/ DEL PLAYBOOK, y le GANA a las vars de
+# grupo del inventario (`all: vars:` en inventory/<ambiente>.yml). Toda variable que un
+# ambiente deba poder sobrescribir tiene que vivir SÓLO en roles/observer_api/defaults/
+# (la precedencia más baja de todas), nunca acá — si se declara en los dos lados el
+# inventario queda decorativo y el override se pierde EN SILENCIO.
+#
+# Pasó de verdad (2026-07-27): observer_checkin_geo_min/max estaban declarados acá en
+# 1500/2100 con un comentario que decía "bajarlo en el inventario del ambiente (staging
+# usa 300/300)" — instrucción que este mismo archivo hacía imposible de cumplir. No se
+# notó por meses porque local_settings.py estaba parchado a mano en el servidor y nunca
+# se re-renderizaba; al re-renderizarlo por fin, staging perdió su cadencia de 300 s.
+# Lo mismo iba a pasar con observer_latest_agent_ver.
+#
+# Sus defaults viven en roles/observer_api/defaults/main.yml:
+#   observer_checkin_geo_min / observer_checkin_geo_max  (1500 / 2100)
+#   observer_latest_agent_ver                            ("" = manda settings.py)
 
 # Key de Google Geolocation (features 023/026) — SERVER-SIDE, jamás en git ni en la
 # flota. Se define en el vault del ambiente como vault_google_geolocation_api_key.
 # Vacía = resolución WiFi apagada y el agente degrada a IP (no rompe nada).
+# Ésta SÍ va acá: no es un valor por ambiente sino la indirección al vault, y ningún
+# inventario la sobrescribe (el que cambia es el vault).
 observer_google_geolocation_api_key: "{{ vault_google_geolocation_api_key | default('') }}"

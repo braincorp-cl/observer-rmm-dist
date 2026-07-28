@@ -26,6 +26,13 @@ all:
     # URL ofuscada del admin Django (random ~70 chars, como install.sh). Estable por
     # ambiente y única por instalación → definir en un vault, NUNCA en claro aquí.
     observer_admin_url: "{{ vault_admin_url }}" # ← definir en group_vars/observer_api/vault.yml
+    # Versión del agente que este ambiente OFRECE a la flota. Comentada = manda la del
+    # producto (LATEST_AGENT_VER de settings.py). Descoméntela para adelantar un ambiente
+    # (probar un release en una flota chica) o para congelarlo atrás. Publicar el binario
+    # al CDN NO mueve a nadie: get_agent_url() arma la ruta con este valor, así que el CDN
+    # es el depósito y esta variable es el interruptor. Debe ir aquí y no a mano en el
+    # servidor: local_settings.py se RE-RENDERIZA en cada install.yml.
+    # observer_latest_agent_ver: "2.14.4"
     # Tuning PostgreSQL para una VM all-in-one chica (~4 GB; los defaults del rol son
     # de prod dedicado: 4GB shared_buffers > RAM total). El sizing dependiente de RAM va
     # AQUÍ (en el inventario), NO en group_vars. Ajustar a la VM.

@@ -37,6 +37,13 @@ observer_nats_max_connections: 50000
 # la resolución WiFi queda apagada y el agente degrada a IP. Se setea por vault.
 observer_google_geolocation_api_key: ""
 
+# Versión del agente que el servidor OFRECE a la flota. Vacía por default = manda el
+# LATEST_AGENT_VER de settings.py (la del producto). Sirve para desacoplar un ambiente
+# del resto: publicar un binario al CDN NO mueve a nadie — get_agent_url() arma la ruta
+# con settings.LATEST_AGENT_VER, así que el CDN es solo el depósito y esta variable es
+# la que decide qué baja la flota. Subirla aquí es lo que dispara la auto-actualización.
+observer_latest_agent_ver: ""
+
 # Cola de escucha del socket uWSGI (backport v1.5.1 B2): create_uwsgi_conf emite
 # `listen = {{ UWSGI_LISTEN_QUEUE|default(1024) }}`, pero el kernel recorta el backlog
 # real de listen() al valor de net.core.somaxconn. Con flotas grandes y check-ins
