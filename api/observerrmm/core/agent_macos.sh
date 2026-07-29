@@ -45,7 +45,25 @@ InstallMesh() {
 
 RemoveMesh() {
     if [ -f "${meshBin}" ]; then
-        "${meshBin}" -uninstall
+        # `--no-embedded=1` es OBLIGATORIO y va DESPUÉS del comando, igual que en
+        # agent_linux.sh. El binario que MeshCentral entrega para instalar puede
+        # traer un instalador JS anexado que se dispara ante CUALQUIER argumento;
+        # en Linux, medido en HP-ProOne-400, ante `-fulluninstall` abre un diálogo
+        # en el escritorio de la persona y se queda esperando un clic, colgando el
+        # uninstall entero sin desinstalar nada.
+        #
+        # Acá NO se pudo reproducir el cuelgue: medido en el Mac de la flota el
+        # 2026-07-28, su binario instalado no trae el bloque anexado (los últimos
+        # 16 bytes no son el GUID) y `-nodeid` devuelve lo mismo con y sin la
+        # bandera. O sea: la bandera es inocua donde hoy funciona, y cubre el caso
+        # que en Linux sí ocurrió. Lo que NO está medido es el cuelgue en macOS
+        # con un binario que sí traiga el bloque; no hay forma de montarlo sin
+        # desinstalar el mesh del equipo de una persona.
+        #
+        # El `perl -e alarm` es el cinturón: macOS no trae `timeout`. Si alguna
+        # vez aparece una variante que igual quiera interactuar, el uninstall debe
+        # FALLAR, nunca quedarse colgado esperando a alguien que no está.
+        perl -e 'alarm shift; exec @ARGV' 120 "${meshBin}" -uninstall --no-embedded=1
         sleep 1
     fi
     rm -rf "${meshDir}"
