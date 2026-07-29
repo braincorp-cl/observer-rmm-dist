@@ -124,7 +124,18 @@ RemoveMesh() {
         # el race del borrado de un agente vivo desde la UI, donde el keepalive
         # del meshagent re-agrega el nodo justo después del removedevices del RMM
         # y lo deja huérfano. En reinstalación, además limpia el nodo viejo.
-        env XAUTHORITY=foo DISPLAY=bar ${meshSystemBin} -fulluninstall
+        #
+        # `--no-embedded=1` es OBLIGATORIO y va DESPUÉS del comando. El binario que
+        # MeshCentral entrega para instalar trae un instalador JS anexado que se
+        # dispara ante CUALQUIER argumento, también ante `-fulluninstall`. Sin la
+        # bandera, medido en HP-ProOne-400 el 2026-07-29: abre un diálogo `zenity`
+        # en el escritorio de la persona ("MeshCentral Agent Setup", `--timeout=99999`)
+        # y se queda bloqueado esperando un clic que nadie va a dar. Como esta
+        # función corre ANTES que RemoveOldAgent, el uninstall entero se cuelga y
+        # **no se desinstala nada**. Con la bandera: 6 s, sin diálogo, y el mesh
+        # efectivamente borrado. El `timeout` es el cinturón por si aparece otra
+        # variante que igual quiera interactuar: nunca dejar colgado un uninstall.
+        env XAUTHORITY=foo DISPLAY=bar timeout 120 ${meshSystemBin} -fulluninstall --no-embedded=1
         sleep 1
     fi
 
