@@ -36,7 +36,7 @@
             name="schedules"
             :label="$t('editCoreSettings.tabSchedules')"
           />
-          <!-- <q-tab name="openai" label="Open AI" /> -->
+          <q-tab name="ai" :label="$t('editCoreSettings.tabAiAssistant')" />
         </q-tabs>
       </template>
       <template v-slot:after>
@@ -155,7 +155,7 @@
                   </q-checkbox>
                   <q-btn
                     size="sm"
-                    roundenable_server_webterminal
+                    round
                     dense
                     flat
                     icon="warning"
@@ -800,12 +800,14 @@
                 <ScheduleTable />
               </q-tab-panel>
 
-              <!-- Open AI -->
-              <!-- <q-tab-panel name="openai">
-                <div class="text-subtitle2">Open AI</div>
+              <!-- AI Assistant (LLM OpenAI-compatible) -->
+              <q-tab-panel name="ai">
+                <div class="text-subtitle2">
+                  {{ $t("editCoreSettings.tabAiAssistant") }}
+                </div>
                 <q-separator />
                 <q-card-section class="row">
-                  <div class="col-4">API Key:</div>
+                  <div class="col-4">{{ $t("editCoreSettings.aiApiKey") }}</div>
                   <div class="col-2"></div>
                   <q-input
                     dense
@@ -815,33 +817,30 @@
                   />
                 </q-card-section>
                 <q-card-section class="row">
-                  <div class="col-4">Open AI Model:</div>
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.aiBaseUrl") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <q-input
+                    dense
+                    outlined
+                    v-model="settings.open_ai_base_url"
+                    class="col-6"
+                    :hint="$t('editCoreSettings.aiBaseUrlHint')"
+                  />
+                </q-card-section>
+                <q-card-section class="row">
+                  <div class="col-4">{{ $t("editCoreSettings.aiModel") }}</div>
                   <div class="col-2"></div>
                   <q-input
                     dense
                     outlined
                     v-model="settings.open_ai_model"
                     class="col-6"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        icon="info"
-                        size="sm"
-                        @click="
-                          openURL(
-                            'https://platform.openai.com/docs/models/overview'
-                          )
-                        "
-                      >
-                        <q-tooltip>Click to see available options</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
+                    :hint="$t('editCoreSettings.aiModelHint')"
+                  />
                 </q-card-section>
-              </q-tab-panel> -->
+              </q-tab-panel>
             </q-tab-panels>
           </q-scroll-area>
           <q-card-section class="row items-center">
@@ -851,7 +850,8 @@
                 tab === 'emailalerts' ||
                 tab === 'smsalerts' ||
                 tab === 'meshcentral' ||
-                tab === 'retention'
+                tab === 'retention' ||
+                tab === 'ai'
               "
               :label="$t('editCoreSettings.save')"
               color="primary"
