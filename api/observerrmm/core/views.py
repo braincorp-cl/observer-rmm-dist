@@ -754,11 +754,16 @@ class OpenAICodeCompletion(APIView):
 
         if not settings.open_ai_token:
             return notify_error(
-                "Open AI API Key not found. Open Global Settings > Open AI."
+                "AI provider API key not found. "
+                "Configure it in Global Settings > AI Assistant."
             )
 
-        if not request.data["prompt"]:
-            return notify_error("Not prompt field found")
+        if not request.data.get("prompt"):
+            return notify_error("No prompt field found")
+
+        base_url = (settings.open_ai_base_url or "https://api.openai.com/v1").rstrip(
+            "/"
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -767,6 +772,14 @@ class OpenAICodeCompletion(APIView):
 
         data = {
             "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a senior sysadmin assistant that writes scripts. "
+                        "Reply with the raw script code only: no explanations, "
+                        "no markdown code fences, no text before or after the code."
+                    ),
+                },
                 {
                     "role": "user",
                     "content": request.data["prompt"],
@@ -781,18 +794,33 @@ class OpenAICodeCompletion(APIView):
 
         try:
             response = requests.post(
-                "https://api.openai.com/v1/chat/completions",
+                f"{base_url}/chat/completions",
                 headers=headers,
                 data=json.dumps(data),
+                timeout=60,
             )
         except Exception as e:
             return notify_error(str(e))
 
-        response_data = json.loads(response.text)
-
-        if "error" in response_data:
+        if response.status_code != 200:
             return notify_error(
-                f"The Open AI API returned an error: {response_data['error']['message']}"
+                f"The AI provider returned status {response.status_code}: "
+                f"{response.text[:300]}"
             )
 
-        return Response(response_data["choices"][0]["message"]["content"])
+        try:
+            response_data = response.json()
+        except Exception:
+            return notify_error("The AI provider returned an invalid response")
+
+        if "error" in response_data:
+            err = response_data["error"]
+            err_msg = err.get("message") if isinstance(err, dict) else str(err)
+            return notify_error(f"The AI provider returned an error: {err_msg}")
+
+        try:
+            return Response(response_data["choices"][0]["message"]["content"])
+        except (KeyError, IndexError, TypeError):
+            return notify_error(
+                "The AI provider returned an unexpected response format"
+            )

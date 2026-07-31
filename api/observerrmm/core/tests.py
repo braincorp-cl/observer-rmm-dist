@@ -1,3 +1,4 @@
+import json
 import os
 from unittest.mock import patch
 
@@ -669,3 +670,121 @@ class TestCoreUtils(ObserverTestCase):
             r,
             "http://127.0.0.1:8653/meshagents?id=4&meshid=abc123&installflags=0",
         )
+
+
+class TestOpenAICodeCompletion(ObserverTestCase):
+    def setUp(self):
+        self.setup_coresettings()
+        self.authenticate()
+        self.url = "/core/openai/generate/"
+        self.coresettings.open_ai_token = "sk-test-token"
+        self.coresettings.save()
+
+    @patch("core.views.requests.post")
+    def test_generate_success_default_base_url(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "Get-Process"}}]
+        }
+
+        r = self.client.post(
+            self.url,
+            {"prompt": "powershell code that lists processes"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data, "Get-Process")
+
+        args, kwargs = mock_post.call_args
+        self.assertEqual(args[0], "https://api.openai.com/v1/chat/completions")
+        self.assertEqual(kwargs["timeout"], 60)
+        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer sk-test-token")
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["messages"][0]["role"], "system")
+        self.assertEqual(
+            body["messages"][1]["content"],
+            "powershell code that lists processes",
+        )
+
+        self.check_not_authenticated("post", self.url)
+
+    @patch("core.views.requests.post")
+    def test_generate_uses_custom_base_url(self, mock_post):
+        # trailing slash must be stripped (Moonshot AI config example)
+        self.coresettings.open_ai_base_url = "https://api.moonshot.ai/v1/"
+        self.coresettings.open_ai_model = "kimi-k3"
+        self.coresettings.save()
+
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "echo hello"}}]
+        }
+
+        r = self.client.post(
+            self.url, {"prompt": "shell code that prints hello"}, format="json"
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data, "echo hello")
+
+        args, kwargs = mock_post.call_args
+        self.assertEqual(args[0], "https://api.moonshot.ai/v1/chat/completions")
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["model"], "kimi-k3")
+
+    @patch("core.views.requests.post")
+    def test_generate_http_error_status(self, mock_post):
+        mock_post.return_value.status_code = 401
+        mock_post.return_value.text = "<html>unauthorized</html>"
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("401", r.data)
+
+    @patch("core.views.requests.post")
+    def test_generate_api_error_payload(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "error": {"message": "rate limited"}
+        }
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("rate limited", r.data)
+
+    @patch("core.views.requests.post")
+    def test_generate_invalid_json(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.side_effect = ValueError("no json")
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("invalid response", r.data)
+
+    @patch("core.views.requests.post")
+    def test_generate_unexpected_payload_shape(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {"unexpected": True}
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("unexpected response format", r.data)
+
+    @patch("core.views.requests.post")
+    def test_generate_connection_error(self, mock_post):
+        mock_post.side_effect = requests.exceptions.ConnectionError()
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_generate_no_token_configured(self):
+        self.coresettings.open_ai_token = ""
+        self.coresettings.save()
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("API key not found", r.data)
+
+    def test_generate_missing_prompt(self):
+        r = self.client.post(self.url, {}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("prompt", r.data)
