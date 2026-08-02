@@ -6,7 +6,7 @@ import (
 
 	"github.com/ugorji/go/codec"
 
-	"github.com/braincorp-cl/observer-rmm/natsapi/shared"
+	"github.com/braincorp-cl/observer-rmm-dist/natsapi/shared"
 )
 
 // newDecoderLikeSvc replica EXACTAMENTE el handle de decode usado en Svc()

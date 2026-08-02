@@ -1,4 +1,4 @@
-module github.com/braincorp-cl/observer-rmm
+module github.com/braincorp-cl/observer-rmm-dist
 
 go 1.23.12
 

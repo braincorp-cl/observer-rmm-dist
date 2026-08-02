@@ -11,7 +11,7 @@ import (
 	nats "github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/ugorji/go/codec"
-	"github.com/braincorp-cl/observer-rmm/natsapi/shared"
+	"github.com/braincorp-cl/observer-rmm-dist/natsapi/shared"
 )
 
 // geoCheckHistoryID: centinela de check_id para las filas de geolocalización en
