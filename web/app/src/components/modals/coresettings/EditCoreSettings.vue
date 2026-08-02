@@ -840,6 +840,25 @@
                     :hint="$t('editCoreSettings.aiModelHint')"
                   />
                 </q-card-section>
+                <q-card-section class="row">
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.aiMaxTokens") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    v-model.number="settings.open_ai_max_tokens"
+                    class="col-6"
+                    :rules="[
+                      (val) =>
+                        (!!val && val > 0) ||
+                        $t('editCoreSettings.aiMaxTokensRule'),
+                    ]"
+                    :hint="$t('editCoreSettings.aiMaxTokensHint')"
+                  />
+                </q-card-section>
               </q-tab-panel>
             </q-tab-panels>
           </q-scroll-area>

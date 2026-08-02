@@ -12,7 +12,7 @@
       <q-bar>
         <span class="q-pr-sm">{{ title }}</span>
         <q-btn
-          v-if="!script && openAIEnabled"
+          v-if="isNewScript && openAIEnabled"
           size="xs"
           :disable="loading"
           dense
@@ -343,6 +343,12 @@ const { t } = useI18n();
 const store = useStore();
 const openAIEnabled = computed(() => store.state.openAIIntegrationEnabled);
 
+// El borrador con IA solo aplica al crear un script nuevo. No se puede usar
+// `!script` en el template: la const local `script` (más abajo) sombrea al prop
+// homónimo y es siempre un objeto reactivo (truthy), así que el botón nunca
+// llegaba a renderizarse. El flag se deriva del prop aquí, en el setup.
+const isNewScript = !props.script;
+
 // setup agent dropdown
 const { agent, agentOptions, getAgentOptions } = useAgentDropdown();
 const hosted = computed(() => store.state.hosted);
@@ -509,10 +515,24 @@ function generateScriptOpenAI() {
     cancel: true,
     persistent: true,
   }).onOk(async (data) => {
-    const completion = await generateScript({
-      prompt: data,
-    });
-    script.script_body = completion;
+    // La llamada al proveedor puede tardar (timeout de 60 s en el backend):
+    // se deshabilita el botón y se muestra el spinner mientras responde.
+    loading.value = true;
+    $q.loading.show({ message: t("scriptsCommon.generatingScript") });
+    try {
+      const completion = await generateScript({
+        prompt: data,
+      });
+      script.script_body = completion;
+      // El editor Monaco no observa el estado: sin setValue el borrador
+      // generado no se ve y se pierde al primer tecleo.
+      editor.setValue(completion);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      $q.loading.hide();
+      loading.value = false;
+    }
   });
 }
 

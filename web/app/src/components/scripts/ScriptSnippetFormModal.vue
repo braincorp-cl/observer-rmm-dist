@@ -10,7 +10,7 @@
       <q-bar>
         <span class="q-pr-sm">{{ title }}</span>
         <q-btn
-          v-if="!snippet && openAIEnabled"
+          v-if="isNewSnippet && openAIEnabled"
           :disable="loading"
           dense
           size="xs"
@@ -143,6 +143,11 @@ const { t } = useI18n();
 const store = useStore();
 const openAIEnabled = computed(() => store.state.openAIIntegrationEnabled);
 
+// Mismo caso que en ScriptFormModal: la const local `snippet` sombrea al prop
+// homónimo en el template y siempre es truthy, así que `!snippet` dejaba el
+// botón invisible para siempre. El flag se deriva del prop aquí.
+const isNewSnippet = !props.snippet;
+
 // snippet form logic
 const snippet: ScriptSnippet = props.snippet
   ? reactive(Object.assign({}, props.snippet))
@@ -232,10 +237,22 @@ function generateScriptOpenAI() {
     cancel: true,
     persistent: true,
   }).onOk(async (data) => {
-    const completion = await generateScript({
-      prompt: data,
-    });
-    snippet.code = completion;
+    // La llamada al proveedor puede tardar (timeout de 60 s en el backend).
+    loading.value = true;
+    $q.loading.show({ message: t("scriptsCommon.generatingScript") });
+    try {
+      const completion = await generateScript({
+        prompt: data,
+      });
+      snippet.code = completion;
+      // Sin setValue el borrador no se ve en el editor y se pierde al teclear.
+      editor.setValue(completion);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      $q.loading.hide();
+      loading.value = false;
+    }
   });
 }
 </script>

@@ -787,7 +787,7 @@ class OpenAICodeCompletion(APIView):
             ],
             "model": settings.open_ai_model,
             "temperature": 0.5,
-            "max_tokens": 1000,
+            "max_tokens": settings.open_ai_max_tokens or 4000,
             "n": 1,
             "stop": None,
         }

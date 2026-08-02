@@ -705,6 +705,7 @@ class TestOpenAICodeCompletion(ObserverTestCase):
             body["messages"][1]["content"],
             "powershell code that lists processes",
         )
+        self.assertEqual(body["max_tokens"], 4000)
 
         self.check_not_authenticated("post", self.url)
 
@@ -730,6 +731,41 @@ class TestOpenAICodeCompletion(ObserverTestCase):
         self.assertEqual(args[0], "https://api.moonshot.ai/v1/chat/completions")
         body = json.loads(kwargs["data"])
         self.assertEqual(body["model"], "kimi-k3")
+
+    @patch("core.views.requests.post")
+    def test_generate_uses_configured_max_tokens(self, mock_post):
+        self.coresettings.open_ai_max_tokens = 16000
+        self.coresettings.save()
+
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "echo hello"}}]
+        }
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+        _, kwargs = mock_post.call_args
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["max_tokens"], 16000)
+
+    @patch("core.views.requests.post")
+    def test_generate_max_tokens_zero_falls_back(self, mock_post):
+        # 0 sería rechazado por el proveedor: se cae al valor por defecto
+        self.coresettings.open_ai_max_tokens = 0
+        self.coresettings.save()
+
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "echo hello"}}]
+        }
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+        _, kwargs = mock_post.call_args
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["max_tokens"], 4000)
 
     @patch("core.views.requests.post")
     def test_generate_http_error_status(self, mock_post):
