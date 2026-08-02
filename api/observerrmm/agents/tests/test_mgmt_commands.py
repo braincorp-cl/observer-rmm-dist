@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 from django.core.management import call_command
 from model_bakery import baker
@@ -35,8 +35,17 @@ class TestBulkRestartAgents(ObserverTestCase):
             plat=AgentPlat.LINUX,
         )
 
+        # El backport v1.5.1 (Tier B/C/D) agregó `agent_url` a la llamada
+        # "tacagent": la URL concreta depende de LATEST_AGENT_VER y del CDN
+        # (configuración), así que acá se exige que el kwarg VENGA — ANY no
+        # empareja si falta — y el contenido se verifica abajo.
         calls = [
-            call("tacagent", "https://mesh.example.com/test", wait=False),
+            call(
+                "tacagent",
+                "https://mesh.example.com/test",
+                wait=False,
+                agent_url=ANY,
+            ),
             call("mesh", "", wait=False),
         ]
 
@@ -44,3 +53,11 @@ class TestBulkRestartAgents(ObserverTestCase):
 
         recover.assert_has_calls(calls)
         mock_sleep.assert_called_with(10)
+
+        tacagent_urls = [
+            c.kwargs["agent_url"]
+            for c in recover.call_args_list
+            if c.args and c.args[0] == "tacagent"
+        ]
+        self.assertEqual(len(tacagent_urls), 2)  # un agente Windows + uno Linux
+        self.assertTrue(all(tacagent_urls), "agent_url no puede venir vacío")
