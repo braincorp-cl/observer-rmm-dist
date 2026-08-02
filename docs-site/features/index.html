@@ -139,10 +139,6 @@
           <p><span class="lang-es">Marca los scripts que más usas como favoritos y ejecútalos en dos clics desde el menú de cualquier equipo.</span><span class="lang-en">Flag the scripts you use most as favorites and run them in two clicks from any machine's menu.</span></p>
         </div>
         <div class="feature">
-          <h3><span class="lang-es">Borrador de script con IA (opcional)</span><span class="lang-en">AI script draft (optional)</span></h3>
-          <p><span class="lang-es">Si configuras un token de OpenAI, el editor puede redactar un borrador de script a partir de una descripción en lenguaje natural. Sin token configurado, la opción no aparece.</span><span class="lang-en">If you configure an OpenAI token, the editor can draft a script from a plain-language description. With no token configured, the option doesn't appear.</span></p>
-        </div>
-        <div class="feature">
           <h3><span class="lang-es">Ejecutor de tareas automatizadas</span><span class="lang-en">Automated task runner</span></h3>
           <p><span class="lang-es">Programa scripts para que corran en un horario definido, por equipo o por política de automatización.</span><span class="lang-en">Schedule scripts to run on a defined schedule, per machine or per automation policy.</span></p>
         </div>
@@ -162,7 +158,19 @@
           <h3><span class="lang-es">Almacén global clave-valor</span><span class="lang-en">Global key-value store</span></h3>
           <p><span class="lang-es">Guarda secretos y valores reutilizables para usarlos de forma segura en scripts y URL actions.</span><span class="lang-en">Store secrets and reusable values to use securely across scripts and URL actions.</span></p>
         </div>
+        <div class="feature">
+          <h3><span class="lang-es">Borrador de script con IA (opcional)</span><span class="lang-en">AI script draft (optional)</span></h3>
+          <p><span class="lang-es">Describe en lenguaje natural lo que necesitas y la IA redacta un <strong>borrador</strong> en el editor, en el lenguaje de script que tengas elegido. Funciona con <strong>cualquier proveedor compatible con el formato de OpenAI</strong>, incluso uno alojado por ti: se configura la URL del servicio, el modelo y el token. <strong>Sin token, la opción no aparece.</strong></span><span class="lang-en">Describe what you need in plain language and the AI drafts a <strong>starting point</strong> in the editor, in whichever scripting language you picked. It works with <strong>any provider that speaks the OpenAI format</strong>, including one you host yourself: you set the service URL, the model, and the token. <strong>With no token, the option doesn't appear.</strong></span></p>
+        </div>
       </div>
+      <figure class="doc-shot">
+        <img src="/assets/shots/script-ia-prompt.webp?v=1" width="1400" height="485" loading="lazy" decoding="async" alt="Diálogo para pedirle a la IA un borrador de script en lenguaje natural">
+        <figcaption><span class="lang-es">Al crear un script, el botón <em>Generar borrador con IA</em> abre esta caja: se pide lo que se necesita en lenguaje corriente. La consola ya antepone el lenguaje elegido —acá <em>PowerShell</em>— para que baste con describir la tarea.</span><span class="lang-en">When you create a script, the <em>Generate draft with AI</em> button opens this box: you ask for what you need in everyday language. The console already prefixes the language you picked —here <em>PowerShell</em>— so you only have to describe the task.</span></figcaption>
+      </figure>
+      <figure class="doc-shot">
+        <img src="/assets/shots/script-ia-borrador.webp?v=1" width="1400" height="485" loading="lazy" decoding="async" alt="Borrador de script PowerShell generado por la IA dentro del editor">
+        <figcaption><span class="lang-es">El borrador entra directo al editor, listo para revisar, ajustar y probar antes de guardarlo. Es un punto de partida, no un script terminado: la revisión humana sigue siendo tuya.</span><span class="lang-en">The draft lands straight in the editor, ready to review, tweak, and test before saving. It's a starting point, not a finished script: the human review is still yours.</span></figcaption>
+      </figure>
 
       <h2 id="monitoreo-alertas"><span class="lang-es">Monitoreo y alertas</span><span class="lang-en">Monitoring &amp; alerting</span></h2>
       <div class="feature-grid">
