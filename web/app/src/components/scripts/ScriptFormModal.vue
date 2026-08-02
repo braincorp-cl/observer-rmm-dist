@@ -11,16 +11,6 @@
     <q-card class="q-dialog-plugin">
       <q-bar>
         <span class="q-pr-sm">{{ title }}</span>
-        <q-btn
-          v-if="isNewScript && openAIEnabled"
-          size="xs"
-          :disable="loading"
-          dense
-          :label="$t('scriptsCommon.generateScript')"
-          color="primary"
-          no-caps
-          @click="generateScriptOpenAI"
-        />
         <q-space />
         <q-btn dense flat icon="close" @click="closeEditor">
           <q-tooltip class="bg-white text-primary">{{
@@ -69,6 +59,19 @@
           :style="{ height: `${$q.screen.height - 106}px` }"
         >
           <div class="q-gutter-sm q-pr-sm">
+            <q-btn
+              v-if="isNewScript && openAIEnabled"
+              class="full-width"
+              :disable="loading"
+              :label="$t('scriptsCommon.generateScript')"
+              icon="auto_awesome"
+              color="primary"
+              unelevated
+              no-caps
+              @click="generateScriptOpenAI"
+            >
+              <q-tooltip>{{ $t("scriptsCommon.generateScriptTip") }}</q-tooltip>
+            </q-btn>
             <q-input
               filled
               dense

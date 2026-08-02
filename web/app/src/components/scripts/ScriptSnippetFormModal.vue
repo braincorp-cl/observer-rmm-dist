@@ -9,16 +9,6 @@
     <q-card class="q-dialog-plugin">
       <q-bar>
         <span class="q-pr-sm">{{ title }}</span>
-        <q-btn
-          v-if="isNewSnippet && openAIEnabled"
-          :disable="loading"
-          dense
-          size="xs"
-          :label="$t('scriptsCommon.generateScript')"
-          color="primary"
-          no-caps
-          @click="generateScriptOpenAI"
-        />
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip class="bg-white text-primary">{{
@@ -26,6 +16,19 @@
           }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <div v-if="isNewSnippet && openAIEnabled" class="q-px-sm q-pt-sm">
+        <q-btn
+          :disable="loading"
+          :label="$t('scriptsCommon.generateScript')"
+          icon="auto_awesome"
+          color="primary"
+          unelevated
+          no-caps
+          @click="generateScriptOpenAI"
+        >
+          <q-tooltip>{{ $t("scriptsCommon.generateScriptTip") }}</q-tooltip>
+        </q-btn>
+      </div>
       <div class="row">
         <q-input
           :rules="[(val: string) => !!val || $t('scriptsCommon.required')]"
@@ -57,7 +60,7 @@
 
       <div
         ref="snippetEditor"
-        :style="{ height: `${$q.screen.height - 132}px` }"
+        :style="{ height: `${$q.screen.height - editorOffset}px` }"
       ></div>
 
       <q-card-actions align="right">
@@ -147,6 +150,12 @@ const openAIEnabled = computed(() => store.state.openAIIntegrationEnabled);
 // homónimo en el template y siempre es truthy, así que `!snippet` dejaba el
 // botón invisible para siempre. El flag se deriva del prop aquí.
 const isNewSnippet = !props.snippet;
+
+// El botón de borrador con IA ocupa una fila propia sobre el editor: se le
+// descuenta su alto para que Monaco no desborde el diálogo.
+const editorOffset = computed(() =>
+  isNewSnippet && openAIEnabled.value ? 184 : 132,
+);
 
 // snippet form logic
 const snippet: ScriptSnippet = props.snippet
