@@ -786,11 +786,18 @@ class OpenAICodeCompletion(APIView):
                 },
             ],
             "model": settings.open_ai_model,
-            "temperature": 0.5,
             "max_tokens": settings.open_ai_max_tokens or 4000,
-            "n": 1,
-            "stop": None,
         }
+
+        # `temperature` es opcional a propósito: hay modelos compatibles con el
+        # formato OpenAI que solo aceptan su valor por defecto y rechazan la
+        # petición completa con HTTP 400 si se manda otro (kimi-k3 de Moonshot:
+        # "invalid temperature: only 1 is allowed for this model"). Vacío en la
+        # configuración = no se envía el campo y manda el default del proveedor.
+        # `n` y `stop` no se envían: eran los valores por defecto (1 / null) y
+        # solo agregaban superficie de incompatibilidad entre proveedores.
+        if settings.open_ai_temperature is not None:
+            data["temperature"] = settings.open_ai_temperature
 
         try:
             response = requests.post(

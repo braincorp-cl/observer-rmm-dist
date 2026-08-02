@@ -159,6 +159,7 @@ class CoreSettings(BaseAuditModel):
         max_length=255, blank=True, default="https://api.openai.com/v1"
     )
     open_ai_max_tokens = models.PositiveIntegerField(default=4000)
+    open_ai_temperature = models.FloatField(null=True, blank=True)
     enable_server_scripts = models.BooleanField(default=True)
     enable_server_webterminal = models.BooleanField(default=False)
     notify_on_info_alerts = models.BooleanField(default=False)

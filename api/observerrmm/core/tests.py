@@ -706,6 +706,11 @@ class TestOpenAICodeCompletion(ObserverTestCase):
             "powershell code that lists processes",
         )
         self.assertEqual(body["max_tokens"], 4000)
+        # sin temperature configurada el campo NO viaja (kimi-k3 rechaza con
+        # 400 cualquier valor distinto de su default)
+        self.assertNotIn("temperature", body)
+        self.assertNotIn("n", body)
+        self.assertNotIn("stop", body)
 
         self.check_not_authenticated("post", self.url)
 
@@ -766,6 +771,41 @@ class TestOpenAICodeCompletion(ObserverTestCase):
         _, kwargs = mock_post.call_args
         body = json.loads(kwargs["data"])
         self.assertEqual(body["max_tokens"], 4000)
+
+    @patch("core.views.requests.post")
+    def test_generate_sends_temperature_only_when_configured(self, mock_post):
+        self.coresettings.open_ai_temperature = 0.5
+        self.coresettings.save()
+
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "echo hello"}}]
+        }
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+        _, kwargs = mock_post.call_args
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["temperature"], 0.5)
+
+    @patch("core.views.requests.post")
+    def test_generate_temperature_zero_is_sent(self, mock_post):
+        # 0 es un valor legítimo (determinista): no debe confundirse con "vacío"
+        self.coresettings.open_ai_temperature = 0
+        self.coresettings.save()
+
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [{"message": {"content": "echo hello"}}]
+        }
+
+        r = self.client.post(self.url, {"prompt": "x"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+        _, kwargs = mock_post.call_args
+        body = json.loads(kwargs["data"])
+        self.assertEqual(body["temperature"], 0)
 
     @patch("core.views.requests.post")
     def test_generate_http_error_status(self, mock_post):

@@ -307,6 +307,8 @@
     "aiMaxTokens": "Response max tokens:",
     "aiMaxTokensHint": "Maximum length of the generated draft. Lower it if the provider rejects the request for exceeding its limit.",
     "aiMaxTokensRule": "Must be a number greater than 0",
+    "aiTemperature": "Temperature (optional):",
+    "aiTemperatureHint": "Leave it empty to use the provider default. Some models (kimi-k3, for instance) reject the request if any other value is sent.",
     "globalSettings": "Global Settings",
     "save": "Save",
     "agentAutoUpdate": "Enable agent automatic self update",

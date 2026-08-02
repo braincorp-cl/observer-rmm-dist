@@ -859,6 +859,21 @@
                     :hint="$t('editCoreSettings.aiMaxTokensHint')"
                   />
                 </q-card-section>
+                <q-card-section class="row">
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.aiTemperature") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    step="0.1"
+                    v-model.number="settings.open_ai_temperature"
+                    class="col-6"
+                    :hint="$t('editCoreSettings.aiTemperatureHint')"
+                  />
+                </q-card-section>
               </q-tab-panel>
             </q-tab-panels>
           </q-scroll-area>
@@ -1063,6 +1078,10 @@ export default {
     editSettings() {
       this.$q.loading.show();
       delete this.settings.all_timezones;
+      // El input numérico vacío entrega "" y el backend espera null (campo
+      // opcional): sin esto, dejar la temperatura en blanco daría 400.
+      if (this.settings.open_ai_temperature === "")
+        this.settings.open_ai_temperature = null;
       this.$axios
         .put("/core/settings/", this.settings)
         .then(() => {

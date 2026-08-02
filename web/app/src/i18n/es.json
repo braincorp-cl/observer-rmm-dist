@@ -307,6 +307,8 @@
     "aiMaxTokens": "Máximo de tokens de la respuesta:",
     "aiMaxTokensHint": "Largo máximo del borrador generado. Bájalo si el proveedor rechaza la petición por exceder su límite.",
     "aiMaxTokensRule": "Debe ser un número mayor que 0",
+    "aiTemperature": "Temperatura (opcional):",
+    "aiTemperatureHint": "Déjala vacía para usar el valor por defecto del proveedor. Algunos modelos (por ejemplo kimi-k3) rechazan la petición si se les manda otro valor.",
     "globalSettings": "Configuración global",
     "save": "Guardar",
     "agentAutoUpdate": "Habilitar la autoactualización del agente",
