@@ -222,6 +222,10 @@ pre code { background: none; border: 0; padding: 0; }
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
 }
 .platform h3 { margin: 0 0 4px; font-size: 1.02rem; }
+.platform h4 {
+  margin: 14px 0 0; font-family: var(--mono); font-size: .7rem;
+  text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--muted);
+}
 .platform ul { margin: 8px 0 0; padding-left: 18px; }
 .platform li { font-size: .89rem; margin: 3px 0; }
 .platform-note {

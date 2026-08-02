@@ -499,14 +499,27 @@
       <div class="platforms">
         <div class="platform">
           <h3><span class="lang-es">Agente Windows</span><span class="lang-en">Windows agent</span></h3>
+          <h4 class="lang-es">Versión al día</h4>
+          <h4 class="lang-en">Current build</h4>
           <ul class="lang-es">
-            <li>Windows 7, 8.1, 10 y 11</li>
-            <li>Server 2008 R2, 2012 R2, 2016, 2019, 2022 y 2025</li>
+            <li>Windows 10 y 11</li>
+            <li>Server 2016, 2019, 2022 y 2025</li>
           </ul>
           <ul class="lang-en">
-            <li>Windows 7, 8.1, 10, and 11</li>
-            <li>Server 2008 R2, 2012 R2, 2016, 2019, 2022, and 2025</li>
+            <li>Windows 10 and 11</li>
+            <li>Server 2016, 2019, 2022, and 2025</li>
           </ul>
+          <h4 class="lang-es">Versión de compatibilidad</h4>
+          <h4 class="lang-en">Compatibility build</h4>
+          <ul class="lang-es">
+            <li>Windows 7 y 8.1</li>
+            <li>Server 2008 R2 y 2012 R2</li>
+          </ul>
+          <ul class="lang-en">
+            <li>Windows 7 and 8.1</li>
+            <li>Server 2008 R2 and 2012 R2</li>
+          </ul>
+          <p class="platform-note"><span class="lang-es">Sigue habiendo <strong>un solo instalador por arquitectura</strong>: elige la versión que corresponde al Windows del equipo durante la instalación, y vuelve a elegirla en cada actualización. No hay que decidir nada al descargar.</span><span class="lang-en">There is still <strong>one installer per architecture</strong>: it picks the build that matches the machine's Windows at install time, and picks again on every update. Nothing to decide at download time.</span></p>
         </div>
         <div class="platform">
           <h3><span class="lang-es">Agente Linux</span><span class="lang-en">Linux agent</span></h3>
@@ -527,6 +540,23 @@
             <li>64-bit Intel and Apple Silicon (M-series processors).</li>
           </ul>
         </div>
+      </div>
+
+      <div class="callout warn lang-es">
+        <span class="tag">Compatibilidad, no seguridad</span>
+        <p>La <strong>versión de compatibilidad</strong> de Windows —7, 8.1, Server 2008 R2 y 2012 R2— se compila con un compilador antiguo que <strong>ya no recibe parches de seguridad</strong>, y no se puede subir: los compiladores nuevos dejaron de soportar esos sistemas. Existe para que un equipo antiguo siga administrado, no para declararlo seguro. Las vulnerabilidades conocidas de ese compilador <strong>quedan abiertas</strong> en esa versión, y no hay actualización del agente que las cierre: en la versión al día no aplican. Mitigarlo es asunto de <strong>política de flota</strong> —segmentar la red, acotar a qué llegan esos equipos—, no del agente; la salida real es migrar a Windows 10 o superior. Que el equipo aparezca en línea en la consola no dice nada sobre esto.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Compatibility, not security</span>
+        <p>The Windows <strong>compatibility build</strong> —7, 8.1, Server 2008 R2, and 2012 R2— is produced with an old compiler that <strong>no longer receives security patches</strong>, and it cannot be moved forward: newer compilers dropped support for those systems. It exists so an old machine stays managed, not to call it secure. The known vulnerabilities of that compiler <strong>stay open</strong> in this build, and no agent update closes them: on the current build they do not apply. Mitigating that is a matter of <strong>fleet policy</strong> —segment the network, limit what those machines can reach—, not of the agent; the real way out is moving to Windows 10 or later. A machine showing up online in the console says nothing about any of this.</p>
+      </div>
+      <div class="callout note lang-es">
+        <span class="tag">Desde el agente 2.15</span>
+        <p>La distinción entre las dos versiones aparece con el agente <strong>2.15</strong>. Hasta la 2.14 se entregaba un binario único, equivalente al de compatibilidad: los equipos con Windows 10 o superior pasan a la versión al día al actualizar el agente.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Agent 2.15 and later</span>
+        <p>The split between the two builds starts with agent <strong>2.15</strong>. Up to 2.14 there was a single binary, equivalent to the compatibility one: machines on Windows 10 or later move to the current build when the agent updates.</p>
       </div>
 
       <footer>
