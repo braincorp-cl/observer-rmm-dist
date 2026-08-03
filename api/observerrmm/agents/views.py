@@ -30,7 +30,7 @@ from core.utils import (
     token_is_valid,
     wake_on_lan,
 )
-from logs.models import AuditLog, DebugLog, PendingAction
+from logs.models import AuditLog, PendingAction
 from scripts.models import Script
 from scripts.tasks import bulk_command_task, bulk_script_task
 from observerrmm.constants import (
@@ -52,7 +52,6 @@ from observerrmm.constants import (
     AgentMonType,
     AgentPlat,
     CustomFieldModel,
-    DebugLogType,
     EndpointResponseAction,
     EvtLogNames,
     PAAction,

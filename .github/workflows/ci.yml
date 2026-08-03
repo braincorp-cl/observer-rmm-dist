@@ -53,6 +53,92 @@ jobs:
       - name: ansible-lint
         run: ansible-lint
 
+  # Gates del backend Django. Vivian en el hub (`observer-rmm`,
+  # .github/workflows/ci-tests.yml) y se movieron aca el 2026-08-03 por decision
+  # del usuario, porque estaban en el repo equivocado y se puede demostrar:
+  #
+  #   - Este repo es la fuente unica del codigo (ADR-016) y desde aca se
+  #     despliega. El hub quedo para specs del Reversa y codigo canonico del
+  #     primer fork, NO para codigo fuente vivo.
+  #   - La copia del hub estaba incompleta y atrasada: a su `agents/views.py` le
+  #     faltaban 382 lineas (la feature 028 entera) y le faltaban 5 archivos que
+  #     si existen aca. O sea que los gates validaban una copia parcial y vieja.
+  #   - Y encima no corrian: el workflow del hub se dispara con push/PR y el hub
+  #     no recibe un push desde el 2026-05-17, con 357 commits locales.
+  #
+  # Medido el dia del traslado: `black` daba 16 archivos aca contra 11 en el hub
+  # — no porque el hub estuviera mas limpio, sino porque tiene menos codigo.
+  #
+  # Sin codecov a proposito: este repo es privado y la accion necesitaria token.
+  # El `coverage.xml` se genera igual (lo pide `pytest.ini`).
+  backend:
+    name: Backend Django (black + flake8 + pytest)
+    runs-on: ubuntu-22.04
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: pipeline
+          POSTGRES_USER: pipeline
+          POSTGRES_PASSWORD: pipeline123456
+        ports:
+          - 5432:5432
+        # El healthcheck no estaba en el workflow del hub. Se agrega porque sin
+        # el los pasos arrancan antes de que Postgres acepte conexiones y la
+        # falla sale como un error de BD que no tiene nada que ver con el codigo.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.8"
+          check-latest: true
+
+      # 4 tests de `core` lo necesitan (backend de resultados de Celery y el
+      # consumer WS). Sin redis fallan con ConnectionError y parecen rotos del
+      # codigo, que es peor que no correrlos.
+      - name: Install redis
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis
+          redis-server --version
+
+      - name: Install requirements
+        working-directory: api/observerrmm
+        run: |
+          python --version
+          SETTINGS_FILE="observerrmm/settings.py"
+          SETUPTOOLS_VER=$(grep "^SETUPTOOLS_VER" "$SETTINGS_FILE" | awk -F'[= "]' '{print $5}')
+          WHEEL_VER=$(grep "^WHEEL_VER" "$SETTINGS_FILE" | awk -F'[= "]' '{print $5}')
+          pip install pip==25.1
+          pip install setuptools==${SETUPTOOLS_VER} wheel==${WHEEL_VER}
+          pip install -r requirements.txt -r requirements-test.txt
+
+      # `black` va pinneado en requirements-test.txt (26.5.1). Sin pin, el gate
+      # se pone rojo solo el dia que el formateador cambia de criterio, sin que
+      # nadie toque el codigo.
+      - name: Codestyle black
+        working-directory: api
+        run: black --exclude migrations/ --check --diff observerrmm
+
+      - name: Lint with flake8
+        working-directory: api/observerrmm
+        run: flake8 --config .flake8 .
+
+      - name: Run django tests
+        env:
+          GHACTIONS: "yes"
+        working-directory: api/observerrmm
+        run: pytest
+
   # NOTA: el job `molecule` se removió (2026-06-28). Estaba mal configurado para
   # el driver docker — el inventario all-in-one fija localhost+connection:local,
   # así que el converge corría install.yml sobre el runner en vez del contenedor,

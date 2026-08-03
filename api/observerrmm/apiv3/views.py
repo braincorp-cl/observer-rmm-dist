@@ -30,7 +30,6 @@ from checks.models import Check, CheckResult
 from checks.serializers import CheckRunnerGetSerializer
 from core.tasks import sync_mesh_perms_task
 from core.utils import (
-    _b64_to_hex,
     _mesh_id_to_hex,
     download_mesh_agent,
     get_core_settings,

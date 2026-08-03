@@ -3,7 +3,11 @@ from allauth.socialaccount.providers.openid_connect.views import callback
 from allauth.headless.socialaccount.views import RedirectToProviderView
 from allauth.headless.base.views import ConfigView
 
-from . import views
+# `views` queda importado a proposito aunque flake8 lo vea sin usar: las rutas
+# `ssoproviders/*` que lo consumen estan comentadas mas abajo por la decision
+# BrainCorp D-2026-06-01-SSO-DEFERRED. Quitarlo obligaria a reponerlo al
+# reactivar SSO (ADR-013), y el import en si no tiene efecto observable.
+from . import views  # noqa: F401
 
 urlpatterns = [
     re_path(
