@@ -31,6 +31,10 @@ if TYPE_CHECKING:
 MESH_NODE_REMOVE_PASSES = 3
 MESH_NODE_REMOVE_INTERVAL = 30
 
+# Segundos que tiene que superar `last_seen - aviso` para considerar que el
+# agente "volvió" y cancelar el borrado (ver manual_uninstall_delete_task).
+MANUAL_UNINSTALL_REVIVAL_MARGIN = 120
+
 
 @app.task(rate_limit="20/s")
 def remove_mesh_node_task(mesh_node_id: Optional[str], _pass: int = 0) -> str:
@@ -70,6 +74,65 @@ def remove_mesh_node_task(mesh_node_id: Optional[str], _pass: int = 0) -> str:
             (mesh_node_id, _pass + 1), countdown=MESH_NODE_REMOVE_INTERVAL
         )
     return f"nodo mesh borrado (pasada {_pass}): {mesh_node_id}"
+
+
+@app.task
+def manual_uninstall_delete_task(agent_id: str, notified_at: str) -> str:
+    """Borra el agente que avisó su propia desinstalación, tras la gracia.
+
+    La ventana existe por una sola razón: **reinstalar corre el mismo
+    `uninstall`**. Si borráramos al recibir el aviso, cada reinstalación se
+    llevaría el registro por delante. Y si la desinstalación se cae a la mitad
+    —el script falla después de avisar— el agente sigue vivo y reportando; en
+    ese caso hay que cancelar el borrado, no ejecutarlo.
+
+    El criterio de cancelación es que el agente haya vuelto a dar señales
+    DESPUÉS del aviso. Un agente realmente desinstalado no puede: el servicio ya
+    no existe.
+
+    El nodo de MeshCentral no se toca acá: lo propaga la señal `post_delete`
+    (agents/signals.py → remove_mesh_node_task), igual que en toda otra ruta de
+    borrado.
+    """
+    from core.tasks import sync_mesh_perms_task
+    from observerrmm.utils import reload_nats
+
+    agent = (
+        Agent.objects.defer(*AGENT_DEFER).filter(agent_id=agent_id).first()  # type: ignore
+    )
+    if not agent:
+        return f"skipped: el agente {agent_id} ya no existe"
+
+    try:
+        notified = dt.datetime.fromisoformat(notified_at)
+    except (TypeError, ValueError):
+        notified = None
+
+    # Margen contra el propio check-in que el agente pueda tener en vuelo cuando
+    # avisa. Sin él, un `last_seen` escrito medio segundo después del aviso se
+    # leería como "volvió" y el agente huérfano quedaría para siempre.
+    if notified and agent.last_seen:
+        revived = agent.last_seen - notified > dt.timedelta(
+            seconds=MANUAL_UNINSTALL_REVIVAL_MARGIN
+        )
+        if revived:
+            DebugLog.info(
+                message=(
+                    f"Borrado por desinstalación manual CANCELADO para "
+                    f"{agent.hostname}: el agente volvió a reportar "
+                    f"({agent.last_seen.isoformat()}) después del aviso "
+                    f"({notified.isoformat()})."
+                ),
+                agent=agent,
+                log_type=DebugLogType.AGENT_ISSUES,
+            )
+            return f"cancelado: {agent.hostname} volvió a reportar"
+
+    hostname = agent.hostname
+    agent.delete()
+    reload_nats()
+    sync_mesh_perms_task.delay()
+    return f"agente borrado tras desinstalación manual: {hostname}"
 
 
 @app.task

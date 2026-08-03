@@ -9,15 +9,34 @@ from .models import Alert, AlertTemplate
 
 
 class AlertSerializer(ModelSerializer):
-    hostname = ReadOnlyField(source="assigned_agent.hostname")
-    agent_id = ReadOnlyField(source="assigned_agent.agent_id")
-    client = ReadOnlyField(source="client.name")
-    site = ReadOnlyField(source="site.name")
+    # Estos cuatro salían de `ReadOnlyField(source="assigned_agent.hostname")` y
+    # compañía. Cuando la alerta no tiene agente —las `custom`, y ahora las de
+    # desinstalación manual, que nacen con `agent=None` a propósito porque el
+    # agente está por borrarse— el encadenamiento revienta con AttributeError y
+    # DRF resuelve OMITIENDO la clave del payload. El frontend recibía entonces
+    # objetos con forma distinta según la alerta. Ahora la clave está siempre y
+    # vale null cuando no hay de dónde sacarla.
+    hostname = SerializerMethodField()
+    agent_id = SerializerMethodField()
+    client = SerializerMethodField()
+    site = SerializerMethodField()
     alert_time = ReadOnlyField()
 
     class Meta:
         model = Alert
         fields = "__all__"
+
+    def get_hostname(self, obj):
+        return obj.agent.hostname if obj.agent else None
+
+    def get_agent_id(self, obj):
+        return obj.agent.agent_id if obj.agent else None
+
+    def get_client(self, obj):
+        return obj.agent.client.name if obj.agent else None
+
+    def get_site(self, obj):
+        return obj.agent.site.name if obj.agent else None
 
 
 class AlertTemplateSerializer(ModelSerializer):

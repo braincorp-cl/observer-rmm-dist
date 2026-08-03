@@ -7,6 +7,7 @@ from io import StringIO
 from pathlib import Path
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -33,6 +34,8 @@ from logs.models import AuditLog, DebugLog, PendingAction
 from scripts.models import Script
 from scripts.tasks import bulk_command_task, bulk_script_task
 from observerrmm.constants import (
+    AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX,
+    AGENT_CONSOLE_UNINSTALL_CACHE_TIMEOUT,
     AGENT_DEFER,
     AGENT_STATUS_OFFLINE,
     AGENT_STATUS_ONLINE,
@@ -287,6 +290,16 @@ class GetUpdateDeleteAgent(APIView):
         elif agent.plat == AgentPlat.DARWIN:
             code = Path(settings.MAC_UNINSTALL).read_text()
 
+        # El script que estamos por disparar avisa al servidor antes de
+        # destruirse (endpoint /api/v3/uninstalled/). Sin esta marca, ese aviso
+        # se leería como una desinstalación MANUAL y levantaría una alerta falsa
+        # por cada borrado hecho desde la consola. Va antes del nats_cmd: el
+        # agente puede reaccionar en menos de lo que tarda el resto del request.
+        cache.set(
+            f"{AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX}{agent.agent_id}",
+            True,
+            AGENT_CONSOLE_UNINSTALL_CACHE_TIMEOUT,
+        )
         asyncio.run(agent.nats_cmd({"func": "uninstall", "code": code}, wait=False))
         name = agent.hostname
         # El borrado del nodo en MeshCentral lo propaga la señal post_delete de

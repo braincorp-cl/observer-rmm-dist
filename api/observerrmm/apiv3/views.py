@@ -19,6 +19,8 @@ from rest_framework.views import APIView
 from accounts.models import User
 from agents.models import Agent, AgentHistory, Note
 from agents.serializers import AgentHistorySerializer
+from agents.tasks import manual_uninstall_delete_task
+from agents.uninstall import grace_seconds, record_manual_uninstall
 from alerts.tasks import cache_agents_alert_template
 from apiv3.utils import get_agent_config
 from autotasks.models import AutomatedTask, TaskResult
@@ -40,7 +42,10 @@ from core.utils import (
 from logs.models import DebugLog
 from software.models import InstalledSoftware
 from observerrmm.constants import (
+    AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX,
     AGENT_DEFER,
+    AGENT_MANUAL_UNINSTALL_CACHE_PREFIX,
+    AGENT_MANUAL_UNINSTALL_CACHE_TIMEOUT,
     TRMM_MAX_REQUEST_SIZE,
     AgentHistoryType,
     AgentMonType,
@@ -87,6 +92,68 @@ class SyncMeshNodeID(APIView):
             agent.mesh_node_id = _mesh_id_to_hex(request.data["nodeid"]) if request.data.get("nodeid") else agent.mesh_node_id
             agent.save(update_fields=["mesh_node_id"])
 
+        return Response("ok")
+
+
+class AgentUninstalled(APIView):
+    """El equipo avisa que lo están desinstalando ANTES de destruirse.
+
+    Sin este aviso la desinstalación local es invisible para el servidor: el
+    script sólo toca la máquina y la fila `Agent` queda para siempre como un
+    equipo Offline que ya no existe. Ver `agents/uninstall.py` para el porqué de
+    cada decisión (alerta sin agente, ventana de gracia, atribución del actor).
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # El agente sale del TOKEN, NUNCA del cuerpo. Este endpoint termina
+        # borrando una máquina: aceptar un `agent_id` del payload convertiría el
+        # token de cualquier agente en un borrado de cualquier otro.
+        #
+        # El respaldo por `username` sigue siendo derivado del token y no del
+        # cuerpo, así que conserva esa propiedad. Existe porque el vínculo
+        # `User.agent` lo puebla `NewAgent` al enrolar, y no hay garantía de que
+        # todo agente histórico de la flota lo tenga; el `username` sí, porque
+        # es la clave con la que se creó el usuario.
+        agent = getattr(request.user, "agent", None)
+        if agent is None:
+            agent = (
+                Agent.objects.defer(*AGENT_DEFER)
+                .filter(agent_id=request.user.username)
+                .first()
+            )
+        if agent is None:
+            return notify_error("Este endpoint sólo lo puede llamar un agente")
+
+        payload = request.data if isinstance(request.data, dict) else {}
+
+        # Borrado disparado desde la consola: la consola corre este MISMO script
+        # de desinstalación, así que el aviso llega igual. Ya hay auditoría de
+        # esa acción y no es una desinstalación manual.
+        console_key = f"{AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX}{agent.agent_id}"
+        if cache.get(console_key):
+            return Response("ok (borrado iniciado desde la consola)")
+
+        # El aviso se manda a pulso desde un script que puede reintentar. Una
+        # sola alerta por episodio.
+        dedupe_key = f"{AGENT_MANUAL_UNINSTALL_CACHE_PREFIX}{agent.agent_id}"
+        if cache.get(dedupe_key):
+            return Response("ok (aviso ya registrado)")
+        cache.set(dedupe_key, True, AGENT_MANUAL_UNINSTALL_CACHE_TIMEOUT)
+
+        notified_at = djangotime.now()
+        record_manual_uninstall(
+            agent, payload, client_ip=getattr(request, "_client_ip", None)
+        )
+
+        if not getattr(settings, "MANUAL_UNINSTALL_AUTO_DELETE", True):
+            return Response("ok (alerta registrada; borrado automático apagado)")
+
+        manual_uninstall_delete_task.apply_async(
+            (agent.agent_id, notified_at.isoformat()), countdown=grace_seconds()
+        )
         return Response("ok")
 
 

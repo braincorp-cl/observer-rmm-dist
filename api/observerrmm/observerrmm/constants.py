@@ -22,6 +22,17 @@ CORESETTINGS_CACHE_KEY = "core_settings"
 ROLE_CACHE_PREFIX = "role_"
 AGENT_TBL_PEND_ACTION_CNT_CACHE_PREFIX = "agent_tbl_pendingactions_"
 AGENT_CHECKS_CACHE_PREFIX = "agent_checks_data_"
+# Marca puesta por la consola JUSTO ANTES de borrar un agente. El script de
+# desinstalación que la propia consola dispara avisa al servidor (endpoint
+# /api/v3/uninstalled/), y sin esta marca ese aviso se leería como una
+# desinstalación manual y levantaría una alerta falsa. TTL corto: sólo cubre la
+# carrera entre el borrado y el aviso, que llega en segundos.
+AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX = "agent_console_uninstall_"
+AGENT_CONSOLE_UNINSTALL_CACHE_TIMEOUT = 60 * 15
+# Deduplicación del aviso de desinstalación manual: el script puede reintentar,
+# y una alerta por episodio es suficiente.
+AGENT_MANUAL_UNINSTALL_CACHE_PREFIX = "agent_manual_uninstall_"
+AGENT_MANUAL_UNINSTALL_CACHE_TIMEOUT = 60 * 60
 
 AGENT_STATUS_ONLINE = "online"
 AGENT_STATUS_OFFLINE = "offline"
@@ -104,6 +115,11 @@ class AlertType(models.TextChoices):
     CUSTOM = "custom", "Custom"
     # Feature 026: el equipo se midió fuera del radio de su sitio.
     GEOFENCE = "geofence", "Geofence"
+    # Desinstalación local del agente, avisada por el propio equipo antes de
+    # destruirse. Nace y vive SIN agente asociado (agent=None) a propósito: el
+    # agente se borra a continuación y Alert.agent es CASCADE, así que una
+    # alerta ligada moriría junto con lo que está denunciando.
+    AGENT_UNINSTALL = "agent_uninstall", "Agent Uninstall"
 
 
 class AlertTemplateActionType(models.TextChoices):
@@ -232,6 +248,7 @@ class AuditActionType(models.TextChoices):
     # el registro de auditoría por sí solas, sin quedar mezcladas con la ejecución
     # de comandos.
     ENDPOINT_RESPONSE = "endpoint_response", "Endpoint Response"
+    AGENT_UNINSTALL = "agent_uninstall", "Agent Uninstall"
 
 
 class AuditObjType(models.TextChoices):

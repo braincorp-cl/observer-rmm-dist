@@ -10,7 +10,11 @@
         }}</q-item>
         <q-item v-for="alert in topAlerts" :key="alert.id">
           <q-item-section>
-            <q-item-label overline
+            <!-- Sin agente no hay a dónde ir: las alertas `custom` y las de
+                 desinstalación manual nacen desacopladas del equipo (el agente
+                 se borra y Alert.agent es CASCADE). Enlazarlas igual daba
+                 /agents/null y un encabezado "null - null - null". -->
+            <q-item-label overline v-if="alert.agent_id"
               ><router-link :to="`/agents/${alert.agent_id}`">{{
                 $t("alertsIcon.agentPath", {
                   client: alert.client,
@@ -19,6 +23,9 @@
                 })
               }}</router-link></q-item-label
             >
+            <q-item-label overline v-else>{{
+              $t("alertsIcon.noAgent")
+            }}</q-item-label>
             <q-item-label lines="1">
               <q-icon
                 size="xs"

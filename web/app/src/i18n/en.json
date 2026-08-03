@@ -2388,6 +2388,7 @@
   },
   "alertsIcon": {
     "noNewAlerts": "No New Alerts",
+    "noAgent": "No associated agent",
     "agentPath": "{client} - {site} - {hostname}",
     "snoozeAlert": "Snooze alert",
     "resolveAlert": "Resolve alert",

@@ -182,7 +182,110 @@ ValidateMeshNodeID() {
     MESH_NODE_ID=""
 }
 
+# NotifyUninstall avisa al servidor ANTES de destruir nada.
+#
+# Sin esto, desinstalar en el equipo es invisible para la consola: el script no
+# habla con el servidor, así que la fila del agente sobrevive y el equipo queda
+# para siempre como un Offline que ya no existe. El servidor levanta la alerta
+# (correo + campanita), deja el registro de auditoría y programa el borrado del
+# agente y del nodo Mesh, igual que si lo hubieran borrado desde la web.
+#
+# El orden importa dos veces:
+#   1. Va ANTES de RemoveOldAgent, que borra ${agentConf} — de ahí salen la URL
+#      y el token.
+#   2. Va ANTES de RemoveMesh, para que el aviso salga aunque el mesh se demore
+#      o se cuelgue.
+#
+# Esta función NUNCA puede hacer fallar la desinstalación. Sin red, sin curl ni
+# wget, con el servidor caído o con el config ya borrado, se calla y sigue: el
+# equipo tiene que quedar limpio pase lo que pase. Lo que se pierde en ese caso
+# es el aviso, no la desinstalación.
+ConfValue() {
+    # El config es el JSON que escribe viper. Sin jq garantizado en la flota se
+    # saca con grep+sed, y sólo sirve para valores de tipo string.
+    #
+    # Límite conocido y medido: un valor que contenga comillas o barras
+    # invertidas escapadas sale TRUNCADO en la primera. No importa para lo que
+    # leemos acá y no vale la pena escribir un parser JSON en bash: `token` es
+    # la clave de DRF (40 hex), `agentid` es alfanumérico y `baseurl` es una URL.
+    # Ninguno de los tres puede traer una comilla.
+    grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "${agentConf}" 2>/dev/null |
+        head -1 | sed 's/.*:[[:space:]]*"//; s/"$//'
+}
+
+JsonEscape() {
+    # Comillas y barras invertidas; el resto de lo que mandamos son nombres de
+    # usuario e IPs. Sin esto, un nombre con comillas rompe el JSON del POST.
+    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+NotifyUninstall() {
+    [ -f "${agentConf}" ] || return 0
+
+    # ⚠️ `baseurl` y NO `apiurl`. En el config del agente son cosas distintas:
+    # `baseurl` es la URL completa del backend (lo que el agente usa como base
+    # de resty, `agent/install.go:93`) y `apiurl` es sólo el host, que se usa
+    # para armar la dirección de NATS. Pegarle a `apiurl` no resuelve.
+    local baseurl agentid agenttoken actor sudouser loginuser lanips payload
+    baseurl=$(ConfValue baseurl)
+    agentid=$(ConfValue agentid)
+    agenttoken=$(ConfValue token)
+    [ -n "${baseurl}" ] && [ -n "${agenttoken}" ] || return 0
+
+    # Quién. `SUDO_USER` es el dato que distingue una persona de "root", y es el
+    # único que sobrevive a `sudo`. `logname` lee el dueño de la sesión de login
+    # (utmp), que no cambia con sudo ni con su. Ninguno es prueba: quien tiene
+    # root puede exportar SUDO_USER con el nombre que quiera. Sirve para saber
+    # qué pasó, no para acusar a nadie.
+    sudouser="${SUDO_USER:-}"
+    loginuser=$(logname 2>/dev/null || true)
+    [ -n "${loginuser}" ] || loginuser=$(who am i 2>/dev/null | awk '{print $1}')
+    actor="${sudouser}"
+    [ -n "${actor}" ] || actor="${loginuser}"
+    [ -n "${actor}" ] || actor=$(id -un 2>/dev/null || echo unknown)
+
+    # IPs LAN. `ip` no está en macOS y `ifconfig` no está en algunas imágenes
+    # mínimas de Linux; se intentan las dos y el servidor tiene su propio
+    # respaldo (lo último que reportó el agente) si acá no sale nada.
+    lanips=$(ip -4 -o addr show scope global 2>/dev/null |
+        awk '{split($4,a,"/"); print a[1]}' | paste -sd, - 2>/dev/null)
+    if [ -z "${lanips}" ]; then
+        lanips=$(ifconfig 2>/dev/null |
+            awk '/inet /&&$2!="127.0.0.1"{print $2}' | paste -sd, - 2>/dev/null)
+    fi
+
+    payload=$(
+        printf '{"agent_id":"%s","actor":"%s","sudo_user":"%s","login_user":"%s","lan_ips":"%s","local_time":"%s","source":"script-linux"}' \
+            "$(JsonEscape "${agentid}")" \
+            "$(JsonEscape "${actor}")" \
+            "$(JsonEscape "${sudouser}")" \
+            "$(JsonEscape "${loginuser}")" \
+            "$(JsonEscape "${lanips}")" \
+            "$(JsonEscape "$(date -Is 2>/dev/null || date)")"
+    )
+
+    # Timeouts cortos y a propósito: el aviso es lo accesorio, la desinstalación
+    # es lo que el usuario pidió. Nunca se deja colgado esperando a un servidor
+    # que no contesta.
+    if command -v curl >/dev/null 2>&1; then
+        curl -s -k --max-time 15 -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Token ${agenttoken}" \
+            --data "${payload}" \
+            "${baseurl}/api/v3/uninstalled/" >/dev/null 2>&1 || true
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q --no-check-certificate --timeout=15 --tries=1 -O /dev/null \
+            --header="Content-Type: application/json" \
+            --header="Authorization: Token ${agenttoken}" \
+            --post-data="${payload}" \
+            "${baseurl}/api/v3/uninstalled/" >/dev/null 2>&1 || true
+    fi
+
+    return 0
+}
+
 Uninstall() {
+    NotifyUninstall
     RemoveMesh
     RemoveOldAgent
 }

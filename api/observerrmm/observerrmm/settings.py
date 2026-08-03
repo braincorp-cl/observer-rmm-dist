@@ -31,7 +31,7 @@ WEB_VERSION = "0.101.59"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.0.203"
+APP_VER = "0.0.204"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
 LATEST_AGENT_VER = "2.14.3"
@@ -155,6 +155,22 @@ GOOGLE_GEOLOCATION_CACHE_MISS_TTL = int(
     os.getenv("GOOGLE_GEOLOCATION_CACHE_MISS_TTL", "600")
 )
 CHECK_INTERVAL_JITTER = (3, 120)
+
+# Desinstalación manual del agente (endpoint /api/v3/uninstalled/).
+#
+# La alerta sale de inmediato; el borrado del agente se difiere estos minutos y
+# se CANCELA si el mismo agent_id vuelve a dar señales dentro de la ventana. Eso
+# es lo que separa una desinstalación de una REINSTALACIÓN: reinstalar sobre un
+# equipo existente corre el mismo `uninstall`, y sin la ventana el registro se
+# perdería por el camino.
+#
+# En 0 el borrado corre de inmediato (sin ventana). Overridable en
+# local_settings.py.
+MANUAL_UNINSTALL_GRACE_MINUTES = 10
+# Puesto en False, el aviso sólo genera la alerta y el registro de auditoría, y
+# el agente queda en la consola para que alguien lo borre a mano. La alerta y la
+# auditoría NO dependen de esta bandera: se escriben siempre.
+MANUAL_UNINSTALL_AUTO_DELETE = True
 NATS_MAX_CONNECTIONS = 50000
 TRMM_LOG_LEVEL = "ERROR"
 TRMM_LOG_TO = "file"
