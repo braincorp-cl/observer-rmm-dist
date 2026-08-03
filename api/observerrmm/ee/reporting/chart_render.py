@@ -20,6 +20,7 @@ Se usa subprocess directo (no multiprocessing): bajo uWSGI `sys.executable` es e
 binario `uwsgi` y `multiprocessing` (spawn) además re-importa `__main__` (la app
 uWSGI), dos formas de romper el hijo. Acá el ejecutable es explícito.
 """
+
 import os
 import subprocess
 import sys
@@ -60,7 +61,9 @@ def render_svg(fig, *, timeout: int = 180) -> str:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=timeout,
-            env=dict(os.environ),  # HOME heredado → chromium autodescubierto por Kaleido
+            env=dict(
+                os.environ
+            ),  # HOME heredado → chromium autodescubierto por Kaleido
         )
     except subprocess.TimeoutExpired:
         raise RuntimeError(
@@ -68,7 +71,9 @@ def render_svg(fig, *, timeout: int = 180) -> str:
         )
 
     if proc.returncode != 0 or not proc.stdout:
-        detail = proc.stderr.decode("utf-8", "replace").strip()[-500:] if proc.stderr else ""
+        detail = (
+            proc.stderr.decode("utf-8", "replace").strip()[-500:] if proc.stderr else ""
+        )
         raise RuntimeError(
             f"fallo al renderizar el gráfico (Kaleido/chromium): {detail}"
         )

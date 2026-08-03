@@ -41,9 +41,9 @@ class Command(BaseCommand):
                 for field in fields:
                     null_q |= Q(**{f"{field}__isnull": True})
 
-                for task in AutomatedTask.objects.filter(
-                    task_type=task_type
-                ).filter(null_q):
+                for task in AutomatedTask.objects.filter(task_type=task_type).filter(
+                    null_q
+                ):
                     null_fields = [
                         field
                         for field in fields
@@ -80,7 +80,9 @@ class Command(BaseCommand):
                     )
 
         if violations_found == 0:
-            self.stdout.write(self.style.SUCCESS("Sin violaciones DF-03. BD lista para migrate."))
+            self.stdout.write(
+                self.style.SUCCESS("Sin violaciones DF-03. BD lista para migrate.")
+            )
         elif dry_run:
             self.stdout.write(
                 self.style.WARNING(

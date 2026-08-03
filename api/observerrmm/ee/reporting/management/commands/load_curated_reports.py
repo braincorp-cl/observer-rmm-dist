@@ -33,7 +33,6 @@ from django.core.management.base import BaseCommand
 
 from ee.reporting.utils import _import_base_template, _import_report_template
 
-
 # ---------------------------------------------------------------------------
 # Base HTML compartida (tema "Observation Deck", cian #0E8FA8). PDF-friendly.
 # ---------------------------------------------------------------------------
@@ -98,7 +97,7 @@ def _header(title, extra):
         "{% set now = datetime.datetime.now(ZoneInfo('America/Santiago')) %}\n"
         '<div class="report-header">\n'
         '  <div><div class="brand">Observer RMM</div><h1>' + title + "</h1></div>\n"
-        '  <div class="report-meta">Generado: {{ now.strftime(\'%d-%m-%Y %H:%M\') }}'
+        "  <div class=\"report-meta\">Generado: {{ now.strftime('%d-%m-%Y %H:%M') }}"
         "<br>" + extra + "</div>\n"
         "</div>\n"
     )
@@ -112,7 +111,9 @@ END = "\n{% endblock %}\n"
 # ===========================================================================
 
 # 1) Inventario de Agentes
-INV_AGENTES = _header("Inventario de Agentes", "Equipos: {{ data_sources.agents | length }}") + """
+INV_AGENTES = (
+    _header("Inventario de Agentes", "Equipos: {{ data_sources.agents | length }}")
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Usuario</th>
     <th>Sistema Operativo</th><th>RAM (GB)</th><th>IP p&uacute;blica</th><th>&Uacute;ltima conexi&oacute;n</th></tr></thead>
@@ -127,7 +128,9 @@ INV_AGENTES = _header("Inventario de Agentes", "Equipos: {{ data_sources.agents 
     </tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 INV_AGENTES_VARS = """data_sources:
   agents:
     model: agent
@@ -143,7 +146,11 @@ INV_AGENTES_VARS = """data_sources:
 """
 
 # 2) Especificaciones de Equipos
-SPECS = _header("Especificaciones de Equipos", "Equipos: {{ data_sources.agents | length }}") + """
+SPECS = (
+    _header(
+        "Especificaciones de Equipos", "Equipos: {{ data_sources.agents | length }}"
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Equipo</th><th>Marca / Modelo</th><th>CPU</th>
     <th>Arq.</th><th>RAM (GB)</th><th>N&ordm; Serie</th><th>Sistema Operativo</th></tr></thead>
@@ -158,7 +165,9 @@ SPECS = _header("Especificaciones de Equipos", "Equipos: {{ data_sources.agents 
     </tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 SPECS_VARS = """data_sources:
   agents:
     model: agent
@@ -176,7 +185,11 @@ SPECS_VARS = """data_sources:
 """
 
 # 3) Agentes por Cliente y Sitio
-AGENTES_CLIENTE_SITIO = _header("Agentes por Cliente y Sitio", "Equipos: {{ data_sources.agents | length }}") + """
+AGENTES_CLIENTE_SITIO = (
+    _header(
+        "Agentes por Cliente y Sitio", "Equipos: {{ data_sources.agents | length }}"
+    )
+    + """
 {% for client, cagents in data_sources.agents | sort(attribute='site__client__name') | groupby('site__client__name') %}
 <div class="client-title">{{ client }} <span class="muted">({{ cagents | length }} equipos)</span></div>
 {% for site, sagents in cagents | sort(attribute='site__name') | groupby('site__name') %}
@@ -192,7 +205,9 @@ AGENTES_CLIENTE_SITIO = _header("Agentes por Cliente y Sitio", "Equipos: {{ data
   </tbody>
 </table>
 {% endfor %}
-{% endfor %}""" + END
+{% endfor %}"""
+    + END
+)
 AGENTES_CLIENTE_SITIO_VARS = """data_sources:
   agents:
     model: agent
@@ -206,7 +221,11 @@ AGENTES_CLIENTE_SITIO_VARS = """data_sources:
 """
 
 # 4) Tiempo de Actividad (Uptime)
-UPTIME = _header("Tiempo de Actividad de Equipos", "Equipos: {{ data_sources.agents | length }}") + """
+UPTIME = (
+    _header(
+        "Tiempo de Actividad de Equipos", "Equipos: {{ data_sources.agents | length }}"
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Sistema Operativo</th><th>Encendido desde</th><th>Tiempo activo</th></tr></thead>
   <tbody>
@@ -220,7 +239,9 @@ UPTIME = _header("Tiempo de Actividad de Equipos", "Equipos: {{ data_sources.age
     </tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 UPTIME_VARS = """data_sources:
   agents:
     model: agent
@@ -233,7 +254,12 @@ UPTIME_VARS = """data_sources:
 """
 
 # 5) Agentes con Reinicio Pendiente
-PENDING_REBOOT = _header("Equipos con Reinicio Pendiente", "Pendientes: {{ data_sources.agents | length }}") + """
+PENDING_REBOOT = (
+    _header(
+        "Equipos con Reinicio Pendiente",
+        "Pendientes: {{ data_sources.agents | length }}",
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Sistema Operativo</th><th>&Uacute;ltima conexi&oacute;n</th></tr></thead>
   <tbody>
@@ -244,7 +270,9 @@ PENDING_REBOOT = _header("Equipos con Reinicio Pendiente", "Pendientes: {{ data_
   {% endfor %}
   </tbody>
 </table>
-{% if data_sources.agents | length == 0 %}<p class="muted">Ning&uacute;n equipo requiere reinicio.</p>{% endif %}""" + END
+{% if data_sources.agents | length == 0 %}<p class="muted">Ning&uacute;n equipo requiere reinicio.</p>{% endif %}"""
+    + END
+)
 PENDING_REBOOT_VARS = """data_sources:
   agents:
     model: agent
@@ -259,7 +287,12 @@ PENDING_REBOOT_VARS = """data_sources:
 """
 
 # 6) Fecha de Instalación del Agente
-INSTALL_DATE = _header("Fecha de Instalaci&oacute;n del Agente", "Equipos: {{ data_sources.agents | length }}") + """
+INSTALL_DATE = (
+    _header(
+        "Fecha de Instalaci&oacute;n del Agente",
+        "Equipos: {{ data_sources.agents | length }}",
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Sistema Operativo</th><th>Instalado</th></tr></thead>
   <tbody>
@@ -269,7 +302,9 @@ INSTALL_DATE = _header("Fecha de Instalaci&oacute;n del Agente", "Equipos: {{ da
       {% if a.created_time %}<td>{{ a.created_time.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y') }}</td>{% else %}<td class="muted">—</td>{% endif %}</tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 INSTALL_DATE_VARS = """data_sources:
   agents:
     model: agent
@@ -282,7 +317,12 @@ INSTALL_DATE_VARS = """data_sources:
 """
 
 # 7) Reporte de Sistemas Operativos (resumen)
-OS_REPORT = _header("Distribuci&oacute;n de Sistemas Operativos", "Equipos: {{ data_sources.agents | length }}") + """
+OS_REPORT = (
+    _header(
+        "Distribuci&oacute;n de Sistemas Operativos",
+        "Equipos: {{ data_sources.agents | length }}",
+    )
+    + """
 <table class="report-table" style="max-width: 640px;">
   <thead><tr><th>Sistema Operativo</th><th>Cantidad</th></tr></thead>
   <tbody>
@@ -290,7 +330,9 @@ OS_REPORT = _header("Distribuci&oacute;n de Sistemas Operativos", "Equipos: {{ d
     <tr><td>{{ os or '(desconocido)' }}</td><td class="num">{{ group | length }}</td></tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 OS_REPORT_VARS = """data_sources:
   agents:
     model: agent
@@ -299,7 +341,11 @@ OS_REPORT_VARS = """data_sources:
 """
 
 # 8) Reporte Integral de Equipos
-INTEGRAL = _header("Reporte Integral de Equipos", "Equipos: {{ data_sources.agents | length }}") + """
+INTEGRAL = (
+    _header(
+        "Reporte Integral de Equipos", "Equipos: {{ data_sources.agents | length }}"
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Equipo</th><th>Marca / Modelo</th><th>SO</th><th>RAM</th>
     <th>Reinicio pend.</th><th>&Uacute;lt. parche</th><th>&Uacute;ltima conexi&oacute;n</th></tr></thead>
@@ -315,7 +361,9 @@ INTEGRAL = _header("Reporte Integral de Equipos", "Equipos: {{ data_sources.agen
     </tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 INTEGRAL_VARS = """data_sources:
   agents:
     model: agent
@@ -337,7 +385,8 @@ INTEGRAL_VARS = """data_sources:
 # ===========================================================================
 
 # 9) Inventario de Software (por equipo)
-SOFTWARE = _header("Inventario de Software", "Equipos: {{ data_sources.inv | length }}") + """
+SOFTWARE = (
+    _header("Inventario de Software", "Equipos: {{ data_sources.inv | length }}") + """
 {% for row in data_sources.inv | sort(attribute='agent__hostname') %}
 <div class="agent-title">{{ row.agent__hostname }} <span class="muted">— {{ row.agent__site__name }} ({{ row.software | length }} programas)</span></div>
 <table class="report-table">
@@ -349,6 +398,7 @@ SOFTWARE = _header("Inventario de Software", "Equipos: {{ data_sources.inv | len
   </tbody>
 </table>
 {% endfor %}""" + END
+)
 SOFTWARE_VARS = """data_sources:
   inv:
     model: installedsoftware
@@ -359,7 +409,8 @@ SOFTWARE_VARS = """data_sources:
 """
 
 # 10) Software por Cliente
-SOFTWARE_CLIENTE = _header("Software por Cliente", "Equipos: {{ data_sources.inv | length }}") + """
+SOFTWARE_CLIENTE = (
+    _header("Software por Cliente", "Equipos: {{ data_sources.inv | length }}") + """
 {% for client, rows in data_sources.inv | sort(attribute='agent__site__client__name') | groupby('agent__site__client__name') %}
 <div class="client-title">{{ client }}</div>
 {% for row in rows | sort(attribute='agent__hostname') %}
@@ -372,6 +423,7 @@ SOFTWARE_CLIENTE = _header("Software por Cliente", "Equipos: {{ data_sources.inv
 </table>
 {% endfor %}
 {% endfor %}""" + END
+)
 SOFTWARE_CLIENTE_VARS = """data_sources:
   inv:
     model: installedsoftware
@@ -387,7 +439,12 @@ SOFTWARE_CLIENTE_VARS = """data_sources:
 # ===========================================================================
 
 # 11) Actualizaciones de Windows Pendientes (por cliente)
-WU_PENDIENTES = _header("Actualizaciones de Windows Pendientes", "Pendientes: {{ data_sources.updates | length }}") + """
+WU_PENDIENTES = (
+    _header(
+        "Actualizaciones de Windows Pendientes",
+        "Pendientes: {{ data_sources.updates | length }}",
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>KB</th><th>Severidad</th><th>T&iacute;tulo</th></tr></thead>
   <tbody>
@@ -398,7 +455,9 @@ WU_PENDIENTES = _header("Actualizaciones de Windows Pendientes", "Pendientes: {{
       <td>{{ u.title }}</td></tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 WU_PENDIENTES_VARS = """data_sources:
   updates:
     model: winupdate
@@ -414,7 +473,12 @@ WU_PENDIENTES_VARS = """data_sources:
 """
 
 # 12) Actualizaciones Pendientes por Sitio
-WU_SITIO = _header("Actualizaciones Pendientes por Sitio", "Pendientes: {{ data_sources.updates | length }}") + """
+WU_SITIO = (
+    _header(
+        "Actualizaciones Pendientes por Sitio",
+        "Pendientes: {{ data_sources.updates | length }}",
+    )
+    + """
 {% for site, rows in data_sources.updates | sort(attribute='agent__site__name') | groupby('agent__site__name') %}
 <div class="site-title">{{ site }} <span class="muted">({{ rows | length }} pendientes)</span></div>
 <table class="report-table">
@@ -426,11 +490,18 @@ WU_SITIO = _header("Actualizaciones Pendientes por Sitio", "Pendientes: {{ data_
   {% endfor %}
   </tbody>
 </table>
-{% endfor %}""" + END
+{% endfor %}"""
+    + END
+)
 WU_SITIO_VARS = WU_PENDIENTES_VARS
 
 # 13) Últimas Actualizaciones Instaladas
-WU_INSTALADAS = _header("&Uacute;ltimas Actualizaciones Instaladas", "Registros: {{ data_sources.updates | length }}") + """
+WU_INSTALADAS = (
+    _header(
+        "&Uacute;ltimas Actualizaciones Instaladas",
+        "Registros: {{ data_sources.updates | length }}",
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Cliente</th><th>Equipo</th><th>KB</th><th>T&iacute;tulo</th><th>Instalada</th></tr></thead>
   <tbody>
@@ -440,7 +511,9 @@ WU_INSTALADAS = _header("&Uacute;ltimas Actualizaciones Instaladas", "Registros:
       <td>{% if u.date_installed %}{{ u.date_installed.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y') }}{% else %}—{% endif %}</td></tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 WU_INSTALADAS_VARS = """data_sources:
   updates:
     model: winupdate
@@ -460,7 +533,11 @@ WU_INSTALADAS_VARS = """data_sources:
 # ===========================================================================
 
 # 14) Registro de Auditoría
-AUDITORIA = _header("Registro de Auditor&iacute;a", "Registros: {{ data_sources.logs | length }}") + """
+AUDITORIA = (
+    _header(
+        "Registro de Auditor&iacute;a", "Registros: {{ data_sources.logs | length }}"
+    )
+    + """
 <table class="report-table">
   <thead><tr><th>Fecha</th><th>Usuario</th><th>Equipo</th><th>Acci&oacute;n</th><th>Objeto</th><th>Mensaje</th></tr></thead>
   <tbody>
@@ -472,7 +549,9 @@ AUDITORIA = _header("Registro de Auditor&iacute;a", "Registros: {{ data_sources.
     </tr>
   {% endfor %}
   </tbody>
-</table>""" + END
+</table>"""
+    + END
+)
 AUDITORIA_VARS = """data_sources:
   logs:
     model: auditlog
@@ -526,9 +605,11 @@ def _pie(df, names, title, cmap=None):
         "traces": {"textinfo": "value+percent", "textposition": "inside"},
         "layout": {
             "title": {"text": title},
-            "width": 430, "height": 300,
+            "width": 430,
+            "height": 300,
             "margin": {"t": 40, "b": 10, "l": 10, "r": 10},
-            "paper_bgcolor": "white", "font": _FONT,
+            "paper_bgcolor": "white",
+            "font": _FONT,
         },
     }
 
@@ -536,11 +617,16 @@ def _pie(df, names, title, cmap=None):
 def _hist(df, x, title, tickangle=0):
     layout = {
         "title": {"text": title},
-        "width": 430, "height": 300,
+        "width": 430,
+        "height": 300,
         "margin": {"t": 40, "b": 80 if tickangle else 45, "l": 45, "r": 15},
-        "yaxis_title": "Cantidad", "xaxis_title": "",
-        "showlegend": False, "bargap": 0.3,
-        "paper_bgcolor": "white", "plot_bgcolor": "#f8fbfc", "font": _FONT,
+        "yaxis_title": "Cantidad",
+        "xaxis_title": "",
+        "showlegend": False,
+        "bargap": 0.3,
+        "paper_bgcolor": "white",
+        "plot_bgcolor": "#f8fbfc",
+        "font": _FONT,
     }
     if tickangle:
         layout["xaxis"] = {"tickangle": tickangle}
@@ -555,12 +641,14 @@ def _hist(df, x, title, tickangle=0):
 def _dash_vars(data_sources, charts):
     return yaml.dump(
         {"data_sources": data_sources, "charts": charts},
-        sort_keys=False, allow_unicode=True,
+        sort_keys=False,
+        allow_unicode=True,
     )
 
 
 # 15) Panel de Alertas (NOC) — alertas activas
-ALERTAS = _header("Panel de Alertas", "Activas: {{ data_sources.alerts | length }}") + """
+ALERTAS = (
+    _header("Panel de Alertas", "Activas: {{ data_sources.alerts | length }}") + """
 {% set al = data_sources.alerts %}
 <div class="kpi-row">
   <div class="kpi"><div class="kpi-num">{{ al | length }}</div><div class="kpi-lbl">Alertas activas</div></div>
@@ -593,20 +681,41 @@ ALERTAS = _header("Panel de Alertas", "Activas: {{ data_sources.alerts | length 
 {% else %}
 <p class="ok" style="font-size:14px;margin-top:16px;">Sin alertas activas. Toda la flota est&aacute; en verde.</p>
 {% endif %}""" + END
+)
 ALERTAS_VARS = _dash_vars(
-    {"alerts": {
-        "model": "alert",
-        "filter": {"resolved": False, "hidden": False},
-        "only": ["severity", "alert_type", "message", "alert_time",
-                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
-    }},
-    {"sev": _pie("data_sources.alerts", "severity", "Alertas por severidad", _SEV_MAP),
-     "tipo": _hist("data_sources.alerts", "alert_type", "Alertas por tipo"),
-     "cliente": _hist("data_sources.alerts", "agent__site__client__name", "Alertas por cliente", -30)},
+    {
+        "alerts": {
+            "model": "alert",
+            "filter": {"resolved": False, "hidden": False},
+            "only": [
+                "severity",
+                "alert_type",
+                "message",
+                "alert_time",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            ],
+        }
+    },
+    {
+        "sev": _pie(
+            "data_sources.alerts", "severity", "Alertas por severidad", _SEV_MAP
+        ),
+        "tipo": _hist("data_sources.alerts", "alert_type", "Alertas por tipo"),
+        "cliente": _hist(
+            "data_sources.alerts",
+            "agent__site__client__name",
+            "Alertas por cliente",
+            -30,
+        ),
+    },
 )
 
 # 16) Estado de Chequeos (NOC) — salud de monitoreo
-CHEQUEOS = _header("Estado de Chequeos", "Resultados: {{ data_sources.checks | length }}") + """
+CHEQUEOS = (
+    _header("Estado de Chequeos", "Resultados: {{ data_sources.checks | length }}")
+    + """
 {% set ch = data_sources.checks %}
 <div class="kpi-row">
   <div class="kpi"><div class="kpi-num">{{ ch | length }}</div><div class="kpi-lbl">Chequeos</div></div>
@@ -635,25 +744,52 @@ CHEQUEOS = _header("Estado de Chequeos", "Resultados: {{ data_sources.checks | l
 {% else %}<p class="ok">Ning&uacute;n chequeo est&aacute; fallando.</p>{% endif %}
 {% else %}
 <p class="muted" style="margin-top:16px;">No hay resultados de chequeos registrados.</p>
-{% endif %}""" + END
+{% endif %}"""
+    + END
+)
 CHEQUEOS_VARS = _dash_vars(
-    {"checks": {
-        "model": "checkresult",
-        "only": ["status", "assigned_check__check_type", "last_run",
-                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
-     },
-     "fallando": {
-        "model": "checkresult",
-        "filter": {"status": "failing"},
-        "only": ["status", "assigned_check__check_type", "more_info", "last_run",
-                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
-     }},
-    {"estado": _pie("data_sources.checks", "status", "Chequeos por estado", _CHK_MAP),
-     "fallos": _hist("data_sources.fallando", "assigned_check__check_type", "Fallos por tipo de chequeo", -30)},
+    {
+        "checks": {
+            "model": "checkresult",
+            "only": [
+                "status",
+                "assigned_check__check_type",
+                "last_run",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            ],
+        },
+        "fallando": {
+            "model": "checkresult",
+            "filter": {"status": "failing"},
+            "only": [
+                "status",
+                "assigned_check__check_type",
+                "more_info",
+                "last_run",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            ],
+        },
+    },
+    {
+        "estado": _pie(
+            "data_sources.checks", "status", "Chequeos por estado", _CHK_MAP
+        ),
+        "fallos": _hist(
+            "data_sources.fallando",
+            "assigned_check__check_type",
+            "Fallos por tipo de chequeo",
+            -30,
+        ),
+    },
 )
 
 # 17) Estado de la Flota — panorama de agentes
-FLOTA = _header("Estado de la Flota", "Equipos: {{ data_sources.agents | length }}") + """
+FLOTA = (
+    _header("Estado de la Flota", "Equipos: {{ data_sources.agents | length }}") + """
 {% set ag = data_sources.agents %}
 <div class="kpi-row">
   <div class="kpi"><div class="kpi-num">{{ ag | length }}</div><div class="kpi-lbl">Equipos</div></div>
@@ -686,21 +822,40 @@ FLOTA = _header("Estado de la Flota", "Equipos: {{ data_sources.agents | length 
 {% else %}
 <p class="muted" style="margin-top:16px;">No hay equipos registrados.</p>
 {% endif %}""" + END
+)
 FLOTA_VARS = _dash_vars(
-    {"agents": {
-        "model": "agent",
-        "only": ["hostname", "operating_system", "plat", "last_seen",
-                 "site__name", "site__client__name"],
-        "properties": ["status"],
-    }},
-    {"estado": _pie("data_sources.agents", "status", "Estado de la flota", _AGENT_MAP),
-     "plataforma": _pie("data_sources.agents", "plat", "Por plataforma"),
-     "so": _hist("data_sources.agents", "operating_system", "Por sistema operativo", -30),
-     "cliente": _hist("data_sources.agents", "site__client__name", "Por cliente", -30)},
+    {
+        "agents": {
+            "model": "agent",
+            "only": [
+                "hostname",
+                "operating_system",
+                "plat",
+                "last_seen",
+                "site__name",
+                "site__client__name",
+            ],
+            "properties": ["status"],
+        }
+    },
+    {
+        "estado": _pie(
+            "data_sources.agents", "status", "Estado de la flota", _AGENT_MAP
+        ),
+        "plataforma": _pie("data_sources.agents", "plat", "Por plataforma"),
+        "so": _hist(
+            "data_sources.agents", "operating_system", "Por sistema operativo", -30
+        ),
+        "cliente": _hist(
+            "data_sources.agents", "site__client__name", "Por cliente", -30
+        ),
+    },
 )
 
 # 18) Panorama de Parches — Windows Updates pendientes
-PARCHES = _header("Panorama de Parches", "Pendientes: {{ data_sources.updates | length }}") + """
+PARCHES = (
+    _header("Panorama de Parches", "Pendientes: {{ data_sources.updates | length }}")
+    + """
 {% set up = data_sources.updates %}
 <div class="kpi-row">
   <div class="kpi kpi-warn"><div class="kpi-num">{{ up | length }}</div><div class="kpi-lbl">Parches pendientes</div></div>
@@ -724,16 +879,33 @@ PARCHES = _header("Panorama de Parches", "Pendientes: {{ data_sources.updates | 
 </table>
 {% else %}
 <p class="ok" style="font-size:14px;margin-top:16px;">No hay actualizaciones pendientes.</p>
-{% endif %}""" + END
+{% endif %}"""
+    + END
+)
 PARCHES_VARS = _dash_vars(
-    {"updates": {
-        "model": "winupdate",
-        "filter": {"installed": False},
-        "only": ["severity", "kb", "title",
-                 "agent__hostname", "agent__site__name", "agent__site__client__name"],
-    }},
-    {"sev": _pie("data_sources.updates", "severity", "Pendientes por severidad"),
-     "cliente": _hist("data_sources.updates", "agent__site__client__name", "Pendientes por cliente", -30)},
+    {
+        "updates": {
+            "model": "winupdate",
+            "filter": {"installed": False},
+            "only": [
+                "severity",
+                "kb",
+                "title",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            ],
+        }
+    },
+    {
+        "sev": _pie("data_sources.updates", "severity", "Pendientes por severidad"),
+        "cliente": _hist(
+            "data_sources.updates",
+            "agent__site__client__name",
+            "Pendientes por cliente",
+            -30,
+        ),
+    },
 )
 
 
@@ -750,7 +922,11 @@ PARCHES_VARS = _dash_vars(
 # (decisión 1a) y de forma PARCIAL —por ser componente del SO no siempre figura
 # como programa instalado—; la lista de firmas es EDITABLE en la plantilla.
 # ===========================================================================
-ANTIVIRUS = _header("Cobertura de Antivirus", "Equipos Windows: {{ data_sources.avinv | length }}") + """
+ANTIVIRUS = (
+    _header(
+        "Cobertura de Antivirus", "Equipos Windows: {{ data_sources.avinv | length }}"
+    )
+    + """
 {= ===================================================================== =}
 {=  FIRMAS DE AV DE TERCEROS — LISTA EDITABLE                            =}
 {=  Formato: [subcadena_en_minusculas, etiqueta]. El match es por        =}
@@ -834,7 +1010,9 @@ ANTIVIRUS = _header("Cobertura de Antivirus", "Equipos Windows: {{ data_sources.
   {% endfor %}
   </tbody>
 </table>
-{% endif %}""" + END
+{% endif %}"""
+    + END
+)
 ANTIVIRUS_VARS = """data_sources:
   avinv:
     model: installedsoftware
@@ -849,26 +1027,121 @@ ANTIVIRUS_VARS = """data_sources:
 
 
 CURATED = [
-    {"name": "Inventario de Agentes", "type": "html", "template_md": INV_AGENTES, "template_variables": INV_AGENTES_VARS},
-    {"name": "Especificaciones de Equipos", "type": "html", "template_md": SPECS, "template_variables": SPECS_VARS},
-    {"name": "Agentes por Cliente y Sitio", "type": "html", "template_md": AGENTES_CLIENTE_SITIO, "template_variables": AGENTES_CLIENTE_SITIO_VARS},
-    {"name": "Tiempo de Actividad de Equipos", "type": "html", "template_md": UPTIME, "template_variables": UPTIME_VARS},
-    {"name": "Equipos con Reinicio Pendiente", "type": "html", "template_md": PENDING_REBOOT, "template_variables": PENDING_REBOOT_VARS},
-    {"name": "Fecha de Instalacion del Agente", "type": "html", "template_md": INSTALL_DATE, "template_variables": INSTALL_DATE_VARS},
-    {"name": "Distribucion de Sistemas Operativos", "type": "html", "template_md": OS_REPORT, "template_variables": OS_REPORT_VARS},
-    {"name": "Reporte Integral de Equipos", "type": "html", "template_md": INTEGRAL, "template_variables": INTEGRAL_VARS},
-    {"name": "Inventario de Software", "type": "html", "template_md": SOFTWARE, "template_variables": SOFTWARE_VARS},
-    {"name": "Software por Cliente", "type": "html", "template_md": SOFTWARE_CLIENTE, "template_variables": SOFTWARE_CLIENTE_VARS},
-    {"name": "Actualizaciones de Windows Pendientes", "type": "html", "template_md": WU_PENDIENTES, "template_variables": WU_PENDIENTES_VARS},
-    {"name": "Actualizaciones Pendientes por Sitio", "type": "html", "template_md": WU_SITIO, "template_variables": WU_SITIO_VARS},
-    {"name": "Ultimas Actualizaciones Instaladas", "type": "html", "template_md": WU_INSTALADAS, "template_variables": WU_INSTALADAS_VARS},
-    {"name": "Registro de Auditoria", "type": "html", "template_md": AUDITORIA, "template_variables": AUDITORIA_VARS},
-    {"name": "Cobertura de Antivirus", "type": "html", "template_md": ANTIVIRUS, "template_variables": ANTIVIRUS_VARS},
+    {
+        "name": "Inventario de Agentes",
+        "type": "html",
+        "template_md": INV_AGENTES,
+        "template_variables": INV_AGENTES_VARS,
+    },
+    {
+        "name": "Especificaciones de Equipos",
+        "type": "html",
+        "template_md": SPECS,
+        "template_variables": SPECS_VARS,
+    },
+    {
+        "name": "Agentes por Cliente y Sitio",
+        "type": "html",
+        "template_md": AGENTES_CLIENTE_SITIO,
+        "template_variables": AGENTES_CLIENTE_SITIO_VARS,
+    },
+    {
+        "name": "Tiempo de Actividad de Equipos",
+        "type": "html",
+        "template_md": UPTIME,
+        "template_variables": UPTIME_VARS,
+    },
+    {
+        "name": "Equipos con Reinicio Pendiente",
+        "type": "html",
+        "template_md": PENDING_REBOOT,
+        "template_variables": PENDING_REBOOT_VARS,
+    },
+    {
+        "name": "Fecha de Instalacion del Agente",
+        "type": "html",
+        "template_md": INSTALL_DATE,
+        "template_variables": INSTALL_DATE_VARS,
+    },
+    {
+        "name": "Distribucion de Sistemas Operativos",
+        "type": "html",
+        "template_md": OS_REPORT,
+        "template_variables": OS_REPORT_VARS,
+    },
+    {
+        "name": "Reporte Integral de Equipos",
+        "type": "html",
+        "template_md": INTEGRAL,
+        "template_variables": INTEGRAL_VARS,
+    },
+    {
+        "name": "Inventario de Software",
+        "type": "html",
+        "template_md": SOFTWARE,
+        "template_variables": SOFTWARE_VARS,
+    },
+    {
+        "name": "Software por Cliente",
+        "type": "html",
+        "template_md": SOFTWARE_CLIENTE,
+        "template_variables": SOFTWARE_CLIENTE_VARS,
+    },
+    {
+        "name": "Actualizaciones de Windows Pendientes",
+        "type": "html",
+        "template_md": WU_PENDIENTES,
+        "template_variables": WU_PENDIENTES_VARS,
+    },
+    {
+        "name": "Actualizaciones Pendientes por Sitio",
+        "type": "html",
+        "template_md": WU_SITIO,
+        "template_variables": WU_SITIO_VARS,
+    },
+    {
+        "name": "Ultimas Actualizaciones Instaladas",
+        "type": "html",
+        "template_md": WU_INSTALADAS,
+        "template_variables": WU_INSTALADAS_VARS,
+    },
+    {
+        "name": "Registro de Auditoria",
+        "type": "html",
+        "template_md": AUDITORIA,
+        "template_variables": AUDITORIA_VARS,
+    },
+    {
+        "name": "Cobertura de Antivirus",
+        "type": "html",
+        "template_md": ANTIVIRUS,
+        "template_variables": ANTIVIRUS_VARS,
+    },
     # --- Dashboards con gráficos (W005 — requieren chromium provisionado) ---
-    {"name": "Panel de Alertas", "type": "html", "template_md": ALERTAS, "template_variables": ALERTAS_VARS},
-    {"name": "Estado de Chequeos", "type": "html", "template_md": CHEQUEOS, "template_variables": CHEQUEOS_VARS},
-    {"name": "Estado de la Flota", "type": "html", "template_md": FLOTA, "template_variables": FLOTA_VARS},
-    {"name": "Panorama de Parches", "type": "html", "template_md": PARCHES, "template_variables": PARCHES_VARS},
+    {
+        "name": "Panel de Alertas",
+        "type": "html",
+        "template_md": ALERTAS,
+        "template_variables": ALERTAS_VARS,
+    },
+    {
+        "name": "Estado de Chequeos",
+        "type": "html",
+        "template_md": CHEQUEOS,
+        "template_variables": CHEQUEOS_VARS,
+    },
+    {
+        "name": "Estado de la Flota",
+        "type": "html",
+        "template_md": FLOTA,
+        "template_variables": FLOTA_VARS,
+    },
+    {
+        "name": "Panorama de Parches",
+        "type": "html",
+        "template_md": PARCHES,
+        "template_variables": PARCHES_VARS,
+    },
 ]
 
 

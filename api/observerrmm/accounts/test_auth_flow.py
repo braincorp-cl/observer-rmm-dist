@@ -4,6 +4,7 @@ Covers: 2FA flow, role cache TTL, block_dashboard_login, block_local_user_logon.
 Placed at app root (not accounts/tests/) to avoid module/package collision
 with the upstream accounts/tests.py suite.
 """
+
 import pyotp
 from django.core.cache import cache
 from model_bakery import baker

@@ -1014,7 +1014,9 @@ def install_agent(request):
 
         with StringIO(text) as fp:
             response = HttpResponse(fp.read(), content_type="text/plain")
-            response["Content-Disposition"] = "attachment; filename=observer-installer.ps1"
+            response["Content-Disposition"] = (
+                "attachment; filename=observer-installer.ps1"
+            )
             return response
 
 

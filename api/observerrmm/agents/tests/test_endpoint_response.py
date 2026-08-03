@@ -238,9 +238,7 @@ class TestEndpointResponse(ObserverTestCase):
         no_encienden = [False, "false", "0", "no", "off", "", None, "sí", "2", 7]
 
         for valor in encienden:
-            self.client.post(
-                url, {"duration": 30, "max_volume": valor}, format="json"
-            )
+            self.client.post(url, {"duration": 30, "max_volume": valor}, format="json")
             self.assertEqual(
                 nats_cmd.call_args[0][0]["payload"]["max_volume"],
                 "1",
@@ -248,9 +246,7 @@ class TestEndpointResponse(ObserverTestCase):
             )
 
         for valor in no_encienden:
-            self.client.post(
-                url, {"duration": 30, "max_volume": valor}, format="json"
-            )
+            self.client.post(url, {"duration": 30, "max_volume": valor}, format="json")
             self.assertEqual(
                 nats_cmd.call_args[0][0]["payload"]["max_volume"],
                 "0",
@@ -259,7 +255,7 @@ class TestEndpointResponse(ObserverTestCase):
 
     @patch("agents.models.Agent.nats_cmd")
     def test_la_auditoria_registra_las_dos_banderas(self, nats_cmd):
-        """"¿Quién dejó este equipo sonando para siempre al máximo?"
+        """ "¿Quién dejó este equipo sonando para siempre al máximo?"
 
         Antes de la Fase 2 el detalle era `"45s"` a secas. Con las banderas
         nuevas ese formato dejaría sin respuesta la pregunta que la auditoría de
@@ -338,14 +334,12 @@ class TestEndpointResponse(ObserverTestCase):
 
     @patch("agents.models.Agent.nats_cmd")
     def test_queda_auditado_quien_y_a_quien(self, nats_cmd):
-        """"¿Quién me bloqueó la sesión?" tiene que tener respuesta."""
+        """ "¿Quién me bloqueó la sesión?" tiene que tener respuesta."""
         nats_cmd.return_value = "ok"
 
         self.client.post(f"{base_url}/{self.agent.agent_id}/lock/", format="json")
 
-        log = AuditLog.objects.filter(
-            action=AuditActionType.ENDPOINT_RESPONSE
-        ).last()
+        log = AuditLog.objects.filter(action=AuditActionType.ENDPOINT_RESPONSE).last()
         self.assertIsNotNone(log)
         self.assertEqual(log.agent_id, self.agent.agent_id)
         self.assertIn("lock", log.message)
@@ -360,9 +354,7 @@ class TestEndpointResponse(ObserverTestCase):
             format="json",
         )
 
-        log = AuditLog.objects.filter(
-            action=AuditActionType.ENDPOINT_RESPONSE
-        ).last()
+        log = AuditLog.objects.filter(action=AuditActionType.ENDPOINT_RESPONSE).last()
         self.assertEqual(log.after_value, "El equipo será retirado hoy.")
 
     @patch("agents.models.Agent.nats_cmd")
@@ -378,9 +370,7 @@ class TestEndpointResponse(ObserverTestCase):
         self.client.post(f"{base_url}/{self.agent.agent_id}/lock/", format="json")
 
         self.assertTrue(
-            AuditLog.objects.filter(
-                action=AuditActionType.ENDPOINT_RESPONSE
-            ).exists()
+            AuditLog.objects.filter(action=AuditActionType.ENDPOINT_RESPONSE).exists()
         )
 
 

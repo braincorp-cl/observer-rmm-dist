@@ -3,6 +3,7 @@
 Covers: Agent.status calculation (online/offline/overdue), get_agent_policies()
 4-level inheritance, hex_mesh_node_id base64url->hex conversion.
 """
+
 from datetime import timedelta
 
 from django.utils import timezone as djangotime
@@ -99,9 +100,7 @@ class TestHexMeshNodeId(ObserverTestCase):
 
     def test_valid_hex_converts_to_mesh_b64(self):
         site = baker.make("clients.Site")
-        agent = baker.make(
-            "agents.Agent", site=site, mesh_node_id="0a1b2c3d4e5f"
-        )
+        agent = baker.make("agents.Agent", site=site, mesh_node_id="0a1b2c3d4e5f")
         self.assertEqual(agent.hex_mesh_node_id, "ChssPU5f")
 
     def test_invalid_mesh_node_id_returns_error(self):

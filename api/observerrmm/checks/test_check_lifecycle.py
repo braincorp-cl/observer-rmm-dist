@@ -7,6 +7,7 @@ with the upstream checks/tests.py suite. Threshold tests adapted to the real
 model fields (warning_threshold/error_threshold — the scaffold's single
 `threshold` field never existed in this model).
 """
+
 from model_bakery import baker
 
 from observerrmm.constants import CheckStatus

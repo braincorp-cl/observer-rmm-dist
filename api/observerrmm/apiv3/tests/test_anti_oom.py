@@ -4,6 +4,7 @@ get_agent_config() must never return an interval below the production floor —
 neither from settings nor from the getattr fallback when a CHECKIN_* line is
 missing. Floors = the min of each production (min, max) tuple in settings.py.
 """
+
 from types import SimpleNamespace
 from unittest.mock import patch
 

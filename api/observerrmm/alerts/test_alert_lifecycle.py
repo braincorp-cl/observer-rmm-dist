@@ -5,6 +5,7 @@ and expiration), alert.resolve() (clears snooze), alert types.
 Placed at app root (not alerts/tests/) to avoid module/package collision
 with the upstream alerts/tests.py suite.
 """
+
 from datetime import timedelta
 
 from django.utils import timezone as djangotime

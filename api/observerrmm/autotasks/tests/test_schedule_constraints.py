@@ -27,9 +27,7 @@ class TestScheduleInvariantConstraints(ObserverTestCase):
         # Simula una BD legacy pre-migración 0042: sin soltar el constraint es
         # imposible insertar la fila violatoria que el command debe sanear. El
         # DDL es transaccional en PG y se revierte al cerrar el test.
-        constraint = next(
-            c for c in AutomatedTask._meta.constraints if c.name == name
-        )
+        constraint = next(c for c in AutomatedTask._meta.constraints if c.name == name)
         with connection.schema_editor() as editor:
             editor.remove_constraint(AutomatedTask, constraint)
 

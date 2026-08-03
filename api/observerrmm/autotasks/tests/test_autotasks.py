@@ -334,11 +334,39 @@ class TestAutotaskViews(ObserverTestCase):
         agent = baker.make_recipe("agents.agent")
 
         invariants = [
-            (TaskType.WEEKLY, "run_time_bit_weekdays", {"run_time_bit_weekdays": 15, "weekly_interval": 1}),
-            (TaskType.WEEKLY, "weekly_interval", {"run_time_bit_weekdays": 15, "weekly_interval": 1}),
-            (TaskType.MONTHLY_DOW, "run_time_bit_weekdays", {"run_time_bit_weekdays": 15, "monthly_months_of_year": 500, "monthly_weeks_of_month": 4}),
-            (TaskType.MONTHLY_DOW, "monthly_weeks_of_month", {"run_time_bit_weekdays": 15, "monthly_months_of_year": 500, "monthly_weeks_of_month": 4}),
-            (TaskType.MONTHLY, "monthly_days_of_month", {"monthly_months_of_year": 500, "monthly_days_of_month": 15}),
+            (
+                TaskType.WEEKLY,
+                "run_time_bit_weekdays",
+                {"run_time_bit_weekdays": 15, "weekly_interval": 1},
+            ),
+            (
+                TaskType.WEEKLY,
+                "weekly_interval",
+                {"run_time_bit_weekdays": 15, "weekly_interval": 1},
+            ),
+            (
+                TaskType.MONTHLY_DOW,
+                "run_time_bit_weekdays",
+                {
+                    "run_time_bit_weekdays": 15,
+                    "monthly_months_of_year": 500,
+                    "monthly_weeks_of_month": 4,
+                },
+            ),
+            (
+                TaskType.MONTHLY_DOW,
+                "monthly_weeks_of_month",
+                {
+                    "run_time_bit_weekdays": 15,
+                    "monthly_months_of_year": 500,
+                    "monthly_weeks_of_month": 4,
+                },
+            ),
+            (
+                TaskType.MONTHLY,
+                "monthly_days_of_month",
+                {"monthly_months_of_year": 500, "monthly_days_of_month": 15},
+            ),
             (TaskType.DAILY, "daily_interval", {"daily_interval": 1}),
         ]
 

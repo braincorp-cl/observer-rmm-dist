@@ -67,13 +67,24 @@ RETRY_BACKOFF = 3  # segundos entre reintentos
 #   sinode//      -> 'si' + node//  (system information)
 #   lcnode//      -> 'lc' + node//  (last connect time)
 #   lastconnect// -> registro de última conexión
-MESH_ID_PREFIXES = ["node//", "alnode//", "ifnode//", "sinode//", "lcnode//", "lastconnect//"]
+MESH_ID_PREFIXES = [
+    "node//",
+    "alnode//",
+    "ifnode//",
+    "sinode//",
+    "lcnode//",
+    "lastconnect//",
+]
 
 
 def _err(e: Exception) -> str:
     """Mensaje legible incluso cuando str(e) viene vacío (p. ej. asyncio.TimeoutError)."""
     msg = str(e)
-    return f"{type(e).__name__}: {msg}" if msg else f"{type(e).__name__} (sin mensaje propio)"
+    return (
+        f"{type(e).__name__}: {msg}"
+        if msg
+        else f"{type(e).__name__} (sin mensaje propio)"
+    )
 
 
 async def _list_mesh_nodes(uri: str, mesh_id: str) -> list:
@@ -85,7 +96,9 @@ async def _list_mesh_nodes(uri: str, mesh_id: str) -> list:
     """
 
     async def _inner():
-        async with websockets.connect(uri, max_size=TRMM_WS_MAX_SIZE, open_timeout=10) as ws:
+        async with websockets.connect(
+            uri, max_size=TRMM_WS_MAX_SIZE, open_timeout=10
+        ) as ws:
             await ws.send(json.dumps({"action": "nodes", "responseid": "trmm"}))
 
             async for message in ws:
@@ -147,14 +160,17 @@ class Command(BaseCommand):
     # ── helpers ───────────────────────────────────────────────────────────────
     def _run_with_retries(self, label: str, coro_factory, retries: int):
         """Ejecuta coro_factory() vía asyncio.run reintentando ante fallas transitorias.
-        Devuelve (resultado, None) si tuvo éxito, o (None, excepción) si agotó reintentos."""
+        Devuelve (resultado, None) si tuvo éxito, o (None, excepción) si agotó reintentos.
+        """
         last_err = None
         for attempt in range(1, retries + 2):
             try:
                 return asyncio.run(coro_factory()), None
             except Exception as e:
                 last_err = e
-                self.stdout.write(self.style.WARNING(f"{label}: intento {attempt} falló ({_err(e)})."))
+                self.stdout.write(
+                    self.style.WARNING(f"{label}: intento {attempt} falló ({_err(e)}).")
+                )
                 if attempt <= retries:
                     time.sleep(RETRY_BACKOFF)
         return None, last_err
@@ -177,16 +193,21 @@ class Command(BaseCommand):
     def _write_manifest(self, entries: list, out_dir: str, ts: str) -> str:
         path = str(Path(out_dir) / f"mesh_orphans_preview_{ts}.json")
         with open(path, "w") as f:
-            json.dump({"timestamp": ts, "count": len(entries), "orphans": entries}, f, indent=2)
+            json.dump(
+                {"timestamp": ts, "count": len(entries), "orphans": entries},
+                f,
+                indent=2,
+            )
         return path
 
     def _emit_sql_artifacts(self, orphans: list, out_dir: str, ts: str):
         """Reproduce el artefacto del runbook probado: archivo de IDs (6 prefijos por
-        huérfano) + script .sql (temp table + COPY + DELETE). Devuelve (ids_path, sql_path, n_ids)."""
+        huérfano) + script .sql (temp table + COPY + DELETE). Devuelve (ids_path, sql_path, n_ids).
+        """
         bases = []
         for n in orphans:
             _id = n["_id"]
-            base = _id[len("node//"):] if _id.startswith("node//") else _id
+            base = _id[len("node//") :] if _id.startswith("node//") else _id
             bases.append(base)
 
         ids_path = str(Path(out_dir) / f"mesh_ids_completos_{ts}.txt")
@@ -233,15 +254,21 @@ class Command(BaseCommand):
         try:
             uri = get_mesh_ws_url()
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"No se pudo obtener la URL del mesh: {_err(e)}"))
+            self.stdout.write(
+                self.style.ERROR(f"No se pudo obtener la URL del mesh: {_err(e)}")
+            )
             return None, None
 
         mesh_id, err = self._run_with_retries(
-            "get_mesh_device_id", lambda: get_mesh_device_id(uri, core.mesh_device_group), RETRIES
+            "get_mesh_device_id",
+            lambda: get_mesh_device_id(uri, core.mesh_device_group),
+            RETRIES,
         )
         if err is not None:
             self.stdout.write(
-                self.style.ERROR(f"Error obteniendo mesh device id tras reintentos: {_err(err)}")
+                self.style.ERROR(
+                    f"Error obteniendo mesh device id tras reintentos: {_err(err)}"
+                )
             )
             return None, None
         if not mesh_id:
@@ -258,7 +285,9 @@ class Command(BaseCommand):
         )
         if err is not None:
             self.stdout.write(
-                self.style.ERROR(f"Error listando nodos del mesh tras reintentos: {_err(err)}")
+                self.style.ERROR(
+                    f"Error listando nodos del mesh tras reintentos: {_err(err)}"
+                )
             )
             return None, None
 
@@ -300,7 +329,11 @@ class Command(BaseCommand):
         )
 
         if not orphans:
-            self.stdout.write(self.style.SUCCESS("No hay nodos huérfanos. Mesh en paridad con el RMM."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "No hay nodos huérfanos. Mesh en paridad con el RMM."
+                )
+            )
             return
 
         ts = time.strftime("%Y%m%d_%H%M%S")
@@ -308,9 +341,17 @@ class Command(BaseCommand):
         self.stdout.write(f"Detalle completo de huérfanos: {manifest_path}")
 
         for n in orphans[:print_limit]:
-            self.stdout.write(self.style.WARNING(f"  huérfano: {n['name'] or '(sin nombre)'} [{n['_id']}]"))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  huérfano: {n['name'] or '(sin nombre)'} [{n['_id']}]"
+                )
+            )
         if len(orphans) > print_limit:
-            self.stdout.write(self.style.WARNING(f"  ... y {len(orphans) - print_limit} más (ver manifiesto)."))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  ... y {len(orphans) - print_limit} más (ver manifiesto)."
+                )
+            )
 
         if not emit_sql:
             self.stdout.write(
@@ -323,18 +364,27 @@ class Command(BaseCommand):
         ids_path, sql_path, n_ids = self._emit_sql_artifacts(orphans, out_dir, ts)
 
         self.stdout.write("")
-        self.stdout.write(self.style.SUCCESS("Artefactos SQL generados (el comando NO borró nada):"))
+        self.stdout.write(
+            self.style.SUCCESS("Artefactos SQL generados (el comando NO borró nada):")
+        )
         self.stdout.write(
             f"  IDs ({n_ids} filas, {len(orphans)} nodos × {len(MESH_ID_PREFIXES)} prefijos): {ids_path}"
         )
         self.stdout.write(f"  Script SQL: {sql_path}")
         self.stdout.write("")
-        self.stdout.write(self.style.WARNING("Pasos del operador (BD meshcentral, requiere sudo/postgres):"))
+        self.stdout.write(
+            self.style.WARNING(
+                "Pasos del operador (BD meshcentral, requiere sudo/postgres):"
+            )
+        )
         self.stdout.write(
             "  1) BACKUP OBLIGATORIO:\n"
             "       sudo -u postgres pg_dump meshcentral | gzip > /tmp/meshcentral_backup_$(date +%Y%m%d_%H%M).sql.gz"
         )
-        self.stdout.write("  2) (opcional) revisar el script antes de correrlo:\n" f"       cat {sql_path}")
+        self.stdout.write(
+            "  2) (opcional) revisar el script antes de correrlo:\n"
+            f"       cat {sql_path}"
+        )
         self.stdout.write(
             "  3) EJECUTAR el borrado (usar consola VMware / tmux si el COUNT tarda por volumen):\n"
             f"       sudo -u postgres psql -d meshcentral -f {sql_path}"

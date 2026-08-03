@@ -91,11 +91,16 @@ class SyncMeshNodeID(APIView):
         if agent.mesh_node_id != request.data["nodeid"]:
             # Un nodeid vacío o no convertible se DESCARTA y el id bueno queda
             # intacto: este endpoint sólo puede mejorar el valor guardado,
-            # nunca degradarlo. Antes el descarte pasaba por accidente —el
-            # `b64decode` reventaba con 500 antes de llegar al `save`—, así que
-            # el comportamiento observable es el mismo; lo que cambia es que
-            # ahora es deliberado, queda en el log y no ensucia con 500 un
-            # endpoint que cada agente golpea cada ~13-20 min.
+            # nunca degradarlo.
+            #
+            # Antes NO era así, y medirlo en staging desmintió lo que este
+            # comentario decía en su primera versión. Sólo la basura que rompe
+            # el padding reventaba con 500 (que al menos impedía guardar); la
+            # basura que no lo rompe pasaba entera: `"no-es-un-nodeid"`
+            # respondía 200 y guardaba `9E87ACBA79E875E89D`, y `"!!!!"`
+            # guardaba cadena vacía, borrando el id bueno. O sea que este `if`
+            # no es cosmético — es lo que impide que un nodeid inválido
+            # destruya el que sirve.
             nodeid = (
                 _mesh_id_to_hex(request.data["nodeid"])
                 if request.data.get("nodeid")
@@ -782,7 +787,13 @@ class Geolocate(APIView):
         # también age/signalToNoiseRatio si el agente los envía). Se descarta
         # cualquier otro campo (p.ej. ssid) y las antenas sin macAddress.
         raw_aps = request.data.get("wifiAccessPoints") or []
-        google_fields = ("macAddress", "signalStrength", "channel", "age", "signalToNoiseRatio")
+        google_fields = (
+            "macAddress",
+            "signalStrength",
+            "channel",
+            "age",
+            "signalToNoiseRatio",
+        )
         aps = [
             {k: ap[k] for k in google_fields if k in ap}
             for ap in raw_aps
@@ -801,9 +812,12 @@ class Geolocate(APIView):
         # conjunto ORDENADO de MACs + considerIp; señal y canal varían por equipo y no
         # deben fragmentar la caché.
         macs = sorted(ap["macAddress"].lower() for ap in aps)
-        cache_key = "geo:wifi:" + hashlib.sha1(
-            (str(consider_ip) + "|" + "|".join(macs)).encode()
-        ).hexdigest()
+        cache_key = (
+            "geo:wifi:"
+            + hashlib.sha1(
+                (str(consider_ip) + "|" + "|".join(macs)).encode()
+            ).hexdigest()
+        )
         cached = cache.get(cache_key)
         if cached is not None:
             # "" = centinela de "Google no ubicó estas antenas" (miss cacheado).
@@ -821,7 +835,9 @@ class Geolocate(APIView):
                 timeout=10,
             )
         except requests.RequestException as e:
-            DebugLog.error(message=f"geolocate: fallo consultando Google Geolocation: {e}")
+            DebugLog.error(
+                message=f"geolocate: fallo consultando Google Geolocation: {e}"
+            )
             return Response({})
 
         # 200 = fix; 404 = Google no ubicó las antenas; otros = error de cuota/key.

@@ -1,4 +1,4 @@
-black
+black==26.5.1
 daphne
 Werkzeug
 django-extensions

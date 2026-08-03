@@ -121,13 +121,21 @@ async def get_mesh_device_id(uri: str, device_group: str) -> None:
 
         async for message in ws:
             r = json.loads(message)
-            logger.error(f"get_mesh_device_id: received action={r.get('action')} keys={list(r.keys())}")
+            logger.error(
+                f"get_mesh_device_id: received action={r.get('action')} keys={list(r.keys())}"
+            )
             if r["action"] == "meshes":
                 meshes_names = [x["name"] for x in r.get("meshes", [])]
-                logger.error(f"get_mesh_device_id: looking for '{device_group}' in {meshes_names}")
-                filtered = list(filter(lambda x: x["name"] == device_group, r.get("meshes", [])))
+                logger.error(
+                    f"get_mesh_device_id: looking for '{device_group}' in {meshes_names}"
+                )
+                filtered = list(
+                    filter(lambda x: x["name"] == device_group, r.get("meshes", []))
+                )
                 if not filtered:
-                    logger.error(f"get_mesh_device_id: device_group '{device_group}' NOT FOUND")
+                    logger.error(
+                        f"get_mesh_device_id: device_group '{device_group}' NOT FOUND"
+                    )
                     return ""
                 return filtered[0]["_id"].split("mesh//")[1]
 
@@ -272,6 +280,7 @@ async def remove_mesh_agent(uri: str, mesh_node_id: str) -> None:
                 }
             )
         )
+
         # MeshCentral responde 'ok' de inmediato pero ejecuta el db.Remove del
         # nodo en un callback asíncrono POSTERIOR (ver meshuser.js, acción
         # 'removedevices'). Si cerramos el websocket apenas hacemos el send,
