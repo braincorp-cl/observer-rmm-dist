@@ -13,7 +13,13 @@ from model_bakery import baker
 from rest_framework.authtoken.models import Token
 
 # from agents.models import Agent
-from core.utils import get_core_settings, get_mesh_ws_url, get_meshagent_url
+from core.utils import (
+    _b64_to_hex,
+    _mesh_id_to_hex,
+    get_core_settings,
+    get_mesh_ws_url,
+    get_meshagent_url,
+)
 
 # from logs.models import PendingAction
 from observerrmm.constants import (  # PAAction,; PAStatus,
@@ -670,6 +676,41 @@ class TestCoreUtils(ObserverTestCase):
             r,
             "http://127.0.0.1:8653/meshagents?id=4&meshid=abc123&installflags=0",
         )
+
+
+class TestMeshIdToHex(ObserverTestCase):
+    """T020 de la 031: `_mesh_id_to_hex` descarta, no revienta.
+
+    El endpoint `/api/v3/syncmesh/` lo llama en cada ciclo de cada agente
+    (~13-20 min), y el alta en `/api/v3/newagent/` también. Un nodeid con
+    basura devolvía HTTP 500 desde un `b64decode` sin protección.
+    """
+
+    # 96 hex = SHA-384, el largo real de un node id de MeshCentral.
+    HEX_ID = "B5A56374" + "A1B2C3D4" * 10 + "D917AAD4"
+
+    def test_hex_passthrough_uppercased(self):
+        self.assertEqual(_mesh_id_to_hex(self.HEX_ID.lower()), self.HEX_ID)
+
+    def test_base64_roundtrip(self):
+        # `_b64_to_hex` produce la forma en que el id viaja por URL
+        # (`/`→`$`, `+`→`@`); `_mesh_id_to_hex` la deshace.
+        self.assertEqual(_mesh_id_to_hex(_b64_to_hex(self.HEX_ID)), self.HEX_ID)
+
+    def test_garbage_returns_none_instead_of_raising(self):
+        # Esta era exactamente la entrada que devolvía HTTP 500.
+        for garbage in ("!!!!", "no-es-un-nodeid", "%%%", "\x00\x01"):
+            with self.subTest(garbage=garbage):
+                self.assertIsNone(_mesh_id_to_hex(garbage))
+
+    def test_bad_padding_returns_none(self):
+        self.assertIsNone(_mesh_id_to_hex("QUJD="))
+
+    def test_non_alphabet_chars_are_not_silently_stripped(self):
+        # Con `validate=False` (el default de b64decode) esto NO lanza: los
+        # caracteres fuera del alfabeto se descartan y sale un hex más corto,
+        # plausible y falso. Preferimos None a un id inventado.
+        self.assertIsNone(_mesh_id_to_hex("QUJD****"))
 
 
 class TestOpenAICodeCompletion(ObserverTestCase):

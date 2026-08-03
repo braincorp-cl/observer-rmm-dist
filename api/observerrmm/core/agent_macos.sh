@@ -35,7 +35,21 @@ InstallMesh() {
     meshTmpBin="${meshTmpDir}/meshagent"
 
     echo "Downloading mesh agent..."
-    curl -L --insecure -o "${meshTmpBin}" "${meshDL}"
+    # Mismo chequeo que en agent_linux.sh: sin él una descarga fallida seguía
+    # de largo en silencio y el fallo aparecía mucho después, como un equipo
+    # enrolado sin «Tomar control».
+    #
+    # `-f` es imprescindible acá y no es cosmético: sin esa bandera `curl`
+    # devuelve rc=0 ante un HTTP 404 y deja la página de error escrita en
+    # ${meshTmpBin} como si fuera el binario, así que el chequeo del código de
+    # salida por sí solo no atraparía nada. `-s` cubre la respuesta vacía.
+    # Para instalar deliberadamente sin mesh está `--nomesh`.
+    curl -fL --insecure -o "${meshTmpBin}" "${meshDL}"
+    if [ $? -ne 0 ] || [ ! -s "${meshTmpBin}" ]; then
+        echo "ERROR: Unable to download mesh agent"
+        rm -rf "${meshTmpDir}"
+        exit 1
+    fi
     chmod +x "${meshTmpBin}"
     mkdir -p "${meshDir}"
     "${meshTmpBin}" -install --installPath="${meshDir}"

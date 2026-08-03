@@ -109,7 +109,19 @@ InstallMesh() {
     mkdir -p $meshTmpDir
 
     meshTmpBin="${meshTmpDir}/meshagent"
+    # El `wget` se chequea igual que el del agente: sin esto una descarga
+    # fallida o truncada seguía de largo EN SILENCIO —el `chmod +x` funciona
+    # sobre cualquier basura— y el fallo recién aparecía al final, como un
+    # equipo enrolado sin «Tomar control» y sin ninguna pista del porqué.
+    # `-s` además del código de salida porque un archivo vacío también pasa
+    # el `chmod`. Si el mesh se pidió y no se pudo bajar, se aborta acá: para
+    # instalar deliberadamente sin mesh está `--nomesh`.
     wget --no-check-certificate -q -O ${meshTmpBin} "${meshDL}"
+    if [ $? -ne 0 ] || [ ! -s ${meshTmpBin} ]; then
+        echo "ERROR: Unable to download mesh agent"
+        rm -rf ${meshTmpDir}
+        exit 1
+    fi
     chmod +x ${meshTmpBin}
     mkdir -p ${meshDir}
     env LC_ALL=en_US.UTF-8 LANGUAGE=en_US XAUTHORITY=foo DISPLAY=bar ${meshTmpBin} -install --installPath=${meshDir}

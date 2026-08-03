@@ -89,8 +89,21 @@ class SyncMeshNodeID(APIView):
             Agent.objects.defer(*AGENT_DEFER), agent_id=request.data["agent_id"]
         )
         if agent.mesh_node_id != request.data["nodeid"]:
-            agent.mesh_node_id = _mesh_id_to_hex(request.data["nodeid"]) if request.data.get("nodeid") else agent.mesh_node_id
-            agent.save(update_fields=["mesh_node_id"])
+            # Un nodeid vacío o no convertible se DESCARTA y el id bueno queda
+            # intacto: este endpoint sólo puede mejorar el valor guardado,
+            # nunca degradarlo. Antes el descarte pasaba por accidente —el
+            # `b64decode` reventaba con 500 antes de llegar al `save`—, así que
+            # el comportamiento observable es el mismo; lo que cambia es que
+            # ahora es deliberado, queda en el log y no ensucia con 500 un
+            # endpoint que cada agente golpea cada ~13-20 min.
+            nodeid = (
+                _mesh_id_to_hex(request.data["nodeid"])
+                if request.data.get("nodeid")
+                else None
+            )
+            if nodeid:
+                agent.mesh_node_id = nodeid
+                agent.save(update_fields=["mesh_node_id"])
 
         return Response("ok")
 
@@ -589,13 +602,25 @@ class NewAgent(APIView):
                 "Agent already exists. Remove old agent first if trying to re-install"
             )
 
+        # Mismo criterio que en SyncMeshNodeID, y acá importaba más: un
+        # mesh_node_id con basura hacía reventar con 500 el ALTA del agente,
+        # o sea que un id malformado no dejaba enrolar el equipo. Se descarta
+        # y se registra el equipo sin mesh_node_id, que es el mismo estado que
+        # cuando el campo no viene; el `SyncMeshNodeID` del propio agente lo
+        # completa después.
+        mesh_node_id = (
+            _mesh_id_to_hex(request.data["mesh_node_id"])
+            if request.data.get("mesh_node_id")
+            else None
+        )
+
         agent = Agent(
             agent_id=request.data["agent_id"],
             hostname=request.data["hostname"],
             site_id=int(request.data["site"]),
             monitoring_type=request.data["monitoring_type"],
             description=request.data["description"],
-            mesh_node_id=_mesh_id_to_hex(request.data["mesh_node_id"]) if request.data.get("mesh_node_id") else "",
+            mesh_node_id=mesh_node_id or "",
             goarch=request.data["goarch"],
             plat=request.data["plat"],
             last_seen=djangotime.now(),

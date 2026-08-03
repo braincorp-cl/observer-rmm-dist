@@ -1,4 +1,5 @@
 import asyncio
+import binascii
 import hashlib
 import json
 import os
@@ -7,7 +8,7 @@ import subprocess
 import tempfile
 import time
 import urllib.parse
-from base64 import b64encode
+from base64 import b64decode, b64encode
 from contextlib import suppress
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -185,17 +186,41 @@ def _b64_to_hex(h: str) -> str:
     return b64encode(bytes.fromhex(h)).decode().replace(r"/", "$").replace(r"+", "@")
 
 
-def _mesh_id_to_hex(mesh_id: str) -> str:
+def _mesh_id_to_hex(mesh_id: str) -> Optional[str]:
+    """Normaliza un mesh node id a hex mayúscula, o devuelve None si no lo es.
+
+    Acepta las dos formas en que llega el id: ya en hex, o en el base64 de
+    MeshCentral (con `/`→`$` y `+`→`@`, que es como viaja por URL).
+
+    **Devuelve None en vez de lanzar.** Antes esto era un `b64decode` pelado y
+    un nodeid con basura reventaba con `binascii.Error` ⇒ HTTP 500 en un
+    endpoint que cada agente golpea cada ~13-20 min. Que el 500 impidiera
+    guardar el valor malo era un accidente afortunado, no una defensa: el
+    descarte ahora es deliberado y queda registrado.
+
+    `validate=True` es parte del descarte. Con el default (`False`) los
+    caracteres fuera del alfabeto base64 se ignoran en silencio, así que una
+    cadena arbitraria no lanza: produce un hex más corto, plausible y falso.
+    Preferimos None a un id inventado.
+    """
     try:
         bytes.fromhex(mesh_id)
         return mesh_id.upper()
     except ValueError:
-        import base64
-        b64 = mesh_id.replace("@", "+").replace("$", "/")
-        padding = 4 - len(b64) % 4
-        if padding != 4:
-            b64 += "=" * padding
-        return base64.b64decode(b64).hex().upper()
+        pass
+
+    b64 = mesh_id.replace("@", "+").replace("$", "/")
+    padding = 4 - len(b64) % 4
+    if padding != 4:
+        b64 += "=" * padding
+
+    try:
+        return b64decode(b64, validate=True).hex().upper()
+    except (binascii.Error, ValueError):
+        logger.warning(
+            f"_mesh_id_to_hex: nodeid descartado, no convertible: {mesh_id!r}"
+        )
+        return None
 
 
 async def send_command_with_mesh(
