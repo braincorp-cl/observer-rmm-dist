@@ -53,6 +53,16 @@ class TestAccounts(ObserverTestCase):
     def test_login_view(self, mock_verify):
         url = "/v2/login/"
 
+        # `bob` necesita `totp_key` para representar a un usuario que YA completó
+        # el alta de 2FA, que es el único que puede pasar por `/v2/login/`.
+        # Este test venía de upstream esperando 200 sin clave, y quedó roto por un
+        # endurecimiento nuestro deliberado: `396c82d` (GAP-043) agregó el guard
+        # `if not user.totp_key` para que un POST directo devuelva 400 en vez de
+        # reventar en `pyotp.TOTP(None)` con un HTTP 500. El flujo real pasa por
+        # `CheckCredsV2` → alta de TOTP antes de llegar acá.
+        self.bob.totp_key = "AB5RI6YPFTZAS52G"
+        self.bob.save()
+
         mock_verify.return_value = True
         data = {"username": "bob", "password": "hunter2", "twofactor": "123456"}
         r = self.client.post(url, data, format="json")
@@ -70,6 +80,23 @@ class TestAccounts(ObserverTestCase):
         r = self.client.post(url, data, format="json")
         self.assertEqual(r.status_code, 400)
         self.assertIn("non_field_errors", r.data.keys())
+
+    @patch("pyotp.TOTP.verify")
+    def test_login_view_rejects_user_without_totp_key(self, mock_verify):
+        """GAP-043: sin `totp_key` la respuesta es 400 limpio, no un 500.
+
+        El caso que el arreglo cerró: `pyotp.TOTP(None)` reventaba. Este test es
+        la red que faltaba — el guard llevaba desde `396c82d` sin cobertura, y el
+        test de al lado quedó rojo en su lugar.
+        """
+        mock_verify.return_value = True
+        self.assertFalse(self.bob.totp_key)
+
+        data = {"username": "bob", "password": "hunter2", "twofactor": "123456"}
+        r = self.client.post("/v2/login/", data, format="json")
+
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.data, "Bad credentials")
 
     # @override_settings(DEBUG=True)
     # @patch("pyotp.TOTP.verify")

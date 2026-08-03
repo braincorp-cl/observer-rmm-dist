@@ -431,11 +431,22 @@ class TestUploadAssets:
 
 @pytest.mark.django_db
 class TestAssetDownload:
+    # El `open` se parchea en el NAMESPACE DE LA VISTA (`ee.reporting.views.open`),
+    # no en `builtins`. Parchear el builtin intercepta TODO el proceso durante la
+    # ventana del `with`, incluido lo que abran otros hilos: `psutil` lee
+    # `/proc/stat` para el uso de CPU, y esas llamadas entraban en el mock. El
+    # `assert_called_once_with` de abajo veía 5 llamadas a
+    # `open('/proc/stat', 'rb', buffering=32768)` en vez de la suya y fallaba.
+    #
+    # No era intermitencia rara: era un test que dependía de que nada más en el
+    # proceso abriera un archivo. Falla en el CI y falla local; pasa cuando hay
+    # suerte con el timing. Acotar el parche al módulo bajo prueba lo hace
+    # determinista y además mide lo que dice medir: que LA VISTA abre el zip.
     def test_download_file_success(self, authenticated_client):
         m = mock_open()
         with patch(
             "ee.reporting.views.report_assets_fs.isdir", return_value=False
-        ), patch("builtins.open", m), patch(
+        ), patch("ee.reporting.views.open", m), patch(
             "ee.reporting.views.report_assets_fs.path", return_value="path/test.txt"
         ):
             response = authenticated_client.get(
@@ -443,6 +454,7 @@ class TestAssetDownload:
             )
 
             assert response.status_code == 200
+            m.assert_called_once_with("path/test.txt", "rb")
 
     def test_download_directory_success(self, authenticated_client):
         m = mock_open()
@@ -451,7 +463,7 @@ class TestAssetDownload:
         ), patch(
             "ee.reporting.views.shutil.make_archive", return_value="path/test.zip"
         ), patch(
-            "builtins.open", m
+            "ee.reporting.views.open", m
         ), patch(
             "ee.reporting.views.report_assets_fs.path", return_value="path/test"
         ), patch(
