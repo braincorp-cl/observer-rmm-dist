@@ -217,9 +217,13 @@ def _mesh_id_to_hex(mesh_id: str) -> Optional[str]:
     try:
         return b64decode(b64, validate=True).hex().upper()
     except (binascii.Error, ValueError):
-        logger.warning(
-            f"_mesh_id_to_hex: nodeid descartado, no convertible: {mesh_id!r}"
-        )
+        # `error` y no `warning`: el logger `trmm` corre en nivel ERROR
+        # (`settings.TRMM_LOG_LEVEL`), así que un `warning` no se escribe en
+        # ninguna parte y el descarte sería silencioso — medido en staging el
+        # 2026-08-03. Y silencioso es justo lo que no queremos: un agente que
+        # manda un nodeid inválido se queda sin «Tomar control» sin avisar,
+        # que es el daño que persigue toda la feature 031.
+        logger.error(f"_mesh_id_to_hex: nodeid descartado, no convertible: {mesh_id!r}")
         return None
 
 
