@@ -14,6 +14,7 @@ Lo que estos tests protegen, en orden de importancia:
 
 import datetime as dt
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.core.cache import cache
 from django.test import override_settings
@@ -142,6 +143,45 @@ class TestManualUninstallEndpoint(ObserverTestCase):
         self.assertEqual(r.status_code, 200)
         alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
         self.assertIn("desconocido", alert.message)
+
+    @patch("agents.tasks.manual_uninstall_delete_task.apply_async")
+    @patch("agents.uninstall.send_manual_uninstall_email")
+    def test_la_hora_va_en_la_zona_del_producto_no_en_utc(self, mock_mail, mock_task):
+        """Salió en UTC en el primer E2E contra staging: 01:11 por 21:11.
+
+        `settings.TIME_ZONE` es UTC y no se toca. La hora que le sirve a quien
+        lee la alerta es la de su reloj, que vive en CoreSettings.
+        """
+        self.coresettings.default_time_zone = "America/Santiago"
+        self.coresettings.save(update_fields=["default_time_zone"])
+
+        self.client.post(URL, self.payload(), format="json")
+
+        alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
+        esperado = (
+            djangotime.now()
+            .astimezone(ZoneInfo("America/Santiago"))
+            .strftime("%d-%m-%Y")
+        )
+        self.assertIn(esperado, alert.message)
+        self.assertNotIn("UTC", alert.message)
+
+    @patch("agents.tasks.manual_uninstall_delete_task.apply_async")
+    @patch("agents.uninstall.send_manual_uninstall_email", return_value=True)
+    def test_estampa_email_sent_cuando_el_correo_sale(self, mock_mail, mock_task):
+        self.client.post(URL, self.payload(), format="json")
+        alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
+        self.assertIsNotNone(alert.email_sent)
+
+    @patch("agents.tasks.manual_uninstall_delete_task.apply_async")
+    @patch("agents.uninstall.send_manual_uninstall_email", return_value=False)
+    def test_sin_smtp_la_alerta_igual_queda(self, mock_mail, mock_task):
+        """El correo es un canal; la alerta y la auditoría son el registro."""
+        r = self.client.post(URL, self.payload(), format="json")
+        self.assertEqual(r.status_code, 200)
+        alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
+        self.assertIsNone(alert.email_sent)
+        mock_task.assert_called_once()
 
     @override_settings(MANUAL_UNINSTALL_AUTO_DELETE=False)
     @patch("agents.tasks.manual_uninstall_delete_task.apply_async")

@@ -108,11 +108,29 @@ def build_message(agent: "Agent", payload: dict[str, Any], when) -> str:
         f"Desinstalación manual del agente en {agent.hostname} "
         f"({agent.client.name} / {agent.site.name}). "
         f"Ejecutada por {actor} "
-        f"el {djangotime.localtime(when).strftime('%d-%m-%Y %H:%M:%S %Z')}. "
+        f"el {_local_stamp(when)}. "
         f"IP LAN: {lan_ips or 'desconocida'}. "
         f"IP pública: {agent.public_ip or 'desconocida'}. "
         f"Origen del aviso: {source}."
     )
+
+
+def _local_stamp(when) -> str:
+    """Fecha y hora en la zona del PRODUCTO, no en la de Django.
+
+    `settings.TIME_ZONE` es UTC y no se toca (la BD guarda en UTC a propósito),
+    así que `djangotime.localtime()` a secas rinde "01:11 UTC" para algo que
+    pasó a las 21:11 en Chile. Quien lee la alerta quiere la hora de su reloj:
+    la zona del producto vive en `CoreSettings.default_time_zone`, que es la
+    misma que usa el resto de la consola.
+    """
+    from observerrmm.utils import get_default_timezone
+
+    try:
+        stamp = when.astimezone(get_default_timezone())
+    except Exception:
+        stamp = djangotime.localtime(when)
+    return stamp.strftime("%d-%m-%Y %H:%M:%S %Z")
 
 
 def record_manual_uninstall(
@@ -168,17 +186,23 @@ def record_manual_uninstall(
         },
     )
 
-    send_manual_uninstall_email(agent, message)
+    if send_manual_uninstall_email(agent, message):
+        # Se estampa igual que en el resto de las alertas: la consola muestra esa
+        # marca, y una alerta que salió por correo pero figura sin enviar hace
+        # dudar de si el aviso llegó justo cuando más importa.
+        alert.email_sent = djangotime.now()
+        alert.save(update_fields=["email_sent"])
+
     return alert
 
 
-def send_manual_uninstall_email(agent: "Agent", message: str) -> None:
+def send_manual_uninstall_email(agent: "Agent", message: str) -> bool:
     """Correo de aviso. Un fallo acá no puede tumbar la alerta ni el borrado."""
     from core.utils import get_core_settings
 
     try:
         core = get_core_settings()
-        core.send_mail(
+        _, ok = core.send_mail(
             (
                 f"{agent.client.name}, {agent.site.name}, {agent.hostname} - "
                 "agente desinstalado manualmente"
@@ -186,11 +210,13 @@ def send_manual_uninstall_email(agent: "Agent", message: str) -> None:
             message,
             alert_template=agent.alert_template,
         )
+        return bool(ok)
     except Exception as e:
         DebugLog.error(
             message=f"No se pudo enviar el correo de desinstalación manual: {e}",
             log_type=DebugLogType.AGENT_ISSUES,
         )
+        return False
 
 
 def grace_seconds() -> int:
