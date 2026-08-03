@@ -31,14 +31,20 @@ name: No legacy upstream strings
 #   cualquier nivel — un changelog NARRA el rebrand ("se renombro X -> Y"), asi
 #   que nombrar el string legacy ahi es su funcion, no una regresion.
 #
-# Exclusiones de linea justificadas (cada grep -vE remueve una categoria
-# revisada). Se reescribieron las 6 anteriores: los comentarios de procedencia
-# que citaban el instalador del upstream fueron redactados de nuevo sin nombrar
-# al producto legacy, asi que ya no necesitan excepcion.
-#   - composables/scripts.ts: URL real y funcional al repo publico de
-#     community-scripts de un tercero. NO es branding: es el link que la consola
-#     abre para ver el codigo de un script comunitario. Cambiarla romperia el
-#     link, y que repo usar es una decision abierta (O-COMMUNITY-SCRIPTS).
+# Exclusiones de linea: NINGUNA con objeto hoy. Solo queda la del propio archivo
+# de este workflow, que necesita nombrar los strings que prohibe.
+#
+# Historia, para que nadie las reponga "por si acaso": hubo 6 excepciones de
+# comentarios de procedencia, resueltas redactandolos sin nombrar al producto
+# legacy. La ultima fue composables/scripts.ts, que abria el repo publico de
+# scripts de un tercero para ver el codigo de un script — un link real, no
+# branding, con la decision de que repo usar todavia abierta.
+#
+# Esa decision se cerro con ADR-026: los scripts son propiedad del producto y
+# viven en api/observerrmm/scripts/library/, asi que el link se elimino y la
+# excepcion quedo protegiendo NADA. Una excepcion vencida no es inofensiva: deja
+# un agujero silencioso por el que la misma URL puede volver sin que el gate
+# diga una palabra. Verificado antes de sacarla: 0 hits sin ella.
 
 on:
   push:
@@ -74,7 +80,6 @@ jobs:
             --exclude=CHANGELOG.md \
             . \
             | grep -vE '^\.?/?\.github/workflows/no-legacy-strings\.yml:' \
-            | grep -vE '^\.?/?web/app/src/composables/scripts\.ts:[0-9]+:.*community-scripts' \
             || true)
 
           # Los NOMBRES de archivo tambien cuentan: un `grep -r` mira contenidos,
