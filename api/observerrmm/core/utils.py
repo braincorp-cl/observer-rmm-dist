@@ -26,6 +26,7 @@ from observerrmm.constants import (
     AGENT_CHECKS_CACHE_PREFIX,
     AGENT_TBL_PEND_ACTION_CNT_CACHE_PREFIX,
     CORESETTINGS_CACHE_KEY,
+    MESH_NODE_ID_MIN_HEX,
     ROLE_CACHE_PREFIX,
     TRMM_WS_MAX_SIZE,
     AgentPlat,
@@ -206,33 +207,70 @@ def _mesh_id_to_hex(mesh_id: str) -> Optional[str]:
     guardar el valor malo era un accidente afortunado, no una defensa: el
     descarte ahora es deliberado y queda registrado.
 
-    `validate=True` es parte del descarte. Con el default (`False`) los
-    caracteres fuera del alfabeto base64 se ignoran en silencio, así que una
-    cadena arbitraria no lanza: produce un hex más corto, plausible y falso.
-    Preferimos None a un id inventado.
+    `validate=True` es parte del descarte, pero NO alcanza solo. Con el default
+    (`False`) los caracteres fuera del alfabeto base64 se ignoran en silencio y
+    una cadena arbitraria produce un hex más corto, plausible y falso. Con
+    `True` eso queda cubierto — y quedaban dos huecos más, los dos medidos:
+
+    1. ⚠️ **`validate=True` NO valida el padding en Python 3.11**, que es el que
+       corre en los servidores. `"QUJD="` devolvía `'414243'` en 3.11 y `None`
+       en 3.13: Python 3.12 endureció `binascii.a2b_base64`. Verificar en la
+       versión equivocada daba por cerrado un caso que en producción seguía
+       abierto. De ahí el guard explícito de padding, que no depende de la
+       versión.
+    2. Base64 legítimamente corto: `"QQ"` decodifica a `'41'` en **las dos**
+       versiones. Es válido y es basura. Por eso se exige el mismo piso de
+       largo que ya aplica el agente (`esNodeIDValido`) y el instalador
+       (`ValidateMeshNodeID`, `^[0-9A-Fa-f]{64,}$`): los node id reales de
+       MeshCentral son SHA-384, o sea 96 hex. Sin el piso, el alfabeto solo
+       deja pasar ids falsos — que es exactamente cómo un equipo quedó
+       registrado con su MAC.
     """
+    hex_id = None
+
     try:
         bytes.fromhex(mesh_id)
-        return mesh_id.upper()
+        hex_id = mesh_id.upper()
     except ValueError:
         pass
 
-    b64 = mesh_id.replace("@", "+").replace("$", "/")
-    padding = 4 - len(b64) % 4
-    if padding != 4:
-        b64 += "=" * padding
+    if hex_id is None:
+        b64 = mesh_id.replace("@", "+").replace("$", "/")
 
-    try:
-        return b64decode(b64, validate=True).hex().upper()
-    except (binascii.Error, ValueError):
-        # `error` y no `warning`: el logger `trmm` corre en nivel ERROR
-        # (`settings.TRMM_LOG_LEVEL`), así que un `warning` no se escribe en
-        # ninguna parte y el descarte sería silencioso — medido en staging el
-        # 2026-08-03. Y silencioso es justo lo que no queremos: un agente que
-        # manda un nodeid inválido se queda sin «Tomar control» sin avisar,
-        # que es el daño que persigue toda la feature 031.
-        logger.error(f"_mesh_id_to_hex: nodeid descartado, no convertible: {mesh_id!r}")
-        return None
+        # El id de MeshCentral viaja SIN relleno, así que un `=` que ya venga en
+        # la cadena es basura; y un resto de 1 no es base64 válido en ningún
+        # caso. Los dos se rechazan acá y no en `b64decode`, para que el
+        # resultado no dependa de la versión de Python.
+        if "=" in b64 or len(b64) % 4 == 1:
+            return _descartar(mesh_id)
+
+        b64 += "=" * (-len(b64) % 4)
+
+        try:
+            hex_id = b64decode(b64, validate=True).hex().upper()
+        except (binascii.Error, ValueError):
+            return _descartar(mesh_id)
+
+    if len(hex_id) < MESH_NODE_ID_MIN_HEX:
+        return _descartar(
+            mesh_id, motivo=f"largo {len(hex_id)} < {MESH_NODE_ID_MIN_HEX}"
+        )
+
+    return hex_id
+
+
+def _descartar(mesh_id: str, motivo: str = "no convertible") -> None:
+    """Registra el descarte y devuelve None.
+
+    `error` y no `warning`: el logger `trmm` corre en nivel ERROR
+    (`settings.TRMM_LOG_LEVEL`), así que un `warning` no se escribe en ninguna
+    parte y el descarte sería silencioso — medido en staging el 2026-08-03. Y
+    silencioso es justo lo que no queremos: un agente que manda un nodeid
+    inválido se queda sin «Tomar control» sin avisar, que es el daño que
+    persigue toda la feature 031.
+    """
+    logger.error(f"_mesh_id_to_hex: nodeid descartado, {motivo}: {mesh_id!r}")
+    return None
 
 
 async def send_command_with_mesh(

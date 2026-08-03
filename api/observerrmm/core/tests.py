@@ -704,7 +704,29 @@ class TestMeshIdToHex(ObserverTestCase):
                 self.assertIsNone(_mesh_id_to_hex(garbage))
 
     def test_bad_padding_returns_none(self):
+        # Este caso destapó que `validate=True` NO valida el padding en Python
+        # 3.11, que es el que corre en los servidores: devolvía '414243' en 3.11
+        # y None en 3.13 (Python 3.12 endureció `binascii.a2b_base64`). Lo cazó
+        # el CI el primer día que corrió, después de que la verificación local
+        # —hecha en 3.13— lo diera por cerrado.
         self.assertIsNone(_mesh_id_to_hex("QUJD="))
+
+    def test_valid_but_too_short_returns_none(self):
+        # "QQ" es base64 VÁLIDO y decodifica a '41'. El alfabeto no alcanza:
+        # hace falta el piso de largo, el mismo que ya exigen el agente y los
+        # instaladores.
+        self.assertIsNone(_mesh_id_to_hex("QQ"))
+
+    def test_the_mac_that_broke_a_real_machine(self):
+        # `0A179C9229E0` es hexadecimal legítimo, así que la primera rama lo
+        # aceptaba tal cual. Es el valor con el que HP-ProOne-400 quedó
+        # registrado el 2026-07-28, y con el que «Tomar control» dejó de
+        # funcionar sin ningún aviso.
+        self.assertIsNone(_mesh_id_to_hex("0A179C9229E0"))
+
+    def test_boundary_of_the_length_floor(self):
+        self.assertIsNone(_mesh_id_to_hex("AB" * 31))  # 62 hex → descartado
+        self.assertEqual(_mesh_id_to_hex("ab" * 32), "AB" * 32)  # 64 → pasa
 
     def test_non_alphabet_chars_are_not_silently_stripped(self):
         # Con `validate=False` (el default de b64decode) esto NO lanza: los

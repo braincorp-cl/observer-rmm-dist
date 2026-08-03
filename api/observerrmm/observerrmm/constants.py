@@ -49,6 +49,16 @@ CACHE_DB_FIELDS_TASK_LOCK = "cache-db-fields-task-lock-key"
 TRMM_WS_MAX_SIZE = getattr(settings, "TRMM_WS_MAX_SIZE", 100 * 2**20)
 TRMM_MAX_REQUEST_SIZE = getattr(settings, "TRMM_MAX_REQUEST_SIZE", 10 * 2**20)
 
+# Piso de largo de un mesh node id ya normalizado a hex. Los reales son SHA-384,
+# o sea 96 caracteres; el piso se deja en 64 para que coincida EXACTAMENTE con lo
+# que ya exigen el agente (`esNodeIDValido`) y los instaladores
+# (`ValidateMeshNodeID`, `^[0-9A-Fa-f]{64,}$`) — tres validaciones con el mismo
+# criterio es una regla; tres con criterios distintos es por dónde se cuela el
+# caso real. Existe porque el alfabeto no basta: el valor que dejó a un equipo
+# sin «Tomar control» era hexadecimal legítimo (una MAC de 12 dígitos), y `"QQ"`
+# es base64 válido que decodifica a un hex de 2.
+MESH_NODE_ID_MIN_HEX = 64
+
 
 class GoArch(models.TextChoices):
     AMD64 = "amd64", "amd64"
