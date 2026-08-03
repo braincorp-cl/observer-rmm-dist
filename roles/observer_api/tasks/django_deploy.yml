@@ -161,8 +161,9 @@
 # (install.sh líneas 571-576). El rol la omitía y por eso:
 #   - create_uwsgi_conf NO generaba app.ini -> rmm.service (uwsgi --ini app.ini) crash-loop
 #   - create_natsapi_conf NO generaba nats-api.conf -> nats-api crash-loop ("unexpected end of JSON input")
-# generate_json_schemas (reporting), load_chocos (Chocolatey) y load_community_scripts
-# cargan datos funcionales. create_* escriben en settings.BASE_DIR (el dir del paquete).
+# generate_json_schemas (reporting) y load_chocos cargan datos funcionales; la biblioteca
+# de scripts del producto se carga más abajo (load_community_scripts, ya no opt-in).
+# create_* escriben en settings.BASE_DIR (el dir del paquete).
 - name: Comandos de setup Django (schemas, app.ini, chocos)
   ansible.builtin.command:
     cmd: "{{ observer_root }}/api/env/bin/python manage.py {{ item }}"
@@ -258,48 +259,25 @@
   register: observer_installer_user
   changed_when: "'has been created' in observer_installer_user.stdout"
 
-# Community scripts (= install.sh L391-394): el repo se clona a settings.SCRIPTS_DIR
-# (= /opt/observer-community-scripts, definida en settings.py) y load_community_scripts
-# lo carga. Es un RECURSO EXTERNO — decisión BrainCorp pendiente sobre qué repo usar
-# (el repo público del ecosistema o un fork braincorp-cl) → O-COMMUNITY-SCRIPTS,
-# análogo a R-03 (CDN). OPT-IN: si observer_community_scripts_repo no se define, se omite
-# sin bloquear el deploy (el dashboard funciona sin la librería de scripts comunitarios).
-- name: Provisionar community scripts (opt-in — requiere observer_community_scripts_repo)
-  when: observer_community_scripts_repo | default('') | length > 0
-  block:
-    - name: Crear SCRIPTS_DIR para community scripts
-      ansible.builtin.file:
-        path: /opt/observer-community-scripts
-        state: directory
-        owner: "{{ observer_user }}"
-        group: "{{ observer_group }}"
-        mode: "0755"
-
-    - name: Clonar/actualizar el repo de community scripts
-      ansible.builtin.git:
-        repo: "{{ observer_community_scripts_repo }}"
-        dest: /opt/observer-community-scripts
-        version: "{{ observer_community_scripts_version | default('main') }}"
-      become: true
-      become_user: "{{ observer_user }}"
-
-    - name: Cargar community scripts en la BD (load_community_scripts)
-      ansible.builtin.command:
-        cmd: "{{ observer_root }}/api/env/bin/python manage.py load_community_scripts"
-        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
-      become: true
-      become_user: "{{ observer_user }}"
-      environment:
-        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
-      changed_when: true
-
-- name: Aviso si no se provisionan community scripts
-  ansible.builtin.debug:
-    msg: >
-      observer_community_scripts_repo no definido — se omite load_community_scripts.
-      El producto funciona sin la librería de scripts comunitarios; definir el repo
-      (decisión BrainCorp, O-COMMUNITY-SCRIPTS) para habilitarla.
-  when: observer_community_scripts_repo | default('') | length == 0
+# Biblioteca de scripts del producto. ANTES: clonaba un repo git EXTERNO a
+# /opt/observer-community-scripts y era opt-in (`when: observer_community_scripts_repo`),
+# variable que nunca se definió => el Script Manager quedaba VACÍO en todos los entornos.
+# AHORA: los scripts son propiedad del producto y viven en api/observerrmm/scripts/library/
+# (= settings.SCRIPTS_DIR), que el `synchronize` de arriba ya despliega junto al código.
+# Sin repo extra, sin clone, sin red: solo hay que cargarlos en la BD. Cierra
+# O-COMMUNITY-SCRIPTS. El comando es idempotente (upsert por `guid`) y borra de la BD los
+# `builtin` que salieron del manifiesto, así que un script retirado desaparece al desplegar.
+- name: Cargar la biblioteca de scripts del producto en la BD (load_community_scripts)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py load_community_scripts"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  # Mismo criterio que el loop de setup (O-IDEMPOTENCIA-01): siembra datos en BD, no
+  # requiere restart de rmm y no debe reportar changed en cada pasada.
+  changed_when: false
 
 # R-04 / CONTRACT-01 — genera nats-rmm.conf con user `observerrmm`
 # (no el nombre legacy del upstream). Backend Django en observerrmm/utils.py:178-256

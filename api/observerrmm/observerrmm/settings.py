@@ -8,7 +8,11 @@ from observerrmm.util_settings import get_backend_url, get_root_domain, get_webd
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SCRIPTS_DIR = "/opt/observer-community-scripts"
+# Biblioteca de scripts del producto. Vive DENTRO del árbol desplegado
+# (api/observerrmm/scripts/library/), no en un repo externo clonado: un clone del
+# dist ya la trae y el deploy solo tiene que cargarla en la BD. Antes apuntaba a
+# /opt/observer-community-scripts, que Ansible llenaba clonando un repo ajeno.
+SCRIPTS_DIR = os.path.join(BASE_DIR, "scripts", "library")
 
 DOCKER_BUILD = False
 

@@ -28,11 +28,7 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
   const script = ref(opts?.script);
   const scriptName = ref("");
   const syntax = ref<string | undefined>("");
-  const link = ref<string | undefined>("");
   const plat = ref<AgentPlatformType | undefined>(opts?.plat);
-  // upstream community contribution — not forked by BrainCorp; the link points to the original community-scripts repo intentionally
-  const baseUrl =
-    "https://github.com/amidaware/community-scripts/blob/main/scripts/";
 
   // specify parameters to filter out community scripts
   async function getScriptOptions() {
@@ -58,10 +54,6 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
         defaultEnvVars.value = tmpScript.env_vars;
         syntax.value = tmpScript.syntax;
         scriptName.value = tmpScript.label;
-        link.value =
-          tmpScript.script_type === "builtin"
-            ? `${baseUrl}${tmpScript.filename}`
-            : undefined;
       }
     }
   });
@@ -106,7 +98,6 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
     defaultEnvVars.value = [];
     script.value = undefined;
     syntax.value = "";
-    link.value = "";
   }
 
   if (opts?.onMount) onMounted(() => getScriptOptions());
@@ -119,7 +110,6 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
     defaultEnvVars,
     scriptName,
     syntax,
-    link,
     plat,
 
     scriptOptions, // unfiltered options

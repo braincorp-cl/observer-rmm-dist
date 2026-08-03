@@ -1,0 +1,807 @@
+[
+  {
+    "guid": "5db537e4-ffc7-52a6-bbe9-d8627ddddb3f",
+    "filename": "agente-diagnostico.py",
+    "name": "Agente - Diagnóstico ObserverRMM y Mesh",
+    "description": "Revisa sin modificar nada: rutas de instalación, configuración efectiva (token enmascarado), estado de los servicios del agente y del Mesh, alcanzabilidad TCP de la API y de NATS, y frescura de los logs. Sale con código 1 si detecta algún problema, así que sirve también como check.",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Agente",
+    "default_timeout": 120,
+    "args": [],
+    "env": [],
+    "syntax": "agente-diagnostico.py",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "d0ff71c6-fafd-55ee-a508-560fed1ad77a",
+    "filename": "agente-log.py",
+    "name": "Agente - Últimas líneas de log",
+    "description": "Devuelve el final de los logs del agente ObserverRMM y del agente Mesh, sin abrir sesión remota. Acepta el número de líneas como argumento (por defecto 50, máximo 1000).",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Agente",
+    "default_timeout": 90,
+    "args": [
+      "50"
+    ],
+    "env": [],
+    "syntax": "agente-log.py [líneas]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "fdbda6dc-c0f0-53b2-b40d-c54259b57c7b",
+    "filename": "agente-modo-depuracion.py",
+    "name": "Agente - Modo depuración (estado, activar, desactivar)",
+    "description": "Agrega o quita `-log debug` en la definición del servicio del agente, con respaldo previo y validación de que la definición siga siendo arrancable. NO reinicia el servicio (mataría a este script): el cambio toma efecto al reiniciar el agente desde la consola. Sin argumentos solo informa el estado.",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Agente",
+    "default_timeout": 90,
+    "args": [
+      "estado"
+    ],
+    "env": [],
+    "syntax": "agente-modo-depuracion.py [estado|activar|desactivar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "73a04411-140d-5d4f-9ffa-761b7c327a55",
+    "filename": "defender-exclusiones-observerrmm.ps1",
+    "name": "Defender - Exclusiones para ObserverRMM",
+    "description": "Registra en Microsoft Defender las exclusiones de carpeta y de proceso que necesitan el agente ObserverRMM y el agente Mesh, resolviendo las rutas desde el entorno y el registro (respeta un temporal o un directorio de Mesh personalizados). Idempotente. Con -Quitar revierte.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 120,
+    "args": [],
+    "env": [],
+    "syntax": "defender-exclusiones-observerrmm.ps1 [-Quitar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "752d1b74-fe16-5e65-a4b9-19ff322d7df7",
+    "filename": "inventario-serie-bios.py",
+    "name": "Inventario - Número de serie y BIOS",
+    "description": "Solo lee. Número de serie, fabricante, modelo y datos de firmware, en las tres plataformas con un único script. Imprime una línea SERIAL=<valor> fácil de capturar en un campo personalizado. Sale con 1 si no logra determinar el serial (frecuente en máquinas virtuales).",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Inventario",
+    "default_timeout": 120,
+    "args": [],
+    "env": [],
+    "syntax": "inventario-serie-bios.py",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "6cb775ee-07d3-526a-b60d-0939fe7e8b32",
+    "filename": "inventario-monitores.ps1",
+    "name": "Inventario - Monitores conectados",
+    "description": "Solo lee. Fabricante, modelo, número de serie, año de fabricación y resolución nativa de cada monitor, decodificados del EDID. El inventario del agente no recoge monitores: este es el único camino sin ir al equipo. Los apagados o desconectados no aparecen.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Inventario",
+    "default_timeout": 90,
+    "args": [],
+    "env": [],
+    "syntax": "inventario-monitores.ps1",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "0f8cdf25-c99e-5db6-8f44-fe6ce439962a",
+    "filename": "inventario-impresoras.ps1",
+    "name": "Inventario - Impresoras instaladas",
+    "description": "Solo lee. Qué impresoras tiene el equipo, por dónde salen (IP, USB, cola compartida), su driver y cuál es la predeterminada. Marca aparte las virtuales de Windows y las colas redirigidas; con -SoloFisicas las omite.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Inventario",
+    "default_timeout": 90,
+    "args": [],
+    "env": [],
+    "syntax": "inventario-impresoras.ps1 [-SoloFisicas]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "02771574-111d-55e5-8d90-b7fd58e0e12a",
+    "filename": "antivirus-estado.ps1",
+    "name": "Antivirus - Estado consolidado",
+    "description": "Solo lee. Qué antivirus protegen el equipo y si están sanos, decodificando productState del Centro de seguridad, más el estado de Defender y sus detecciones recientes. Detecta el modo pasivo, en el que Defender parece activo pero no protege. Sale con 1 si ninguno tiene protección en tiempo real o si las firmas están vencidas.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 150,
+    "args": [],
+    "env": [],
+    "syntax": "antivirus-estado.ps1 [-DiasAmenazas 1]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "323db977-b00d-5169-949d-3a4ff76aa19b",
+    "filename": "defender-escaneo.ps1",
+    "name": "Defender - Escaneo (rápido, completo o de una ruta)",
+    "description": "Lanza un escaneo de Microsoft Defender y espera el resultado, informando las amenazas detectadas durante esa corrida. Un escaneo completo puede tardar horas: conviene programarlo como tarea en ventana de mantenimiento. Sale con 1 si encuentra amenazas.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 14400,
+    "args": [
+      "-Modo",
+      "rapido"
+    ],
+    "env": [],
+    "syntax": "defender-escaneo.ps1 [-Modo rapido|completo|ruta] [-Ruta C:\\...]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "c2671227-253f-5477-bdcf-1b050fd4375d",
+    "filename": "defender-preferencias.ps1",
+    "name": "Defender - Preferencias (endurecer o restablecer)",
+    "description": "Activa lo que Microsoft deja opcional (tiempo real, nube, PUA, envío de muestras, análisis de scripts y descargas) o vuelve a los valores de fábrica. NO toca el Acceso controlado a carpetas ni las reglas ASR, que rompen software legítimo y necesitan auditoría por cliente. Por defecto solo informa.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 180,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "defender-preferencias.ps1 [-Modo estado|endurecer|restablecer]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "698fee09-e770-59de-88dd-5a36e1fcea88",
+    "filename": "bitlocker-estado.ps1",
+    "name": "BitLocker - Estado, detalle y claves de recuperación",
+    "description": "Solo lee. Estado de cifrado de cada volumen; con -Modo claves imprime las claves de recuperación. ATENCIÓN: esas claves quedan en el historial de la consola y permiten descifrar el disco. En modo estado sale con 1 si alguna unidad fija está sin cifrar, para servir de check de cumplimiento.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 120,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "bitlocker-estado.ps1 [-Modo estado|detalle|claves] [-Unidad C:]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "06c85192-7e65-5253-ace0-a685ea4b0fc9",
+    "filename": "firewall-uac-estado.ps1",
+    "name": "Firewall y UAC - Estado",
+    "description": "Solo lee. Los tres perfiles del firewall con su política de entrada y salida, más el estado real del UAC leído del registro. Detecta el UAC que figura encendido pero eleva sin preguntar, que equivale a tenerlo apagado. Sale con 1 si algo no cumple.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 90,
+    "args": [],
+    "env": [],
+    "syntax": "firewall-uac-estado.ps1",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "73aa4671-6990-5caa-9648-4b5334e3edd2",
+    "filename": "usb-almacenamiento.ps1",
+    "name": "USB - Almacenamiento (habilitar o deshabilitar)",
+    "description": "Bloquea o permite pendrives y discos externos actuando sobre el driver USBSTOR, SIN afectar teclados, mouse ni impresoras USB. Verifica el resultado releyendo el registro y avisa si hay dispositivos ya montados, que siguen accesibles hasta desconectarse.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 90,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "usb-almacenamiento.ps1 [-Modo estado|habilitar|deshabilitar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "196437a5-94d0-56b2-9f48-b4997a347c3f",
+    "filename": "admins-locales-endurecer.ps1",
+    "name": "Administradores locales - Endurecer en dominio o Entra ID",
+    "description": "Deshabilita las cuentas de administrador local en equipos unidos a dominio o Entra ID. Tres frenos: por defecto solo informa, nunca toca la cuenta integrada (RID 500) salvo que se pida, y se niega a actuar si el equipo no está unido a ningún directorio, donde esas cuentas son el único acceso.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "admins-locales-endurecer.ps1 [-Modo estado|aplicar] [-Excluir \"a,b\"] [-IncluirIntegrada]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "976f800c-376c-57d7-9211-83682d67c5f7",
+    "filename": "admin-local-rotar-password.ps1",
+    "name": "Admin local - Crear o rotar contraseña (sin AD)",
+    "description": "Deja una cuenta administrativa por equipo con contraseña distinta y rotable, para equipos sin Active Directory donde el LAPS de Microsoft no aplica. Genera la contraseña con el generador criptográfico del sistema. ATENCIÓN: la imprime en la salida, que queda en el historial; con -NoMostrar solo rota.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Seguridad",
+    "default_timeout": 120,
+    "args": [],
+    "env": [],
+    "syntax": "admin-local-rotar-password.ps1 [-Usuario AdminLocal] [-Longitud 20] [-NoMostrar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "9fad3db2-a94f-531d-a091-4588f874aff8",
+    "filename": "usuarios-locales.ps1",
+    "name": "Usuarios locales - Gestión (listar, crear, habilitar, deshabilitar)",
+    "description": "Lista las cuentas locales indicando si son administradoras y cuándo entraron por última vez, y permite crearlas o habilitarlas. Resuelve los grupos por SID conocido para funcionar en Windows en cualquier idioma. Se niega a deshabilitar el último administrador habilitado.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Usuarios",
+    "default_timeout": 120,
+    "args": [
+      "-Modo",
+      "listar"
+    ],
+    "env": [],
+    "syntax": "usuarios-locales.ps1 [-Modo listar|crear|habilitar|deshabilitar] [-Usuario x]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "75a344be-cc9e-5087-9957-b6be14fbbab5",
+    "filename": "usuarios-perfil-temporal.ps1",
+    "name": "Usuarios - Detectar perfil temporal",
+    "description": "Solo lee. Detecta usuarios que entraron con perfil temporal: escritorio vacío, documentos que 'desaparecieron' y todo lo hecho en la sesión que se pierde al cerrarla, con el equipo viéndose sano en el panel. Cruza los perfiles .bak del registro con los eventos 1511/1515/1521.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Usuarios",
+    "default_timeout": 120,
+    "args": [
+      "-Dias",
+      "7"
+    ],
+    "env": [],
+    "syntax": "usuarios-perfil-temporal.ps1 [-Dias 7]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "38592697-3127-5fd1-bf88-79fc3fbb9c05",
+    "filename": "red-remediar-pila.ps1",
+    "name": "Red - Remediar la pila (renovar IP, reset TCP, DHCP)",
+    "description": "Los tres pasos del procedimiento de remediación de red, de menos a más invasivo. ATENCIÓN: cualquiera puede cortar la conexión del agente, y 'reset' deja el equipo a medias hasta que se reinicie. Por defecto solo informa la configuración actual.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Red",
+    "default_timeout": 300,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "red-remediar-pila.ps1 [-Modo estado|renovar|dhcp|reset]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "8fbc9882-e542-5c94-a9a0-5bae65f94eaa",
+    "filename": "red-fijar-dns.ps1",
+    "name": "Red - Fijar servidores DNS (parametrizado)",
+    "description": "Fija los servidores DNS que se le pasen, o los devuelve a automático. Los servidores son parámetro, no están clavados en el código. Valida cada IP antes de escribir y omite por defecto los equipos en dominio, donde pisar el DNS rompe la resolución interna, Kerberos y las GPO.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Red",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "red-fijar-dns.ps1 [-Modo estado|fijar|automatico] [-Servidores \"ip1,ip2\"]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "89960aef-acbe-592f-8bfa-11448b877d20",
+    "filename": "red-perfil-y-ajustes.ps1",
+    "name": "Red - Perfil de red e IPv6",
+    "description": "Cambia el perfil de red entre privada y pública (en red pública Windows bloquea el descubrimiento: una impresora que 'dejó de verse' a veces es solo esto) y habilita o deshabilita IPv6 por adaptador. Omite los perfiles autenticados por dominio, que fija el controlador.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Red",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "red-perfil-y-ajustes.ps1 [-Modo estado|privada|publica|ipv6-off|ipv6-on]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "10691839-8e88-5f65-80e5-0d4959146947",
+    "filename": "red-prueba-velocidad.py",
+    "name": "Red - Latencia, jitter y bajada",
+    "description": "Mide siempre la latencia y la variación contra la infraestructura del producto, reportando mínimo, mediana, máximo y jitter, porque el promedio esconde justo lo que se siente como tirones en escritorio remoto. La bajada se mide solo si se le pasa una URL: no se clava la de un tercero.",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Red",
+    "default_timeout": 180,
+    "args": [],
+    "env": [],
+    "syntax": "red-prueba-velocidad.py [URL_de_descarga] [MiB]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "c7928b6a-4f85-58eb-9d47-bb60643547b8",
+    "filename": "red-descubrir-lan.ps1",
+    "name": "Red - Descubrir equipos de la red local",
+    "description": "Solo lee. Combina la tabla de vecinos del equipo con un barrido de ping en paralelo. Se niega a barrer redes más grandes que /22, en vez de colgarse hasta el timeout. Un host que no responde puede estar filtrando ICMP: la ausencia no prueba que esté apagado.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Red",
+    "default_timeout": 600,
+    "args": [],
+    "env": [],
+    "syntax": "red-descubrir-lan.ps1 [-Subred 10.0.0.0/24] [-SinPing]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "42be3914-884a-5360-9563-68e01879a679",
+    "filename": "red-wifi-credenciales.ps1",
+    "name": "Red - Perfiles WiFi guardados y sus claves",
+    "description": "Solo lee. Lista las redes WiFi guardadas; con -MostrarClaves incluye las contraseñas. ATENCIÓN: esas claves quedan en el historial de la consola y dan acceso a las redes del cliente, por eso el modo por defecto no las muestra. Las redes empresariales no tienen clave que extraer.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Red",
+    "default_timeout": 120,
+    "args": [],
+    "env": [],
+    "syntax": "red-wifi-credenciales.ps1 [-MostrarClaves] [-Perfil SSID]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "b3a3953d-6296-50d2-abe9-466d4cd3945e",
+    "filename": "disco-salud-reparacion.ps1",
+    "name": "Disco - Salud y reparación",
+    "description": "Estado SMART de los discos, desgaste y errores no corregidos, salud de los volúmenes y errores de disco del registro de eventos, que suelen anticipar la falla por semanas. Con 'reparar' agenda chkdsk /F; en la unidad del sistema eso corre en el próximo arranque y NO reinicia por su cuenta.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Almacenamiento",
+    "default_timeout": 7200,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "disco-salud-reparacion.ps1 [-Modo estado|verificar|reparar] [-Unidad C:]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "7449ff3d-d9f7-542a-9eb7-4fcd27898872",
+    "filename": "disco-limpieza.py",
+    "name": "Disco - Limpieza de temporales",
+    "description": "Libera espacio borrando temporales y cachés en las tres plataformas. En Windows recorre el temporal de cada perfil, la caché de Windows Update y la papelera; en Linux y macOS los temporales, cachés de paquetes, journal y papeleras. Nunca toca descargas ni la carpeta Installer. Por defecto simula.",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Almacenamiento",
+    "default_timeout": 1800,
+    "args": [
+      "simular"
+    ],
+    "env": [],
+    "syntax": "disco-limpieza.py [simular|aplicar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "5eb011ba-0747-5e00-b439-95f8a6974e07",
+    "filename": "almacenamiento-storage-pools.ps1",
+    "name": "Almacenamiento - Salud de Storage Pools",
+    "description": "Solo lee. Recorre grupos, discos virtuales y discos físicos, porque un problema puede verse en un nivel y no en los otros. Existe para que el primer disco perdido de un arreglo no pase inadvertido: el volumen sigue sirviendo datos degradado hasta que cae el segundo.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Almacenamiento",
+    "default_timeout": 150,
+    "args": [],
+    "env": [],
+    "syntax": "almacenamiento-storage-pools.ps1",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "81919add-90a5-5607-99c6-583e030c194f",
+    "filename": "energia-perfil.ps1",
+    "name": "Energía - Plan de energía y suspensión",
+    "description": "Gestiona el plan de energía. El modo 'sin-suspender' es el que importa en un RMM: deja el plan del cliente intacto y solo evita que el equipo se suspenda, porque un equipo suspendido aparece caído y no recibe tareas ni parches.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Sistema",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "energia-perfil.ps1 [-Modo estado|rendimiento|sin-suspender|restablecer]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "edc23ce3-4740-55d6-9dd1-683bcf7ee86a",
+    "filename": "energia-hibernacion.ps1",
+    "name": "Energía - Hibernación e inicio rápido",
+    "description": "Con inicio rápido, 'apagar' no apaga: Windows hiberna el kernel, los parches que exigen reinicio no terminan de aplicarse y los problemas sobreviven al apagado. Deshabilitarlo libera además un archivo del tamaño de la RAM. Avisa si el equipo tiene batería, donde la hibernación sí es útil.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Sistema",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "energia-hibernacion.ps1 [-Modo estado|deshabilitar|habilitar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "02f67757-e8dd-5a05-abde-9693250ee87a",
+    "filename": "sistema-reiniciar-apagar.ps1",
+    "name": "Sistema - Reiniciar o apagar (con espera y aviso)",
+    "description": "Programa la acción con espera para que el script alcance a responder antes de que el equipo se vaya, avisa al usuario logueado y permite cancelar. Antes informa quién está usando el equipo y cuánto lleva encendido. Sin la espera, el agente muere con el sistema y la ejecución figura fallida.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Sistema",
+    "default_timeout": 120,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "sistema-reiniciar-apagar.ps1 [-Modo estado|reiniciar|apagar|cancelar] [-EsperaSegundos 120]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "26fedc1c-c136-5158-b02f-4e28eb7dccdb",
+    "filename": "sistema-renombrar-equipo.ps1",
+    "name": "Sistema - Renombrar el equipo",
+    "description": "Valida el nombre contra las reglas NetBIOS antes de escribir (un nombre largo se trunca en silencio) y se niega a renombrar un equipo en dominio sin credenciales, porque hacerlo rompe la relación de confianza. Detecta un renombrado ya pendiente de reinicio, que es la causa de 'ya lo renombré y sigue igual'.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Sistema",
+    "default_timeout": 150,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "sistema-renombrar-equipo.ps1 [-Modo estado|aplicar] -NuevoNombre X",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "05c82921-effd-58c0-9f99-85ebee363581",
+    "filename": "servicios-automaticos-detenidos.ps1",
+    "name": "Servicios - Automáticos detenidos",
+    "description": "Encuentra servicios automáticos que no están corriendo y opcionalmente los levanta, filtrando el ruido: los de inicio retrasado aún a tiempo y los que Windows termina solo por diseño. Informa aparte los que tienen dependencias caídas, donde arrancarlos directamente falla.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Sistema",
+    "default_timeout": 300,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "servicios-automaticos-detenidos.ps1 [-Modo estado|arrancar] [-Excluir \"a,b\"]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "87cd400e-48e0-514e-aa8e-f68b6b97b72e",
+    "filename": "windows-activacion.ps1",
+    "name": "Windows - Activación",
+    "description": "Solo lee por defecto: edición, canal de licencia, estado y —si es por volumen— contra qué KMS se activó y cuánta gracia queda. Ese último dato importa: una máquina que dejó de ver el KMS se desactiva sola semanas después sin que nadie mire. Sale con 1 si no está activado.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Windows",
+    "default_timeout": 180,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "windows-activacion.ps1 [-Modo estado|clave] [-Clave XXXXX-...]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "56039ce8-e2e4-5fd3-98ad-5adc9bb60055",
+    "filename": "windows-update-restablecer.ps1",
+    "name": "Windows Update - Reparar o devolver a Microsoft",
+    "description": "'reparar' detiene los servicios y RENOMBRA (no borra) las carpetas de caché, así que se puede volver atrás. 'devolver' quita la marca que deja el agente para gestionar las actualizaciones, necesaria si el equipo sale del parque: sin eso se queda sin parches y nada avisa.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Windows",
+    "default_timeout": 900,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "windows-update-restablecer.ps1 [-Modo estado|reparar|devolver]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "d0350af2-1d14-58c4-b7fc-9d66a4b53169",
+    "filename": "windows-caracteristica.ps1",
+    "name": "Windows - Habilitar característica (.NET 3.5, OpenSSH, RDP)",
+    "description": "Las tres no se activan igual y ahí está el valor de tenerlas juntas: .NET 3.5 es una característica de imagen que suele necesitar origen de instalación, OpenSSH es una capacidad que además exige habilitar su servicio, y RDP no se instala sino que se habilita con registro más regla de firewall.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Windows",
+    "default_timeout": 1800,
+    "args": [
+      "-Caracteristica",
+      "rdp"
+    ],
+    "env": [],
+    "syntax": "windows-caracteristica.ps1 -Caracteristica dotnet35|openssh|rdp [-Modo habilitar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "9acd3f72-f284-5717-a130-2c9580e583a9",
+    "filename": "software-desinstalador.ps1",
+    "name": "Software - Listar, buscar y desinstalar",
+    "description": "Busca en las tres fuentes del registro (64, 32 y por usuario) y desinstala en silencio, resolviendo el modificador que corresponde a cada tipo de instalador. NO usa Win32_Product, que dispara una reconfiguración de cada paquete MSI. Verifica releyendo el registro y aborta si la búsqueda es ambigua.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Software",
+    "default_timeout": 1200,
+    "args": [
+      "-Modo",
+      "listar"
+    ],
+    "env": [],
+    "syntax": "software-desinstalador.ps1 [-Modo listar|buscar|desinstalar] [-Nombre X] [-Exacto]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "419f94bd-7b21-573f-a1f3-b8ab5af4c20d",
+    "filename": "software-winget.ps1",
+    "name": "Software - Gestor winget",
+    "description": "Instala, desinstala y actualiza con winget, que viene en la caja de Windows y no depende de un repositorio comunitario con cuota. Resuelve las dos trampas de correr como SYSTEM: encontrar el binario fuera del PATH y aceptar los acuerdos sin quedarse esperando una tecla.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Software",
+    "default_timeout": 1800,
+    "args": [
+      "-Modo",
+      "listar"
+    ],
+    "env": [],
+    "syntax": "software-winget.ps1 [-Modo listar|buscar|instalar|desinstalar|actualizar] [-Paquete id]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "053d2843-6c3d-59f2-b094-7cffca6a056e",
+    "filename": "certificados-iis-vencimiento.ps1",
+    "name": "Certificados IIS - Vencimiento",
+    "description": "Solo lee. Revisa únicamente los certificados que los sitios de IIS están sirviendo de verdad, no el almacén completo. Detecta también el certificado ausente del almacén y el que no tiene clave privada, dos fallas silenciosas típicas tras restaurar un respaldo. Sale con 1 si algo vence en la ventana.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Software",
+    "default_timeout": 180,
+    "args": [
+      "-Dias",
+      "30"
+    ],
+    "env": [],
+    "syntax": "certificados-iis-vencimiento.ps1 [-Dias 30]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "bbe59ce9-4de4-5cbd-a64f-a1c693733c1c",
+    "filename": "ad-unir-dominio.ps1",
+    "name": "AD - Unir el equipo al dominio",
+    "description": "Comprueba antes lo que hace fallar la unión: resolución DNS del dominio, registros SRV de los controladores, alcanzabilidad LDAP, largo del nombre y desfase de reloj (Kerberos rechaza más de 5 minutos y el síntoma nunca menciona la hora). Se niega a migrar entre dominios. No reinicia.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Directorio",
+    "default_timeout": 600,
+    "args": [
+      "-Modo",
+      "verificar"
+    ],
+    "env": [],
+    "syntax": "ad-unir-dominio.ps1 -Dominio empresa.local [-Modo unir] [-Usuario X] [-Contrasena Y]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "72070d8e-790f-510a-9fb5-cabc01afbb2e",
+    "filename": "ad-sincronizar.ps1",
+    "name": "AD - Sincronizar replicación y hora",
+    "description": "Se comporta distinto según el equipo: en un controlador fuerza la replicación y muestra los enlaces en falla; en un miembro no hay replicación que forzar, así que refresca las GPO y el registro DNS. Forzar 'sync de AD' en un miembro no hace nada y da falsa sensación de haber actuado.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Directorio",
+    "default_timeout": 600,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "ad-sincronizar.ps1 [-Modo estado|sincronizar] [-SoloHora]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "2b6bb8e3-5673-5a5c-8f0a-af45e6364719",
+    "filename": "ad-estado-y-papelera.ps1",
+    "name": "AD - Estado de Entra ID y Papelera de reciclaje",
+    "description": "Solo lee por defecto. Distingue los tres estados de Entra ID que se confunden (unido, híbrido y registro de área de trabajo, que es solo del usuario y no implica administración). Informa si el bosque tiene la Papelera de AD, sin la cual restaurar un objeto borrado exige recuperar desde respaldo.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Directorio",
+    "default_timeout": 180,
+    "args": [],
+    "env": [],
+    "syntax": "ad-estado-y-papelera.ps1 [-HabilitarPapelera]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "d10ac5a3-385d-5cca-b634-fbbd226f6388",
+    "filename": "impresion-cola.ps1",
+    "name": "Impresión - Diagnosticar y desatascar la cola",
+    "description": "Diagnostica antes de purgar: distingue el trabajo realmente atascado (en error, o sin avanzar hace más de 30 minutos) del que simplemente se está imprimiendo. 'reintentar' no pierde nada; 'purgar' BORRA los trabajos pendientes y reinicia el spooler.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Impresión",
+    "default_timeout": 300,
+    "args": [
+      "-Modo",
+      "estado"
+    ],
+    "env": [],
+    "syntax": "impresion-cola.ps1 [-Modo estado|reintentar|purgar] [-Impresora X]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "27bc24b1-9673-5935-9785-82908f98908d",
+    "filename": "navegadores-limpiar-cache.ps1",
+    "name": "Navegadores - Limpiar caché (Chrome, Edge, Firefox)",
+    "description": "Borra SOLO caché en todos los perfiles del equipo: no toca historial, marcadores, contraseñas, cookies ni sesiones. Por eso las rutas están enumeradas una por una en vez de borrar la carpeta de perfil. No cierra navegadores: informa lo que quedó bloqueado. Por defecto simula.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Software",
+    "default_timeout": 900,
+    "args": [
+      "-Modo",
+      "simular"
+    ],
+    "env": [],
+    "syntax": "navegadores-limpiar-cache.ps1 [-Modo simular|aplicar] [-Navegador todos|chrome|edge|firefox]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "7e40e9b8-c9bf-5bdb-8ac4-e700b261b7ad",
+    "filename": "proceso-vigilar-memoria.py",
+    "name": "Proceso - Vigilar consumo de memoria",
+    "description": "Suma la memoria de todas las instancias de un proceso y sale con 1 si pasa el umbral, para que la consola alerte sola sobre una fuga. Sumar todas es deliberado: los navegadores y muchos servicios se reparten en decenas de procesos y mirar uno da una cifra falsamente tranquilizadora. Sin argumentos lista los mayores.",
+    "shell": "python",
+    "category": "ObserverRMM (Todos):Sistema",
+    "default_timeout": 180,
+    "args": [],
+    "env": [],
+    "syntax": "proceso-vigilar-memoria.py <proceso> [umbral_MiB]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows",
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "da2565dd-6fb3-5eb9-bce3-55b9f9a22f63",
+    "filename": "windows11-compatibilidad.ps1",
+    "name": "Windows 11 - Compatibilidad y bloqueo de actualización",
+    "description": "Mide TPM 2.0, Arranque seguro, GPT, memoria, espacio y procesador, y aclara que el modelo de CPU puede dejar el equipo fuera igual. El bloqueo usa TargetReleaseVersion, el mecanismo soportado, y es reversible. Varios incumplimientos se arreglan en el firmware, no recambiando el equipo.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Windows",
+    "default_timeout": 240,
+    "args": [
+      "-Modo",
+      "verificar"
+    ],
+    "env": [],
+    "syntax": "windows11-compatibilidad.ps1 [-Modo verificar|bloquear|desbloquear] [-VersionObjetivo 22H2]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  }
+]

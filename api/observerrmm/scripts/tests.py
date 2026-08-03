@@ -670,3 +670,113 @@ class TestScriptSnippetViews(ObserverTestCase):
         # test text with no snippets
         result = Script.replace_with_snippets(test_no_snippet)
         self.assertEqual(result, test_no_snippet)
+
+
+class TestBibliotecaDeScripts(ObserverTestCase):
+    """Contrato de la biblioteca de scripts del producto (settings.SCRIPTS_DIR).
+
+    La biblioteca son datos versionados junto al código: un manifiesto JSON más un
+    archivo por script. El cargador confía en que ambos lados estén sincronizados y
+    SALTA EN SILENCIO cualquier entrada cuyo archivo no exista (models.py:104), así
+    que un renombre a medias no rompe nada visible — el script simplemente no
+    aparece en la consola. Estos tests convierten eso en una falla de CI.
+    """
+
+    def test_manifiesto_coherente_con_los_archivos(self):
+        import json
+        import os
+
+        from django.conf import settings
+
+        ruta_manifiesto = os.path.join(settings.SCRIPTS_DIR, "observer_scripts.json")
+        self.assertTrue(
+            os.path.isfile(ruta_manifiesto),
+            f"no existe el manifiesto de la biblioteca en {ruta_manifiesto}",
+        )
+
+        with open(ruta_manifiesto) as archivo:
+            manifiesto = json.load(archivo)
+
+        self.assertGreater(len(manifiesto), 0, "el manifiesto está vacío")
+
+        guids = [entrada["guid"] for entrada in manifiesto]
+        self.assertEqual(
+            len(guids), len(set(guids)), "hay guids repetidos en el manifiesto"
+        )
+
+        obligatorias = ("guid", "filename", "name", "description", "shell")
+        for entrada in manifiesto:
+            for clave in obligatorias:
+                self.assertIn(
+                    clave, entrada, f"falta '{clave}' en {entrada.get('name', entrada)}"
+                )
+
+            ruta = os.path.join(settings.SCRIPTS_DIR, "scripts", entrada["filename"])
+            self.assertTrue(
+                os.path.isfile(ruta),
+                f"'{entrada['name']}' apunta a {entrada['filename']}, que no existe",
+            )
+
+            self.assertIn(
+                entrada["shell"],
+                ScriptShell.values,
+                f"shell '{entrada['shell']}' no válido en '{entrada['name']}'",
+            )
+
+            # Los .ps1 DEBEN llevar BOM UTF-8. El agente los ejecuta con
+            # powershell.exe (Windows PowerShell 5.1) escribiendo el cuerpo crudo a
+            # un archivo temporal, y 5.1 sin BOM interpreta el archivo como ANSI:
+            # cada acento sale como mojibake en la salida. Nuestros scripts están en
+            # español, así que sin BOM el defecto es garantizado y silencioso.
+            if entrada["shell"] == ScriptShell.POWERSHELL:
+                with open(ruta, "rb") as binario:
+                    self.assertEqual(
+                        binario.read(3),
+                        b"\xef\xbb\xbf",
+                        f"'{entrada['filename']}' no empieza con BOM UTF-8: "
+                        "Windows PowerShell 5.1 va a romper sus acentos",
+                    )
+
+            for plataforma in entrada.get("supported_platforms", []):
+                self.assertIn(
+                    plataforma,
+                    ("windows", "linux", "darwin"),
+                    f"plataforma '{plataforma}' no válida en '{entrada['name']}'",
+                )
+
+    def test_cargar_biblioteca_siembra_la_bd(self):
+        import json
+        import os
+
+        from django.conf import settings
+
+        with open(
+            os.path.join(settings.SCRIPTS_DIR, "observer_scripts.json")
+        ) as archivo:
+            manifiesto = json.load(archivo)
+
+        Script.load_community_scripts()
+
+        cargados = Script.objects.filter(script_type=ScriptType.BUILT_IN)
+        self.assertEqual(
+            cargados.count(),
+            len(manifiesto),
+            "el cargador no dejó en la BD un script por entrada del manifiesto",
+        )
+
+        # El cuerpo tiene que llegar a la BD: es lo que se le manda al agente.
+        for entrada in manifiesto:
+            guardado = cargados.get(guid=entrada["guid"])
+            self.assertEqual(guardado.name, entrada["name"])
+            self.assertEqual(guardado.shell, entrada["shell"])
+            self.assertTrue(
+                guardado.script_body.strip(),
+                f"'{entrada['name']}' quedó con el cuerpo vacío en la BD",
+            )
+
+        # Idempotencia: una segunda pasada no duplica ni borra.
+        Script.load_community_scripts()
+        self.assertEqual(
+            Script.objects.filter(script_type=ScriptType.BUILT_IN).count(),
+            len(manifiesto),
+        )

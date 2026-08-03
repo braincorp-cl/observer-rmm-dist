@@ -50,14 +50,7 @@
             filterable
           >
             <template v-slot:after>
-              <q-btn
-                size="sm"
-                round
-                dense
-                flat
-                icon="info"
-                @click="openScriptURL"
-              >
+              <q-btn size="sm" round dense flat icon="info">
                 <q-tooltip
                   v-if="syntax"
                   class="bg-white text-primary text-body1"
@@ -242,7 +235,7 @@
 import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
-import { useDialogPluginComponent, openURL } from "quasar";
+import { useDialogPluginComponent } from "quasar";
 import { useScriptDropdown } from "@/composables/scripts";
 import { useCustomFieldDropdown } from "@/composables/core";
 import { runScript } from "@/api/agents";
@@ -295,7 +288,6 @@ const {
   defaultArgs,
   defaultEnvVars,
   syntax,
-  link,
 } = useScriptDropdown({
   script: props.script,
   plat: props.agent.plat,
@@ -332,10 +324,6 @@ async function sendScript() {
     onDialogHide();
     if (ret.value) notifySuccess(ret.value);
   }
-}
-
-function openScriptURL() {
-  link.value ? openURL(link.value) : null;
 }
 
 // watchers

@@ -89,12 +89,13 @@ class Script(BaseAuditModel):
 
         from django.conf import settings
 
-        # load community uploaded scripts into the database
-        # skip ones that already exist, only updating name / desc in case it changes
-        # for install script
+        # Carga la biblioteca de scripts del producto (settings.SCRIPTS_DIR) en la BD
+        # como scripts `builtin`. Los que ya existen se actualizan por `guid`; los que
+        # desaparecen del manifiesto se borran al final. La fuente es el propio árbol
+        # desplegado, no un repo externo.
         scripts_dir = os.path.join(settings.SCRIPTS_DIR, "scripts")
 
-        with open(os.path.join(settings.SCRIPTS_DIR, "community_scripts.json")) as f:
+        with open(os.path.join(settings.SCRIPTS_DIR, "observer_scripts.json")) as f:
             info = json.load(f)
 
         # used to remove scripts from DB that are removed from the json file and file system

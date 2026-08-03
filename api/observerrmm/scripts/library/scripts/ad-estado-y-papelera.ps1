@@ -1,0 +1,231 @@
+﻿<#
+.SYNOPSIS
+    Estado de unión a Entra ID y de la Papelera de reciclaje de Active Directory.
+
+.DESCRIPTION
+    Une los dos chequeos de estado de directorio del catálogo original, que estaban
+    separados y son los dos que se consultan al hacerse cargo de un parque ajeno.
+
+    Sobre Entra ID (ex Azure AD): distingue los tres estados que se confunden todo el
+    tiempo y que significan cosas muy distintas —dispositivo unido a Entra, unión
+    híbrida, y registro de área de trabajo, que es solo del usuario y no implica
+    ninguna administración del equipo.
+
+    Sobre la Papelera de AD: es una característica del bosque que, una vez habilitada,
+    NO se puede deshabilitar. Habilitada, un objeto borrado se puede restaurar entero
+    durante el período de vida de la tumba; sin ella, restaurar un usuario borrado por
+    error significa recuperar desde respaldo. Casi todo bosque debería tenerla y muchos
+    no la tienen porque nadie la habilitó nunca.
+
+    Con -HabilitarPapelera la habilita. Es una decisión irreversible a nivel bosque, así
+    que el modo por defecto solo informa.
+
+.PARAMETER HabilitarPapelera
+    Habilita la Papelera de reciclaje de AD. IRREVERSIBLE.
+
+.EXAMPLE
+    ad-estado-y-papelera.ps1
+    ad-estado-y-papelera.ps1 -HabilitarPapelera
+#>
+
+[CmdletBinding()]
+param(
+    [switch]$HabilitarPapelera
+)
+
+$ErrorActionPreference = "Continue"
+
+Write-Output "== Unión a dominio y a Entra ID =="
+
+$rol = -1
+try {
+    $sistema = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+    $rol = [int]$sistema.DomainRole
+    Write-Output "  unido a dominio AD: $($sistema.PartOfDomain)"
+    Write-Output "  dominio/grupo:      $($sistema.Domain)"
+}
+catch {
+    Write-Output "  no se pudo leer la información del sistema: $($_.Exception.Message)"
+}
+
+$esControlador = ($rol -eq 4 -or $rol -eq 5)
+
+# dsregcmd es la fuente autoritativa del estado de Entra ID. Se parsea su salida
+# porque no hay API de PowerShell equivalente.
+Write-Output ""
+try {
+    $dsreg = & dsregcmd /status 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $dsreg) {
+        Write-Output "  dsregcmd no disponible: no se puede evaluar Entra ID."
+    }
+    else {
+        $texto = $dsreg -join "`n"
+
+        function Get-EstadoDsreg {
+            param([string]$Clave)
+            $coincidencia = [regex]::Match($texto, "(?im)^\s*$Clave\s*:\s*(\S+)")
+            if ($coincidencia.Success) { return $coincidencia.Groups[1].Value }
+            return "?"
+        }
+
+        $unidoEntra = Get-EstadoDsreg "AzureAdJoined"
+        $registrado = Get-EstadoDsreg "WorkplaceJoined"
+        $unidoDominioDsreg = Get-EstadoDsreg "DomainJoined"
+
+        Write-Output "  AzureAdJoined:      $unidoEntra"
+        Write-Output "  WorkplaceJoined:    $registrado"
+        Write-Output "  DomainJoined:       $unidoDominioDsreg"
+
+        Write-Output ""
+        if ($unidoEntra -eq "YES" -and $unidoDominioDsreg -eq "YES") {
+            Write-Output "  Interpretación: unión HÍBRIDA (dominio local + Entra ID)."
+            Write-Output "  El equipo se administra desde los dos lados."
+        }
+        elseif ($unidoEntra -eq "YES") {
+            Write-Output "  Interpretación: unido solo a Entra ID (sin dominio local)."
+        }
+        elseif ($registrado -eq "YES") {
+            Write-Output "  Interpretación: solo REGISTRO de área de trabajo. Es del"
+            Write-Output "  usuario, no del dispositivo: el equipo NO está administrado"
+            Write-Output "  y no recibe directivas. Es el estado que más se confunde con"
+            Write-Output "  estar unido."
+        }
+        elseif ($unidoDominioDsreg -eq "YES") {
+            Write-Output "  Interpretación: unido solo al dominio local."
+        }
+        else {
+            Write-Output "  Interpretación: sin unión a ningún directorio."
+        }
+
+        $inquilino = [regex]::Match($texto, "(?im)^\s*TenantName\s*:\s*(.+)$")
+        if ($inquilino.Success) {
+            Write-Output "  inquilino:          $($inquilino.Groups[1].Value.Trim())"
+        }
+    }
+}
+catch {
+    Write-Output "  no se pudo ejecutar dsregcmd: $($_.Exception.Message)"
+}
+
+Write-Output ""
+Write-Output "== Papelera de reciclaje de Active Directory =="
+
+if (-not $esControlador) {
+    Write-Output "  Este equipo no es controlador de dominio."
+    Write-Output "  La Papelera es una característica del BOSQUE y se consulta desde un"
+    Write-Output "  controlador: no hay nada que revisar acá."
+    exit 0
+}
+
+if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
+    Write-Output "  Falta el módulo ActiveDirectory (herramientas de administración de AD)."
+    exit 1
+}
+
+try {
+    Import-Module ActiveDirectory -ErrorAction Stop
+}
+catch {
+    Write-Output "  No se pudo cargar el módulo ActiveDirectory: $($_.Exception.Message)"
+    exit 1
+}
+
+$bosque = $null
+try {
+    $bosque = Get-ADForest -ErrorAction Stop
+    Write-Output "  bosque:             $($bosque.Name)"
+    Write-Output "  modo del bosque:    $($bosque.ForestMode)"
+    Write-Output "  maestro de esquema: $($bosque.SchemaMaster)"
+}
+catch {
+    Write-Output "  No se pudo consultar el bosque: $($_.Exception.Message)"
+    exit 1
+}
+
+# La Papelera se representa como una característica opcional del bosque: si tiene
+# ámbitos habilitados, está activa.
+$habilitada = $false
+try {
+    $caracteristica = Get-ADOptionalFeature -Filter 'Name -like "Recycle Bin Feature"' -ErrorAction Stop
+    if ($caracteristica) {
+        $habilitada = @($caracteristica.EnabledScopes).Count -gt 0
+        Write-Output "  Papelera:           $(if ($habilitada) { 'HABILITADA' } else { 'no habilitada' })"
+        if ($habilitada) {
+            Write-Output "  ámbitos:            $($caracteristica.EnabledScopes -join '; ')"
+        }
+    }
+    else {
+        Write-Output "  Papelera:           no se encontró la característica"
+    }
+}
+catch {
+    Write-Output "  No se pudo consultar la característica: $($_.Exception.Message)"
+    exit 1
+}
+
+if ($habilitada) {
+    Write-Output ""
+    Write-Output "== Resultado =="
+    Write-Output "  La Papelera de AD ya está habilitada: nada que hacer."
+    exit 0
+}
+
+Write-Output ""
+Write-Output "  Sin la Papelera, restaurar un objeto borrado por error exige recuperar"
+Write-Output "  desde respaldo, con la interrupción que eso implica."
+
+if (-not $HabilitarPapelera) {
+    Write-Output ""
+    Write-Output "== Resultado =="
+    Write-Output "  La Papelera NO está habilitada."
+    Write-Output "  Para habilitarla, volvé a correr con -HabilitarPapelera."
+    Write-Output "  Tené en cuenta que es IRREVERSIBLE y afecta a todo el bosque."
+    exit 1
+}
+
+# El modo del bosque tiene que ser al menos Windows2008R2Forest: por debajo, la
+# característica no existe y el cmdlet falla con un error poco claro.
+if ($bosque.ForestMode -match "2000|2003|2008Forest$") {
+    Write-Output ""
+    Write-Output "ABORTADO: el modo del bosque es $($bosque.ForestMode)."
+    Write-Output "La Papelera exige nivel funcional Windows Server 2008 R2 o superior."
+    exit 1
+}
+
+Write-Output ""
+Write-Output "== Habilitando la Papelera de reciclaje de AD =="
+Write-Output "  Esto afecta a TODO el bosque '$($bosque.Name)' y NO se puede deshacer."
+
+try {
+    Enable-ADOptionalFeature -Identity "Recycle Bin Feature" `
+        -Scope ForestOrConfigurationSet -Target $bosque.Name `
+        -Confirm:$false -ErrorAction Stop
+    Write-Output "  Enable-ADOptionalFeature: OK"
+}
+catch {
+    Write-Output "  ERROR: $($_.Exception.Message)"
+    exit 1
+}
+
+# Verificación por efecto.
+try {
+    $caracteristica = Get-ADOptionalFeature -Filter 'Name -like "Recycle Bin Feature"' -ErrorAction Stop
+    if (@($caracteristica.EnabledScopes).Count -gt 0) {
+        Write-Output "  verificado: ámbitos habilitados = $($caracteristica.EnabledScopes -join '; ')"
+    }
+    else {
+        Write-Output "  FALLA: la característica sigue sin ámbitos habilitados."
+        exit 1
+    }
+}
+catch {
+    Write-Output "  No se pudo verificar el resultado: $($_.Exception.Message)"
+    exit 1
+}
+
+Write-Output ""
+Write-Output "== Resultado =="
+Write-Output "  Papelera de reciclaje de AD habilitada."
+Write-Output "  Protege los objetos borrados DESDE AHORA: los borrados antes no se"
+Write-Output "  recuperan con esto. La replicación al resto del bosque toma su tiempo."
+exit 0
