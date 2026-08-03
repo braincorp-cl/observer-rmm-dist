@@ -730,11 +730,38 @@ class TestBibliotecaDeScripts(ObserverTestCase):
             # español, así que sin BOM el defecto es garantizado y silencioso.
             if entrada["shell"] == ScriptShell.POWERSHELL:
                 with open(ruta, "rb") as binario:
-                    self.assertEqual(
-                        binario.read(3),
-                        b"\xef\xbb\xbf",
-                        f"'{entrada['filename']}' no empieza con BOM UTF-8: "
-                        "Windows PowerShell 5.1 va a romper sus acentos",
+                    crudo = binario.read()
+
+                self.assertEqual(
+                    crudo[:3],
+                    b"\xef\xbb\xbf",
+                    f"'{entrada['filename']}' no empieza con BOM UTF-8: "
+                    "Windows PowerShell 5.1 va a romper sus acentos",
+                )
+
+                # La otra mitad del problema de codificación, y la que NO se ve
+                # revisando el archivo: el BOM arregla cómo PowerShell LEE el script,
+                # pero 5.1 ESCRIBE su stdout en la página de códigos OEM de la consola.
+                # El agente pasa esa salida por strings.ToValidUTF8(s, "")
+                # (agent/utils.go:401), que borra lo que no sea UTF-8 válido, así que
+                # los acentos desaparecen sin dejar rastro. Medido en Windows 11 real.
+                self.assertIn(
+                    "[Console]::OutputEncoding",
+                    crudo.decode("utf-8-sig"),
+                    f"'{entrada['filename']}' no fija la codificación de salida: "
+                    "sus acentos se van a perder en el camino al servidor",
+                )
+
+            # Los .py tienen el MISMO problema por otra vía: en Windows el Python
+            # embebido del agente escribe stdout en cp1252 (medido en un equipo real),
+            # así que hay que reconfigurarlo a UTF-8 o los acentos se pierden igual.
+            if entrada["shell"] == ScriptShell.PYTHON:
+                with open(ruta, "r", encoding="utf-8") as texto:
+                    self.assertIn(
+                        'sys.stdout.reconfigure(encoding="utf-8"',
+                        texto.read(),
+                        f"'{entrada['filename']}' no reconfigura stdout a UTF-8: "
+                        "en Windows sus acentos se van a perder",
                     )
 
             for plataforma in entrada.get("supported_platforms", []):

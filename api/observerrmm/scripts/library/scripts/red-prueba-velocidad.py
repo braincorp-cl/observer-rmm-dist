@@ -35,6 +35,15 @@ import ssl
 import sys
 import time
 
+# El agente pasa el stdout por strings.ToValidUTF8(s, "") (agent/utils.go:401), que BORRA
+# toda secuencia UTF-8 invalida. En Windows el Python embebido escribe stdout en cp1252
+# (medido en un Windows 11 real: sys.stdout.encoding == "cp1252"), donde un acento es un
+# solo byte que no es UTF-8 valido => los acentos desaparecian de la salida sin dejar
+# rastro. En Linux y macOS stdout ya es UTF-8 y esto es un no-op.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 ES_WINDOWS = platform.system() == "Windows"
 
 CLAVE_REGISTRO = r"SOFTWARE\ObserverRMM"

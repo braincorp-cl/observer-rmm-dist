@@ -53,6 +53,20 @@ param(
     [string]$Grupo = "usuarios"
 )
 
+# El agente pasa el stdout por strings.ToValidUTF8(s, "") (agent/utils.go:401), que
+# BORRA toda secuencia UTF-8 invalida. Windows PowerShell 5.1 escribe su salida en la
+# pagina de codigos OEM de la consola, donde un acento es un solo byte que no es UTF-8
+# valido => los acentos desaparecian de la salida sin dejar rastro. Medido en Windows 11
+# real: sin esta linea se pierden todos; con ella llegan intactos. `chcp 65001` NO sirve,
+# porque no cambia el encoding del Console del proceso ya arrancado.
+try {
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+}
+catch {
+    # Sin consola adjunta la asignacion puede fallar; no es motivo para abortar el script.
+    Write-Verbose $_.Exception.Message
+}
+
 $ErrorActionPreference = "Stop"
 
 $SID_ADMINISTRADORES = "S-1-5-32-544"

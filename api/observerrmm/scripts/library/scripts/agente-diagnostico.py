@@ -20,6 +20,15 @@ import subprocess
 import sys
 import time
 
+# El agente pasa el stdout por strings.ToValidUTF8(s, "") (agent/utils.go:401), que BORRA
+# toda secuencia UTF-8 invalida. En Windows el Python embebido escribe stdout en cp1252
+# (medido en un Windows 11 real: sys.stdout.encoding == "cp1252"), donde un acento es un
+# solo byte que no es UTF-8 valido => los acentos desaparecian de la salida sin dejar
+# rastro. En Linux y macOS stdout ya es UTF-8 y esto es un no-op.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 # Rutas, servicios y claves de configuración tomados del código del agente
 # (agent/agent.go:85-102, agent/install_unix.go:25-42, main.go:186-188). Si el
 # agente los cambia, este script queda desalineado: es la misma trampa que dejó
@@ -128,23 +137,113 @@ def rutas_agente():
         }
     return {
         "directorio del agente": "/opt/observeragent",
-        "binario del agente": "/opt/observeragent/observeragent",
+        "binario del agente": binario_agente_unix(),
         "directorio del Mesh": "/opt/observermesh",
         "configuración": CONFIG_UNIX,
         "log del agente": "/var/log/observeragent.log",
     }
 
 
-def estado_servicio(nombre_windows, unidad_systemd, etiqueta_launchd):
+def binario_agente_unix():
+    """Ruta real del binario del agente, resuelta y no asumida.
+
+    No está en el mismo lugar en todos los paquetes: medido en un host Fedora 44
+    (RPM) el binario vive en /usr/local/bin/observeragent, mientras que las
+    constantes del agente apuntan a /opt/observeragent/observeragent. Asumir una
+    sola ruta hacía que este diagnóstico reportara una FALLA falsa en toda la
+    flota RPM, que es justo lo que vuelve inservible a un script de diagnóstico.
+
+    La fuente autoritativa es el ExecStart del servicio: es el binario que el
+    sistema arranca de verdad. Las rutas conocidas quedan como respaldo.
+    """
+    for unidad in (
+        "/etc/systemd/system/observeragent.service",
+        "/lib/systemd/system/observeragent.service",
+        "/usr/lib/systemd/system/observeragent.service",
+    ):
+        if not os.path.isfile(unidad):
+            continue
+        try:
+            with open(unidad, "r") as archivo:
+                for renglon in archivo:
+                    if not renglon.strip().startswith("ExecStart="):
+                        continue
+                    orden = renglon.split("=", 1)[1].strip()
+                    candidato = orden.split()[0] if orden else ""
+                    if candidato and os.path.exists(candidato):
+                        return candidato
+        except OSError:
+            continue
+
+    # macOS: el plist lleva el binario como primer argumento.
+    if ES_MACOS and os.path.isfile("/Library/LaunchDaemons/observeragent.plist"):
+        try:
+            import plistlib
+
+            with open("/Library/LaunchDaemons/observeragent.plist", "rb") as archivo:
+                argumentos = plistlib.load(archivo).get("ProgramArguments") or []
+            if argumentos and os.path.exists(str(argumentos[0])):
+                return str(argumentos[0])
+        except Exception:
+            pass
+
+    for conocida in (
+        "/opt/observeragent/observeragent",
+        "/usr/local/bin/observeragent",
+        "/usr/bin/observeragent",
+    ):
+        if os.path.exists(conocida):
+            return conocida
+
+    # Ninguna existe: se devuelve la ruta canónica para que el reporte diga cuál
+    # se buscó, en vez de mentir con una que tampoco está.
+    return "/opt/observeragent/observeragent"
+
+
+def estado_servicios_windows():
+    """Estado de los servicios del agente y del Mesh, en inglés y de una sola pasada.
+
+    NO se parsea `sc query`: su salida está localizada (en un Windows en español la
+    etiqueta es ESTADO, no STATE), así que buscar "STATE" devolvía "estado no
+    reconocido" y el diagnóstico inventaba un problema. Medido en dos Windows 11 en
+    español. La propiedad State de Win32_Service es una enumeración fija en inglés,
+    independiente del idioma del sistema.
+    """
+    consulta = (
+        "Get-CimInstance Win32_Service "
+        "-Filter \"Name='observeragent' OR Name='mesh agent'\" | "
+        "Select-Object Name, State | ConvertTo-Json -Compress"
+    )
+    # correr() devuelve la tupla (rc, salida): desempaquetarla, no usarla entera.
+    rc, salida = correr(
+        ["powershell", "-NoProfile", "-NonInteractive", "-Command", consulta]
+    )
+    if rc != 0 or not salida:
+        return {}
+
+    try:
+        crudo = json.loads(salida)
+    except ValueError:
+        return {}
+
+    if isinstance(crudo, dict):
+        crudo = [crudo]
+
+    estados = {}
+    for item in crudo:
+        nombre = str(item.get("Name") or "").lower()
+        estado = item.get("State")
+        if nombre and estado:
+            estados[nombre] = str(estado)
+    return estados
+
+
+def estado_servicio(nombre_windows, unidad_systemd, etiqueta_launchd, cache=None):
     """Estado del servicio en la plataforma actual, o None si no se pudo leer."""
     if ES_WINDOWS:
-        rc, salida = correr(["sc", "query", nombre_windows])
-        if rc != 0:
-            return None
-        for renglon in salida.splitlines():
-            if "STATE" in renglon.upper():
-                return renglon.split(":")[-1].strip()
-        return "estado no reconocido"
+        if cache is None:
+            cache = estado_servicios_windows()
+        return cache.get(nombre_windows.lower())
 
     if ES_MACOS:
         rc, _ = correr(["launchctl", "list", etiqueta_launchd])
@@ -205,8 +304,13 @@ def informar_config(config):
 
 def informar_servicios():
     titulo("Servicios")
+
+    # En Windows los dos servicios se consultan de una sola pasada: cada llamada a
+    # PowerShell cuesta un arranque de proceso.
+    cache = estado_servicios_windows() if ES_WINDOWS else None
+
     estado_agente = estado_servicio(
-        "observeragent", "observeragent.service", "observeragent"
+        "observeragent", "observeragent.service", "observeragent", cache
     )
     if estado_agente is None:
         linea("agente ObserverRMM", falla("servicio del agente no encontrado"))
@@ -218,7 +322,7 @@ def informar_servicios():
             falla("servicio del agente no está corriendo ({})".format(estado_agente))
         linea("agente ObserverRMM", estado_agente)
 
-    estado_mesh = estado_servicio("mesh agent", "meshagent.service", "meshagent")
+    estado_mesh = estado_servicio("mesh agent", "meshagent.service", "meshagent", cache)
     if estado_mesh is None:
         # El Mesh puede faltar legítimamente (instalación con -nomesh): se avisa,
         # pero no se cuenta como falla del agente.
