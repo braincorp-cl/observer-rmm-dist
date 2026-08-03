@@ -33,6 +33,13 @@
     # Role defaults NO se cargan en un playbook task/role-less explícito → se fijan aquí.
     observer_source_path: "{{ playbook_dir }}/api/observerrmm/"
     observer_django_requirements: "requirements.txt"
+    # Asistente IA (feature 032): réplica de roles/observer_api/defaults/main.yml — ver allí
+    # el porqué de cada valor. observer_open_ai_token NO se replica: vive en group_vars, que
+    # el inventario sí carga solo.
+    observer_open_ai_base_url: "https://openrouter.ai/api/v1"
+    observer_open_ai_model: "poolside/laguna-s-2.1:free"
+    observer_open_ai_max_tokens: 4000
+    observer_open_ai_temperature: ""
     # observer_user/group/app_name/root vienen de group_vars/all.yml (auto-cargados por inventory).
   tasks:
     - name: Validar que el path del código fuente Django existe en el control node
@@ -203,6 +210,32 @@
         DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
       register: django_collectstatic_result
       changed_when: "'0 static files copied' not in django_collectstatic_result.stdout"
+
+    # Asistente IA (feature 032): siembra la key de cortesía en instalaciones YA operativas.
+    # Réplica de la tarea del rol — deploy-api.yml no usa el rol, así que sin esta copia las
+    # actualizaciones tipo Tier1 nunca la verían. NO pisa la credencial propia del cliente.
+    - name: Sembrar config del Asistente IA (seed_ai_assistant)
+      ansible.builtin.command:
+        cmd: >-
+          {{ observer_root }}/api/env/bin/python manage.py seed_ai_assistant
+          --token {{ observer_open_ai_token | quote }}
+          --base-url {{ observer_open_ai_base_url | quote }}
+          --model {{ observer_open_ai_model | quote }}
+          --max-tokens {{ observer_open_ai_max_tokens }}
+          --temperature {{ observer_open_ai_temperature | quote }}
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      when: observer_open_ai_token | default('') | length > 0
+      no_log: true          # la key no debe aparecer en el log del deploy
+      register: observer_ai_seed
+      changed_when: "'AI assistant seeded' in observer_ai_seed.stdout"
+
+    - name: Informar el resultado de la siembra del Asistente IA
+      ansible.builtin.debug:
+        msg: "{{ observer_ai_seed.stdout | default('Asistente IA: sin key de cortesía configurada, se omite') }}"
 
     # Regeneración determinista de configs derivados del código (idempotente,
     # changed_when:false — los cambios reales de código ya disparan restart vía synchronize).

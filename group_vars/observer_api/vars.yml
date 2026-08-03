@@ -77,3 +77,13 @@ observer_nats_max_connections: 50000
 # Ésta SÍ va acá: no es un valor por ambiente sino la indirección al vault, y ningún
 # inventario la sobrescribe (el que cambia es el vault).
 observer_google_geolocation_api_key: "{{ vault_google_geolocation_api_key | default('') }}"
+
+# Key del proveedor LLM del Asistente IA (feature 032). Misma lógica que la de Google:
+# es la indirección al vault, no un valor por ambiente, así que SÍ va acá.
+# Vacía = no se siembra nada y el botón «Generar borrador con IA» no aparece.
+#
+# ⚠️ Es una key DE CORTESÍA, compartida por todos los despliegues: existe para que el
+# cliente pueda probar la generación de borradores. En cuanto el cliente pone la suya
+# en Configuración global → Asistente IA, el deploy deja de tocar el bloque entero
+# (ver la regla de no-pisado en core/management/commands/seed_ai_assistant.py).
+observer_open_ai_token: "{{ vault_observer_open_ai_token | default('') }}"

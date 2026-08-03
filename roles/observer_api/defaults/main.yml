@@ -78,3 +78,22 @@ observer_django_requirements: "requirements.txt"
 # (storage.googleapis.com) SOLO en provisión, análoga a Python/NATS. Poner en false para
 # instalaciones mínimas: los reportes de texto/tabla y PDF-sin-gráfico funcionan sin chromium.
 observer_reporting_charts_enabled: true
+
+# Asistente IA — «Generar borrador con IA» del gestor de scripts (feature 032).
+# Van acá, NO en group_vars, porque un ambiente/cliente tiene que poder cambiarlos
+# desde su inventario (ver la nota de PRECEDENCIA en group_vars/observer_api/vars.yml).
+# La credencial NO va acá: es la indirección al vault, en group_vars.
+#
+# El modelo por defecto se eligió midiendo, no por ficha técnica (2026-08-02):
+# coding agent con 60,4 % en Terminal-Bench 2.1, 3/3 limpio sobre prompts reales de
+# RMM, sin fences y sin gastar presupuesto en tokens de razonamiento.
+observer_open_ai_base_url: "https://openrouter.ai/api/v1"
+observer_open_ai_model: "poolside/laguna-s-2.1:free"
+# 4000 está calibrado contra el `timeout=60` de core/views.py: medido, un prompt
+# exigente consume 2.648 tokens en 55 s. Con 8000 el mismo prompt se fue a 158 s y la
+# petición habría muerto en excepción. Subirlo NO da más margen, da más latencia.
+observer_open_ai_max_tokens: 4000
+# Vacío a propósito = el campo NO se manda al proveedor. Medido: fijarla no aporta
+# determinismo (ni con 0.0) ni calidad, y mandarla es lo que rompió a kimi-k3 con
+# HTTP 400. Vacío es la opción portable entre proveedores.
+observer_open_ai_temperature: ""
