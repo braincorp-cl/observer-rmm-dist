@@ -403,7 +403,7 @@ class AgentMeshCentral(APIView):
 
         user = (
             request.user.mesh_user_id
-            if core.sync_mesh_with_trmm
+            if core.sync_mesh_with_ormm
             else f"user//{core.mesh_api_superuser}"
         )
         token = get_login_token(key=core.mesh_token, user=user)
@@ -852,7 +852,7 @@ def install_agent(request):
     from agents.utils import get_agent_url
     from core.utils import token_is_valid
 
-    insecure = getattr(settings, "TRMM_INSECURE", False)
+    insecure = getattr(settings, "ORMM_INSECURE", False)
 
     if insecure and request.data["installMethod"] in {"exe", "powershell"}:
         return notify_error(
@@ -860,7 +860,7 @@ def install_agent(request):
         )
 
     # TODO rework this ghetto validation hack
-    # (upstream issue ref): amidaware fork issue 1461
+    # (ref. de issue del proyecto de origen: 1461)
     try:
         int(request.data["expires"])
     except ValueError:

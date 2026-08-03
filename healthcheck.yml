@@ -86,7 +86,7 @@
         port: 443
         timeout: 10
 
-    # /core/version/ es un endpoint protegido real (Observer/TacticalRMM NO usa prefijo
+    # /core/version/ es un endpoint protegido real (Observer NO usa prefijo
     # /api/): sin token devuelve 401, probando toda la cadena nginx→uwsgi→Django→DRF auth.
     # El host se auto-resuelve vía /etc/hosts (observer_common, install.sh L203-219).
     - name: Verificar endpoint protegido del API retorna 401

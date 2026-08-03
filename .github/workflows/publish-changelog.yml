@@ -7,7 +7,7 @@
 # /changelog/ (DirectoryIndex index.html) y acepta PUT/MKCOL autenticado.
 #
 # La consola enlaza a ese sitio desde el aviso de "versión disponible" (MainLayout.vue,
-# ancla #v{TRMM_VERSION}). Al vivir en agents.observer.cl (público, escribible desde CI)
+# ancla #v{ORMM_VERSION}). Al vivir en agents.observer.cl (público, escribible desde CI)
 # el changelog se mantiene al día sin deploy manual — a diferencia de docs.observer.cl.
 #
 # Requiere los secrets CDN_UPLOAD_USER / CDN_UPLOAD_PASSWORD del repo (los mismos que usa

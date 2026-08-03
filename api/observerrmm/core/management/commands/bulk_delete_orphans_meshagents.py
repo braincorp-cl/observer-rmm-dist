@@ -46,7 +46,7 @@ import websockets
 from django.core.management.base import BaseCommand
 
 from agents.models import Agent
-from observerrmm.constants import TRMM_WS_MAX_SIZE
+from observerrmm.constants import ORMM_WS_MAX_SIZE
 from core.utils import (
     _b64_to_hex,
     get_core_settings,
@@ -97,9 +97,9 @@ async def _list_mesh_nodes(uri: str, mesh_id: str) -> list:
 
     async def _inner():
         async with websockets.connect(
-            uri, max_size=TRMM_WS_MAX_SIZE, open_timeout=10
+            uri, max_size=ORMM_WS_MAX_SIZE, open_timeout=10
         ) as ws:
-            await ws.send(json.dumps({"action": "nodes", "responseid": "trmm"}))
+            await ws.send(json.dumps({"action": "nodes", "responseid": "ormm"}))
 
             async for message in ws:
                 r = json.loads(message)

@@ -20,7 +20,7 @@ from observerrmm.constants import (
 )
 from observerrmm.helpers import notify_error
 
-logger = logging.getLogger("trmm")
+logger = logging.getLogger("ormm")
 
 
 def get_agent_url(*, goarch: str, plat: str, token: str = "") -> str:

@@ -6,7 +6,7 @@ Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
 
 **Versión actual: 1.4.2** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (v2.14.2)
 
-> **Al cortar una versión** hay que subir `TRMM_VERSION`, agregar la entrada al
+> **Al cortar una versión** hay que subir `ORMM_VERSION`, agregar la entrada al
 > [`CHANGELOG.md`](CHANGELOG.md), escribir `release-notes/vX.Y.Z.md` y pushear el tag.
 > El detalle está en [`release-notes/README.md`](release-notes/README.md); el CI exige las tres cosas.
 

@@ -288,13 +288,12 @@ KnoxAuthMiddlewareStack = lambda inner: KnoxAuthMiddlewareInstance(  # noqa
 )
 
 
-def get_latest_trmm_ver() -> str:
-    # Stub: la URL original `amidaware/observer-rmm-upstream` (heredada del rebrand)
-    # no apunta a un repo existente — devolvía 404 y la función reportaba "error"
+def get_latest_ormm_ver() -> str:
+    # Stub: la URL heredada del rebrand no apunta a un repo existente — devolvía 404 y la función reportaba "error"
     # al dashboard. Hasta que el CDN BrainCorp publique un endpoint de versión
     # (R-03 cross-repo), devolvemos la versión local: el dashboard mostrará que
     # el operador está en la última versión disponible.
-    return settings.TRMM_VERSION
+    return settings.ORMM_VERSION
 
 
 # regex for db data replacement

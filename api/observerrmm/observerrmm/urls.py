@@ -50,7 +50,7 @@ if not getattr(settings, "DEMO", False):
         path("reporting/", include("ee.reporting.urls")),
     )
 
-if not getattr(settings, "TRMM_DISABLE_SSO", False):
+if not getattr(settings, "ORMM_DISABLE_SSO", False):
     urlpatterns += (
         path("_allauth/", include(allauth_urls)),
         path("accounts/", include("ee.sso.urls")),
@@ -90,9 +90,9 @@ if not getattr(settings, "DEMO", False):
 
 if not (
     getattr(settings, "HOSTED", False)
-    or getattr(settings, "TRMM_DISABLE_WEB_TERMINAL", False)
+    or getattr(settings, "ORMM_DISABLE_WEB_TERMINAL", False)
     or getattr(settings, "DEMO", False)
 ):
     ws_urlpatterns += [
-        path("ws/trmmcli/", TerminalConsumer.as_asgi()),
+        path("ws/ormmcli/", TerminalConsumer.as_asgi()),
     ]

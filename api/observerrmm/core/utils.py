@@ -28,7 +28,7 @@ from observerrmm.constants import (
     CORESETTINGS_CACHE_KEY,
     MESH_NODE_ID_MIN_HEX,
     ROLE_CACHE_PREFIX,
-    TRMM_WS_MAX_SIZE,
+    ORMM_WS_MAX_SIZE,
     AgentPlat,
     GoArch,
     MeshAgentIdent,
@@ -116,7 +116,7 @@ def get_mesh_ws_url() -> str:
 
 
 async def get_mesh_device_id(uri: str, device_group: str) -> None:
-    async with websockets.connect(uri, max_size=TRMM_WS_MAX_SIZE) as ws:
+    async with websockets.connect(uri, max_size=ORMM_WS_MAX_SIZE) as ws:
         payload = {"action": "meshes", "responseid": "meshctrl"}
         await ws.send(json.dumps(payload))
 
@@ -262,8 +262,8 @@ def _mesh_id_to_hex(mesh_id: str) -> Optional[str]:
 def _descartar(mesh_id: str, motivo: str = "no convertible") -> None:
     """Registra el descarte y devuelve None.
 
-    `error` y no `warning`: el logger `trmm` corre en nivel ERROR
-    (`settings.TRMM_LOG_LEVEL`), así que un `warning` no se escribe en ninguna
+    `error` y no `warning`: el logger `ormm` corre en nivel ERROR
+    (`settings.ORMM_LOG_LEVEL`), así que un `warning` no se escribe en ninguna
     parte y el descarte sería silencioso — medido en staging el 2026-08-03. Y
     silencioso es justo lo que no queremos: un agente que manda un nodeid
     inválido se queda sin «Tomar control» sin avisar, que es el daño que
@@ -286,7 +286,7 @@ async def send_command_with_mesh(
                     "nodeids": [f"node//{node_id}"],
                     "runAsUser": run_as_user,
                     "type": shell,
-                    "responseid": "trmm",
+                    "responseid": "ormm",
                 }
             )
         )
@@ -300,7 +300,7 @@ async def wake_on_lan(*, uri: str, mesh_node_id: str) -> None:
                 {
                     "action": "wakedevices",
                     "nodeids": [f"node//{node_id}"],
-                    "responseid": "trmm",
+                    "responseid": "ormm",
                 }
             )
         )
@@ -314,7 +314,7 @@ async def remove_mesh_agent(uri: str, mesh_node_id: str) -> None:
                 {
                     "action": "removedevices",
                     "nodeids": [f"node//{node_id}"],
-                    "responseid": "trmm",
+                    "responseid": "ormm",
                 }
             )
         )
@@ -523,7 +523,7 @@ def run_server_script(
         custom_env[var_split[0]] = var_split[1]
 
     with tempfile.NamedTemporaryFile(
-        mode="w", delete=False, prefix="trmm-"
+        mode="w", delete=False, prefix="ormm-"
     ) as tmp_script:
         tmp_script.write(body.replace("\r\n", "\n"))
         tmp_script_path = tmp_script.name

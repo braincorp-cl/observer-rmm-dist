@@ -146,7 +146,7 @@ def send_agent_update_task(*, agent_ids: list[str], token: str, force: bool) -> 
 
 @app.task
 def auto_self_agent_update_task() -> None:
-    if getattr(settings, "TRMM_DISABLE_AGENT_AUTO_UPDATE_TASK", False):
+    if getattr(settings, "ORMM_DISABLE_AGENT_AUTO_UPDATE_TASK", False):
         return
 
     call_command("update_agents")
@@ -329,7 +329,7 @@ def run_script_email_results_task(
 def clear_faults_task(older_than_days: int) -> None:
     from alerts.models import Alert
 
-    # (upstream issue ref): amidaware fork issue 484
+    # (ref. de issue del proyecto de origen: 484)
     agents = Agent.objects.exclude(last_seen__isnull=True).filter(
         last_seen__lt=djangotime.now() - djangotime.timedelta(days=older_than_days)
     )

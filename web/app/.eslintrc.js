@@ -110,8 +110,8 @@ module.exports = {
       // labels de columnas via computed con t() y diálogos/notify via t().
       // Ola 7: cluster admin cuentas/roles (accounts/ + modals/admin/):
       // ResetPass / UserSessionsTable / PermissionsManager / RolesForm +
-      // UserForm / UserResetPasswordForm. (RolesForm: 2 refs legacy "TRMM
-      // Server" debrandeadas a "Observer" al migrar, regla cero-tactical.)
+      // UserForm / UserResetPasswordForm. (RolesForm: 2 refs al nombre del
+      // producto de origen, debrandeadas a "Observer" al migrar.)
       files: [
         "src/views/LoginView.vue",
         "src/components/FileBar.vue",
@@ -353,9 +353,9 @@ module.exports = {
         // por calidad aunque no los marque no-raw-text. logLevelOptions movido de
         // data() a computed con this.$t (reactividad de idioma). Diálogos $q.dialog
         // (confirmSync/addEmail/addNumber con HTML en message) + loading + notify
-        // vía this.$t. DEBRANDEO cero-tactical: 3 refs "TRMM" en textos visibles
-        // (tooltip server scripts + "Sync Mesh Perms with TRMM" + tooltip permisos)
-        // → "Observer RMM" en AMBOS idiomas (precedente RolesForm). placeholder de
+        // vía this.$t. DEBRANDEO: 3 refs al nombre del producto de origen en textos
+        // visibles (tooltip server scripts + el toggle de Sync Mesh Perms +
+        // tooltip permisos) → "Observer RMM" en AMBOS idiomas (precedente RolesForm). placeholder de
         // ejemplo (+12131231234) se mantiene literal (no es texto traducible).
         "src/components/modals/coresettings/EditCoreSettings.vue",
         // Ola 24 (GRANDE): ScriptManager — modal gestor de scripts (vista árbol +
@@ -368,7 +368,7 @@ module.exports = {
         // de shell, headers, badge "All", no-data) → {{ $t }}; ternarios favorito/
         // oculto dentro de {{}} → $t; labels/no-*-label estáticos → binding $t por
         // calidad. Notificaciones (favorited/hidden) y diálogo de borrado vía t().
-        // "ID: {id}" con interpolación. trmmLogo es asset (logo scripts community
+        // "ID: {id}" con interpolación. ormmLogo es asset (logo scripts community
         // builtin), no texto traducible.
         "src/components/scripts/ScriptManager.vue",
         // Ola 25 (long tail i18n, GRANDE 1013 líneas): AlertTemplateForm es el
@@ -381,7 +381,7 @@ module.exports = {
         // mensajes de :rules → $t. severityOptions y staticActionTypeOptions movidos
         // a computed con t() (reactividad de idioma); actionTypeOptions usa .value.
         // Diálogos $q.dialog (Add email/Add number, HTML E.164) y notificaciones vía
-        // t(). Debranding: "TRMM Server" → "Observer RMM Server" en ambos idiomas.
+        // t(). Debranding: el nombre del producto de origen → "Observer RMM Server".
         "src/components/modals/alerts/AlertTemplateForm.vue",
         // Ola 26 (long tail i18n, GRANDE 1066 líneas): RegistryManager — editor de
         // registro de Windows (q-tree lazy + q-splitter + q-table de valores).

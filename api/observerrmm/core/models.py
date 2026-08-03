@@ -84,7 +84,7 @@ class CoreSettings(BaseAuditModel):
         max_length=255, null=True, blank=True, default="ObserverRMM"
     )
     mesh_company_name = models.CharField(max_length=255, null=True, blank=True)
-    sync_mesh_with_trmm = models.BooleanField(default=True)
+    sync_mesh_with_ormm = models.BooleanField(default=True)
     agent_auto_update = models.BooleanField(default=True)
     # Interruptor GLOBAL de geolocalización de la flota (feature 023). ENCENDIDO por
     # defecto (ADR-024): mientras sea False el agente no captura ni publica ubicación y
@@ -265,7 +265,7 @@ class CoreSettings(BaseAuditModel):
     def server_scripts_enabled(self) -> bool:
         if (
             getattr(settings, "HOSTED", False)
-            or getattr(settings, "TRMM_DISABLE_SERVER_SCRIPTS", False)
+            or getattr(settings, "ORMM_DISABLE_SERVER_SCRIPTS", False)
             or getattr(settings, "DEMO", False)
         ):
             return False
@@ -276,7 +276,7 @@ class CoreSettings(BaseAuditModel):
     def web_terminal_enabled(self) -> bool:
         if (
             getattr(settings, "HOSTED", False)
-            or getattr(settings, "TRMM_DISABLE_WEB_TERMINAL", False)
+            or getattr(settings, "ORMM_DISABLE_WEB_TERMINAL", False)
             or getattr(settings, "DEMO", False)
         ):
             return False

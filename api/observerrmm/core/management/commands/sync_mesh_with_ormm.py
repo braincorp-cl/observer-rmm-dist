@@ -4,12 +4,12 @@ from core.tasks import sync_mesh_perms_task
 
 
 class Command(BaseCommand):
-    help = "Sync mesh users/perms with trmm users/perms"
+    help = "Sync mesh users/perms with ormm users/perms"
 
     def handle(self, *args, **kwargs):
         self.stdout.write(
             self.style.SUCCESS(
-                "Syncing trmm users/permissions with meshcentral, this might take a long time...please wait..."
+                "Syncing ormm users/permissions with meshcentral, this might take a long time...please wait..."
             )
         )
         sync_mesh_perms_task()

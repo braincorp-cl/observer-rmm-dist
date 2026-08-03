@@ -69,8 +69,8 @@ este repo**:
   `observeragent-v{version}-{goos}-{goarch}` (con `.exe` para Windows),
   metadata BrainCorp en `versioninfo.json`.
 - Distribución: GitHub Releases del repo agente; a futuro, CDN BrainCorp
-  (riesgo R-03 abierto — el hub tiene `get_latest_trmm_ver` stubbeado a
-  `settings.TRMM_VERSION` hasta que exista el CDN, regla RN-028).
+  (riesgo R-03 abierto — el hub tiene `get_latest_ormm_ver` stubbeado a
+  `settings.ORMM_VERSION` hasta que exista el CDN, regla RN-028).
 - Excepción acotada a la política de push: el repo agente puede pushear
   **tags de release** para alimentar `release.yml`; el resto del trabajo en
   forks sigue siendo local-only.

@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 # type helpers
 Disk = Union[Dict[str, Any], str]
 
-logger = logging.getLogger("trmm")
+logger = logging.getLogger("ormm")
 
 
 class Agent(BaseAuditModel):

@@ -655,7 +655,7 @@
                   <div class="col-2"></div>
                   <q-checkbox
                     dense
-                    :model-value="settings.sync_mesh_with_trmm"
+                    :model-value="settings.sync_mesh_with_ormm"
                     @update:model-value="confirmSyncChange"
                     class="col-6"
                   />
@@ -1021,7 +1021,7 @@ export default {
           cancel: { label: this.$t("editCoreSettings.no"), color: "negative" },
         })
         .onOk(() => {
-          this.settings.sync_mesh_with_trmm = newValue;
+          this.settings.sync_mesh_with_ormm = newValue;
         });
     },
     showResetPatchPolicy() {

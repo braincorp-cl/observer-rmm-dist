@@ -252,8 +252,8 @@ export default function () {
               : "") ||
             "en",
         );
-        commit("setCurrentVersion", data.trmm_version);
-        commit("setLatestVersion", data.latest_trmm_ver);
+        commit("setCurrentVersion", data.ormm_version);
+        commit("setLatestVersion", data.latest_ormm_ver);
         commit("SET_AGENT_DBLCLICK_ACTION", data.dbl_click_action);
         commit("SET_URL_ACTION", data.url_action);
         commit("setShowCommunityScripts", data.show_community_scripts);

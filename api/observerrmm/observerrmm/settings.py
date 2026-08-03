@@ -8,7 +8,7 @@ from observerrmm.util_settings import get_backend_url, get_root_domain, get_webd
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SCRIPTS_DIR = "/opt/trmm-community-scripts"
+SCRIPTS_DIR = "/opt/observer-community-scripts"
 
 DOCKER_BUILD = False
 
@@ -24,9 +24,8 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-TRMM_VERSION = "1.4.2"
+ORMM_VERSION = "1.4.2"
 
-# (upstream attribution: amidaware fork origin)
 WEB_VERSION = "0.101.59"
 
 # bump this version everytime vue code is changed
@@ -172,15 +171,15 @@ MANUAL_UNINSTALL_GRACE_MINUTES = 10
 # auditoría NO dependen de esta bandera: se escriben siempre.
 MANUAL_UNINSTALL_AUTO_DELETE = True
 NATS_MAX_CONNECTIONS = 50000
-TRMM_LOG_LEVEL = "ERROR"
-TRMM_LOG_TO = "file"
-TRMM_PROTO = "https"
-TRMM_BACKEND_PORT = None
+ORMM_LOG_LEVEL = "ERROR"
+ORMM_LOG_TO = "file"
+ORMM_PROTO = "https"
+ORMM_BACKEND_PORT = None
 # Rate limiting de los endpoints de login (configurable por env; defaults propios)
-TRMM_CHECK_CREDS_MIN_THROTTLE = int(os.getenv("TRMM_CHECK_CREDS_MIN_THROTTLE", 50))
-TRMM_CHECK_CREDS_DAY_THROTTLE = int(os.getenv("TRMM_CHECK_CREDS_DAY_THROTTLE", 1000))
-TRMM_LOGIN_MIN_THROTTLE = int(os.getenv("TRMM_LOGIN_MIN_THROTTLE", 50))
-TRMM_LOGIN_DAY_THROTTLE = int(os.getenv("TRMM_LOGIN_DAY_THROTTLE", 1000))
+ORMM_CHECK_CREDS_MIN_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_MIN_THROTTLE", 50))
+ORMM_CHECK_CREDS_DAY_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_DAY_THROTTLE", 1000))
+ORMM_LOGIN_MIN_THROTTLE = int(os.getenv("ORMM_LOGIN_MIN_THROTTLE", 50))
+ORMM_LOGIN_DAY_THROTTLE = int(os.getenv("ORMM_LOGIN_DAY_THROTTLE", 1000))
 
 if not DOCKER_BUILD:
     ALLOWED_HOSTS = []
@@ -215,7 +214,7 @@ if "GHACTIONS" in os.environ:
 
 if not DOCKER_BUILD:
 
-    TRMM_ROOT_DOMAIN = get_root_domain(ALLOWED_HOSTS[0])
+    ORMM_ROOT_DOMAIN = get_root_domain(ALLOWED_HOSTS[0])
     frontend_domain = get_webdomain(CORS_ORIGIN_WHITELIST[0]).split(":")[0]
 
     ALLOWED_HOSTS.append(frontend_domain)
@@ -223,10 +222,10 @@ if not DOCKER_BUILD:
     if DEBUG:
         ALLOWED_HOSTS.append("*")
 
-    backend_url = get_backend_url(ALLOWED_HOSTS[0], TRMM_PROTO, TRMM_BACKEND_PORT)
+    backend_url = get_backend_url(ALLOWED_HOSTS[0], ORMM_PROTO, ORMM_BACKEND_PORT)
 
-    SESSION_COOKIE_DOMAIN = TRMM_ROOT_DOMAIN
-    CSRF_COOKIE_DOMAIN = TRMM_ROOT_DOMAIN
+    SESSION_COOKIE_DOMAIN = ORMM_ROOT_DOMAIN
+    CSRF_COOKIE_DOMAIN = ORMM_ROOT_DOMAIN
     CSRF_TRUSTED_ORIGINS = [CORS_ORIGIN_WHITELIST[0], backend_url]
     HEADLESS_FRONTEND_URLS = {
         "socialaccount_login_error": f"{CORS_ORIGIN_WHITELIST[0]}/account/provider/callback"
@@ -250,17 +249,17 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
-        "check_creds_min": f"{TRMM_CHECK_CREDS_MIN_THROTTLE}/minute",
-        "login_min": f"{TRMM_LOGIN_MIN_THROTTLE}/minute",
-        "check_creds_day": f"{TRMM_CHECK_CREDS_DAY_THROTTLE}/day",
-        "login_day": f"{TRMM_LOGIN_DAY_THROTTLE}/day",
+        "check_creds_min": f"{ORMM_CHECK_CREDS_MIN_THROTTLE}/minute",
+        "login_min": f"{ORMM_LOGIN_MIN_THROTTLE}/minute",
+        "check_creds_day": f"{ORMM_CHECK_CREDS_DAY_THROTTLE}/day",
+        "login_day": f"{ORMM_LOGIN_DAY_THROTTLE}/day",
     },
 }
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Observer RMM API",
     "DESCRIPTION": "Simple and Fast remote monitoring and management tool",
-    "VERSION": TRMM_VERSION,
+    "VERSION": ORMM_VERSION,
     "AUTHENTICATION_WHITELIST": ["observerrmm.auth.APIAuthentication"],
 }
 
@@ -408,10 +407,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 def get_log_level() -> str:
-    if "TRMM_LOG_LEVEL" in os.environ:
-        return os.getenv("TRMM_LOG_LEVEL")  # type: ignore
+    if "ORMM_LOG_LEVEL" in os.environ:
+        return os.getenv("ORMM_LOG_LEVEL")  # type: ignore
 
-    return TRMM_LOG_LEVEL
+    return ORMM_LOG_LEVEL
 
 
 def configure_logging_handler():
@@ -420,14 +419,14 @@ def configure_logging_handler():
         "formatter": "verbose",
     }
 
-    log_to = os.getenv("TRMM_LOG_TO", TRMM_LOG_TO)
+    log_to = os.getenv("ORMM_LOG_TO", ORMM_LOG_TO)
 
     if log_to == "stdout":
         cfg["class"] = "logging.StreamHandler"
         cfg["stream"] = sys.stdout
     else:
         cfg["class"] = "logging.FileHandler"
-        cfg["filename"] = os.path.join(LOG_DIR, "trmm_debug.log")
+        cfg["filename"] = os.path.join(LOG_DIR, "ormm_debug.log")
 
     return cfg
 
@@ -448,10 +447,10 @@ LOGGING = {
             "filename": os.path.join(LOG_DIR, "django_debug.log"),
             "formatter": "verbose",
         },
-        "trmm": configure_logging_handler(),
+        "ormm": configure_logging_handler(),
     },
     "loggers": {
         "django.request": {"handlers": ["file"], "level": "ERROR", "propagate": True},
-        "trmm": {"handlers": ["trmm"], "level": get_log_level(), "propagate": False},
+        "ormm": {"handlers": ["ormm"], "level": get_log_level(), "propagate": False},
     },
 }

@@ -296,7 +296,7 @@ class AgentDeployment(APIView):
         return Response(DeploymentSerializer(deps, many=True).data)
 
     def post(self, request):
-        if getattr(settings, "TRMM_INSECURE", False):
+        if getattr(settings, "ORMM_INSECURE", False):
             return notify_error("Not available in insecure mode")
 
         from accounts.models import User
@@ -354,7 +354,7 @@ class GenerateAgent(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, uid):
-        if getattr(settings, "TRMM_INSECURE", False):
+        if getattr(settings, "ORMM_INSECURE", False):
             return notify_error("Not available in insecure mode")
 
         from observerrmm.utils import generate_winagent_exe

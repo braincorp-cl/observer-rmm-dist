@@ -1,29 +1,44 @@
 name: No legacy upstream strings
 
-# Gate F008/T019 (D-07 / RN-05) - previene regresiones del rebrand
-# TacticalRMM -> Observer RMM en el repo consolidado (backend + infra).
-# Espejo del gate del hub 'no-tacticalrmm-regressions' (observer-rmm, RN-024).
+# Gate F008/T019 (D-07 / RN-05) - previene regresiones del rebrand hacia
+# Observer RMM en el repo consolidado (backend + frontend + infra).
 #
-# ALCANCE: cubre lo que el dist EDITA/POSEE (api/ Python, roles/ Ansible,
-# playbooks, scripts). El frontend vive en 'web/' como COPIA del repo
-# observer-rmm-web, que tiene su PROPIO gate no-legacy-strings; por eso 'web/'
-# se excluye aqui. Rebrand del frontend = deuda de observer-rmm-web
-# (componentes <tactical-dropdown>/<tactical-table> + label "Tactical RMM Agent").
+# ALCANCE (ampliado el 2026-08-03): cubre TODO el arbol, incluido 'web/'.
+# Antes 'web/' se excluia delegando en el gate propio del repo observer-rmm-web,
+# pero ese repo quedo muerto y el frontend vivo es 'web/app/' de ESTE repo. Su
+# workflow anidado (web/app/.github/workflows/) NO corria: GitHub Actions solo
+# lee .github/workflows/ de la RAIZ del repositorio. O sea que el frontend
+# estaba sin gate mientras aparentaba tener uno. Se elimino ese archivo inerte y
+# su cobertura se absorbio aca.
 #
-# PATRON: 'tactical' como token (seguido de no-letra o fin de linea) + las formas
-# pegadas tacticalrmm/tacticalagent/tacticalmesh. grep -i => cubre Tactical/TACTICAL.
-# Nota: el guard ([^a-z]) NO caza un 'Tactical' PEGADO a otra palabra. El unico
-# caso conocido (la clase del adapter SSO en ee/sso) fue renombrado a
-# ObserverSocialAdapter el 2026-06-17 (hub+dist, anti-drift), asi que ya no
-# queda deuda de token-pegado en el producto.
+# PATRONES (3 familias):
+#   1. Producto legacy: 'tactical' como token (seguido de no-letra o fin) + las
+#      formas pegadas tacticalrmm/tacticalagent/tacticalmesh.
+#   2. Proveedor upstream: 'amidaware'.
+#   3. Prefijo 'trmm': nombraba al producto legacy y se migro a 'ORMM_'/'ormm'
+#      (constantes de settings, logger, claves JSON, acciones websocket, assets
+#      y la columna sync_mesh_with_ormm). Ver la migracion core/0060.
+# grep -i => cubre Tactical/TACTICAL/Trmm/TRMM/AmidaWare.
 #
-# Exclusiones de linea justificadas (cada grep -vE remueve una categoria revisada):
-#   - comentarios de procedencia en smoke.yml, healthcheck.yml y roles/ que citan
-#     el install.sh / servidor TacticalRMM de referencia (estandar BrainCorp:
-#     instalar EXACTAMENTE como el metodo del upstream).
-# Exclusiones por dir: migrations (historia Django congelada), test_data y docs
-#   (fixtures / procedencia), web (gate propio del repo web), smoke-results
-#   (artefactos de output de pytest), y los caches habituales.
+# El guard ([^a-z]) evita que 'tactical' pegado a otra palabra dispare; 'trmm'
+# va sin guard porque no es prefijo de ninguna palabra legitima del arbol
+# ('observerrmm' NO lo contiene).
+#
+# Exclusiones por dir: migrations (historia Django congelada - la columna se
+#   renombro con un RenameField nuevo, NO editando 0043), test_data (fixtures),
+#   docs (PROVENANCE.md documenta el linaje a proposito), y los caches y
+#   artefactos de build habituales. Exclusion por archivo: CHANGELOG.md en
+#   cualquier nivel — un changelog NARRA el rebrand ("se renombro X -> Y"), asi
+#   que nombrar el string legacy ahi es su funcion, no una regresion.
+#
+# Exclusiones de linea justificadas (cada grep -vE remueve una categoria
+# revisada). Se reescribieron las 6 anteriores: los comentarios de procedencia
+# que citaban el instalador del upstream fueron redactados de nuevo sin nombrar
+# al producto legacy, asi que ya no necesitan excepcion.
+#   - composables/scripts.ts: URL real y funcional al repo publico de
+#     community-scripts de un tercero. NO es branding: es el link que la consola
+#     abre para ver el codigo de un script comunitario. Cambiarla romperia el
+#     link, y que repo usar es una decision abierta (O-COMMUNITY-SCRIPTS).
 
 on:
   push:
@@ -42,10 +57,9 @@ jobs:
         run: |
           set -uo pipefail
 
-          # 'tactical' token (no-letra|fin) + formas pegadas. Ver cabecera.
-          PATTERN='tacticalrmm|tacticalagent|tacticalmesh|tactical([^a-z]|$)'
+          # Ver cabecera para el detalle de las 3 familias.
+          PATTERN='tacticalrmm|tacticalagent|tacticalmesh|tactical([^a-z]|$)|amidaware|trmm'
 
-          # -i: cubre Tactical/TACTICAL. 'web/' excluido (gate propio del repo web).
           # Prefijo '\.?/?' tolera greps que emiten o no './' al escanear '.'
           HITS=$(grep -rniE "$PATTERN" \
             --exclude-dir=.git \
@@ -56,22 +70,25 @@ jobs:
             --exclude-dir=migrations \
             --exclude-dir=test_data \
             --exclude-dir=docs \
-            --exclude-dir=web \
             --exclude-dir=smoke-results \
+            --exclude=CHANGELOG.md \
             . \
             | grep -vE '^\.?/?\.github/workflows/no-legacy-strings\.yml:' \
-            | grep -vE '^\.?/?smoke\.yml:[0-9]+:.*servidor TacticalRMM de' \
-            | grep -vE '^\.?/?healthcheck\.yml:[0-9]+:.*Observer/TacticalRMM NO usa prefijo' \
-            | grep -vE '^\.?/?roles/observer_python/tasks/main\.yml:[0-9]+:.*install\.sh original de TacticalRMM' \
-            | grep -vE '^\.?/?roles/observer_db/tasks/main\.yml:[0-9]+:.*servidor TacticalRMM de' \
-            | grep -vE '^\.?/?roles/observer_api/tasks/django_deploy\.yml:[0-9]+:.*`tacticalrmm` legacy' \
+            | grep -vE '^\.?/?web/app/src/composables/scripts\.ts:[0-9]+:.*community-scripts' \
             || true)
 
-          if [ -n "$HITS" ]; then
+          # Los NOMBRES de archivo tambien cuentan: un `grep -r` mira contenidos,
+          # asi que un modulo llamado sync_mesh_with_<legacy>.py pasaba verde con
+          # su interior ya migrado. Paso exactamente eso el 2026-08-03.
+          PATHS=$(git ls-files \
+            | grep -viE '(^|/)(migrations|test_data|docs|smoke-results)/' \
+            | grep -iE "$PATTERN" \
+            || true)
+
+          if [ -n "$HITS" ] || [ -n "$PATHS" ]; then
             echo "::error::Legacy upstream strings detected outside the documented allowlist."
-            echo ""
-            echo "Hits:"
-            echo "$HITS"
+            if [ -n "$HITS" ]; then echo ""; echo "Hits (contenido):"; echo "$HITS"; fi
+            if [ -n "$PATHS" ]; then echo ""; echo "Hits (nombre de archivo):"; echo "$PATHS"; fi
             exit 1
           fi
 

@@ -6,9 +6,9 @@ recordatorio: es un requisito.
 
 ## Cómo cortar una versión
 
-1. Subir `TRMM_VERSION` en `api/observerrmm/observerrmm/settings.py`.
+1. Subir `ORMM_VERSION` en `api/observerrmm/observerrmm/settings.py`.
 2. Agregar la entrada `## vX.Y.Z — YYYY-MM-DD` en [`CHANGELOG.md`](../CHANGELOG.md) — **el CI lo exige
-   en cada push**: si `TRMM_VERSION` no tiene su entrada, falla. Ese archivo alimenta el changelog
+   en cada push**: si `ORMM_VERSION` no tiene su entrada, falla. Ese archivo alimenta el changelog
    público (`agents.observer.cl/changelog/`) y el ancla `#vX.Y.Z` que enlaza la consola.
 3. Escribir `release-notes/vX.Y.Z.md` con el cuerpo **completo** de la release (ver estructura abajo).
 4. Commitear, taggear ese commit (`git tag -a vX.Y.Z`) y pushear el tag a `origin`.

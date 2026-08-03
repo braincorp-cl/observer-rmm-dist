@@ -1,6 +1,6 @@
 import { date } from "quasar";
 import { validateTimePeriod } from "@/utils/validation";
-import trmmLogo from "@/assets/trmm_256.png";
+import ormmLogo from "@/assets/ormm_256.png";
 
 import type { Script } from "@/types/scripts";
 import type { Agent } from "@/types/agents";
@@ -126,7 +126,7 @@ export function formatScriptOptions(data: Script[]): Option[] {
       .sort((a, b) => a.name.localeCompare(b.name));
     scripts.forEach((script) => {
       const option: Option = {
-        img_right: script.script_type === "builtin" ? trmmLogo : undefined,
+        img_right: script.script_type === "builtin" ? ormmLogo : undefined,
         label: script.name,
         value: script.id,
         default_timeout: script.default_timeout,

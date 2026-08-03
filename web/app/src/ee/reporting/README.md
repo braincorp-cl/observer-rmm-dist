@@ -22,6 +22,6 @@ una importación de contenido de terceros:
 
 ## Plantillas curadas
 
-Las de `amidaware/reporting-templates` **no** se importan tal cual (licencia propietaria
-AmidaWare + strings legacy). Se usan como **referencia** para autorar plantillas propias
+Las plantillas del proyecto de origen **no** se importan tal cual (licencia propietaria
+de su autor + strings legacy). Se usan como **referencia** para autorar plantillas propias
 BrainCorp (mismas queries, schema compartido), bajo licencia BrainCorp.

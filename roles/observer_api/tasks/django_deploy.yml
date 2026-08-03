@@ -128,7 +128,7 @@
   ansible.builtin.debug:
     msg: "{{ observer_ai_seed.stdout | default('Asistente IA: sin key de cortesía configurada, se omite') }}"
 
-# Setup inicial de MeshCentral (= install.sh `sync_mesh_with_trmm`/AddDeviceGroup). Crea el
+# Setup inicial de MeshCentral (= install.sh `sync_mesh_with_ormm`/AddDeviceGroup). Crea el
 # device group "ObserverRMM" vía websocket usando el token que get_mesh_ws_url mina con
 # MESH_TOKEN_KEY (login token key del rol observer_mesh). También resincroniza el mesh_token
 # guardado en CoreSettings con settings.MESH_TOKEN_KEY. Idempotente: solo crea el mesh si no
@@ -259,9 +259,9 @@
   changed_when: "'has been created' in observer_installer_user.stdout"
 
 # Community scripts (= install.sh L391-394): el repo se clona a settings.SCRIPTS_DIR
-# (= /opt/trmm-community-scripts, ruta legacy en settings.py) y load_community_scripts
+# (= /opt/observer-community-scripts, definida en settings.py) y load_community_scripts
 # lo carga. Es un RECURSO EXTERNO — decisión BrainCorp pendiente sobre qué repo usar
-# (upstream amidaware/community-scripts o un fork braincorp-cl) → O-COMMUNITY-SCRIPTS,
+# (el repo público del ecosistema o un fork braincorp-cl) → O-COMMUNITY-SCRIPTS,
 # análogo a R-03 (CDN). OPT-IN: si observer_community_scripts_repo no se define, se omite
 # sin bloquear el deploy (el dashboard funciona sin la librería de scripts comunitarios).
 - name: Provisionar community scripts (opt-in — requiere observer_community_scripts_repo)
@@ -269,7 +269,7 @@
   block:
     - name: Crear SCRIPTS_DIR para community scripts
       ansible.builtin.file:
-        path: /opt/trmm-community-scripts
+        path: /opt/observer-community-scripts
         state: directory
         owner: "{{ observer_user }}"
         group: "{{ observer_group }}"
@@ -278,7 +278,7 @@
     - name: Clonar/actualizar el repo de community scripts
       ansible.builtin.git:
         repo: "{{ observer_community_scripts_repo }}"
-        dest: /opt/trmm-community-scripts
+        dest: /opt/observer-community-scripts
         version: "{{ observer_community_scripts_version | default('main') }}"
       become: true
       become_user: "{{ observer_user }}"
@@ -302,7 +302,7 @@
   when: observer_community_scripts_repo | default('') | length == 0
 
 # R-04 / CONTRACT-01 — genera nats-rmm.conf con user `observerrmm`
-# (no `tacticalrmm` legacy). Backend Django en observerrmm/utils.py:178-256
+# (no el nombre legacy del upstream). Backend Django en observerrmm/utils.py:178-256
 # escribe el JSON config con `users[0].user = "observerrmm"` y luego intenta
 # `nats-server -signal reload` (silenciado si el binario no existe todavía
 # — primer deploy: NATS se instala después y arranca leyendo este conf).

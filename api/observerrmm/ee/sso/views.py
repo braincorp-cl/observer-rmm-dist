@@ -63,8 +63,8 @@ class GetAddSSOProvider(APIView):
         ctx = {
             "backend_url": get_backend_url(
                 settings.ALLOWED_HOSTS[0],
-                settings.TRMM_PROTO,
-                settings.TRMM_BACKEND_PORT,
+                settings.ORMM_PROTO,
+                settings.ORMM_BACKEND_PORT,
             ),
             "frontend_url": settings.CORS_ORIGIN_WHITELIST[0],
         }

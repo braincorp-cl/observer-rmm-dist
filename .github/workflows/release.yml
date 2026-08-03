@@ -47,19 +47,19 @@ jobs:
           fi
           echo "OK: $NOTES ($(wc -l < "$NOTES") lineas)"
 
-      - name: Ensure the tag matches TRMM_VERSION and has a CHANGELOG entry
+      - name: Ensure the tag matches ORMM_VERSION and has a CHANGELOG entry
         run: |
           VER="${GITHUB_REF_NAME#v}"
-          TRMM=$(grep -oP '^TRMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
-          if [ "$VER" != "$TRMM" ]; then
-            echo "::error::El tag ${GITHUB_REF_NAME} no coincide con TRMM_VERSION=${TRMM}. Se taggeo el commit equivocado, o falta subir la version."
+          ORMM=$(grep -oP '^ORMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
+          if [ "$VER" != "$ORMM" ]; then
+            echo "::error::El tag ${GITHUB_REF_NAME} no coincide con ORMM_VERSION=${ORMM}. Se taggeo el commit equivocado, o falta subir la version."
             exit 1
           fi
           if ! grep -q "^## v${VER} " CHANGELOG.md; then
             echo "::error::CHANGELOG.md no tiene la entrada '## v${VER}'. La consola enlaza el ancla #v${VER} y quedaria roto."
             exit 1
           fi
-          echo "OK: tag ${GITHUB_REF_NAME} == TRMM_VERSION ${TRMM}, con entrada en el CHANGELOG."
+          echo "OK: tag ${GITHUB_REF_NAME} == ORMM_VERSION ${ORMM}, con entrada en el CHANGELOG."
 
   release:
     name: Create release

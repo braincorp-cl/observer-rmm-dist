@@ -1,6 +1,6 @@
 ---
 # Python {{ observer_python_full_version }} compilado desde fuente (python.org),
-# espejo EXACTO del método del install.sh original de TacticalRMM:
+# espejo EXACTO del método del install.sh original del que se portó:
 #   ./configure --enable-optimizations && make -j $(nproc) && make altinstall
 # altinstall NO toca el python3 del sistema; instala /usr/local/bin/python3.11.
 # NO se usa apt/PPA para Python (decisión BrainCorp: solo métodos del install.sh).

@@ -205,7 +205,7 @@ class TerminalConsumer(JsonWebsocketConsumer):
             message = output.decode(errors="ignore")
             self.send_json(
                 {
-                    "action": "trmmcli.output",
+                    "action": "ormmcli.output",
                     "data": {"output": message, "messageId": str(uuid.uuid4())},
                 }
             )
@@ -240,13 +240,13 @@ class TerminalConsumer(JsonWebsocketConsumer):
         if not action:
             return
 
-        if action == "trmmcli.resize":
+        if action == "ormmcli.resize":
             self.resize(data["data"]["rows"], data["data"]["cols"])
-        elif action == "trmmcli.input":
+        elif action == "ormmcli.input":
             message = data["data"]["input"]
             self.write_to_pty(message)
-        elif action == "trmmcli.disconnect":
+        elif action == "ormmcli.disconnect":
             self.kill_pty()
             self.send_json(
-                {"action": "trmmcli.output", "data": {"output": "Terminal killed!"}}
+                {"action": "ormmcli.output", "data": {"output": "Terminal killed!"}}
             )

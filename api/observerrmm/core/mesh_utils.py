@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import websockets
 
 from accounts.utils import is_superuser
-from observerrmm.constants import TRMM_WS_MAX_SIZE
+from observerrmm.constants import ORMM_WS_MAX_SIZE
 from observerrmm.logger import logger
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ def make_mesh_password() -> str:
     return "".join(passwd)
 
 
-def transform_trmm(obj):
+def transform_ormm(obj):
     ret = []
     try:
         for node in obj:
@@ -89,13 +89,13 @@ def transform_mesh(obj):
 class MeshSync:
     def __init__(self, uri: str):
         self.uri = uri
-        self.mesh_users = self.get_trmm_mesh_users()  # full list
+        self.mesh_users = self.get_ormm_mesh_users()  # full list
 
     def mesh_action(
         self, *, payload: dict[str, Any], wait=True
     ) -> dict[str, Any] | None:
         async def _do(payload):
-            async with websockets.connect(self.uri, max_size=TRMM_WS_MAX_SIZE) as ws:
+            async with websockets.connect(self.uri, max_size=ORMM_WS_MAX_SIZE) as ws:
                 await ws.send(json.dumps(payload))
                 if wait:
                     while 1:
@@ -116,13 +116,13 @@ class MeshSync:
         return asyncio.run(_do(payload))
 
     def get_unique_mesh_users(
-        self, trmm_agents_list: list[dict[str, Any]]
+        self, ormm_agents_list: list[dict[str, Any]]
     ) -> list[str]:
-        userids = [i["links"] for i in trmm_agents_list]
+        userids = [i["links"] for i in ormm_agents_list]
         all_ids = [item["_id"] for sublist in userids for item in sublist]
         return list(set(all_ids))
 
-    def get_trmm_mesh_users(self):
+    def get_ormm_mesh_users(self):
         payload = {"action": "users"}
         ret = {
             i["_id"]: i

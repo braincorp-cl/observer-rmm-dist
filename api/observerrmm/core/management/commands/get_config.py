@@ -20,7 +20,7 @@ class Command(BaseCommand):
             case "rootdomain":
                 self.stdout.write(get_root_domain(settings.ALLOWED_HOSTS[0]))
             case "version":
-                self.stdout.write(settings.TRMM_VERSION)
+                self.stdout.write(settings.ORMM_VERSION)
             case "webversion":
                 self.stdout.write(settings.WEB_VERSION)
             case "meshver":
@@ -33,8 +33,8 @@ class Command(BaseCommand):
                 self.stdout.write(
                     get_backend_url(
                         settings.ALLOWED_HOSTS[0],
-                        settings.TRMM_PROTO,
-                        settings.TRMM_BACKEND_PORT,
+                        settings.ORMM_PROTO,
+                        settings.ORMM_BACKEND_PORT,
                     )
                 )
             case "webdomain":

@@ -10,7 +10,7 @@ on:
 jobs:
   # La version del producto tiene que tener SIEMPRE su entrada en el CHANGELOG.
   # No es cosmetico: la consola enlaza el aviso de "version disponible" al ancla
-  # #v{TRMM_VERSION} del changelog publico, asi que una version sin entrada deja
+  # #v{ORMM_VERSION} del changelog publico, asi que una version sin entrada deja
   # ese enlace roto para toda la flota. Paso de verdad con v1.4.1, que estuvo
   # desplegada en produccion sin entrada hasta el 2026-07-26.
   # Esto corre en cada push (no solo al taggear) para que el hueco se vea temprano.
@@ -20,18 +20,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: TRMM_VERSION tiene entrada en CHANGELOG.md
+      - name: ORMM_VERSION tiene entrada en CHANGELOG.md
         run: |
-          VER=$(grep -oP '^TRMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
+          VER=$(grep -oP '^ORMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
           if [ -z "$VER" ]; then
-            echo "::error::No se pudo leer TRMM_VERSION de settings.py."
+            echo "::error::No se pudo leer ORMM_VERSION de settings.py."
             exit 1
           fi
           if ! grep -q "^## v${VER} " CHANGELOG.md; then
             echo "::error::CHANGELOG.md no tiene la entrada '## v${VER}'. La consola enlaza el ancla #v${VER} y quedaria roto (ver release-notes/README.md)."
             exit 1
           fi
-          echo "OK: TRMM_VERSION ${VER} tiene su entrada en el CHANGELOG."
+          echo "OK: ORMM_VERSION ${VER} tiene su entrada en el CHANGELOG."
 
   lint:
     runs-on: ubuntu-22.04

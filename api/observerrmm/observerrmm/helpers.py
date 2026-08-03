@@ -117,7 +117,7 @@ def setup_nats_options() -> dict[str, Any]:
     opts = {
         "servers": get_nats_url(),
         "user": "observerrmm",
-        "name": "trmm-django",
+        "name": "ormm-django",
         "password": settings.SECRET_KEY,
         "connect_timeout": 3,
         "max_reconnect_attempts": 2,

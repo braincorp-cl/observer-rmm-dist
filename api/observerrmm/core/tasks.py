@@ -29,7 +29,7 @@ from core.mesh_utils import (
     build_mesh_display_name,
     has_mesh_perms,
     transform_mesh,
-    transform_trmm,
+    transform_ormm,
 )
 from core.models import CoreSettings
 from core.utils import get_core_settings, get_mesh_ws_url, make_alpha_numeric
@@ -433,7 +433,7 @@ def cache_db_fields_task(self) -> None | str:
 @app.task(bind=True)
 def sync_mesh_perms_task(self):
 
-    if getattr(settings, "TRMM_DISABLE_MESH_SYNC_TASK", False):
+    if getattr(settings, "ORMM_DISABLE_MESH_SYNC_TASK", False):
         return
 
     with redis_lock(SYNC_MESH_PERMS_TASK_LOCK, self.app.oid) as acquired:
@@ -442,7 +442,7 @@ def sync_mesh_perms_task(self):
 
         try:
             core = CoreSettings.objects.first()
-            do_not_sync = not core.sync_mesh_with_trmm
+            do_not_sync = not core.sync_mesh_with_ormm
             uri = get_mesh_ws_url()
             ms = MeshSync(uri)
 
@@ -463,7 +463,7 @@ def sync_mesh_perms_task(self):
                 block_dashboard_login=False,
             )
 
-            trmm_agents_meshnodeids = [
+            ormm_agents_meshnodeids = [
                 f"node//{i.hex_mesh_node_id}"
                 for i in Agent.objects.only("mesh_node_id")
                 if i.mesh_node_id and i.hex_mesh_node_id != "error"
@@ -481,7 +481,7 @@ def sync_mesh_perms_task(self):
                 # make sure that doesn't happen by making a random email
                 rand_str1 = make_random_password(len=6)
                 rand_str2 = make_random_password(len=5)
-                # for trmm users whos usernames are emails
+                # for ormm users whos usernames are emails
                 email_prefix = make_alpha_numeric(user.username)
                 email = f"{email_prefix}.{rand_str1}@observerrmm-do-not-change-{rand_str2}.local"
                 mesh_users_dict[user.mesh_user_id] = {
@@ -491,7 +491,7 @@ def sync_mesh_perms_task(self):
                     "email": email,
                 }
 
-            new_trmm_agents = []
+            new_ormm_agents = []
             for agent in Agent.objects.defer(*AGENT_DEFER):
                 if not agent.mesh_node_id:
                     continue
@@ -511,14 +511,14 @@ def sync_mesh_perms_task(self):
                         tmp.append({"_id": user.mesh_user_id})
 
                 agent_dict["links"] = tmp
-                new_trmm_agents.append(agent_dict)
+                new_ormm_agents.append(agent_dict)
 
-            final_trmm = transform_trmm(new_trmm_agents)
+            final_ormm = transform_ormm(new_ormm_agents)
             final_mesh = transform_mesh(mesh_nodes_raw)
 
             # delete users first
             source_users_global = set()
-            for item in final_trmm:
+            for item in final_ormm:
                 source_users_global.update(item["user_ids"])
 
             target_users_global = set()
@@ -537,7 +537,7 @@ def sync_mesh_perms_task(self):
                 logger.info(f"Deleting {user_id} from mesh")
                 ms.delete_user_from_mesh(mesh_user_id=user_id)
 
-            source_map = {item["node_id"]: set(item["user_ids"]) for item in final_trmm}
+            source_map = {item["node_id"]: set(item["user_ids"]) for item in final_ormm}
             target_map = {item["node_id"]: set(item["user_ids"]) for item in final_mesh}
 
             def _get_sleep_after_n_inter(n):
@@ -554,7 +554,7 @@ def sync_mesh_perms_task(self):
 
             for node_id, source_users in source_map.items():
                 # skip agents without valid node id
-                if node_id not in trmm_agents_meshnodeids:
+                if node_id not in ormm_agents_meshnodeids:
                     continue
 
                 target_users = target_map.get(node_id, set()) - set(
@@ -586,16 +586,16 @@ def sync_mesh_perms_task(self):
 
             # after all done, see if need to update display name
             ms2 = MeshSync(uri)
-            unique_ids = ms2.get_unique_mesh_users(new_trmm_agents)
+            unique_ids = ms2.get_unique_mesh_users(new_ormm_agents)
             for user in unique_ids:
                 try:
                     mesh_realname = ms2.mesh_users[user]["realname"]
                 except KeyError:
                     mesh_realname = ""
-                trmm_realname = mesh_users_dict[user]["full_name"]
-                if mesh_realname != trmm_realname:
+                ormm_realname = mesh_users_dict[user]["full_name"]
+                if mesh_realname != ormm_realname:
                     logger.info(
-                        f"Display names don't match. Updating {user} name from {mesh_realname} to {trmm_realname}"
+                        f"Display names don't match. Updating {user} name from {mesh_realname} to {ormm_realname}"
                     )
                     ms2.update_mesh_displayname(user_info=mesh_users_dict[user])
 

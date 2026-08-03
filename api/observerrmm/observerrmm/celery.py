@@ -69,7 +69,7 @@ app.conf.beat_schedule = {
         "task": "core.tasks.resolve_alerts_task",
         "schedule": timedelta(seconds=80.0),
     },
-    "trmm-scheduler": {
+    "ormm-scheduler": {
         "task": "core.tasks.scheduled_task_runner",
         "schedule": crontab(),
     },
@@ -80,7 +80,7 @@ app.conf.beat_schedule = {
         "task": "agents.tasks.geofence_check_task",
         "schedule": crontab(minute="*/5"),
     },
-    "trmm-reports-scheduler": {
+    "ormm-reports-scheduler": {
         "task": "ee.reporting.tasks.scheduled_reports_runner",
         "schedule": crontab(),
     },

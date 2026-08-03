@@ -396,7 +396,7 @@ export default {
       ];
       // quasar filter only does visible columns so this is a hack to add hidden columns we want to filter
       // originally I was modifying cols directly but this led to phantom colum so doing it this way now
-      // upstream issue ref: github.com/amidaware/tacticalrmm/issues/1264 — TODO confirm whether equivalent issue exists in braincorp-cl/observer-rmm or remove this comment
+      // (ref. de issue del proyecto de origen: 1264)
       const allColumns = [...cols, ...hiddenFields.map((field) => ({ field }))];
 
       const lowerTerms = terms ? terms.toLowerCase() : "";

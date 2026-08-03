@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = "Get webtar url"
 
     def handle(self, *args: tuple[Any, Any], **kwargs: dict[str, Any]) -> None:
-        webtar = f"trmm-web-v{settings.WEB_VERSION}.tar.gz"
+        webtar = f"ormm-web-v{settings.WEB_VERSION}.tar.gz"
         url = f"https://github.com/braincorp-cl/observer-rmm-web/releases/download/v{settings.WEB_VERSION}/{webtar}"  # F-futura: CDN BrainCorp definitiva
 
         t: "Optional[CodeSignToken]" = CodeSignToken.objects.first()

@@ -54,7 +54,7 @@ def default_task_supported_platforms() -> list[str]:
     return [AgentPlat.WINDOWS]
 
 
-logger = logging.getLogger("trmm")
+logger = logging.getLogger("ormm")
 
 
 class AutomatedTask(BaseAuditModel):

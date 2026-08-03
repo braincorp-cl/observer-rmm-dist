@@ -46,8 +46,8 @@ ORPHANED_WIN_TASK_LOCK = "orphaned-win-task-lock-key"
 SYNC_MESH_PERMS_TASK_LOCK = "sync-mesh-perms-lock-key"
 CACHE_DB_FIELDS_TASK_LOCK = "cache-db-fields-task-lock-key"
 
-TRMM_WS_MAX_SIZE = getattr(settings, "TRMM_WS_MAX_SIZE", 100 * 2**20)
-TRMM_MAX_REQUEST_SIZE = getattr(settings, "TRMM_MAX_REQUEST_SIZE", 10 * 2**20)
+ORMM_WS_MAX_SIZE = getattr(settings, "ORMM_WS_MAX_SIZE", 100 * 2**20)
+ORMM_MAX_REQUEST_SIZE = getattr(settings, "ORMM_MAX_REQUEST_SIZE", 10 * 2**20)
 
 # Piso de largo de un mesh node id ya normalizado a hex. Los reales son SHA-384,
 # o sea 96 caracteres; el piso se deja en 64 para que coincida EXACTAMENTE con lo

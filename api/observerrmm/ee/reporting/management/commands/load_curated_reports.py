@@ -2,7 +2,7 @@
 Carga el set de plantillas de reportes curadas por BrainCorp para Observer RMM.
 
 Autoradas por BrainCorp usando como REFERENCIA los tipos de reporte del
-ecosistema RMM (repo público amidaware/reporting-templates) — implementación
+ecosistema RMM (un repo público de plantillas de terceros) — implementación
 propia y original, rebrandeada, SIN importar sus archivos, sin licencia ajena
 ni strings legacy ni assets externos. Cubren la totalidad de los tipos de
 reporte reales, deduplicando las variantes de formato (csv/md/pdf/html del

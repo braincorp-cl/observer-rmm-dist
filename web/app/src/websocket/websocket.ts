@@ -55,7 +55,7 @@ export function useCliWSConnection() {
   const auth = useAuthStore();
 
   if (WSCliConnection === undefined) {
-    const url = getWSUrl("trmmcli", auth.token);
+    const url = getWSUrl("ormmcli", auth.token);
     WSCliConnection = useWebSocket(url);
   }
 

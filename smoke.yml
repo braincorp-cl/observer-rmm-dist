@@ -57,8 +57,8 @@
   pre_tasks:
     # Base mínima del install.sh original (línea 6) — Ubuntu Server
     # minimizado no trae gnupg/dirmngr, requeridos por el repo PGDG.
-    # Locale: C.UTF-8 del sistema, igual que el servidor TacticalRMM de
-    # referencia (NO se genera es_CL ni se instala el paquete locales).
+    # Locale: C.UTF-8 del sistema, igual que el servidor de referencia del
+    # que se portó la instalación (NO se genera es_CL ni se instala el paquete locales).
     - name: Instalar base mínima (espejo install.sh línea 6)
       ansible.builtin.apt:
         name:

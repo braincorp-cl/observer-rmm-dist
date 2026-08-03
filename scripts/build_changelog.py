@@ -3,7 +3,7 @@
 
 El HTML resultante se publica en https://agents.observer.cl/changelog/index.html
 (workflow publish-changelog.yml, por WebDAV). La consola lo enlaza desde el aviso de
-"versión disponible" (MainLayout.vue) con el ancla #v{TRMM_VERSION}.
+"versión disponible" (MainLayout.vue) con el ancla #v{ORMM_VERSION}.
 
 CLAVE: cada entrada `## vX.Y.Z — fecha` produce un encabezado con `id="vX.Y.Z"` EXACTO
 (el token tal cual, con los puntos), para que el ancla de la UI resuelva. No se slugifica.

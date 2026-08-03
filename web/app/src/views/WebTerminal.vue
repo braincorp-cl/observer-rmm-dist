@@ -58,30 +58,30 @@ function setupXTerm() {
   term.open(xtermContainer.value!);
   fit.fit();
   term.onData((data) => {
-    send(JSON.stringify({ action: "trmmcli.input", data: { input: data } }));
+    send(JSON.stringify({ action: "ormmcli.input", data: { input: data } }));
   });
 }
 
 const resizeWindow = useDebounceFn(() => {
   fit.fit();
   const dims = { cols: term.cols, rows: term.rows };
-  send(JSON.stringify({ action: "trmmcli.resize", data: dims }));
+  send(JSON.stringify({ action: "ormmcli.resize", data: dims }));
 }, 300);
 
 function disconnect() {
   term.dispose();
   close();
-  send(JSON.stringify({ action: "trmmcli.disconnect" }));
+  send(JSON.stringify({ action: "ormmcli.disconnect" }));
 }
 
-interface WSTrmmCliOutput {
+interface WSOrmmCliOutput {
   output: string;
   messageId: string;
 }
 
 watch(data, (newValue) => {
-  if (newValue.action === "trmmcli.output") {
-    const incomingData = newValue.data as WSTrmmCliOutput;
+  if (newValue.action === "ormmcli.output") {
+    const incomingData = newValue.data as WSOrmmCliOutput;
     term.write(incomingData.output);
   }
 });

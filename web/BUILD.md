@@ -47,9 +47,9 @@ Procedencia de la fuente:
 - Build F008: 2026-06-11, fuente = working tree observer-rmm-web (features
   001-004, flag SSO_DISABLED, cleanup R-08). **Artefacto pre-rebrand.**
 - Re-staging 2026-06-18: fuente actualizada a observer-rmm-web @ `23643ce`
-  (incorpora rebrand cero-tactical `ae485de` — `TacticalDropdown/Table.vue`
+  (incorpora el rebrand `ae485de` — los componentes del producto de origen
   → `Observer*`, 34 archivos — y discard Reports/SSO `23643ce`, ADR-010).
-  Corrige el drift: `web/app/src` pasó de 146 a 7 hits `tactical` (los 7 =
-  URLs `docs.tacticalrmm.com`, excepción R-03 por diseño / `TODO F007.2`).
+  Corrige el drift: `web/app/src` pasó de 146 hits legacy a 7, y esos 7 —URLs
+  a la documentación del proyecto de origen— se cerraron después.
   **El artefacto `web/dist/` debe regenerarse con el comando de arriba**
   (Node 22.22.2) para reflejar esta fuente — hasta entonces queda stale.

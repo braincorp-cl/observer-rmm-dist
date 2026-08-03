@@ -45,7 +45,7 @@ from observerrmm.constants import (
     AGENT_DEFER,
     AGENT_MANUAL_UNINSTALL_CACHE_PREFIX,
     AGENT_MANUAL_UNINSTALL_CACHE_TIMEOUT,
-    TRMM_MAX_REQUEST_SIZE,
+    ORMM_MAX_REQUEST_SIZE,
     AgentHistoryType,
     AgentMonType,
     AgentPlat,
@@ -449,7 +449,7 @@ class TaskRunner(APIView):
         )
 
         content_length = request.META.get("CONTENT_LENGTH")
-        if content_length and int(content_length) > TRMM_MAX_REQUEST_SIZE:
+        if content_length and int(content_length) > ORMM_MAX_REQUEST_SIZE:
             request.data["stdout"] = ""
             request.data["stderr"] = "Content truncated due to excessive request size."
             request.data["retcode"] = 1
@@ -707,7 +707,7 @@ class AgentHistoryResult(APIView):
 
     def patch(self, request, agentid, pk):
         content_length = request.META.get("CONTENT_LENGTH")
-        if content_length and int(content_length) > TRMM_MAX_REQUEST_SIZE:
+        if content_length and int(content_length) > ORMM_MAX_REQUEST_SIZE:
 
             request.data["script_results"]["stdout"] = ""
             request.data["script_results"][

@@ -22,7 +22,7 @@ class HostedCoreMixin:
             for field in ("mesh_site", "mesh_token", "mesh_username"):
                 ret[field] = "n/a"
 
-            ret["sync_mesh_with_trmm"] = True
+            ret["sync_mesh_with_ormm"] = True
             ret["enable_server_scripts"] = False
             ret["enable_server_webterminal"] = False
 

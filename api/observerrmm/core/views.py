@@ -84,7 +84,7 @@ class GetEditCoreSettings(APIView):
             data.pop("mesh_site")
             data.pop("mesh_token")
             data.pop("mesh_username")
-            data["sync_mesh_with_trmm"] = True
+            data["sync_mesh_with_ormm"] = True
             data["enable_server_scripts"] = False
             data["enable_server_webterminal"] = False
 
@@ -123,13 +123,13 @@ def dashboard_info(request):
         return notify_error("")
 
     from core.utils import token_is_expired
-    from observerrmm.utils import get_latest_trmm_ver, runcmd_placeholder_text
+    from observerrmm.utils import get_latest_ormm_ver, runcmd_placeholder_text
 
     core_settings = get_core_settings()
     return Response(
         {
-            "trmm_version": settings.TRMM_VERSION,
-            "latest_trmm_ver": get_latest_trmm_ver(),
+            "ormm_version": settings.ORMM_VERSION,
+            "latest_ormm_ver": get_latest_ormm_ver(),
             "dark_mode": request.user.dark_mode,
             "language": request.user.language,
             "show_community_scripts": request.user.show_community_scripts,
@@ -662,7 +662,7 @@ def status_v2(request):
     mesh_port = getattr(settings, "MESH_PORT", 4430)
 
     ret = {
-        "version": settings.TRMM_VERSION,
+        "version": settings.ORMM_VERSION,
         "latest_agent_version": settings.LATEST_AGENT_VER,
         "agent_count": Agent.objects.count(),
         "client_count": Client.objects.count(),
@@ -715,7 +715,7 @@ def status(request):
             redis_ping = True
 
     ret = {
-        "version": settings.TRMM_VERSION,
+        "version": settings.ORMM_VERSION,
         "latest_agent_version": settings.LATEST_AGENT_VER,
         "agent_count": Agent.objects.count(),
         "client_count": Client.objects.count(),

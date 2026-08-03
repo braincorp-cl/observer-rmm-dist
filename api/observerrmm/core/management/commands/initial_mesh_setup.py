@@ -12,7 +12,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from core.utils import get_core_settings, get_mesh_ws_url
-from observerrmm.constants import TRMM_WS_MAX_SIZE
+from observerrmm.constants import ORMM_WS_MAX_SIZE
 
 
 class Command(BaseCommand):
@@ -21,7 +21,7 @@ class Command(BaseCommand):
     async def websocket_call(self, uri) -> bool:
         # Devuelve True si creó el device group, False si ya existía (para que el
         # caller distinga "changed" de no-op — idempotencia del deploy Ansible).
-        async with websockets.connect(uri, max_size=TRMM_WS_MAX_SIZE) as websocket:
+        async with websockets.connect(uri, max_size=ORMM_WS_MAX_SIZE) as websocket:
             # Get Device groups to see if it exists
             await websocket.send(json.dumps({"action": "meshes"}))
 

@@ -6,7 +6,7 @@ en cada push a `main` (workflow `publish-changelog.yml`). La consola enlaza aqu�
 desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`).
 
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
-como ancla HTML `id`, así que debe coincidir con `TRMM_VERSION`). Viñetas con `-`.
+como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
 ## v1.4.2 — 2026-07-26
 
