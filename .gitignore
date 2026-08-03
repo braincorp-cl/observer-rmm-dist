@@ -15,9 +15,47 @@ web/dist/
 web/.env.production
 web/.env.development
 
-# Coverage artifacts (regenerados por pytest)
-api/observer/coverage.xml
-api/observer/.coverage
-api/observer/htmlcov/
+# Coverage artifacts (regenerados por pytest).
+# El paquete Django es `observerrmm/` desde F007 (rename tacticalrmm→observerrmm);
+# estas reglas decían `api/observer/` y llevaban desde entonces sin ignorar nada.
+api/observerrmm/coverage.xml
+api/observerrmm/.coverage
+api/observerrmm/htmlcov/
+api/observerrmm/.pytest_cache/
 group_vars/*/vault.yml
 inventory/produccion.yml
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Este repo es el PRODUCTO: un `git clone` debe traer sólo lo que se instala con
+# el playbook, y nada más. Ni specs, ni salidas de test, ni configuración de
+# editores o herramientas de nadie.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Caché de Ansible (roles/modules/collections locales). Hoy el directorio existe
+# vacío, así que no se subía por una razón frágil: git no versiona directorios
+# vacíos. En cuanto Ansible escriba algo dentro, un `git add -A` se lo llevaría.
+.ansible/
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Herramientas de asistencia (no son componentes del producto)
+.claude/
+.agents/
+CLAUDE.md
+AGENTS.md
+
+# Framework Reversa: vive en el hub `observer-rmm`, que es el repo de specs.
+# Acá no entra nada, ni siquiera de paso.
+.reversa/
+_reversa_sdd/
+_reversa_forward/
+
+# Salidas de pruebas y diagnósticos: se regeneran, no se versionan.
+smoke-results/
+*.orig
+*.rej
