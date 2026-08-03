@@ -16,8 +16,8 @@ web/.env.production
 web/.env.development
 
 # Coverage artifacts (regenerados por pytest).
-# El paquete Django es `observerrmm/` desde F007 (rename tacticalrmm→observerrmm);
-# estas reglas decían `api/observer/` y llevaban desde entonces sin ignorar nada.
+# El paquete Django es `observerrmm/` desde el rename de F007; estas reglas decían
+# `api/observer/` y llevaban desde entonces sin ignorar nada.
 api/observerrmm/coverage.xml
 api/observerrmm/.coverage
 api/observerrmm/htmlcov/
@@ -59,3 +59,12 @@ _reversa_forward/
 smoke-results/
 *.orig
 *.rej
+
+# Virtualenvs. Hoy `.venv-002/` (548 MB) NO lo ve git, pero por un accidente
+# parecido al de `.ansible/`: `uv` y el `venv` moderno dejan un `.gitignore` con
+# `*` DENTRO del propio venv. Un venv creado con una herramienta que no lo haga
+# quedaría a un `git add -A` de colarse.
+.venv*/
+venv/
+env/
+ENV/
