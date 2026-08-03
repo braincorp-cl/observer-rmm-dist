@@ -22,6 +22,13 @@ api/observerrmm/coverage.xml
 api/observerrmm/.coverage
 api/observerrmm/htmlcov/
 api/observerrmm/.pytest_cache/
+
+# Config de NATS: la GENERA el servidor con `manage.py reload_nats`, y el deploy
+# la excluye del synchronize en los dos caminos (deploy-api.yml y el rol). Correr
+# la suite en local la deja escrita acá con credenciales de juguete; se coló al
+# índice en `0c0345c` y de ahí sale esta regla.
+api/observerrmm/nats-rmm.conf
+
 group_vars/*/vault.yml
 inventory/produccion.yml
 
