@@ -313,7 +313,14 @@ class TestNewFolder:
 @pytest.mark.django_db
 class TestDeleteAssets:
     def test_delete_directory_success(self, authenticated_client):
-        from ..settings import settings
+        # El esperado se construye con el STORAGE, no con
+        # `settings.REPORTING_ASSETS_BASE_PATH`: la vista llama
+        # `shutil.rmtree(report_assets_fs.path(path))`, así que es el storage el
+        # que decide la ruta. Comparar contra la constante de configuración
+        # coincidía sólo mientras nadie moviera el storage — y el fixture que
+        # aísla los assets en `tmp_path` lo mueve. Además así el test dice lo que
+        # de verdad quiere decir: que el borrado ocurre DENTRO del storage.
+        from ..storage import report_assets_fs
 
         with patch(
             "ee.reporting.views.report_assets_fs.isdir", return_value=True
@@ -324,9 +331,7 @@ class TestDeleteAssets:
                 "/reporting/assets/delete/", data={"paths": ["path/to/dir"]}
             )
 
-            mock_rmtree.assert_called_with(
-                f"{settings.REPORTING_ASSETS_BASE_PATH}/path/to/dir"
-            )
+            mock_rmtree.assert_called_with(report_assets_fs.path("path/to/dir"))
             assert response.status_code == 200
 
             # make sure the assets within the deleted folder also got deleted
