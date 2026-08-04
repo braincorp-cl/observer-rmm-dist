@@ -8,6 +8,23 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.3 — 2026-08-04
+
+- Biblioteca de 44 **plantillas de scripts** propias del producto para Windows, Linux y macOS, listas para ejecutar o clonar, sin depender de repositorios externos.
+- Las plantillas se distinguen con su propio isotipo en el Administrador de scripts, y sus argumentos y variables de entorno se pueden revisar y ajustar para una prueba puntual sin tener que clonarlas.
+- **Asistente IA** con pestaña propia en Configuración global: funciona con cualquier proveedor de API estilo OpenAI, con URL base, modelo, límite de tokens y temperatura configurables.
+- Redacción de un **borrador de script con IA** desde el Administrador de scripts, describiendo en lenguaje natural lo que se necesita.
+- Alerta por correo y baja del equipo en la consola cuando alguien **desinstala el agente a mano**, con una ventana de gracia de 10 minutos que se puede cancelar si la desinstalación era parte de una reinstalación.
+- La alarma antirrobo suena al volumen máximo del equipo y no se detiene bajando el volumen.
+- Geolocalización y su forzado activados por omisión en instalaciones nuevas.
+- Documentación pública en `docs.observer.cl`, indexable y con la tabla de funciones soportadas por plataforma.
+- Corregido: el cuadro para pedirle el borrador a la IA mostraba una sola línea, así que no se alcanzaba a leer lo que uno mismo estaba escribiendo. Ahora es un campo amplio, con ejemplos y contador.
+- Corregido: la espera por la respuesta del proveedor de IA pasa de 60 a 120 segundos, y la consola muestra los segundos transcurridos en vez de una rueda muda. Antes se descartaban modelos que responden bien pero lento.
+- Corregido: el desinstalador del agente en Linux se quedaba esperando una confirmación en pantalla que nadie iba a dar.
+- Corregido: el respaldo programado reportaba éxito sin haber escrito el archivo.
+- Corregido: la hora de las alertas se informa en la zona horaria del producto.
+- Corregido: la desinstalación en macOS ya no queda colgada cuando MeshCentral no responde.
+
 ## v1.4.2 — 2026-07-26
 
 - Respuesta rápida en el equipo: **bloqueo remoto de pantalla**, **mensaje en pantalla** y **alarma sonora**, disponibles equipo por equipo o como acción masiva.
