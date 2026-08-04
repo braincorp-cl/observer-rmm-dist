@@ -8,6 +8,10 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.4 — 2026-08-04
+
+- La versión de agente que el producto ofrece a la flota pasa a ser la **2.15.1**, que corrige los acentos y la ñ en los scripts ejecutados sobre Windows en español. Los equipos se actualizan solos al hacer check-in.
+
 ## v1.4.3 — 2026-08-04
 
 - Biblioteca de 44 **plantillas de scripts** propias del producto para Windows, Linux y macOS, listas para ejecutar o clonar, sin depender de repositorios externos.

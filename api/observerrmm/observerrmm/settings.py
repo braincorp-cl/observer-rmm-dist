@@ -28,7 +28,7 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.3"
+ORMM_VERSION = "1.4.4"
 
 WEB_VERSION = "0.101.59"
 
@@ -37,7 +37,7 @@ WEB_VERSION = "0.101.59"
 APP_VER = "0.0.205"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
-LATEST_AGENT_VER = "2.14.3"
+LATEST_AGENT_VER = "2.15.1"
 
 MESH_VER = "1.1.32"
 
