@@ -37,8 +37,23 @@ DISPLAY=:0 python3 scripts/docs/console_screenshots.py \
 DISPLAY=:0 python3 scripts/docs/console_screenshots.py --steps mis_pasos.json --out /tmp/shots
 ```
 
-`--steps` es un JSON: lista de `{name, actions}`; acciones `get`/`click`/`tab`/
-`esc`/`sleep`/`shot`. Ver `STEPS_EXAMPLE` en el `.py`.
+`--steps` es un JSON: lista de `{name, actions}`. Acciones disponibles:
+
+| Acción | Para qué |
+|---|---|
+| `["get", "/", 6]` | navegar y esperar N s |
+| `["click", "texto"]` · `["clickc", "subcadena"]` | clic por texto exacto / por subcadena |
+| `["dblclick", "texto"]` | abrir el editor de una fila |
+| `["rclick", "HOSTNAME"]` | **clic derecho**: el menú de acciones del equipo sólo se abre así |
+| `["tab", "Parches"]` | pestaña de agente |
+| `["type", "textarea", "lo que se pide"]` | escribir en un campo **del diálogo de encima** |
+| `["keys", "control", "\ue007"]` | combinación de teclas (`\ue007` = Enter ⇒ Ctrl+Enter) |
+| `["scroll", 330]` | desplazar el contenido del diálogo de encima |
+| `["maximize"]` | maximizar el diálogo |
+| `["away"]` | alejar el puntero antes de capturar |
+| `["esc"]` · `["sleep", 3]` · `["shot", "nombre"]` | cerrar / esperar / capturar |
+
+Ver `STEPS_EXAMPLE` en el `.py`.
 
 **Gotchas descubiertos:**
 - En **staging** suelen estar **vacías** las pestañas *Chequeos, Tareas, Historial*
@@ -46,6 +61,24 @@ DISPLAY=:0 python3 scripts/docs/console_screenshots.py --steps mis_pasos.json --
 - Menú **Reportes → "Gestor de reportes"** (texto exacto del item).
 - Pestañas *Auditoría/Depuración* pueden requerir scroll de la barra de tabs.
 - Consola en español; el idioma se ve arriba a la derecha.
+- **El menú de Quasar necesita ~2 s de animación** entre abrir el menú padre y
+  clicar su ítem. Con 1 s el clic se pierde y el menú se cierra: parece que el
+  ítem no existiera.
+- **`maximize` es medida de privacidad, no de encuadre.** El diálogo normal deja
+  ver el panel de hardware de atrás (IP pública, IP LAN, UUID del equipo) y la
+  tabla de agentes con la columna *Usuario*. Maximizado, el diálogo tapa todo.
+- **El corrector de Firefox subraya en rojo** todo lo que se escriba en español
+  (no hay diccionario es instalado) y eso sale en la captura. `type` lo apaga con
+  `spellcheck=false`; si se escribe por otra vía, hay que apagarlo a mano.
+- **El tooltip del botón recién clicado aparece en la captura** y tapa el campo de
+  al lado. Poner `["away"]` antes de cada `shot`.
+- **Elegir el contenido para que quepa en el cuadro.** Una salida de 44 líneas no
+  entra: el formulario del diálogo se lleva los primeros ~520 px. Se probaron
+  varias plantillas por API antes de capturar y se eligió una de 23 líneas, que
+  entra completa **con su veredicto final**. Sale más barato que recortar.
+- Si el modelo del asistente IA **filtra su razonamiento** (`<think>`) o repite el
+  script, el borrador no se publica: hay que regenerar. Conviene automatizar el
+  descarte (líneas de más, bloques repetidos) en vez de mirar cada corrida.
 
 ## 2) Elegir + optimizar
 
@@ -97,25 +130,50 @@ git push origin main   # observer-rmm-dist = repo de distribución (push permiti
 
 Appserver `10.20.0.52` (Apache), docroot `/var/www/html/observer-docs/`.
 
+🔴 **El respaldo va FUERA del docroot.** Un `index.html.bak-…` al lado del original
+**se sirve por HTTP** (responde 200): queda una copia vieja de la página, pública e
+indexable. Ya pasó —13 `.bak` públicos— y el vhost hoy los deniega, pero la regla es
+no crearlos ahí. Respaldar en `/var/www/backups/observer-docs/<timestamp>/`.
+
 ```bash
-H=observer@10.20.0.52; DR=/var/www/html/observer-docs
-ssh $H "sudo cp -p $DR/<pagina>/index.html $DR/<pagina>/index.html.bak-$(date +%Y%m%d)"
-scp docs-site/<pagina>/index.html docs-site/assets/style.css $H:/tmp/
-scp docs-site/assets/shots/*.png $H:/tmp/shots/    # crear /tmp/shots antes
-ssh $H "sudo install -o www-data -g www-data -m 644 /tmp/index.html $DR/<pagina>/index.html
-        sudo install -o www-data -g www-data -m 644 /tmp/style.css $DR/assets/style.css
-        sudo mkdir -p $DR/assets/shots && sudo chown www-data:www-data $DR/assets/shots
-        sudo install -o www-data -g www-data -m 644 /tmp/shots/*.png $DR/assets/shots/
-        sudo systemctl reload apache2"
+H=observer@10.20.0.52; DR=/var/www/html/observer-docs; TS=$(date +%Y%m%d-%H%M%S)
+# 1) subir en un tar (preserva rutas relativas; nada suelto en /tmp del server)
+cd docs-site && tar cf - <pagina>/index.html sitemap.xml assets/shots/<nuevas>.webp \
+  | ssh $H "mkdir -p /tmp/docs-nuevo && tar xf - -C /tmp/docs-nuevo"
+# 2) respaldar SOLO lo que se va a pisar, FUERA del docroot
+ssh $H "B=/var/www/backups/observer-docs/$TS
+        sudo mkdir -p \$B/<pagina> \$B/assets/shots
+        sudo cp -p $DR/<pagina>/index.html \$B/<pagina>/
+        sudo cp -p $DR/sitemap.xml \$B/"
+# 3) instalar con dueño y permisos explícitos + recargar
+ssh $H "sudo install -o www-data -g www-data -m 644 /tmp/docs-nuevo/<pagina>/index.html $DR/<pagina>/index.html
+        sudo install -o www-data -g www-data -m 644 /tmp/docs-nuevo/assets/shots/*.webp $DR/assets/shots/
+        sudo systemctl reload apache2; rm -rf /tmp/docs-nuevo"
 ```
 
-**Verificar en vivo:**
+**Verificar en vivo** (no basta el 200: este vhost tuvo WebP servido **sin**
+`Content-Type`, y con el `nosniff` del proxy el navegador se niega a renderizarlo →
+200 del tamaño correcto y la imagen invisible):
+
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://docs.observer.cl/<pagina>/
-for i in dashboard parches software reportes; do
-  curl -s -o /dev/null -w "$i %{http_code} %{content_type}\n" https://docs.observer.cl/assets/shots/$i.png; done
-# y opcional: Selenium sobre la página pública → document.images sin naturalWidth===0 (0 rotas)
+curl -sk -o /tmp/p.html -w "%{http_code}\n" https://docs.observer.cl/<pagina>/
+md5sum /tmp/p.html docs-site/<pagina>/index.html      # deben coincidir
+for i in <nuevas>; do
+  curl -sk -o /tmp/x.webp -w "$i %{http_code} %{content_type}\n" \
+       https://docs.observer.cl/assets/shots/$i.webp
+  md5sum /tmp/x.webp docs-site/assets/shots/$i.webp; done   # también deben coincidir
+ssh $H "find $DR -name '*.bak' | wc -l"               # tiene que dar 0
 ```
+
+Y el chequeo en navegador sobre la página **pública**: render exclusivo por idioma,
+ids duplicados, anclas internas, scroll horizontal y **0 imágenes rotas
+scrolleando la página entera** — la mayoría son `loading="lazy"` y sin scroll
+reportan `naturalWidth=0`, o sea rotas sin estarlo.
+
+⚠️ **Si un archivo se reemplaza con el MISMO nombre, hay que bustear la caché**
+(`?v=N` en la página): el proxy de adelante cachea assets ~6 h. Y el cache-buster
+se **mide** en la respuesta viva antes de publicar: acá el HTML no se cachea y el
+CSS sí, así que no se puede asumir por tipo de archivo.
 
 ## Registro
 

@@ -143,6 +143,90 @@ class Capturer:
         print(f"  ⚠ no encontré texto {text!r} (dblclick)")
         return False
 
+    def rclick_text(self, text, tags=("td", "div", "span"), nth=0):
+        """Clic DERECHO sobre un texto. En la tabla de agentes, el menú de
+        acciones del equipo (Ejecutar script, Tomar control, Respuesta rápida…)
+        se abre así y no hay otra vía por click_text."""
+        xp = " | ".join(f"//{t}[normalize-space(text())={json.dumps(text, ensure_ascii=False)}]" for t in tags)
+        els = [e for e in self.d.find_elements(By.XPATH, xp) if e.is_displayed()]
+        if len(els) > nth:
+            self.d.execute_script("arguments[0].scrollIntoView({block:'center'});", els[nth])
+            time.sleep(0.3); ActionChains(self.d).context_click(els[nth]).perform()
+            time.sleep(1); return True
+        print(f"  ⚠ no encontré texto {text!r} (rclick)")
+        return False
+
+    def type_top(self, selector, text):
+        """Escribe en un campo del diálogo de ENCIMA (CSS selector relativo a él).
+
+        Acotarlo al diálogo de encima NO es cosmético: un `.q-dialog textarea`
+        global agarra el textarea oculto de Monaco del formulario de atrás y el
+        backdrop intercepta el clic (ElementClickInterceptedException).
+        Además apaga el corrector ortográfico: Firefox no trae diccionario es y
+        subraya en rojo todo el texto escrito, que sale en la captura."""
+        el = self.d.execute_script("""
+        var ds = Array.from(document.querySelectorAll('.q-dialog'))
+          .filter(function(d){return d.getBoundingClientRect().height>0;});
+        return ds.length ? ds[ds.length-1].querySelector(arguments[0]) : null;
+        """, selector)
+        if el is None:
+            print(f"  ⚠ no encontré {selector!r} en el diálogo de encima")
+            return False
+        self.d.execute_script(
+            "arguments[0].setAttribute('spellcheck','false'); arguments[0].focus();", el)
+        time.sleep(0.2); el.send_keys(text); time.sleep(0.4)
+        return True
+
+    def keys(self, *combo):
+        """Combinación de teclas, p.ej. keys('control', Keys.ENTER)."""
+        a = ActionChains(self.d)
+        mods = [getattr(Keys, k.upper()) if isinstance(k, str) and hasattr(Keys, k.upper()) else k
+                for k in combo[:-1]]
+        for m in mods:
+            a = a.key_down(m)
+        a = a.send_keys(combo[-1])
+        for m in reversed(mods):
+            a = a.key_up(m)
+        a.perform(); time.sleep(0.5)
+
+    def scroll_dialog(self, px):
+        """Desplaza el contenedor scrolleable del diálogo de encima. Se busca por
+        EFECTO (scrollHeight > clientHeight) y no por clase: Quasar las cambia
+        entre maximizado y normal."""
+        r = self.d.execute_script("""
+        var ds = Array.from(document.querySelectorAll('.q-dialog'))
+          .filter(function(d){return d.getBoundingClientRect().height>0;});
+        if (!ds.length) return 'sin dialogo';
+        var c = Array.from(ds[ds.length-1].querySelectorAll('*'))
+          .filter(function(e){return e.scrollHeight - e.clientHeight > 40;});
+        if (!c.length) return 'sin scroll';
+        c.sort(function(a,b){return (b.scrollHeight-b.clientHeight)-(a.scrollHeight-a.clientHeight);});
+        c[0].scrollTop = arguments[0];
+        return 'scrollTop=' + c[0].scrollTop + ' de ' + (c[0].scrollHeight - c[0].clientHeight);
+        """, px)
+        print(f"  scroll: {r}")
+        time.sleep(1)
+
+    def maximize_dialog(self):
+        """Maximiza el diálogo por su botón de barra (icono crop_square).
+
+        Vale como medida de PRIVACIDAD, no solo de encuadre: el diálogo normal
+        deja ver el panel de hardware de atrás, que publica IP pública, IP LAN
+        y el UUID del equipo, y la tabla de agentes con la columna Usuario."""
+        els = [e for e in self.d.find_elements(By.XPATH, "//i[normalize-space(text())='crop_square']")
+               if e.is_displayed()]
+        if els:
+            els[0].click(); time.sleep(1.5); return True
+        print("  ⚠ no encontré el botón maximizar del diálogo")
+        return False
+
+    def mouse_away(self):
+        """Aleja el puntero antes de capturar: si queda sobre un botón, su
+        tooltip aparece en la captura tapando el campo de al lado."""
+        body = self.d.find_element(By.TAG_NAME, "body")
+        ActionChains(self.d).move_to_element_with_offset(body, 3, 3).perform()
+        time.sleep(0.6)
+
     def esc(self):
         ActionChains(self.d).send_keys(Keys.ESCAPE).perform(); time.sleep(0.5)
 
@@ -151,13 +235,20 @@ class Capturer:
         print(f"  📸 {name}.png ({os.path.getsize(p)//1024}KB)")
 
     def run_step(self, step):
-        """step = {name, actions:[...]}; actions: get/click/dblclick/tab/esc/sleep/shot."""
+        """step = {name, actions:[...]}; actions: get/click/clickc/dblclick/rclick/
+        tab/type/keys/scroll/maximize/away/esc/sleep/shot."""
         for a in step.get("actions", []):
             typ = a[0]
             if typ == "get":      self.d.get(self.base + a[1]); time.sleep(a[2] if len(a) > 2 else 3)
             elif typ == "click":  self.click_text(a[1], tuple(a[2]) if len(a) > 2 else ("div","span","button","a","td"))
             elif typ == "clickc":   self.click_contains(a[1], tuple(a[2]) if len(a) > 2 else ("div","span","button","a"))
             elif typ == "dblclick": self.dblclick_text(a[1], tuple(a[2]) if len(a) > 2 else ("td","div","span")); time.sleep(3)
+            elif typ == "rclick":   self.rclick_text(a[1], tuple(a[2]) if len(a) > 2 else ("td","div","span"))
+            elif typ == "type":     self.type_top(a[1], a[2])
+            elif typ == "keys":     self.keys(*a[1:])
+            elif typ == "scroll":   self.scroll_dialog(a[1])
+            elif typ == "maximize": self.maximize_dialog()
+            elif typ == "away":     self.mouse_away()
             elif typ == "tab":    self.click_text(a[1], ("div", "span")); time.sleep(2)
             elif typ == "esc":    self.esc()
             elif typ == "sleep":  time.sleep(a[1])
