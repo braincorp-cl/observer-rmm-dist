@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Características · Software RMM con geolocalización y antirrobo</title>
-<meta name="description" content="Control remoto, scripts, monitoreo con alertas, parches, inventario, ubicación de la flota con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
+<meta name="description" content="Control remoto, 44 plantillas de scripts, monitoreo con alertas, parches, inventario, ubicación con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
 <!-- seo:start -->
 <link rel="canonical" href="https://docs.observer.cl/features/">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -15,7 +15,7 @@
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:url" content="https://docs.observer.cl/features/">
 <meta property="og:title" content="Características · Software RMM con geolocalización y antirrobo">
-<meta property="og:description" content="Control remoto, scripts, monitoreo con alertas, parches, inventario, ubicación de la flota con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
+<meta property="og:description" content="Control remoto, 44 plantillas de scripts, monitoreo con alertas, parches, inventario, ubicación con geocerca y respuesta antirrobo en Windows, Linux y macOS.">
 <meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -75,12 +75,12 @@
       <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, inventory, asset location, and immediate response on the machine itself.</p>
 
       <div class="callout note lang-es">
-        <span class="tag">Novedades en 1.4.2</span>
-        <p>Las dos capacidades más recientes son <a href="#ubicacion">ubicación de la flota con geocerca</a> y <a href="#respuesta-endpoint">respuesta rápida en el equipo</a> (bloqueo de pantalla, mensaje al usuario y alarma sonora). Ambas requieren el agente 2.14 o superior, que se instala solo en los equipos con auto-actualización activada.</p>
+        <span class="tag">Novedades en 1.4.4</span>
+        <p>Lo más reciente son la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a> propias del producto, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> —que ahora se pide en un cuadro amplio, con ejemplos y espera visible— y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a> en el equipo. Antes de eso llegaron la <a href="#ubicacion">ubicación de la flota con geocerca</a> y la <a href="#respuesta-endpoint">respuesta rápida en el equipo</a>, que requieren el agente 2.14 o superior.</p>
       </div>
       <div class="callout note lang-en">
-        <span class="tag">New in 1.4.2</span>
-        <p>The two newest capabilities are <a href="#ubicacion">fleet location with geofencing</a> and <a href="#respuesta-endpoint">on-device quick response</a> (screen lock, on-screen message, and audible alarm). Both need agent 2.14 or later, which installs itself on machines that have auto-update enabled.</p>
+        <span class="tag">New in 1.4.4</span>
+        <p>The latest additions are the <a href="#plantillas-scripts">library of 44 script templates</a> that ship with the product, the <a href="#ejecucion-automatizacion">AI script draft</a> —now asked for in a roomy box, with examples and a visible wait— and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a> on the machine. Before those came <a href="#ubicacion">fleet location with geofencing</a> and <a href="#respuesta-endpoint">on-device quick response</a>, which need agent 2.14 or later.</p>
       </div>
 
       <figure class="doc-shot">
@@ -131,8 +131,12 @@
           <p><span class="lang-es">Corre comandos y scripts en varios lenguajes: <strong>bash, batch, PowerShell, Python, Nushell y Deno</strong>.</span><span class="lang-en">Run commands and scripts in several languages: <strong>bash, batch, PowerShell, Python, Nushell, and Deno</strong>.</span></p>
         </div>
         <div class="feature">
-          <h3><span class="lang-es">Biblioteca de scripts y snippets</span><span class="lang-en">Script library &amp; snippets</span></h3>
-          <p><span class="lang-es">Gestiona tu propia biblioteca de scripts, con snippets reutilizables y un catálogo de <em>community scripts</em>.</span><span class="lang-en">Manage your own script library, with reusable snippets and a <em>community scripts</em> catalog.</span></p>
+          <h3><span class="lang-es">Tu propia biblioteca de scripts</span><span class="lang-en">Your own script library</span></h3>
+          <p><span class="lang-es">Sube o escribe tus scripts, reúsa fragmentos, organízalos en carpetas por categoría y oculta los que no quieras ver. Y encima de los tuyos vienen las <a href="#plantillas-scripts">plantillas del producto</a>.</span><span class="lang-en">Upload or write your own scripts, reuse snippets, organize them in folders by category, and hide the ones you don't want to see. On top of yours come the <a href="#plantillas-scripts">product templates</a>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Acentos y ñ en Windows en español</span><span class="lang-en">Accents and ñ on Spanish Windows</span></h3>
+          <p><span class="lang-es">El código del script y su salida conservan los acentos y la ñ en equipos Windows en español. Requiere el agente 2.15.1 o superior, que la flota instala sola.</span><span class="lang-en">Script code and its output keep accents and the letter ñ on Spanish-language Windows machines. Needs agent 2.15.1 or later, which the fleet installs on its own.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Scripts favoritos</span><span class="lang-en">Favorite scripts</span></h3>
@@ -160,16 +164,54 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">Borrador de script con IA (opcional)</span><span class="lang-en">AI script draft (optional)</span></h3>
-          <p><span class="lang-es">Describe en lenguaje natural lo que necesitas y la IA redacta un <strong>borrador</strong> en el editor, en el lenguaje de script que tengas elegido. Funciona con <strong>cualquier proveedor compatible con el formato de OpenAI</strong>, incluso uno alojado por ti: se configura la URL del servicio, el modelo y el token. <strong>Sin token, la opción no aparece.</strong></span><span class="lang-en">Describe what you need in plain language and the AI drafts a <strong>starting point</strong> in the editor, in whichever scripting language you picked. It works with <strong>any provider that speaks the OpenAI format</strong>, including one you host yourself: you set the service URL, the model, and the token. <strong>With no token, the option doesn't appear.</strong></span></p>
+          <p><span class="lang-es">Describe en lenguaje natural lo que necesitas y la IA redacta un <strong>borrador</strong> en el editor, en el lenguaje de script que tengas elegido. El pedido se escribe en un cuadro amplio —con ejemplos para partir, contador de caracteres y <kbd>Ctrl</kbd>+<kbd>Enter</kbd> para generar— y mientras se espera la consola muestra los segundos transcurridos. Funciona con <strong>cualquier proveedor compatible con el formato de OpenAI</strong>, incluso uno alojado por ti: se configura la URL del servicio, el modelo, el límite de tokens y la temperatura. <strong>Sin token, la opción no aparece.</strong></span><span class="lang-en">Describe what you need in plain language and the AI drafts a <strong>starting point</strong> in the editor, in whichever scripting language you picked. You type the request in a roomy box —with examples to start from, a character counter, and <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to generate— and while it waits the console shows the seconds elapsed. It works with <strong>any provider that speaks the OpenAI format</strong>, including one you host yourself: you set the service URL, the model, the token limit, and the temperature. <strong>With no token, the option doesn't appear.</strong></span></p>
         </div>
       </div>
       <figure class="doc-shot">
-        <img src="/assets/shots/script-ia-prompt.webp?v=1" width="1400" height="485" loading="lazy" decoding="async" alt="Diálogo para pedirle a la IA un borrador de script en lenguaje natural">
-        <figcaption><span class="lang-es">Al crear un script, el botón <em>Generar borrador con IA</em> abre esta caja: se pide lo que se necesita en lenguaje corriente. La consola ya antepone el lenguaje elegido —acá <em>PowerShell</em>— para que baste con describir la tarea.</span><span class="lang-en">When you create a script, the <em>Generate draft with AI</em> button opens this box: you ask for what you need in everyday language. The console already prefixes the language you picked —here <em>PowerShell</em>— so you only have to describe the task.</span></figcaption>
+        <img src="/assets/shots/script-ia-prompt.webp?v=2" width="1400" height="583" loading="lazy" decoding="async" alt="Cuadro para pedirle a la IA un borrador de script en lenguaje natural, con ejemplos y contador de caracteres">
+        <figcaption><span class="lang-es">Al crear un script, el botón <em>Generar borrador con IA</em> abre este cuadro: se pide lo que se necesita en lenguaje corriente, con espacio para releer la instrucción antes de mandarla. La consola ya antepone el lenguaje elegido —acá <em>Powershell</em>—, así que basta con describir la tarea; los tres ejemplos se pueden usar tal cual.</span><span class="lang-en">When you create a script, the <em>Generate draft with AI</em> button opens this box: you ask for what you need in everyday language, with room to re-read the instruction before sending it. The console already prefixes the language you picked —here <em>Powershell</em>—, so you only have to describe the task; the three examples work as-is.</span></figcaption>
       </figure>
       <figure class="doc-shot">
-        <img src="/assets/shots/script-ia-borrador.webp?v=1" width="1400" height="485" loading="lazy" decoding="async" alt="Borrador de script PowerShell generado por la IA dentro del editor">
+        <img src="/assets/shots/script-ia-borrador.webp?v=2" width="1400" height="583" loading="lazy" decoding="async" alt="Borrador de script PowerShell generado por la IA dentro del editor de la consola">
         <figcaption><span class="lang-es">El borrador entra directo al editor, listo para revisar, ajustar y probar antes de guardarlo. Es un punto de partida, no un script terminado: la revisión humana sigue siendo tuya.</span><span class="lang-en">The draft lands straight in the editor, ready to review, tweak, and test before saving. It's a starting point, not a finished script: the human review is still yours.</span></figcaption>
+      </figure>
+
+      <h2 id="plantillas-scripts"><span class="lang-es">Biblioteca de plantillas de scripts</span><span class="lang-en">Script template library</span></h2>
+      <p class="lang-es">La consola no llega vacía: trae <strong>44 plantillas de scripts propias del producto</strong>, escritas para las tareas que un operador repite todas las semanas. Se cargan con el despliegue y se versionan junto al producto, sin clonar ningún repositorio externo.</p>
+      <p class="lang-en">The console doesn't arrive empty: it ships <strong>44 script templates of our own</strong>, written for the tasks an operator repeats every week. They load with the deployment and are versioned alongside the product, with no external repository to clone.</p>
+      <figure class="doc-shot">
+        <img src="/assets/shots/plantillas-biblioteca.webp?v=1" width="1400" height="718" loading="lazy" decoding="async" alt="Administrador de scripts de Observer RMM con las 44 plantillas del producto, su shell, plataformas y categoría">
+        <figcaption><span class="lang-es">El Administrador de scripts con las plantillas del producto: shell, plataformas donde corren, argumentos por omisión, categoría y tiempo de espera. El interruptor de la barra las muestra u oculta frente a los scripts que escribe el operador.</span><span class="lang-en">The script manager showing the product templates: shell, platforms they run on, default arguments, category, and timeout. The toolbar switch shows or hides them against the scripts the operator writes.</span></figcaption>
+      </figure>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">37 para Windows y 7 multiplataforma</span><span class="lang-en">37 for Windows and 7 cross-platform</span></h3>
+          <p><span class="lang-es">Treinta y siete plantillas de <strong>PowerShell</strong> para Windows y siete de <strong>Python</strong> que corren igual en Windows, Linux y macOS. La consola muestra en cada fila las plataformas donde aplica.</span><span class="lang-en">Thirty-seven <strong>PowerShell</strong> templates for Windows and seven <strong>Python</strong> ones that run the same on Windows, Linux, and macOS. Each row shows which platforms it applies to.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Se distinguen de las tuyas</span><span class="lang-en">Told apart from yours</span></h3>
+          <p><span class="lang-es">Las plantillas llevan isotipo propio y son de <strong>solo lectura</strong>: no se pisan al actualizar ni se confunden con los scripts del operador. Si quieres una variante, se clona.</span><span class="lang-en">Templates carry their own mark and are <strong>read-only</strong>: an upgrade never overwrites them and they're never confused with the operator's own scripts. Want a variant? Clone it.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Organizadas por área</span><span class="lang-en">Organized by area</span></h3>
+          <p><span class="lang-es">Categorías para llegar rápido: seguridad, red, sistema, almacenamiento, software, usuarios, directorio, inventario, impresión y agente. Con vista de tabla o de carpetas.</span><span class="lang-en">Categories to get there fast: security, network, system, storage, software, users, directory, inventory, printing, and agent. In table or folder view.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Diagnóstico separado de la acción</span><span class="lang-en">Diagnosis separated from action</span></h3>
+          <p><span class="lang-es">Buena parte trae un argumento <code>-Modo</code> que permite pedir primero el estado y decidir después si se interviene. La descripción de cada plantilla dice si solo lee o si cambia algo.</span><span class="lang-en">Many take a <code>-Modo</code> argument, so you can ask for the current state first and decide afterwards whether to act. Each template's description says whether it only reads or changes something.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Argumentos y variables para una prueba puntual</span><span class="lang-en">Arguments and variables for a one-off test</span></h3>
+          <p><span class="lang-es">Al abrir una plantilla se ven sus argumentos, variables de entorno y tiempo de espera, y se pueden ajustar para probar sin clonarla. La consola avisa que esos cambios <strong>no se guardan</strong>.</span><span class="lang-en">Opening a template shows its arguments, environment variables, and timeout, and you can tweak them for a test without cloning it. The console warns that those changes <strong>are not saved</strong>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Igual en un equipo en español que en inglés</span><span class="lang-en">Same on a Spanish or an English machine</span></h3>
+          <p><span class="lang-es">Las plantillas no comparan texto traducido del sistema operativo: se apoyan en identificadores estables (SID de grupo, enumeraciones, claves de registro), así que el resultado no depende del idioma del equipo.</span><span class="lang-en">The templates never compare translated operating-system text: they rely on stable identifiers (group SIDs, enumerations, registry keys), so the result doesn't depend on the machine's language.</span></p>
+        </div>
+      </div>
+      <figure class="doc-shot">
+        <img src="/assets/shots/script-ejecucion-windows.webp?v=1" width="1400" height="923" loading="lazy" decoding="async" alt="Ejecución de la plantilla Antivirus - Estado consolidado en un equipo Windows, con la salida devuelta en la consola">
+        <figcaption><span class="lang-es">Una plantilla corriendo en un equipo Windows de la flota: se elige, se espera la salida y el resultado vuelve a la consola —acá el estado consolidado del antivirus, con su veredicto al final—. Cada corrida queda en el historial del equipo y en el registro de auditoría.</span><span class="lang-en">A template running on a Windows machine in the fleet: pick it, wait for the output, and the result comes back to the console —here the consolidated antivirus status, with its verdict at the end—. Every run is recorded in the machine's history and in the audit log.</span></figcaption>
       </figure>
 
       <h2 id="monitoreo-alertas"><span class="lang-es">Monitoreo y alertas</span><span class="lang-en">Monitoring &amp; alerting</span></h2>
@@ -306,7 +348,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">Forzar ubicación y WiFi en el equipo</span><span class="lang-en">Force location &amp; WiFi on the machine</span></h3>
-          <p><span class="lang-es">Interruptor global aparte: con él activo, el agente enciende el servicio de ubicación del sistema y la radio WiFi si estaban apagados, para que el equipo pueda medirse.</span><span class="lang-en">A separate global switch: with it on, the agent turns on the system location service and the WiFi radio if they were off, so the machine can measure itself.</span></p>
+          <p><span class="lang-es">Interruptor global aparte: con él activo, el agente enciende el servicio de ubicación del sistema y la radio WiFi si estaban apagados, para que el equipo pueda medirse. En instalaciones nuevas, la ubicación y su forzado quedan <strong>activados por omisión</strong>.</span><span class="lang-en">A separate global switch: with it on, the agent turns on the system location service and the WiFi radio if they were off, so the machine can measure itself. On new installations, location and its forcing are <strong>enabled by default</strong>.</span></p>
         </div>
       </div>
       <div class="callout note lang-es">
@@ -340,7 +382,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">Alarma sonora</span><span class="lang-en">Audible alarm</span></h3>
-          <p><span class="lang-es">Hace sonar el equipo entre 5 y 300 segundos —para ubicarlo físicamente— y se puede cortar antes desde la consola con <em>Detener alarma</em>.</span><span class="lang-en">Makes the machine sound for 5 to 300 seconds —to locate it physically— and can be cut short from the console with <em>Stop alarm</em>.</span></p>
+          <p><span class="lang-es">Hace sonar el equipo entre 5 y 300 segundos —para ubicarlo físicamente— y se puede cortar antes desde la consola con <em>Detener alarma</em>. Suena al <strong>volumen máximo</strong> del equipo, así que bajarle el volumen no la apaga.</span><span class="lang-en">Makes the machine sound for 5 to 300 seconds —to locate it physically— and can be cut short from the console with <em>Stop alarm</em>. It plays at the machine's <strong>maximum volume</strong>, so turning the volume down doesn't silence it.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Equipo por equipo o en masa</span><span class="lang-en">One machine or many</span></h3>
@@ -449,6 +491,10 @@
         <div class="feature">
           <h3><span class="lang-es">Registro de auditoría</span><span class="lang-en">Audit log</span></h3>
           <p><span class="lang-es">Bitácora de toda acción de usuario: sesiones remotas, ejecución de scripts, cambios, acciones masivas y logins.</span><span class="lang-en">A log of every user action: remote sessions, script runs, changes, bulk actions, and logins.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Aviso si desinstalan el agente a mano</span><span class="lang-en">Alert when the agent is uninstalled by hand</span></h3>
+          <p><span class="lang-es">Cuando alguien desinstala el agente directamente en el equipo, la consola se entera: llega una <strong>alerta por correo</strong> con qué equipo fue, quién lo hizo y cuándo, y queda registro en la auditoría. El equipo se da de baja de la consola y del control remoto tras una <strong>ventana de gracia de 10 minutos, cancelable</strong> —porque reinstalar el agente ejecuta esa misma desinstalación, y un reinstalador no debería costarle el historial al equipo—. La alerta se guarda de forma independiente, así que sobrevive a la baja del equipo.</span><span class="lang-en">When someone uninstalls the agent right on the machine, the console finds out: an <strong>email alert</strong> arrives with which machine it was, who did it, and when, and it's recorded in the audit log. The machine is then removed from the console and from remote control after a <strong>cancelable 10-minute grace window</strong> —because reinstalling the agent runs that very same uninstall, and a reinstall shouldn't cost the machine its history—. The alert is stored independently, so it outlives the machine's removal.</span></p>
         </div>
       </div>
 
