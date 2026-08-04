@@ -81,9 +81,21 @@ $TERMINAN_SOLOS = @(
 $RAIZ_SERVICIOS = "HKLM:\SYSTEM\CurrentControlSet\Services"
 $INICIO_AUTOMATICO = 2
 
-# El estado "en ejecucion" como valor del enum de .NET y no como la cadena "Running":
-# el enum no se traduce, el texto que muestra Windows si.
+# El estado "en ejecucion" como valor del enum de .NET y no como la cadena que el panel
+# de servicios muestra traducida. OJO con como se obtiene: escribir aca
+# [System.ServiceProcess.ServiceControllerStatus]::Running falla con TypeNotFound, porque
+# Windows PowerShell carga el assembly System.ServiceProcess de forma PEREZOSA -- recien
+# cuando se usa Get-Service-- y en esta linea todavia no esta cargado. Se carga explicito.
+# Sigue siendo invariante al idioma: los nombres del enum no se traducen.
+Add-Type -AssemblyName System.ServiceProcess -ErrorAction SilentlyContinue
 $EN_EJECUCION = [System.ServiceProcess.ServiceControllerStatus]::Running
+if ($null -eq $EN_EJECUCION) {
+    # Sin el enum, las comparaciones de estado darian siempre falso y el script reportaria
+    # FALLA a servicios que si arrancaron. Mejor abortar que mentir.
+    Write-Output "No se pudo resolver el enum de estado de servicios (System.ServiceProcess)."
+    Write-Output "Sin ese dato las comprobaciones de estado no son confiables; no se continua."
+    exit 1
+}
 
 function Test-InicioAutomatico {
     param([string]$Nombre)
