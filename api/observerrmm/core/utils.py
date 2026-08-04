@@ -556,3 +556,39 @@ def run_server_script(
             os.remove(tmp_script_path)
 
     return stdout, stderr, execution_time, retcode
+
+
+# Los modelos de razonamiento emiten su cadena de pensamiento envuelta en
+# <think>...</think>. Varios proveedores compatibles con el formato de OpenAI la dejan
+# dentro de `content`, así que llega al editor de scripts junto con el código.
+_RAZONAMIENTO_CIERRE = re.compile(r"</think(?:ing)?>", re.IGNORECASE)
+_RAZONAMIENTO_APERTURA = re.compile(r"<think(?:ing)?>", re.IGNORECASE)
+
+
+def strip_ai_reasoning(text: str) -> str:
+    """Devuelve solo la respuesta del modelo, sin su razonamiento.
+
+    No alcanza con borrar el par de etiquetas: en la práctica varios proveedores
+    mandan SOLO la etiqueta de cierre —el `content` arranca a media reflexión, sin
+    `<think>` de apertura—, así que un `<think>.*?</think>` no matchea nada y el
+    razonamiento pasa igual. Lo que sí funciona es cortar en el ÚLTIMO `</think>` y
+    quedarse con lo que viene después, que es la respuesta.
+
+    Si no hay cierre pero sí apertura, todo lo que sigue a la apertura es razonamiento
+    sin terminar. Y si el recorte deja el texto vacío, se devuelve el original sin
+    etiquetas: mejor entregar algo revisable que un editor en blanco.
+    """
+    if not isinstance(text, str):
+        return text
+
+    cierres = list(_RAZONAMIENTO_CIERRE.finditer(text))
+    if cierres:
+        limpio = text[cierres[-1].end() :]
+    else:
+        apertura = _RAZONAMIENTO_APERTURA.search(text)
+        limpio = text[: apertura.start()] if apertura else text
+
+    limpio = _RAZONAMIENTO_APERTURA.sub("", _RAZONAMIENTO_CIERRE.sub("", limpio))
+    if not limpio.strip():
+        limpio = _RAZONAMIENTO_APERTURA.sub("", _RAZONAMIENTO_CIERRE.sub("", text))
+    return limpio.strip()

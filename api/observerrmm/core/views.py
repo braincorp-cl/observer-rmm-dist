@@ -28,6 +28,7 @@ from core.utils import (
     get_core_settings,
     run_server_script,
     run_test_url_rest_action,
+    strip_ai_reasoning,
     sysd_svc_is_running,
     token_is_valid,
 )
@@ -809,8 +810,10 @@ class OpenAICodeCompletion(APIView):
         # lento (Cohere tardó 159 s en el banco de pruebas, y varios modelos
         # gratuitos de OpenRouter pasan del minuto cuando hay cola). El techo lo
         # ponen uwsgi (harakiri 300 s) y nginx (uwsgi_read_timeout), así que 120
-        # cabe holgado; si hay un proxy inverso delante, su propio
-        # proxy_read_timeout tiene que ser >= 120 o cortará antes.
+        # cabe holgado. Si hay un proxy inverso delante, su propio
+        # proxy_read_timeout tiene que ser >= 120 o cortará antes que este
+        # timeout: en la instalación de referencia el Nginx Proxy Manager está en
+        # 86400 (verificado en su configuración el 2026-08-04), o sea no estorba.
         try:
             response = requests.post(
                 f"{base_url}/chat/completions",
@@ -838,7 +841,11 @@ class OpenAICodeCompletion(APIView):
             return notify_error(f"The AI provider returned an error: {err_msg}")
 
         try:
-            return Response(response_data["choices"][0]["message"]["content"])
+            contenido = response_data["choices"][0]["message"]["content"]
+            # Los modelos de razonamiento filtran su cadena de pensamiento dentro del
+            # propio `content`; sin sacarla, el editor recibe la reflexión pegada al
+            # código (y a veces un borrador descartado antes del definitivo).
+            return Response(strip_ai_reasoning(contenido))
         except (KeyError, IndexError, TypeError):
             return notify_error(
                 "The AI provider returned an unexpected response format"

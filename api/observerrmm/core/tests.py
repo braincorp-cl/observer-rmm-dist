@@ -19,6 +19,7 @@ from core.utils import (
     get_core_settings,
     get_mesh_ws_url,
     get_meshagent_url,
+    strip_ai_reasoning,
 )
 
 # from logs.models import PendingAction
@@ -927,3 +928,69 @@ class TestOpenAICodeCompletion(ObserverTestCase):
         r = self.client.post(self.url, {}, format="json")
         self.assertEqual(r.status_code, 400)
         self.assertIn("prompt", r.data)
+
+    @patch("core.views.requests.post")
+    def test_generate_strips_model_reasoning(self, mock_post):
+        """La vista devuelve solo la respuesta, no el razonamiento del modelo."""
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "choices": [
+                {
+                    "message": {
+                        "content": (
+                            "Get-CimInstance Win32_LogicalDisk | Select-Object X\n"
+                            "}</think>Get-Volume | Format-Table"
+                        )
+                    }
+                }
+            ]
+        }
+
+        r = self.client.post(self.url, {"prompt": "espacio libre"}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data, "Get-Volume | Format-Table")
+        self.assertNotIn("think", r.data)
+
+
+class TestStripAiReasoning(ObserverTestCase):
+    """El razonamiento de los modelos que "piensan" no debe llegar al editor.
+
+    El caso que motivó esto se midió contra un modelo gratuito de OpenRouter: el
+    `content` traía un borrador completo, después `</think>`, y solo entonces la
+    respuesta. La etiqueta de APERTURA no venía, así que un `<think>.*?</think>` no
+    habría sacado nada.
+    """
+
+    def test_deja_el_codigo_intacto_si_no_hay_razonamiento(self):
+        codigo = 'Get-CimInstance -ClassName Win32_LogicalDisk\nWrite-Output "listo"'
+        self.assertEqual(strip_ai_reasoning(codigo), codigo)
+
+    def test_corta_cuando_solo_viene_la_etiqueta_de_cierre(self):
+        # el caso real: reflexión sin <think> de apertura + </think> + respuesta
+        crudo = "Get-Process | Sort-Object CPU\n}</think>Get-Service -Name Spooler"
+        self.assertEqual(strip_ai_reasoning(crudo), "Get-Service -Name Spooler")
+
+    def test_saca_el_bloque_bien_formado(self):
+        crudo = "<think>a ver, primero enumero los discos</think>\nGet-Volume"
+        self.assertEqual(strip_ai_reasoning(crudo), "Get-Volume")
+
+    def test_corta_en_el_ULTIMO_cierre(self):
+        crudo = "<think>uno</think>borrador viejo<think>dos</think>Get-Date"
+        self.assertEqual(strip_ai_reasoning(crudo), "Get-Date")
+
+    def test_apertura_sin_cierre_deja_lo_previo(self):
+        crudo = "Get-Date\n<think>me quedé pensando y no cerré"
+        self.assertEqual(strip_ai_reasoning(crudo), "Get-Date")
+
+    def test_no_devuelve_vacio_si_todo_era_razonamiento(self):
+        # sin respuesta detrás del cierre, es mejor entregar algo revisable que un
+        # editor en blanco: el operador ve qué pasó en vez de un silencio
+        crudo = "<think>pensé pero no escribí código</think>"
+        self.assertEqual(strip_ai_reasoning(crudo), "pensé pero no escribí código")
+
+    def test_variante_thinking_y_mayusculas(self):
+        crudo = "<THINKING>ruido</Thinking>Get-Host"
+        self.assertEqual(strip_ai_reasoning(crudo), "Get-Host")
+
+    def test_tolera_lo_que_no_es_texto(self):
+        self.assertIsNone(strip_ai_reasoning(None))
