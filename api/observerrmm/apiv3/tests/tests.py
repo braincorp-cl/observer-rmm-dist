@@ -118,6 +118,11 @@ class TestAPIv3(ObserverTestCase):
         self.assertEqual(len(r.json()["checks"]), 15)
 
     def test_task_runner_get(self):
+        # El 500 de aca NO se cambia por missing_pk() como en el resto de la
+        # suite, y no es un olvido: TaskRunner.get resuelve primero el Agent por
+        # agent_id ("asdf9df9dfdf", que nunca existe) y recien despues la tarea
+        # por pk. El 404 sale siempre del primer lookup, asi que el pk literal
+        # no se consulta nunca y no puede dar un falso 200.
         r = self.client.get("/api/v3/500/asdf9df9dfdf/taskrunner/")
         self.assertEqual(r.status_code, 404)
 
@@ -153,6 +158,8 @@ class TestAPIv3(ObserverTestCase):
     def test_task_runner_results(self):
         from agents.models import AgentCustomField
 
+        # Mismo caso que en test_task_runner_get: el 404 lo devuelve el lookup
+        # del Agent, que corre antes que el de la tarea.
         r = self.client.patch("/api/v3/500/asdf9df9dfdf/taskrunner/")
         self.assertEqual(r.status_code, 404)
 

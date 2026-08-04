@@ -6,7 +6,7 @@ from model_bakery import baker, seq
 from accounts.models import APIKey, User
 from accounts.serializers import APIKeySerializer
 from observerrmm.constants import AgentDblClick, AgentTableTabs, ClientTreeSort
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 
 class TestAccounts(ObserverTestCase):
@@ -400,7 +400,9 @@ class TestAPIKeyViews(ObserverTestCase):
 
     def test_modify_api_key(self):
         # test a call where api key doesn't exist
-        resp = self.client.put("/accounts/apikeys/500/", format="json")
+        resp = self.client.put(
+            f"/accounts/apikeys/{missing_pk(APIKey)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         apikey = baker.make("accounts.APIKey", name="Test")
@@ -417,7 +419,9 @@ class TestAPIKeyViews(ObserverTestCase):
 
     def test_delete_api_key(self):
         # test a call where api key doesn't exist
-        resp = self.client.delete("/accounts/apikeys/500/", format="json")
+        resp = self.client.delete(
+            f"/accounts/apikeys/{missing_pk(APIKey)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # test delete api key

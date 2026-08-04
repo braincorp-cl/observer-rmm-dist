@@ -4,7 +4,7 @@ from django.utils import timezone as djangotime
 from model_bakery import baker
 
 from observerrmm.constants import TaskType
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from autotasks.models import AutomatedTask, TaskResult, TaskSyncStatus
 from autotasks.serializers import TaskSerializer
@@ -269,7 +269,9 @@ class TestAutotaskViews(ObserverTestCase):
         ]
 
         # test invalid url
-        resp = self.client.put(f"{base_url}/500/", format="json")
+        resp = self.client.put(
+            f"{base_url}/{missing_pk(AutomatedTask)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         url = f"{base_url}/{agent_task.id}/"
@@ -411,7 +413,9 @@ class TestAutotaskViews(ObserverTestCase):
         policy_task = baker.make("autotasks.AutomatedTask", policy=policy)
 
         # test invalid url
-        resp = self.client.delete(f"{base_url}/500/", format="json")
+        resp = self.client.delete(
+            f"{base_url}/{missing_pk(AutomatedTask)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # test delete agent task
@@ -439,7 +443,9 @@ class TestAutotaskViews(ObserverTestCase):
         task = baker.make("autotasks.AutomatedTask", agent=agent)
 
         # test invalid url
-        resp = self.client.post(f"{base_url}/500/run/", format="json")
+        resp = self.client.post(
+            f"{base_url}/{missing_pk(AutomatedTask)}/run/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # test run agent task

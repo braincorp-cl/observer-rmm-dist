@@ -9,7 +9,7 @@ from observerrmm.constants import (
     ScriptShell,
     ScriptType,
 )
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .models import Script, ScriptSnippet
 from .serializers import (
@@ -67,7 +67,7 @@ class TestScriptViews(ObserverTestCase):
     @override_settings(SECRET_KEY="Test Secret Key")
     def test_modify_script(self):
         # test a call where script doesn't exist
-        resp = self.client.put("/scripts/500/", format="json")
+        resp = self.client.put(f"/scripts/{missing_pk(Script)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         # make a userdefined script
@@ -123,7 +123,7 @@ class TestScriptViews(ObserverTestCase):
 
     def test_get_script(self):
         # test a call where script doesn't exist
-        resp = self.client.get("/scripts/500/", format="json")
+        resp = self.client.get(f"/scripts/{missing_pk(Script)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         script = baker.make("scripts.Script")
@@ -157,7 +157,7 @@ class TestScriptViews(ObserverTestCase):
 
     def test_delete_script(self):
         # test a call where script doesn't exist
-        resp = self.client.delete("/scripts/500/", format="json")
+        resp = self.client.delete(f"/scripts/{missing_pk(Script)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         # test delete script
@@ -178,7 +178,9 @@ class TestScriptViews(ObserverTestCase):
 
     def test_download_script(self):
         # test a call where script doesn't exist
-        resp = self.client.get("/scripts/500/download/", format="json")
+        resp = self.client.get(
+            f"/scripts/{missing_pk(Script)}/download/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # return script code property should be "Test"
@@ -604,7 +606,9 @@ class TestScriptSnippetViews(ObserverTestCase):
 
     def test_modify_script_snippet(self):
         # test a call where script doesn't exist
-        resp = self.client.put("/scripts/snippets/500/", format="json")
+        resp = self.client.put(
+            f"/scripts/snippets/{missing_pk(ScriptSnippet)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # make a userdefined script
@@ -622,7 +626,9 @@ class TestScriptSnippetViews(ObserverTestCase):
 
     def test_get_script_snippet(self):
         # test a call where script doesn't exist
-        resp = self.client.get("/scripts/snippets/500/", format="json")
+        resp = self.client.get(
+            f"/scripts/snippets/{missing_pk(ScriptSnippet)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         snippet = baker.make("scripts.ScriptSnippet")
@@ -636,7 +642,9 @@ class TestScriptSnippetViews(ObserverTestCase):
 
     def test_delete_script_snippet(self):
         # test a call where script doesn't exist
-        resp = self.client.delete("/scripts/snippets/500/", format="json")
+        resp = self.client.delete(
+            f"/scripts/snippets/{missing_pk(ScriptSnippet)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # test delete script snippet

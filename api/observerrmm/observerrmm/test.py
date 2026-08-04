@@ -1,6 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
+from django.db.models import Max
 from django.test import TestCase, modify_settings, override_settings
 from model_bakery import baker
 from rest_framework.authtoken.models import Token
@@ -24,6 +25,32 @@ TEST_CACHE = {
         "BACKEND": "observerrmm.cache.ObserverDummyCache",
     }
 }
+
+
+def missing_pk(model):
+    """PK garantizado inexistente para `model`, para los chequeos de 404.
+
+    Un literal (334, 500, 688, 999) NO sirve. Las secuencias de PostgreSQL no
+    hacen rollback entre tests: el contador de cada tabla avanza durante toda
+    la sesion, asi que hay ordenes de ejecucion --los sortea pytest-randomly
+    con una semilla distinta por corrida-- en que el propio baker.make del test
+    crea justo ese ID, la vista lo encuentra y devuelve 200 donde el test
+    espera 404.
+
+    No es hipotetico: `clients/tests.py::test_delete_client` usaba el 334 y
+    caia de forma intermitente. Reproducible con
+    `pytest --randomly-seed=1239176212`. La secuencia de clients_client llego a
+    334 con 718 tests, asi que 500 tampoco es un numero seguro, solo uno mas
+    lejano.
+
+    Llamarlo DESPUES de crear los objetos del test: max+1 solo esta garantizado
+    libre respecto de lo que ya existe.
+
+    OJO con el modelo: tiene que ser el que consulta la VISTA, no el que da
+    nombre a la ruta. `/checks/<pk>/history/` resuelve un CheckResult, no un
+    Check.
+    """
+    return (model.objects.aggregate(Max("pk"))["pk__max"] or 0) + 1
 
 
 @override_settings(

@@ -7,8 +7,10 @@ from agents.models import Agent
 from clients.models import Site
 from core.utils import get_core_settings
 from observerrmm.constants import AgentMonType, TaskSyncStatus
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 from winupdate.models import WinUpdatePolicy
+
+from .models import Policy
 
 from .serializers import (
     PolicyCheckStatusSerializer,
@@ -35,7 +37,9 @@ class TestPolicyViews(ObserverTestCase):
 
     def test_get_policy(self):
         # returns 404 for invalid policy pk
-        resp = self.client.get("/automation/policies/500/", format="json")
+        resp = self.client.get(
+            f"/automation/policies/{missing_pk(Policy)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         policy = baker.make("automation.Policy")
@@ -100,7 +104,9 @@ class TestPolicyViews(ObserverTestCase):
     @patch("alerts.tasks.cache_agents_alert_template.delay")
     def test_update_policy(self, cache_alert_template):
         # returns 404 for invalid policy pk
-        resp = self.client.put("/automation/policies/500/", format="json")
+        resp = self.client.put(
+            f"/automation/policies/{missing_pk(Policy)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         policy = baker.make("automation.Policy", active=True, enforced=False)
@@ -132,7 +138,9 @@ class TestPolicyViews(ObserverTestCase):
 
     def test_delete_policy(self):
         # returns 404 for invalid policy pk
-        resp = self.client.delete("/automation/policies/500/", format="json")
+        resp = self.client.delete(
+            f"/automation/policies/{missing_pk(Policy)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         # setup data
@@ -282,7 +290,9 @@ class TestPolicyViews(ObserverTestCase):
 
     def test_update_patch_policy(self):
         # test policy doesn't exist
-        resp = self.client.put("/automation/patchpolicy/500/", format="json")
+        resp = self.client.put(
+            f"/automation/patchpolicy/{missing_pk(WinUpdatePolicy)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         policy = baker.make("automation.Policy")
@@ -370,7 +380,9 @@ class TestPolicyViews(ObserverTestCase):
 
     def test_delete_patch_policy(self):
         # test patch policy doesn't exist
-        resp = self.client.delete("/automation/patchpolicy/500/", format="json")
+        resp = self.client.delete(
+            f"/automation/patchpolicy/{missing_pk(WinUpdatePolicy)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         winupdate_policy = baker.make_recipe(

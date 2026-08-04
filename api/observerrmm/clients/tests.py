@@ -2,35 +2,17 @@ import uuid
 from itertools import cycle
 from unittest.mock import patch
 
-from django.db.models import Max
 from model_bakery import baker
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from observerrmm.constants import CustomFieldModel, CustomFieldType
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .models import Client, ClientCustomField, Deployment, Site, SiteCustomField
 from .serializers import ClientSerializer, DeploymentSerializer, SiteSerializer
 
 base_url = "/clients"
-
-
-def missing_pk(model):
-    """PK garantizado inexistente para `model`, para los chequeos de 404.
-
-    Un literal (334, 500, 688) NO sirve: las secuencias de PostgreSQL no hacen
-    rollback entre tests, asi que el contador de la tabla avanza durante toda
-    la sesion y hay ordenes de ejecucion --los sortea pytest-randomly con una
-    semilla distinta por corrida-- en que el propio baker.make del test crea
-    justo ese ID. Con el 334 que habia en test_delete_client eso pasaba de
-    verdad: el borrado encontraba el cliente y devolvia 200 en vez de 404.
-    Reproducible con `pytest --randomly-seed=1239176212`.
-
-    Llamarlo DESPUES de crear los objetos del test: max+1 solo esta garantizado
-    libre respecto de lo que ya existe.
-    """
-    return (model.objects.aggregate(Max("pk"))["pk__max"] or 0) + 1
 
 
 class TestClientViews(ObserverTestCase):

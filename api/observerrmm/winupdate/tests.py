@@ -4,7 +4,7 @@ from unittest.mock import patch
 from model_bakery import baker
 
 from observerrmm.constants import AgentPlat
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .models import WinUpdate
 from .serializers import WinUpdateSerializer
@@ -84,7 +84,9 @@ class TestWinUpdateViews(ObserverTestCase):
 
         data = {"policy": "inherit"}
         # test a call where winupdate doesn't exist
-        resp = self.client.put(f"{base_url}/500/", data, format="json")
+        resp = self.client.put(
+            f"{base_url}/{missing_pk(WinUpdate)}/", data, format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         resp = self.client.put(url, data, format="json")

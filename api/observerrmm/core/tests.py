@@ -28,7 +28,7 @@ from observerrmm.constants import (  # PAAction,; PAStatus,
     MeshAgentIdent,
 )
 from observerrmm.helpers import get_nats_hosts, get_nats_url
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .consumers import DashInfo
 from .models import CustomField, GlobalKVStore, URLAction
@@ -267,7 +267,7 @@ class TestCoreTasks(ObserverTestCase):
         custom_field = baker.make("core.CustomField")
 
         # test not found
-        r = self.client.get("/core/customfields/500/")
+        r = self.client.get(f"/core/customfields/{missing_pk(CustomField)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/customfields/{custom_field.id}/"
@@ -283,7 +283,7 @@ class TestCoreTasks(ObserverTestCase):
         custom_field = baker.make("core.CustomField")
 
         # test not found
-        r = self.client.put("/core/customfields/500/")
+        r = self.client.put(f"/core/customfields/{missing_pk(CustomField)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/customfields/{custom_field.id}/"
@@ -302,7 +302,7 @@ class TestCoreTasks(ObserverTestCase):
         custom_field = baker.make("core.CustomField")
 
         # test not found
-        r = self.client.delete("/core/customfields/500/")
+        r = self.client.delete(f"/core/customfields/{missing_pk(CustomField)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/customfields/{custom_field.id}/"
@@ -341,7 +341,7 @@ class TestCoreTasks(ObserverTestCase):
         key = baker.make("core.GlobalKVStore")
 
         # test not found
-        r = self.client.put("/core/keystore/500/")
+        r = self.client.put(f"/core/keystore/{missing_pk(GlobalKVStore)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/keystore/{key.id}/"
@@ -360,7 +360,7 @@ class TestCoreTasks(ObserverTestCase):
         key = baker.make("core.GlobalKVStore")
 
         # test not found
-        r = self.client.delete("/core/keystore/500/")
+        r = self.client.delete(f"/core/keystore/{missing_pk(GlobalKVStore)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/keystore/{key.id}/"
@@ -399,7 +399,7 @@ class TestCoreTasks(ObserverTestCase):
         action = baker.make("core.URLAction")
 
         # test not found
-        r = self.client.put("/core/urlaction/500/")
+        r = self.client.put(f"/core/urlaction/{missing_pk(URLAction)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/urlaction/{action.id}/"
@@ -418,7 +418,7 @@ class TestCoreTasks(ObserverTestCase):
         action = baker.make("core.URLAction")
 
         # test not found
-        r = self.client.delete("/core/urlaction/500/")
+        r = self.client.delete(f"/core/urlaction/{missing_pk(URLAction)}/")
         self.assertEqual(r.status_code, 404)
 
         url = f"/core/urlaction/{action.id}/"

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils import timezone as djangotime
 from model_bakery import baker
 
-from checks.models import CheckHistory, CheckResult
+from checks.models import Check, CheckHistory, CheckResult
 from observerrmm.constants import (
     AlertSeverity,
     CheckStatus,
@@ -12,7 +12,7 @@ from observerrmm.constants import (
     EvtLogFailWhen,
     EvtLogTypes,
 )
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .serializers import CheckSerializer
 
@@ -52,7 +52,7 @@ class TestCheckViews(ObserverTestCase):
         agent = baker.make_recipe("agents.agent")
         check = baker.make_recipe("checks.diskspace_check", agent=agent)
 
-        resp = self.client.delete(f"{base_url}/500/", format="json")
+        resp = self.client.delete(f"{base_url}/{missing_pk(Check)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         url = f"{base_url}/{check.pk}/"
@@ -298,7 +298,9 @@ class TestCheckViews(ObserverTestCase):
             check_history.save()
 
         # test invalid check pk
-        resp = self.client.patch("/checks/500/history/", format="json")
+        resp = self.client.patch(
+            f"/checks/{missing_pk(CheckResult)}/history/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         url = f"/checks/{check_result.id}/history/"

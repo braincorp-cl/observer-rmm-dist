@@ -24,7 +24,7 @@ from observerrmm.constants import (
     CustomFieldType,
     EvtLogNames,
 )
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 from winupdate.models import WinUpdatePolicy
 from winupdate.serializers import WinUpdatePolicySerializer
 
@@ -871,7 +871,7 @@ class TestAgentViews(ObserverTestCase):
         url = f"{base_url}/notes/{note.pk}/"
 
         # test not found
-        r = self.client.get(f"{base_url}/notes/500/")
+        r = self.client.get(f"{base_url}/notes/{missing_pk(Note)}/")
         self.assertEqual(r.status_code, 404)
 
         r = self.client.get(url)
@@ -886,7 +886,7 @@ class TestAgentViews(ObserverTestCase):
         url = f"{base_url}/notes/{note.pk}/"
 
         # test not found
-        r = self.client.put(f"{base_url}/notes/500/")
+        r = self.client.put(f"{base_url}/notes/{missing_pk(Note)}/")
         self.assertEqual(r.status_code, 404)
 
         data = {"note": "New"}
@@ -905,7 +905,7 @@ class TestAgentViews(ObserverTestCase):
         url = f"{base_url}/notes/{note.pk}/"
 
         # test not found
-        r = self.client.delete(f"{base_url}/notes/500/")
+        r = self.client.delete(f"{base_url}/notes/{missing_pk(Note)}/")
         self.assertEqual(r.status_code, 404)
 
         r = self.client.delete(url)

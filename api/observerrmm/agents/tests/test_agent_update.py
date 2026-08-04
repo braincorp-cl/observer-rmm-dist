@@ -247,9 +247,15 @@ class TestAgentUpdate(ObserverTestCase):
         )
 
         data = {"agent_ids": agent_ids}
+        # El order_by espeja el que trae la VISTA (agents/views.py:update_agents
+        # ordena por PK desde 2580776). Sin el, la expectativa se arma con el
+        # orden que le de la gana a PostgreSQL mientras el otro lado ya es
+        # determinista, y assert_called_with cae de forma intermitente: paso en
+        # el CI el 2026-08-04. Es el mismo defecto que ya se corrigio arriba en
+        # test_update_agents_mgmt_command, que quedo sin aplicar aca.
         expected: list[str] = [
             i.agent_id
-            for i in Agent.objects.only("agent_id", "version")
+            for i in Agent.objects.only("agent_id", "version").order_by("id")
             if pyver.parse(i.version) < pyver.parse(settings.LATEST_AGENT_VER)
         ]
 

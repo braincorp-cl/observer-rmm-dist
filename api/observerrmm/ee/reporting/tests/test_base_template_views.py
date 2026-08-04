@@ -3,6 +3,8 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from observerrmm.test import missing_pk
+
 from ..models import ReportHTMLTemplate
 
 
@@ -81,7 +83,9 @@ class TestGetEditDeleteReportHTMLTemplate:
         assert response.data["name"] == report_html_template.name
 
     def test_get_non_existent_template(self, authenticated_client):
-        response = authenticated_client.get("/reporting/htmltemplates/999/")
+        response = authenticated_client.get(
+            f"/reporting/htmltemplates/{missing_pk(ReportHTMLTemplate)}/"
+        )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -118,7 +122,9 @@ class TestGetEditDeleteReportHTMLTemplate:
         ).exists()
 
     def test_delete_non_existent_template(self, authenticated_client):
-        response = authenticated_client.delete("/reporting/htmltemplates/999/")
+        response = authenticated_client.delete(
+            f"/reporting/htmltemplates/{missing_pk(ReportHTMLTemplate)}/"
+        )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

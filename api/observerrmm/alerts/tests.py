@@ -16,7 +16,7 @@ from observerrmm.constants import (
     CheckStatus,
     URLActionType,
 )
-from observerrmm.test import ObserverTestCase
+from observerrmm.test import ObserverTestCase, missing_pk
 
 from .models import Alert, AlertTemplate
 from .serializers import (
@@ -146,7 +146,7 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_get_alert(self):
         # returns 404 for invalid alert pk
-        resp = self.client.get("/alerts/500/", format="json")
+        resp = self.client.get(f"/alerts/{missing_pk(Alert)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         alert = baker.make("alerts.Alert")
@@ -162,7 +162,7 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_update_alert(self):
         # returns 404 for invalid alert pk
-        resp = self.client.put("/alerts/500/", format="json")
+        resp = self.client.put(f"/alerts/{missing_pk(Alert)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         alert = baker.make("alerts.Alert", resolved=False, snoozed=False)
@@ -206,7 +206,7 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_delete_alert(self):
         # returns 404 for invalid alert pk
-        resp = self.client.put("/alerts/500/", format="json")
+        resp = self.client.put(f"/alerts/{missing_pk(Alert)}/", format="json")
         self.assertEqual(resp.status_code, 404)
 
         alert = baker.make("alerts.Alert")
@@ -279,7 +279,9 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_get_alert_template(self):
         # returns 404 for invalid alert template pk
-        resp = self.client.get("/alerts/templates/500/", format="json")
+        resp = self.client.get(
+            f"/alerts/templates/{missing_pk(AlertTemplate)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         agent_script = baker.make("scripts.Script")
@@ -315,7 +317,9 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_update_alert_template(self):
         # returns 404 for invalid alert pk
-        resp = self.client.put("/alerts/templates/500/", format="json")
+        resp = self.client.put(
+            f"/alerts/templates/{missing_pk(AlertTemplate)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         alert_template = baker.make("alerts.AlertTemplate")
@@ -339,7 +343,9 @@ class TestAlertsViews(ObserverTestCase):
 
     def test_delete_alert_template(self):
         # returns 404 for invalid alert pk
-        resp = self.client.put("/alerts/templates/500/", format="json")
+        resp = self.client.put(
+            f"/alerts/templates/{missing_pk(AlertTemplate)}/", format="json"
+        )
         self.assertEqual(resp.status_code, 404)
 
         alert_template = baker.make("alerts.AlertTemplate")
