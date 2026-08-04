@@ -606,6 +606,9 @@
       "colVersion": "Version"
     },
     "history": {
+      "typeScriptRun": "Script Run",
+      "typeCmdRun": "Command Run",
+      "typeTaskRun": "Task Run",
       "colTime": "Time",
       "colAction": "Action",
       "colCommand": "Script/Command",
@@ -1885,6 +1888,8 @@
     "save": "Save"
   },
   "scriptsCommon": {
+    "envVarsLabel": "Environment vars (press Enter after typing each key=value pair)",
+    "runAsUserTip": "Run in the context of the logged in user. If no user is logged in, the script will run as SYSTEM.",
     "name": "Name",
     "description": "Description",
     "shellType": "Shell Type",

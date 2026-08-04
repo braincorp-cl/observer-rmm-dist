@@ -144,7 +144,7 @@
                   v-if="actionType === 'script'"
                   class="col-3"
                   dense
-                  :label="envVarsLabel"
+                  :label="$t('scriptsCommon.envVarsLabel')"
                   filled
                   v-model="defaultEnvVars"
                   use-input
@@ -854,7 +854,6 @@ import { useCheckDropdown } from "@/composables/checks";
 import { useCustomFieldDropdown } from "@/composables/core";
 import { notifySuccess, notifyError } from "@/utils/notify";
 import { validateTimePeriod } from "@/utils/validation";
-import { envVarsLabel } from "@/constants/constants";
 import {
   convertPeriodToSeconds,
   convertToBitArray,
@@ -1308,7 +1307,6 @@ export default defineComponent({
       monthOptions,
       taskTypeOptions,
       taskInstancePolicyOptions,
-      envVarsLabel,
       plat_options,
 
       // methods

@@ -44,7 +44,7 @@
         <q-card-section>
           <q-select
             dense
-            :label="envVarsLabel"
+            :label="$t('scriptsCommon.envVarsLabel')"
             filled
             v-model="state.env_vars"
             use-input
@@ -143,7 +143,6 @@ import { useDialogPluginComponent } from "quasar";
 import { useCheckModal } from "@/composables/checks";
 import { useScriptDropdown } from "@/composables/scripts";
 import { validateRetcode } from "@/utils/validation";
-import { envVarsLabel } from "@/constants/constants";
 
 // ui imports
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
@@ -202,7 +201,6 @@ export default {
       failOptions,
       filterByPlatformOptions,
       severityOptions,
-      envVarsLabel,
 
       // methods
       submit,

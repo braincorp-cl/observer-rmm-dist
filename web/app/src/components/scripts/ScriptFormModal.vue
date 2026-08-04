@@ -150,7 +150,7 @@
             />
             <observer-dropdown
               v-model="script.env_vars"
-              :label="envVarsLabel"
+              :label="$t('scriptsCommon.envVarsLabel')"
               filled
               use-input
               multiple
@@ -329,7 +329,6 @@ import type { Script } from "@/types/scripts";
 
 // static data
 import { shellOptions, useAiDraftLoader } from "@/composables/scripts";
-import { envVarsLabel } from "@/constants/constants";
 
 // props
 const props = withDefaults(

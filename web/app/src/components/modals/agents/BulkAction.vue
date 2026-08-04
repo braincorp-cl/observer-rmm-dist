@@ -117,7 +117,7 @@
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <observer-dropdown
             v-model="state.env_vars"
-            :label="envVarsLabel"
+            :label="$t('scriptsCommon.envVarsLabel')"
             filled
             use-input
             multiple
@@ -164,7 +164,7 @@
             v-model="state.run_as_user"
             :label="$t('bulkAction.runAsUser')"
           >
-            <q-tooltip>{{ runAsUserToolTip }}</q-tooltip>
+            <q-tooltip>{{ $t('scriptsCommon.runAsUserTip') }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
 
@@ -350,7 +350,6 @@ import { useCustomFieldDropdown } from "@/composables/core";
 import { runBulkAction } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
 import { cmdPlaceholder } from "@/composables/agents";
-import { envVarsLabel, runAsUserToolTip } from "@/constants/constants";
 
 // ui imports
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
@@ -609,8 +608,6 @@ export default defineComponent({
       osTypeOptions,
       targetOptions,
       patchModeOptions,
-      runAsUserToolTip,
-      envVarsLabel,
       syntax,
 
       //computed

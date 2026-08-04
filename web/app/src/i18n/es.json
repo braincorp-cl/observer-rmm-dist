@@ -606,6 +606,9 @@
       "colVersion": "Versión"
     },
     "history": {
+      "typeScriptRun": "Ejecución de script",
+      "typeCmdRun": "Ejecución de comando",
+      "typeTaskRun": "Ejecución de tarea",
       "colTime": "Fecha y hora",
       "colAction": "Acción",
       "colCommand": "Script/Comando",
@@ -1885,6 +1888,8 @@
     "save": "Guardar"
   },
   "scriptsCommon": {
+    "envVarsLabel": "Variables de entorno (presiona Enter después de escribir cada par clave=valor)",
+    "runAsUserTip": "Se ejecuta en el contexto del usuario con sesión iniciada. Si no hay ninguno, el script se ejecutará como SYSTEM.",
     "name": "Nombre",
     "description": "Descripción",
     "shellType": "Tipo de shell",

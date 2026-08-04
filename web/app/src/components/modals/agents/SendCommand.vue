@@ -58,7 +58,7 @@
             v-model="state.run_as_user"
             :label="$t('sendCommand.runAsUser')"
           >
-            <q-tooltip>{{ runAsUserToolTip }}</q-tooltip>
+            <q-tooltip>{{ $t('scriptsCommon.runAsUserTip') }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
         <q-card-section v-if="state.shell === 'custom'">
@@ -162,7 +162,6 @@ import { ref, nextTick } from "vue";
 import { useDialogPluginComponent } from "quasar";
 import { sendAgentCommand } from "@/api/agents";
 import { cmdPlaceholder } from "@/composables/agents";
-import { runAsUserToolTip } from "@/constants/constants";
 
 import ScriptOutputCopyClip from "@/components/scripts/ScriptOutputCopyClip.vue";
 import CommandStream from "@/components/agents/CommandStream.vue";
@@ -237,7 +236,6 @@ export default {
       streamTimeout,
       runId,
       submit,
-      runAsUserToolTip,
       cmdPlaceholder,
     };
   },

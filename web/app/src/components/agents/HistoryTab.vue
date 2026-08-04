@@ -103,7 +103,19 @@ export default {
         field: "type",
         align: "left",
         sortable: true,
-        format: (val) => formatTableColumnText(val),
+        // El backend manda el valor del enum (`script_run`, `cmd_run`, `task_run`).
+        // Antes se mostraba con formatTableColumnText, que solo pasa snake_case a
+        // Title Case: la columna quedaba en inglés ("Script Run") dentro de una
+        // consola en español. Se traduce por clave, con el formateo genérico como
+        // respaldo para cualquier tipo nuevo que el backend agregue.
+        format: (val) => {
+          const claves = {
+            script_run: "agentTabs.history.typeScriptRun",
+            cmd_run: "agentTabs.history.typeCmdRun",
+            task_run: "agentTabs.history.typeTaskRun",
+          };
+          return claves[val] ? t(claves[val]) : formatTableColumnText(val);
+        },
       },
       {
         name: "command",

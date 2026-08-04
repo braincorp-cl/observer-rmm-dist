@@ -75,7 +75,7 @@
         <q-card-section>
           <observer-dropdown
             v-model="state.env_vars"
-            :label="envVarsLabel"
+            :label="$t('scriptsCommon.envVarsLabel')"
             filled
             use-input
             multiple
@@ -144,7 +144,7 @@
             v-model="state.run_as_user"
             :label="$t('runScript.runAsUser')"
           >
-            <q-tooltip>{{ runAsUserToolTip }}</q-tooltip>
+            <q-tooltip>{{ $t('scriptsCommon.runAsUserTip') }}</q-tooltip>
           </q-checkbox>
           <q-checkbox
             v-if="!hosted"
@@ -240,7 +240,6 @@ import { useScriptDropdown } from "@/composables/scripts";
 import { useCustomFieldDropdown } from "@/composables/core";
 import { runScript } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
-import { envVarsLabel, runAsUserToolTip } from "@/constants/constants";
 
 //ui imports
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
