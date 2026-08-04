@@ -2,6 +2,7 @@ import uuid
 from itertools import cycle
 from unittest.mock import patch
 
+from django.db.models import Max
 from model_bakery import baker
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
@@ -13,6 +14,23 @@ from .models import Client, ClientCustomField, Deployment, Site, SiteCustomField
 from .serializers import ClientSerializer, DeploymentSerializer, SiteSerializer
 
 base_url = "/clients"
+
+
+def missing_pk(model):
+    """PK garantizado inexistente para `model`, para los chequeos de 404.
+
+    Un literal (334, 500, 688) NO sirve: las secuencias de PostgreSQL no hacen
+    rollback entre tests, asi que el contador de la tabla avanza durante toda
+    la sesion y hay ordenes de ejecucion --los sortea pytest-randomly con una
+    semilla distinta por corrida-- en que el propio baker.make del test crea
+    justo ese ID. Con el 334 que habia en test_delete_client eso pasaba de
+    verdad: el borrado encontraba el cliente y devolvia 200 en vez de 404.
+    Reproducible con `pytest --randomly-seed=1239176212`.
+
+    Llamarlo DESPUES de crear los objetos del test: max+1 solo esta garantizado
+    libre respecto de lo que ya existe.
+    """
+    return (model.objects.aggregate(Max("pk"))["pk__max"] or 0) + 1
 
 
 class TestClientViews(ObserverTestCase):
@@ -128,7 +146,7 @@ class TestClientViews(ObserverTestCase):
         client = baker.make("clients.Client", name="OldClientName")
 
         # test invalid id
-        r = self.client.put(f"{base_url}/500/", format="json")
+        r = self.client.put(f"{base_url}/{missing_pk(Client)}/", format="json")
         self.assertEqual(r.status_code, 404)
 
         # test successfull edit client
@@ -192,7 +210,7 @@ class TestClientViews(ObserverTestCase):
         agent = baker.make_recipe("agents.agent", site=site_to_move)
 
         # test invalid id
-        r = self.client.delete(f"{base_url}/334/", format="json")
+        r = self.client.delete(f"{base_url}/{missing_pk(Client)}/", format="json")
         self.assertEqual(r.status_code, 404)
 
         url = f"/clients/{client_to_delete.id}/?site_to_move={site_to_move.id}"
@@ -296,7 +314,7 @@ class TestClientViews(ObserverTestCase):
         site = baker.make("clients.Site", client=client)
 
         # test invalid id
-        r = self.client.put(f"{base_url}/sites/688/", format="json")
+        r = self.client.put(f"{base_url}/sites/{missing_pk(Site)}/", format="json")
         self.assertEqual(r.status_code, 404)
 
         data = {
@@ -361,7 +379,11 @@ class TestClientViews(ObserverTestCase):
         agent = baker.make_recipe("agents.agent", site=site_to_delete)
 
         # test invalid id
-        r = self.client.delete("{base_url}/500/", format="json")
+        # Ojo: esta linea NO era f-string, asi que pedia literalmente
+        # "/{base_url}/500/" --una ruta que no existe-- y daba 404 por la razon
+        # equivocada, sin llegar nunca a la vista de borrado de sitios. Ademas
+        # apuntaba a /clients/ y no a /clients/sites/. Corregidas las dos cosas.
+        r = self.client.delete(f"{base_url}/sites/{missing_pk(Site)}/", format="json")
         self.assertEqual(r.status_code, 404)
 
         url = f"/clients/sites/{site_to_delete.id}/?move_to_site={site_to_move.id}"
