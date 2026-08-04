@@ -460,10 +460,18 @@ def get_agent_versions(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, UpdateAgentPerms])
 def update_agents(request):
+    # order_by explicito: sin el, PostgreSQL puede devolver las filas en
+    # cualquier orden y la lista que sale hacia Celery cambia entre corridas.
+    # Es lo que volvia intermitente a test_agent_update_permissions, que compara
+    # los agent_ids contra el orden de entrada. Se ordena por PK (orden de
+    # registro) y no por agent_id: la comparacion de texto en Postgres depende de
+    # la collation de la BD y no coincide con sorted() de Python, asi que ordenar
+    # por agent_id cambiaria el flake por una diferencia local-vs-CI.
     q = (
         Agent.objects.filter_by_role(request.user)  # type: ignore
         .filter(agent_id__in=request.data["agent_ids"])
         .only("agent_id", "version")
+        .order_by("id")
     )
     agent_ids: list[str] = [
         i.agent_id
