@@ -805,12 +805,18 @@ class OpenAICodeCompletion(APIView):
         if settings.open_ai_temperature is not None:
             data["temperature"] = settings.open_ai_temperature
 
+        # 120 s y no 60: con 60 se descartaban modelos que responden bien pero
+        # lento (Cohere tardó 159 s en el banco de pruebas, y varios modelos
+        # gratuitos de OpenRouter pasan del minuto cuando hay cola). El techo lo
+        # ponen uwsgi (harakiri 300 s) y nginx (uwsgi_read_timeout), así que 120
+        # cabe holgado; si hay un proxy inverso delante, su propio
+        # proxy_read_timeout tiene que ser >= 120 o cortará antes.
         try:
             response = requests.post(
                 f"{base_url}/chat/completions",
                 headers=headers,
                 data=json.dumps(data),
-                timeout=60,
+                timeout=120,
             )
         except Exception as e:
             return notify_error(str(e))

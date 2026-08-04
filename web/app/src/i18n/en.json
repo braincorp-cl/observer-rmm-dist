@@ -1903,15 +1903,25 @@
     "newBtn": "New",
     "generateScript": "Generate draft with AI",
     "generateScriptTip": "Describe what you need in plain language and the AI drafts it in the editor.",
-    "chatGptTitle": "Ask the AI what you need!",
     "chatGptPrompt": "{lang} code that ",
-    "generatingScript": "Generating the AI draft...",
+    "generatingScript": "Generating the AI draft… {secs} s",
     "shellPowershell": "Powershell",
     "shellPython": "Python",
     "shellBatch": "Batch",
     "shellShell": "Shell",
     "shellNushell": "Nushell",
     "shellDeno": "Deno"
+  },
+  "aiScriptPrompt": {
+    "title": "Describe the script you need",
+    "subtitle": "The AI writes a draft. Review it before saving or running it.",
+    "placeholder": "gets the hostname and shows C:\\ disk usage",
+    "examplesLabel": "Examples:",
+    "example1": "reports free space on every disk",
+    "example2": "lists stopped services",
+    "example3": "reports the operating system version",
+    "hint": "Ctrl+Enter generates the draft. It replaces whatever is in the editor.",
+    "submit": "Generate draft"
   },
   "scriptFormModal": {
     "titleAdding": "Adding new script",

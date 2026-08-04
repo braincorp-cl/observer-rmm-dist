@@ -1,5 +1,7 @@
-import { ref, watch, computed, onMounted } from "vue";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
+import { useQuasar } from "quasar";
+import { useI18n } from "vue-i18n";
 import { fetchScripts } from "@/api/scripts";
 import {
   formatScriptOptions,
@@ -120,6 +122,45 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
     getScriptOptions,
     reset, // resets dropdown selection state
   };
+}
+
+// Indicador de espera del borrador con IA.
+//
+// El backend le da al proveedor hasta 120 s, y hay modelos gratuitos que se
+// acercan a ese techo. Una rueda muda durante dos minutos se lee como una
+// consola colgada, así que el contador va mostrando los segundos transcurridos:
+// es la única señal de que la petición sigue viva.
+export function useAiDraftLoader() {
+  const $q = useQuasar();
+  const { t } = useI18n();
+
+  let timer: ReturnType<typeof setInterval> | undefined;
+
+  function start() {
+    const startedAt = Date.now();
+
+    const render = () =>
+      $q.loading.show({
+        message: t("scriptsCommon.generatingScript", {
+          secs: Math.round((Date.now() - startedAt) / 1000),
+        }),
+      });
+
+    render();
+    timer = setInterval(render, 1000);
+  }
+
+  function stop() {
+    if (timer) clearInterval(timer);
+    timer = undefined;
+    $q.loading.hide();
+  }
+
+  // Si el modal se destruye con la petición en vuelo (cerrar la consola, por
+  // ejemplo) el intervalo quedaría corriendo contra un `$q.loading` huérfano.
+  onBeforeUnmount(stop);
+
+  return { start, stop };
 }
 
 export const shellOptions = [

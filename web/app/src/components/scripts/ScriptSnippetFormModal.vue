@@ -125,7 +125,10 @@ self.MonacoEnvironment = {
 import type { ScriptSnippet } from "@/types/scripts";
 
 // static data
-import { shellOptions } from "@/composables/scripts";
+import { shellOptions, useAiDraftLoader } from "@/composables/scripts";
+
+// ui imports
+import AiScriptPromptModal from "@/components/scripts/AiScriptPromptModal.vue";
 
 // props
 const props = defineProps<{ snippet?: ScriptSnippet }>();
@@ -162,6 +165,7 @@ const snippet: ScriptSnippet = props.snippet
   ? reactive(Object.assign({}, props.snippet))
   : reactive({ name: "", code: "", shell: "powershell" });
 const loading = ref(false);
+const aiDraftLoader = useAiDraftLoader();
 
 const title = computed(() => {
   if (props.snippet) {
@@ -238,20 +242,15 @@ function unloadEditor() {
 
 function generateScriptOpenAI() {
   $q.dialog({
-    title: t("scriptsCommon.chatGptTitle"),
-    prompt: {
-      model: t("scriptsCommon.chatGptPrompt", { lang: lang.value }),
-      type: "text",
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk(async (data) => {
-    // La llamada al proveedor puede tardar (timeout de 60 s en el backend).
+    component: AiScriptPromptModal,
+    componentProps: { shell: snippet.shell },
+  }).onOk(async (prompt: string) => {
+    // La llamada al proveedor puede tardar (timeout de 120 s en el backend).
     loading.value = true;
-    $q.loading.show({ message: t("scriptsCommon.generatingScript") });
+    aiDraftLoader.start();
     try {
       const completion = await generateScript({
-        prompt: data,
+        prompt: prompt,
       });
       snippet.code = completion;
       // Sin setValue el borrador no se ve en el editor y se pierde al teclear.
@@ -259,7 +258,7 @@ function generateScriptOpenAI() {
     } catch (e) {
       console.error(e);
     } finally {
-      $q.loading.hide();
+      aiDraftLoader.stop();
       loading.value = false;
     }
   });

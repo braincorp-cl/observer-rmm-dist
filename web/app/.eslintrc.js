@@ -251,6 +251,10 @@ module.exports = {
         "src/components/scripts/ScriptSnippets.vue",
         "src/components/scripts/ScriptSnippetFormModal.vue",
         "src/components/scripts/ScriptUploadModal.vue",
+        // AiScriptPromptModal: nace traducido (namespace propio aiScriptPrompt),
+        // reusa scriptsCommon.chatGptPrompt como entrada de la frase y como
+        // prefijo real del prompt, así no hay dos redacciones que sincronizar.
+        "src/components/scripts/AiScriptPromptModal.vue",
         // Ola 14: coresettings/ CustomFields — CustomFieldsForm + CustomFieldsTable
         // (Options API puro: modelOptions/typeOptions/columns a computed con
         // this.$t). Namespace COMPARTIDO customFieldsCommon (name/fieldType/

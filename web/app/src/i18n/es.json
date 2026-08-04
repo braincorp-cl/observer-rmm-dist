@@ -1903,15 +1903,25 @@
     "newBtn": "Nuevo",
     "generateScript": "Generar borrador con IA",
     "generateScriptTip": "Describe en lenguaje natural lo que necesitas y la IA redacta un borrador en el editor.",
-    "chatGptTitle": "¡Pregúntale a la IA lo que necesitas!",
-    "chatGptPrompt": "código {lang} que ",
-    "generatingScript": "Generando el borrador con IA...",
+    "chatGptPrompt": "Código {lang} que ",
+    "generatingScript": "Generando el borrador con IA… {secs} s",
     "shellPowershell": "Powershell",
     "shellPython": "Python",
     "shellBatch": "Batch",
     "shellShell": "Shell",
     "shellNushell": "Nushell",
     "shellDeno": "Deno"
+  },
+  "aiScriptPrompt": {
+    "title": "Describe el script que necesitas",
+    "subtitle": "La IA redacta un borrador. Revísalo antes de guardarlo o ejecutarlo.",
+    "placeholder": "obtenga el hostname y muestre el uso del disco C:\\",
+    "examplesLabel": "Ejemplos:",
+    "example1": "informe el espacio libre de cada disco",
+    "example2": "liste los servicios detenidos",
+    "example3": "reporte la versión del sistema operativo",
+    "hint": "Ctrl+Enter genera el borrador. Reemplaza lo que haya en el editor.",
+    "submit": "Generar borrador"
   },
   "scriptFormModal": {
     "titleAdding": "Agregando nuevo script",

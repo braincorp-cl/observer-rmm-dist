@@ -291,6 +291,7 @@ import { notifyError, notifySuccess } from "@/utils/notify";
 
 // ui imports
 import TestScriptModal from "@/components/scripts/TestScriptModal.vue";
+import AiScriptPromptModal from "@/components/scripts/AiScriptPromptModal.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import * as monaco from "monaco-editor";
 
@@ -327,7 +328,7 @@ self.MonacoEnvironment = {
 import type { Script } from "@/types/scripts";
 
 // static data
-import { shellOptions } from "@/composables/scripts";
+import { shellOptions, useAiDraftLoader } from "@/composables/scripts";
 import { envVarsLabel } from "@/constants/constants";
 
 // props
@@ -402,6 +403,7 @@ if (props.clone)
   script.name = t("scriptFormModal.copyName", { name: script.name });
 const loading = ref(false);
 const agentLoading = ref(false);
+const aiDraftLoader = useAiDraftLoader();
 
 const missingShebang = computed(() => {
   if (script.shell === "shell" || script.shell === "python") {
@@ -536,21 +538,16 @@ function unloadEditor() {
 
 function generateScriptOpenAI() {
   $q.dialog({
-    title: t("scriptsCommon.chatGptTitle"),
-    prompt: {
-      model: t("scriptsCommon.chatGptPrompt", { lang: lang.value }),
-      type: "text",
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk(async (data) => {
-    // La llamada al proveedor puede tardar (timeout de 60 s en el backend):
-    // se deshabilita el botón y se muestra el spinner mientras responde.
+    component: AiScriptPromptModal,
+    componentProps: { shell: script.shell },
+  }).onOk(async (prompt: string) => {
+    // La llamada al proveedor puede tardar (timeout de 120 s en el backend):
+    // se deshabilita el botón y se muestra el contador mientras responde.
     loading.value = true;
-    $q.loading.show({ message: t("scriptsCommon.generatingScript") });
+    aiDraftLoader.start();
     try {
       const completion = await generateScript({
-        prompt: data,
+        prompt: prompt,
       });
       script.script_body = completion;
       // El editor Monaco no observa el estado: sin setValue el borrador
@@ -559,7 +556,7 @@ function generateScriptOpenAI() {
     } catch (e) {
       console.error(e);
     } finally {
-      $q.loading.hide();
+      aiDraftLoader.stop();
       loading.value = false;
     }
   });

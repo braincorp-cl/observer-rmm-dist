@@ -760,7 +760,7 @@ class TestOpenAICodeCompletion(ObserverTestCase):
 
         args, kwargs = mock_post.call_args
         self.assertEqual(args[0], "https://api.openai.com/v1/chat/completions")
-        self.assertEqual(kwargs["timeout"], 60)
+        self.assertEqual(kwargs["timeout"], 120)
         self.assertEqual(kwargs["headers"]["Authorization"], "Bearer sk-test-token")
         body = json.loads(kwargs["data"])
         self.assertEqual(body["messages"][0]["role"], "system")
