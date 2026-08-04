@@ -65,9 +65,13 @@ class TestAgentUpdate(ObserverTestCase):
         mock_core.return_value.agent_auto_update = True
         call_command("update_agents")
 
+        # El order_by espeja el que ahora trae el comando: sin el, la expectativa se
+        # arma con una consulta SIN ordenar y las dos listas pueden salir en distinto
+        # orden aunque contengan los mismos agentes.
         ids = list(
             Agent.objects.defer(*AGENT_DEFER)
             .exclude(version=settings.LATEST_AGENT_VER)
+            .order_by("id")
             .values_list("agent_id", flat=True)
         )
 

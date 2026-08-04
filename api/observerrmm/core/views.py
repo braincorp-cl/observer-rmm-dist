@@ -321,8 +321,14 @@ class CodeSign(APIView):
         if not is_valid:
             return notify_error("Invalid token")
 
+        # order_by explicito por el mismo motivo que en agents.views.update_agents:
+        # sin el, PostgreSQL puede devolver las filas en cualquier orden y la lista
+        # que sale hacia Celery cambia entre corridas. Se ordena por PK, no por
+        # agent_id, para no depender de la collation de la BD.
         agent_ids: list[str] = list(
-            Agent.objects.only("pk", "agent_id").values_list("agent_id", flat=True)
+            Agent.objects.only("pk", "agent_id")
+            .order_by("id")
+            .values_list("agent_id", flat=True)
         )
         send_agent_update_task.delay(agent_ids=agent_ids, token=token, force=True)
         return Response("Agents will be code signed shortly")

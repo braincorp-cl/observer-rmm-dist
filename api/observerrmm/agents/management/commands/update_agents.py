@@ -16,7 +16,15 @@ class Command(BaseCommand):
         if not core.agent_auto_update:
             return
 
-        q = Agent.objects.defer(*AGENT_DEFER).exclude(version=settings.LATEST_AGENT_VER)
+        # order_by explicito por el mismo motivo que en agents.views.update_agents:
+        # sin el, PostgreSQL puede devolver las filas en cualquier orden y la lista
+        # que sale hacia Celery cambia entre corridas. Se ordena por PK, no por
+        # agent_id, para no depender de la collation de la BD.
+        q = (
+            Agent.objects.defer(*AGENT_DEFER)
+            .exclude(version=settings.LATEST_AGENT_VER)
+            .order_by("id")
+        )
         agent_ids: list[str] = [
             i.agent_id
             for i in q
