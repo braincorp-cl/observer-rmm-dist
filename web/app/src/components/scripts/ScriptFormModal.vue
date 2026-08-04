@@ -41,6 +41,17 @@
           <template #br><br /></template>
         </i18n-t>
       </q-banner>
+      <q-banner
+        v-if="readonly"
+        dense
+        inline-actions
+        :class="$q.dark.isActive ? 'bg-grey-9 text-white' : 'bg-blue-grey-1'"
+      >
+        <template v-slot:avatar>
+          <q-icon class="text-center" name="info" color="primary" />
+        </template>
+        {{ $t("scriptFormModal.readonlyTemplateNote") }}
+      </q-banner>
       <div class="row q-pa-sm">
         <q-scroll-area
           :thumb-style="{
@@ -123,6 +134,10 @@
               :readonly="readonly"
               hide-bottom-space
             />
+            <!-- Argumentos, variables de entorno y tiempo de espera quedan
+                 editables incluso en modo lectura: alimentan la corrida de
+                 PROBAR SCRIPT sobre una plantilla sin obligar a clonarla. Lo
+                 escrito no se guarda (en modo lectura no hay botón Guardar). -->
             <observer-dropdown
               v-model="script.args"
               :label="$t('scriptFormModal.scriptArgsLabel')"
@@ -132,7 +147,6 @@
               hide-dropdown-icon
               input-debounce="0"
               new-value-mode="add"
-              :readonly="readonly"
             />
             <observer-dropdown
               v-model="script.env_vars"
@@ -143,13 +157,11 @@
               hide-dropdown-icon
               input-debounce="0"
               new-value-mode="add"
-              :readonly="readonly"
             />
             <q-input
               type="number"
               filled
               dense
-              :readonly="readonly"
               v-model.number="script.default_timeout"
               :label="$t('scriptFormModal.timeoutSeconds')"
               :rules="[(val) => val >= 5 || $t('scriptsCommon.minTimeout')]"
@@ -360,8 +372,22 @@ const server_scripts_enabled = computed(
 );
 
 // script form logic
+// `Object.assign` es copia superficial: sin duplicar los arreglos, `script.args`
+// y `script.env_vars` apuntarían al MISMO arreglo de la fila de la tabla, y
+// editarlos en modo lectura (para probar la plantilla) mutaría la grilla de
+// fondo hasta el siguiente refresco. Se copian aquí.
 const script: Script = props.script
-  ? reactive(Object.assign({}, { ...props.script, script_body: "" }))
+  ? reactive(
+      Object.assign(
+        {},
+        {
+          ...props.script,
+          script_body: "",
+          args: [...(props.script.args ?? [])],
+          env_vars: [...(props.script.env_vars ?? [])],
+        },
+      ),
+    )
   : reactive({
       name: "",
       shell: "powershell",

@@ -84,8 +84,8 @@
           class="q-ml-sm"
           :label="
             showCommunityScripts
-              ? $t('scriptManager.hideCommunityScripts')
-              : $t('scriptManager.showCommunityScripts')
+              ? $t('scriptManager.hideScriptTemplates')
+              : $t('scriptManager.showScriptTemplates')
           "
           :icon="showCommunityScripts ? 'visibility_off' : 'visibility'"
           @click="setShowCommunityScripts(!showCommunityScripts)"
@@ -206,13 +206,16 @@
                 <q-tooltip>{{ $t("scriptsCommon.shellDeno") }}</q-tooltip>
               </q-icon>
 
-              <!-- is community script icon -->
-              <img
-                v-if="props.node.script_type === 'builtin'"
-                class="vertical-middle"
-                :src="ormmLogo"
-                style="height: 20px; max-width: 20px"
-              />
+              <!-- marca de plantilla propia de Observer RMM -->
+              <span v-if="props.node.script_type === 'builtin'">
+                <img
+                  class="vertical-middle"
+                  :src="ormmMark"
+                  style="height: 20px; width: 20px"
+                  :alt="$t('scriptManager.templateMarkTip')"
+                />
+                <q-tooltip>{{ $t("scriptManager.templateMarkTip") }}</q-tooltip>
+              </span>
 
               <span
                 class="q-pl-xs text-weight-bold"
@@ -573,11 +576,13 @@
               :props="props"
               :style="{ color: props.row.hidden ? 'grey' : '' }"
             >
-              <!-- is community script icon -->
+              <!-- marca de plantilla propia de Observer RMM -->
               <img
                 v-if="props.row.script_type === 'builtin'"
-                :src="ormmLogo"
-                style="height: 20px; max-width: 20px"
+                class="vertical-middle"
+                :src="ormmMark"
+                style="height: 20px; width: 20px"
+                :alt="$t('scriptManager.templateMarkTip')"
               />
               {{ truncateText(props.row.name, 50) }}
               <q-tooltip
@@ -645,7 +650,7 @@ import ScriptFormModal from "@/components/scripts/ScriptFormModal.vue";
 import ScriptSnippets from "@/components/scripts/ScriptSnippets.vue";
 import ObserverTable from "@/core/dashboard/ui/ObserverTable.vue";
 
-import ormmLogo from "@/assets/ormm_256.png";
+import ormmMark from "@/assets/ormm_mark_128.png";
 
 export default {
   name: "ScriptManager",
@@ -981,7 +986,7 @@ export default {
       loading,
       showCommunityScripts,
       showHiddenScripts,
-      ormmLogo,
+      ormmMark,
 
       // computed
       visibleScripts,
