@@ -3,30 +3,30 @@
     Remedia problemas de red: renueva IP, reinicia la pila TCP/IP o vuelve a DHCP.
 
 .DESCRIPTION
-    Reemplaza los tres scripts separados del catálogo original (renovar IP, resetear
+    Reemplaza los tres scripts separados del catalogo original (renovar IP, resetear
     TCP con netsh, poner la NIC en DHCP) por uno con modo, porque son los tres pasos
     del mismo procedimiento y casi nunca se corre uno solo.
 
     Escala de menor a mayor invasividad:
 
-      renovar  — libera y renueva la concesión DHCP. No corta la sesión salvo unos
+      renovar  - libera y renueva la concesion DHCP. No corta la sesion salvo unos
                  segundos. Es el primer intento razonable.
-      dhcp     — devuelve los adaptadores a DHCP (IP y DNS). Si el equipo tenía IP
+      dhcp     - devuelve los adaptadores a DHCP (IP y DNS). Si el equipo tenia IP
                  fija por algo, esto la pierde.
-      reset    — reinicia la pila TCP/IP, Winsock y el firewall a valores de fábrica.
+      reset    - reinicia la pila TCP/IP, Winsock y el firewall a valores de fabrica.
                  EXIGE REINICIO del equipo para completarse.
 
-    ADVERTENCIA: cualquiera de los tres puede cortar la conexión del agente. Si el
-    equipo está en el otro extremo del país y algo sale mal, no vuelve solo. El modo
-    'reset' además deja el equipo a medias hasta que se reinicie.
+    ADVERTENCIA: cualquiera de los tres puede cortar la conexion del agente. Si el
+    equipo esta en el otro extremo del pais y algo sale mal, no vuelve solo. El modo
+    'reset' ademas deja el equipo a medias hasta que se reinicie.
 
-    Por eso el modo por defecto es 'estado', que solo informa la configuración actual.
+    Por eso el modo por defecto es 'estado', que solo informa la configuracion actual.
 
 .PARAMETER Modo
     estado (por defecto), renovar, dhcp, reset.
 
 .PARAMETER SoloAdaptador
-    Limita la acción a un adaptador por nombre (por ejemplo "Ethernet").
+    Limita la accion a un adaptador por nombre (por ejemplo "Ethernet").
 
 .EXAMPLE
     red-remediar-pila.ps1
@@ -58,9 +58,16 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
+# Codigo operativo de la RFC 2863 que usa ifOperStatus: 1 = la interfaz esta arriba.
+$ADAPTADOR_OPERATIVO = 1
+
 function Get-AdaptadorActivo {
     try {
-        $adaptadores = @(Get-NetAdapter -ErrorAction Stop | Where-Object { $_.Status -eq "Up" })
+        # ifOperStatus y no Status: Status es el texto que Windows traduce (en un equipo
+        # en espanol dice "Activo", no "Up"), mientras que ifOperStatus es el codigo
+        # numerico de la RFC 2863, donde 1 = operativo en cualquier idioma.
+        $adaptadores = @(Get-NetAdapter -ErrorAction Stop |
+            Where-Object { $_.ifOperStatus -eq $ADAPTADOR_OPERATIVO })
     }
     catch {
         Write-Verbose $_.Exception.Message
@@ -86,18 +93,18 @@ function Show-Configuracion {
 
     foreach ($adaptador in $adaptadores) {
         Write-Output ""
-        Write-Output "  $($adaptador.Name) — $($adaptador.InterfaceDescription)"
+        Write-Output "  $($adaptador.Name) - $($adaptador.InterfaceDescription)"
         Write-Output "    estado:     $($adaptador.Status) / $($adaptador.LinkSpeed)"
 
         try {
             $configuracion = Get-NetIPConfiguration -InterfaceIndex $adaptador.ifIndex -ErrorAction Stop
             $direcciones = @($configuracion.IPv4Address | ForEach-Object { "$($_.IPAddress)/$($_.PrefixLength)" })
-            Write-Output "    IPv4:       $(if ($direcciones) { $direcciones -join ', ' } else { '(sin dirección)' })"
+            Write-Output "    IPv4:       $(if ($direcciones) { $direcciones -join ', ' } else { '(sin direccion)' })"
             Write-Output "    gateway:    $(if ($configuracion.IPv4DefaultGateway) { $configuracion.IPv4DefaultGateway.NextHop } else { '(sin gateway)' })"
             Write-Output "    DNS:        $(if ($configuracion.DNSServer.ServerAddresses) { $configuracion.DNSServer.ServerAddresses -join ', ' } else { '(sin DNS)' })"
         }
         catch {
-            Write-Output "    no se pudo leer la configuración IP: $($_.Exception.Message)"
+            Write-Output "    no se pudo leer la configuracion IP: $($_.Exception.Message)"
         }
 
         try {
@@ -110,12 +117,12 @@ function Show-Configuracion {
     }
 }
 
-Show-Configuracion -Titulo "Configuración actual"
+Show-Configuracion -Titulo "Configuracion actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
-    Write-Output "Modos que actúan: renovar (suave), dhcp (pierde IP fija), reset (exige reinicio)."
+    Write-Output "Modo 'estado': no se modifico nada."
+    Write-Output "Modos que actuan: renovar (suave), dhcp (pierde IP fija), reset (exige reinicio)."
     exit 0
 }
 
@@ -131,26 +138,26 @@ $errores = 0
 switch ($Modo) {
     "renovar" {
         Write-Output ""
-        Write-Output "== Liberando y renovando la concesión DHCP =="
-        # ipconfig actúa sobre todos los adaptadores: no acepta filtrar por nombre,
-        # así que -SoloAdaptador no aplica en este modo y conviene decirlo.
+        Write-Output "== Liberando y renovando la concesion DHCP =="
+        # ipconfig actua sobre todos los adaptadores: no acepta filtrar por nombre,
+        # asi que -SoloAdaptador no aplica en este modo y conviene decirlo.
         if ($SoloAdaptador) {
-            Write-Output "  AVISO: ipconfig /release y /renew actúan sobre TODOS los"
+            Write-Output "  AVISO: ipconfig /release y /renew actuan sobre TODOS los"
             Write-Output "         adaptadores; -SoloAdaptador se ignora en este modo."
         }
         & ipconfig /release | Out-Null
         Start-Sleep -Seconds 2
         $salida = & ipconfig /renew
         if ($LASTEXITCODE -ne 0) {
-            Write-Output "  ipconfig /renew devolvió código $LASTEXITCODE"
+            Write-Output "  ipconfig /renew devolvio codigo $LASTEXITCODE"
             $errores++
         }
         else {
-            Write-Output "  concesión renovada."
+            Write-Output "  concesion renovada."
         }
         Write-Verbose ($salida -join "`n")
 
-        Write-Output "  vaciando la caché de DNS..."
+        Write-Output "  vaciando la cache de DNS..."
         & ipconfig /flushdns | Out-Null
     }
 
@@ -166,7 +173,7 @@ switch ($Modo) {
                     Write-Output "    ya estaba en DHCP: no se toca la IP."
                 }
                 else {
-                    # El gateway hay que quitarlo aparte: si queda una ruta estática,
+                    # El gateway hay que quitarlo aparte: si queda una ruta estatica,
                     # el adaptador toma IP por DHCP pero sigue enrutando por la vieja.
                     Remove-NetRoute -InterfaceIndex $adaptador.ifIndex -DestinationPrefix "0.0.0.0/0" `
                         -Confirm:$false -ErrorAction SilentlyContinue
@@ -175,7 +182,7 @@ switch ($Modo) {
                 }
 
                 Set-DnsClientServerAddress -InterfaceIndex $adaptador.ifIndex -ResetServerAddresses -ErrorAction Stop
-                Write-Output "    DNS devuelto a automático."
+                Write-Output "    DNS devuelto a automatico."
             }
             catch {
                 Write-Output "    ERROR: $($_.Exception.Message)"
@@ -188,12 +195,12 @@ switch ($Modo) {
 
     "reset" {
         Write-Output ""
-        Write-Output "== Reiniciando la pila de red a valores de fábrica =="
+        Write-Output "== Reiniciando la pila de red a valores de fabrica =="
         Write-Output "  Esto NO se completa hasta que el equipo se reinicie."
 
         $comandos = @(
             @("int ip reset", "pila TCP/IP"),
-            @("winsock reset", "catálogo Winsock"),
+            @("winsock reset", "catalogo Winsock"),
             @("advfirewall reset", "firewall de Windows"),
             @("int ipv4 reset", "IPv4"),
             @("int ipv6 reset", "IPv6")
@@ -207,7 +214,7 @@ switch ($Modo) {
                 Write-Output "  OK    $descripcion"
             }
             else {
-                Write-Output "  ERROR $descripcion (netsh devolvió $LASTEXITCODE)"
+                Write-Output "  ERROR $descripcion (netsh devolvio $LASTEXITCODE)"
                 Write-Verbose ($salida -join "`n")
                 $errores++
             }
@@ -215,16 +222,16 @@ switch ($Modo) {
 
         & ipconfig /flushdns | Out-Null
         Write-Output ""
-        Write-Output "  PENDIENTE: reiniciá el equipo para que el reset tome efecto."
+        Write-Output "  PENDIENTE: reinicia el equipo para que el reset tome efecto."
     }
 }
 
-Show-Configuracion -Titulo "Configuración resultante"
+Show-Configuracion -Titulo "Configuracion resultante"
 
 Write-Output ""
 if ($errores -gt 0) {
-    Write-Output "Terminó con $errores error(es)."
+    Write-Output "Termino con $errores error(es)."
     exit 1
 }
-Write-Output "Terminó sin errores."
+Write-Output "Termino sin errores."
 exit 0

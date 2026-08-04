@@ -1,21 +1,21 @@
 ﻿<#
 .SYNOPSIS
-    Deshabilita o habilita la hibernación y el inicio rápido de Windows.
+    Deshabilita o habilita la hibernacion y el inicio rapido de Windows.
 
 .DESCRIPTION
-    Une los dos scripts del catálogo original (deshabilitar hibernación y deshabilitar
-    inicio rápido) porque son el mismo interruptor: el inicio rápido (Fast Startup)
-    depende del archivo de hibernación, así que apagar la hibernación se lo lleva
+    Une los dos scripts del catalogo original (deshabilitar hibernacion y deshabilitar
+    inicio rapido) porque son el mismo interruptor: el inicio rapido (Fast Startup)
+    depende del archivo de hibernacion, asi que apagar la hibernacion se lo lleva
     puesto, y dejarlos desalineados produce configuraciones raras.
 
-    Por qué deshabilitarlos, en un contexto de administración remota: con inicio
-    rápido, "apagar" no apaga — Windows hiberna el kernel. El resultado es que los
+    Por que deshabilitarlos, en un contexto de administracion remota: con inicio
+    rapido, "apagar" no apaga - Windows hiberna el kernel. El resultado es que los
     parches que exigen reinicio no terminan de aplicarse, el equipo acumula tiempo de
-    actividad invisible y los problemas que un reinicio arreglaría sobreviven al
-    apagado. Además libera del disco un archivo del tamaño de la RAM.
+    actividad invisible y los problemas que un reinicio arreglaria sobreviven al
+    apagado. Ademas libera del disco un archivo del tamano de la RAM.
 
-    Contrapartida honesta: en portátiles la hibernación es útil de verdad y apagarla
-    hace que una batería agotada pierda la sesión. El script avisa si detecta batería.
+    Contrapartida honesta: en portatiles la hibernacion es util de verdad y apagarla
+    hace que una bateria agotada pierda la sesion. El script avisa si detecta bateria.
 
 .PARAMETER Modo
     estado (por defecto), deshabilitar, habilitar.
@@ -94,8 +94,8 @@ function Show-Estado {
     $inicioRapido = Get-EstadoInicioRapido
     $tamano = Get-TamanoHiberfil
 
-    Write-Output "  hibernación:    $(if ($null -eq $hibernacion) { 'no se pudo leer' } elseif ($hibernacion) { 'habilitada' } else { 'deshabilitada' })"
-    Write-Output "  inicio rápido:  $(if ($null -eq $inicioRapido) { 'no definido (equivale a habilitado)' } elseif ($inicioRapido) { 'habilitado' } else { 'deshabilitado' })"
+    Write-Output "  hibernacion:    $(if ($null -eq $hibernacion) { 'no se pudo leer' } elseif ($hibernacion) { 'habilitada' } else { 'deshabilitada' })"
+    Write-Output "  inicio rapido:  $(if ($null -eq $inicioRapido) { 'no definido (equivale a habilitado)' } elseif ($inicioRapido) { 'habilitado' } else { 'deshabilitado' })"
     if ($tamano -gt 0) {
         Write-Output "  hiberfil.sys:   $([Math]::Round($tamano / 1GB, 2)) GB en $($env:SystemDrive)\"
     }
@@ -104,7 +104,7 @@ function Show-Estado {
     }
 }
 
-# La batería importa para la recomendación, no para la acción.
+# La bateria importa para la recomendacion, no para la accion.
 $tieneBateria = $false
 try {
     $baterias = @(Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop)
@@ -114,19 +114,19 @@ catch {
     Write-Verbose $_.Exception.Message
 }
 
-Write-Output "Equipo con batería: $tieneBateria"
+Write-Output "Equipo con bateria: $tieneBateria"
 Show-Estado -Titulo "Estado actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     exit 0
 }
 
 if ($Modo -eq "deshabilitar" -and $tieneBateria) {
     Write-Output ""
-    Write-Output "AVISO: este equipo tiene batería. Sin hibernación, si la batería se"
-    Write-Output "agota estando suspendido, la sesión se pierde sin guardar."
+    Write-Output "AVISO: este equipo tiene bateria. Sin hibernacion, si la bateria se"
+    Write-Output "agota estando suspendido, la sesion se pierde sin guardar."
 }
 
 $libreAntes = $null
@@ -141,7 +141,7 @@ catch {
 Write-Output ""
 Write-Output "== Aplicando: $Modo =="
 
-# powercfg /hibernate es la vía correcta: crea o borra hiberfil.sys y ajusta el
+# powercfg /hibernate es la via correcta: crea o borra hiberfil.sys y ajusta el
 # registro de forma consistente. Tocar solo el registro deja el archivo en disco.
 if ($Modo -eq "deshabilitar") {
     $salida = & powercfg /hibernate off 2>&1
@@ -151,14 +151,14 @@ else {
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Output "  ERROR: powercfg devolvió $LASTEXITCODE"
+    Write-Output "  ERROR: powercfg devolvio $LASTEXITCODE"
     Write-Output "  $($salida -join ' ')"
     exit 1
 }
 Write-Output "  powercfg /hibernate $(if ($Modo -eq 'deshabilitar') { 'off' } else { 'on' }): OK"
 
-# El inicio rápido se ajusta aparte: al rehabilitar la hibernación, Windows no lo
-# vuelve a encender solo, y al apagarla conviene dejar el valor explícito en 0 para
+# El inicio rapido se ajusta aparte: al rehabilitar la hibernacion, Windows no lo
+# vuelve a encender solo, y al apagarla conviene dejar el valor explicito en 0 para
 # que no quede indefinido.
 $valorInicioRapido = if ($Modo -eq "deshabilitar") { 0 } else { 1 }
 try {
@@ -173,12 +173,12 @@ catch {
 
 Show-Estado -Titulo "Estado resultante"
 
-# Verificación por efecto: el estado leído del registro, no el código de powercfg.
+# Verificacion por efecto: el estado leido del registro, no el codigo de powercfg.
 $hibernacionFinal = Get-EstadoHibernacion
 $esperado = $Modo -eq "habilitar"
 if ($null -ne $hibernacionFinal -and $hibernacionFinal -ne $esperado) {
     Write-Output ""
-    Write-Output "FALLA: la hibernación quedó en un estado distinto al pedido."
+    Write-Output "FALLA: la hibernacion quedo en un estado distinto al pedido."
     exit 1
 }
 
@@ -195,5 +195,5 @@ if ($null -ne $libreAntes) {
 }
 
 Write-Output ""
-Write-Output "Aplicado. El inicio rápido toma efecto en el próximo apagado."
+Write-Output "Aplicado. El inicio rapido toma efecto en el proximo apagado."
 exit 0

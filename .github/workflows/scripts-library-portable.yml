@@ -1,0 +1,74 @@
+name: Scripts library portable
+
+# Gate de portabilidad de la biblioteca de scripts del producto (ADR-026).
+#
+# Cubre dos regresiones que NO dan error cuando ocurren, y por eso necesitan un gate:
+# las dos dejan el script "funcionando" y devolviendo exit 0 mientras entregan un
+# resultado falso.
+#
+# 1. ACENTOS EN LA SALIDA
+#    En Windows, PowerShell 5.1 escribe su salida en la pagina de codigos OEM de la
+#    consola, donde una letra acentuada es un solo byte que no forma una secuencia
+#    UTF-8 valida. El agente ya decodifica correctamente esa salida, pero una flota
+#    no se actualiza el mismo dia: mientras queden agentes viejos, esos bytes se
+#    borran y el acento desaparece del reporte sin dejar rastro. La biblioteca se
+#    escribe en ASCII para que el resultado no dependa de la version del agente.
+#
+#    El manifiesto observer_scripts.json queda FUERA de este gate a proposito: su
+#    texto va del JSON a la base y de ahi a la consola web, sin pasar nunca por el
+#    agente, asi que ahi los acentos son correctos y deseables.
+#
+# 2. COMPARACIONES CONTRA TEXTO QUE WINDOWS TRADUCE
+#    Los equipos de la flota estan en espanol y en ingles. Un servicio detenido dice
+#    "Stopped" en unos y "Detenido" en otros; el grupo de administradores locales se
+#    llama "Administrators" o "Administradores". Un script que compara contra ese
+#    texto no falla en el equipo en espanol: no encuentra nada y reporta que esta
+#    todo bien. Es el peor modo de falla posible para un RMM.
+#
+#    La regla es comparar siempre contra el identificador invariante (SID, GUID,
+#    enum de .NET, codigo numerico del registro o de la RFC) y reservar el texto
+#    traducido para lo que lee el operador, donde si conviene que salga en su idioma.
+#
+# El detalle de cada patron y su reemplazo esta en la cabecera del checker, que
+# tambien se puede correr a mano:
+#   python3 scripts/verificar_biblioteca_scripts.py
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  portable:
+    runs-on: ubuntu-22.04
+    name: Biblioteca de scripts portable (ASCII + sin texto traducido)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verificar la biblioteca de scripts
+        run: python3 scripts/verificar_biblioteca_scripts.py
+
+      - name: Verificar que los .ps1 parsean
+        shell: pwsh
+        run: |
+          # PowerShell viene preinstalado en los runners de ubuntu. Parsear no ejecuta
+          # nada: solo confirma que ningun script quedo sintacticamente roto, que es la
+          # forma mas barata de detectar un reemplazo masivo mal hecho.
+          $fallas = 0
+          Get-ChildItem api/observerrmm/scripts/library/scripts -Filter *.ps1 | ForEach-Object {
+              $errores = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile(
+                  $_.FullName, [ref]$null, [ref]$errores)
+              if ($errores -and $errores.Count -gt 0) {
+                  $script:fallas++
+                  Write-Output "::error file=$($_.FullName)::$($errores[0].Message)"
+              }
+          }
+          if ($fallas -gt 0) { exit 1 }
+          Write-Output "::notice::Todos los .ps1 de la biblioteca parsean."

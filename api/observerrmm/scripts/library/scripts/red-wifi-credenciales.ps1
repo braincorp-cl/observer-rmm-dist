@@ -1,22 +1,22 @@
 ﻿<#
 .SYNOPSIS
-    Lista los perfiles WiFi guardados y, opcionalmente, sus contraseñas.
+    Lista los perfiles WiFi guardados y, opcionalmente, sus contrasenas.
 
 .DESCRIPTION
     Solo LEE. Resuelve el caso concreto de tener que reconectar un equipo a una red
     cuya clave nadie recuerda, o de documentar las redes de un sitio antes de
     recambiar el equipamiento.
 
-    ADVERTENCIA de seguridad: con -MostrarClaves las contraseñas quedan escritas en la
+    ADVERTENCIA de seguridad: con -MostrarClaves las contrasenas quedan escritas en la
     salida del script, que se guarda en el historial de la consola y viaja por NATS.
     Cualquiera con acceso a ese historial obtiene acceso a las redes WiFi del cliente.
-    Por eso el modo por defecto NO las muestra: solo lista qué redes hay guardadas.
+    Por eso el modo por defecto NO las muestra: solo lista que redes hay guardadas.
 
     Las redes de empresa (WPA2/3-Enterprise, con usuario y certificado) no tienen una
     clave que extraer y aparecen como tales: no es un fallo del script.
 
 .PARAMETER MostrarClaves
-    Incluye las contraseñas en texto claro. Ver la advertencia.
+    Incluye las contrasenas en texto claro. Ver la advertencia.
 
 .PARAMETER Perfil
     Limita el reporte a un perfil por nombre (SSID).
@@ -50,10 +50,10 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
-# netsh es la única vía para esto: no hay cmdlet de PowerShell que devuelva la clave
-# de un perfil WiFi. Su salida está localizada, así que se parsea por la estructura
-# (lo que hay después de los dos puntos) y no por el texto de la etiqueta, que cambia
-# según el idioma del Windows.
+# netsh es la unica via para esto: no hay cmdlet de PowerShell que devuelva la clave
+# de un perfil WiFi. Su salida esta localizada, asi que se parsea por la estructura
+# (lo que hay despues de los dos puntos) y no por el texto de la etiqueta, que cambia
+# segun el idioma del Windows.
 function Get-ValorNetsh {
     param([string[]]$Lineas, [string[]]$Patrones)
     foreach ($linea in $Lineas) {
@@ -70,12 +70,12 @@ function Get-ValorNetsh {
 $salidaPerfiles = & netsh wlan show profiles 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $salidaPerfiles) {
     Write-Output "No se pudo consultar los perfiles WiFi."
-    Write-Output "Es lo esperable en un equipo sin adaptador inalámbrico, o si el"
-    Write-Output "servicio WLAN AutoConfig está detenido."
+    Write-Output "Es lo esperable en un equipo sin adaptador inalambrico, o si el"
+    Write-Output "servicio WLAN AutoConfig esta detenido."
     exit 1
 }
 
-# El nombre del perfil es lo que sigue a los dos puntos en las líneas de "todos los
+# El nombre del perfil es lo que sigue a los dos puntos en las lineas de "todos los
 # perfiles de usuario". Se filtra por la presencia de ": " para no depender del idioma.
 $nombres = New-Object System.Collections.ArrayList
 foreach ($linea in $salidaPerfiles) {
@@ -102,7 +102,7 @@ if ($nombres.Count -eq 0) {
 
 Write-Output "$($nombres.Count) perfil(es) WiFi guardado(s)."
 if (-not $MostrarClaves) {
-    Write-Output "Las contraseñas NO se muestran. Usá -MostrarClaves si de verdad hace falta."
+    Write-Output "Las contrasenas NO se muestran. Usa -MostrarClaves si de verdad hace falta."
 }
 
 $conClave = 0
@@ -130,9 +130,9 @@ foreach ($nombre in $nombres) {
     $cifrado = Get-ValorNetsh -Lineas $detalle -Patrones @("Cipher", "Cifrado")
     $conexion = Get-ValorNetsh -Lineas $detalle -Patrones @("Connection mode", "Modo de conexi")
 
-    if ($autenticacion) { Write-Output "  autenticación:   $autenticacion" }
+    if ($autenticacion) { Write-Output "  autenticacion:   $autenticacion" }
     if ($cifrado) { Write-Output "  cifrado:         $cifrado" }
-    if ($conexion) { Write-Output "  conexión:        $conexion" }
+    if ($conexion) { Write-Output "  conexion:        $conexion" }
 
     if ($autenticacion -match "WPA.*Enterprise|802\.1X") {
         Write-Output "  clave:           (red empresarial: usa credenciales, no clave compartida)"
@@ -159,7 +159,7 @@ Write-Output "  $($nombres.Count) perfil(es), $empresariales empresarial(es)."
 if ($MostrarClaves) {
     Write-Output "  $conClave clave(s) mostrada(s) en texto claro."
     Write-Output ""
-    Write-Output "  Este resultado quedó guardado en el historial de la consola."
+    Write-Output "  Este resultado quedo guardado en el historial de la consola."
     Write-Output "  Borralo cuando termines de usarlo."
 }
 

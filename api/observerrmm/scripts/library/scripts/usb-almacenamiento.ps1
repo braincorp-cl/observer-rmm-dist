@@ -4,15 +4,15 @@
 
 .DESCRIPTION
     Reemplaza los dos scripts separados de habilitar y deshabilitar por uno con
-    modo, más un modo de consulta.
+    modo, mas un modo de consulta.
 
-    Actúa sobre el arranque del driver USBSTOR en el registro: 3 = habilitado,
+    Actua sobre el arranque del driver USBSTOR en el registro: 3 = habilitado,
     4 = deshabilitado. Eso bloquea pendrives y discos externos **sin** afectar
-    teclados, mouse, impresoras ni cámaras USB, que usan otros drivers. Es la
-    diferencia con deshabilitar el controlador USB completo, que dejaría el equipo
+    teclados, mouse, impresoras ni camaras USB, que usan otros drivers. Es la
+    diferencia con deshabilitar el controlador USB completo, que dejaria el equipo
     sin teclado.
 
-    Importante: el cambio afecta a los dispositivos que se conecten después. Un
+    Importante: el cambio afecta a los dispositivos que se conecten despues. Un
     pendrive ya montado sigue accesible hasta que se desconecte o se reinicie el
     equipo; el script lo avisa si detecta uno conectado.
 
@@ -75,7 +75,7 @@ function Show-DispositivoConectado {
             Write-Output ""
             Write-Output "  Dispositivos de almacenamiento USB conectados ahora mismo:"
             foreach ($disco in $discos) {
-                $tamano = if ($disco.Size) { "$([Math]::Round($disco.Size / 1GB, 1)) GB" } else { "tamaño desconocido" }
+                $tamano = if ($disco.Size) { "$([Math]::Round($disco.Size / 1GB, 1)) GB" } else { "tamano desconocido" }
                 Write-Output "   - $($disco.Model) ($tamano)"
             }
             return $discos.Count
@@ -126,11 +126,11 @@ catch {
     exit 1
 }
 
-# Verificación por efecto: releer el valor en vez de confiar en que el Set no lanzó.
+# Verificacion por efecto: releer el valor en vez de confiar en que el Set no lanzo.
 $verificado = Get-EstadoUsb
 if ($verificado -ne $deseado) {
-    Write-Output "FALLA: se escribió pero el valor quedó en $verificado."
-    Write-Output "Puede haber una directiva de grupo revirtiéndolo."
+    Write-Output "FALLA: se escribio pero el valor quedo en $verificado."
+    Write-Output "Puede haber una directiva de grupo revirtiendolo."
     exit 1
 }
 

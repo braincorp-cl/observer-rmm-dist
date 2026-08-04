@@ -1,27 +1,27 @@
 ﻿<#
 .SYNOPSIS
-    Evalúa si el equipo cumple los requisitos de Windows 11, y opcionalmente bloquea la actualización.
+    Evalua si el equipo cumple los requisitos de Windows 11, y opcionalmente bloquea la actualizacion.
 
 .DESCRIPTION
-    Une los dos scripts del catálogo original (verificar compatibilidad y bloquear la
-    actualización) porque son las dos caras de la misma decisión: primero se mide, y
-    según el resultado se decide si el equipo se actualiza o se congela.
+    Une los dos scripts del catalogo original (verificar compatibilidad y bloquear la
+    actualizacion) porque son las dos caras de la misma decision: primero se mide, y
+    segun el resultado se decide si el equipo se actualiza o se congela.
 
-    Revisa los requisitos que de verdad frenan la actualización: TPM 2.0, Arranque
+    Revisa los requisitos que de verdad frenan la actualizacion: TPM 2.0, Arranque
     seguro, modo de particionado del disco de sistema (UEFI/GPT), memoria, espacio libre
     y familia del procesador. No pretende reemplazar a la herramienta oficial de
-    Microsoft, que además consulta la lista de CPU soportadas: un equipo puede cumplir
-    todo lo de acá y aun así quedar fuera por su modelo de procesador.
+    Microsoft, que ademas consulta la lista de CPU soportadas: un equipo puede cumplir
+    todo lo de aca y aun asi quedar fuera por su modelo de procesador.
 
-    El bloqueo se hace por versión objetivo (TargetReleaseVersion), que es el mecanismo
-    soportado por Microsoft, y NO con los ajustes que solo posponen la actualización unos
-    días. Es reversible.
+    El bloqueo se hace por version objetivo (TargetReleaseVersion), que es el mecanismo
+    soportado por Microsoft, y NO con los ajustes que solo posponen la actualizacion unos
+    dias. Es reversible.
 
 .PARAMETER Modo
     verificar (por defecto), bloquear, desbloquear.
 
 .PARAMETER VersionObjetivo
-    Versión en la que congelar el equipo al bloquear. Por defecto "22H2".
+    Version en la que congelar el equipo al bloquear. Por defecto "22H2".
 
 .EXAMPLE
     windows11-compatibilidad.ps1
@@ -61,15 +61,15 @@ Write-Output "== Sistema actual =="
 $esWin11 = $false
 try {
     $sistemaOperativo = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
-    Write-Output "  edición: $($sistemaOperativo.Caption)"
-    Write-Output "  versión: $($sistemaOperativo.Version) (build $($sistemaOperativo.BuildNumber))"
-    # Windows 11 se distingue por el número de compilación, no por el nombre: su
+    Write-Output "  edicion: $($sistemaOperativo.Caption)"
+    Write-Output "  version: $($sistemaOperativo.Version) (build $($sistemaOperativo.BuildNumber))"
+    # Windows 11 se distingue por el numero de compilacion, no por el nombre: su
     # Version sigue siendo 10.0.
     $esWin11 = [int]$sistemaOperativo.BuildNumber -ge 22000
-    Write-Output "  ¿ya es Windows 11?: $esWin11"
+    Write-Output "  ya es Windows 11?: $esWin11"
 }
 catch {
-    Write-Output "  no se pudo leer la información del sistema: $($_.Exception.Message)"
+    Write-Output "  no se pudo leer la informacion del sistema: $($_.Exception.Message)"
 }
 
 try {
@@ -89,7 +89,7 @@ if (-not $esWin11) {
         $tpm = Get-CimInstance -Namespace "root\CIMV2\Security\MicrosoftTpm" `
             -ClassName Win32_Tpm -ErrorAction Stop
         $version = ($tpm.SpecVersion -split ",")[0].Trim()
-        Write-Output "  TPM:              versión $version, habilitado=$($tpm.IsEnabled_InitialValue), listo=$($tpm.IsActivated_InitialValue)"
+        Write-Output "  TPM:              version $version, habilitado=$($tpm.IsEnabled_InitialValue), listo=$($tpm.IsActivated_InitialValue)"
         if ([double]$version -lt 2.0) {
             [void]$incumplidos.Add("TPM $version (se exige 2.0)")
         }
@@ -103,7 +103,7 @@ if (-not $esWin11) {
     }
 
     # Arranque seguro. Confirm-SecureBootUEFI lanza en equipos con BIOS heredado, y esa
-    # excepción es en sí la respuesta: no hay UEFI.
+    # excepcion es en si la respuesta: no hay UEFI.
     try {
         $arranqueSeguro = Confirm-SecureBootUEFI -ErrorAction Stop
         Write-Output "  Arranque seguro:  $arranqueSeguro"
@@ -116,7 +116,7 @@ if (-not $esWin11) {
         [void]$incumplidos.Add("sin UEFI/Arranque seguro (BIOS heredado)")
     }
 
-    # Estilo de partición del disco de sistema: GPT es requisito.
+    # Estilo de particion del disco de sistema: GPT es requisito.
     try {
         $letraSistema = $env:SystemDrive -replace ":", ""
         $particion = Get-Partition -DriveLetter $letraSistema -ErrorAction Stop
@@ -127,10 +127,10 @@ if (-not $esWin11) {
         }
     }
     catch {
-        Write-Output "  disco de sistema: no se pudo determinar el estilo de partición"
+        Write-Output "  disco de sistema: no se pudo determinar el estilo de particion"
     }
 
-    # Memoria: mínimo 4 GB.
+    # Memoria: minimo 4 GB.
     try {
         $sistema = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
         $gib = [Math]::Round($sistema.TotalPhysicalMemory / 1GB, 1)
@@ -153,24 +153,24 @@ if (-not $esWin11) {
             [void]$incumplidos.Add("disco de $totalGib GiB (se exigen 64)")
         }
         if ($libreGib -lt 20) {
-            [void]$incumplidos.Add("solo $libreGib GiB libres (la actualización necesita ~20)")
+            [void]$incumplidos.Add("solo $libreGib GiB libres (la actualizacion necesita ~20)")
         }
     }
     catch {
         Write-Output "  disco:            no se pudo determinar"
     }
 
-    # Procesador: se informa modelo y núcleos. La lista oficial de CPU soportadas no se
-    # replica acá a propósito: sería un dato externo que envejece y que Microsoft
+    # Procesador: se informa modelo y nucleos. La lista oficial de CPU soportadas no se
+    # replica aca a proposito: seria un dato externo que envejece y que Microsoft
     # actualiza por su cuenta.
     try {
         $procesador = Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop |
             Select-Object -First 1
         Write-Output "  procesador:       $($procesador.Name)"
-        Write-Output "  núcleos/hilos:    $($procesador.NumberOfCores)/$($procesador.NumberOfLogicalProcessors)"
+        Write-Output "  nucleos/hilos:    $($procesador.NumberOfCores)/$($procesador.NumberOfLogicalProcessors)"
         Write-Output "  arquitectura:     $($procesador.AddressWidth) bits"
         if ($procesador.NumberOfCores -lt 2) {
-            [void]$incumplidos.Add("procesador de $($procesador.NumberOfCores) núcleo(s), se exigen 2")
+            [void]$incumplidos.Add("procesador de $($procesador.NumberOfCores) nucleo(s), se exigen 2")
         }
         if ([int]$procesador.AddressWidth -lt 64) {
             [void]$incumplidos.Add("procesador de 32 bits")
@@ -182,7 +182,7 @@ if (-not $esWin11) {
 }
 
 Write-Output ""
-Write-Output "== Política de versión objetivo =="
+Write-Output "== Politica de version objetivo =="
 $bloqueado = $false
 try {
     if (Test-Path $rutaPoliticaWu) {
@@ -195,26 +195,26 @@ try {
             }
         }
         else {
-            Write-Output "  sin versión objetivo fijada."
+            Write-Output "  sin version objetivo fijada."
         }
     }
     else {
-        Write-Output "  sin política de Windows Update configurada."
+        Write-Output "  sin politica de Windows Update configurada."
     }
 }
 catch {
-    Write-Output "  no se pudo leer la política: $($_.Exception.Message)"
+    Write-Output "  no se pudo leer la politica: $($_.Exception.Message)"
 }
 
 if ($Modo -eq "verificar") {
     Write-Output ""
     Write-Output "== Resultado =="
     if ($esWin11) {
-        Write-Output "  El equipo ya corre Windows 11: no aplica la evaluación."
+        Write-Output "  El equipo ya corre Windows 11: no aplica la evaluacion."
         exit 0
     }
     if ($incumplidos.Count -eq 0) {
-        Write-Output "  COMPATIBLE con Windows 11 según los requisitos verificables acá."
+        Write-Output "  COMPATIBLE con Windows 11 segun los requisitos verificables aca."
         Write-Output "  Ojo: el modelo de procesador puede dejarlo fuera igual. La lista"
         Write-Output "  oficial la mantiene Microsoft y no se replica en este script."
         exit 0
@@ -229,9 +229,9 @@ if ($Modo -eq "verificar") {
 
 if ($Modo -eq "desbloquear") {
     Write-Output ""
-    Write-Output "== Quitando la versión objetivo =="
+    Write-Output "== Quitando la version objetivo =="
     if (-not $bloqueado) {
-        Write-Output "  No había ninguna versión objetivo fijada: nada que hacer."
+        Write-Output "  No habia ninguna version objetivo fijada: nada que hacer."
         exit 0
     }
     $errores = 0
@@ -247,19 +247,19 @@ if ($Modo -eq "desbloquear") {
     }
     Write-Output ""
     Write-Output "== Resultado =="
-    Write-Output "  Versión objetivo quitada. El equipo vuelve a poder actualizarse a la"
-    Write-Output "  última versión disponible, incluida Windows 11 si es compatible."
+    Write-Output "  Version objetivo quitada. El equipo vuelve a poder actualizarse a la"
+    Write-Output "  ultima version disponible, incluida Windows 11 si es compatible."
     if ($errores -gt 0) { exit 1 }
     exit 0
 }
 
 Write-Output ""
-Write-Output "== Fijando la versión objetivo en $VersionObjetivo =="
+Write-Output "== Fijando la version objetivo en $VersionObjetivo =="
 
 if (-not (Test-Path $rutaPoliticaWu)) {
     try {
         New-Item -Path $rutaPoliticaWu -Force -ErrorAction Stop | Out-Null
-        Write-Output "  clave de política creada."
+        Write-Output "  clave de politica creada."
     }
     catch {
         Write-Output "  ERROR al crear la clave: $($_.Exception.Message)"
@@ -286,31 +286,31 @@ foreach ($clave in $ajustes.Keys) {
     }
 }
 
-# Verificación por efecto.
+# Verificacion por efecto.
 try {
     $politica = Get-ItemProperty -Path $rutaPoliticaWu -ErrorAction Stop
     if ($politica.TargetReleaseVersion -ne 1 -or $politica.TargetReleaseVersionInfo -ne $VersionObjetivo) {
         Write-Output ""
-        Write-Output "FALLA: la política no quedó como se pidió."
+        Write-Output "FALLA: la politica no quedo como se pidio."
         exit 1
     }
     Write-Output "  verificado: congelado en $($politica.TargetReleaseVersionInfo)"
 }
 catch {
-    Write-Output "  no se pudo verificar la política."
+    Write-Output "  no se pudo verificar la politica."
     $errores++
 }
 
 Write-Output ""
 Write-Output "== Resultado =="
 if ($errores -gt 0) {
-    Write-Output "  Terminó con $errores error(es)."
+    Write-Output "  Termino con $errores error(es)."
     exit 1
 }
-Write-Output "  El equipo queda congelado en $VersionObjetivo y no se actualizará a"
+Write-Output "  El equipo queda congelado en $VersionObjetivo y no se actualizara a"
 Write-Output "  Windows 11 por su cuenta. Es reversible con -Modo desbloquear."
 Write-Output ""
-Write-Output "  AVISO: congelar una versión también frena las actualizaciones de"
-Write-Output "  característica. Una versión que sale de soporte deja de recibir parches"
-Write-Output "  de seguridad, así que esto tiene fecha de revisión."
+Write-Output "  AVISO: congelar una version tambien frena las actualizaciones de"
+Write-Output "  caracteristica. Una version que sale de soporte deja de recibir parches"
+Write-Output "  de seguridad, asi que esto tiene fecha de revision."
 exit 0

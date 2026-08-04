@@ -1,37 +1,37 @@
 ﻿<#
 .SYNOPSIS
-    Crea o rota la contraseña de una cuenta de administrador local dedicada.
+    Crea o rota la contrasena de una cuenta de administrador local dedicada.
 
 .DESCRIPTION
-    Solución de contraseña de administrador local para equipos SIN Active Directory,
-    donde el LAPS de Microsoft no aplica. Deja una única cuenta administrativa por
-    equipo con contraseña distinta y rotable, para que los usuarios puedan trabajar
+    Solucion de contrasena de administrador local para equipos SIN Active Directory,
+    donde el LAPS de Microsoft no aplica. Deja una unica cuenta administrativa por
+    equipo con contrasena distinta y rotable, para que los usuarios puedan trabajar
     sin ser administradores y el soporte siga teniendo acceso.
 
-    Genera la contraseña con el generador criptográfico del sistema
+    Genera la contrasena con el generador criptografico del sistema
     (RandomNumberGenerator), no con Get-Random, que es predecible y no sirve para
     esto.
 
-    ADVERTENCIA: la contraseña se imprime en la salida del script, que queda en el
-    historial de la consola y viaja por NATS. Es la única forma de recuperarla desde
+    ADVERTENCIA: la contrasena se imprime en la salida del script, que queda en el
+    historial de la consola y viaja por NATS. Es la unica forma de recuperarla desde
     un equipo remoto, pero cualquiera con acceso a ese historial la ve. Guardala en
-    el gestor de secretos y borrá el resultado, o usá -NoMostrar cuando solo quieras
+    el gestor de secretos y borra el resultado, o usa -NoMostrar cuando solo quieras
     rotarla sin leerla.
 
     Es idempotente en la parte estructural: si la cuenta ya existe con los atributos
-    correctos, solo rota la contraseña.
+    correctos, solo rota la contrasena.
 
 .PARAMETER Usuario
     Nombre de la cuenta. Por defecto "AdminLocal".
 
 .PARAMETER Longitud
-    Largo de la contraseña. Mínimo 12, por defecto 20.
+    Largo de la contrasena. Minimo 12, por defecto 20.
 
 .PARAMETER Descripcion
-    Descripción de la cuenta al crearla.
+    Descripcion de la cuenta al crearla.
 
 .PARAMETER NoMostrar
-    Rota la contraseña sin imprimirla. Útil para revocar acceso sin dejar rastro.
+    Rota la contrasena sin imprimirla. Util para revocar acceso sin dejar rastro.
 
 .EXAMPLE
     admin-local-rotar-password.ps1
@@ -74,8 +74,8 @@ $ErrorActionPreference = "Stop"
 function Get-ContrasenaSegura {
     param([int]$Largo)
 
-    # Se excluyen a propósito los caracteres que se confunden al dictarse por
-    # teléfono (O/0, l/1/I) y las comillas y barras, que rompen scripts y pegados.
+    # Se excluyen a proposito los caracteres que se confunden al dictarse por
+    # telefono (O/0, l/1/I) y las comillas y barras, que rompen scripts y pegados.
     $minusculas = "abcdefghijkmnopqrstuvwxyz"
     $mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ"
     $digitos = "23456789"
@@ -88,13 +88,13 @@ function Get-ContrasenaSegura {
             param([string]$Conjunto)
             $bytes = New-Object byte[] 4
             $generador.GetBytes($bytes)
-            # Se descarta el bit de signo para no obtener un índice negativo.
+            # Se descarta el bit de signo para no obtener un indice negativo.
             $valor = [BitConverter]::ToUInt32($bytes, 0)
             return $Conjunto[[int]($valor % [uint32]$Conjunto.Length)]
         }
 
-        # Se garantiza al menos uno de cada clase para cumplir la política de
-        # complejidad de Windows, que rechazaría la contraseña si no la cumple.
+        # Se garantiza al menos uno de cada clase para cumplir la politica de
+        # complejidad de Windows, que rechazaria la contrasena si no la cumple.
         $caracteres = New-Object System.Collections.ArrayList
         [void]$caracteres.Add((Get-CaracterAleatorio $minusculas))
         [void]$caracteres.Add((Get-CaracterAleatorio $mayusculas))
@@ -105,8 +105,8 @@ function Get-ContrasenaSegura {
             [void]$caracteres.Add((Get-CaracterAleatorio $todos))
         }
 
-        # Mezcla Fisher-Yates con la misma fuente criptográfica: sin esto los cuatro
-        # primeros caracteres tendrían siempre la misma clase, que es un patrón.
+        # Mezcla Fisher-Yates con la misma fuente criptografica: sin esto los cuatro
+        # primeros caracteres tendrian siempre la misma clase, que es un patron.
         for ($i = $caracteres.Count - 1; $i -gt 0; $i--) {
             $bytes = New-Object byte[] 4
             $generador.GetBytes($bytes)
@@ -124,7 +124,7 @@ function Get-ContrasenaSegura {
 }
 
 # El grupo de administradores se resuelve por SID conocido para no depender del
-# idioma del sistema ("Administrators" en inglés, "Administradores" en español).
+# idioma del sistema ("Administrators" en ingles, "Administradores" en espanol).
 try {
     $grupoAdmin = Get-LocalGroup -SID "S-1-5-32-544" -ErrorAction Stop
 }
@@ -157,20 +157,20 @@ if ($null -eq $existe) {
     }
 }
 else {
-    Write-Output "La cuenta '$Usuario' ya existe: se rota la contraseña."
+    Write-Output "La cuenta '$Usuario' ya existe: se rota la contrasena."
     try {
         Set-LocalUser -Name $Usuario -Password $segura -PasswordNeverExpires $true -ErrorAction Stop
-        Write-Output "  contraseña rotada."
+        Write-Output "  contrasena rotada."
     }
     catch {
-        Write-Output "  ERROR al rotar la contraseña: $($_.Exception.Message)"
+        Write-Output "  ERROR al rotar la contrasena: $($_.Exception.Message)"
         exit 1
     }
 
     if (-not $existe.Enabled) {
         try {
             Enable-LocalUser -Name $Usuario -ErrorAction Stop
-            Write-Output "  la cuenta estaba deshabilitada: se habilitó."
+            Write-Output "  la cuenta estaba deshabilitada: se habilito."
         }
         catch {
             Write-Output "  ERROR al habilitar la cuenta: $($_.Exception.Message)"
@@ -202,14 +202,14 @@ if (-not $esAdmin) {
     }
 }
 else {
-    Write-Output "  ya pertenecía al grupo '$($grupoAdmin.Name)'."
+    Write-Output "  ya pertenecia al grupo '$($grupoAdmin.Name)'."
 }
 
-# Verificación por efecto: la cuenta tiene que quedar habilitada y en el grupo.
+# Verificacion por efecto: la cuenta tiene que quedar habilitada y en el grupo.
 try {
     $final = Get-LocalUser -Name $Usuario -ErrorAction Stop
     if (-not $final.Enabled) {
-        Write-Output "FALLA: la cuenta quedó deshabilitada."
+        Write-Output "FALLA: la cuenta quedo deshabilitada."
         exit 1
     }
 }
@@ -225,15 +225,15 @@ Write-Output "  equipo:  $env:COMPUTERNAME"
 Write-Output "  rotada:  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
 if ($NoMostrar) {
-    Write-Output "  contraseña: (no se muestra por -NoMostrar)"
+    Write-Output "  contrasena: (no se muestra por -NoMostrar)"
     Write-Output ""
-    Write-Output "La contraseña se rotó y NO quedó registrada en ninguna parte."
-    Write-Output "Nadie puede recuperarla: usá este modo solo para revocar el acceso."
+    Write-Output "La contrasena se roto y NO quedo registrada en ninguna parte."
+    Write-Output "Nadie puede recuperarla: usa este modo solo para revocar el acceso."
 }
 else {
-    Write-Output "  contraseña: $contrasena"
+    Write-Output "  contrasena: $contrasena"
     Write-Output ""
-    Write-Output "Guardala en el gestor de secretos y borrá este resultado del historial."
+    Write-Output "Guardala en el gestor de secretos y borra este resultado del historial."
 }
 
 exit 0

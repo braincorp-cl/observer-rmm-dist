@@ -1,20 +1,20 @@
 ﻿<#
 .SYNOPSIS
-    Estado de cifrado BitLocker y, opcionalmente, las claves de recuperación.
+    Estado de cifrado BitLocker y, opcionalmente, las claves de recuperacion.
 
 .DESCRIPTION
-    Reemplaza los cuatro scripts separados del catálogo original (verificar unidad,
+    Reemplaza los cuatro scripts separados del catalogo original (verificar unidad,
     crear reporte, recuperar reporte y obtener claves) por uno con modo. Solo LEE:
-    no cifra, no descifra y no suspende la protección.
+    no cifra, no descifra y no suspende la proteccion.
 
-    Advertencia sobre el modo 'claves': imprime las claves de recuperación de
+    Advertencia sobre el modo 'claves': imprime las claves de recuperacion de
     BitLocker en la salida del script, que queda guardada en el historial de la
-    consola y viaja por NATS. Es la única forma de recuperarlas de un equipo
+    consola y viaja por NATS. Es la unica forma de recuperarlas de un equipo
     remoto, pero cualquiera con acceso a ese historial puede descifrar el disco.
-    Usalo puntualmente y preferí guardarlas en el gestor de secretos, no dejarlas
+    Usalo puntualmente y preferi guardarlas en el gestor de secretos, no dejarlas
     en el historial.
 
-    En modo 'estado' sale con 1 si alguna unidad fija está sin cifrar, para que
+    En modo 'estado' sale con 1 si alguna unidad fija esta sin cifrar, para que
     sirva como check de cumplimiento.
 
 .PARAMETER Modo
@@ -54,8 +54,8 @@ catch {
 $ErrorActionPreference = "Stop"
 
 if (-not (Get-Command Get-BitLockerVolume -ErrorAction SilentlyContinue)) {
-    Write-Output "BitLocker no está disponible en este equipo."
-    Write-Output "Falta la característica, o es una edición de Windows que no lo incluye"
+    Write-Output "BitLocker no esta disponible en este equipo."
+    Write-Output "Falta la caracteristica, o es una edicion de Windows que no lo incluye"
     Write-Output "(Home no trae BitLocker administrable)."
     exit 1
 }
@@ -74,7 +74,7 @@ catch {
 }
 
 if ($volumenes.Count -eq 0) {
-    Write-Output "No se encontraron volúmenes administrables por BitLocker."
+    Write-Output "No se encontraron volumenes administrables por BitLocker."
     exit 1
 }
 
@@ -83,14 +83,14 @@ $sinCifrar = 0
 foreach ($volumen in ($volumenes | Sort-Object MountPoint)) {
     Write-Output ""
     Write-Output "Unidad $($volumen.MountPoint)"
-    Write-Output "  estado de protección:  $($volumen.ProtectionStatus)"
+    Write-Output "  estado de proteccion:  $($volumen.ProtectionStatus)"
     Write-Output "  estado del volumen:    $($volumen.VolumeStatus)"
     Write-Output "  porcentaje cifrado:    $($volumen.EncryptionPercentage)%"
     Write-Output "  tipo de volumen:       $($volumen.VolumeType)"
 
     if ($Modo -ne "estado") {
-        Write-Output "  método de cifrado:     $($volumen.EncryptionMethod)"
-        Write-Output "  tamaño:                $([Math]::Round($volumen.CapacityGB, 2)) GB"
+        Write-Output "  metodo de cifrado:     $($volumen.EncryptionMethod)"
+        Write-Output "  tamano:                $([Math]::Round($volumen.CapacityGB, 2)) GB"
         Write-Output "  bloqueado:             $($volumen.LockStatus)"
         Write-Output "  auto-desbloqueo:       $($volumen.AutoUnlockEnabled)"
 
@@ -108,10 +108,10 @@ foreach ($volumen in ($volumenes | Sort-Object MountPoint)) {
             Where-Object { $_.KeyProtectorType -eq "RecoveryPassword" })
 
         if ($recuperacion.Count -eq 0) {
-            Write-Output "  claves de recuperación: (ninguna configurada en esta unidad)"
+            Write-Output "  claves de recuperacion: (ninguna configurada en esta unidad)"
         }
         else {
-            Write-Output "  claves de recuperación:"
+            Write-Output "  claves de recuperacion:"
             foreach ($clave in $recuperacion) {
                 Write-Output "    id:    $($clave.KeyProtectorId)"
                 Write-Output "    clave: $($clave.RecoveryPassword)"
@@ -119,8 +119,8 @@ foreach ($volumen in ($volumenes | Sort-Object MountPoint)) {
         }
     }
 
-    # Solo las unidades fijas cuentan para el cumplimiento: una unidad extraíble sin
-    # cifrar es lo normal y no debería disparar una alerta.
+    # Solo las unidades fijas cuentan para el cumplimiento: una unidad extraible sin
+    # cifrar es lo normal y no deberia disparar una alerta.
     if ($volumen.VolumeType -eq "OperatingSystem" -or $volumen.VolumeType -eq "FixedDataVolume") {
         if ($volumen.ProtectionStatus -ne "On") {
             $sinCifrar++
@@ -132,14 +132,14 @@ Write-Output ""
 Write-Output "== Resultado =="
 
 if ($Modo -eq "claves") {
-    Write-Output "  Se imprimieron claves de recuperación: este resultado quedó"
-    Write-Output "  guardado en el historial de la consola. Considerá borrarlo."
+    Write-Output "  Se imprimieron claves de recuperacion: este resultado quedo"
+    Write-Output "  guardado en el historial de la consola. Considera borrarlo."
 }
 
 if ($sinCifrar -gt 0) {
-    Write-Output "  $sinCifrar unidad(es) fija(s) SIN protección de BitLocker."
+    Write-Output "  $sinCifrar unidad(es) fija(s) SIN proteccion de BitLocker."
     exit 1
 }
 
-Write-Output "  Todas las unidades fijas están protegidas."
+Write-Output "  Todas las unidades fijas estan protegidas."
 exit 0

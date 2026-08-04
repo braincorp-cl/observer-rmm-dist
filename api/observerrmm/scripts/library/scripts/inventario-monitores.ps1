@@ -1,17 +1,17 @@
 ﻿<#
 .SYNOPSIS
-    Lista los monitores conectados con fabricante, modelo, serie y año.
+    Lista los monitores conectados con fabricante, modelo, serie y fecha de fabricacion.
 
 .DESCRIPTION
-    Solo LEE. El inventario de hardware del agente no recoge monitores, así que
-    este es el único camino para saber qué pantalla tiene un equipo sin ir a verlo.
+    Solo LEE. El inventario de hardware del agente no recoge monitores, asi que
+    este es el unico camino para saber que pantalla tiene un equipo sin ir a verlo.
 
     Los datos salen del EDID que expone WMI en el namespace root\wmi
     (WmiMonitorID), donde fabricante, modelo y serie vienen como arreglos de
-    códigos UInt16 terminados en cero: hay que decodificarlos a texto.
+    codigos UInt16 terminados en cero: hay que decodificarlos a texto.
 
     Los monitores apagados o desconectados no aparecen: WMI solo reporta los
-    activos. Un equipo sin pantalla (servidor, VM) devuelve lista vacía, que no es
+    activos. Un equipo sin pantalla (servidor, VM) devuelve lista vacia, que no es
     un error.
 
 .EXAMPLE
@@ -73,7 +73,7 @@ try {
     }
 }
 catch {
-    # Opcional: si falla, se informa el monitor sin resolución.
+    # Opcional: si falla, se informa el monitor sin resolucion.
     Write-Verbose $_.Exception.Message
 }
 
@@ -91,13 +91,13 @@ foreach ($monitor in $monitores) {
     Write-Output "Monitor $indice"
     Write-Output "  fabricante:      $fabricante"
     Write-Output "  modelo:          $modelo"
-    Write-Output "  número de serie: $serie"
-    Write-Output "  año de fabric.:  $($monitor.YearOfManufacture)"
+    Write-Output "  numero de serie: $serie"
+    Write-Output "  fabricacion:    $($monitor.YearOfManufacture)"
     Write-Output "  semana:          $($monitor.WeekOfManufacture)"
     if ($resoluciones.ContainsKey($monitor.InstanceName)) {
-        Write-Output "  resolución nativa: $($resoluciones[$monitor.InstanceName])"
+        Write-Output "  resolucion nativa: $($resoluciones[$monitor.InstanceName])"
     }
-    Write-Output "  activo:          $(if ($monitor.Active) { 'sí' } else { 'no' })"
+    Write-Output "  activo:          $(if ($monitor.Active) { 'si' } else { 'no' })"
 }
 
 Write-Output ""

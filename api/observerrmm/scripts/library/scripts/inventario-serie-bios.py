@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Número de serie y datos del BIOS/firmware del equipo.
+"""Numero de serie y datos del BIOS/firmware del equipo.
 
 Solo LEE. Pensado para alimentar un campo personalizado (por ejemplo el serial,
-para cruzarlo con inventario o garantías) desde las tres plataformas con un solo
+para cruzarlo con inventario o garantias) desde las tres plataformas con un solo
 script, en vez de uno por sistema operativo.
 
-Imprime pares `clave: valor` y, al final, una línea `SERIAL=<valor>` fácil de
-capturar. Sale con 1 si no logró determinar el número de serie.
+Imprime pares `clave: valor` y, al final, una linea `SERIAL=<valor>` facil de
+capturar. Sale con 1 si no logro determinar el numero de serie.
 
-Sin argumentos. Solo biblioteca estándar.
+Sin argumentos. Solo biblioteca estandar.
 """
 
 import json
@@ -72,7 +72,7 @@ def util(valor):
 def datos_windows():
     datos = {}
 
-    # El serial vive en Win32_BIOS y no en el registro, así que hay que pasar por
+    # El serial vive en Win32_BIOS y no en el registro, asi que hay que pasar por
     # CIM. Se piden todos los campos de una sola vez para no pagar varios arranques
     # de PowerShell.
     consulta = (
@@ -97,7 +97,7 @@ def datos_windows():
             pass
 
     # Respaldo por registro para los campos que no necesitan CIM: sirve si
-    # PowerShell está restringido por política.
+    # PowerShell esta restringido por politica.
     if "bios_version" not in datos:
         try:
             import winreg
@@ -178,7 +178,7 @@ def datos_macos():
             pass
 
     if "serial" not in datos:
-        # ioreg no depende de system_profiler y es más rápido.
+        # ioreg no depende de system_profiler y es mas rapido.
         salida = correr(["ioreg", "-l"])
         if salida:
             encontrado = re.search(r'"IOPlatformSerialNumber"\s*=\s*"([^"]+)"', salida)
@@ -195,7 +195,7 @@ def main():
     else:
         datos = datos_linux()
 
-    print("Inventario de hardware — {} {}".format(SISTEMA, platform.release()))
+    print("Inventario de hardware - {} {}".format(SISTEMA, platform.release()))
     print("  equipo:                      {}".format(platform.node()))
     print("  arquitectura:                {}".format(platform.machine()))
     for clave in sorted(datos):
@@ -208,7 +208,7 @@ def main():
         return 0
 
     print("SERIAL=")
-    print("No se pudo determinar el número de serie en este equipo.")
+    print("No se pudo determinar el numero de serie en este equipo.")
     if SISTEMA == "Linux":
         print("En Linux suele requerir root o un DMI incompleto (frecuente en VM).")
     return 1

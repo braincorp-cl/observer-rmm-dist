@@ -1,21 +1,21 @@
 ﻿<#
 .SYNOPSIS
-    Habilita o consulta características opcionales de Windows (.NET 3.5, OpenSSH, RDP).
+    Habilita o consulta caracteristicas opcionales de Windows (.NET 3.5, OpenSSH, RDP).
 
 .DESCRIPTION
-    Reemplaza los tres scripts separados del catálogo original por uno con un catálogo
-    de características conocidas, para no tener que recordar el nombre interno exacto
+    Reemplaza los tres scripts separados del catalogo original por uno con un catalogo
+    de caracteristicas conocidas, para no tener que recordar el nombre interno exacto
     de cada una ni la API que le corresponde.
 
-    Las tres no se activan igual, y ahí está el valor de tenerlas juntas:
+    Las tres no se activan igual, y ahi esta el valor de tenerlas juntas:
 
-      dotnet35  — es una característica de imagen (DISM). En Windows cliente suele
-                  necesitar el origen de instalación o salida a Windows Update: no está
-                  en el disco. El script lo dice en vez de fallar con un código.
-      openssh   — es una capacidad (Windows Capability), no una característica. Se
-                  instala y además hay que habilitar y arrancar su servicio, que es el
+      dotnet35  - es una caracteristica de imagen (DISM). En Windows cliente suele
+                  necesitar el origen de instalacion o salida a Windows Update: no esta
+                  en el disco. El script lo dice en vez de fallar con un codigo.
+      openssh   - es una capacidad (Windows Capability), no una caracteristica. Se
+                  instala y ademas hay que habilitar y arrancar su servicio, que es el
                   paso que se olvida y deja "instalado pero sin escuchar".
-      rdp       — no se instala: se habilita con dos ajustes de registro más una regla
+      rdp       - no se instala: se habilita con dos ajustes de registro mas una regla
                   de firewall. Sin la regla, RDP queda escuchando y bloqueado.
 
 .PARAMETER Caracteristica
@@ -55,6 +55,10 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
+# El estado "en ejecucion" como valor del enum de .NET y no como la cadena "Running":
+# el enum no se traduce, el texto que Windows muestra si. Comparar contra el enum
+# sigue valiendo si manana el objeto viene de Win32_Service en vez de Get-Service.
+$EN_EJECUCION = [System.ServiceProcess.ServiceControllerStatus]::Running
 $rutaTerminalServer = "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server"
 $rutaRdpTcp = "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp"
 
@@ -79,7 +83,7 @@ function Show-EstadoOpenssh {
             if ($capacidad.State -eq "Installed") { $instalado = $true }
         }
         if ($capacidades.Count -eq 0) {
-            Write-Output "  OpenSSH.Server no está disponible como capacidad en esta versión."
+            Write-Output "  OpenSSH.Server no esta disponible como capacidad en esta version."
         }
     }
     catch {
@@ -99,10 +103,10 @@ function Show-EstadoOpenssh {
             Write-Verbose $_.Exception.Message
         }
         Write-Output "  escuchando en 22:   $escuchando"
-        return ($instalado -and $servicio.Status -eq "Running" -and $escuchando)
+        return ($instalado -and $servicio.Status -eq $EN_EJECUCION -and $escuchando)
     }
     catch {
-        Write-Output "  servicio sshd:      no existe todavía"
+        Write-Output "  servicio sshd:      no existe todavia"
         return $false
     }
 }
@@ -121,7 +125,7 @@ function Show-EstadoRdp {
 
     try {
         $nla = (Get-ItemProperty -Path $rutaRdpTcp -Name UserAuthentication -ErrorAction Stop).UserAuthentication
-        Write-Output "  autenticación NLA:  $(if ([int]$nla -eq 1) { 'exigida (recomendado)' } else { 'no exigida' })"
+        Write-Output "  autenticacion NLA:  $(if ([int]$nla -eq 1) { 'exigida (recomendado)' } else { 'no exigida' })"
     }
     catch {
         Write-Verbose $_.Exception.Message
@@ -159,14 +163,14 @@ $estadoInicial = switch ($Caracteristica) {
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     if ($estadoInicial -eq $true) { exit 0 }
     exit 1
 }
 
 if ($estadoInicial -eq $true) {
     Write-Output ""
-    Write-Output "Nada que hacer: '$Caracteristica' ya está habilitada y funcionando."
+    Write-Output "Nada que hacer: '$Caracteristica' ya esta habilitada y funcionando."
     exit 0
 }
 
@@ -177,8 +181,8 @@ $errores = 0
 switch ($Caracteristica) {
     "dotnet35" {
         try {
-            # -All arrastra las características padre; sin eso falla en equipos donde
-            # NetFx3ServerFeatures no está habilitado.
+            # -All arrastra las caracteristicas padre; sin eso falla en equipos donde
+            # NetFx3ServerFeatures no esta habilitado.
             $resultado = Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -All `
                 -NoRestart -ErrorAction Stop
             Write-Output "  DISM: OK"
@@ -189,8 +193,8 @@ switch ($Caracteristica) {
         catch {
             Write-Output "  ERROR: $($_.Exception.Message)"
             Write-Output ""
-            Write-Output "  La causa habitual es que los archivos de .NET 3.5 no están en"
-            Write-Output "  el disco: hay que dar el origen de instalación (el ISO de"
+            Write-Output "  La causa habitual es que los archivos de .NET 3.5 no estan en"
+            Write-Output "  el disco: hay que dar el origen de instalacion (el ISO de"
             Write-Output "  Windows) o permitir la descarga desde Windows Update. Si el"
             Write-Output "  equipo apunta a un WSUS que no lo ofrece, tampoco lo baja."
             $errores++
@@ -202,7 +206,7 @@ switch ($Caracteristica) {
             $capacidad = @(Get-WindowsCapability -Online -Name "OpenSSH.Server*" -ErrorAction Stop |
                 Select-Object -First 1)
             if (-not $capacidad) {
-                Write-Output "  ERROR: esta versión de Windows no ofrece OpenSSH como capacidad."
+                Write-Output "  ERROR: esta version de Windows no ofrece OpenSSH como capacidad."
                 exit 1
             }
             if ($capacidad.State -ne "Installed") {
@@ -222,7 +226,7 @@ switch ($Caracteristica) {
         try {
             Set-Service -Name sshd -StartupType Automatic -ErrorAction Stop
             Start-Service -Name sshd -ErrorAction Stop
-            Write-Output "  servicio sshd: automático y arrancado."
+            Write-Output "  servicio sshd: automatico y arrancado."
         }
         catch {
             Write-Output "  ERROR con el servicio sshd: $($_.Exception.Message)"
@@ -263,11 +267,11 @@ switch ($Caracteristica) {
         }
 
         # NLA se deja exigida: es la diferencia entre un RDP expuesto y uno que pide
-        # autenticación antes de dibujar el escritorio.
+        # autenticacion antes de dibujar el escritorio.
         try {
             Set-ItemProperty -Path $rutaRdpTcp -Name UserAuthentication -Value 1 `
                 -Type DWord -ErrorAction Stop
-            Write-Output "  autenticación NLA exigida : OK"
+            Write-Output "  autenticacion NLA exigida : OK"
         }
         catch {
             Write-Output "  AVISO: no se pudo exigir NLA: $($_.Exception.Message)"
@@ -295,13 +299,13 @@ $estadoFinal = switch ($Caracteristica) {
 Write-Output ""
 Write-Output "== Resultado =="
 if ($errores -gt 0) {
-    Write-Output "  Terminó con $errores error(es)."
+    Write-Output "  Termino con $errores error(es)."
     exit 1
 }
 if ($estadoFinal -eq $true) {
     Write-Output "  '$Caracteristica' habilitada y verificada."
     exit 0
 }
-Write-Output "  Se aplicaron los cambios pero la verificación no dio positiva."
+Write-Output "  Se aplicaron los cambios pero la verificacion no dio positiva."
 Write-Output "  En .NET 3.5 es normal si queda pendiente de reinicio."
 exit 1

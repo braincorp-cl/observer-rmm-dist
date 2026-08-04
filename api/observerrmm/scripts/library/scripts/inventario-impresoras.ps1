@@ -1,14 +1,14 @@
 ﻿<#
 .SYNOPSIS
-    Lista las impresoras instaladas con su puerto, driver y estado de compartición.
+    Lista las impresoras instaladas con su puerto, driver y estado de comparticion.
 
 .DESCRIPTION
-    Solo LEE. Responde las tres preguntas que aparecen en cada ticket de impresión:
-    qué impresoras tiene el equipo, por dónde salen (IP, USB, cola compartida) y
-    cuál es la predeterminada.
+    Solo LEE. Responde las tres preguntas que aparecen en cada ticket de impresion:
+    que impresoras tiene el equipo, por donde salen (IP, USB, cola compartida) y
+    cual es la predeterminada.
 
     Marca aparte las colas redirigidas y las virtuales de Windows (PDF, XPS, Fax),
-    que suelen ser ruido cuando se busca la impresora física real.
+    que suelen ser ruido cuando se busca la impresora fisica real.
 
 .PARAMETER SoloFisicas
     Omite las impresoras virtuales de Windows y las colas redirigidas.
@@ -88,7 +88,7 @@ foreach ($impresora in ($impresoras | Sort-Object Name)) {
     $mostradas++
     $etiqueta = ""
     if ($esVirtual) { $etiqueta = "  [virtual de Windows]" }
-    if ($esRedirigida) { $etiqueta = "  [cola redirigida de sesión remota]" }
+    if ($esRedirigida) { $etiqueta = "  [cola redirigida de sesion remota]" }
 
     Write-Output ""
     Write-Output "$($impresora.Name)$etiqueta"
@@ -98,23 +98,23 @@ foreach ($impresora in ($impresoras | Sort-Object Name)) {
     if ($puertos.ContainsKey($impresora.PortName)) {
         $puerto = $puertos[$impresora.PortName]
         if ($puerto.PrinterHostAddress) {
-            Write-Output "  dirección:       $($puerto.PrinterHostAddress)"
+            Write-Output "  direccion:       $($puerto.PrinterHostAddress)"
         }
         if ($puerto.Description) {
             Write-Output "  tipo de puerto:  $($puerto.Description)"
         }
     }
 
-    Write-Output "  compartida:      $(if ($impresora.Shared) { "sí (como '$($impresora.ShareName)')" } else { 'no' })"
+    Write-Output "  compartida:      $(if ($impresora.Shared) { "si (como '$($impresora.ShareName)')" } else { 'no' })"
     Write-Output "  estado:          $($impresora.PrinterStatus)"
     Write-Output "  tipo:            $($impresora.Type)"
 
     if ($impresora.Location) {
-        Write-Output "  ubicación:       $($impresora.Location)"
+        Write-Output "  ubicacion:       $($impresora.Location)"
     }
 }
 
-# La predeterminada no está en Get-Printer: hay que ir a la clase vieja de WMI.
+# La predeterminada no esta en Get-Printer: hay que ir a la clase vieja de WMI.
 try {
     $predeterminada = Get-CimInstance -ClassName Win32_Printer -ErrorAction Stop |
         Where-Object { $_.Default -eq $true } |

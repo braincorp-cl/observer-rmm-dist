@@ -4,21 +4,21 @@
 
 .DESCRIPTION
     Solo LEE. Cuando Windows no puede cargar el perfil de un usuario, lo entra con
-    un perfil temporal: el escritorio aparece vacío, los documentos "desaparecen" y
-    todo lo que el usuario haga en esa sesión se pierde al cerrarla. El usuario
-    reporta "perdí mis archivos" y el equipo se ve perfectamente sano en el panel.
+    un perfil temporal: el escritorio aparece vacio, los documentos "desaparecen" y
+    todo lo que el usuario haga en esa sesion se pierde al cerrarla. El usuario
+    reporta "perdi mis archivos" y el equipo se ve perfectamente sano en el panel.
 
     Busca las dos evidencias que deja el problema:
 
       1. Perfiles con sufijo .bak en la lista de perfiles del registro. Windows
-         renombra el perfil dañado agregándole .bak y crea uno nuevo; si existen a
-         la vez el SID y el SID.bak, ese usuario está usando un perfil temporal.
+         renombra el perfil danado agregandole .bak y crea uno nuevo; si existen a
+         la vez el SID y el SID.bak, ese usuario esta usando un perfil temporal.
       2. Eventos 1511, 1515 y 1521 del proveedor User Profile Service.
 
-    Sale con 1 si detecta algún perfil temporal, para que sirva como check.
+    Sale con 1 si detecta algun perfil temporal, para que sirva como check.
 
 .PARAMETER Dias
-    Ventana en días para buscar eventos. Por defecto 7.
+    Ventana en dias para buscar eventos. Por defecto 7.
 
 .EXAMPLE
     usuarios-perfil-temporal.ps1
@@ -93,30 +93,30 @@ foreach ($nombreClave in ($sids.Keys | Sort-Object)) {
     Write-Output "  PERFIL TEMPORAL DETECTADO"
     Write-Output "    cuenta:            $cuenta"
     Write-Output "    SID:               $sidBase"
-    Write-Output "    perfil dañado en:  $rutaRespaldo"
+    Write-Output "    perfil danado en:  $rutaRespaldo"
 
     if ($sids.ContainsKey($sidBase)) {
         Write-Output "    perfil en uso:     $($sids[$sidBase])"
-        Write-Output "    diagnóstico:       existen el perfil original (.bak) y uno nuevo:"
-        Write-Output "                       el usuario está trabajando sobre un perfil temporal."
+        Write-Output "    diagnostico:       existen el perfil original (.bak) y uno nuevo:"
+        Write-Output "                       el usuario esta trabajando sobre un perfil temporal."
     }
     else {
-        Write-Output "    diagnóstico:       hay un .bak sin perfil activo asociado."
-        Write-Output "                       Resto de un problema anterior, ya sin sesión afectada."
+        Write-Output "    diagnostico:       hay un .bak sin perfil activo asociado."
+        Write-Output "                       Resto de un problema anterior, ya sin sesion afectada."
     }
 
     [void]$afectados.Add($cuenta)
 }
 
 if ($afectados.Count -eq 0) {
-    Write-Output "  Sin perfiles marcados como dañados (.bak)."
+    Write-Output "  Sin perfiles marcados como danados (.bak)."
 }
 
 Write-Output ""
-Write-Output "== Eventos del servicio de perfiles (últimos $Dias día[s]) =="
+Write-Output "== Eventos del servicio de perfiles (ultimos $Dias dia[s]) =="
 
-# 1511: no se encontró el perfil local, se cargó uno temporal.
-# 1515: Windows respaldó el perfil y creó uno nuevo.
+# 1511: no se encontro el perfil local, se cargo uno temporal.
+# 1515: Windows respaldo el perfil y creo uno nuevo.
 # 1521: no se pudo cargar el perfil, posible problema de red o permisos.
 $idsRelevantes = @(1511, 1515, 1521)
 
@@ -131,7 +131,7 @@ try {
 }
 catch {
     $eventos = @()
-    # Get-WinEvent lanza si no hay NINGÚN evento que coincida: eso no es un error,
+    # Get-WinEvent lanza si no hay NINGUN evento que coincida: eso no es un error,
     # es la respuesta "no hubo eventos". Solo se informa si el mensaje no es ese.
     if ($_.Exception.Message -notmatch "No events were found|No se encontraron eventos") {
         Write-Output "  No se pudieron consultar los eventos: $($_.Exception.Message)"
@@ -144,7 +144,7 @@ if ($eventos.Count -eq 0) {
 else {
     foreach ($evento in ($eventos | Sort-Object TimeCreated -Descending | Select-Object -First 20)) {
         Write-Output ""
-        Write-Output "  $($evento.TimeCreated) — evento $($evento.Id)"
+        Write-Output "  $($evento.TimeCreated) - evento $($evento.Id)"
         $mensaje = $evento.Message
         if ($mensaje) {
             $primeraLinea = ($mensaje -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -First 1)
@@ -153,7 +153,7 @@ else {
     }
     if ($eventos.Count -gt 20) {
         Write-Output ""
-        Write-Output "  (se muestran los 20 más recientes de $($eventos.Count))"
+        Write-Output "  (se muestran los 20 mas recientes de $($eventos.Count))"
     }
 }
 
@@ -163,8 +163,8 @@ Write-Output "== Resultado =="
 if ($afectados.Count -gt 0) {
     Write-Output "  $($afectados.Count) perfil(es) temporal(es): $($afectados -join ', ')"
     Write-Output ""
-    Write-Output "  Antes de tocar nada: los archivos del usuario están en el perfil .bak."
-    Write-Output "  Cerrar la sesión sin rescatarlos pierde lo hecho en la sesión temporal."
+    Write-Output "  Antes de tocar nada: los archivos del usuario estan en el perfil .bak."
+    Write-Output "  Cerrar la sesion sin rescatarlos pierde lo hecho en la sesion temporal."
     exit 1
 }
 

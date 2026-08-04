@@ -1,14 +1,14 @@
 ﻿<#
 .SYNOPSIS
-    Lanza un escaneo de Microsoft Defender: rápido, completo o de una ruta.
+    Lanza un escaneo de Microsoft Defender: rapido, completo o de una ruta.
 
 .DESCRIPTION
-    Reemplaza los dos scripts separados de escaneo rápido y completo por uno con
+    Reemplaza los dos scripts separados de escaneo rapido y completo por uno con
     modo. Corre el escaneo en primer plano y espera el resultado, para que el
-    timeout del script sea el que manda y la consola vea si terminó.
+    timeout del script sea el que manda y la consola vea si termino.
 
     Un escaneo completo puede tardar horas: el timeout por defecto de este script
-    es alto a propósito, pero conviene programarlo como tarea automatizada en
+    es alto a proposito, pero conviene programarlo como tarea automatizada en
     ventana de mantenimiento en vez de lanzarlo a mano en horario laboral.
 
 .PARAMETER Modo
@@ -48,14 +48,14 @@ catch {
 $ErrorActionPreference = "Stop"
 
 if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
-    Write-Output "Microsoft Defender no está disponible en este equipo."
+    Write-Output "Microsoft Defender no esta disponible en este equipo."
     exit 1
 }
 
 try {
     $estado = Get-MpComputerStatus -ErrorAction Stop
     if ($estado.AMRunningMode -ne "Normal") {
-        Write-Output "AVISO: Defender está en modo '$($estado.AMRunningMode)'."
+        Write-Output "AVISO: Defender esta en modo '$($estado.AMRunningMode)'."
         Write-Output "Otro antivirus es el que protege; el escaneo puede no ser representativo."
     }
 }
@@ -65,7 +65,7 @@ catch {
 
 if ($Modo -eq "ruta") {
     if (-not $Ruta) {
-        Write-Output "El modo 'ruta' exige el parámetro -Ruta."
+        Write-Output "El modo 'ruta' exige el parametro -Ruta."
         exit 1
     }
     if (-not (Test-Path -LiteralPath $Ruta)) {
@@ -85,14 +85,14 @@ try {
     }
 }
 catch {
-    Write-Output "El escaneo falló: $($_.Exception.Message)"
+    Write-Output "El escaneo fallo: $($_.Exception.Message)"
     exit 1
 }
 
 $duracion = (Get-Date) - $inicio
-Write-Output "Escaneo terminado. Duración: $([int]$duracion.TotalMinutes) minuto(s)."
+Write-Output "Escaneo terminado. Duracion: $([int]$duracion.TotalMinutes) minuto(s)."
 
-# Lo que importa no es que el escaneo terminara, sino qué encontró. Se consulta el
+# Lo que importa no es que el escaneo terminara, sino que encontro. Se consulta el
 # historial acotado a la ventana del escaneo que acabamos de correr.
 try {
     $detecciones = @(Get-MpThreatDetection -ErrorAction Stop |
@@ -108,7 +108,7 @@ try {
             Write-Output ""
             Write-Output "  amenaza ID:  $($deteccion.ThreatID)"
             Write-Output "  detectada:   $($deteccion.InitialDetectionTime)"
-            Write-Output "  acción ok:   $($deteccion.ActionSuccess)"
+            Write-Output "  accion ok:   $($deteccion.ActionSuccess)"
             Write-Output "  recursos:    $($deteccion.Resources -join ', ')"
         }
         exit 1
@@ -122,10 +122,10 @@ try {
     $final = Get-MpComputerStatus -ErrorAction Stop
     Write-Output ""
     if ($Modo -eq "completo") {
-        Write-Output "Último escaneo completo registrado: $($final.FullScanEndTime)"
+        Write-Output "Ultimo escaneo completo registrado: $($final.FullScanEndTime)"
     }
     else {
-        Write-Output "Último escaneo rápido registrado: $($final.QuickScanEndTime)"
+        Write-Output "Ultimo escaneo rapido registrado: $($final.QuickScanEndTime)"
     }
 }
 catch {

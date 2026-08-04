@@ -1,19 +1,19 @@
 ﻿<#
 .SYNOPSIS
-    Ajusta el perfil de red (privado/público) y el estado de IPv6.
+    Ajusta el perfil de red (privado/publico) y el estado de IPv6.
 
 .DESCRIPTION
-    Junta los dos ajustes de red que se piden juntos y que el catálogo original tenía
+    Junta los dos ajustes de red que se piden juntos y que el catalogo original tenia
     separados: pasar la red a privada y deshabilitar IPv6.
 
-    El perfil importa porque en red "pública" Windows endurece el firewall y bloquea
-    el descubrimiento: una impresora o un recurso compartido que "dejó de verse" a
-    veces es sólo esto. Solo se cambian las redes NO administradas por dominio: el
+    El perfil importa porque en red "publica" Windows endurece el firewall y bloquea
+    el descubrimiento: una impresora o un recurso compartido que "dejo de verse" a
+    veces es solo esto. Solo se cambian las redes NO administradas por dominio: el
     perfil DomainAuthenticated lo fija el controlador y no es modificable localmente.
 
-    Sobre IPv6: deshabilitarlo suele proponerse como remedio genérico y casi nunca lo
+    Sobre IPv6: deshabilitarlo suele proponerse como remedio generico y casi nunca lo
     es. Se ofrece porque hay software viejo que lo necesita, pero conviene medir
-    antes. Se actúa por adaptador (no con el parche global de registro, que Microsoft
+    antes. Se actua por adaptador (no con el parche global de registro, que Microsoft
     desaconseja y que puede dejar servicios que dependen de IPv6 sin funcionar).
 
 .PARAMETER Modo
@@ -59,11 +59,11 @@ function Show-Estado {
     Write-Output "== $Titulo =="
 
     Write-Output ""
-    Write-Output "  Perfiles de conexión:"
+    Write-Output "  Perfiles de conexion:"
     try {
         foreach ($perfil in (Get-NetConnectionProfile -ErrorAction Stop)) {
             Write-Output "    $($perfil.Name) (adaptador: $($perfil.InterfaceAlias))"
-            Write-Output "      categoría:            $($perfil.NetworkCategory)"
+            Write-Output "      categoria:            $($perfil.NetworkCategory)"
             Write-Output "      conectividad IPv4:    $($perfil.IPv4Connectivity)"
             Write-Output "      conectividad IPv6:    $($perfil.IPv6Connectivity)"
         }
@@ -89,7 +89,7 @@ Show-Estado -Titulo "Estado actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     exit 0
 }
 
@@ -112,7 +112,7 @@ if ($Modo -eq "privada" -or $Modo -eq "publica") {
 
     foreach ($perfil in $perfiles) {
         Write-Output ""
-        Write-Output "  $($perfil.Name) — $($perfil.InterfaceAlias)"
+        Write-Output "  $($perfil.Name) - $($perfil.InterfaceAlias)"
 
         if ($perfil.NetworkCategory -eq "DomainAuthenticated") {
             Write-Output "    se omite: perfil autenticado por dominio, lo fija el controlador."
@@ -129,7 +129,7 @@ if ($Modo -eq "privada" -or $Modo -eq "publica") {
 
             $verificado = Get-NetConnectionProfile -InterfaceIndex $perfil.InterfaceIndex -ErrorAction Stop
             if ($verificado.NetworkCategory -ne $categoria) {
-                Write-Output "    FALLA: quedó en $($verificado.NetworkCategory)."
+                Write-Output "    FALLA: quedo en $($verificado.NetworkCategory)."
                 $errores++
             }
             else {
@@ -150,7 +150,7 @@ else {
     Write-Output "== $(if ($habilitar) { 'Habilitando' } else { 'Deshabilitando' }) IPv6 por adaptador =="
 
     if (-not $habilitar) {
-        Write-Output "  Recordá que deshabilitar IPv6 rara vez es la causa real de un problema."
+        Write-Output "  Recorda que deshabilitar IPv6 rara vez es la causa real de un problema."
     }
 
     try {
@@ -164,7 +164,7 @@ else {
     if ($SoloAdaptador) {
         $enlaces = @($enlaces | Where-Object { $_.Name -eq $SoloAdaptador })
         if ($enlaces.Count -eq 0) {
-            Write-Output "  No se encontró el adaptador '$SoloAdaptador'."
+            Write-Output "  No se encontro el adaptador '$SoloAdaptador'."
             exit 1
         }
     }
@@ -188,7 +188,7 @@ else {
 
             $verificado = Get-NetAdapterBinding -Name $enlace.Name -ComponentID ms_tcpip6 -ErrorAction Stop
             if ($verificado.Enabled -ne $habilitar) {
-                Write-Output "    FALLA: quedó en Enabled=$($verificado.Enabled)."
+                Write-Output "    FALLA: quedo en Enabled=$($verificado.Enabled)."
                 $errores++
             }
             else {

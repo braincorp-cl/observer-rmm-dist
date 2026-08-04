@@ -1,17 +1,17 @@
 ﻿<#
 .SYNOPSIS
-    Fija los servidores DNS de los adaptadores activos, o los devuelve a automático.
+    Fija los servidores DNS de los adaptadores activos, o los devuelve a automatico.
 
 .DESCRIPTION
-    El script equivalente del catálogo original clavaba los resolutores de un
-    proveedor concreto en el código. Acá los servidores son PARÁMETRO: cada cliente
+    El script equivalente del catalogo original clavaba los resolutores de un
+    proveedor concreto en el codigo. Aca los servidores son PARAMETRO: cada cliente
     resuelve por donde corresponda, y el mismo script sirve para apuntar a un
     controlador de dominio, a un filtro de contenido contratado o a un resolutor
-    público.
+    publico.
 
-    Omite por defecto los equipos unidos a un dominio: ahí el DNS lo entrega el
-    controlador y pisarlo rompe la resolución de los recursos internos, la
-    autenticación Kerberos y las directivas de grupo. Se puede forzar con -IncluirDominio.
+    Omite por defecto los equipos unidos a un dominio: ahi el DNS lo entrega el
+    controlador y pisarlo rompe la resolucion de los recursos internos, la
+    autenticacion Kerberos y las directivas de grupo. Se puede forzar con -IncluirDominio.
 
     En modo 'automatico' devuelve el DNS a lo que entregue DHCP.
 
@@ -23,10 +23,10 @@
     estado (por defecto), fijar, automatico.
 
 .PARAMETER SoloAdaptador
-    Limita la acción a un adaptador por nombre.
+    Limita la accion a un adaptador por nombre.
 
 .PARAMETER IncluirDominio
-    Actúa también si el equipo está unido a un dominio.
+    Actua tambien si el equipo esta unido a un dominio.
 
 .EXAMPLE
     red-fijar-dns.ps1
@@ -62,11 +62,18 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
+# Codigo operativo de la RFC 2863 que usa ifOperStatus: 1 = la interfaz esta arriba.
+$ADAPTADOR_OPERATIVO = 1
+
 function Get-AdaptadorActivo {
     param([string]$Filtro)
 
     try {
-        $adaptadores = @(Get-NetAdapter -ErrorAction Stop | Where-Object { $_.Status -eq "Up" })
+        # ifOperStatus y no Status: Status es el texto que Windows traduce (en un equipo
+        # en espanol dice "Activo", no "Up"), mientras que ifOperStatus es el codigo
+        # numerico de la RFC 2863, donde 1 = operativo en cualquier idioma.
+        $adaptadores = @(Get-NetAdapter -ErrorAction Stop |
+            Where-Object { $_.ifOperStatus -eq $ADAPTADOR_OPERATIVO })
     }
     catch {
         Write-Verbose $_.Exception.Message
@@ -86,7 +93,7 @@ function Show-EstadoDnsAdaptador {
         try {
             $dns = Get-DnsClientServerAddress -InterfaceIndex $adaptador.ifIndex `
                 -AddressFamily IPv4 -ErrorAction Stop
-            $lista = if ($dns.ServerAddresses) { $dns.ServerAddresses -join ', ' } else { '(automático o sin DNS)' }
+            $lista = if ($dns.ServerAddresses) { $dns.ServerAddresses -join ', ' } else { '(automatico o sin DNS)' }
             Write-Output "  $($adaptador.Name): $lista"
         }
         catch {
@@ -108,15 +115,15 @@ Show-EstadoDnsAdaptador -Titulo "DNS actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     exit 0
 }
 
 if ($unidoDominio -and -not $IncluirDominio) {
     Write-Output ""
-    Write-Output "El equipo está unido a un dominio: NO se toca el DNS."
-    Write-Output "Pisar el DNS del dominio rompe la resolución interna, Kerberos y las GPO."
-    Write-Output "Si de verdad hace falta, volvé a correr con -IncluirDominio."
+    Write-Output "El equipo esta unido a un dominio: NO se toca el DNS."
+    Write-Output "Pisar el DNS del dominio rompe la resolucion interna, Kerberos y las GPO."
+    Write-Output "Si de verdad hace falta, volve a correr con -IncluirDominio."
     exit 0
 }
 
@@ -131,24 +138,24 @@ if ($Modo -eq "fijar") {
     foreach ($crudo in $Servidores.Split(",")) {
         $limpio = $crudo.Trim()
         if (-not $limpio) { continue }
-        # Validar antes de escribir: una IP mal tipeada deja el equipo sin resolución
+        # Validar antes de escribir: una IP mal tipeada deja el equipo sin resolucion
         # y, si es remoto, sin forma de arreglarlo.
         $direccion = [System.Net.IPAddress]::Any
         if (-not [System.Net.IPAddress]::TryParse($limpio, [ref]$direccion)) {
             Write-Output ""
-            Write-Output "ABORTADO: '$limpio' no es una dirección IP válida."
+            Write-Output "ABORTADO: '$limpio' no es una direccion IP valida."
             exit 1
         }
         $listaServidores += $limpio
     }
 
     if ($listaServidores.Count -eq 0) {
-        Write-Output "ABORTADO: no se obtuvo ninguna IP válida de -Servidores."
+        Write-Output "ABORTADO: no se obtuvo ninguna IP valida de -Servidores."
         exit 1
     }
 
     Write-Output ""
-    Write-Output "Se fijarán estos servidores DNS, en orden: $($listaServidores -join ', ')"
+    Write-Output "Se fijaran estos servidores DNS, en orden: $($listaServidores -join ', ')"
 }
 
 $adaptadores = Get-AdaptadorActivo -Filtro $SoloAdaptador
@@ -174,7 +181,7 @@ foreach ($adaptador in $adaptadores) {
                 -ResetServerAddresses -ErrorAction Stop
         }
 
-        # Verificación por efecto: releer lo que quedó configurado.
+        # Verificacion por efecto: releer lo que quedo configurado.
         $verificado = Get-DnsClientServerAddress -InterfaceIndex $adaptador.ifIndex `
             -AddressFamily IPv4 -ErrorAction Stop
 

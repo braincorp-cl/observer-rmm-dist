@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""Libera espacio borrando temporales y cachés seguros de borrar.
+"""Libera espacio borrando temporales y caches seguros de borrar.
 
-Reemplaza los dos scripts de Windows del catálogo original (limpiar C: y vaciar la
-papelera) por uno que además funciona en Linux y macOS, donde el disco lleno es tan
-frecuente como en Windows y no había nada.
+Reemplaza los dos scripts de Windows del catalogo original (limpiar C: y vaciar la
+papelera) por uno que ademas funciona en Linux y macOS, donde el disco lleno es tan
+frecuente como en Windows y no habia nada.
 
-Qué borra, por plataforma:
-  Windows — %TEMP% del sistema, temporales de cada perfil de usuario, la caché de
+Que borra, por plataforma:
+  Windows - %TEMP% del sistema, temporales de cada perfil de usuario, la cache de
             descargas de Windows Update (SoftwareDistribution\\Download), los logs
             de IIS si existen, los volcados de error y la papelera de reciclaje.
-  Linux   — /tmp y /var/tmp con más de un día, journal de systemd por encima de un
-            límite, cachés de apt/dnf y las papeleras de cada usuario.
-  macOS   — cachés de usuario y de sistema, logs viejos y las papeleras.
+  Linux   - /tmp y /var/tmp con mas de un dia, journal de systemd por encima de un
+            limite, caches de apt/dnf y las papeleras de cada usuario.
+  macOS   - caches de usuario y de sistema, logs viejos y las papeleras.
 
-Qué NO borra nunca, a propósito: nada dentro de un perfil que no sea caché o
+Que NO borra nunca, a proposito: nada dentro de un perfil que no sea cache o
 temporal, ni descargas, ni la carpeta de instaladores de Windows (Installer), que
 parece basura y es lo que necesitan las desinstalaciones y actualizaciones.
 
-Por defecto SIMULA: informa cuánto liberaría sin borrar nada. Hay que pedir 'aplicar'.
+Por defecto SIMULA: informa cuanto liberaria sin borrar nada. Hay que pedir 'aplicar'.
 
 Uso:
     disco-limpieza.py [simular|aplicar]
@@ -61,7 +61,7 @@ def correr(argumentos):
 
 
 def es_viejo(ruta, dias):
-    """True si el archivo no se modificó en los últimos `dias`."""
+    """True si el archivo no se modifico en los ultimos `dias`."""
     if dias <= 0:
         return True
     try:
@@ -73,7 +73,7 @@ def es_viejo(ruta, dias):
 def medir_y_borrar(directorio, aplicar, dias=0):
     """Recorre `directorio` y borra (o mide) su contenido. Devuelve (bytes, archivos).
 
-    Nunca borra el directorio raíz en sí: solo su contenido. Borrar el propio %TEMP%
+    Nunca borra el directorio raiz en si: solo su contenido. Borrar el propio %TEMP%
     o /tmp rompe cosas que esperan que exista.
     """
     if not directorio or not os.path.isdir(directorio):
@@ -87,7 +87,7 @@ def medir_y_borrar(directorio, aplicar, dias=0):
         try:
             if os.path.islink(ruta):
                 # Un enlace se borra solo si es viejo, y nunca se sigue: seguirlo
-                # podría llevar el borrado fuera del directorio que queremos limpiar.
+                # podria llevar el borrado fuera del directorio que queremos limpiar.
                 if es_viejo(ruta, dias):
                     tamano = 0
                     if aplicar:
@@ -138,7 +138,7 @@ def objetivos_windows():
     objetivos = [
         ("temporales de Windows", os.path.join(sistema, "Temp"), 0),
         (
-            "caché de Windows Update",
+            "cache de Windows Update",
             os.path.join(sistema, "SoftwareDistribution", "Download"),
             EDAD_MINIMA_DIAS,
         ),
@@ -147,7 +147,7 @@ def objetivos_windows():
     ]
 
     # Temporales por perfil: se recorre Users en vez de usar %TEMP%, que apunta solo
-    # al del usuario que corre el script (SYSTEM, no el que llenó el disco).
+    # al del usuario que corre el script (SYSTEM, no el que lleno el disco).
     perfiles = os.path.join(unidad + "\\", "Users")
     if os.path.isdir(perfiles):
         for perfil in os.listdir(perfiles):
@@ -163,8 +163,8 @@ def objetivos_linux():
     objetivos = [
         ("/tmp", "/tmp", EDAD_MINIMA_DIAS),
         ("/var/tmp", "/var/tmp", EDAD_MINIMA_DIAS),
-        ("caché de apt", "/var/cache/apt/archives", 0),
-        ("caché de dnf", "/var/cache/dnf", 0),
+        ("cache de apt", "/var/cache/apt/archives", 0),
+        ("cache de dnf", "/var/cache/dnf", 0),
         ("crash reports", "/var/crash", EDAD_MINIMA_DIAS),
     ]
     for base in ("/home", "/root"):
@@ -198,7 +198,7 @@ def objetivos_macos():
             cache = os.path.join(usuarios, usuario, "Library", "Caches")
             if os.path.isdir(cache):
                 objetivos.append(
-                    ("caché de {}".format(usuario), cache, EDAD_MINIMA_DIAS)
+                    ("cache de {}".format(usuario), cache, EDAD_MINIMA_DIAS)
                 )
             papelera = os.path.join(usuarios, usuario, ".Trash")
             if os.path.isdir(papelera):
@@ -265,7 +265,7 @@ def recortar_journal(aplicar):
 def main():
     accion = sys.argv[1].lower() if len(sys.argv) > 1 else "simular"
     if accion not in ("simular", "aplicar"):
-        print("Acción no reconocida: {}. Usá 'simular' o 'aplicar'.".format(accion))
+        print("Accion no reconocida: {}. Usa 'simular' o 'aplicar'.".format(accion))
         return 1
 
     aplicar = accion == "aplicar"
@@ -273,7 +273,7 @@ def main():
 
     libre_antes = espacio_libre(raiz_sistema)
 
-    print("Limpieza de temporales — {} {}".format(SISTEMA, platform.release()))
+    print("Limpieza de temporales - {} {}".format(SISTEMA, platform.release()))
     print("  equipo: {}".format(platform.node()))
     print("  modo:   {}".format("APLICAR (borra de verdad)" if aplicar else "SIMULAR"))
     if libre_antes is not None:
@@ -296,7 +296,7 @@ def main():
         liberados, contados = medir_y_borrar(ruta, aplicar, dias)
         total_bytes += liberados
         total_archivos += contados
-        verbo = "liberado" if aplicar else "liberaría"
+        verbo = "liberado" if aplicar else "liberaria"
         print(
             "  {:<34} {} {:.1f} MiB en {} archivo(s)".format(
                 etiqueta + ":", verbo, liberados / float(MIB), contados
@@ -307,7 +307,7 @@ def main():
         liberados, contados = vaciar_papelera_windows(aplicar)
         total_bytes += liberados
         total_archivos += contados
-        verbo = "liberado" if aplicar else "liberaría"
+        verbo = "liberado" if aplicar else "liberaria"
         print(
             "  {:<34} {} {:.1f} MiB en {} archivo(s)".format(
                 "papelera de reciclaje:", verbo, liberados / float(MIB), contados
@@ -316,7 +316,7 @@ def main():
     elif not ES_MACOS:
         liberados = recortar_journal(aplicar)
         total_bytes += liberados
-        verbo = "recortado" if aplicar else "recortaría"
+        verbo = "recortado" if aplicar else "recortaria"
         print(
             "  {:<34} {} {:.1f} MiB".format(
                 "journal de systemd:", verbo, liberados / float(MIB)
@@ -327,7 +327,7 @@ def main():
     print("== Resultado ==")
     print(
         "  total {}: {:.2f} GB en {} archivo(s)".format(
-            "liberado" if aplicar else "que se liberaría",
+            "liberado" if aplicar else "que se liberaria",
             total_bytes / float(1024**3),
             total_archivos,
         )
@@ -336,8 +336,8 @@ def main():
     if aplicar and libre_antes is not None:
         libre_despues = espacio_libre(raiz_sistema)
         if libre_despues is not None:
-            print("  libre después: {:.2f} GB".format(libre_despues / float(1024**3)))
-            # Verificación por efecto: el espacio libre real, no la suma de tamaños.
+            print("  libre despues: {:.2f} GB".format(libre_despues / float(1024**3)))
+            # Verificacion por efecto: el espacio libre real, no la suma de tamanos.
             # Difieren cuando hay archivos en uso que no se pudieron borrar.
             ganado = libre_despues - libre_antes
             print(
@@ -349,7 +349,7 @@ def main():
                 print("  archivos estaban en uso y no se pudieron borrar.")
     elif not aplicar:
         print("")
-        print("  No se borró nada. Volvé a correr con el argumento 'aplicar'.")
+        print("  No se borro nada. Volve a correr con el argumento 'aplicar'.")
 
     print("")
     print("LIBERADO_MIB={:.1f}".format(total_bytes / float(MIB)))

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Diagnóstico del agente ObserverRMM y del agente Mesh.
+"""Diagnostico del agente ObserverRMM y del agente Mesh.
 
-Solo LEE: no instala, no reinicia y no modifica configuración. Reporta plataforma,
-rutas de instalación, configuración efectiva (con el token enmascarado), estado de
+Solo LEE: no instala, no reinicia y no modifica configuracion. Reporta plataforma,
+rutas de instalacion, configuracion efectiva (con el token enmascarado), estado de
 los servicios, alcanzabilidad TCP de la API y de NATS, y frescura de los logs.
 
-Sale con 0 si todo lo crítico está sano y con 1 si algo falla, para que sirva
-también como check de script.
+Sale con 0 si todo lo critico esta sano y con 1 si algo falla, para que sirva
+tambien como check de script.
 
-Sin argumentos. Solo biblioteca estándar: corre con el Python embebido del agente
-en Windows y con el intérprete del sistema en Linux y macOS.
+Sin argumentos. Solo biblioteca estandar: corre con el Python embebido del agente
+en Windows y con el interprete del sistema en Linux y macOS.
 """
 
 import json
@@ -29,10 +29,10 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
-# Rutas, servicios y claves de configuración tomados del código del agente
+# Rutas, servicios y claves de configuracion tomados del codigo del agente
 # (agent/agent.go:85-102, agent/install_unix.go:25-42, main.go:186-188). Si el
-# agente los cambia, este script queda desalineado: es la misma trampa que dejó
-# a macos_fix_mesh_install.sh apuntando a una ruta que no existía.
+# agente los cambia, este script queda desalineado: es la misma trampa que dejo
+# a macos_fix_mesh_install.sh apuntando a una ruta que no existia.
 SISTEMA = platform.system()
 ES_WINDOWS = SISTEMA == "Windows"
 ES_MACOS = SISTEMA == "Darwin"
@@ -60,7 +60,7 @@ def falla(mensaje):
 
 
 def correr(argumentos):
-    """Ejecuta un comando y devuelve (rc, salida). Nunca lanza excepción."""
+    """Ejecuta un comando y devuelve (rc, salida). Nunca lanza excepcion."""
     try:
         proceso = subprocess.run(
             argumentos,
@@ -75,14 +75,14 @@ def correr(argumentos):
 
 def enmascarar(valor):
     if not valor:
-        return "(vacío)"
+        return "(vacio)"
     if len(valor) <= 8:
         return "***"
     return valor[:4] + "..." + valor[-4:]
 
 
 def leer_config():
-    """Devuelve la configuración del agente como dict de claves en minúsculas."""
+    """Devuelve la configuracion del agente como dict de claves en minusculas."""
     if ES_WINDOWS:
         import winreg
 
@@ -139,7 +139,7 @@ def rutas_agente():
         "directorio del agente": "/opt/observeragent",
         "binario del agente": binario_agente_unix(),
         "directorio del Mesh": "/opt/observermesh",
-        "configuración": CONFIG_UNIX,
+        "configuracion": CONFIG_UNIX,
         "log del agente": "/var/log/observeragent.log",
     }
 
@@ -147,11 +147,11 @@ def rutas_agente():
 def binario_agente_unix():
     """Ruta real del binario del agente, resuelta y no asumida.
 
-    No está en el mismo lugar en todos los paquetes: medido en un host Fedora 44
+    No esta en el mismo lugar en todos los paquetes: medido en un host Fedora 44
     (RPM) el binario vive en /usr/local/bin/observeragent, mientras que las
     constantes del agente apuntan a /opt/observeragent/observeragent. Asumir una
-    sola ruta hacía que este diagnóstico reportara una FALLA falsa en toda la
-    flota RPM, que es justo lo que vuelve inservible a un script de diagnóstico.
+    sola ruta hacia que este diagnostico reportara una FALLA falsa en toda la
+    flota RPM, que es justo lo que vuelve inservible a un script de diagnostico.
 
     La fuente autoritativa es el ExecStart del servicio: es el binario que el
     sistema arranca de verdad. Las rutas conocidas quedan como respaldo.
@@ -195,18 +195,18 @@ def binario_agente_unix():
         if os.path.exists(conocida):
             return conocida
 
-    # Ninguna existe: se devuelve la ruta canónica para que el reporte diga cuál
-    # se buscó, en vez de mentir con una que tampoco está.
+    # Ninguna existe: se devuelve la ruta canonica para que el reporte diga cual
+    # se busco, en vez de mentir con una que tampoco esta.
     return "/opt/observeragent/observeragent"
 
 
 def estado_servicios_windows():
-    """Estado de los servicios del agente y del Mesh, en inglés y de una sola pasada.
+    """Estado de los servicios del agente y del Mesh, en ingles y de una sola pasada.
 
-    NO se parsea `sc query`: su salida está localizada (en un Windows en español la
-    etiqueta es ESTADO, no STATE), así que buscar "STATE" devolvía "estado no
-    reconocido" y el diagnóstico inventaba un problema. Medido en dos Windows 11 en
-    español. La propiedad State de Win32_Service es una enumeración fija en inglés,
+    NO se parsea `sc query`: su salida esta localizada (en un Windows en espanol la
+    etiqueta es ESTADO, no STATE), asi que buscar "STATE" devolvia "estado no
+    reconocido" y el diagnostico inventaba un problema. Medido en dos Windows 11 en
+    espanol. La propiedad State de Win32_Service es una enumeracion fija en ingles,
     independiente del idioma del sistema.
     """
     consulta = (
@@ -263,6 +263,46 @@ def alcanzable(anfitrion, puerto):
         return False, str(error)
 
 
+def idioma_del_sistema():
+    """Idioma en que este equipo responde, y pagina de codigos de su consola.
+
+    En una flota mixta importa saberlo: es lo que decide si un servicio se reporta
+    como "Detenido" o como "Stopped", y si la salida de una herramienta nativa llega
+    traducida. Los scripts de esta biblioteca estan escritos para no depender de eso
+    (comparan contra SID, GUID, enums y codigos numericos, nunca contra el texto
+    traducido), pero cuando algo falla en un solo equipo de la flota este dato suele
+    ser la primera pista.
+    """
+    if SISTEMA != "Windows":
+        idioma = os.environ.get("LANG") or os.environ.get("LC_ALL") or "(sin LANG)"
+        return idioma, None
+
+    idioma = "(desconocido)"
+    try:
+        import ctypes
+
+        # GetUserDefaultUILanguage devuelve el LCID de la interfaz, no el del formato
+        # regional: es el que determina en que idioma responden las herramientas.
+        lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+        buf = ctypes.create_unicode_buffer(85)
+        if ctypes.windll.kernel32.LCIDToLocaleName(lcid, buf, 85, 0):
+            idioma = buf.value
+        else:
+            idioma = "LCID {}".format(lcid)
+    except Exception:
+        pass
+
+    pagina = None
+    try:
+        import ctypes
+
+        pagina = ctypes.windll.kernel32.GetOEMCP()
+    except Exception:
+        pass
+
+    return idioma, pagina
+
+
 def informar_plataforma():
     titulo("Plataforma")
     linea("sistema", "{} {}".format(SISTEMA, platform.release()))
@@ -270,9 +310,14 @@ def informar_plataforma():
     linea("arquitectura", platform.machine())
     linea("python del script", platform.python_version())
 
+    idioma, pagina = idioma_del_sistema()
+    linea("idioma del sistema", idioma)
+    if pagina:
+        linea("pagina de codigos", "OEM {}".format(pagina))
+
 
 def informar_rutas():
-    titulo("Rutas de instalación")
+    titulo("Rutas de instalacion")
     for etiqueta, ruta in rutas_agente().items():
         if os.path.exists(ruta):
             linea(etiqueta, "OK  {}".format(ruta))
@@ -282,13 +327,13 @@ def informar_rutas():
 
 
 def informar_config(config):
-    titulo("Configuración del agente")
+    titulo("Configuracion del agente")
     if not config:
         origen = CLAVE_REGISTRO if ES_WINDOWS else CONFIG_UNIX
         linea(
-            "configuración",
+            "configuracion",
             "{} no se pudo leer ({})".format(
-                falla("configuración del agente ilegible"), origen
+                falla("configuracion del agente ilegible"), origen
             ),
         )
         return
@@ -319,14 +364,14 @@ def informar_servicios():
             marca in estado_agente.lower() for marca in ("running", "active", "cargado")
         )
         if not sano:
-            falla("servicio del agente no está corriendo ({})".format(estado_agente))
+            falla("servicio del agente no esta corriendo ({})".format(estado_agente))
         linea("agente ObserverRMM", estado_agente)
 
     estado_mesh = estado_servicio("mesh agent", "meshagent.service", "meshagent", cache)
     if estado_mesh is None:
-        # El Mesh puede faltar legítimamente (instalación con -nomesh): se avisa,
+        # El Mesh puede faltar legitimamente (instalacion con -nomesh): se avisa,
         # pero no se cuenta como falla del agente.
-        linea("agente Mesh", "AVISO no encontrado (¿instalado con -nomesh?)")
+        linea("agente Mesh", "AVISO no encontrado (instalado con -nomesh?)")
     else:
         linea("agente Mesh", estado_mesh)
 
@@ -335,7 +380,7 @@ def informar_conectividad(config):
     titulo("Conectividad")
     anfitrion = config.get("apiurl")
     if not anfitrion:
-        linea("API", falla("sin host de API en la configuración"))
+        linea("API", falla("sin host de API en la configuracion"))
         return
     ok, detalle = alcanzable(anfitrion, 443)
     if ok:
@@ -360,7 +405,7 @@ def informar_conectividad(config):
             )
     else:
         # Sin puerto TCP configurado el agente habla NATS por websockets sobre el
-        # mismo 443 que ya se probó arriba, así que no hay un segundo socket que medir.
+        # mismo 443 que ya se probo arriba, asi que no hay un segundo socket que medir.
         linea("NATS (websockets)", "va por el 443 ya verificado")
 
 
@@ -370,19 +415,19 @@ def informar_logs():
         if "log" not in etiqueta:
             continue
         if not os.path.isfile(ruta):
-            linea(etiqueta, "no existe todavía  {}".format(ruta))
+            linea(etiqueta, "no existe todavia  {}".format(ruta))
             continue
         edad_minutos = int((time.time() - os.path.getmtime(ruta)) / 60)
         linea(
             etiqueta,
-            "{} KiB, última escritura hace {} min".format(
+            "{} KiB, ultima escritura hace {} min".format(
                 os.path.getsize(ruta) // 1024, edad_minutos
             ),
         )
 
 
 def main():
-    print("Diagnóstico del agente ObserverRMM")
+    print("Diagnostico del agente ObserverRMM")
     informar_plataforma()
     informar_rutas()
     config = leer_config()

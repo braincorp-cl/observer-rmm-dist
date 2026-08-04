@@ -1,21 +1,21 @@
 ﻿<#
 .SYNOPSIS
-    Estado de la activación de Windows y, opcionalmente, aplicación de una clave.
+    Estado de la activacion de Windows y, opcionalmente, aplicacion de una clave.
 
 .DESCRIPTION
-    Une el chequeo de activación y el cambio de clave, que el catálogo original tenía
-    separados en dos categorías.
+    Une el chequeo de activacion y el cambio de clave, que el catalogo original tenia
+    separados en dos categorias.
 
-    En modo 'estado' solo LEE: informa la edición, el canal de licencia (OEM, minorista,
-    por volumen), el estado de activación y, si es por volumen, contra qué servidor KMS
-    se activó y cuándo vence la renovación. Ese último dato es el que importa en un
-    parque con licenciamiento por volumen: una máquina que dejó de ver el KMS entra en
-    período de gracia y se desactiva sola semanas después, sin que nadie mire.
+    En modo 'estado' solo LEE: informa la edicion, el canal de licencia (OEM, minorista,
+    por volumen), el estado de activacion y, si es por volumen, contra que servidor KMS
+    se activo y cuando vence la renovacion. Ese ultimo dato es el que importa en un
+    parque con licenciamiento por volumen: una maquina que dejo de ver el KMS entra en
+    periodo de gracia y se desactiva sola semanas despues, sin que nadie mire.
 
-    Sale con 1 si Windows no está activado.
+    Sale con 1 si Windows no esta activado.
 
     ADVERTENCIA para el modo 'clave': la clave se pasa como argumento y queda escrita en
-    el historial de la consola. Además, aplicar una clave incorrecta puede dejar el
+    el historial de la consola. Ademas, aplicar una clave incorrecta puede dejar el
     equipo desactivado hasta que se aplique la correcta.
 
 .PARAMETER Modo
@@ -53,28 +53,28 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
-# Los estados de licencia de SoftwareLicensingProduct, según la documentación de
-# Microsoft. El 1 es el único "activado"; el 5 (notificación) es el que precede a la
-# desactivación visible y conviene distinguirlo de "no licenciado".
+# Los estados de licencia de SoftwareLicensingProduct, segun la documentacion de
+# Microsoft. El 1 es el unico "activado"; el 5 (notificacion) es el que precede a la
+# desactivacion visible y conviene distinguirlo de "no licenciado".
 $ESTADOS = @{
     0 = "sin licencia"
     1 = "activado"
-    2 = "período de gracia inicial"
-    3 = "período de gracia adicional (token)"
+    2 = "periodo de gracia inicial"
+    3 = "periodo de gracia adicional (token)"
     4 = "gracia por reemplazo de token"
-    5 = "notificación (a punto de desactivarse)"
+    5 = "notificacion (a punto de desactivarse)"
     6 = "gracia extendida"
 }
 
 Write-Output "== Sistema =="
 try {
     $sistemaOperativo = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
-    Write-Output "  edición:  $($sistemaOperativo.Caption)"
-    Write-Output "  versión:  $($sistemaOperativo.Version) (build $($sistemaOperativo.BuildNumber))"
+    Write-Output "  edicion:  $($sistemaOperativo.Caption)"
+    Write-Output "  version:  $($sistemaOperativo.Version) (build $($sistemaOperativo.BuildNumber))"
     Write-Output "  arquitec: $($sistemaOperativo.OSArchitecture)"
 }
 catch {
-    Write-Output "  no se pudo leer la información del sistema: $($_.Exception.Message)"
+    Write-Output "  no se pudo leer la informacion del sistema: $($_.Exception.Message)"
 }
 
 Write-Output ""
@@ -89,7 +89,7 @@ try {
         Where-Object { $_.PartialProductKey -and $_.Name -like "*Windows*" })
 
     if ($productos.Count -eq 0) {
-        Write-Output "  No se encontró ningún producto Windows con clave instalada."
+        Write-Output "  No se encontro ningun producto Windows con clave instalada."
     }
 
     foreach ($producto in $productos) {
@@ -98,7 +98,7 @@ try {
 
         Write-Output ""
         Write-Output "  $($producto.Name)"
-        Write-Output "    descripción:      $($producto.Description)"
+        Write-Output "    descripcion:      $($producto.Description)"
         Write-Output "    estado:           $textoEstado"
         Write-Output "    clave parcial:    $($producto.PartialProductKey)"
 
@@ -120,9 +120,9 @@ try {
         }
         if ($null -ne $producto.GracePeriodRemaining -and $producto.GracePeriodRemaining -gt 0) {
             $dias = [Math]::Round($producto.GracePeriodRemaining / 1440, 1)
-            Write-Output "    gracia restante:  $dias día(s)"
+            Write-Output "    gracia restante:  $dias dia(s)"
             if ($dias -lt 15) {
-                Write-Output "    AVISO: quedan menos de 15 días de gracia. Si no vuelve a ver"
+                Write-Output "    AVISO: quedan menos de 15 dias de gracia. Si no vuelve a ver"
                 Write-Output "           el KMS, Windows se va a desactivar."
             }
         }
@@ -146,7 +146,7 @@ try {
     else {
         Write-Output "  clave OEM en BIOS: ausente"
     }
-    Write-Output "  versión del servicio: $($servicio.Version)"
+    Write-Output "  version del servicio: $($servicio.Version)"
 }
 catch {
     Write-Output "  No se pudo consultar el servicio de licencias: $($_.Exception.Message)"
@@ -156,16 +156,16 @@ if ($Modo -eq "estado") {
     Write-Output ""
     Write-Output "== Resultado =="
     if ($activado) {
-        Write-Output "  Windows está activado."
+        Write-Output "  Windows esta activado."
         exit 0
     }
-    Write-Output "  Windows NO está activado."
+    Write-Output "  Windows NO esta activado."
     exit 1
 }
 
 if (-not $Clave) {
     Write-Output ""
-    Write-Output "El modo 'clave' exige el parámetro -Clave."
+    Write-Output "El modo 'clave' exige el parametro -Clave."
     exit 1
 }
 
@@ -178,13 +178,13 @@ if ($claveLimpia -notmatch "^[A-Z0-9]{5}(-[A-Z0-9]{5}){4}$") {
 
 Write-Output ""
 Write-Output "== Aplicando la clave de producto =="
-Write-Output "  Se aplicará una clave que termina en $($claveLimpia.Substring($claveLimpia.Length - 5))"
+Write-Output "  Se aplicara una clave que termina en $($claveLimpia.Substring($claveLimpia.Length - 5))"
 
 # slmgr es un script de Windows Script Host: se invoca por cscript para poder leer su
 # salida. El equivalente por WMI (InstallProductKey) no devuelve un mensaje legible.
 $rutaSlmgr = Join-Path $env:SystemRoot "System32\slmgr.vbs"
 if (-not (Test-Path $rutaSlmgr)) {
-    Write-Output "  No se encontró slmgr.vbs: no se puede aplicar la clave."
+    Write-Output "  No se encontro slmgr.vbs: no se puede aplicar la clave."
     exit 1
 }
 
@@ -193,17 +193,17 @@ Write-Output "  $($salida -join ' ')"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Output ""
-    Write-Output "  La instalación de la clave falló (código $LASTEXITCODE)."
+    Write-Output "  La instalacion de la clave fallo (codigo $LASTEXITCODE)."
     exit 1
 }
 
 Write-Output ""
-Write-Output "  Intentando activar contra el servidor de activación..."
+Write-Output "  Intentando activar contra el servidor de activacion..."
 $salidaActivacion = & cscript.exe //Nologo $rutaSlmgr /ato 2>&1
 Write-Output "  $($salidaActivacion -join ' ')"
 
-# Verificación por efecto: releer el estado de licencia, no confiar en el código de
-# salida de slmgr, que devuelve 0 incluso cuando la activación no se completó.
+# Verificacion por efecto: releer el estado de licencia, no confiar en el codigo de
+# salida de slmgr, que devuelve 0 incluso cuando la activacion no se completo.
 Start-Sleep -Seconds 3
 $activadoFinal = $false
 try {
@@ -220,9 +220,9 @@ catch {
 Write-Output ""
 Write-Output "== Resultado =="
 if ($activadoFinal) {
-    Write-Output "  Windows quedó ACTIVADO."
+    Write-Output "  Windows quedo ACTIVADO."
     exit 0
 }
-Write-Output "  La clave se instaló pero Windows sigue SIN activar."
+Write-Output "  La clave se instalo pero Windows sigue SIN activar."
 Write-Output "  Suele ser falta de salida a internet o al KMS, no un problema de la clave."
 exit 1

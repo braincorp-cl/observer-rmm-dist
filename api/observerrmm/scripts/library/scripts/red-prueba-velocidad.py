@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Mide latencia, variación (jitter) y, si se le da una URL, ancho de banda de bajada.
+"""Mide latencia, variacion (jitter) y, si se le da una URL, ancho de banda de bajada.
 
-Reemplaza los tres scripts distintos del catálogo original (uno con una librería de
+Reemplaza los tres scripts distintos del catalogo original (uno con una libreria de
 Python externa, uno en PowerShell y uno que descargaba iperf desde internet) por una
-única medición que no instala nada y corre igual en las tres plataformas.
+unica medicion que no instala nada y corre igual en las tres plataformas.
 
-Qué mide SIEMPRE, sin depender de nada externo: la latencia del camino real entre el
+Que mide SIEMPRE, sin depender de nada externo: la latencia del camino real entre el
 equipo y la infraestructura de ObserverRMM, abriendo varias conexiones TCP al host de
-la API que el propio agente tiene configurado. Reporta mínimo, mediana, máximo y
-variación, porque un promedio esconde justo lo que se siente como tirones en
+la API que el propio agente tiene configurado. Reporta minimo, mediana, maximo y
+variacion, porque un promedio esconde justo lo que se siente como tirones en
 escritorio remoto y cortes en llamadas.
 
-Qué mide SOLO si se le pasa una URL: el ancho de banda de bajada. No hay una URL por
-defecto a propósito — no existe un archivo grande, estable y sin autenticación en la
-infraestructura del producto contra el cual medir, y clavar el de un tercero volvería
+Que mide SOLO si se le pasa una URL: el ancho de banda de bajada. No hay una URL por
+defecto a proposito - no existe un archivo grande, estable y sin autenticacion en la
+infraestructura del producto contra el cual medir, y clavar el de un tercero volveria
 a meter la dependencia externa que este script vino a sacar. Pasale la URL de un
 asset de release del CDN, o de cualquier archivo bajo control del cliente.
 
@@ -58,7 +58,7 @@ UMBRAL_JITTER_MS = 100
 
 
 def leer_host_api():
-    """Host de la API según la configuración del agente."""
+    """Host de la API segun la configuracion del agente."""
     if ES_WINDOWS:
         try:
             import winreg
@@ -107,7 +107,7 @@ def mediana(valores):
 def partir_url(url):
     """Devuelve (anfitrion, puerto, ruta, es_tls) sin usar urllib.
 
-    urllib arrastra los proxies del entorno y sigue redirecciones, y acá lo que
+    urllib arrastra los proxies del entorno y sigue redirecciones, y aca lo que
     interesa es cronometrar el socket, no reproducir un navegador.
     """
     resto = url
@@ -143,7 +143,7 @@ def descargar(url, bytes_maximos):
     """Descarga hasta `bytes_maximos` y devuelve (bytes_leidos, segundos, estado)."""
     partes = partir_url(url)
     if partes is None:
-        return 0, 0, "la URL no es válida (debe empezar con http:// o https://)"
+        return 0, 0, "la URL no es valida (debe empezar con http:// o https://)"
     anfitrion, puerto, ruta, es_tls = partes
 
     try:
@@ -157,7 +157,7 @@ def descargar(url, bytes_maximos):
             conexion = contexto.wrap_socket(conexion, server_hostname=anfitrion)
         except Exception as error:
             conexion.close()
-            return 0, 0, "falló TLS con {} ({})".format(anfitrion, error)
+            return 0, 0, "fallo TLS con {} ({})".format(anfitrion, error)
 
     try:
         peticion = (
@@ -165,7 +165,7 @@ def descargar(url, bytes_maximos):
             "Host: {}\r\n"
             "User-Agent: ObserverRMM-PruebaDeEnlace\r\n"
             # identity: sin esto el servidor puede comprimir y la cifra medida
-            # dejaría de ser el ancho de banda real del enlace.
+            # dejaria de ser el ancho de banda real del enlace.
             "Accept-Encoding: identity\r\n"
             "Connection: close\r\n"
             "\r\n"
@@ -173,7 +173,7 @@ def descargar(url, bytes_maximos):
         conexion.sendall(peticion.encode("ascii"))
 
         # Se leen las cabeceras aparte para no contarlas como payload y para poder
-        # detectar un 401/404, que de otro modo se mediría como "descarga exitosa"
+        # detectar un 401/404, que de otro modo se mediria como "descarga exitosa"
         # de unos pocos cientos de bytes.
         cabeceras = b""
         while b"\r\n\r\n" not in cabeceras:
@@ -186,7 +186,7 @@ def descargar(url, bytes_maximos):
 
         primera = cabeceras.split(b"\r\n", 1)[0].decode("ascii", "replace")
         if " 200 " not in primera:
-            return 0, 0, "el servidor respondió: {}".format(primera.strip())
+            return 0, 0, "el servidor respondio: {}".format(primera.strip())
 
         leidos = 0
         inicio = time.time()
@@ -199,7 +199,7 @@ def descargar(url, bytes_maximos):
         transcurrido = time.time() - inicio
 
         if leidos == 0:
-            return 0, 0, "el servidor respondió 200 pero no envió cuerpo"
+            return 0, 0, "el servidor respondio 200 pero no envio cuerpo"
         return leidos, transcurrido, "ok"
     except Exception as error:
         return 0, 0, "error durante la descarga ({})".format(error)
@@ -217,17 +217,17 @@ def main():
         try:
             mib = int(sys.argv[2])
         except ValueError:
-            print("El segundo argumento debe ser un número de MiB:", sys.argv[2])
+            print("El segundo argumento debe ser un numero de MiB:", sys.argv[2])
             return 1
         mib = max(1, min(mib, MIB_MAXIMO))
 
     anfitrion = leer_host_api()
     if not anfitrion:
-        print("No se pudo leer el host de la API desde la configuración del agente.")
-        print("Sin ese dato no hay contra qué medir la latencia.")
+        print("No se pudo leer el host de la API desde la configuracion del agente.")
+        print("Sin ese dato no hay contra que medir la latencia.")
         return 1
 
-    print("Prueba de enlace — {}".format(platform.node()))
+    print("Prueba de enlace - {}".format(platform.node()))
     print("  sistema: {} {}".format(platform.system(), platform.release()))
     print("  destino: {} (host de la API del agente)".format(anfitrion))
 
@@ -241,10 +241,10 @@ def main():
         return 1
 
     variacion = max(muestras) - min(muestras)
-    print("  mínimo:    {:.1f} ms".format(min(muestras)))
+    print("  minimo:    {:.1f} ms".format(min(muestras)))
     print("  mediana:   {:.1f} ms".format(mediana(muestras)))
-    print("  máximo:    {:.1f} ms".format(max(muestras)))
-    print("  variación: {:.1f} ms".format(variacion))
+    print("  maximo:    {:.1f} ms".format(max(muestras)))
+    print("  variacion: {:.1f} ms".format(variacion))
     print(
         "  perdidas:  {} de {}".format(
             INTENTOS_LATENCIA - len(muestras), INTENTOS_LATENCIA
@@ -253,15 +253,15 @@ def main():
 
     if variacion > UMBRAL_JITTER_MS:
         print("")
-        print("  AVISO: variación alta. Es lo que se siente como tirones en escritorio")
-        print("         remoto y cortes en llamadas, aunque el ancho de banda dé bien.")
+        print("  AVISO: variacion alta. Es lo que se siente como tirones en escritorio")
+        print("         remoto y cortes en llamadas, aunque el ancho de banda de bien.")
 
     print("")
     print("== Bajada ==")
     if not url:
-        print("  No se midió: no se pasó una URL de descarga.")
-        print("  Pasale como primer argumento la URL de un archivo grande —por")
-        print("  ejemplo un asset de release del CDN— para medir el ancho de banda.")
+        print("  No se midio: no se paso una URL de descarga.")
+        print("  Pasale como primer argumento la URL de un archivo grande -por")
+        print("  ejemplo un asset de release del CDN- para medir el ancho de banda.")
     else:
         print("  origen: {}".format(url))
         leidos, transcurrido, estado = descargar(url, mib * MIB)
@@ -274,7 +274,7 @@ def main():
             print("  tiempo:     {:.2f} s".format(transcurrido))
             print("  velocidad:  {:.2f} Mbps".format(mbps))
             if leidos < mib * MIB:
-                print("  Nota: el archivo era más chico que el límite pedido, así que")
+                print("  Nota: el archivo era mas chico que el limite pedido, asi que")
                 print("  la cifra sale de una transferencia corta y es menos estable.")
             print("")
             print("BAJADA_MBPS={:.2f}".format(mbps))

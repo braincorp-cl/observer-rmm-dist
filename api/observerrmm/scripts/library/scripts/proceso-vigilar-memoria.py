@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """Vigila el consumo de memoria de un proceso y alerta si pasa un umbral.
 
-Reemplaza el script de Windows del catálogo original por uno que corre en las tres
+Reemplaza el script de Windows del catalogo original por uno que corre en las tres
 plataformas, porque una fuga de memoria no es un problema exclusivo de Windows.
 
-Para qué sirve de verdad: como check programado sobre un proceso que se sabe con
+Para que sirve de verdad: como check programado sobre un proceso que se sabe con
 tendencia a fugar (un servicio propio, un motor de base de datos, un navegador en un
-kiosco). Sale con código 1 cuando el proceso supera el umbral, así la consola genera
+kiosco). Sale con codigo 1 cuando el proceso supera el umbral, asi la consola genera
 la alerta sola en vez de que alguien tenga que ir a mirar.
 
 Suma la memoria de TODOS los procesos con ese nombre, no solo del primero. Es
 deliberado: los navegadores y muchos servicios se reparten en decenas de procesos hijos
 y mirar solo uno da una cifra tranquilizadora y falsa.
 
-No usa psutil: en Windows lee la memoria por CIM y en Linux/macOS por `ps`, así que
+No usa psutil: en Windows lee la memoria por CIM y en Linux/macOS por `ps`, asi que
 funciona con el Python embebido del agente sin instalar nada.
 
 Uso:
@@ -22,7 +22,7 @@ Uso:
 Ejemplos:
     proceso-vigilar-memoria.py chrome 4096
     proceso-vigilar-memoria.py postgres
-    proceso-vigilar-memoria.py                (lista los 15 que más consumen)
+    proceso-vigilar-memoria.py                (lista los 15 que mas consumen)
 """
 
 import json
@@ -65,8 +65,8 @@ def correr(argumentos):
 def procesos_windows():
     """Devuelve [(nombre, pid, bytes_memoria)] leyendo por CIM.
 
-    WorkingSetSize es la memoria física que el proceso tiene asignada, que es la que
-    importa para "este proceso se está comiendo la RAM". VirtualSize incluiría espacio
+    WorkingSetSize es la memoria fisica que el proceso tiene asignada, que es la que
+    importa para "este proceso se esta comiendo la RAM". VirtualSize incluiria espacio
     reservado y nunca tocado, que infla la cifra sin significar nada.
     """
     consulta = (
@@ -91,7 +91,7 @@ def procesos_windows():
     resultado = []
     for item in crudo:
         nombre = item.get("Name") or ""
-        # Se saca la extensión para que el usuario pueda pasar "chrome" y no
+        # Se saca la extension para que el usuario pueda pasar "chrome" y no
         # "chrome.exe", que es lo natural.
         if nombre.lower().endswith(".exe"):
             nombre = nombre[:-4]
@@ -111,7 +111,7 @@ def procesos_windows():
 def procesos_unix():
     """Devuelve [(nombre, pid, bytes_memoria)] leyendo por ps.
 
-    rss viene en kibibytes en Linux y en macOS, así que se multiplica por 1024.
+    rss viene en kibibytes en Linux y en macOS, asi que se multiplica por 1024.
     """
     salida = correr(["ps", "-eo", "pid=,rss=,comm="])
     if not salida:
@@ -178,7 +178,7 @@ def main():
         try:
             umbral_mib = int(sys.argv[2])
         except ValueError:
-            print("El umbral debe ser un número de MiB. Recibido:", sys.argv[2])
+            print("El umbral debe ser un numero de MiB. Recibido:", sys.argv[2])
             return 1
         if umbral_mib < 1:
             print("El umbral debe ser mayor que 0.")
@@ -191,20 +191,20 @@ def main():
 
     total_ram = memoria_total()
 
-    print("Consumo de memoria — {} {}".format(SISTEMA, platform.release()))
+    print("Consumo de memoria - {} {}".format(SISTEMA, platform.release()))
     print("  equipo: {}".format(platform.node()))
     if total_ram:
         print("  RAM total: {:.1f} GiB".format(total_ram / float(1024**3)))
 
     if not nombre_buscado:
         # Sin argumento: se agrupa por nombre y se muestran los mayores. Sirve para
-        # descubrir quién se está comiendo la memoria antes de saber a quién vigilar.
+        # descubrir quien se esta comiendo la memoria antes de saber a quien vigilar.
         agrupados = {}
         for nombre, _, bytes_memoria in procesos:
             agrupados[nombre] = agrupados.get(nombre, 0) + bytes_memoria
 
         print("")
-        print("== Los {} procesos que más memoria consumen ==".format(CANTIDAD_TOP))
+        print("== Los {} procesos que mas memoria consumen ==".format(CANTIDAD_TOP))
         ordenados = sorted(agrupados.items(), key=lambda par: par[1], reverse=True)
         for nombre, bytes_memoria in ordenados[:CANTIDAD_TOP]:
             porcentaje = ""
@@ -218,7 +218,7 @@ def main():
                 )
             )
         print("")
-        print("Pasá un nombre de proceso como argumento para vigilarlo con umbral.")
+        print("Pasa un nombre de proceso como argumento para vigilarlo con umbral.")
         return 0
 
     objetivo = nombre_buscado.lower()
@@ -232,12 +232,12 @@ def main():
 
     if not coincidencias:
         # Un proceso ausente no es un exceso de memoria: se informa y se sale con 0.
-        # Alertar acá confundiría "se cayó" con "consume mucho", que son incidentes
+        # Alertar aca confundiria "se cayo" con "consume mucho", que son incidentes
         # distintos y el check que corresponde es otro.
-        print("  No hay ningún proceso con ese nombre corriendo ahora.")
+        print("  No hay ningun proceso con ese nombre corriendo ahora.")
         print("")
         print("  Ojo: esto NO es una alerta de memoria. Si te interesa saber que el")
-        print("  proceso está caído, usá un check de servicio, no este script.")
+        print("  proceso esta caido, usa un check de servicio, no este script.")
         print("")
         print("PROCESOS=0")
         print("MEMORIA_MIB=0")
@@ -251,10 +251,10 @@ def main():
         print("  porcentaje de la RAM: {:.1f}%".format(100.0 * total_bytes / total_ram))
     print("  umbral: {} MiB".format(umbral_mib))
 
-    # Las instancias mayores, para ver si el consumo está concentrado en una que fuga
+    # Las instancias mayores, para ver si el consumo esta concentrado en una que fuga
     # o repartido entre muchas que es lo normal.
     print("")
-    print("  Instancias que más consumen:")
+    print("  Instancias que mas consumen:")
     for nombre, pid, bytes_memoria in sorted(
         coincidencias, key=lambda p: p[2], reverse=True
     )[:5]:

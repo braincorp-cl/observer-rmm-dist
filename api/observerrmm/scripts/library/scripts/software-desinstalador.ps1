@@ -1,27 +1,27 @@
 ﻿<#
 .SYNOPSIS
-    Lista, busca y desinstala software instalado, con desinstalación silenciosa.
+    Lista, busca y desinstala software instalado, con desinstalacion silenciosa.
 
 .DESCRIPTION
-    El mejor script del catálogo original, reescrito. Resuelve el problema real de
+    El mejor script del catalogo original, reescrito. Resuelve el problema real de
     desinstalar en remoto: sin nadie frente al equipo, un desinstalador que abre un
-    diálogo se queda colgado hasta que el timeout lo mate, dejando el software a medio
+    dialogo se queda colgado hasta que el timeout lo mate, dejando el software a medio
     quitar.
 
     Busca en las tres fuentes que hay que mirar, porque ninguna sola las tiene todas:
 
       1. Registro de 64 bits (Uninstall).
       2. Registro de 32 bits (WOW6432Node), donde vive todo el software de 32 bits.
-      3. Registro por usuario (HKCU) de cada perfil, donde aparece lo que se instaló
-         "solo para mí" y que no se ve como administrador.
+      3. Registro por usuario (HKCU) de cada perfil, donde aparece lo que se instalo
+         "solo para mi" y que no se ve como administrador.
 
     Para desinstalar arma la orden en este orden de preferencia: la cadena silenciosa
     que declara el propio producto (QuietUninstallString), o si no la hay, la normal
     con los modificadores silenciosos que corresponden al tipo de instalador (MSI o
     InnoSetup/NSIS detectados por la forma de la cadena).
 
-    Deliberadamente NO usa la clase Win32_Product de WMI, que es la vía más citada:
-    enumerarla dispara una reconfiguración de cada paquete MSI del equipo, es lentísima
+    Deliberadamente NO usa la clase Win32_Product de WMI, que es la via mas citada:
+    enumerarla dispara una reconfiguracion de cada paquete MSI del equipo, es lentisima
     y puede reparar software sin que nadie lo haya pedido.
 
 .PARAMETER Modo
@@ -34,7 +34,7 @@
     Exige coincidencia exacta del nombre en vez de subcadena. Recomendado al desinstalar.
 
 .PARAMETER TiempoEsperaSegundos
-    Espera máxima por desinstalador. Por defecto 600.
+    Espera maxima por desinstalador. Por defecto 600.
 
 .EXAMPLE
     software-desinstalador.ps1
@@ -76,7 +76,7 @@ function Get-SoftwareInstalado {
         @{ Ruta = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"; Ambito = "equipo (32)" }
     )
 
-    # Los perfiles de usuario: se montan sus colmenas solo si no están ya cargadas.
+    # Los perfiles de usuario: se montan sus colmenas solo si no estan ya cargadas.
     # Sin esto se pierde todo lo instalado "solo para este usuario".
     try {
         foreach ($colmena in (Get-ChildItem "Registry::HKEY_USERS" -ErrorAction Stop)) {
@@ -175,19 +175,19 @@ if ($Modo -eq "listar") {
     foreach ($producto in $productos) {
         Write-Output ""
         Write-Output "$($producto.Nombre)"
-        Write-Output "  versión: $($producto.Version)"
+        Write-Output "  version: $($producto.Version)"
         Write-Output "  editor:  $($producto.Editor)"
-        Write-Output "  ámbito:  $($producto.Ambito)"
+        Write-Output "  ambito:  $($producto.Ambito)"
         if ($producto.Tamano) {
-            Write-Output "  tamaño:  $([Math]::Round($producto.Tamano / 1024, 1)) MB"
+            Write-Output "  tamano:  $([Math]::Round($producto.Tamano / 1024, 1)) MB"
         }
-        Write-Output "  silencioso disponible: $(if ($producto.Silencioso) { 'sí' } else { 'no declarado' })"
+        Write-Output "  silencioso disponible: $(if ($producto.Silencioso) { 'si' } else { 'no declarado' })"
     }
     exit 0
 }
 
 if (-not $Nombre) {
-    Write-Output "El modo '$Modo' exige el parámetro -Nombre."
+    Write-Output "El modo '$Modo' exige el parametro -Nombre."
     exit 1
 }
 
@@ -198,15 +198,15 @@ else {
     $coincidencias = @($productos | Where-Object { $_.Nombre -like "*$Nombre*" })
 }
 
-Write-Output "Búsqueda: '$Nombre'$(if ($Exacto) { ' (exacta)' })"
+Write-Output "Busqueda: '$Nombre'$(if ($Exacto) { ' (exacta)' })"
 Write-Output "$($coincidencias.Count) coincidencia(s)."
 
 foreach ($producto in $coincidencias) {
     Write-Output ""
     Write-Output "$($producto.Nombre)"
-    Write-Output "  versión:      $($producto.Version)"
+    Write-Output "  version:      $($producto.Version)"
     Write-Output "  editor:       $($producto.Editor)"
-    Write-Output "  ámbito:       $($producto.Ambito)"
+    Write-Output "  ambito:       $($producto.Ambito)"
     Write-Output "  cadena orig.: $($producto.Desinstalar)"
     $orden = Get-OrdenSilenciosa -Producto $producto
     if ($orden) {
@@ -220,7 +220,7 @@ foreach ($producto in $coincidencias) {
 
 if ($Modo -eq "buscar") {
     Write-Output ""
-    Write-Output "Modo 'buscar': no se desinstaló nada."
+    Write-Output "Modo 'buscar': no se desinstalo nada."
     if ($coincidencias.Count -eq 0) { exit 1 }
     exit 0
 }
@@ -231,12 +231,12 @@ if ($coincidencias.Count -eq 0) {
     exit 1
 }
 
-# Freno: desinstalar varias cosas por una búsqueda amplia es la forma de vaciar un
-# equipo por accidente. Con más de una coincidencia se exige precisión.
+# Freno: desinstalar varias cosas por una busqueda amplia es la forma de vaciar un
+# equipo por accidente. Con mas de una coincidencia se exige precision.
 if ($coincidencias.Count -gt 1 -and -not $Exacto) {
     Write-Output ""
-    Write-Output "ABORTADO: la búsqueda '$Nombre' coincide con $($coincidencias.Count) productos."
-    Write-Output "Afiná el nombre, o usá -Exacto con el nombre completo de arriba."
+    Write-Output "ABORTADO: la busqueda '$Nombre' coincide con $($coincidencias.Count) productos."
+    Write-Output "Afina el nombre, o usa -Exacto con el nombre completo de arriba."
     exit 1
 }
 
@@ -256,7 +256,7 @@ foreach ($producto in $coincidencias) {
 
     if ($orden.Origen -like "*SIN modificador*") {
         Write-Output "  AVISO: no se pudo determinar un modificador silencioso. El"
-        Write-Output "  desinstalador puede abrir un diálogo y quedarse esperando hasta"
+        Write-Output "  desinstalador puede abrir un dialogo y quedarse esperando hasta"
         Write-Output "  agotar la espera de $TiempoEsperaSegundos s."
     }
 
@@ -288,17 +288,17 @@ foreach ($producto in $coincidencias) {
 
         $proceso = Start-Process @parametros
         $codigo = $proceso.ExitCode
-        Write-Output "  el desinstalador devolvió código $codigo"
+        Write-Output "  el desinstalador devolvio codigo $codigo"
 
-        # 3010 y 1641 significan "hecho, hace falta reiniciar": son éxitos, no fallas.
+        # 3010 y 1641 significan "hecho, hace falta reiniciar": son exitos, no fallas.
         if ($codigo -eq 0) {
-            Write-Output "  desinstalación completada."
+            Write-Output "  desinstalacion completada."
         }
         elseif ($codigo -eq 3010 -or $codigo -eq 1641) {
-            Write-Output "  desinstalación completada, PENDIENTE DE REINICIO."
+            Write-Output "  desinstalacion completada, PENDIENTE DE REINICIO."
         }
         else {
-            Write-Output "  código no exitoso."
+            Write-Output "  codigo no exitoso."
             $errores++
             continue
         }
@@ -309,14 +309,14 @@ foreach ($producto in $coincidencias) {
         continue
     }
 
-    # Verificación por efecto: volver a enumerar y confirmar que ya no aparece. El
-    # código de salida del desinstalador no alcanza: hay instaladores que devuelven 0
+    # Verificacion por efecto: volver a enumerar y confirmar que ya no aparece. El
+    # codigo de salida del desinstalador no alcanza: hay instaladores que devuelven 0
     # sin haber quitado nada.
     Start-Sleep -Seconds 3
     $restantes = @(Get-SoftwareInstalado | Where-Object { $_.Nombre -eq $producto.Nombre })
     if ($restantes.Count -gt 0) {
         Write-Output "  FALLA: '$($producto.Nombre)' sigue apareciendo como instalado."
-        Write-Output "  Puede quedar pendiente de reinicio, o el desinstalador falló en silencio."
+        Write-Output "  Puede quedar pendiente de reinicio, o el desinstalador fallo en silencio."
         $errores++
     }
     else {

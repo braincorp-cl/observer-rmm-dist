@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Activa o desactiva el modo depuración del agente ObserverRMM.
+"""Activa o desactiva el modo depuracion del agente ObserverRMM.
 
-Añade o quita `-log debug` en la definición del servicio. **No reinicia el
-servicio a propósito**: el agente ejecuta este script como proceso hijo, así que
-reiniciarlo desde acá mataría al propio script antes de que informe el resultado
-(y antes de poder revertir si algo salió mal). El cambio queda escrito y toma
-efecto en el siguiente arranque del servicio — usá la acción de reinicio del
+Anade o quita `-log debug` en la definicion del servicio. **No reinicia el
+servicio a proposito**: el agente ejecuta este script como proceso hijo, asi que
+reiniciarlo desde aca mataria al propio script antes de que informe el resultado
+(y antes de poder revertir si algo salio mal). El cambio queda escrito y toma
+efecto en el siguiente arranque del servicio - usa la accion de reinicio del
 agente desde la consola, que la ejecuta el servidor y no este proceso.
 
-Antes de escribir guarda el valor original y verifica que la definición resultante
+Antes de escribir guarda el valor original y verifica que la definicion resultante
 siga conteniendo el ejecutable y `-m svc`; si no, no escribe nada.
 
 Uso:
@@ -37,7 +37,7 @@ SISTEMA = platform.system()
 ES_WINDOWS = SISTEMA == "Windows"
 ES_MACOS = SISTEMA == "Darwin"
 
-# Definición del servicio según el código del agente: en las tres plataformas
+# Definicion del servicio segun el codigo del agente: en las tres plataformas
 # arranca como `<ejecutable> -m svc` (agent/agent.go:213-218 y agent/install.go:306
 # para el plist de macOS). El flag de nivel de log es `-log` (main.go:26).
 CLAVE_SERVICIO_WINDOWS = r"SYSTEM\CurrentControlSet\Services\observeragent"
@@ -101,9 +101,9 @@ def windows_aplicar(activar):
 
     nuevo = " ".join(partes)
     if "-m" not in nuevo or "svc" not in nuevo:
-        print("ABORTADO: la definición resultante no conserva `-m svc`.")
+        print("ABORTADO: la definicion resultante no conserva `-m svc`.")
         print("  original: {}".format(valor))
-        print("  quedaría: {}".format(nuevo))
+        print("  quedaria: {}".format(nuevo))
         return False, valor
 
     print("  respaldo del valor original: {}".format(valor))
@@ -129,7 +129,7 @@ def linux_estado():
 def linux_aplicar(activar):
     ruta = unidad_systemd()
     if ruta is None:
-        print("No se encontró la unidad systemd del agente en:")
+        print("No se encontro la unidad systemd del agente en:")
         for candidata in UNIDADES_SYSTEMD:
             print("  - {}".format(candidata))
         return False, None
@@ -156,13 +156,13 @@ def linux_aplicar(activar):
         nuevos.append(resultante)
 
     if original is None:
-        print("ABORTADO: la unidad {} no tiene línea ExecStart=.".format(ruta))
+        print("ABORTADO: la unidad {} no tiene linea ExecStart=.".format(ruta))
         return False, None
 
     if "-m" not in resultante or "svc" not in resultante:
         print("ABORTADO: el ExecStart resultante no conserva `-m svc`.")
         print("  original: {}".format(original))
-        print("  quedaría: {}".format(resultante))
+        print("  quedaria: {}".format(resultante))
         return False, original
 
     shutil.copy2(ruta, ruta + ".observer.bak")
@@ -171,7 +171,7 @@ def linux_aplicar(activar):
         archivo.write("\n".join(nuevos) + "\n")
 
     # daemon-reload solo relee las unidades: no reinicia el servicio ni mata a
-    # este proceso. Sin esto systemd seguiría usando la definición vieja.
+    # este proceso. Sin esto systemd seguiria usando la definicion vieja.
     subprocess.run(["systemctl", "daemon-reload"], timeout=30)
     return True, resultante
 
@@ -195,7 +195,7 @@ def macos_estado():
 
 def macos_aplicar(activar):
     if not os.path.isfile(PLIST_MACOS):
-        print("No se encontró {}.".format(PLIST_MACOS))
+        print("No se encontro {}.".format(PLIST_MACOS))
         return False, None
 
     datos, argumentos = macos_argumentos()
@@ -210,7 +210,7 @@ def macos_aplicar(activar):
     if "-m" not in argumentos or "svc" not in argumentos:
         print("ABORTADO: los argumentos resultantes no conservan `-m svc`.")
         print("  original: {}".format(" ".join(str(a) for a in original)))
-        print("  quedarían: {}".format(" ".join(str(a) for a in argumentos)))
+        print("  quedarian: {}".format(" ".join(str(a) for a in argumentos)))
         return False, " ".join(str(a) for a in original)
 
     shutil.copy2(PLIST_MACOS, PLIST_MACOS + ".observer.bak")
@@ -243,21 +243,21 @@ def aplicar(activar):
 def main():
     accion = sys.argv[1].lower() if len(sys.argv) > 1 else "estado"
     if accion not in ("estado", "activar", "desactivar"):
-        print("Acción no reconocida: {}".format(accion))
-        print("Usá: estado | activar | desactivar")
+        print("Accion no reconocida: {}".format(accion))
+        print("Usa: estado | activar | desactivar")
         return 1
 
     activo, definicion = estado_actual()
     if activo is None:
         print(
-            "No se pudo leer la definición del servicio del agente en {}.".format(
+            "No se pudo leer la definicion del servicio del agente en {}.".format(
                 SISTEMA
             )
         )
         return 1
 
-    print("Modo depuración actualmente: {}".format("ACTIVO" if activo else "inactivo"))
-    print("  definición: {}".format(definicion))
+    print("Modo depuracion actualmente: {}".format("ACTIVO" if activo else "inactivo"))
+    print("  definicion: {}".format(definicion))
 
     if accion == "estado":
         return 0
@@ -276,12 +276,12 @@ def main():
     if not ok:
         return 1
 
-    print("  definición nueva: {}".format(resultante))
+    print("  definicion nueva: {}".format(resultante))
     print("")
-    print("Escrito. NO se reinició el servicio (mataría a este script).")
-    print("Reiniciá el agente desde la consola para que tome efecto.")
+    print("Escrito. NO se reinicio el servicio (mataria a este script).")
+    print("Reinicia el agente desde la consola para que tome efecto.")
     if quiere_activo:
-        print("Acordate de desactivarlo: en depuración el log crece rápido.")
+        print("Acordate de desactivarlo: en depuracion el log crece rapido.")
     return 0
 
 

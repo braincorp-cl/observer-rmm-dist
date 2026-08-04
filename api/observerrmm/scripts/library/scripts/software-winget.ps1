@@ -3,18 +3,18 @@
     Instala, desinstala, actualiza o busca software con winget.
 
 .DESCRIPTION
-    Reemplaza los scripts de gestión de paquetes del catálogo original. Se eligió
+    Reemplaza los scripts de gestion de paquetes del catalogo original. Se eligio
     winget y NO el gestor comunitario que usaba el original: winget viene incluido en
     Windows 10 y 11, lo publica Microsoft y no depende de un repositorio comunitario
     con cuota de uso, que era justo la dependencia externa que se quiere sacar.
 
     Dos particularidades de winget en un contexto de RMM, que este script resuelve:
 
-      1. Corre como SYSTEM. En esa cuenta winget puede no estar en el PATH aunque esté
+      1. Corre como SYSTEM. En esa cuenta winget puede no estar en el PATH aunque este
          instalado, porque vive en el perfil del usuario. El script lo busca en las
-         ubicaciones de máquina (WindowsApps y el paquete del Desktop App Installer).
+         ubicaciones de maquina (WindowsApps y el paquete del Desktop App Installer).
       2. Exige aceptar acuerdos de forma interactiva la primera vez. Sin los
-         modificadores de aceptación, cualquier operación se cuelga esperando una
+         modificadores de aceptacion, cualquier operacion se cuelga esperando una
          tecla que nadie va a apretar.
 
 .PARAMETER Modo
@@ -25,7 +25,7 @@
     y en actualizar-todo.
 
 .PARAMETER Todo
-    En modo actualizar, actualiza todos los paquetes con actualización disponible.
+    En modo actualizar, actualiza todos los paquetes con actualizacion disponible.
 
 .EXAMPLE
     software-winget.ps1
@@ -65,12 +65,12 @@ function Get-RutaWinget {
     $enPath = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($enPath) { return $enPath.Source }
 
-    # 2) El alias de ejecución de máquina.
+    # 2) El alias de ejecucion de maquina.
     $alias = Join-Path $env:ProgramFiles "WindowsApps\winget.exe"
     if (Test-Path $alias) { return $alias }
 
     # 3) El binario real dentro del paquete del Desktop App Installer. Corriendo como
-    # SYSTEM esta es la única vía en la mayoría de los equipos.
+    # SYSTEM esta es la unica via en la mayoria de los equipos.
     try {
         $candidatos = @(Get-ChildItem -Path (Join-Path $env:ProgramFiles "WindowsApps") `
                 -Filter "Microsoft.DesktopAppInstaller_*" -Directory -ErrorAction Stop |
@@ -89,10 +89,10 @@ function Get-RutaWinget {
 
 $winget = Get-RutaWinget
 if (-not $winget) {
-    Write-Output "No se encontró winget en este equipo."
+    Write-Output "No se encontro winget en este equipo."
     Write-Output ""
     Write-Output "Causas habituales:"
-    Write-Output "  - Windows Server: no trae el Desktop App Installer de fábrica."
+    Write-Output "  - Windows Server: no trae el Desktop App Installer de fabrica."
     Write-Output "  - Windows 10 anterior a 1809, o una imagen sin la Microsoft Store."
     Write-Output "  - El paquete existe pero no es accesible desde la cuenta SYSTEM."
     exit 1
@@ -101,13 +101,13 @@ if (-not $winget) {
 Write-Output "winget: $winget"
 try {
     $version = & $winget --version 2>&1
-    Write-Output "versión: $($version -join ' ')"
+    Write-Output "version: $($version -join ' ')"
 }
 catch {
-    Write-Output "AVISO: no se pudo obtener la versión de winget."
+    Write-Output "AVISO: no se pudo obtener la version de winget."
 }
 
-# Sin estos modificadores winget espera confirmación interactiva y el script se cuelga
+# Sin estos modificadores winget espera confirmacion interactiva y el script se cuelga
 # hasta agotar el timeout.
 $comunes = @(
     "--accept-source-agreements",
@@ -118,7 +118,7 @@ Write-Output ""
 
 switch ($Modo) {
     "listar" {
-        Write-Output "== Paquetes con actualización disponible =="
+        Write-Output "== Paquetes con actualizacion disponible =="
         $salida = & $winget upgrade @comunes 2>&1
         foreach ($linea in $salida) { Write-Output $linea }
         exit 0
@@ -126,7 +126,7 @@ switch ($Modo) {
 
     "buscar" {
         if (-not $Paquete) {
-            Write-Output "El modo 'buscar' exige el parámetro -Paquete."
+            Write-Output "El modo 'buscar' exige el parametro -Paquete."
             exit 1
         }
         Write-Output "== Buscando '$Paquete' =="
@@ -134,7 +134,7 @@ switch ($Modo) {
         foreach ($linea in $salida) { Write-Output $linea }
         if ($LASTEXITCODE -ne 0) {
             Write-Output ""
-            Write-Output "winget devolvió código $LASTEXITCODE"
+            Write-Output "winget devolvio codigo $LASTEXITCODE"
             exit 1
         }
         exit 0
@@ -142,7 +142,7 @@ switch ($Modo) {
 
     "instalar" {
         if (-not $Paquete) {
-            Write-Output "El modo 'instalar' exige el parámetro -Paquete."
+            Write-Output "El modo 'instalar' exige el parametro -Paquete."
             exit 1
         }
         Write-Output "== Instalando '$Paquete' =="
@@ -156,29 +156,29 @@ switch ($Modo) {
 
         Write-Output ""
         if ($codigo -eq 0) {
-            Write-Output "Instalación reportada como exitosa. Verificando..."
+            Write-Output "Instalacion reportada como exitosa. Verificando..."
             $verificacion = & $winget list --id $Paquete --exact @comunes 2>&1
             $encontrado = ($verificacion -join " ") -match [regex]::Escape($Paquete)
             if ($encontrado) {
                 Write-Output "verificado: '$Paquete' aparece como instalado."
                 exit 0
             }
-            Write-Output "FALLA: winget devolvió 0 pero el paquete no aparece instalado."
+            Write-Output "FALLA: winget devolvio 0 pero el paquete no aparece instalado."
             exit 1
         }
 
         # -1978335189 es "no hay actualizaciones aplicables" / ya instalado.
         if ($codigo -eq -1978335189) {
-            Write-Output "El paquete ya estaba instalado y al día."
+            Write-Output "El paquete ya estaba instalado y al dia."
             exit 0
         }
-        Write-Output "La instalación falló (código $codigo)."
+        Write-Output "La instalacion fallo (codigo $codigo)."
         exit 1
     }
 
     "desinstalar" {
         if (-not $Paquete) {
-            Write-Output "El modo 'desinstalar' exige el parámetro -Paquete."
+            Write-Output "El modo 'desinstalar' exige el parametro -Paquete."
             exit 1
         }
         Write-Output "== Desinstalando '$Paquete' =="
@@ -188,7 +188,7 @@ switch ($Modo) {
 
         Write-Output ""
         if ($codigo -ne 0) {
-            Write-Output "La desinstalación falló (código $codigo)."
+            Write-Output "La desinstalacion fallo (codigo $codigo)."
             exit 1
         }
 
@@ -225,16 +225,16 @@ switch ($Modo) {
 
         Write-Output ""
         if ($codigo -eq 0) {
-            Write-Output "Actualización completada."
+            Write-Output "Actualizacion completada."
             exit 0
         }
         if ($codigo -eq -1978335189) {
-            Write-Output "No había nada que actualizar."
+            Write-Output "No habia nada que actualizar."
             exit 0
         }
-        Write-Output "La actualización terminó con código $codigo."
+        Write-Output "La actualizacion termino con codigo $codigo."
         Write-Output "Con --all es habitual: un paquete que falla no detiene al resto,"
-        Write-Output "pero el código refleja que hubo al menos uno con problema."
+        Write-Output "pero el codigo refleja que hubo al menos uno con problema."
         exit 1
     }
 }

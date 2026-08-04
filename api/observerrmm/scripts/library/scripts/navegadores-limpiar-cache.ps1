@@ -1,22 +1,22 @@
 ﻿<#
 .SYNOPSIS
-    Limpia la caché de los navegadores en todos los perfiles de usuario.
+    Limpia la cache de los navegadores en todos los perfiles de usuario.
 
 .DESCRIPTION
-    Une los dos scripts del catálogo original (Chrome y Firefox) y agrega Edge, que
+    Une los dos scripts del catalogo original (Chrome y Firefox) y agrega Edge, que
     hoy es el navegador que viene con Windows y faltaba.
 
-    Borra SOLO caché: archivos que el navegador vuelve a descargar. NO toca el
-    historial, los marcadores, las contraseñas guardadas, las cookies ni las sesiones
-    abiertas. Es la diferencia entre "arreglame la página que carga mal" y "me borraste
-    todas mis contraseñas", y es la razón de que las rutas estén enumeradas una por una
+    Borra SOLO cache: archivos que el navegador vuelve a descargar. NO toca el
+    historial, los marcadores, las contrasenas guardadas, las cookies ni las sesiones
+    abiertas. Es la diferencia entre "arreglame la pagina que carga mal" y "me borraste
+    todas mis contrasenas", y es la razon de que las rutas esten enumeradas una por una
     en vez de borrar la carpeta de perfil entera.
 
     Recorre TODOS los perfiles de usuario del equipo, no solo el que corre el script:
-    el agente corre como SYSTEM y su caché no le interesa a nadie.
+    el agente corre como SYSTEM y su cache no le interesa a nadie.
 
-    Un navegador abierto mantiene sus archivos de caché bloqueados: lo que no se pueda
-    borrar se informa. El script no cierra navegadores por su cuenta — eso le haría
+    Un navegador abierto mantiene sus archivos de cache bloqueados: lo que no se pueda
+    borrar se informa. El script no cierra navegadores por su cuenta - eso le haria
     perder trabajo al usuario sin avisarle.
 
 .PARAMETER Modo
@@ -58,7 +58,7 @@ $ErrorActionPreference = "Continue"
 
 $aplicar = $Modo -eq "aplicar"
 
-# Rutas de caché relativas al perfil del usuario. Cada entrada es SOLO caché: nada de
+# Rutas de cache relativas al perfil del usuario. Cada entrada es SOLO cache: nada de
 # esto contiene datos que el usuario pueda echar de menos.
 $RUTAS_CHROME = @(
     "AppData\Local\Google\Chrome\User Data\Default\Cache",
@@ -78,8 +78,8 @@ $RUTAS_EDGE = @(
     "AppData\Local\Microsoft\Edge\User Data\GrShaderCache"
 )
 
-# Firefox usa un nombre de perfil aleatorio, así que su caché se resuelve por comodín
-# en tiempo de ejecución en vez de enumerarse.
+# Firefox usa un nombre de perfil aleatorio, asi que su cache se resuelve por comodin
+# en tiempo de ejecucion en vez de enumerarse.
 $RAIZ_FIREFOX = "AppData\Local\Mozilla\Firefox\Profiles"
 
 $PROCESOS = @{
@@ -114,7 +114,7 @@ function Clear-Cache {
 
     $bloqueados = 0
     # Se borra el CONTENIDO, no la carpeta: el navegador espera que exista y la
-    # recrearía igual, pero borrarla puede dejarlo sin permisos correctos.
+    # recrearia igual, pero borrarla puede dejarlo sin permisos correctos.
     try {
         foreach ($item in (Get-ChildItem -Path $Ruta -Force -ErrorAction Stop)) {
             try {
@@ -138,20 +138,20 @@ function Clear-Cache {
     }
 }
 
-Write-Output "Limpieza de caché de navegadores"
+Write-Output "Limpieza de cache de navegadores"
 Write-Output "  modo:      $(if ($aplicar) { 'APLICAR (borra de verdad)' } else { 'SIMULAR' })"
 Write-Output "  navegador: $Navegador"
 
 # Navegadores abiertos: se avisa, no se cierran.
 Write-Output ""
-Write-Output "== Navegadores en ejecución =="
+Write-Output "== Navegadores en ejecucion =="
 $abiertos = @()
 foreach ($clave in $PROCESOS.Keys) {
     if ($Navegador -ne "todos" -and $Navegador -ne $clave) { continue }
     foreach ($nombreProceso in $PROCESOS[$clave]) {
         $procesos = @(Get-Process -Name $nombreProceso -ErrorAction SilentlyContinue)
         if ($procesos.Count -gt 0) {
-            Write-Output "  $clave : $($procesos.Count) proceso(s) — su caché está bloqueada"
+            Write-Output "  $clave : $($procesos.Count) proceso(s) - su cache esta bloqueada"
             $abiertos += $clave
         }
     }
@@ -236,19 +236,19 @@ foreach ($perfil in $perfiles) {
 Write-Output ""
 Write-Output "== Resultado =="
 Write-Output "  perfiles revisados: $($perfiles.Count)"
-Write-Output "  total $(if ($aplicar) { 'liberado' } else { 'que se liberaría' }): $([Math]::Round($totalBytes / 1MB, 1)) MB en $totalArchivos archivo(s)"
+Write-Output "  total $(if ($aplicar) { 'liberado' } else { 'que se liberaria' }): $([Math]::Round($totalBytes / 1MB, 1)) MB en $totalArchivos archivo(s)"
 
 if ($totalBloqueados -gt 0) {
     Write-Output "  archivos bloqueados: $totalBloqueados"
     Write-Output ""
-    Write-Output "  Los bloqueados son de un navegador abierto. Volvé a correrlo cuando"
+    Write-Output "  Los bloqueados son de un navegador abierto. Volve a correrlo cuando"
     Write-Output "  el usuario lo cierre; este script no lo cierra para no hacerle"
-    Write-Output "  perder pestañas ni formularios a medio llenar."
+    Write-Output "  perder pestanas ni formularios a medio llenar."
 }
 
 if (-not $aplicar) {
     Write-Output ""
-    Write-Output "  No se borró nada. Volvé a correr con -Modo aplicar."
+    Write-Output "  No se borro nada. Volve a correr con -Modo aplicar."
 }
 
 Write-Output ""

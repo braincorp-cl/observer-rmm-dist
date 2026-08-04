@@ -1,30 +1,30 @@
 ﻿<#
 .SYNOPSIS
-    Reinicia o apaga el equipo con espera, aviso al usuario y cancelación.
+    Reinicia o apaga el equipo con espera, aviso al usuario y cancelacion.
 
 .DESCRIPTION
-    Reemplaza los dos scripts duplicados del catálogo original, que estaban en
-    categorías distintas y hacían lo mismo.
+    Reemplaza los dos scripts duplicados del catalogo original, que estaban en
+    categorias distintas y hacian lo mismo.
 
-    Tres cosas que el original no hacía y que importan cuando la orden viene de un
+    Tres cosas que el original no hacia y que importan cuando la orden viene de un
     RMM y no de alguien sentado frente al equipo:
 
-      1. Programa la acción con espera en vez de ejecutarla al instante, así el script
+      1. Programa la accion con espera en vez de ejecutarla al instante, asi el script
          alcanza a devolver su resultado a la consola antes de que el equipo se vaya.
-         Sin eso, el agente muere con el sistema y la ejecución queda como fallida
+         Sin eso, el agente muere con el sistema y la ejecucion queda como fallida
          aunque haya funcionado.
       2. Avisa al usuario logueado, con un mensaje que aparece en su escritorio.
-      3. Permite cancelar una acción ya programada (-Modo cancelar), que es lo que se
-         necesita cuando se programó de más o el usuario pide un rato más.
+      3. Permite cancelar una accion ya programada (-Modo cancelar), que es lo que se
+         necesita cuando se programo de mas o el usuario pide un rato mas.
 
-    Antes de actuar informa quién está usando el equipo y cuánto lleva encendido, para
+    Antes de actuar informa quien esta usando el equipo y cuanto lleva encendido, para
     decidir con datos en vez de a ciegas.
 
 .PARAMETER Modo
     estado (por defecto), reiniciar, apagar, cancelar.
 
 .PARAMETER EsperaSegundos
-    Espera antes de actuar. Por defecto 120. Mínimo 30, para que el script alcance a
+    Espera antes de actuar. Por defecto 120. Minimo 30, para que el script alcance a
     responder y el usuario a leer el aviso.
 
 .PARAMETER Mensaje
@@ -75,15 +75,15 @@ try {
     $sistemaOperativo = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
     $arranque = $sistemaOperativo.LastBootUpTime
     $encendido = (Get-Date) - $arranque
-    Write-Output "  último arranque: $arranque"
-    Write-Output "  encendido hace:  $([int]$encendido.TotalDays) día(s), $($encendido.Hours) hora(s)"
+    Write-Output "  ultimo arranque: $arranque"
+    Write-Output "  encendido hace:  $([int]$encendido.TotalDays) dia(s), $($encendido.Hours) hora(s)"
 }
 catch {
     Write-Output "  no se pudo leer el tiempo de actividad: $($_.Exception.Message)"
 }
 
-# Saber si hay alguien trabajando cambia la decisión: no es lo mismo reiniciar un
-# servidor sin sesiones que la estación de alguien a media tarea.
+# Saber si hay alguien trabajando cambia la decision: no es lo mismo reiniciar un
+# servidor sin sesiones que la estacion de alguien a media tarea.
 $sesiones = @()
 try {
     $sistema = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
@@ -125,11 +125,11 @@ catch {
 }
 
 Write-Output ""
-Write-Output "  apagado/reinicio ya programado: $(if ($shutdownProgramado) { 'sí (posiblemente)' } else { 'no detectado' })"
+Write-Output "  apagado/reinicio ya programado: $(if ($shutdownProgramado) { 'si (posiblemente)' } else { 'no detectado' })"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se programó nada."
+    Write-Output "Modo 'estado': no se programo nada."
     Write-Output "Modos: reiniciar, apagar, cancelar."
     exit 0
 }
@@ -142,13 +142,13 @@ if ($Modo -eq "cancelar") {
         Write-Output "  Cancelado."
         exit 0
     }
-    # 1116 = no hay ningún apagado en curso. No es un error real: es la respuesta
-    # "no había nada que cancelar", y tratarla como falla genera ruido.
+    # 1116 = no hay ningun apagado en curso. No es un error real: es la respuesta
+    # "no habia nada que cancelar", y tratarla como falla genera ruido.
     if ($LASTEXITCODE -eq 1116) {
-        Write-Output "  No había ningún apagado ni reinicio programado."
+        Write-Output "  No habia ningun apagado ni reinicio programado."
         exit 0
     }
-    Write-Output "  shutdown /a devolvió $LASTEXITCODE : $($salida -join ' ')"
+    Write-Output "  shutdown /a devolvio $LASTEXITCODE : $($salida -join ' ')"
     exit 1
 }
 
@@ -156,7 +156,7 @@ $accion = if ($Modo -eq "reiniciar") { "reinicio" } else { "apagado" }
 
 if (-not $Mensaje) {
     $minutos = [Math]::Round($EsperaSegundos / 60, 1)
-    $Mensaje = "Soporte programó un $accion de este equipo en $minutos minuto(s). Guardá tu trabajo."
+    $Mensaje = "Soporte programo un $accion de este equipo en $minutos minuto(s). Guarda tu trabajo."
 }
 
 Write-Output ""
@@ -176,8 +176,8 @@ if ($Modo -eq "reiniciar") { [void]$argumentos.Add("/r") } else { [void]$argumen
 # comando no falle por eso.
 [void]$argumentos.Add($Mensaje.Substring(0, [Math]::Min(500, $Mensaje.Length)))
 if ($Forzar) { [void]$argumentos.Add("/f") }
-# /d indica el motivo: 4 = planificado, 1 = mantenimiento de la aplicación. Queda
-# registrado en el visor de eventos y evita el diálogo de "motivo inesperado".
+# /d indica el motivo: 4 = planificado, 1 = mantenimiento de la aplicacion. Queda
+# registrado en el visor de eventos y evita el dialogo de "motivo inesperado".
 [void]$argumentos.Add("/d")
 [void]$argumentos.Add("p:4:1")
 
@@ -186,10 +186,10 @@ $codigo = $LASTEXITCODE
 
 if ($codigo -ne 0) {
     Write-Output ""
-    Write-Output "  ERROR: shutdown devolvió $codigo"
+    Write-Output "  ERROR: shutdown devolvio $codigo"
     Write-Output "  $($salida -join ' ')"
     if ($codigo -eq 1190) {
-        Write-Output "  El código 1190 significa que ya había un apagado programado."
+        Write-Output "  El codigo 1190 significa que ya habia un apagado programado."
         Write-Output "  Cancelalo primero con -Modo cancelar."
     }
     exit 1
@@ -200,6 +200,6 @@ Write-Output "== Resultado =="
 Write-Output "  $accion programado para: $((Get-Date).AddSeconds($EsperaSegundos))"
 Write-Output "  Se puede cancelar con: -Modo cancelar"
 Write-Output ""
-Write-Output "  El agente se va a desconectar cuando el equipo actúe. Eso NO es una"
-Write-Output "  falla: el equipo aparecerá caído hasta que vuelva a registrarse."
+Write-Output "  El agente se va a desconectar cuando el equipo actue. Eso NO es una"
+Write-Output "  falla: el equipo aparecera caido hasta que vuelva a registrarse."
 exit 0

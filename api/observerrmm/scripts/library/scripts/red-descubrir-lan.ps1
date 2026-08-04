@@ -3,22 +3,22 @@
     Descubre equipos activos en la red local del equipo.
 
 .DESCRIPTION
-    Solo LEE. Sirve para responder "qué hay en esa red" desde un equipo que ya está
-    dentro, sin llevar un escáner al sitio ni instalar nada.
+    Solo LEE. Sirve para responder "que hay en esa red" desde un equipo que ya esta
+    dentro, sin llevar un escaner al sitio ni instalar nada.
 
     Combina dos fuentes que se complementan:
 
       1. La tabla ARP/vecinos del propio equipo (Get-NetNeighbor), que ya conoce a
-         todo lo que le habló recientemente, incluso a lo que no responde ping.
-      2. Un barrido de ping en paralelo sobre la subred, para encontrar lo que está
-         encendido pero todavía no apareció en la tabla.
+         todo lo que le hablo recientemente, incluso a lo que no responde ping.
+      2. Un barrido de ping en paralelo sobre la subred, para encontrar lo que esta
+         encendido pero todavia no aparecio en la tabla.
 
-    Solo barre subredes /24 o más chicas. Una /16 son 65.534 direcciones: el barrido
-    tardaría horas y saturaría el enlace, así que el script se niega y lo dice, en vez
+    Solo barre subredes /24 o mas chicas. Una /16 son 65.534 direcciones: el barrido
+    tardaria horas y saturaria el enlace, asi que el script se niega y lo dice, en vez
     de quedarse colgado hasta que el timeout lo mate.
 
     Traduce el prefijo del fabricante (OUI) solo cuando puede: no incluye una base de
-    datos de fabricantes, porque eso sería otro dato externo que mantener.
+    datos de fabricantes, porque eso seria otro dato externo que mantener.
 
 .PARAMETER Subred
     Subred a barrer en formato "10.20.0.0/24". Por defecto, la del adaptador activo.
@@ -117,14 +117,14 @@ function Convert-UInt32AIp {
     return ([System.Net.IPAddress]$bytes).ToString()
 }
 
-Write-Output "== Configuración local =="
+Write-Output "== Configuracion local =="
 $local = Get-SubredLocal
 if ($local) {
     Write-Output "  adaptador: $($local.Adaptador)"
     Write-Output "  IP:        $($local.IP)/$($local.Prefijo)"
 }
 else {
-    Write-Output "  No se pudo determinar la red local (¿sin gateway?)."
+    Write-Output "  No se pudo determinar la red local (sin gateway?)."
 }
 
 Write-Output ""
@@ -152,14 +152,14 @@ Write-Output "  total: $($vecinos.Count) vecino(s) conocido(s)."
 
 if ($SinPing) {
     Write-Output ""
-    Write-Output "Modo -SinPing: no se barrió la subred."
+    Write-Output "Modo -SinPing: no se barrio la subred."
     exit 0
 }
 
 if (-not $Subred) {
     if (-not $local) {
         Write-Output ""
-        Write-Output "No hay red local detectada y no se pasó -Subred: no se puede barrer."
+        Write-Output "No hay red local detectada y no se paso -Subred: no se puede barrer."
         exit 1
     }
     $Subred = "$($local.IP)/$($local.Prefijo)"
@@ -169,8 +169,8 @@ $rango = Get-RangoDesdeCidr $Subred
 if ($null -eq $rango) {
     Write-Output ""
     Write-Output "No se puede barrer '$Subred'."
-    Write-Output "Se aceptan prefijos entre /22 (1.022 hosts) y /30. Una red más grande"
-    Write-Output "tardaría horas y saturaría el enlace; una más chica no tiene hosts."
+    Write-Output "Se aceptan prefijos entre /22 (1.022 hosts) y /30. Una red mas grande"
+    Write-Output "tardaria horas y saturaria el enlace; una mas chica no tiene hosts."
     exit 1
 }
 
@@ -182,7 +182,7 @@ $inicio = Get-Date
 $tareas = New-Object System.Collections.ArrayList
 
 # Los pings se lanzan en paralelo con SendPingAsync: hacerlos en serie sobre una /24
-# con 400 ms de espera tardaría más de un minuto y medio solo en los que no responden.
+# con 400 ms de espera tardaria mas de un minuto y medio solo en los que no responden.
 for ($desplazamiento = 1; $desplazamiento -le $rango.Cantidad; $desplazamiento++) {
     $ip = Convert-UInt32AIp ([uint32]($rango.Red + $desplazamiento))
     $ping = New-Object System.Net.NetworkInformation.Ping
@@ -245,8 +245,8 @@ foreach ($activo in ($activos | Sort-Object { [int]($_.IP.Split(".")[3]) })) {
 Write-Output ""
 Write-Output "== Resultado =="
 Write-Output "  $($activos.Count) host(s) respondieron de $($rango.Cantidad) probados."
-Write-Output "  duración: $([int]$duracion.TotalSeconds) s"
+Write-Output "  duracion: $([int]$duracion.TotalSeconds) s"
 Write-Output ""
-Write-Output "  Un host que no responde puede estar filtrando ICMP: la ausencia acá no"
-Write-Output "  prueba que esté apagado. Cruzalo con la tabla de vecinos de arriba."
+Write-Output "  Un host que no responde puede estar filtrando ICMP: la ausencia aca no"
+Write-Output "  prueba que este apagado. Cruzalo con la tabla de vecinos de arriba."
 exit 0

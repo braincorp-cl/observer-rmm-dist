@@ -1,28 +1,28 @@
 ﻿<#
 .SYNOPSIS
-    Diagnostica y desatasca la cola de impresión.
+    Diagnostica y desatasca la cola de impresion.
 
 .DESCRIPTION
-    Une los dos scripts de impresión del catálogo original (purgar todos los trabajos y
-    reintentar los atascados) y agrega el modo de diagnóstico que faltaba, porque
+    Une los dos scripts de impresion del catalogo original (purgar todos los trabajos y
+    reintentar los atascados) y agrega el modo de diagnostico que faltaba, porque
     purgar es destructivo y muchas veces innecesario.
 
-    Los tres modos, de menos a más agresivo:
+    Los tres modos, de menos a mas agresivo:
 
-      estado      — informa cada impresora, sus trabajos y desde cuándo están. Un
-                    trabajo con horas de antigüedad y estado de error es el atascado;
-                    uno de hace un minuto simplemente se está imprimiendo.
-      reintentar  — reanuda los trabajos en estado de error o pausados, sin borrar nada.
+      estado      - informa cada impresora, sus trabajos y desde cuando estan. Un
+                    trabajo con horas de antiguedad y estado de error es el atascado;
+                    uno de hace un minuto simplemente se esta imprimiendo.
+      reintentar  - reanuda los trabajos en estado de error o pausados, sin borrar nada.
                     Es lo que suele alcanzar cuando la impresora estuvo apagada.
-      purgar      — BORRA todos los trabajos pendientes y reinicia el spooler. Lo que
-                    la gente mandó a imprimir y no salió, se pierde y hay que mandarlo
+      purgar      - BORRA todos los trabajos pendientes y reinicia el spooler. Lo que
+                    la gente mando a imprimir y no salio, se pierde y hay que mandarlo
                     de nuevo.
 
 .PARAMETER Modo
     estado (por defecto), reintentar, purgar.
 
 .PARAMETER Impresora
-    Limita la acción a una impresora por nombre.
+    Limita la accion a una impresora por nombre.
 
 .EXAMPLE
     impresion-cola.ps1
@@ -54,14 +54,18 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
+# El estado "en ejecucion" como valor del enum de .NET y no como la cadena "Running":
+# el enum no se traduce, el texto que Windows muestra si. Comparar contra el enum
+# sigue valiendo si manana el objeto viene de Win32_Service en vez de Get-Service.
+$EN_EJECUCION = [System.ServiceProcess.ServiceControllerStatus]::Running
 $rutaSpool = Join-Path $env:SystemRoot "System32\spool\PRINTERS"
 
-Write-Output "== Servicio de cola de impresión =="
+Write-Output "== Servicio de cola de impresion =="
 try {
     $spooler = Get-Service -Name Spooler -ErrorAction Stop
     Write-Output "  estado: $($spooler.Status) / inicio $($spooler.StartType)"
-    if ($spooler.Status -ne "Running") {
-        Write-Output "  El spooler está detenido: ninguna impresora funciona hasta que arranque."
+    if ($spooler.Status -ne $EN_EJECUCION) {
+        Write-Output "  El spooler esta detenido: ninguna impresora funciona hasta que arranque."
     }
 }
 catch {
@@ -69,13 +73,13 @@ catch {
     exit 1
 }
 
-# Los archivos de spool en disco son la señal objetiva de trabajos pendientes: si la
-# cola figura vacía y acá hay archivos, el spooler perdió la referencia.
+# Los archivos de spool en disco son la senal objetiva de trabajos pendientes: si la
+# cola figura vacia y aca hay archivos, el spooler perdio la referencia.
 try {
     $archivosSpool = @(Get-ChildItem -Path $rutaSpool -File -ErrorAction Stop)
     $bytesSpool = 0
     foreach ($archivo in $archivosSpool) { $bytesSpool += $archivo.Length }
-    Write-Output "  archivos en cola (disco): $($archivosSpool.Count) — $([Math]::Round($bytesSpool / 1MB, 1)) MB"
+    Write-Output "  archivos en cola (disco): $($archivosSpool.Count) - $([Math]::Round($bytesSpool / 1MB, 1)) MB"
 }
 catch {
     Write-Output "  no se pudo leer $rutaSpool"
@@ -140,15 +144,15 @@ foreach ($impresoraActual in ($impresoras | Sort-Object Name)) {
         Write-Output "        usuario:  $($trabajo.UserName)"
         Write-Output "        estado:   $($trabajo.JobStatus)"
         Write-Output "        enviado:  $textoAntiguedad"
-        Write-Output "        páginas:  $($trabajo.PagesPrinted) de $($trabajo.TotalPages)"
+        Write-Output "        paginas:  $($trabajo.PagesPrinted) de $($trabajo.TotalPages)"
 
-        # Se considera atascado lo que está en error o pausado, o lo que lleva más de
+        # Se considera atascado lo que esta en error o pausado, o lo que lleva mas de
         # media hora sin avanzar. Un trabajo reciente en curso NO es un atasco.
         $enProblema = $trabajo.JobStatus -match "Error|Paused|Blocked|Offline|PaperOut"
         $muyViejo = $antiguedad -and $antiguedad.TotalMinutes -gt 30
 
         if ($enProblema -or $muyViejo) {
-            Write-Output "        DIAGNÓSTICO: atascado ($(if ($enProblema) { 'estado de error' } else { 'sin avanzar hace más de 30 min' }))"
+            Write-Output "        DIAGNOSTICO: atascado ($(if ($enProblema) { 'estado de error' } else { 'sin avanzar hace mas de 30 min' }))"
             [void]$atascados.Add(@{
                     Impresora = $impresoraActual.Name
                     Id        = $trabajo.Id
@@ -163,9 +167,9 @@ Write-Output "  total: $totalTrabajos trabajo(s), $($atascados.Count) atascado(s
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     if ($atascados.Count -gt 0) {
-        Write-Output "Probá primero -Modo reintentar, que no pierde los trabajos."
+        Write-Output "Proba primero -Modo reintentar, que no pierde los trabajos."
         exit 1
     }
     exit 0
@@ -184,10 +188,10 @@ if ($Modo -eq "reintentar") {
 
     foreach ($item in $atascados) {
         try {
-            # Reanudar un trabajo que no está pausado no hace daño: el spooler lo
+            # Reanudar un trabajo que no esta pausado no hace dano: el spooler lo
             # ignora. Lo que importa es sacarlo del estado de error.
             Resume-PrintJob -PrinterName $item.Impresora -ID $item.Id -ErrorAction Stop
-            Write-Output "  reanudado: [$($item.Impresora)] id $($item.Id) — $($item.Documento)"
+            Write-Output "  reanudado: [$($item.Impresora)] id $($item.Id) - $($item.Documento)"
         }
         catch {
             Write-Output "  ERROR con [$($item.Impresora)] id $($item.Id): $($_.Exception.Message)"
@@ -195,7 +199,7 @@ if ($Modo -eq "reintentar") {
         }
     }
 
-    # Verificación por efecto: releer las colas y ver si el estado de error se fue.
+    # Verificacion por efecto: releer las colas y ver si el estado de error se fue.
     Start-Sleep -Seconds 5
     $siguenEnError = 0
     foreach ($item in $atascados) {
@@ -206,9 +210,9 @@ if ($Modo -eq "reintentar") {
             }
         }
         catch {
-            # El trabajo ya no existe: se imprimió o salió de la cola. Es el resultado
+            # El trabajo ya no existe: se imprimio o salio de la cola. Es el resultado
             # que se buscaba.
-            Write-Verbose "el trabajo $($item.Id) ya no está en la cola"
+            Write-Verbose "el trabajo $($item.Id) ya no esta en la cola"
         }
     }
 
@@ -216,7 +220,7 @@ if ($Modo -eq "reintentar") {
     Write-Output "== Resultado =="
     Write-Output "  $siguenEnError trabajo(s) siguen en error tras el reintento."
     if ($siguenEnError -gt 0) {
-        Write-Output "  Si la impresora está sin papel, sin tóner o apagada, ningún"
+        Write-Output "  Si la impresora esta sin papel, sin toner o apagada, ningun"
         Write-Output "  reintento lo arregla: hay que ir al equipo."
         exit 1
     }
@@ -255,11 +259,11 @@ try {
     Restart-Service -Name Spooler -Force -ErrorAction Stop
     Start-Sleep -Seconds 3
     $spooler = Get-Service -Name Spooler -ErrorAction Stop
-    if ($spooler.Status -eq "Running") {
+    if ($spooler.Status -eq $EN_EJECUCION) {
         Write-Output "  spooler reiniciado y corriendo."
     }
     else {
-        Write-Output "  FALLA: el spooler quedó en estado $($spooler.Status)."
+        Write-Output "  FALLA: el spooler quedo en estado $($spooler.Status)."
         $errores++
     }
 }
@@ -268,7 +272,7 @@ catch {
     $errores++
 }
 
-# Verificación por efecto: los archivos de spool en disco.
+# Verificacion por efecto: los archivos de spool en disco.
 try {
     $restantes = @(Get-ChildItem -Path $rutaSpool -File -ErrorAction Stop)
     Write-Output "  archivos en cola tras la purga: $($restantes.Count)"
@@ -283,7 +287,7 @@ catch {
 Write-Output ""
 Write-Output "== Resultado =="
 if ($errores -gt 0) {
-    Write-Output "  Terminó con $errores error(es)."
+    Write-Output "  Termino con $errores error(es)."
     exit 1
 }
 Write-Output "  Cola purgada y spooler reiniciado."

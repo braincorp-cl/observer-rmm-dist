@@ -1,30 +1,30 @@
 ﻿<#
 .SYNOPSIS
-    Fuerza la sincronización de replicación de AD y la del reloj con el dominio.
+    Fuerza la sincronizacion de replicacion de AD y la del reloj con el dominio.
 
 .DESCRIPTION
-    Une los dos scripts del catálogo original (sincronizar AD y sincronizar la hora con
+    Une los dos scripts del catalogo original (sincronizar AD y sincronizar la hora con
     el controlador) porque son la pareja que se corre junta cuando algo del dominio
-    "no llega": un cambio de contraseña que no se propagó, una GPO que no se aplica, un
-    usuario recién creado que no puede entrar.
+    "no llega": un cambio de contrasena que no se propago, una GPO que no se aplica, un
+    usuario recien creado que no puede entrar.
 
-    Se comporta distinto según el equipo, que es lo que el original no distinguía:
+    Se comporta distinto segun el equipo, que es lo que el original no distinguia:
 
-      * En un controlador de dominio fuerza la replicación entrante desde sus pares
-        (repadmin /syncall) y muestra el estado de replicación. Ahí sí tiene sentido.
-      * En un miembro no hay replicación que forzar: lo que se puede hacer es
+      * En un controlador de dominio fuerza la replicacion entrante desde sus pares
+        (repadmin /syncall) y muestra el estado de replicacion. Ahi si tiene sentido.
+      * En un miembro no hay replicacion que forzar: lo que se puede hacer es
         refrescar las directivas de grupo y volver a registrar el equipo en DNS, que es
-        lo que en la práctica se busca. Forzar "sync de AD" en un miembro no hace nada
-        y da la falsa sensación de haber actuado.
+        lo que en la practica se busca. Forzar "sync de AD" en un miembro no hace nada
+        y da la falsa sensacion de haber actuado.
 
     La hora se sincroniza en los dos casos, porque un desfase mayor a cinco minutos
-    rompe Kerberos y el síntoma nunca menciona el reloj.
+    rompe Kerberos y el sintoma nunca menciona el reloj.
 
 .PARAMETER Modo
     estado (por defecto), sincronizar.
 
 .PARAMETER SoloHora
-    Sincroniza únicamente el reloj.
+    Sincroniza unicamente el reloj.
 
 .EXAMPLE
     ad-sincronizar.ps1
@@ -59,8 +59,8 @@ $ErrorActionPreference = "Continue"
 # DomainRole de Win32_ComputerSystem: 4 y 5 son controladores de dominio (respaldo y
 # principal), 1 y 3 son miembros, 0 y 2 son equipos en grupo de trabajo.
 $ROLES = @{
-    0 = "estación en grupo de trabajo"
-    1 = "estación miembro de dominio"
+    0 = "estacion en grupo de trabajo"
+    1 = "estacion miembro de dominio"
     2 = "servidor en grupo de trabajo"
     3 = "servidor miembro de dominio"
     4 = "controlador de dominio de respaldo"
@@ -75,7 +75,7 @@ try {
     $dominio = $sistema.Domain
 }
 catch {
-    Write-Output "No se pudo leer la información del sistema: $($_.Exception.Message)"
+    Write-Output "No se pudo leer la informacion del sistema: $($_.Exception.Message)"
     exit 1
 }
 
@@ -103,7 +103,7 @@ try {
         }
     }
     else {
-        Write-Output "  w32tm /query /status devolvió $LASTEXITCODE"
+        Write-Output "  w32tm /query /status devolvio $LASTEXITCODE"
     }
 }
 catch {
@@ -112,14 +112,14 @@ catch {
 
 if ($esControlador -and -not $SoloHora) {
     Write-Output ""
-    Write-Output "== Estado de replicación =="
+    Write-Output "== Estado de replicacion =="
     try {
         $replicacion = & repadmin /showrepl /csv 2>&1
         if ($LASTEXITCODE -eq 0 -and $replicacion) {
             $fallas = 0
             foreach ($linea in $replicacion) {
                 # La columna de fallos consecutivos es la que importa: un valor > 0
-                # significa que ese enlace de replicación está roto ahora mismo.
+                # significa que ese enlace de replicacion esta roto ahora mismo.
                 if ($linea -match '^"[^"]*","([^"]+)","([^"]+)"' -and $linea -notmatch "showrepl_COLUMNS") {
                     $campos = $linea -split '","'
                     if ($campos.Count -ge 10) {
@@ -132,22 +132,22 @@ if ($esControlador -and -not $SoloHora) {
                 }
             }
             if ($fallas -eq 0) {
-                Write-Output "  Sin enlaces de replicación en falla."
+                Write-Output "  Sin enlaces de replicacion en falla."
             }
         }
         else {
-            Write-Output "  repadmin no disponible o devolvió $LASTEXITCODE"
-            Write-Output "  (repadmin viene con las herramientas de administración de AD)"
+            Write-Output "  repadmin no disponible o devolvio $LASTEXITCODE"
+            Write-Output "  (repadmin viene con las herramientas de administracion de AD)"
         }
     }
     catch {
-        Write-Output "  no se pudo consultar la replicación: $($_.Exception.Message)"
+        Write-Output "  no se pudo consultar la replicacion: $($_.Exception.Message)"
     }
 }
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se sincronizó nada."
+    Write-Output "Modo 'estado': no se sincronizo nada."
     exit 0
 }
 
@@ -155,8 +155,8 @@ $errores = 0
 
 Write-Output ""
 Write-Output "== Sincronizando el reloj =="
-# /resync fuerza la sincronización inmediata; /rediscover hace que además vuelva a
-# buscar su fuente de tiempo, que es lo que hace falta si el controlador cambió.
+# /resync fuerza la sincronizacion inmediata; /rediscover hace que ademas vuelva a
+# buscar su fuente de tiempo, que es lo que hace falta si el controlador cambio.
 $salida = & w32tm /resync /rediscover 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Output "  w32tm /resync: OK"
@@ -165,23 +165,23 @@ if ($LASTEXITCODE -eq 0) {
     }
 }
 else {
-    Write-Output "  w32tm /resync devolvió $LASTEXITCODE"
+    Write-Output "  w32tm /resync devolvio $LASTEXITCODE"
     Write-Output "  $($salida -join ' ')"
-    Write-Output "  Si el servicio de hora está detenido, arrancalo antes (w32time)."
+    Write-Output "  Si el servicio de hora esta detenido, arrancalo antes (w32time)."
     $errores++
 }
 
 if ($SoloHora) {
     Write-Output ""
-    Write-Output "Modo -SoloHora: no se tocó nada más."
+    Write-Output "Modo -SoloHora: no se toco nada mas."
     if ($errores -gt 0) { exit 1 }
     exit 0
 }
 
 if ($esControlador) {
     Write-Output ""
-    Write-Output "== Forzando replicación entrante =="
-    # /e incluye todos los sitios, /A todas las particiones, /P empuja también hacia
+    Write-Output "== Forzando replicacion entrante =="
+    # /e incluye todos los sitios, /A todas las particiones, /P empuja tambien hacia
     # afuera. Sin /e solo replica dentro del sitio local.
     $salida = & repadmin /syncall /e /A /P 2>&1
     $codigo = $LASTEXITCODE
@@ -189,48 +189,48 @@ if ($esControlador) {
         if ($linea -and $linea.Trim()) { Write-Output "  $($linea.Trim())" }
     }
     if ($codigo -ne 0) {
-        Write-Output "  repadmin /syncall devolvió $codigo"
+        Write-Output "  repadmin /syncall devolvio $codigo"
         $errores++
     }
 }
 else {
     Write-Output ""
     Write-Output "== Refrescando directivas de grupo y registro DNS =="
-    Write-Output "  (este equipo es miembro: no tiene replicación de AD que forzar)"
+    Write-Output "  (este equipo es miembro: no tiene replicacion de AD que forzar)"
 
     $salida = & gpupdate /force /target:computer 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Output "  gpupdate: OK"
     }
     else {
-        Write-Output "  gpupdate devolvió $LASTEXITCODE"
+        Write-Output "  gpupdate devolvio $LASTEXITCODE"
         $errores++
     }
 
-    # Volver a registrar en DNS resuelve el caso del equipo que cambió de IP y al que
+    # Volver a registrar en DNS resuelve el caso del equipo que cambio de IP y al que
     # nadie encuentra por nombre.
     $salida = & ipconfig /registerdns 2>&1
     Write-Output "  ipconfig /registerdns: lanzado (se completa en segundo plano)"
 
     try {
         $confianza = Test-ComputerSecureChannel -ErrorAction Stop
-        Write-Output "  relación de confianza: $(if ($confianza) { 'sana' } else { 'ROTA' })"
+        Write-Output "  relacion de confianza: $(if ($confianza) { 'sana' } else { 'ROTA' })"
         if (-not $confianza) {
-            Write-Output "  La confianza con el dominio está rota: ninguna sincronización"
+            Write-Output "  La confianza con el dominio esta rota: ninguna sincronizacion"
             Write-Output "  la arregla. Hay que repararla con credenciales de dominio."
             $errores++
         }
     }
     catch {
-        Write-Output "  no se pudo verificar la relación de confianza."
+        Write-Output "  no se pudo verificar la relacion de confianza."
     }
 }
 
 Write-Output ""
 Write-Output "== Resultado =="
 if ($errores -gt 0) {
-    Write-Output "  Terminó con $errores problema(s)."
+    Write-Output "  Termino con $errores problema(s)."
     exit 1
 }
-Write-Output "  Sincronización completada."
+Write-Output "  Sincronizacion completada."
 exit 0

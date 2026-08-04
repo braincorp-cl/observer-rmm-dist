@@ -1,23 +1,23 @@
 ﻿<#
 .SYNOPSIS
-    Encuentra servicios con inicio automático que están detenidos y los arranca.
+    Encuentra servicios con inicio automatico que estan detenidos y los arranca.
 
 .DESCRIPTION
-    Un servicio configurado como automático que no está corriendo es, casi siempre, un
-    síntoma: algo falló al arrancar y nadie lo notó porque el equipo funciona "casi
+    Un servicio configurado como automatico que no esta corriendo es, casi siempre, un
+    sintoma: algo fallo al arrancar y nadie lo noto porque el equipo funciona "casi
     bien". Este script los encuentra y opcionalmente los levanta.
 
-    Filtra el ruido que hace inútil la versión ingenua de este chequeo:
+    Filtra el ruido que hace inutil la version ingenua de este chequeo:
 
-      * Los de inicio "Automático (inicio retrasado)" que todavía están dentro de su
-         ventana de arranque no cuentan como caídos.
-      * Hay servicios de Windows que figuran como automáticos y terminan solos por
-         diseño: se detienen cuando acaban su trabajo. Levantarlos es inútil y llena
+      * Los de inicio "Automatico (inicio retrasado)" que todavia estan dentro de su
+         ventana de arranque no cuentan como caidos.
+      * Hay servicios de Windows que figuran como automaticos y terminan solos por
+         diseno: se detienen cuando acaban su trabajo. Levantarlos es inutil y llena
          el reporte de falsos positivos.
-      * Los servicios con dependencias caídas se informan aparte, porque arrancarlos
+      * Los servicios con dependencias caidas se informan aparte, porque arrancarlos
          directamente falla mientras la dependencia siga abajo.
 
-    Por defecto solo INFORMA. Hay que pedir 'arrancar' para que actúe.
+    Por defecto solo INFORMA. Hay que pedir 'arrancar' para que actue.
 
 .PARAMETER Modo
     estado (por defecto) o arrancar.
@@ -55,15 +55,15 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
-# Servicios que Windows marca como automáticos y que terminan por su cuenta cuando
+# Servicios que Windows marca como automaticos y que terminan por su cuenta cuando
 # cumplen su tarea. Aparecen "detenidos" en estado normal y arrancarlos no arregla
 # nada: solo generan ruido en el reporte.
 $TERMINAN_SOLOS = @(
-    "sppsvc",              # Protección de software: corre y termina
+    "sppsvc",              # Proteccion de software: corre y termina
     "MapsBroker",          # Mapas descargados
-    "dmwappushservice",    # Servicio de mensajería WAP
+    "dmwappushservice",    # Servicio de mensajeria WAP
     "gpsvc",               # Cliente de directiva de grupo: gestionado por el sistema
-    "TrustedInstaller",    # Instalador de módulos de Windows
+    "TrustedInstaller",    # Instalador de modulos de Windows
     "RemoteRegistry",      # Deshabilitado por endurecimiento en muchos equipos
     "tiledatamodelsvc",
     "CDPUserSvc",
@@ -75,13 +75,38 @@ $TERMINAN_SOLOS = @(
     "gupdate"
 )
 
+# El modo de inicio de un servicio vive en el registro como un numero, y ese numero es
+# el mismo en cualquier idioma de Windows: 2 = automatico, 3 = manual, 4 = deshabilitado.
+# Es el dato que lee el propio panel de servicios antes de traducirlo para mostrarlo.
+$RAIZ_SERVICIOS = "HKLM:\SYSTEM\CurrentControlSet\Services"
+$INICIO_AUTOMATICO = 2
+
+# El estado "en ejecucion" como valor del enum de .NET y no como la cadena "Running":
+# el enum no se traduce, el texto que muestra Windows si.
+$EN_EJECUCION = [System.ServiceProcess.ServiceControllerStatus]::Running
+
+function Test-InicioAutomatico {
+    param([string]$Nombre)
+
+    try {
+        $clave = Get-ItemProperty -Path (Join-Path $RAIZ_SERVICIOS $Nombre) -ErrorAction Stop
+        return ($clave.Start -eq $INICIO_AUTOMATICO)
+    }
+    catch {
+        # Un servicio sin clave legible no se puede clasificar; se prefiere omitirlo
+        # antes que reportarlo como caido sin fundamento.
+        Write-Verbose $_.Exception.Message
+        return $false
+    }
+}
+
 $excluidos = @()
 if ($Excluir) {
     $excluidos = $Excluir.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ }
 }
 
-# El tiempo desde el arranque decide si un servicio de inicio retrasado todavía está
-# a tiempo: Windows los lanza hasta unos minutos después del arranque.
+# El tiempo desde el arranque decide si un servicio de inicio retrasado todavia esta
+# a tiempo: Windows los lanza hasta unos minutos despues del arranque.
 $minutosDesdeArranque = 999
 try {
     $sistemaOperativo = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
@@ -95,9 +120,18 @@ Write-Output "Minutos desde el arranque: $([int]$minutosDesdeArranque)"
 
 try {
     # Win32_Service trae DelayedAutoStart, que Get-Service no expone y que hace falta
-    # para no confundir "retrasado" con "caído".
+    # para no confundir "retrasado" con "caido".
+    #
+    # El filtro NO usa StartMode ni State: Windows traduce esas dos propiedades, asi
+    # que en un equipo en espanol valen "Automatico" y "Detenido", y comparar contra
+    # "Auto" o "Running" no encuentra nada. En su lugar se usan dos datos que ningun
+    # idioma cambia:
+    #   * Started, un booleano de la misma clase Win32_Service.
+    #   * el modo de inicio leido del registro como numero (ver Test-InicioAutomatico).
+    # State y StartMode se siguen mostrando en el reporte, ya traducidos, que es justo
+    # donde conviene que esten en el idioma del equipo.
     $servicios = @(Get-CimInstance -ClassName Win32_Service -ErrorAction Stop |
-        Where-Object { $_.StartMode -eq "Auto" -and $_.State -ne "Running" })
+        Where-Object { -not $_.Started -and (Test-InicioAutomatico -Nombre $_.Name) })
 }
 catch {
     Write-Output "No se pudieron consultar los servicios: $($_.Exception.Message)"
@@ -117,7 +151,7 @@ foreach ($servicio in ($servicios | Sort-Object Name)) {
         $omitidos++
         continue
     }
-    # Los servicios de usuario por sesión (sufijo _<id>) no se administran así.
+    # Los servicios de usuario por sesion (sufijo _<id>) no se administran asi.
     if ($servicio.Name -match "_[0-9a-f]{4,}$") {
         $omitidos++
         continue
@@ -130,10 +164,10 @@ foreach ($servicio in ($servicios | Sort-Object Name)) {
 }
 
 Write-Output ""
-Write-Output "== Servicios automáticos detenidos =="
+Write-Output "== Servicios automaticos detenidos =="
 
 if ($candidatos.Count -eq 0) {
-    Write-Output "  Ninguno. ($omitidos omitido(s) por lista, $retrasados de inicio retrasado aún a tiempo)"
+    Write-Output "  Ninguno. ($omitidos omitido(s) por lista, $retrasados de inicio retrasado aun a tiempo)"
     Write-Output ""
     Write-Output "  Sin observaciones."
     exit 0
@@ -146,14 +180,16 @@ foreach ($servicio in $candidatos) {
     Write-Output "    estado:         $($servicio.State)"
     Write-Output "    inicio:         $($servicio.StartMode)$(if ($servicio.DelayedAutoStart) { ' (retrasado)' })"
     if ($servicio.ExitCode -and $servicio.ExitCode -ne 0) {
-        Write-Output "    código salida:  $($servicio.ExitCode)"
+        Write-Output "    codigo salida:  $($servicio.ExitCode)"
     }
 
-    # Las dependencias caídas explican por qué el servicio no arranca, y evitan el
-    # intento inútil de levantarlo primero.
+    # Las dependencias caidas explican por que el servicio no arranca, y evitan el
+    # intento inutil de levantarlo primero.
     try {
         $dependencias = @(Get-Service -Name $servicio.Name -ErrorAction Stop).ServicesDependedOn
-        $caidas = @($dependencias | Where-Object { $_.Status -ne "Running" })
+        # Status de Get-Service es un enum de .NET, no texto traducido: comparar contra
+        # el valor del enum vale igual en un Windows en espanol que en uno en ingles.
+        $caidas = @($dependencias | Where-Object { $_.Status -ne $EN_EJECUCION })
         if ($caidas.Count -gt 0) {
             Write-Output "    DEPENDENCIAS DETENIDAS: $(($caidas | ForEach-Object { $_.Name }) -join ', ')"
         }
@@ -164,12 +200,12 @@ foreach ($servicio in $candidatos) {
 }
 
 Write-Output ""
-Write-Output "  ($omitidos omitido(s) por lista, $retrasados de inicio retrasado aún a tiempo)"
+Write-Output "  ($omitidos omitido(s) por lista, $retrasados de inicio retrasado aun a tiempo)"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "  $($candidatos.Count) servicio(s) automático(s) detenido(s)."
-    Write-Output "  Modo 'estado': no se arrancó nada. Volvé a correr con -Modo arrancar."
+    Write-Output "  $($candidatos.Count) servicio(s) automatico(s) detenido(s)."
+    Write-Output "  Modo 'estado': no se arranco nada. Volve a correr con -Modo arrancar."
     exit 1
 }
 
@@ -183,27 +219,27 @@ foreach ($servicio in $candidatos) {
     try {
         Start-Service -Name $servicio.Name -ErrorAction Stop
 
-        # Verificación por efecto: Start-Service vuelve antes de que el servicio esté
-        # realmente corriendo, así que se espera y se relee el estado.
+        # Verificacion por efecto: Start-Service vuelve antes de que el servicio este
+        # realmente corriendo, asi que se espera y se relee el estado.
         $limite = (Get-Date).AddSeconds(20)
-        $estado = "Unknown"
+        $estado = $null
         while ((Get-Date) -lt $limite) {
             $estado = (Get-Service -Name $servicio.Name -ErrorAction Stop).Status
-            if ($estado -eq "Running") { break }
+            if ($estado -eq $EN_EJECUCION) { break }
             Start-Sleep -Milliseconds 500
         }
 
-        if ($estado -eq "Running") {
+        if ($estado -eq $EN_EJECUCION) {
             Write-Output "  OK    $($servicio.Name)"
             $arrancados++
         }
         else {
-            Write-Output "  FALLA $($servicio.Name) — quedó en estado $estado"
+            Write-Output "  FALLA $($servicio.Name) - quedo en estado $estado"
             $fallidos++
         }
     }
     catch {
-        Write-Output "  ERROR $($servicio.Name) — $($_.Exception.Message)"
+        Write-Output "  ERROR $($servicio.Name) - $($_.Exception.Message)"
         $fallidos++
     }
 }
@@ -215,8 +251,8 @@ Write-Output "  $arrancados arrancado(s), $fallidos con falla."
 if ($fallidos -gt 0) {
     Write-Output ""
     Write-Output "  Un servicio que no arranca a mano suele tener una causa concreta:"
-    Write-Output "  dependencia caída, credenciales de la cuenta de servicio vencidas o"
-    Write-Output "  binario faltante. Revisá el visor de eventos del equipo."
+    Write-Output "  dependencia caida, credenciales de la cuenta de servicio vencidas o"
+    Write-Output "  binario faltante. Revisa el visor de eventos del equipo."
     exit 1
 }
 exit 0

@@ -1,23 +1,23 @@
 ﻿<#
 .SYNOPSIS
-    Gestiona el plan de energía: alto rendimiento, restablecer o evitar suspensión.
+    Gestiona el plan de energia: alto rendimiento, restablecer o evitar suspension.
 
 .DESCRIPTION
-    Une los dos scripts de energía del catálogo original (activar alto rendimiento y
+    Une los dos scripts de energia del catalogo original (activar alto rendimiento y
     restablecer el plan a sus valores por defecto) y agrega el caso que en un RMM
-    importa más que el rendimiento: que el equipo NO se suspenda, porque un equipo
-    suspendido aparece caído en la consola y no recibe ni tareas ni parches.
+    importa mas que el rendimiento: que el equipo NO se suspenda, porque un equipo
+    suspendido aparece caido en la consola y no recibe ni tareas ni parches.
 
     Modos:
-      estado        — informa el plan activo y sus tiempos. No toca nada.
-      rendimiento   — activa el plan de alto rendimiento.
-      sin-suspender — deja el plan activo tal cual pero pone en 0 (nunca) los tiempos
-                      de suspensión, hibernación y apagado de disco, con corriente y
-                      con batería. Es lo mínimo necesario para que el equipo siga
-                      alcanzable, sin imponerle un plan que quizá el cliente eligió.
-      restablecer   — devuelve el plan activo a los valores de fábrica.
+      estado        - informa el plan activo y sus tiempos. No toca nada.
+      rendimiento   - activa el plan de alto rendimiento.
+      sin-suspender - deja el plan activo tal cual pero pone en 0 (nunca) los tiempos
+                      de suspension, hibernacion y apagado de disco, con corriente y
+                      con bateria. Es lo minimo necesario para que el equipo siga
+                      alcanzable, sin imponerle un plan que quiza el cliente eligio.
+      restablecer   - devuelve el plan activo a los valores de fabrica.
 
-    Se usa powercfg y no WMI porque es la única interfaz que cubre todas las versiones
+    Se usa powercfg y no WMI porque es la unica interfaz que cubre todas las versiones
     de Windows por igual, incluidas las ediciones donde el plan de alto rendimiento
     viene oculto.
 
@@ -53,14 +53,14 @@ catch {
 $ErrorActionPreference = "Continue"
 
 # GUID fijo del plan "Alto rendimiento": es el mismo en todas las instalaciones de
-# Windows, así que no depende del idioma del sistema como sí lo haría buscar el
+# Windows, asi que no depende del idioma del sistema como si lo haria buscar el
 # nombre del plan en la salida de powercfg.
 $GUID_ALTO_RENDIMIENTO = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
 
 function Get-PlanActivo {
     $salida = & powercfg /getactivescheme 2>$null
     if ($LASTEXITCODE -ne 0 -or -not $salida) { return $null }
-    # La salida es del tipo "GUID del plan de energía: <guid>  (<nombre>)".
+    # La salida es del tipo "GUID del plan de energia: <guid>  (<nombre>)".
     $encontrado = [regex]::Match($salida, "([0-9a-fA-F]{8}-[0-9a-fA-F-]{27})")
     if (-not $encontrado.Success) { return $null }
     $nombre = [regex]::Match($salida, "\(([^)]+)\)")
@@ -85,11 +85,11 @@ function Show-Energia {
         Write-Output "  no se pudo determinar el plan activo."
     }
 
-    # Los tiempos salen de las consultas por subgrupo: SUB_SLEEP para suspensión e
-    # hibernación, SUB_DISK para el apagado del disco.
+    # Los tiempos salen de las consultas por subgrupo: SUB_SLEEP para suspension e
+    # hibernacion, SUB_DISK para el apagado del disco.
     foreach ($par in @(
-            @("SUB_SLEEP", "STANDBYIDLE", "suspensión"),
-            @("SUB_SLEEP", "HIBERNATEIDLE", "hibernación"),
+            @("SUB_SLEEP", "STANDBYIDLE", "suspension"),
+            @("SUB_SLEEP", "HIBERNATEIDLE", "hibernacion"),
             @("SUB_DISK", "DISKIDLE", "apagado de disco"),
             @("SUB_VIDEO", "VIDEOIDLE", "apagado de pantalla")
         )) {
@@ -100,8 +100,8 @@ function Show-Energia {
         $salida = & powercfg /query SCHEME_CURRENT $subgrupo $ajuste 2>$null
         if ($LASTEXITCODE -ne 0 -or -not $salida) { continue }
 
-        $conCorriente = [regex]::Match(($salida -join "`n"), "(?im)^\s*Índice de configuración de CA:\s*0x([0-9a-f]+)|^\s*Current AC Power Setting Index:\s*0x([0-9a-f]+)")
-        $conBateria = [regex]::Match(($salida -join "`n"), "(?im)^\s*Índice de configuración de CC:\s*0x([0-9a-f]+)|^\s*Current DC Power Setting Index:\s*0x([0-9a-f]+)")
+        $conCorriente = [regex]::Match(($salida -join "`n"), "(?im)^\s*Indice de configuracion de CA:\s*0x([0-9a-f]+)|^\s*Current AC Power Setting Index:\s*0x([0-9a-f]+)")
+        $conBateria = [regex]::Match(($salida -join "`n"), "(?im)^\s*Indice de configuracion de CC:\s*0x([0-9a-f]+)|^\s*Current DC Power Setting Index:\s*0x([0-9a-f]+)")
 
         function Convert-Indice {
             param($Coincidencia)
@@ -112,7 +112,7 @@ function Show-Energia {
             return "$([Math]::Round($segundos / 60)) min"
         }
 
-        Write-Output "  $($etiqueta): corriente=$(Convert-Indice $conCorriente), batería=$(Convert-Indice $conBateria)"
+        Write-Output "  $($etiqueta): corriente=$(Convert-Indice $conCorriente), bateria=$(Convert-Indice $conBateria)"
     }
 }
 
@@ -120,7 +120,7 @@ Show-Energia -Titulo "Estado actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     exit 0
 }
 
@@ -133,7 +133,7 @@ function Invoke-Powercfg {
         Write-Output "  OK    $Descripcion"
     }
     else {
-        Write-Output "  ERROR $Descripcion (powercfg devolvió $LASTEXITCODE)"
+        Write-Output "  ERROR $Descripcion (powercfg devolvio $LASTEXITCODE)"
         Write-Verbose ($salida -join "`n")
         $script:errores++
     }
@@ -152,7 +152,7 @@ switch ($Modo) {
             # primero lo hace visible y devuelve un GUID usable.
             Invoke-Powercfg @("/setactive", $GUID_ALTO_RENDIMIENTO) "activar alto rendimiento"
             if ($errores -gt 0) {
-                Write-Output "  reintentando: el plan puede venir oculto en esta edición."
+                Write-Output "  reintentando: el plan puede venir oculto en esta edicion."
                 $errores = 0
                 $duplicado = & powercfg /duplicatescheme $GUID_ALTO_RENDIMIENTO 2>&1
                 $nuevoGuid = [regex]::Match(($duplicado -join " "), "([0-9a-fA-F]{8}-[0-9a-fA-F-]{27})")
@@ -170,18 +170,18 @@ switch ($Modo) {
     "sin-suspender" {
         Write-Output "== Evitando que el equipo se suspenda =="
         Write-Output "  Se modifican los tiempos del plan ACTIVO, sin cambiar de plan."
-        Invoke-Powercfg @("/change", "standby-timeout-ac", "0") "suspensión con corriente: nunca"
-        Invoke-Powercfg @("/change", "standby-timeout-dc", "0") "suspensión con batería: nunca"
-        Invoke-Powercfg @("/change", "hibernate-timeout-ac", "0") "hibernación con corriente: nunca"
-        Invoke-Powercfg @("/change", "hibernate-timeout-dc", "0") "hibernación con batería: nunca"
+        Invoke-Powercfg @("/change", "standby-timeout-ac", "0") "suspension con corriente: nunca"
+        Invoke-Powercfg @("/change", "standby-timeout-dc", "0") "suspension con bateria: nunca"
+        Invoke-Powercfg @("/change", "hibernate-timeout-ac", "0") "hibernacion con corriente: nunca"
+        Invoke-Powercfg @("/change", "hibernate-timeout-dc", "0") "hibernacion con bateria: nunca"
         Invoke-Powercfg @("/change", "disk-timeout-ac", "0") "apagado de disco con corriente: nunca"
         Write-Output ""
-        Write-Output "  La pantalla se sigue apagando: eso ahorra energía y no afecta"
-        Write-Output "  la conectividad del agente, así que no se toca."
+        Write-Output "  La pantalla se sigue apagando: eso ahorra energia y no afecta"
+        Write-Output "  la conectividad del agente, asi que no se toca."
     }
 
     "restablecer" {
-        Write-Output "== Restableciendo el plan activo a los valores de fábrica =="
+        Write-Output "== Restableciendo el plan activo a los valores de fabrica =="
         $plan = Get-PlanActivo
         if (-not $plan) {
             Write-Output "  No se pudo determinar el plan activo: no se hace nada."
@@ -191,7 +191,7 @@ switch ($Modo) {
         Invoke-Powercfg @("-restoredefaultschemes") "restaurar todos los planes por defecto"
         Write-Output ""
         Write-Output "  AVISO: -restoredefaultschemes restaura TODOS los planes y borra"
-        Write-Output "  los personalizados. Si el cliente tenía un plan propio, se fue."
+        Write-Output "  los personalizados. Si el cliente tenia un plan propio, se fue."
     }
 }
 
@@ -199,7 +199,7 @@ Show-Energia -Titulo "Estado resultante"
 
 Write-Output ""
 if ($errores -gt 0) {
-    Write-Output "Terminó con $errores error(es)."
+    Write-Output "Termino con $errores error(es)."
     exit 1
 }
 Write-Output "Aplicado sin errores."

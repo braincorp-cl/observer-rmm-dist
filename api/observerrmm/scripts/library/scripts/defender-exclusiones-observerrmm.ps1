@@ -3,17 +3,17 @@
     Registra en Microsoft Defender las exclusiones de ObserverRMM y del agente Mesh.
 
 .DESCRIPTION
-    Defender puede poner en cuarentena partes del agente o frenar la ejecución de
-    scripts, dejando al equipo aparentemente en línea pero sordo a los comandos.
+    Defender puede poner en cuarentena partes del agente o frenar la ejecucion de
+    scripts, dejando al equipo aparentemente en linea pero sordo a los comandos.
     Este script agrega las exclusiones de carpeta y de proceso que necesita el
     agente, resolviendo las rutas desde el entorno y desde el registro en vez de
-    clavarlas: si el agente se instaló con un temporal personalizado (valor
-    WinTmpDir de HKLM\SOFTWARE\ObserverRMM), la exclusión sigue a la ruta real.
+    clavarlas: si el agente se instalo con un temporal personalizado (valor
+    WinTmpDir de HKLM\SOFTWARE\ObserverRMM), la exclusion sigue a la ruta real.
 
     Es idempotente: Defender ignora los duplicados, y el script informa lo que ya
     estaba presente. Con -Quitar revierte las mismas exclusiones.
 
-    Rutas y nombres tomados del código del agente (agent/agent.go:85-102).
+    Rutas y nombres tomados del codigo del agente (agent/agent.go:85-102).
 
 .PARAMETER Quitar
     Elimina las exclusiones en lugar de agregarlas.
@@ -46,7 +46,7 @@ $ErrorActionPreference = "Stop"
 
 if (-not (Get-Command Get-MpPreference -ErrorAction SilentlyContinue)) {
     Write-Output "Este equipo no expone Microsoft Defender (Get-MpPreference no existe)."
-    Write-Output "Puede ser un Windows Server sin la característica, o un antivirus de terceros."
+    Write-Output "Puede ser un Windows Server sin la caracteristica, o un antivirus de terceros."
     exit 1
 }
 

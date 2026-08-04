@@ -3,18 +3,18 @@
     Salud de los Espacios de almacenamiento (Storage Pools) y sus discos virtuales.
 
 .DESCRIPTION
-    Solo LEE. En un servidor con Espacios de almacenamiento, la pérdida de un disco
+    Solo LEE. En un servidor con Espacios de almacenamiento, la perdida de un disco
     del grupo no apaga nada: el volumen sigue funcionando degradado y nadie se entera
     hasta que cae el segundo y se pierde el arreglo. Este script existe para que ese
     primer disco no pase inadvertido.
 
     Recorre los tres niveles, porque un problema puede verse en uno y no en los otros:
-    el grupo, los discos virtuales que viven en él y los discos físicos que lo forman.
+    el grupo, los discos virtuales que viven en el y los discos fisicos que lo forman.
 
     Ignora el grupo "Primordial", que es el contenedor de los discos disponibles y
     aparece siempre: no es un arreglo y su estado no significa nada.
 
-    Sale con 1 si algo no está sano.
+    Sale con 1 si algo no esta sano.
 
 .EXAMPLE
     almacenamiento-storage-pools.ps1
@@ -40,7 +40,7 @@ catch {
 $ErrorActionPreference = "Continue"
 
 if (-not (Get-Command Get-StoragePool -ErrorAction SilentlyContinue)) {
-    Write-Output "Este equipo no tiene el módulo de almacenamiento de Windows."
+    Write-Output "Este equipo no tiene el modulo de almacenamiento de Windows."
     exit 1
 }
 
@@ -57,7 +57,7 @@ catch {
 
 if ($grupos.Count -eq 0) {
     Write-Output "Este equipo no tiene Espacios de almacenamiento configurados."
-    Write-Output "No es un problema: es la configuración normal de un equipo sin arreglos."
+    Write-Output "No es un problema: es la configuracion normal de un equipo sin arreglos."
     exit 0
 }
 
@@ -66,7 +66,7 @@ foreach ($grupo in $grupos) {
     Write-Output "== Grupo: $($grupo.FriendlyName) =="
     Write-Output "  salud:            $($grupo.HealthStatus)"
     Write-Output "  estado:           $($grupo.OperationalStatus)"
-    Write-Output "  tamaño:           $([Math]::Round($grupo.Size / 1GB, 1)) GB"
+    Write-Output "  tamano:           $([Math]::Round($grupo.Size / 1GB, 1)) GB"
     Write-Output "  asignado:         $([Math]::Round(($grupo.Size - $grupo.AllocatedSize) / 1GB, 1)) GB sin asignar"
     Write-Output "  solo lectura:     $($grupo.IsReadOnly)"
 
@@ -90,7 +90,7 @@ foreach ($grupo in $grupos) {
             Write-Output "      resiliencia:    $($virtual.ResiliencySettingName)"
             Write-Output "      salud:          $($virtual.HealthStatus)"
             Write-Output "      estado:         $($virtual.OperationalStatus)"
-            Write-Output "      tamaño:         $([Math]::Round($virtual.Size / 1GB, 1)) GB"
+            Write-Output "      tamano:         $([Math]::Round($virtual.Size / 1GB, 1)) GB"
             Write-Output "      aprovisionam.:  $($virtual.ProvisioningType)"
 
             if ($null -ne $virtual.NumberOfColumns) {
@@ -113,7 +113,7 @@ foreach ($grupo in $grupos) {
     }
 
     Write-Output ""
-    Write-Output "  -- Discos físicos del grupo --"
+    Write-Output "  -- Discos fisicos del grupo --"
     try {
         $fisicos = @(Get-PhysicalDisk -StoragePool $grupo -ErrorAction Stop)
         foreach ($fisico in ($fisicos | Sort-Object DeviceId)) {
@@ -122,23 +122,23 @@ foreach ($grupo in $grupos) {
             Write-Output "      salud:          $($fisico.HealthStatus)"
             Write-Output "      estado:         $($fisico.OperationalStatus)"
             Write-Output "      uso:            $($fisico.Usage)"
-            Write-Output "      tamaño:         $([Math]::Round($fisico.Size / 1GB, 1)) GB"
+            Write-Output "      tamano:         $([Math]::Round($fisico.Size / 1GB, 1)) GB"
 
             if ($fisico.HealthStatus -ne "Healthy") {
-                [void]$problemas.Add("disco físico '$($fisico.FriendlyName)' con salud $($fisico.HealthStatus)")
+                [void]$problemas.Add("disco fisico '$($fisico.FriendlyName)' con salud $($fisico.HealthStatus)")
             }
             if ($fisico.OperationalStatus -match "Lost Communication|Removed|Failed") {
-                [void]$problemas.Add("disco físico '$($fisico.FriendlyName)' en estado $($fisico.OperationalStatus)")
+                [void]$problemas.Add("disco fisico '$($fisico.FriendlyName)' en estado $($fisico.OperationalStatus)")
             }
         }
     }
     catch {
-        Write-Output "    No se pudieron consultar los discos físicos: $($_.Exception.Message)"
+        Write-Output "    No se pudieron consultar los discos fisicos: $($_.Exception.Message)"
     }
 }
 
-# Los trabajos de reparación en curso explican un estado degradado transitorio: sin
-# esto uno abre un ticket por algo que se está arreglando solo.
+# Los trabajos de reparacion en curso explican un estado degradado transitorio: sin
+# esto uno abre un ticket por algo que se esta arreglando solo.
 Write-Output ""
 Write-Output "== Trabajos de almacenamiento en curso =="
 try {
@@ -147,7 +147,7 @@ try {
         Write-Output "  (ninguno)"
     }
     foreach ($trabajo in $trabajos) {
-        Write-Output "  $($trabajo.Name): $($trabajo.JobState) — $($trabajo.PercentComplete)%"
+        Write-Output "  $($trabajo.Name): $($trabajo.JobState) - $($trabajo.PercentComplete)%"
     }
 }
 catch {

@@ -3,15 +3,15 @@
     Gestiona las cuentas locales: listar, crear, habilitar o deshabilitar.
 
 .DESCRIPTION
-    Reemplaza los tres scripts separados del catálogo original (crear usuario,
+    Reemplaza los tres scripts separados del catalogo original (crear usuario,
     habilitar/deshabilitar y listar) por uno con modo.
 
-    En modo 'listar' solo LEE y muestra, por cada cuenta local, si está habilitada,
-    cuándo entró por última vez y si es administradora, que es la pregunta que en
+    En modo 'listar' solo LEE y muestra, por cada cuenta local, si esta habilitada,
+    cuando entro por ultima vez y si es administradora, que es la pregunta que en
     realidad se quiere responder cuando se pide "la lista de usuarios".
 
     Los grupos se resuelven por SID conocido, no por nombre, para que funcione igual
-    en Windows en español y en inglés.
+    en Windows en espanol y en ingles.
 
 .PARAMETER Modo
     listar (por defecto), crear, habilitar, deshabilitar.
@@ -20,7 +20,7 @@
     Cuenta sobre la que actuar. Obligatorio salvo en modo 'listar'.
 
 .PARAMETER Contrasena
-    Contraseña para el modo 'crear'.
+    Contrasena para el modo 'crear'.
 
 .PARAMETER NombreCompleto
     Nombre completo para el modo 'crear'.
@@ -31,7 +31,7 @@
 
 .EXAMPLE
     usuarios-locales.ps1
-    usuarios-locales.ps1 -Modo crear -Usuario kiosco -Contrasena "..." -NombreCompleto "Kiosco recepción"
+    usuarios-locales.ps1 -Modo crear -Usuario kiosco -Contrasena "..." -NombreCompleto "Kiosco recepcion"
     usuarios-locales.ps1 -Modo deshabilitar -Usuario extemporal
 #>
 
@@ -113,11 +113,11 @@ if ($Modo -eq "listar") {
         Write-Output ""
         Write-Output "$($cuenta.Name)"
         Write-Output "  habilitada:       $($cuenta.Enabled)"
-        Write-Output "  administradora:   $(if ($esAdmin) { 'SÍ' } else { 'no' })"
+        Write-Output "  administradora:   $(if ($esAdmin) { 'SI' } else { 'no' })"
         Write-Output "  nombre completo:  $(if ($cuenta.FullName) { $cuenta.FullName } else { '(sin definir)' })"
-        Write-Output "  último logon:     $(if ($cuenta.LastLogon) { $cuenta.LastLogon } else { 'nunca' })"
-        Write-Output "  contraseña expira: $(if ($cuenta.PasswordExpires) { $cuenta.PasswordExpires } else { 'no expira' })"
-        Write-Output "  último cambio:    $(if ($cuenta.PasswordLastSet) { $cuenta.PasswordLastSet } else { 'nunca' })"
+        Write-Output "  ultimo logon:     $(if ($cuenta.LastLogon) { $cuenta.LastLogon } else { 'nunca' })"
+        Write-Output "  contrasena expira: $(if ($cuenta.PasswordExpires) { $cuenta.PasswordExpires } else { 'no expira' })"
+        Write-Output "  ultimo cambio:    $(if ($cuenta.PasswordLastSet) { $cuenta.PasswordLastSet } else { 'nunca' })"
         Write-Output "  SID:              $($cuenta.SID)"
     }
 
@@ -127,7 +127,7 @@ if ($Modo -eq "listar") {
 }
 
 if (-not $Usuario) {
-    Write-Output "El modo '$Modo' exige el parámetro -Usuario."
+    Write-Output "El modo '$Modo' exige el parametro -Usuario."
     exit 1
 }
 
@@ -143,11 +143,11 @@ switch ($Modo) {
     "crear" {
         if ($existe) {
             Write-Output "La cuenta '$Usuario' ya existe. No se modifica."
-            Write-Output "Para cambiar su contraseña usá el script de rotación de admin local."
+            Write-Output "Para cambiar su contrasena usa el script de rotacion de admin local."
             exit 0
         }
         if (-not $Contrasena) {
-            Write-Output "El modo 'crear' exige el parámetro -Contrasena."
+            Write-Output "El modo 'crear' exige el parametro -Contrasena."
             exit 1
         }
 
@@ -171,7 +171,7 @@ switch ($Modo) {
         }
         catch {
             Write-Output "ERROR al crear la cuenta: $($_.Exception.Message)"
-            Write-Output "Si menciona la política de contraseñas, la contraseña no cumple"
+            Write-Output "Si menciona la politica de contrasenas, la contrasena no cumple"
             Write-Output "los requisitos de complejidad o longitud del equipo."
             exit 1
         }
@@ -215,7 +215,7 @@ switch ($Modo) {
             exit 0
         }
 
-        # Freno: no dejar el equipo sin ningún administrador habilitado. Es el
+        # Freno: no dejar el equipo sin ningun administrador habilitado. Es el
         # escenario en que un "deshabilitar la cuenta X" deja el equipo inaccesible.
         $administradores = Get-AdministradorLocal
         if ($administradores -contains $Usuario) {
@@ -232,8 +232,8 @@ switch ($Modo) {
                 }
             }
             if ($otrosHabilitados -eq 0) {
-                Write-Output "ABORTADO: '$Usuario' es el único administrador habilitado."
-                Write-Output "Deshabilitarla dejaría el equipo sin acceso administrativo."
+                Write-Output "ABORTADO: '$Usuario' es el unico administrador habilitado."
+                Write-Output "Deshabilitarla dejaria el equipo sin acceso administrativo."
                 exit 1
             }
         }
@@ -249,7 +249,7 @@ switch ($Modo) {
     }
 }
 
-# Verificación por efecto para los modos que escriben.
+# Verificacion por efecto para los modos que escriben.
 try {
     $final = Get-LocalUser -Name $Usuario -ErrorAction Stop
     Write-Output ""

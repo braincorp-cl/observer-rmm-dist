@@ -4,22 +4,22 @@
 
 .DESCRIPTION
     Une el equipo al dominio, comprobando antes las condiciones que hacen fallar la
-    operación y que dejan el equipo en un estado peor que el inicial:
+    operacion y que dejan el equipo en un estado peor que el inicial:
 
-      1. Resolución DNS del dominio. Es la causa número uno de fallo: si el equipo no
-         resuelve el dominio ni encuentra sus controladores por SRV, la unión falla.
-         El script lo verifica y lo dice, en vez de devolver un error genérico.
+      1. Resolucion DNS del dominio. Es la causa numero uno de fallo: si el equipo no
+         resuelve el dominio ni encuentra sus controladores por SRV, la union falla.
+         El script lo verifica y lo dice, en vez de devolver un error generico.
       2. Alcanzabilidad de un controlador. Resolver no es alcanzar.
-      3. Nombre del equipo. Un nombre inválido o duplicado en el dominio hace fallar la
-         unión a mitad de camino.
-      4. Estado previo. Si ya está unido a ESE dominio no hace nada; si está unido a
+      3. Nombre del equipo. Un nombre invalido o duplicado en el dominio hace fallar la
+         union a mitad de camino.
+      4. Estado previo. Si ya esta unido a ESE dominio no hace nada; si esta unido a
          OTRO, se niega, porque migrar entre dominios no es unir dos veces.
 
-    ADVERTENCIA: la contraseña de la cuenta con permiso de unión se pasa como argumento
+    ADVERTENCIA: la contrasena de la cuenta con permiso de union se pasa como argumento
     y queda escrita en el historial de la consola. Conviene una cuenta delegada solo
-    para unir equipos, no una de administrador de dominio, y rotarla después.
+    para unir equipos, no una de administrador de dominio, y rotarla despues.
 
-    No reinicia por su cuenta, aunque la unión lo exija para completarse.
+    No reinicia por su cuenta, aunque la union lo exija para completarse.
 
 .PARAMETER Dominio
     FQDN del dominio, por ejemplo "empresa.local".
@@ -28,7 +28,7 @@
     Cuenta con permiso para unir equipos, por ejemplo "EMPRESA\unir-equipos".
 
 .PARAMETER Contrasena
-    Contraseña de esa cuenta.
+    Contrasena de esa cuenta.
 
 .PARAMETER Modo
     verificar (por defecto, solo comprueba) o unir.
@@ -44,7 +44,7 @@
 [CmdletBinding()]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
     "PSAvoidUsingConvertToSecureStringWithPlainText", "",
-    Justification = "Add-Computer exige un PSCredential y la contraseña llega como argumento del operador: no hay origen seguro alternativo desde un script remoto."
+    Justification = "Add-Computer exige un PSCredential y la contrasena llega como argumento del operador: no hay origen seguro alternativo desde un script remoto."
 )]
 param(
     [Parameter(Mandatory = $true)]
@@ -91,36 +91,36 @@ try {
     Write-Output "  dominio/grupo:   $dominioActual"
 }
 catch {
-    Write-Output "  no se pudo leer la información del sistema: $($_.Exception.Message)"
+    Write-Output "  no se pudo leer la informacion del sistema: $($_.Exception.Message)"
 }
 
 if ($unidoDominio) {
     if ($dominioActual -ieq $Dominio) {
         Write-Output ""
-        Write-Output "Nada que hacer: el equipo ya está unido a '$Dominio'."
-        # Se verifica la relación de confianza: estar "unido" no garantiza que
-        # autentique, y una confianza rota se ve exactamente así.
+        Write-Output "Nada que hacer: el equipo ya esta unido a '$Dominio'."
+        # Se verifica la relacion de confianza: estar "unido" no garantiza que
+        # autentique, y una confianza rota se ve exactamente asi.
         try {
             $confianza = Test-ComputerSecureChannel -ErrorAction Stop
-            Write-Output "  relación de confianza: $(if ($confianza) { 'sana' } else { 'ROTA' })"
+            Write-Output "  relacion de confianza: $(if ($confianza) { 'sana' } else { 'ROTA' })"
             if (-not $confianza) {
                 Write-Output ""
-                Write-Output "  La relación de confianza está rota. El equipo figura unido"
+                Write-Output "  La relacion de confianza esta rota. El equipo figura unido"
                 Write-Output "  pero no autentica contra el dominio. Se repara con"
                 Write-Output "  Test-ComputerSecureChannel -Repair y credenciales, que este"
-                Write-Output "  script no hace por no tocar un equipo en producción sin pedirlo."
+                Write-Output "  script no hace por no tocar un equipo en produccion sin pedirlo."
                 exit 1
             }
         }
         catch {
-            Write-Output "  no se pudo verificar la relación de confianza: $($_.Exception.Message)"
+            Write-Output "  no se pudo verificar la relacion de confianza: $($_.Exception.Message)"
         }
         exit 0
     }
 
     Write-Output ""
-    Write-Output "ABORTADO: el equipo ya está unido al dominio '$dominioActual'."
-    Write-Output "Pasarlo a '$Dominio' es una migración, no una unión: hay que sacarlo"
+    Write-Output "ABORTADO: el equipo ya esta unido al dominio '$dominioActual'."
+    Write-Output "Pasarlo a '$Dominio' es una migracion, no una union: hay que sacarlo"
     Write-Output "del dominio actual primero y eso exige decisiones que este script no toma."
     exit 1
 }
@@ -128,7 +128,7 @@ if ($unidoDominio) {
 Write-Output ""
 Write-Output "== Comprobaciones previas =="
 
-# 1) Resolución del dominio.
+# 1) Resolucion del dominio.
 $direcciones = @()
 try {
     $direcciones = @([System.Net.Dns]::GetHostAddresses($Dominio) |
@@ -138,19 +138,19 @@ try {
         Write-Output "  DNS del dominio:      OK ($($direcciones -join ', '))"
     }
     else {
-        Write-Output "  DNS del dominio:      FALLA (resolvió sin direcciones IPv4)"
+        Write-Output "  DNS del dominio:      FALLA (resolvio sin direcciones IPv4)"
         [void]$problemas.Add("el dominio '$Dominio' no resuelve a ninguna IPv4")
     }
 }
 catch {
     Write-Output "  DNS del dominio:      FALLA (no resuelve '$Dominio')"
-    Write-Output "    Es la causa más frecuente. El equipo tiene que usar el DNS del"
-    Write-Output "    dominio, no un resolutor público: los registros SRV que localizan"
+    Write-Output "    Es la causa mas frecuente. El equipo tiene que usar el DNS del"
+    Write-Output "    dominio, no un resolutor publico: los registros SRV que localizan"
     Write-Output "    los controladores solo existen en el DNS interno."
     [void]$problemas.Add("el dominio '$Dominio' no resuelve por DNS")
 }
 
-# 2) Registros SRV de los controladores: es lo que realmente usa la unión.
+# 2) Registros SRV de los controladores: es lo que realmente usa la union.
 try {
     $srv = @(Resolve-DnsName -Name "_ldap._tcp.dc._msdcs.$Dominio" -Type SRV -ErrorAction Stop)
     $controladores = @($srv | Where-Object { $_.NameTarget } | ForEach-Object { $_.NameTarget })
@@ -190,22 +190,22 @@ if ($direcciones.Count -gt 0) {
         }
     }
     if (-not $alcanzable) {
-        Write-Output "  LDAP (TCP 389):       FALLA (no se alcanzó ningún controlador)"
-        [void]$problemas.Add("ningún controlador responde en el puerto LDAP 389")
+        Write-Output "  LDAP (TCP 389):       FALLA (no se alcanzo ningun controlador)"
+        [void]$problemas.Add("ningun controlador responde en el puerto LDAP 389")
     }
 }
 
 # 4) Nombre del equipo.
 if ($env:COMPUTERNAME.Length -gt 15) {
-    Write-Output "  nombre del equipo:    FALLA (más de 15 caracteres)"
+    Write-Output "  nombre del equipo:    FALLA (mas de 15 caracteres)"
     [void]$problemas.Add("el nombre del equipo excede el largo NetBIOS de 15")
 }
 else {
     Write-Output "  nombre del equipo:    OK ($($env:COMPUTERNAME.Length) caracteres)"
 }
 
-# 5) Desfase de reloj: Kerberos rechaza más de 5 minutos de diferencia, y el síntoma
-# no menciona la hora en ningún momento.
+# 5) Desfase de reloj: Kerberos rechaza mas de 5 minutos de diferencia, y el sintoma
+# no menciona la hora en ningun momento.
 if ($controladores -and $controladores.Count -gt 0) {
     try {
         $salida = & w32tm /stripchart /computer:$($controladores[0]) /samples:1 /dataonly 2>&1
@@ -214,7 +214,7 @@ if ($controladores -and $controladores.Count -gt 0) {
             Write-Output "  desfase de reloj:     $($desfase.Matches[0].Value) contra $($controladores[0])"
             $segundos = [Math]::Abs([double]($desfase.Matches[0].Groups[1].Value))
             if ($segundos -gt 300) {
-                [void]$problemas.Add("desfase de reloj de $([int]$segundos)s: Kerberos rechaza más de 300s")
+                [void]$problemas.Add("desfase de reloj de $([int]$segundos)s: Kerberos rechaza mas de 300s")
             }
         }
     }
@@ -226,7 +226,7 @@ if ($controladores -and $controladores.Count -gt 0) {
 Write-Output ""
 if ($problemas.Count -gt 0) {
     Write-Output "== Resultado =="
-    Write-Output "  $($problemas.Count) problema(s) que impedirían la unión:"
+    Write-Output "  $($problemas.Count) problema(s) que impedirian la union:"
     foreach ($problema in $problemas) { Write-Output "   - $problema" }
     exit 1
 }
@@ -235,8 +235,8 @@ Write-Output "  Todas las comprobaciones previas pasaron."
 
 if ($Modo -eq "verificar") {
     Write-Output ""
-    Write-Output "Modo 'verificar': no se unió al dominio."
-    Write-Output "Volvé a correr con -Modo unir más -Usuario y -Contrasena."
+    Write-Output "Modo 'verificar': no se unio al dominio."
+    Write-Output "Volve a correr con -Modo unir mas -Usuario y -Contrasena."
     exit 0
 }
 
@@ -273,26 +273,26 @@ catch {
     exit 1
 }
 
-# Verificación por efecto: releer la pertenencia. Add-Computer no lanza en todos los
+# Verificacion por efecto: releer la pertenencia. Add-Computer no lanza en todos los
 # escenarios de fallo parcial.
 try {
     $sistema = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
     if (-not $sistema.PartOfDomain -or $sistema.Domain -ine $Dominio) {
         Write-Output ""
-        Write-Output "FALLA: tras la unión el equipo reporta dominio '$($sistema.Domain)'."
+        Write-Output "FALLA: tras la union el equipo reporta dominio '$($sistema.Domain)'."
         exit 1
     }
     Write-Output "  verificado: el equipo reporta dominio '$($sistema.Domain)'."
 }
 catch {
-    Write-Output "  AVISO: no se pudo verificar la pertenencia tras la unión."
+    Write-Output "  AVISO: no se pudo verificar la pertenencia tras la union."
 }
 
 Write-Output ""
 Write-Output "== Resultado =="
-Write-Output "  Unión registrada. PENDIENTE DE REINICIO para completarse."
-Write-Output "  Hasta reiniciar, las cuentas de dominio no pueden iniciar sesión."
-Write-Output "  Este script no reinicia: coordiná una ventana."
+Write-Output "  Union registrada. PENDIENTE DE REINICIO para completarse."
+Write-Output "  Hasta reiniciar, las cuentas de dominio no pueden iniciar sesion."
+Write-Output "  Este script no reinicia: coordina una ventana."
 Write-Output ""
-Write-Output "  Rotá la contraseña de '$Usuario': quedó en el historial de la consola."
+Write-Output "  Rota la contrasena de '$Usuario': quedo en el historial de la consola."
 exit 0

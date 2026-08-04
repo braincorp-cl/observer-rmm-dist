@@ -5,15 +5,15 @@
 .DESCRIPTION
     Reemplaza los dos scripts separados de "habilitar Defender" y "volver a los
     valores por defecto" por uno con modo, y agrega un modo de solo lectura para
-    ver en qué estado está el equipo antes de tocar nada.
+    ver en que estado esta el equipo antes de tocar nada.
 
-    Endurecer activa lo que Microsoft deja opcional: tiempo real, protección en la
-    nube, envío de muestras, bloqueo de aplicaciones potencialmente no deseadas
-    (PUA) y análisis de scripts y descargas.
+    Endurecer activa lo que Microsoft deja opcional: tiempo real, proteccion en la
+    nube, envio de muestras, bloqueo de aplicaciones potencialmente no deseadas
+    (PUA) y analisis de scripts y descargas.
 
-    Lo que este script NO toca a propósito: el Acceso controlado a carpetas y las
-    reglas de reducción de superficie de ataque (ASR). Ambos rompen software
-    legítimo con frecuencia y necesitan una fase de auditoría por cliente antes de
+    Lo que este script NO toca a proposito: el Acceso controlado a carpetas y las
+    reglas de reduccion de superficie de ataque (ASR). Ambos rompen software
+    legitimo con frecuencia y necesitan una fase de auditoria por cliente antes de
     aplicarse: no son un interruptor.
 
 .PARAMETER Modo
@@ -48,7 +48,7 @@ catch {
 $ErrorActionPreference = "Stop"
 
 if (-not (Get-Command Get-MpPreference -ErrorAction SilentlyContinue)) {
-    Write-Output "Microsoft Defender no está disponible en este equipo."
+    Write-Output "Microsoft Defender no esta disponible en este equipo."
     exit 1
 }
 
@@ -60,28 +60,28 @@ function Show-Preferencia {
     Write-Output "== $Titulo =="
     Write-Output "  tiempo real deshabilitado:     $($preferencias.DisableRealtimeMonitoring)"
     Write-Output "  monitoreo de comportamiento:   $(-not $preferencias.DisableBehaviorMonitoring)"
-    Write-Output "  análisis de scripts:           $(-not $preferencias.DisableScriptScanning)"
-    Write-Output "  análisis de descargas (IOAV):  $(-not $preferencias.DisableIOAVProtection)"
-    Write-Output "  protección de red (NIS):       $(-not $preferencias.DisableIntrusionPreventionSystem)"
-    Write-Output "  análisis de correo:            $(-not $preferencias.DisableEmailScanning)"
-    Write-Output "  análisis de extraíbles:        $(-not $preferencias.DisableRemovableDriveScanning)"
+    Write-Output "  analisis de scripts:           $(-not $preferencias.DisableScriptScanning)"
+    Write-Output "  analisis de descargas (IOAV):  $(-not $preferencias.DisableIOAVProtection)"
+    Write-Output "  proteccion de red (NIS):       $(-not $preferencias.DisableIntrusionPreventionSystem)"
+    Write-Output "  analisis de correo:            $(-not $preferencias.DisableEmailScanning)"
+    Write-Output "  analisis de extraibles:        $(-not $preferencias.DisableRemovableDriveScanning)"
     Write-Output "  bloqueo de PUA:                $($preferencias.PUAProtection)"
-    Write-Output "  nivel de protección en nube:   $($preferencias.CloudBlockLevel)"
+    Write-Output "  nivel de proteccion en nube:   $($preferencias.CloudBlockLevel)"
     Write-Output "  consentimiento MAPS:           $($preferencias.MAPSReporting)"
-    Write-Output "  envío de muestras:             $($preferencias.SubmitSamplesConsent)"
-    Write-Output "  acción ante severidad alta:    $($preferencias.HighThreatDefaultAction)"
+    Write-Output "  envio de muestras:             $($preferencias.SubmitSamplesConsent)"
+    Write-Output "  accion ante severidad alta:    $($preferencias.HighThreatDefaultAction)"
 
     try {
         $estado = Get-MpComputerStatus
-        Write-Output "  modo de ejecución:             $($estado.AMRunningMode)"
+        Write-Output "  modo de ejecucion:             $($estado.AMRunningMode)"
         if ($estado.AMRunningMode -ne "Normal") {
             Write-Output ""
             Write-Output "  AVISO: Defender no es el antivirus activo (modo '$($estado.AMRunningMode)')."
-            Write-Output "         Cambiar sus preferencias no cambia quién protege el equipo."
+            Write-Output "         Cambiar sus preferencias no cambia quien protege el equipo."
         }
     }
     catch {
-        # Informativo: el modo de ejecución es contexto, no el objetivo.
+        # Informativo: el modo de ejecucion es contexto, no el objetivo.
         Write-Verbose $_.Exception.Message
     }
 }
@@ -90,7 +90,7 @@ Show-Preferencia -Titulo "Estado actual"
 
 if ($Modo -eq "estado") {
     Write-Output ""
-    Write-Output "Modo 'estado': no se modificó nada."
+    Write-Output "Modo 'estado': no se modifico nada."
     exit 0
 }
 
@@ -111,39 +111,39 @@ function Write-Preferencia {
 Write-Output ""
 if ($Modo -eq "endurecer") {
     Write-Output "== Endureciendo Defender =="
-    Write-Preferencia "protección en tiempo real" @{ DisableRealtimeMonitoring = $false }
+    Write-Preferencia "proteccion en tiempo real" @{ DisableRealtimeMonitoring = $false }
     Write-Preferencia "monitoreo de comportamiento" @{ DisableBehaviorMonitoring = $false }
-    Write-Preferencia "análisis de scripts" @{ DisableScriptScanning = $false }
-    Write-Preferencia "análisis de descargas" @{ DisableIOAVProtection = $false }
-    Write-Preferencia "protección de red" @{ DisableIntrusionPreventionSystem = $false }
-    Write-Preferencia "análisis de unidades extraíbles" @{ DisableRemovableDriveScanning = $false }
+    Write-Preferencia "analisis de scripts" @{ DisableScriptScanning = $false }
+    Write-Preferencia "analisis de descargas" @{ DisableIOAVProtection = $false }
+    Write-Preferencia "proteccion de red" @{ DisableIntrusionPreventionSystem = $false }
+    Write-Preferencia "analisis de unidades extraibles" @{ DisableRemovableDriveScanning = $false }
     Write-Preferencia "bloqueo de PUA" @{ PUAProtection = "Enabled" }
-    Write-Preferencia "protección en la nube (alta)" @{ CloudBlockLevel = "High" }
+    Write-Preferencia "proteccion en la nube (alta)" @{ CloudBlockLevel = "High" }
     Write-Preferencia "consentimiento MAPS avanzado" @{ MAPSReporting = "Advanced" }
-    Write-Preferencia "envío automático de muestras seguras" @{ SubmitSamplesConsent = "SendSafeSamples" }
+    Write-Preferencia "envio automatico de muestras seguras" @{ SubmitSamplesConsent = "SendSafeSamples" }
 }
 else {
     Write-Output "== Restableciendo Defender a los valores por defecto =="
-    # Estos son los valores con los que Windows sale de fábrica: no es un "apagar
+    # Estos son los valores con los que Windows sale de fabrica: no es un "apagar
     # todo", es volver al punto de partida para descartar que el endurecimiento sea
     # la causa de un problema.
-    Write-Preferencia "protección en tiempo real (por defecto: activa)" @{ DisableRealtimeMonitoring = $false }
+    Write-Preferencia "proteccion en tiempo real (por defecto: activa)" @{ DisableRealtimeMonitoring = $false }
     Write-Preferencia "monitoreo de comportamiento (por defecto: activo)" @{ DisableBehaviorMonitoring = $false }
-    Write-Preferencia "análisis de scripts (por defecto: activo)" @{ DisableScriptScanning = $false }
-    Write-Preferencia "análisis de descargas (por defecto: activo)" @{ DisableIOAVProtection = $false }
-    Write-Preferencia "protección de red (por defecto: activa)" @{ DisableIntrusionPreventionSystem = $false }
+    Write-Preferencia "analisis de scripts (por defecto: activo)" @{ DisableScriptScanning = $false }
+    Write-Preferencia "analisis de descargas (por defecto: activo)" @{ DisableIOAVProtection = $false }
+    Write-Preferencia "proteccion de red (por defecto: activa)" @{ DisableIntrusionPreventionSystem = $false }
     Write-Preferencia "bloqueo de PUA (por defecto: desactivado)" @{ PUAProtection = "Disabled" }
-    Write-Preferencia "protección en la nube (por defecto)" @{ CloudBlockLevel = "Default" }
-    Write-Preferencia "consentimiento MAPS (por defecto: básico)" @{ MAPSReporting = "Basic" }
-    Write-Preferencia "envío de muestras (por defecto: preguntar)" @{ SubmitSamplesConsent = "AlwaysPrompt" }
+    Write-Preferencia "proteccion en la nube (por defecto)" @{ CloudBlockLevel = "Default" }
+    Write-Preferencia "consentimiento MAPS (por defecto: basico)" @{ MAPSReporting = "Basic" }
+    Write-Preferencia "envio de muestras (por defecto: preguntar)" @{ SubmitSamplesConsent = "AlwaysPrompt" }
 }
 
 Show-Preferencia -Titulo "Estado resultante"
 
 Write-Output ""
 if ($errores -gt 0) {
-    Write-Output "Terminó con $errores error(es). Revisá si una directiva de grupo"
-    Write-Output "o el inquilino de Intune está fijando estos valores por política:"
+    Write-Output "Termino con $errores error(es). Revisa si una directiva de grupo"
+    Write-Output "o el inquilino de Intune esta fijando estos valores por politica:"
     Write-Output "en ese caso el cambio local se ignora o se revierte."
     exit 1
 }

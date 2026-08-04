@@ -1,23 +1,23 @@
 ﻿<#
 .SYNOPSIS
-    Estado consolidado del antivirus: qué producto protege el equipo y si está sano.
+    Estado consolidado del antivirus: que producto protege el equipo y si esta sano.
 
 .DESCRIPTION
-    Solo LEE. Responde de una sola pasada lo que antes pedía dos scripts: qué
-    antivirus están registrados en el Centro de seguridad de Windows, y —si el que
-    manda es Defender— si su protección está activa, sus firmas al día y si hubo
+    Solo LEE. Responde de una sola pasada lo que antes pedia dos scripts: que
+    antivirus estan registrados en el Centro de seguridad de Windows, y -si el que
+    manda es Defender- si su proteccion esta activa, sus firmas al dia y si hubo
     amenazas recientes.
 
     El estado de cada producto sale de SecurityCenter2, donde `productState` es un
-    entero cuyo byte del medio indica si la protección está encendida y el byte
-    bajo si las firmas están vencidas. Decodificarlo es la única forma de saber si
-    un antivirus de terceros está realmente protegiendo o solo instalado.
+    entero cuyo byte del medio indica si la proteccion esta encendida y el byte
+    bajo si las firmas estan vencidas. Decodificarlo es la unica forma de saber si
+    un antivirus de terceros esta realmente protegiendo o solo instalado.
 
-    Sale con 1 si ningún producto tiene la protección activa, o si las firmas están
+    Sale con 1 si ningun producto tiene la proteccion activa, o si las firmas estan
     vencidas, para que sirva como check.
 
 .PARAMETER DiasAmenazas
-    Ventana en días para el reporte de amenazas de Defender. Por defecto 1.
+    Ventana en dias para el reporte de amenazas de Defender. Por defecto 1.
 
 .EXAMPLE
     antivirus-estado.ps1
@@ -60,7 +60,7 @@ try {
 }
 catch {
     Write-Output "  No se pudo consultar SecurityCenter2: $($_.Exception.Message)"
-    Write-Output "  Windows Server no expone este namespace: se evalúa solo Defender."
+    Write-Output "  Windows Server no expone este namespace: se evalua solo Defender."
 }
 
 $algunoActivo = $false
@@ -68,9 +68,9 @@ $algunoActivo = $false
 foreach ($producto in $productos) {
     $estado = $producto.productState
 
-    # productState es una máscara de 3 bytes. El byte del medio (0x00FF00) indica
+    # productState es una mascara de 3 bytes. El byte del medio (0x00FF00) indica
     # el estado del escaneo en tiempo real: 0x10 y 0x11 = activo. El byte bajo
-    # (0x0000FF) indica las firmas: 0x00 = al día, 0x10 = vencidas.
+    # (0x0000FF) indica las firmas: 0x00 = al dia, 0x10 = vencidas.
     $bytesProteccion = ($estado -band 0x0000FF00) -shr 8
     $bytesFirmas = $estado -band 0x000000FF
 
@@ -81,8 +81,8 @@ foreach ($producto in $productos) {
 
     Write-Output ""
     Write-Output "  $($producto.displayName)"
-    Write-Output "    protección en tiempo real: $(if ($proteccionActiva) { 'ACTIVA' } else { 'INACTIVA' })"
-    Write-Output "    firmas:                    $(if ($firmasAlDia) { 'al día' } else { 'VENCIDAS' })"
+    Write-Output "    proteccion en tiempo real: $(if ($proteccionActiva) { 'ACTIVA' } else { 'INACTIVA' })"
+    Write-Output "    firmas:                    $(if ($firmasAlDia) { 'al dia' } else { 'VENCIDAS' })"
     Write-Output "    productState:              $estado (0x$($estado.ToString('X6')))"
     if ($producto.pathToSignedProductExe) {
         Write-Output "    ejecutable:                $($producto.pathToSignedProductExe)"
@@ -103,7 +103,7 @@ Write-Output "== Microsoft Defender =="
 $defenderPresente = $null -ne (Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue)
 
 if (-not $defenderPresente) {
-    Write-Output "  Defender no está disponible en este equipo (sin Get-MpComputerStatus)."
+    Write-Output "  Defender no esta disponible en este equipo (sin Get-MpComputerStatus)."
 }
 else {
     try {
@@ -111,27 +111,27 @@ else {
 
         Write-Output "  antimalware habilitado:    $($estadoDefender.AMServiceEnabled)"
         Write-Output "  tiempo real:               $($estadoDefender.RealTimeProtectionEnabled)"
-        Write-Output "  protección de red:         $($estadoDefender.NISEnabled)"
+        Write-Output "  proteccion de red:         $($estadoDefender.NISEnabled)"
         Write-Output "  modo pasivo:               $($estadoDefender.AMRunningMode)"
-        Write-Output "  versión de firmas:         $($estadoDefender.AntivirusSignatureVersion)"
-        Write-Output "  edad de las firmas:        $($estadoDefender.AntivirusSignatureAge) día(s)"
-        Write-Output "  último escaneo rápido:     $($estadoDefender.QuickScanEndTime)"
-        Write-Output "  último escaneo completo:   $($estadoDefender.FullScanEndTime)"
+        Write-Output "  version de firmas:         $($estadoDefender.AntivirusSignatureVersion)"
+        Write-Output "  edad de las firmas:        $($estadoDefender.AntivirusSignatureAge) dia(s)"
+        Write-Output "  ultimo escaneo rapido:     $($estadoDefender.QuickScanEndTime)"
+        Write-Output "  ultimo escaneo completo:   $($estadoDefender.FullScanEndTime)"
 
         # AMRunningMode distingue "Normal" de "Passive"/"EDR Block Mode": en pasivo
         # Defender NO protege, solo observa, y eso es invisible si uno mira nada
-        # más que RealTimeProtectionEnabled.
+        # mas que RealTimeProtectionEnabled.
         if ($estadoDefender.AMRunningMode -eq "Normal") {
             if ($estadoDefender.RealTimeProtectionEnabled) { $algunoActivo = $true }
-            else { Add-Problema "Defender es el activo pero su tiempo real está apagado" }
+            else { Add-Problema "Defender es el activo pero su tiempo real esta apagado" }
         }
         else {
-            Write-Output "  AVISO: Defender está en modo '$($estadoDefender.AMRunningMode)',"
+            Write-Output "  AVISO: Defender esta en modo '$($estadoDefender.AMRunningMode)',"
             Write-Output "         lo que significa que otro antivirus es el que protege."
         }
 
         if ($estadoDefender.AntivirusSignatureAge -gt 7) {
-            Add-Problema "firmas de Defender con $($estadoDefender.AntivirusSignatureAge) días"
+            Add-Problema "firmas de Defender con $($estadoDefender.AntivirusSignatureAge) dias"
         }
     }
     catch {
@@ -139,7 +139,7 @@ else {
     }
 
     Write-Output ""
-    Write-Output "== Amenazas de Defender (últimos $DiasAmenazas día[s]) =="
+    Write-Output "== Amenazas de Defender (ultimos $DiasAmenazas dia[s]) =="
     try {
         $desde = (Get-Date).AddDays(-1 * [Math]::Abs($DiasAmenazas))
         $amenazas = @(Get-MpThreatDetection -ErrorAction Stop |
@@ -153,10 +153,10 @@ else {
                 Write-Output ""
                 Write-Output "  detectada:  $($amenaza.InitialDetectionTime)"
                 Write-Output "  amenaza ID: $($amenaza.ThreatID)"
-                Write-Output "  acción:     $($amenaza.ActionSuccess)"
+                Write-Output "  accion:     $($amenaza.ActionSuccess)"
                 Write-Output "  recursos:   $($amenaza.Resources -join ', ')"
             }
-            Add-Problema "$($amenazas.Count) detección(es) en los últimos $DiasAmenazas día(s)"
+            Add-Problema "$($amenazas.Count) deteccion(es) en los ultimos $DiasAmenazas dia(s)"
         }
     }
     catch {
@@ -168,7 +168,7 @@ Write-Output ""
 Write-Output "== Resultado =="
 
 if (-not $algunoActivo) {
-    Add-Problema "ningún antivirus con protección en tiempo real activa"
+    Add-Problema "ningun antivirus con proteccion en tiempo real activa"
 }
 
 if ($problemas.Count -eq 0) {
@@ -176,7 +176,7 @@ if ($problemas.Count -eq 0) {
     exit 0
 }
 
-Write-Output "  $($problemas.Count) observación(es):"
+Write-Output "  $($problemas.Count) observacion(es):"
 foreach ($problema in $problemas) {
     Write-Output "   - $problema"
 }

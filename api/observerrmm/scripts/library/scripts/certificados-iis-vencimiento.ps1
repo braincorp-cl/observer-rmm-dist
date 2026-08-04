@@ -5,19 +5,19 @@
 .DESCRIPTION
     Solo LEE. Un certificado vencido en un servidor web se descubre por el reclamo del
     cliente, no por el panel: nada avisa antes. Este script existe para que el aviso
-    llegue con semanas de anticipación, como check programado.
+    llegue con semanas de anticipacion, como check programado.
 
     Recorre los enlaces HTTPS de cada sitio de IIS, resuelve el certificado que cada
-    uno usa por su huella en el almacén del equipo, y reporta a cuántos días vence.
+    uno usa por su huella en el almacen del equipo, y reporta a cuantos dias vence.
 
-    Es más útil que revisar el almacén de certificados completo, porque el almacén está
-    lleno de certificados que a nadie le importan (raíces, intermedios, viejos): acá
-    solo aparecen los que un sitio está sirviendo de verdad.
+    Es mas util que revisar el almacen de certificados completo, porque el almacen esta
+    lleno de certificados que a nadie le importan (raices, intermedios, viejos): aca
+    solo aparecen los que un sitio esta sirviendo de verdad.
 
-    Sale con 1 si algún certificado en uso vence dentro de la ventana, o ya venció.
+    Sale con 1 si algun certificado en uso vence dentro de la ventana, o ya vencio.
 
 .PARAMETER Dias
-    Ventana de alerta en días. Por defecto 30.
+    Ventana de alerta en dias. Por defecto 30.
 
 .EXAMPLE
     certificados-iis-vencimiento.ps1
@@ -45,7 +45,7 @@ catch {
 
 $ErrorActionPreference = "Continue"
 
-# El módulo WebAdministration es parte del rol de IIS: si no está, el equipo no es un
+# El modulo WebAdministration es parte del rol de IIS: si no esta, el equipo no es un
 # servidor web y no hay nada que revisar.
 if (-not (Get-Module -ListAvailable -Name WebAdministration)) {
     Write-Output "Este equipo no tiene el rol de IIS instalado (falta WebAdministration)."
@@ -70,7 +70,7 @@ catch {
 }
 
 if ($sitios.Count -eq 0) {
-    Write-Output "IIS está instalado pero no hay sitios configurados."
+    Write-Output "IIS esta instalado pero no hay sitios configurados."
     exit 0
 }
 
@@ -79,7 +79,7 @@ $revisados = 0
 $ahora = Get-Date
 
 # Los certificados se cachean por huella: un mismo certificado suele estar en varios
-# enlaces y no tiene sentido buscarlo en el almacén una vez por enlace.
+# enlaces y no tiene sentido buscarlo en el almacen una vez por enlace.
 $cache = @{}
 
 function Get-CertificadoPorHuella {
@@ -88,8 +88,8 @@ function Get-CertificadoPorHuella {
     if ($cache.ContainsKey($Huella)) { return $cache[$Huella] }
 
     $encontrado = $null
-    # Los certificados de IIS pueden estar en el almacén personal del equipo o en el
-    # almacén WebHosting, que es el que usa el hospedaje con muchos sitios.
+    # Los certificados de IIS pueden estar en el almacen personal del equipo o en el
+    # almacen WebHosting, que es el que usa el hospedaje con muchos sitios.
     foreach ($almacen in @("My", "WebHosting")) {
         $ruta = "Cert:\LocalMachine\$almacen\$Huella"
         try {
@@ -136,10 +136,10 @@ foreach ($sitio in $sitios) {
 
         $certificado = Get-CertificadoPorHuella -Huella $huella
         if (-not $certificado) {
-            Write-Output "    huella $huella : NO se encontró el certificado en el almacén."
+            Write-Output "    huella $huella : NO se encontro el certificado en el almacen."
             Write-Output "    El enlace apunta a un certificado que ya no existe: el sitio"
             Write-Output "    no puede servir HTTPS."
-            [void]$problemas.Add("$($sitio.Name): certificado $huella ausente del almacén")
+            [void]$problemas.Add("$($sitio.Name): certificado $huella ausente del almacen")
             continue
         }
 
@@ -148,26 +148,26 @@ foreach ($sitio in $sitios) {
 
         Write-Output "    asunto:      $($certificado.Subject)"
         Write-Output "    emisor:      $($certificado.Issuer)"
-        Write-Output "    válido hasta: $($certificado.NotAfter)"
-        Write-Output "    días restantes: $restantes"
+        Write-Output "    valido hasta: $($certificado.NotAfter)"
+        Write-Output "    dias restantes: $restantes"
         if ($certificado.DnsNameList) {
             Write-Output "    nombres:     $(($certificado.DnsNameList | ForEach-Object { $_.Unicode }) -join ', ')"
         }
 
         if ($restantes -lt 0) {
-            Write-Output "    ESTADO: VENCIDO hace $([Math]::Abs($restantes)) día(s)"
-            [void]$problemas.Add("$($sitio.Name): certificado VENCIDO hace $([Math]::Abs($restantes)) día(s)")
+            Write-Output "    ESTADO: VENCIDO hace $([Math]::Abs($restantes)) dia(s)"
+            [void]$problemas.Add("$($sitio.Name): certificado VENCIDO hace $([Math]::Abs($restantes)) dia(s)")
         }
         elseif ($restantes -le $Dias) {
-            Write-Output "    ESTADO: vence dentro de la ventana de $Dias día(s)"
-            [void]$problemas.Add("$($sitio.Name): vence en $restantes día(s)")
+            Write-Output "    ESTADO: vence dentro de la ventana de $Dias dia(s)"
+            [void]$problemas.Add("$($sitio.Name): vence en $restantes dia(s)")
         }
         else {
             Write-Output "    ESTADO: vigente"
         }
 
-        # Una clave privada ausente hace que el certificado esté "vigente" y el sitio
-        # igual no funcione: es un fallo silencioso clásico tras restaurar un backup.
+        # Una clave privada ausente hace que el certificado este "vigente" y el sitio
+        # igual no funcione: es un fallo silencioso clasico tras restaurar un backup.
         if (-not $certificado.HasPrivateKey) {
             Write-Output "    AVISO: el certificado NO tiene clave privada asociada."
             [void]$problemas.Add("$($sitio.Name): certificado sin clave privada")
@@ -180,11 +180,11 @@ Write-Output "== Resultado =="
 Write-Output "  $($sitios.Count) sitio(s), $revisados certificado(s) en uso revisado(s)."
 
 if ($problemas.Count -eq 0) {
-    Write-Output "  Sin certificados vencidos ni por vencer en $Dias día(s)."
+    Write-Output "  Sin certificados vencidos ni por vencer en $Dias dia(s)."
     exit 0
 }
 
-Write-Output "  $($problemas.Count) observación(es):"
+Write-Output "  $($problemas.Count) observacion(es):"
 foreach ($problema in $problemas) {
     Write-Output "   - $problema"
 }
