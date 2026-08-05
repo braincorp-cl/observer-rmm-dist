@@ -93,6 +93,11 @@
         <li><strong>Puerto</strong> — <code>587</code> (STARTTLS, autenticado, recomendado), <code>465</code> (SSL/TLS implícito, autenticado) o <code>25</code> (relay interno sin autenticación). Observer elige el modo automáticamente según el puerto.</li>
         <li><strong>Requiere autenticación</strong> — marca esta casilla si tu servidor pide usuario y contraseña, y complétalos abajo.</li>
       </ul>
+
+      <div class="callout note lang-es">
+        <span class="tag">La contraseña no se vuelve a mostrar</span>
+        <p>Una vez guardada, la contraseña deja de ser legible en la consola: el campo muestra un relleno y el servidor nunca la devuelve al navegador. Puedes escribir una nueva encima —el campo se limpia al hacer clic— o quitarla con el ícono de papelera. Si guardas la configuración sin tocar el campo, la contraseña guardada se conserva. Lo mismo vale para el token de Twilio y la clave de API del asistente de IA. Los datos de conexión con MeshCentral son distintos: se definen en el despliegue del servidor y la consola sólo los muestra.</p>
+      </div>
       <ul class="lang-en">
         <li><strong>From email</strong> — the address alerts are sent from (for example <code>alerts@your-domain</code>).</li>
         <li><strong>From name</strong> — the visible sender name (for example <code>Observer RMM</code>).</li>
@@ -100,6 +105,11 @@
         <li><strong>Port</strong> — <code>587</code> (STARTTLS, authenticated, recommended), <code>465</code> (implicit SSL/TLS, authenticated), or <code>25</code> (internal relay without authentication). Observer picks the mode automatically based on the port.</li>
         <li><strong>Requires authentication</strong> — check this box if your server needs a username and password, and fill them in below.</li>
       </ul>
+
+      <div class="callout note lang-en">
+        <span class="tag">The password is never shown again</span>
+        <p>Once saved, the password is no longer readable in the console: the field shows a placeholder and the server never sends it back to the browser. You can type a new one over it — the field clears when you click it — or remove it with the trash icon. If you save the settings without touching the field, the stored password is kept. The same applies to the Twilio token and the AI assistant API key. The MeshCentral connection details are different: they are set during server deployment and the console only displays them.</p>
+      </div>
 
       <div class="callout note lang-es">
         <span class="tag">Qué puerto usar</span>

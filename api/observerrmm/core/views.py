@@ -81,18 +81,26 @@ class GetEditCoreSettings(APIView):
     def put(self, request):
         data = request.data.copy()
 
-        if getattr(settings, "HOSTED", False):
+        hosted = getattr(settings, "HOSTED", False)
+        if hosted:
             data.pop("mesh_site")
             data.pop("mesh_token")
             data.pop("mesh_username")
-            data["sync_mesh_with_ormm"] = True
             data["enable_server_scripts"] = False
             data["enable_server_webterminal"] = False
 
         coresettings = CoreSettings.objects.first()
         serializer = CoreSettingsSerializer(instance=coresettings, data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        coresettings = serializer.save()
+
+        # El serializer ignora sync_mesh_with_ormm (MESH_READ_ONLY_FIELDS), así que
+        # el modo hosted --donde la sincronización es obligatoria-- lo fija acá en
+        # vez de mandarlo en el payload.
+        if hosted and not coresettings.sync_mesh_with_ormm:
+            coresettings.sync_mesh_with_ormm = True
+            coresettings.save(update_fields=["sync_mesh_with_ormm"])
+
         sync_mesh_perms_task.delay()
 
         return Response("ok")

@@ -456,6 +456,9 @@ module.exports = {
         // literal sintético que antes de este cambio pasaba sin quejas.
         "src/components/modals/agents/SendEndpointAlert.vue",
         "src/components/modals/agents/SoundEndpointAlarm.vue",
+        // Campo de credencial de la configuración global (contraseña SMTP,
+        // tokens de Twilio y Mesh, clave de API del asistente de IA).
+        "src/components/ui/SecretInput.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {

@@ -467,21 +467,11 @@
                     {{ $t("editCoreSettings.password") }}
                   </div>
                   <div class="col-4"></div>
-                  <q-input
-                    outlined
-                    dense
+                  <secret-input
                     class="col-6 q-pa-none"
                     v-model="settings.smtp_host_password"
-                    :type="isPwd ? 'password' : 'text'"
-                  >
-                    <template v-slot:append>
-                      <q-icon
-                        :name="isPwd ? 'visibility_off' : 'visibility'"
-                        class="cursor-pointer"
-                        @click="isPwd = !isPwd"
-                      />
-                    </template>
-                  </q-input>
+                    :is-set="settings.smtp_host_password_set"
+                  />
                 </q-card-section>
               </q-tab-panel>
               <!-- twilio sms alerts -->
@@ -570,10 +560,9 @@
                     {{ $t("editCoreSettings.twilioAuthToken") }}
                   </div>
                   <div class="col-3"></div>
-                  <q-input
-                    outlined
-                    dense
+                  <secret-input
                     v-model="settings.twilio_auth_token"
+                    :is-set="settings.twilio_auth_token_set"
                     class="col-6 q-pa-none"
                   />
                 </q-card-section>
@@ -584,61 +573,59 @@
                   {{ $t("editCoreSettings.meshSettings") }}
                 </div>
                 <q-separator />
-                <q-card-section class="row" v-if="!hosted">
+                <!--
+                  Conexión con MeshCentral: se lee, no se edita. El valor que
+                  manda vive en local_settings.py (Ansible lo renderiza desde el
+                  vault) y `initial_mesh_setup` lo copia a la base en cada corrida
+                  del rol completo. Editarlo desde acá no persistía y dejaba
+                  "Tomar control" roto hasta el próximo despliegue con el rol.
+                  El serializer también los rechaza (read_only_fields).
+                -->
+                <q-card-section class="row items-center" v-if="!hosted">
                   <div class="col-4">
                     {{ $t("editCoreSettings.username") }}
                   </div>
                   <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.mesh_username"
-                    class="col-6"
-                    :rules="[
-                      (val) =>
-                        (val == val.toLowerCase() &&
-                          val != val.toUpperCase()) ||
-                        $t('editCoreSettings.usernameLowercase'),
-                    ]"
-                  />
+                  <div class="col-6">{{ settings.mesh_username }}</div>
                 </q-card-section>
-                <q-card-section class="row" v-if="!hosted">
+                <q-card-section class="row items-center" v-if="!hosted">
                   <div class="col-4">
                     {{ $t("editCoreSettings.meshSite") }}
                   </div>
                   <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.mesh_site"
-                    class="col-6"
-                  />
+                  <div class="col-6">{{ settings.mesh_site }}</div>
                 </q-card-section>
-                <q-card-section class="row" v-if="!hosted">
+                <q-card-section class="row items-center" v-if="!hosted">
                   <div class="col-4">
                     {{ $t("editCoreSettings.meshToken") }}
                   </div>
                   <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.mesh_token"
-                    class="col-6"
-                  />
+                  <div class="col-6">
+                    <q-icon
+                      :name="
+                        settings.mesh_token_set
+                          ? 'check_circle'
+                          : 'error_outline'
+                      "
+                      :color="settings.mesh_token_set ? 'positive' : 'warning'"
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{
+                      settings.mesh_token_set
+                        ? $t("editCoreSettings.meshTokenSet")
+                        : $t("editCoreSettings.meshTokenMissing")
+                    }}
+                  </div>
                 </q-card-section>
-                <q-card-section class="row" v-if="!hosted">
+                <q-card-section class="row items-center" v-if="!hosted">
                   <div class="col-4">
                     {{ $t("editCoreSettings.meshDeviceGroup") }}
                   </div>
                   <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.mesh_device_group"
-                    class="col-6"
-                  />
+                  <div class="col-6">{{ settings.mesh_device_group }}</div>
                 </q-card-section>
-                <q-card-section class="row" v-if="!hosted">
+                <q-card-section class="row items-center" v-if="!hosted">
                   <div class="col-4 flex items-center">
                     {{ $t("editCoreSettings.syncMeshPerms") }}
                     <q-icon
@@ -653,12 +640,32 @@
                     </q-icon>
                   </div>
                   <div class="col-2"></div>
-                  <q-checkbox
-                    dense
-                    :model-value="settings.sync_mesh_with_ormm"
-                    @update:model-value="confirmSyncChange"
-                    class="col-6"
-                  />
+                  <div class="col-6">
+                    <q-icon
+                      :name="
+                        settings.sync_mesh_with_ormm
+                          ? 'check_circle'
+                          : 'error_outline'
+                      "
+                      :color="
+                        settings.sync_mesh_with_ormm ? 'positive' : 'warning'
+                      "
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{
+                      settings.sync_mesh_with_ormm
+                        ? $t("editCoreSettings.syncMeshPermsOn")
+                        : $t("editCoreSettings.syncMeshPermsOff")
+                    }}
+                  </div>
+                </q-card-section>
+                <q-card-section class="row" v-if="!hosted">
+                  <div class="col-4"></div>
+                  <div class="col-2"></div>
+                  <div class="col-6 text-caption text-grey-6">
+                    {{ $t("editCoreSettings.meshManagedByDeploy") }}
+                  </div>
                 </q-card-section>
 
                 <q-card-section class="row items-center">
@@ -809,10 +816,9 @@
                 <q-card-section class="row">
                   <div class="col-4">{{ $t("editCoreSettings.aiApiKey") }}</div>
                   <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
+                  <secret-input
                     v-model="settings.open_ai_token"
+                    :is-set="settings.open_ai_token_set"
                     class="col-6"
                   />
                 </q-card-section>
@@ -923,6 +929,7 @@ import KeyStoreTable from "@/components/modals/coresettings/KeyStoreTable.vue";
 import URLActionsTable from "@/components/modals/coresettings/URLActionsTable.vue";
 import APIKeysTable from "@/components/core/APIKeysTable.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
+import SecretInput from "@/components/ui/SecretInput.vue";
 import ScheduleTable from "@/core/settings/components/ScheduleTable.vue";
 
 // SSO descartado (ADR-010, 2026-06-17): el dynamic import de SSOProvidersTable
@@ -937,6 +944,7 @@ export default {
     URLActionsTable,
     APIKeysTable,
     ObserverDropdown,
+    SecretInput,
     ScheduleTable,
   },
   mixins: [mixins],
@@ -949,7 +957,6 @@ export default {
       email: null,
       tab: "general",
       splitterModel: 20,
-      isPwd: true,
       allTimezones: [],
       emailTest: false,
       smsTest: false,
@@ -1011,18 +1018,6 @@ export default {
           value: template.id,
         }));
       });
-    },
-    confirmSyncChange(newValue) {
-      this.$q
-        .dialog({
-          title: this.$t("editCoreSettings.confirmSyncTitle"),
-          message: this.$t("editCoreSettings.confirmSyncMessage"),
-          ok: { label: this.$t("editCoreSettings.yes"), color: "primary" },
-          cancel: { label: this.$t("editCoreSettings.no"), color: "negative" },
-        })
-        .onOk(() => {
-          this.settings.sync_mesh_with_ormm = newValue;
-        });
     },
     showResetPatchPolicy() {
       this.$q.dialog({

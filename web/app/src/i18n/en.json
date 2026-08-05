@@ -359,8 +359,12 @@
     "meshSettings": "MeshCentral Settings",
     "meshSite": "Mesh Site:",
     "meshToken": "Mesh Token:",
+    "meshTokenSet": "Configured",
+    "meshTokenMissing": "Not set",
+    "meshManagedByDeploy": "The MeshCentral connection is set during server deployment and is not edited from the console. Changing it here would break remote control, the installers, and agent enrollment.",
+    "syncMeshPermsOn": "On",
+    "syncMeshPermsOff": "Off",
     "meshDeviceGroup": "Mesh Device Group Name:",
-    "usernameLowercase": "Username must be all lowercase",
     "syncMeshPerms": "Sync Mesh Perms with Observer RMM:",
     "syncMeshPermsTooltip": "It is recommended to keep this option enabled; otherwise, all Observer RMM users will have full permissions in MeshCentral regardless of their permissions in Observer RMM.",
     "companyName": "Company Name:",
@@ -373,8 +377,6 @@
     "reportHistoryDays": "Report History (days):",
     "saveAndTestEmail": "Save and Test Email",
     "saveAndTestSms": "Save and Test SMS",
-    "confirmSyncTitle": "Are you sure?",
-    "confirmSyncMessage": "This operation may take several minutes to complete in the background and can be very CPU/disk intensive, depending on your hardware and number of agents. Please allow time for the sync to fully complete.",
     "yes": "Yes",
     "no": "No",
     "addEmailTitle": "Add email",
@@ -897,6 +899,19 @@
   "customField": {
     "defaultValue": "Default value: {value}",
     "isRequired": "{name} is required"
+  },
+  "secretInput": {
+    "stored": "Value saved. Type a new one to replace it.",
+    "notSet": "Not set",
+    "typeNewValue": "Type the new value",
+    "willBeRemoved": "Will be removed when you save the settings",
+    "show": "Show",
+    "hide": "Hide",
+    "cancel": "Cancel",
+    "undo": "Undo",
+    "remove": "Remove",
+    "removeTitle": "Remove the saved value?",
+    "removeMessage": "The integration stops working until you save a new value. This takes effect when you save the settings."
   },
   "dialogWrapper": {
     "close": "Close"

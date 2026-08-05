@@ -32,8 +32,14 @@ from observerrmm.helpers import get_nats_hosts, get_nats_url
 from observerrmm.test import ObserverTestCase, missing_pk
 
 from .consumers import DashInfo
-from .models import CustomField, GlobalKVStore, URLAction
-from .serializers import CustomFieldSerializer, KeyStoreSerializer, URLActionSerializer
+from .models import CoreSettings, CustomField, GlobalKVStore, URLAction
+from .serializers import (
+    CLEAR_SECRET,
+    SECRET_FIELDS,
+    CustomFieldSerializer,
+    KeyStoreSerializer,
+    URLActionSerializer,
+)
 from .tasks import core_maintenance_tasks  # , resolve_pending_actions
 
 
@@ -123,29 +129,75 @@ class TestCoreTasks(ObserverTestCase):
         # test normal request
         data = {
             "smtp_from_email": "newexample@example.com",
-            "mesh_token": "New_Mesh_Token",
-            "mesh_site": "https://mesh.example.com",
-            "mesh_username": "bob",
-            "sync_mesh_with_ormm": False,
+            "mesh_company_name": "BrainCorp",
         }
         r = self.client.put(url, data)
         self.assertEqual(r.status_code, 200)
         core = get_core_settings()
         self.assertEqual(core.smtp_from_email, "newexample@example.com")
-        self.assertEqual(core.mesh_token, "New_Mesh_Token")
-        self.assertEqual(core.mesh_site, "https://mesh.example.com")
-        self.assertEqual(core.mesh_username, "bob")
-        self.assertFalse(core.sync_mesh_with_ormm)
+        self.assertEqual(core.mesh_company_name, "BrainCorp")
 
         # test to_representation
         r = self.client.get(url)
         self.assertEqual(r.data["smtp_from_email"], "newexample@example.com")
-        self.assertEqual(r.data["mesh_token"], "New_Mesh_Token")
-        self.assertEqual(r.data["mesh_site"], "https://mesh.example.com")
-        self.assertEqual(r.data["mesh_username"], "bob")
-        self.assertFalse(r.data["sync_mesh_with_ormm"])
+        self.assertEqual(r.data["mesh_company_name"], "BrainCorp")
+        # el token es un secreto: sale vacío y sólo se anuncia que está puesto
+        self.assertEqual(r.data["mesh_token"], "")
+        self.assertTrue(r.data["mesh_token_set"])
 
         self.check_not_authenticated("put", url)
+
+    def test_mesh_integration_is_read_only(self):
+        """La integración con MeshCentral no se configura desde la consola.
+
+        Los datos de conexión vienen de local_settings.py y `initial_mesh_setup`
+        los copia acá. El grupo de dispositivos es peor: nadie lo resincroniza,
+        así que un nombre equivocado deja sin instaladores ni altas de agentes de
+        forma permanente. Y apagar la sincronización de permisos borra todos los
+        usuarios de MeshCentral.
+        """
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.mesh_site = "https://mesh.interno"
+        core.mesh_username = "observer"
+        core.mesh_token = "token-de-verdad"
+        core.mesh_device_group = "ObserverRMM"
+        core.sync_mesh_with_ormm = True
+        core.save()
+
+        r = self.client.put(
+            url,
+            {
+                "smtp_from_email": "nuevo@example.com",
+                "mesh_site": "https://mesh.del-atacante",
+                "mesh_username": "intruso",
+                "mesh_token": "token-falso",
+                "mesh_device_group": "GrupoQueNoExiste",
+                "sync_mesh_with_ormm": False,
+            },
+        )
+        self.assertEqual(r.status_code, 200)
+
+        core = get_core_settings()
+        self.assertEqual(core.mesh_site, "https://mesh.interno")
+        self.assertEqual(core.mesh_username, "observer")
+        self.assertEqual(core.mesh_token, "token-de-verdad")
+        self.assertEqual(core.mesh_device_group, "ObserverRMM")
+        self.assertTrue(core.sync_mesh_with_ormm)
+        # lo que sí se puede editar en la misma petición no queda bloqueado
+        self.assertEqual(core.smtp_from_email, "nuevo@example.com")
+
+        # el centinela de borrado tampoco alcanza al token de Mesh
+        r = self.client.put(url, {"mesh_token": CLEAR_SECRET})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(get_core_settings().mesh_token, "token-de-verdad")
+
+    def test_mesh_company_name_stays_editable(self):
+        """Lo único cosmético de esa pestaña sigue siendo editable."""
+        url = "/core/settings/"
+        r = self.client.put(url, {"mesh_company_name": "BrainCorp"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(get_core_settings().mesh_company_name, "BrainCorp")
 
     @override_settings(HOSTED=True)
     def test_hosted_edit_coresettings(self):
@@ -177,6 +229,112 @@ class TestCoreTasks(ObserverTestCase):
         self.assertTrue(r.data["sync_mesh_with_ormm"])
 
         self.check_not_authenticated("put", url)
+
+    def test_secrets_never_leave_the_backend(self):
+        """Los 4 secretos de la configuración global salen vacíos.
+
+        Enmascararlos en el formulario no basta: antes viajaban en claro dentro
+        del JSON, o sea que quedaban a la vista en las herramientas del
+        navegador y en cualquier proxy que registrara la respuesta.
+        """
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.smtp_host_password = "clave-smtp"
+        core.twilio_auth_token = "token-twilio"
+        core.mesh_token = "token-mesh"
+        core.open_ai_token = "sk-secreta"
+        core.save()
+
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+
+        for field in SECRET_FIELDS:
+            self.assertEqual(r.data[field], "")
+            self.assertTrue(r.data[f"{field}_set"])
+
+        # el JSON serializado tampoco los lleva por otra vía
+        body = json.dumps(r.data, default=str)
+        for value in ("clave-smtp", "token-twilio", "token-mesh", "sk-secreta"):
+            self.assertNotIn(value, body)
+
+    def test_secret_not_set_reports_false(self):
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.open_ai_token = ""
+        core.save()
+
+        r = self.client.get(url)
+        self.assertEqual(r.data["open_ai_token"], "")
+        self.assertFalse(r.data["open_ai_token_set"])
+
+    def test_empty_secret_preserves_stored_value(self):
+        """Guardar el formulario sin tocar un secreto no lo borra.
+
+        Es el caso normal: la consola ya no conoce el valor, así que manda
+        vacío. Si vacío significara "borrar", grabar la pestaña de correo
+        dejaría sin clave al asistente de IA.
+        """
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.smtp_host_password = "clave-smtp"
+        core.open_ai_token = "sk-secreta"
+        core.save()
+
+        r = self.client.put(
+            url,
+            {
+                "smtp_from_email": "nuevo@example.com",
+                "smtp_host_password": "",
+                "open_ai_token": "",
+            },
+        )
+        self.assertEqual(r.status_code, 200)
+
+        core = get_core_settings()
+        self.assertEqual(core.smtp_host_password, "clave-smtp")
+        self.assertEqual(core.open_ai_token, "sk-secreta")
+        self.assertEqual(core.smtp_from_email, "nuevo@example.com")
+
+    def test_new_secret_replaces_stored_value(self):
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.open_ai_token = "sk-vieja"
+        core.save()
+
+        r = self.client.put(url, {"open_ai_token": "sk-nueva"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(get_core_settings().open_ai_token, "sk-nueva")
+
+    def test_clear_sentinel_removes_secret(self):
+        """Sólo el centinela borra: es la única forma de apagar la integración."""
+        url = "/core/settings/"
+        core = get_core_settings()
+        core.open_ai_token = "sk-secreta"
+        core.twilio_auth_token = "token-twilio"
+        core.save()
+
+        r = self.client.put(url, {"open_ai_token": CLEAR_SECRET})
+        self.assertEqual(r.status_code, 200)
+
+        core = get_core_settings()
+        self.assertEqual(core.open_ai_token, "")
+        # borrar uno no toca a los demás
+        self.assertEqual(core.twilio_auth_token, "token-twilio")
+
+        r = self.client.get(url)
+        self.assertFalse(r.data["open_ai_token_set"])
+
+    def test_audit_serializer_masks_secrets(self):
+        """El log de auditoría se consulta desde la consola: tampoco los lleva."""
+        core = get_core_settings()
+        core.smtp_host_password = "clave-smtp"
+        core.open_ai_token = "sk-secreta"
+        core.save()
+
+        serialized = CoreSettings.serialize(core)
+        self.assertEqual(serialized["smtp_host_password"], "")
+        self.assertEqual(serialized["open_ai_token"], "")
+        self.assertNotIn("clave-smtp", json.dumps(serialized, default=str))
 
     @patch("observerrmm.utils.reload_nats")
     @patch("autotasks.tasks.remove_orphaned_win_tasks.delay")

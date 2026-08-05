@@ -359,8 +359,12 @@
     "meshSettings": "Configuración de MeshCentral",
     "meshSite": "Sitio de Mesh:",
     "meshToken": "Token de Mesh:",
+    "meshTokenSet": "Configurado",
+    "meshTokenMissing": "Sin configurar",
+    "meshManagedByDeploy": "La conexión con MeshCentral se define en el despliegue del servidor y no se edita desde la consola. Cambiarla acá dejaría sin funcionar el control remoto, los instaladores y el alta de agentes.",
+    "syncMeshPermsOn": "Activada",
+    "syncMeshPermsOff": "Desactivada",
     "meshDeviceGroup": "Nombre del grupo de dispositivos de Mesh:",
-    "usernameLowercase": "El usuario debe estar todo en minúsculas",
     "syncMeshPerms": "Sincronizar permisos de Mesh con Observer RMM:",
     "syncMeshPermsTooltip": "Se recomienda mantener esta opción habilitada; de lo contrario, todos los usuarios de Observer RMM tendrán permisos completos en MeshCentral sin importar sus permisos en Observer RMM.",
     "companyName": "Nombre de la empresa:",
@@ -373,8 +377,6 @@
     "reportHistoryDays": "Historial de informes (días):",
     "saveAndTestEmail": "Guardar y probar correo",
     "saveAndTestSms": "Guardar y probar SMS",
-    "confirmSyncTitle": "¿Estás seguro?",
-    "confirmSyncMessage": "Esta operación puede tardar varios minutos en completarse en segundo plano y puede consumir mucha CPU/disco, según tu hardware y la cantidad de agentes. Permite que la sincronización se complete por completo.",
     "yes": "Sí",
     "no": "No",
     "addEmailTitle": "Agregar correo",
@@ -897,6 +899,19 @@
   "customField": {
     "defaultValue": "Valor por defecto: {value}",
     "isRequired": "{name} es obligatorio"
+  },
+  "secretInput": {
+    "stored": "Valor guardado. Escribe uno nuevo para reemplazarlo.",
+    "notSet": "Sin configurar",
+    "typeNewValue": "Escribe el valor nuevo",
+    "willBeRemoved": "Se quitará al guardar la configuración",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "cancel": "Cancelar",
+    "undo": "Deshacer",
+    "remove": "Quitar",
+    "removeTitle": "¿Quitar el valor guardado?",
+    "removeMessage": "La integración deja de funcionar hasta que guardes un valor nuevo. Se aplica al guardar la configuración."
   },
   "dialogWrapper": {
     "close": "Cerrar"
