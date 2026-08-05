@@ -118,7 +118,9 @@ const $q = useQuasar();
 const { t } = useI18n();
 
 const editing = ref(false);
-const revealed = ref(true);
+// Arranca oculto: quien escribe una clave nueva no la deja a la vista de quien
+// pase por detrás. El botón del ojo la revela si hace falta revisar lo tecleado.
+const revealed = ref(false);
 const cleared = ref(false);
 
 const masked = computed(() => !editing.value && props.isSet && !cleared.value);
@@ -155,7 +157,7 @@ function update(value) {
 function beginEdit() {
   if (editing.value) return;
   editing.value = true;
-  revealed.value = true;
+  revealed.value = false;
   cleared.value = false;
   update("");
 }
@@ -177,8 +179,14 @@ function onKeydown(e) {
 
   beginEdit();
 
-  // el primer carácter no se pierde: el input de sólo lectura no lo recibe
-  if (e.key.length === 1) update(e.key);
+  // El primer carácter no se pierde: el input de sólo lectura no lo recibe. Pero
+  // `beginEdit` levanta el `readonly` en el microtask, ANTES de que el navegador
+  // inserte ese mismo carácter, así que sin `preventDefault` entra dos veces.
+  // Verificado en staging: llegar con el tabulador y escribir "Zx9" daba "ZZx9".
+  if (e.key.length === 1) {
+    e.preventDefault();
+    update(e.key);
+  }
 }
 
 function onBlur() {
