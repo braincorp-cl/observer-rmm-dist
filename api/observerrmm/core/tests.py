@@ -1152,3 +1152,70 @@ class TestStripAiReasoning(ObserverTestCase):
 
     def test_tolera_lo_que_no_es_texto(self):
         self.assertIsNone(strip_ai_reasoning(None))
+
+
+class TestSendMailReportaLasFallasDeSmtp(ObserverTestCase):
+    """El booleano de `send_mail` tiene que distinguir "salió" de "no salió".
+
+    Antes, el `except` sólo devolvía False cuando `test=True`; con el default
+    `test=False` caía al `return "ok", True` de más abajo, así que un SMTP caído
+    se reportaba como envío exitoso. El único caller con `test=True` es el botón
+    «Probar» de la UI, o sea justo la ruta inmune al defecto: por eso el
+    transporte podía verificarse verde mientras las alertas reales mentían.
+    """
+
+    def setUp(self):
+        self.setup_coresettings()
+        # Los defaults del modelo ya dejan `email_is_configured` en True; sólo
+        # falta el destinatario para llegar al bloque que abre la conexión.
+        self.coresettings.email_alert_recipients = ["ops@example.com"]
+        self.coresettings.save(update_fields=["email_alert_recipients"])
+
+    @patch("core.models.smtplib.SMTP")
+    def test_smtp_caido_devuelve_False(self, mock_smtp):
+        mock_smtp.side_effect = ConnectionRefusedError("connection refused")
+
+        msg, ok = self.coresettings.send_mail("asunto", "cuerpo")
+
+        self.assertFalse(ok)
+        self.assertIn("connection refused", msg)
+
+    @patch("core.models.smtplib.SMTP")
+    def test_login_rechazado_devuelve_False(self, mock_smtp):
+        import smtplib
+
+        # `send_mail` hace `with server:` sin `as`, así que las llamadas van al
+        # objeto que devolvió el constructor, no al del `__enter__`.
+        mock_smtp.return_value.login.side_effect = smtplib.SMTPAuthenticationError(
+            535, b"auth failed"
+        )
+
+        _, ok = self.coresettings.send_mail("asunto", "cuerpo")
+
+        self.assertFalse(ok)
+
+    @patch("core.models.smtplib.SMTP")
+    def test_con_test_True_sigue_devolviendo_False(self, mock_smtp):
+        """No es lo que se arregló, pero es lo que no se podía romper al hacerlo."""
+        mock_smtp.side_effect = ConnectionRefusedError("connection refused")
+
+        _, ok = self.coresettings.send_mail("asunto", "cuerpo", test=True)
+
+        self.assertFalse(ok)
+
+    @patch("core.models.smtplib.SMTP")
+    def test_envio_exitoso_devuelve_True(self, mock_smtp):
+        """Control positivo: sin esto, los tres de arriba pasarían con un
+        `send_mail` que devolviera False siempre."""
+        msg, ok = self.coresettings.send_mail("asunto", "cuerpo")
+
+        self.assertTrue(ok)
+        self.assertEqual(msg, "ok")
+        mock_smtp.return_value.send_message.assert_called_once()
+
+    @patch("core.models.smtplib.SMTP")
+    def test_envio_exitoso_con_test_True_conserva_su_mensaje(self, mock_smtp):
+        msg, ok = self.coresettings.send_mail("asunto", "cuerpo", test=True)
+
+        self.assertTrue(ok)
+        self.assertEqual(msg, "Email test ok!")

@@ -277,3 +277,64 @@ class TestManualUninstallDeleteTask(ObserverTestCase):
     def test_agente_inexistente_es_no_op(self):
         ret = manual_uninstall_delete_task("no-existe", djangotime.now().isoformat())
         self.assertIn("skipped", ret)
+
+
+class TestEmailSentNoMienteConSmtpCaido(ObserverTestCase):
+    """W-UNI-11: `email_sent` no puede estamparse si el correo no salió.
+
+    Los dos tests de más arriba que tocan `email_sent` parchean
+    `agents.uninstall.send_manual_uninstall_email` con `return_value=True/False`,
+    o sea sustituyen el eslabón en disputa: no podrían detectar este defecto ni
+    corriendo. Acá se parchea `smtplib` y se deja correr la cadena completa
+    (`record_manual_uninstall` -> `send_manual_uninstall_email` -> `send_mail`),
+    que es donde el booleano se decide.
+    """
+
+    def setUp(self):
+        self.setup_coresettings()
+        self.setup_client()
+        self.coresettings.email_alert_recipients = ["ops@example.com"]
+        self.coresettings.save(update_fields=["email_alert_recipients"])
+        self.agent = baker.make_recipe("agents.online_agent", hostname="PC-TALCA-08")
+        self.agent_user = User.objects.create_user(  # type: ignore
+            username=self.agent.agent_id,
+            agent=self.agent,
+            password=make_random_password(len=60),  # type: ignore
+        )
+        self.token = Token.objects.create(user=self.agent_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+
+    def payload(self):
+        return {
+            "agent_id": self.agent.agent_id,
+            "actor": "juan.perez",
+            "sudo_user": "juan.perez",
+            "login_user": "juan.perez",
+            "lan_ips": "10.20.0.77",
+            "local_time": "2026-08-02T15:33:00-04:00",
+            "source": "script-linux",
+        }
+
+    @patch("agents.tasks.manual_uninstall_delete_task.apply_async")
+    @patch("core.models.smtplib.SMTP")
+    def test_smtp_caido_deja_email_sent_en_None(self, mock_smtp, mock_task):
+        mock_smtp.side_effect = ConnectionRefusedError("connection refused")
+
+        r = self.client.post(URL, self.payload(), format="json")
+
+        self.assertEqual(r.status_code, 200)
+        alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
+        self.assertIsNone(alert.email_sent)
+        # La alerta y el borrado diferido no dependen del correo.
+        mock_task.assert_called_once()
+
+    @patch("agents.tasks.manual_uninstall_delete_task.apply_async")
+    @patch("core.models.smtplib.SMTP")
+    def test_smtp_arriba_si_estampa_email_sent(self, mock_smtp, mock_task):
+        """Control positivo: sin esto, el test de arriba pasaría con un
+        `email_sent` que no se estampara nunca."""
+        r = self.client.post(URL, self.payload(), format="json")
+
+        self.assertEqual(r.status_code, 200)
+        alert = Alert.objects.get(alert_type=AlertType.AGENT_UNINSTALL)
+        self.assertIsNotNone(alert.email_sent)

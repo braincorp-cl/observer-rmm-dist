@@ -398,8 +398,11 @@ class CoreSettings(BaseAuditModel):
         except Exception as e:
             logger.error(traceback.format_exc())
             DebugLog.error(message=f"Sending email failed with error: {e}")
-            if test:
-                return str(e), False
+            # El booleano de retorno es lo único que distingue "salió" de "no salió".
+            # Devolverlo acá sin mirar `test` es lo que permite que quien llama pueda
+            # confiar en él: antes, con test=False el except caía al `return "ok", True`
+            # de más abajo y una caída de SMTP se reportaba como envío exitoso.
+            return str(e), False
 
         if test:
             return "Email test ok!", True
