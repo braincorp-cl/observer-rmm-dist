@@ -9,7 +9,9 @@ Lo que estos tests protegen, en orden de importancia:
 2. Que el agente salga del TOKEN y no del cuerpo. Es un endpoint que borra
    máquinas.
 3. Que la ventana de gracia CANCELE el borrado si el agente vuelve a reportar,
-   porque reinstalar corre el mismo `uninstall`.
+   porque la desinstalación se puede caer DESPUÉS de haber avisado y ahí el
+   agente sigue vivo. Reinstalar NO es ese escenario: el instalador no llama
+   `Uninstall()` y de todos modos mintearía un `agent_id` nuevo, o sea otra fila.
 """
 
 import datetime as dt
@@ -26,8 +28,8 @@ from accounts.models import User
 from agents.models import Agent
 from agents.tasks import manual_uninstall_delete_task
 from alerts.models import Alert
-from logs.models import AuditLog
-from observerrmm.constants import AlertType, AuditActionType
+from logs.models import AuditLog, DebugLog
+from observerrmm.constants import AlertType, AuditActionType, DebugLogLevel
 from observerrmm.helpers import make_random_password
 from observerrmm.test import ObserverTestCase
 
@@ -249,7 +251,15 @@ class TestManualUninstallDeleteTask(ObserverTestCase):
     @patch("core.tasks.sync_mesh_perms_task.delay")
     @patch("observerrmm.utils.reload_nats")
     def test_cancela_si_el_agente_volvio_a_reportar(self, mock_nats, mock_perms):
-        """Reinstalar corre el mismo uninstall: no puede costar el registro."""
+        """La desinstalación que se cae DESPUÉS de avisar no puede costar el registro.
+
+        Es el escenario que la ventana protege de verdad: el aviso ya salió
+        (`NotifyUninstall` es lo primero que corre) pero lo que venía después
+        falló o se canceló, así que el agente sigue vivo con la misma config y
+        el mismo `agent_id`, y sigue reportando. Reinstalar NO es este caso:
+        el instalador no llama `Uninstall()` y de todos modos mintearía un
+        `agent_id` nuevo, o sea otra fila.
+        """
         avisado = djangotime.now()
         Agent.objects.filter(pk=self.agent.pk).update(
             last_seen=avisado + dt.timedelta(minutes=5)
@@ -277,6 +287,36 @@ class TestManualUninstallDeleteTask(ObserverTestCase):
     def test_agente_inexistente_es_no_op(self):
         ret = manual_uninstall_delete_task("no-existe", djangotime.now().isoformat())
         self.assertIn("skipped", ret)
+
+    @patch("core.tasks.sync_mesh_perms_task.delay")
+    @patch("observerrmm.utils.reload_nats")
+    def test_hora_ilegible_borra_pero_lo_DENUNCIA(self, mock_nats, mock_perms):
+        """La rama que falla hacia el borrado no puede ser silenciosa.
+
+        Sin hora del aviso no hay con qué comparar y el borrado sigue adelante.
+        Eso es deliberado, pero tiene que quedar registrado: la hora la
+        serializa el propio endpoint, así que si alguna vez llega malformada la
+        cancelación queda desactivada para toda la flota. Se exige el DebugLog
+        en nivel ERROR porque `DebugLog.warning` no se escribe si
+        `agent_debug_level` es ERROR, o sea desaparecería justo donde importa.
+        """
+        hostname = self.agent.hostname
+
+        ret = manual_uninstall_delete_task(self.agent.agent_id, "no-es-una-fecha")
+
+        self.assertIn("borrado", ret)
+        self.assertFalse(Agent.objects.filter(pk=self.agent.pk).exists())
+        self.assertTrue(
+            DebugLog.objects.filter(
+                log_level=DebugLogLevel.ERROR, message__contains="ilegible"
+            ).exists()
+        )
+        # El agente ya no existe, así que el log no puede colgar de él: `agent`
+        # es CASCADE. Es la misma lección que W-UNI-01 con la alerta.
+        self.assertIn(
+            hostname,
+            DebugLog.objects.filter(message__contains="ilegible").first().message,
+        )  # noqa: E501
 
 
 class TestEmailSentNoMienteConSmtpCaido(ObserverTestCase):

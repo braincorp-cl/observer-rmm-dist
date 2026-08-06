@@ -80,11 +80,23 @@ def remove_mesh_node_task(mesh_node_id: Optional[str], _pass: int = 0) -> str:
 def manual_uninstall_delete_task(agent_id: str, notified_at: str) -> str:
     """Borra el agente que avisó su propia desinstalación, tras la gracia.
 
-    La ventana existe por una sola razón: **reinstalar corre el mismo
-    `uninstall`**. Si borráramos al recibir el aviso, cada reinstalación se
-    llevaría el registro por delante. Y si la desinstalación se cae a la mitad
-    —el script falla después de avisar— el agente sigue vivo y reportando; en
-    ese caso hay que cancelar el borrado, no ejecutarlo.
+    La ventana existe por una razón: **la desinstalación se puede caer a la
+    mitad**. `NotifyUninstall` es lo PRIMERO que corre (W-UNI-04/07), así que el
+    aviso sale antes de que se destruya nada; si lo que viene después falla o se
+    cancela —el `systemctl stop` no prende, el usuario cancela el desinstalador
+    de Windows, alguien mata el script— el agente sigue vivo, con su config
+    intacta, y sigue reportando. Ahí hay que cancelar el borrado, no ejecutarlo.
+
+    OJO con la justificación que esta ventana NO tiene, porque estuvo escrita
+    acá y es falsa: **reinstalar no corre el `uninstall`**. Los instaladores
+    llaman `RemoveOldAgent` (agent_linux.sh) o no tocan el tema (agent_macos.sh),
+    nunca `Uninstall()`, así que una reinstalación no dispara ningún aviso ni
+    agenda ningún borrado. Y aunque lo hiciera no serviría de nada: cada
+    instalación mintea un `agent_id` nuevo (`agent/install.go:67`) y el servidor
+    rechaza reusar uno existente (`apiv3/views.py`, `NewAgent.post`), así que la
+    fila que este borrado resuelve es siempre la VIEJA, cuyo `last_seen` ya no
+    avanza. `revived` no puede ser True en una reinstalación: el escenario que
+    protege es el otro, el del mismo agente que nunca se fue.
 
     El criterio de cancelación es que el agente haya vuelto a dar señales
     DESPUÉS del aviso. Un agente realmente desinstalado no puede: el servicio ya
@@ -106,7 +118,30 @@ def manual_uninstall_delete_task(agent_id: str, notified_at: str) -> str:
     try:
         notified = dt.datetime.fromisoformat(notified_at)
     except (TypeError, ValueError):
+        # Sin la hora del aviso no hay con qué comparar y el borrado sigue
+        # adelante. Se DENUNCIA porque el modo de falla es silencioso: la hora
+        # la serializa el propio endpoint, así que si alguna vez llega
+        # malformada la cancelación queda desactivada para toda la flota sin que
+        # nada lo note. Un borrado de máquinas no puede degradarse en silencio.
         notified = None
+        # `.error` y no `.warning` a propósito: `DebugLog.warning` sólo escribe
+        # si `agent_debug_level` es INFO o WARN (logs/models.py:437-448), así que
+        # una flota configurada en ERROR no vería nunca este aviso — que es
+        # justo el silencio que se quiere romper. `.error` sólo se calla en
+        # CRITICAL.
+        # SIN `agent=`: `DebugLog.agent` es CASCADE y el agente se borra tres
+        # líneas más abajo, así que ligarlo se llevaría por delante el único
+        # registro de que el borrado corrió a ciegas. Es la misma trampa que
+        # W-UNI-01 con la alerta; el contexto va denormalizado en el mensaje.
+        DebugLog.error(
+            message=(
+                f"Borrado por desinstalación manual de {agent.hostname} "
+                f"({agent_id}): la hora del aviso llegó ilegible "
+                f"({notified_at!r}), así que la ventana de gracia no se puede "
+                f"evaluar y el borrado sigue adelante."
+            ),
+            log_type=DebugLogType.AGENT_ISSUES,
+        )
 
     # Margen contra el propio check-in que el agente pueda tener en vuelo cuando
     # avisa. Sin él, un `last_seen` escrito medio segundo después del aviso se
