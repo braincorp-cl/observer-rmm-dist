@@ -34,7 +34,7 @@ uvicorn[standard]==0.46.0
 uWSGI==2.0.31
 validators==0.24.0
 vine==5.1.0
-websockets==13.1
+websockets==17.0.1
 zipp==3.23.0
 pandas==2.3.3
 kaleido==1.2.0
