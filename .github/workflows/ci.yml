@@ -122,9 +122,10 @@ jobs:
           pip install setuptools==${SETUPTOOLS_VER} wheel==${WHEEL_VER}
           pip install -r requirements.txt -r requirements-test.txt
 
-      # `black` va pinneado en requirements-test.txt (26.5.1). Sin pin, el gate
-      # se pone rojo solo el dia que el formateador cambia de criterio, sin que
-      # nadie toque el codigo.
+      # TODA la cadena de pruebas va pinneada en requirements-test.txt (black
+      # incluido). Sin pin, el gate se pone rojo solo el dia que un paquete de
+      # terceros publica una version nueva, sin que nadie toque el codigo. El
+      # porque de cada pin esta en la cabecera de ese archivo.
       - name: Codestyle black
         working-directory: api
         run: black --exclude migrations/ --check --diff observerrmm
