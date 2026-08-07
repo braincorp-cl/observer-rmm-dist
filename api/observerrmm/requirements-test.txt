@@ -2,7 +2,10 @@ coverage
 model_bakery
 black==26.5.1
 pytest
-pytest-django
+# pytest-django 4.13.0 (2026-08-05) soporta solo Django 5.2/6.0: su fixture
+# _django_db_helper lee SimpleTestCase._pre_setup_ran_eagerly, atributo que no
+# existe en la 4.2 LTS que corre en los servidores. Techo hasta migrar Django.
+pytest-django<4.13
 pytest-xdist
 pytest-cov
 pytest-randomly
