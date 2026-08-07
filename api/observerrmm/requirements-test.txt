@@ -22,7 +22,7 @@
 # a mano cada cierto tiempo, o el pin se vuelve deuda silenciosa.
 
 coverage==7.15.3
-model_bakery==1.23.5
+model_bakery==1.24.0
 black==26.5.1
 pytest==9.1.1
 pytest-django==4.12.0
