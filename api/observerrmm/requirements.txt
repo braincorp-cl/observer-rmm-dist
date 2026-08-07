@@ -22,7 +22,7 @@ pycparser==2.22
 pycryptodome==3.23.0
 pyotp==2.9.0
 pyparsing==3.2.3
-python-ipware==2.0.2
+python-ipware==3.0.0
 qrcode==8.2
 requests==2.34.0
 six==1.17.0
