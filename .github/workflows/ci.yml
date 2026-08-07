@@ -18,7 +18,7 @@ jobs:
     name: Changelog al dia
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: ORMM_VERSION tiene entrada en CHANGELOG.md
         run: |
@@ -36,10 +36,10 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           # ansible-core >=2.22 (ver requirements.txt) requiere Python >=3.12
           python-version: "3.12"
@@ -160,10 +160,10 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11.8"
           check-latest: true
