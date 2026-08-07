@@ -8,8 +8,33 @@
 # estan encendidas, y esto agrega las de version.
 #
 # Cadencia semanal a proposito. La literatura contra Dependabot es toda sobre el
-# RUIDO de PRs diarios sin agrupar; con `groups` y cadencia semanal esto son ~4
-# PRs a la semana, no 40 al mes.
+# RUIDO de PRs diarios sin agrupar; con `groups` y cadencia semanal el volumen se
+# mantiene manejable.
+#
+# ── DOS grupos por ecosistema: `-menores` y `-mayores` ───────────────────────
+#
+# La primera version de este archivo solo agrupaba `minor`/`patch`, y eso
+# subestimo el ruido: en la corrida inaugural del 2026-08-06 los minor/patch se
+# colapsaron bien (32 dependencias en 2 PRs), pero los MAJOR salieron de a uno
+# cada uno — 6 PRs sueltos (pinia, eslint-config-prettier, cryptography,
+# websockets, weasyprint, python-ipware). Un grupo sin `update-types` los habria
+# tragado a todos, incluidos los minor.
+#
+# Por eso van dos grupos y no uno solo:
+#
+#   -menores  el bulto seguro, mergeable de una. Es lo que uno quiere poder
+#             fusionar sin pensar mucho.
+#   -mayores  UN PR revisable en vez de seis, pero SEPARADO — si se mezclaran
+#             con los menores, un solo major riesgoso (pinia 2->4, websockets
+#             13->17) bloquearia tambien a los bumps inocuos.
+#
+# El ecosistema `github-actions` ya se comportaba asi: su grupo no declara
+# `update-types`, de modo que `checkout@v4 -> v7` viajo agrupado desde el
+# principio (PR #1).
+#
+# ⚠️ El cambio de agrupamiento NO reescribe los PRs ya abiertos: Dependabot los
+# reemplaza en su proxima corrida programada (lunes 07:00). Los sueltos que
+# queden vivos hasta entonces se cierran a mano o se dejan morir solos.
 
 version: 2
 updates:
@@ -29,6 +54,9 @@ updates:
       python-menores:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      python-mayores:
+        patterns: ["*"]
+        update-types: ["major"]
     ignore:
       # TECHO DURO, no preferencia: la 4.13.0 lee
       # SimpleTestCase._pre_setup_ran_eagerly, que solo existe desde Django 5.2.
@@ -54,6 +82,9 @@ updates:
       frontend-menores:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      frontend-mayores:
+        patterns: ["*"]
+        update-types: ["major"]
     ignore:
       # Un major de estos no es un PR: es un proyecto. Quasar/Vue tocan toda la
       # UI (y hay un rediseno sin decidir, ADR-027); el salto de eslint 8 -> 9 es
@@ -95,6 +126,9 @@ updates:
       go-menores:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      go-mayores:
+        patterns: ["*"]
+        update-types: ["major"]
 
   # ── GitHub Actions ──────────────────────────────────────────────────────────
   # La CI ya viene avisando que actions/checkout@v4 y actions/setup-python@v5
