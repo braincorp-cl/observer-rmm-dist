@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Block legacy upstream strings
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Scan for legacy strings
         run: |

@@ -27,7 +27,7 @@ jobs:
     name: Validate release notes
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Ensure release-notes/<tag>.md exists and is not a stub
         run: |
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [validate-notes]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # El titulo va sin la "v" para no romper la consistencia con las releases
       # ya publicadas ("Observer RMM 1.4.1").
@@ -75,7 +75,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # El cuerpo sale del archivo versionado, NO de generate_release_notes
           # (que solo emite un enlace "Full Changelog").
