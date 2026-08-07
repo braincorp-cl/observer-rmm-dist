@@ -47,11 +47,77 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # `ansible.cfg` fija `vault_password_file = .vault_pass`, y ansible-core
+      # VALIDA ese archivo al arrancar aunque no haya nada que descifrar: si esta
+      # vacio, `ansible-playbook --syntax-check` muere con "Invalid vault password"
+      # y ansible-lint lo reporta como 15 `internal-error`.
+      #
+      # Los PRs de Dependabot NO reciben los secretos de Actions (GitHub les da un
+      # almacen aparte, que aca esta vacio a proposito), asi que el secreto
+      # resolvia a cadena vacia y TODO PR de Dependabot nacia rojo. Medido el
+      # 2026-08-06 en los PRs #1 y #2.
+      #
+      # El marcador es seguro y no baja la cobertura: en este repo NO hay ningun
+      # fichero cifrado (`group_vars/*/vault.yml` esta en .gitignore; la unica
+      # mencion a `$ANSIBLE_VAULT` es una condicion en install.yml:233). Se
+      # verifico en local: con el archivo vacio ansible-lint da RC=2, con marcador
+      # RC=0 y el mismo conjunto de reglas. Si algun dia se versiona contenido
+      # cifrado, el camino del secreto real sigue intacto y es el que se usa en
+      # push a main; lo que fallaria seria el PR de Dependabot, que es la senal
+      # correcta.
+      #
+      # Deliberadamente NO se copia el secreto al almacen de Dependabot: eso lo
+      # expondria a workflows que corren en ramas propuestas por un bot que, entre
+      # otras cosas, bumpea acciones de terceros.
       - name: Write vault password file
-        run: printf '%s' "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          if [ -n "$ANSIBLE_VAULT_PASSWORD" ]; then
+            printf '%s' "$ANSIBLE_VAULT_PASSWORD" > .vault_pass
+            echo "vault: secreto real"
+          else
+            printf '%s' 'sin-secreto-nada-en-este-repo-esta-cifrado' > .vault_pass
+            echo "::notice::Sin ANSIBLE_VAULT_PASSWORD (PR de Dependabot). Se usa marcador; no hay ficheros cifrados versionados."
+          fi
+          chmod 600 .vault_pass
 
       - name: ansible-lint
         run: ansible-lint
+
+  # Compilacion del binario Go. Este repo tiene un `go.mod` propio (modulo
+  # `observer-rmm-dist`, el `nats-api` de main.go) y hasta el 2026-08-06 NINGUN
+  # job lo construia: los gates eran ansible-lint y Django, y el Go pasaba sin
+  # que nadie lo mirara.
+  #
+  # El hueco se destapo con el PR #2 de Dependabot, que subia `nats.go` a v1.52.0
+  # y con eso arrastraba la directiva `go 1.23.12 -> 1.25.0`. Todos sus checks
+  # daban verde y ninguno decia si el arbol seguia compilando.
+  #
+  # 🪤 Ojo con lo que este job NO cubre: el binario desplegado va VERSIONADO en
+  # `roles/observer_api/files/nats-api` y Ansible lo COPIA (tasks/main.yml:220),
+  # no lo compila. O sea que un `go.mod` verde aca no implica que produccion tenga
+  # ese codigo: hay que recompilar y commitear el binario a mano.
+  #
+  # `go-version-file: go.mod` a proposito: el toolchain de la CI sigue a la
+  # directiva del repo, asi que un PR que la suba se construye con la version que
+  # pide, y si no compila se ve en el PR.
+  go:
+    name: nats-api (go build + vet)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: go build
+        run: go build -v ./...
+
+      - name: go vet
+        run: go vet ./...
 
   # Gates del backend Django. Vivian en el hub (`observer-rmm`,
   # .github/workflows/ci-tests.yml) y se movieron aca el 2026-08-03 por decision
