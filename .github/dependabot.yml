@@ -1,0 +1,115 @@
+# Dependabot — actualizaciones de version para observer-rmm-dist.
+#
+# Por que existe este archivo: el 2026-08-06 la CI de `main` se puso roja sin que
+# nadie tocara el codigo. pytest-django publico la 4.13.0 y dejo caer Django 4.2
+# LTS; el commit acusado solo tocaba un .ps1. La respuesta fue pinear las 12
+# dependencias de prueba a version exacta (15d1b64) — pero un pin sin nadie que
+# avise es deuda silenciosa. Esto es la contraparte: las alertas de seguridad ya
+# estan encendidas, y esto agrega las de version.
+#
+# Cadencia semanal a proposito. La literatura contra Dependabot es toda sobre el
+# RUIDO de PRs diarios sin agrupar; con `groups` y cadencia semanal esto son ~4
+# PRs a la semana, no 40 al mes.
+
+version: 2
+updates:
+  # ── Backend Django (pip) ────────────────────────────────────────────────────
+  # Cubre requirements.txt, requirements-test.txt y requirements-dev.txt.
+  - package-ecosystem: "pip"
+    directory: "/api/observerrmm"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      python-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # TECHO DURO, no preferencia: la 4.13.0 lee
+      # SimpleTestCase._pre_setup_ran_eagerly, que solo existe desde Django 5.2.
+      # Mientras los servidores corran la 4.2 LTS, cualquier PR aca vuelve a
+      # poner los 232 tests con marca django_db en rojo. Levantar este ignore es
+      # parte de la migracion de Django, no un bump suelto.
+      - dependency-name: "pytest-django"
+        versions: [">=4.13"]
+
+  # ── Frontend Quasar (npm) ───────────────────────────────────────────────────
+  # Las 36 dependencias ya estan pinneadas exactas en package.json.
+  - package-ecosystem: "npm"
+    directory: "/web/app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      frontend-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # Un major de estos no es un PR: es un proyecto. Quasar/Vue tocan toda la
+      # UI (y hay un rediseno sin decidir, ADR-027); el salto de eslint 8 -> 9 es
+      # la migracion a flat config, que arrastra a todo el stack de lint. Un PR
+      # permanentemente rojo no es una senal, es ruido.
+      - dependency-name: "quasar"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@quasar/app-vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@quasar/cli"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vue"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-vue"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/eslint-plugin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/parser"
+        update-types: ["version-update:semver-major"]
+
+  # ── nats-api (gomod) ────────────────────────────────────────────────────────
+  # OJO: este go.mod es el del binario nats-api (main.go, go 1.23.12) y NO tiene
+  # nada que ver con el del agente. El del agente esta clavado en `go 1.20` para
+  # que un solo arbol alimente los dos toolchains de ADR-023 (Win7). Aca no hay
+  # esa atadura: subir modulos es seguro.
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      go-menores:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  # La CI ya viene avisando que actions/checkout@v4 y actions/setup-python@v5
+  # apuntan a Node 20, forzado hoy a Node 24. Esto lo convierte en un PR en vez
+  # de una anotacion que nadie lee.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        patterns: ["*"]
