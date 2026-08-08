@@ -207,6 +207,23 @@
             >
               <q-tooltip>{{ $t("agentTable.osMacos") }}</q-tooltip>
             </q-icon>
+            <!--
+              Agente de 32 bits sobre un Windows de 64 bits: instalación
+              equivocada. Va junto al icono de plataforma porque es un problema de
+              arquitectura, y en la TABLA y no sólo en el detalle porque el equipo
+              se ve perfectamente sano — está en línea, reporta, y hasta dice que
+              se está actualizando. Sin esta marca no hay forma de encontrarlo
+              mirando la flota.
+            -->
+            <q-icon
+              v-if="props.row.wrong_arch_install"
+              name="warning"
+              size="sm"
+              color="negative"
+              class="q-ml-xs"
+            >
+              <q-tooltip>{{ $t("agentTable.wrongArchInstall") }}</q-tooltip>
+            </q-icon>
           </q-td>
 
           <q-td key="mon-type" :props="props">

@@ -182,6 +182,36 @@ class Agent(BaseAuditModel):
                 return "32"
         return None
 
+    @property
+    def wrong_arch_install(self) -> bool:
+        """El agente de 32 bits instalado sobre un Windows de 64 bits.
+
+        No es una configuración soportada: es una instalación equivocada, y el
+        equipo queda en un estado que **se ve sano y no lo está**. El instalador
+        deja los archivos en ``C:\\Program Files\\ObserverAgent`` mientras el
+        agente, corriendo bajo WOW64, deduce ``C:\\Program Files (x86)``. De esa
+        divergencia salen dos daños silenciosos: la actualización nunca surte
+        efecto —el equipo re-descarga el instalador cada hora, para siempre— y el
+        inventario de software queda incompleto.
+
+        **No se corrige sola.** El instalador del update se elige con el
+        ``goarch`` que el propio agente reporta (ver ``do_update`` acá abajo), así
+        que un agente 386 pide 386 indefinidamente. La corrección exige reinstalar
+        con el instalador de 64 bits.
+
+        La detección no necesita ningún dato nuevo: son dos campos que ya están.
+        ``goarch`` es la arquitectura del BINARIO, y ``arch`` la del EQUIPO,
+        parseada del ``operating_system`` que reporta el agente.
+
+        Desde ``4c2f1da`` del agente el instalador de 32 bits se niega a
+        instalarse de cero en un x64, así que esto sólo debería aparecer en
+        equipos anteriores a ese cambio.
+        """
+        if self.plat != AgentPlat.WINDOWS:
+            return False
+
+        return self.goarch == GoArch.i386 and self.arch == "64"
+
     def do_update(self, *, token: str = "", force: bool = False) -> str:
         ver = settings.LATEST_AGENT_VER
 

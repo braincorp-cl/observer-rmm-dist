@@ -118,3 +118,63 @@ class TestHexMeshNodeId(ObserverTestCase):
             mesh_node_id="deadbeefcafe1234567890abcdef1234",
         )
         self.assertEqual(agent.hex_mesh_node_id, "3q2@78r@EjRWeJCrze8SNA==")
+
+
+class TestWrongArchInstall(ObserverTestCase):
+    """El agente de 32 bits sobre un Windows de 64 bits.
+
+    El modo de falla que esto detecta es MUDO: el equipo se ve en línea y sano,
+    pero su actualización nunca surte efecto —re-descarga el instalador cada
+    hora, para siempre— y su inventario de software queda incompleto. Y no se
+    corrige solo: `do_update` elige el instalador con el `goarch` que el propio
+    agente reporta, así que un 386 pide 386 indefinidamente.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+
+    def _make_agent(self, **kwargs):
+        site = baker.make("clients.Site")
+        return baker.make("agents.Agent", site=site, **kwargs)
+
+    def test_386_sobre_windows_de_64_bits_se_marca(self):
+        agent = self._make_agent(
+            plat="windows",
+            goarch="386",
+            operating_system="Microsoft Windows 7 Professional, 64 bit v6.1.7601",
+        )
+        self.assertTrue(agent.wrong_arch_install)
+
+    def test_386_sobre_windows_de_32_bits_no_se_marca(self):
+        # El caso legítimo, y el que el banco de pruebas quería ejercitar.
+        agent = self._make_agent(
+            plat="windows",
+            goarch="386",
+            operating_system="Microsoft Windows 7 Professional, 32 bit v6.1.7601",
+        )
+        self.assertFalse(agent.wrong_arch_install)
+
+    def test_amd64_sobre_windows_de_64_bits_no_se_marca(self):
+        agent = self._make_agent(
+            plat="windows",
+            goarch="amd64",
+            operating_system="Microsoft Windows 10 Pro, 64 bit v22H2",
+        )
+        self.assertFalse(agent.wrong_arch_install)
+
+    def test_sin_operating_system_no_se_marca(self):
+        # `arch` devuelve None y no hay nada que afirmar. Ante la duda NO se
+        # acusa: una marca falsa manda a alguien a reinstalar un equipo sano.
+        agent = self._make_agent(plat="windows", goarch="386", operating_system=None)
+        self.assertFalse(agent.wrong_arch_install)
+
+    def test_posix_nunca_se_marca(self):
+        # En Linux y macOS `arch` devuelve el propio goarch, así que sin la guarda
+        # de plataforma un agente 386 sobre Linux se marcaría solo.
+        for plat in ("linux", "darwin"):
+            with self.subTest(plat=plat):
+                agent = self._make_agent(
+                    plat=plat, goarch="386", operating_system="Debian 12, 64 bit"
+                )
+                self.assertFalse(agent.wrong_arch_install)

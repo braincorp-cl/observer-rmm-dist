@@ -33,6 +33,10 @@ class AgentCustomFieldSerializer(serializers.ModelSerializer):
 class AgentSerializer(serializers.ModelSerializer):
     winupdatepolicy = WinUpdatePolicySerializer(many=True, read_only=True)
     status = serializers.ReadOnlyField()
+    # Agente de 32 bits sobre un Windows de 64 bits: instalación equivocada que
+    # deja el equipo sin actualizarse y con el inventario incompleto, sin síntoma
+    # visible. Ver Agent.wrong_arch_install.
+    wrong_arch_install = serializers.ReadOnlyField()
     cpu_model = serializers.ReadOnlyField()
     local_ips = serializers.ReadOnlyField()
     make_model = serializers.ReadOnlyField()
@@ -84,6 +88,7 @@ class AgentSerializer(serializers.ModelSerializer):
 
 class AgentTableSerializer(serializers.ModelSerializer):
     status = serializers.ReadOnlyField()
+    wrong_arch_install = serializers.ReadOnlyField()
     checks = serializers.SerializerMethodField()
     client_name = serializers.ReadOnlyField(source="site.client.name")
     site_name = serializers.ReadOnlyField(source="site.name")
@@ -168,6 +173,9 @@ class AgentTableSerializer(serializers.ModelSerializer):
             "block_policy_inheritance",
             "plat",
             "goarch",
+            # No agrega consultas: `plat`, `goarch` y `operating_system` —los tres
+            # datos de los que sale— ya están en esta misma lista.
+            "wrong_arch_install",
             "has_patches_pending",
             "version",
             "operating_system",

@@ -166,6 +166,7 @@
     "osWindows": "Microsoft Windows",
     "osLinux": "Linux",
     "osMacos": "macOS",
+    "wrongArchInstall": "Agente de 32 bits sobre un equipo de 64 bits: instalación equivocada. Las actualizaciones no surten efecto y el inventario de software queda incompleto. Requiere reinstalar con el instalador de 64 bits (amd64).",
     "typeServer": "Servidor",
     "typeWorkstation": "Estación de trabajo",
     "maintenanceEnabled": "Modo mantenimiento activado",

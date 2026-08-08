@@ -166,6 +166,7 @@
     "osWindows": "Microsoft Windows",
     "osLinux": "Linux",
     "osMacos": "macOS",
+    "wrongArchInstall": "32-bit agent on a 64-bit machine: wrong installation. Updates never take effect and the software inventory is incomplete. Requires reinstalling with the 64-bit (amd64) installer.",
     "typeServer": "Server",
     "typeWorkstation": "Workstation",
     "maintenanceEnabled": "Maintenance Mode Enabled",
