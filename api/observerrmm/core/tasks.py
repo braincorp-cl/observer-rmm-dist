@@ -34,7 +34,7 @@ from core.mesh_utils import (
 from core.models import CoreSettings
 from core.utils import get_core_settings, get_mesh_ws_url, make_alpha_numeric
 from ee.reporting.tasks import prune_report_history_task
-from logs.models import PendingAction
+from logs.models import DebugLog, PendingAction
 from logs.tasks import prune_audit_log, prune_debug_log
 from observerrmm.celery import app
 from observerrmm.constants import (
@@ -49,6 +49,7 @@ from observerrmm.constants import (
     AgentPlat,
     AlertSeverity,
     AlertType,
+    DebugLogType,
     PAAction,
     PAStatus,
     TaskRunStatus,
@@ -129,6 +130,76 @@ def core_maintenance_tasks() -> None:
 
     if core.report_history_prune_days > 0:
         prune_report_history_task.delay(core.report_history_prune_days)
+
+
+@app.task
+def mesh_orphan_nodes_census_task() -> str:
+    """Censo de nodos de MeshCentral que ninguna fila del RMM apunta. NO borra.
+
+    Existe porque el servidor tiene UNA sola vía para borrar un nodo —`post_delete`
+    de Agent → `remove_mesh_node_task`— y esa vía necesita justamente la fila que
+    al huérfano le falta. Nadie más los va a ver: no aparecen en la consola del
+    RMM, sólo en MeshCentral, y por eso la lista del mesh deja de calzar con la
+    del RMM sin que nada lo denuncie.
+
+    🪤 El agente NO los limpia al desinstalarse, aunque el `-fulluninstall`
+    devuelva 0: es LOCAL por diseño (verificado en la fuente de MeshAgent el
+    2026-08-09, `modules/agent-installer.js` no tiene una sola primitiva de red).
+    Esperar que el equipo se desregistre solo es la premisa que este censo
+    reemplaza por una medición.
+
+    El borrado se deja afuera A PROPÓSITO: por la API `removedevices` no es
+    confiable a escala (626 nodos "ok", 8 persistidos — prueba de producción del
+    2026-07-06), así que se hace por el runbook SQL con
+    `bulk_delete_orphans_meshagents --emit-sql`.
+
+    Se registra con `.error` y no con `.warning` porque `DebugLog.warning` sólo
+    escribe si el nivel es INFO o WARN, y la flota corre en ERROR: un aviso que
+    nadie vería es lo mismo que no avisar.
+    """
+    from core.mesh_orphans import census
+
+    try:
+        r = census()
+    except Exception as e:
+        DebugLog.error(
+            message=f"Censo de nodos Mesh huérfanos: no se pudo completar ({e}).",
+            log_type=DebugLogType.SYSTEM_ISSUES,
+        )
+        return f"error: {e}"
+
+    orphans = r["orphans"]
+    if r["skipped"]:
+        # No se pueden dar por conocidos: eso taparía un huérfano de verdad.
+        DebugLog.error(
+            message=(
+                f"Censo de nodos Mesh huérfanos: {r['skipped']} agente(s) con "
+                "mesh_node_id ilegible, no cuentan como conocidos."
+            ),
+            log_type=DebugLogType.SYSTEM_ISSUES,
+        )
+
+    if not orphans:
+        return (
+            f"sin huérfanos: {r['total_nodes']} nodos del grupo '{r['group']}' "
+            f"contra {r['known']} agentes"
+        )
+
+    muestra = ", ".join(
+        f"{n['name'] or '(sin nombre)'} [{n['_id']}]" for n in orphans[:10]
+    )
+    resto = f" (+{len(orphans) - 10} más)" if len(orphans) > 10 else ""
+    DebugLog.error(
+        message=(
+            f"{len(orphans)} nodo(s) huérfano(s) en MeshCentral: existen en el grupo "
+            f"'{r['group']}' pero ningún agente del RMM los apunta ({r['total_nodes']} "
+            f"nodos evaluados, {r['known']} agentes). El borrado NO es automático: "
+            f"correr `bulk_delete_orphans_meshagents --emit-sql` y ejecutar el SQL del "
+            f"runbook. Huérfanos: {muestra}{resto}."
+        ),
+        log_type=DebugLogType.SYSTEM_ISSUES,
+    )
+    return f"{len(orphans)} huérfano(s) de {r['total_nodes']} nodos"
 
 
 @app.task

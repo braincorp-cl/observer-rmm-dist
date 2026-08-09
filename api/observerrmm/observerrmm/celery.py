@@ -84,6 +84,16 @@ app.conf.beat_schedule = {
         "task": "ee.reporting.tasks.scheduled_reports_runner",
         "schedule": crontab(),
     },
+    # Censo de nodos Mesh huérfanos: sólo LEE y reporta, no borra (el borrado va
+    # por el runbook SQL; la API removedevices no persiste a escala). Una vez al
+    # día y de madrugada porque un huérfano es deriva de inventario, no un
+    # incidente: nace de un enrolamiento fallido y se queda quieto. Más seguido
+    # sería una lectura del websocket de control —el mismo puerto que atienden
+    # los agentes en vivo— sin nada nuevo que mirar.
+    "mesh-orphan-nodes-census": {
+        "task": "core.tasks.mesh_orphan_nodes_census_task",
+        "schedule": crontab(minute=40, hour=4),
+    },
 }
 
 

@@ -42,20 +42,16 @@ import json
 import time
 from pathlib import Path
 
-import websockets
 from django.core.management.base import BaseCommand
 
-from agents.models import Agent
-from observerrmm.constants import ORMM_WS_MAX_SIZE
-from core.utils import (
-    _b64_to_hex,
-    get_core_settings,
-    get_mesh_device_id,
-    get_mesh_ws_url,
-)
+# El descubrimiento vive en core/mesh_orphans.py, compartido con el censo diario
+# (core.tasks.mesh_orphan_nodes_census_task). Dos copias del cruce «nodos del
+# grupo contra filas del RMM» es la forma más fácil de que un día el censo y el
+# runbook cuenten cosas distintas y nadie sepa cuál mirar.
+from core.mesh_orphans import known_node_ids, list_group_nodes
+from core.utils import get_core_settings, get_mesh_device_id, get_mesh_ws_url
 
 MANIFEST_DIR = "/tmp"
-WS_TIMEOUT = 30  # segundos de espera por la respuesta de la lectura antes de abortar
 RETRIES = 2  # reintentos adicionales ante fallas transitorias de conexión
 RETRY_BACKOFF = 3  # segundos entre reintentos
 
@@ -85,38 +81,6 @@ def _err(e: Exception) -> str:
         if msg
         else f"{type(e).__name__} (sin mensaje propio)"
     )
-
-
-async def _list_mesh_nodes(uri: str, mesh_id: str) -> list:
-    """Lista (read-only) los nodos del grupo de dispositivos del RMM en MeshCentral.
-
-    Devuelve [{'_id': 'node//<b64>', 'name': <str>}, ...] SOLO del mesh cuyo id
-    coincide con core.mesh_device_group, evitando considerar nodos de otros grupos.
-    Es una lectura ligera (acción `nodes`), no toca el borrado.
-    """
-
-    async def _inner():
-        async with websockets.connect(
-            uri, max_size=ORMM_WS_MAX_SIZE, open_timeout=10
-        ) as ws:
-            await ws.send(json.dumps({"action": "nodes", "responseid": "ormm"}))
-
-            async for message in ws:
-                r = json.loads(message)
-                if r.get("action") != "nodes":
-                    continue
-
-                nodes = []
-                for mesh_key, group_nodes in r.get("nodes", {}).items():
-                    if mesh_key.split("mesh//")[-1] != mesh_id:
-                        continue
-                    for n in group_nodes:
-                        nodes.append({"_id": n["_id"], "name": n.get("name", "")})
-                return nodes
-
-        return []
-
-    return await asyncio.wait_for(_inner(), timeout=WS_TIMEOUT)
 
 
 class Command(BaseCommand):
@@ -176,19 +140,9 @@ class Command(BaseCommand):
         return None, last_err
 
     def _build_known_set(self):
-        """Conjunto de node ids conocidos por el RMM. Agent.mesh_node_id está en hex;
-        _b64_to_hex lo lleva a la forma b64 del mesh (node//<b64>)."""
-        known = set()
-        skipped = 0
-        for a in Agent.objects.only("mesh_node_id"):
-            if not a.mesh_node_id:
-                continue
-            try:
-                known.add(f"node//{_b64_to_hex(a.mesh_node_id)}")
-            except Exception:
-                # mesh_node_id corrupto/no-hex: no tumbar el comando por un registro malo.
-                skipped += 1
-        return known, skipped
+        """Node ids conocidos por el RMM. La lógica vive en core/mesh_orphans.py,
+        compartida con el censo diario."""
+        return known_node_ids()
 
     def _write_manifest(self, entries: list, out_dir: str, ts: str) -> str:
         path = str(Path(out_dir) / f"mesh_orphans_preview_{ts}.json")
@@ -281,7 +235,7 @@ class Command(BaseCommand):
             return None, None
 
         nodes, err = self._run_with_retries(
-            "listado de nodos", lambda: _list_mesh_nodes(uri, mesh_id), RETRIES
+            "listado de nodos", lambda: list_group_nodes(uri, mesh_id), RETRIES
         )
         if err is not None:
             self.stdout.write(
