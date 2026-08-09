@@ -32,12 +32,14 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
   const syntax = ref<string | undefined>("");
   const plat = ref<AgentPlatformType | undefined>(opts?.plat);
 
-  // specify parameters to filter out community scripts
+  // specify parameters to filter out the product's script templates
   async function getScriptOptions() {
     scriptOptions.value = Object.freeze(
       formatScriptOptions(
+        // `showCommunityScripts` es el nombre del query param que espera el
+        // backend (scripts/views.py): se manda tal cual a propósito.
         await fetchScripts({
-          showCommunityScripts: showCommunityScripts.value,
+          showCommunityScripts: showScriptTemplates.value,
         }),
       ),
     ) as ScriptOption[];
@@ -60,9 +62,9 @@ export function useScriptDropdown(opts?: useScriptDropdownParams) {
     }
   });
 
-  // vuex show community scripts
+  // vuex show script templates
   const store = useStore();
-  const showCommunityScripts = computed(() => store.state.showCommunityScripts);
+  const showScriptTemplates = computed(() => store.state.showScriptTemplates);
 
   // filter for only getting server tasks
   const serverScriptOptions = computed(

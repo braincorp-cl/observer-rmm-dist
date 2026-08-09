@@ -83,12 +83,12 @@
           no-caps
           class="q-ml-sm"
           :label="
-            showCommunityScripts
+            showScriptTemplates
               ? $t('scriptManager.hideScriptTemplates')
               : $t('scriptManager.showScriptTemplates')
           "
-          :icon="showCommunityScripts ? 'visibility_off' : 'visibility'"
-          @click="setShowCommunityScripts(!showCommunityScripts)"
+          :icon="showScriptTemplates ? 'visibility_off' : 'visibility'"
+          @click="setShowScriptTemplates(!showScriptTemplates)"
         />
 
         <q-btn
@@ -661,9 +661,7 @@ export default {
   setup() {
     // setup vuex store
     const store = useStore();
-    const showCommunityScripts = computed(
-      () => store.state.showCommunityScripts,
-    );
+    const showScriptTemplates = computed(() => store.state.showScriptTemplates);
 
     // setup quasar plugins
     const { dialogRef, onDialogHide } = useDialogPluginComponent();
@@ -820,11 +818,11 @@ export default {
 
     const visibleScripts = computed(() => {
       if (showHiddenScripts.value) {
-        return showCommunityScripts.value
+        return showScriptTemplates.value
           ? scripts.value
           : scripts.value.filter((i) => i.script_type !== "builtin");
       } else {
-        return showCommunityScripts.value
+        return showScriptTemplates.value
           ? scripts.value.filter((i) => !i.hidden)
           : scripts.value.filter(
               (i) => i.script_type !== "builtin" && !i.hidden,
@@ -984,7 +982,7 @@ export default {
       tableView,
       expanded,
       loading,
-      showCommunityScripts,
+      showScriptTemplates,
       showHiddenScripts,
       ormmMark,
 
@@ -1012,8 +1010,8 @@ export default {
 
       // table and tree view methods
       tree,
-      setShowCommunityScripts: (show) =>
-        store.dispatch("setShowCommunityScripts", show),
+      setShowScriptTemplates: (show) =>
+        store.dispatch("setShowScriptTemplates", show),
 
       // helper methods
       truncateText,

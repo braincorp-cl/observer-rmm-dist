@@ -161,11 +161,11 @@ export default {
       }
       return tempArray;
     },
-    async getScriptOptions(showCommunityScripts = false) {
+    async getScriptOptions(showScriptTemplates = false) {
       let options = [];
       const { data } = await axios.get("/scripts/");
       let scripts;
-      if (showCommunityScripts) {
+      if (showScriptTemplates) {
         scripts = data;
       } else {
         scripts = data.filter((i) => i.script_type !== "builtin");

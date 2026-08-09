@@ -417,8 +417,10 @@ export default {
       favoriteScripts.value = [];
 
       try {
+        // `showCommunityScripts` es el nombre del query param que espera el
+        // backend (scripts/views.py): se manda tal cual a propósito.
         const data = await fetchScripts({
-          showCommunityScripts: store.state.showCommunityScripts,
+          showCommunityScripts: store.state.showScriptTemplates,
         });
 
         const scripts = data.filter((script) => !!script.favorite);

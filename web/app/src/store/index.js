@@ -20,7 +20,7 @@ export default function () {
         refreshSummaryTab: false,
         tableHeight: "300px",
         tabHeight: "300px",
-        showCommunityScripts: false,
+        showScriptTemplates: false,
         agentDblClickAction: "",
         agentUrlAction: null,
         defaultAgentTblTab: null,
@@ -55,8 +55,8 @@ export default function () {
       selectedAgentId(state) {
         return state.selectedRow;
       },
-      showCommunityScripts(state) {
-        return state.showCommunityScripts;
+      showScriptTemplates(state) {
+        return state.showScriptTemplates;
       },
       allClientsSelected(state) {
         return !state.selectedTree;
@@ -99,8 +99,8 @@ export default function () {
       SET_CLIENT_SPLITTER(state, val) {
         state.clientTreeSplitter = val;
       },
-      setShowCommunityScripts(state, show) {
-        state.showCommunityScripts = show;
+      setShowScriptTemplates(state, show) {
+        state.showScriptTemplates = show;
       },
       SET_AGENT_DBLCLICK_ACTION(state, action) {
         state.agentDblClickAction = action;
@@ -179,11 +179,13 @@ export default function () {
             context.commit("SET_CLIENT_SPLITTER", val);
           });
       },
-      setShowCommunityScripts(context, data) {
+      setShowScriptTemplates(context, data) {
         axios
+          // `show_community_scripts` es el nombre del campo en la API y en la BD
+          // (accounts.User): acá se manda tal cual a propósito.
           .patch("/accounts/users/ui/", { show_community_scripts: data })
           .then(() => {
-            context.commit("setShowCommunityScripts", data);
+            context.commit("setShowScriptTemplates", data);
           });
       },
       refreshDashboard({ state, commit, dispatch }, clearTreeSelected = false) {
@@ -256,7 +258,7 @@ export default function () {
         commit("setLatestVersion", data.latest_ormm_ver);
         commit("SET_AGENT_DBLCLICK_ACTION", data.dbl_click_action);
         commit("SET_URL_ACTION", data.url_action);
-        commit("setShowCommunityScripts", data.show_community_scripts);
+        commit("setShowScriptTemplates", data.show_community_scripts);
         commit("SET_HOSTED", data.hosted);
         commit("SET_TOKEN_EXPIRED", data.token_is_expired);
         commit("setOpenAIIntegrationStatus", data.open_ai_integration_enabled);
