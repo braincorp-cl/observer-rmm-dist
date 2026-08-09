@@ -17,6 +17,10 @@ NOMESH=0
 agentDL='agentDLChange'
 meshDL='meshDLChange'
 
+# Arquitectura para la que el servidor generó ESTE script (generate_macos_install).
+# Alimenta CheckArch.
+expectedArch='archChange'
+
 apiURL='apiURLChange'
 token='tokenChange'
 clientID='clientIDChange'
@@ -110,6 +114,68 @@ ValidateMeshNodeID() {
     MESH_NODE_ID=""
 }
 
+# ── Guard de arquitectura ─────────────────────────────────────────────────────
+#
+# En macOS no existe el cruce 32/64 —Catalina (2019) mató los 32 bits y el agente
+# sólo se compila para amd64 y arm64— pero el error del operador es el mismo y
+# tiene los dos finales conocidos: el binario Intel CORRE en un Apple Silicon (lo
+# traduce Rosetta 2, si está instalada) y el binario arm64 NO corre en un Intel
+# ("Bad CPU type in executable"). El primero es el peligroso: instala, enrola, y
+# nadie se entera de que ese equipo quedó en el camino traducido, que además es
+# el que usa CGO/CoreLocation para la geolocalización.
+#
+# 🪤 `uname -m` NO SIRVE ACÁ. Bajo Rosetta el proceso se ve a sí mismo como
+# x86_64: si este script corre en un bash traducido (`arch -x86_64 bash`, o un
+# terminal marcado "Abrir con Rosetta"), `uname -m` devuelve x86_64 en un Mac con
+# Apple Silicon y el guard aprobaría justo el caso que tiene que atajar. La
+# fuente que no miente es `sysctl hw.optional.arm64`, que describe el HARDWARE y
+# no al proceso que pregunta.
+#
+# ARCH-GUARD-START — entre estos marcadores vive lo que el testigo ejecutable
+# extrae y prueba (core/test_arch_guard.py). No borrar los marcadores.
+MachineArch() {
+    if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ]; then
+        echo arm64
+    else
+        echo amd64
+    fi
+}
+
+CheckArch() {
+    local esperada real
+    esperada="$1"
+    real="$(MachineArch)"
+
+    # Lista blanca, nunca comparación contra el texto del marcador: el servidor
+    # reemplaza TODAS sus apariciones en el archivo, así que comparar contra el
+    # literal apagaría el guard justo para la arquitectura sustituida.
+    case "${esperada}" in
+    amd64 | arm64) ;;
+    *)
+        echo "WARNING: este script no trae arquitectura declarada; no se verifica."
+        return 0
+        ;;
+    esac
+
+    if [ "${esperada}" = "${real}" ]; then
+        return 0
+    fi
+
+    if [ "${real}" = "arm64" ]; then
+        echo "ERROR: este instalador es el de Intel (amd64) y este Mac es Apple Silicon."
+    else
+        echo "ERROR: este instalador es el de Apple Silicon (arm64) y este Mac es Intel."
+    fi
+    echo ""
+    echo "       Genere el instalador para ${real} desde la consola (Agentes >"
+    echo "       Instalar agente > Arquitectura) y vuelva a intentar."
+    echo ""
+    echo "       El binario Intel puede llegar a correr traducido por Rosetta y"
+    echo "       parecer que funciona; es un camino distinto del soportado."
+    return 1
+}
+# ARCH-GUARD-END
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -debug | --debug | debug) DEBUG=1 ;;
@@ -122,6 +188,9 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
+
+# Antes de tocar nada: si la arquitectura no calza, este equipo no se toca.
+CheckArch "${expectedArch}" || exit 1
 
 echo "Downloading Observer RMM agent..."
 mkdir -p "${agentBinPath}"

@@ -197,8 +197,29 @@ If (Get-Service $serviceName -ErrorAction SilentlyContinue) {
             Start-Process -FilePath $OutPath\$output -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES') -Wait
             # dar margen a que el servicio quede asentado en equipos lentos antes de enrolar (backport v1.5.1 B3).
             Start-Sleep -s 7
+
+            # El instalador puede haberse NEGADO a instalar, y hasta el 2026-08-09
+            # eso terminaba en `exit 0`. El caso concreto: el guard de arquitectura
+            # de setup.iss (instalador de 32 bits en un Windows de 64 bits, o el de
+            # 64 en uno de 32) aborta antes de copiar nada. Como acá se corre con
+            # /SUPPRESSMSGBOXES, el operador NO ve el mensaje del guard; y como
+            # `Start-Process` sobre una ruta inexistente es un error NO terminante
+            # -- este script no fija $ErrorActionPreference = 'Stop' -- el `Catch`
+            # de abajo no se enteraba y la linea siguiente declaraba exito.
+            #
+            # O sea: el instalador se negaba correctamente y la consola informaba
+            # que todo salio bien. La unica senal que queda es esta.
+            $agentExe = 'C:\Program Files\ObserverAgent\observeragent.exe'
+            if (-not (Test-Path $agentExe)) {
+                Write-Error -Message ("La instalacion no dejo el agente en $agentExe, asi que no se enrola nada. " +
+                    "La causa mas probable es que el instalador se haya negado a instalarse en este equipo: " +
+                    "revise que la arquitectura del instalador (32 o 64 bits) sea la del equipo, y consulte el " +
+                    "log del instalador de Inno Setup.")
+                exit 1
+            }
+
             # 2) enrolar desde el binario ya instalado.
-            Start-Process -FilePath 'C:\Program Files\ObserverAgent\observeragent.exe' -ArgumentList $installArgs -Wait
+            Start-Process -FilePath $agentExe -ArgumentList $installArgs -Wait
             exit 0
         }
         Catch

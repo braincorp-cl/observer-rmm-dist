@@ -76,6 +76,9 @@ def generate_linux_install(
     replace = {
         "agentDLChange": download_url,
         "meshDLChange": mesh_dl,
+        # Alimenta el guard de arquitectura del script (CheckArch). Sin esto el
+        # script no tiene contra qué comparar `uname -m` y sólo puede avisar.
+        "archChange": arch,
         "clientIDChange": client,
         "siteIDChange": site,
         "agentTypeChange": agent_type,
@@ -135,6 +138,9 @@ def generate_macos_install(
     replace = {
         "agentDLChange": download_url,
         "meshDLChange": mesh_dl,
+        # Alimenta el guard de arquitectura del script (CheckArch). Sin esto el
+        # script no tiene contra qué comparar `uname -m` y sólo puede avisar.
+        "archChange": arch,
         "clientIDChange": client,
         "siteIDChange": site,
         "agentTypeChange": agent_type,

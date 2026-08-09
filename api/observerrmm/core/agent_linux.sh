@@ -29,6 +29,11 @@ NOMESH=0
 agentDL='agentDLChange'
 meshDL='meshDLChange'
 
+# Arquitectura para la que el servidor generó ESTE script (generate_linux_install).
+# Alimenta CheckArch. Si el script se usa crudo desde el repo queda sin sustituir,
+# y ahí el guard avisa y sigue en vez de bloquear.
+expectedArch='archChange'
+
 apiURL='apiURLChange'
 token='tokenChange'
 clientID='clientIDChange'
@@ -302,6 +307,79 @@ Uninstall() {
     RemoveOldAgent
 }
 
+# ── Guard de arquitectura ─────────────────────────────────────────────────────
+#
+# Instalar el agente de una arquitectura que no es la del equipo es un error del
+# operador —el instalador se elige a mano en la consola— y tiene dos finales
+# distintos, los dos malos:
+#
+#   * 386 sobre un x86_64: el binario Go es estático y CORRE PERFECTO. Medido el
+#     2026-08-09 en un x86_64: `Arch: 386`, rc=0. No hay síntoma. El equipo queda
+#     reportando `goarch=386`, y como el servidor elige el instalador del update
+#     con el goarch que el agente reporta, pide 386 para siempre. En Windows esa
+#     misma combinación además parte las rutas (WOW64) y deja la autoactualización
+#     muerta y el inventario incompleto.
+#   * amd64 sobre un i686 (o cualquier cruce con arm): el kernel no ejecuta el
+#     ELF y el `-m install` muere con "cannot execute binary file". Ruidoso, pero
+#     después de haber bajado y escrito todo.
+#
+# Va DESPUÉS del despacho de `uninstall` a propósito: la consola manda este mismo
+# archivo SIN sustituir para desinstalar (`agents/views.py`, AgentHandler.delete),
+# así que un guard más arriba bloquearía desinstalaciones legítimas.
+#
+# ARCH-GUARD-START — entre estos marcadores vive lo que el testigo ejecutable
+# extrae y prueba (core/test_arch_guard.py). No borrar los marcadores.
+MachineArch() {
+    case "$(uname -m)" in
+    x86_64 | amd64) echo amd64 ;;
+    i386 | i486 | i586 | i686) echo 386 ;;
+    aarch64 | arm64) echo arm64 ;;
+    armv6l | armv7l | armv8l) echo arm ;;
+    *) echo desconocida ;;
+    esac
+}
+
+CheckArch() {
+    local esperada real
+    esperada="$1"
+    real="$(MachineArch)"
+
+    # El valor se valida por LISTA BLANCA y nunca comparándolo con el texto del
+    # marcador. Es deliberado: el servidor reemplaza TODAS las apariciones de ese
+    # texto en el archivo, así que una comparación contra el literal se
+    # convertiría en una comparación contra la arquitectura real y el guard se
+    # apagaría solo justo para esa arquitectura.
+    case "${esperada}" in
+    amd64 | 386 | arm64 | arm) ;;
+    *)
+        echo "WARNING: este script no trae arquitectura declarada; no se verifica."
+        echo "         (Pasa si se usa la copia cruda del repo en vez del instalador"
+        echo "         que genera la consola.)"
+        return 0
+        ;;
+    esac
+
+    if [ "${real}" = 'desconocida' ]; then
+        echo "WARNING: arquitectura del equipo no reconocida ($(uname -m)); no se verifica."
+        return 0
+    fi
+
+    if [ "${esperada}" = "${real}" ]; then
+        return 0
+    fi
+
+    echo "ERROR: este instalador es para ${esperada} y este equipo es ${real} ($(uname -m))."
+    echo ""
+    echo "       Genere el instalador para ${real} desde la consola (Agentes >"
+    echo "       Instalar agente > Arquitectura) y vuelva a intentar."
+    echo ""
+    echo "       Instalar el que no corresponde no siempre falla a la vista: un"
+    echo "       agente de 32 bits corre sin quejarse en un equipo de 64 bits y"
+    echo "       queda pidiendo actualizaciones de 32 bits para siempre."
+    return 1
+}
+# ARCH-GUARD-END
+
 if [ $# -ne 0 ] && [[ $1 =~ ^(uninstall|-uninstall|--uninstall)$ ]]; then
     Uninstall
     # Remove the current script
@@ -321,6 +399,9 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
+
+# Antes de tocar nada: si la arquitectura no calza, este equipo no se toca.
+CheckArch "${expectedArch}" || exit 1
 
 RemoveOldAgent
 
