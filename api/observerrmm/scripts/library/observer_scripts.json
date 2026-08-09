@@ -803,5 +803,21 @@
     "supported_platforms": [
       "windows"
     ]
+  },
+  {
+    "guid": "cbc74791-441e-532b-933b-7f6059647379",
+    "filename": "agente-386-ruta-legacy.ps1",
+    "name": "Agente 386 - Ruta legacy (censo y limpieza)",
+    "description": "Solo lee salvo que se le pase -Aplicar. Censa el directorio que deja atrás la migración del agente 386 de 32 bits: el agente viejo vivía en «Program Files (x86)\\ObserverAgent» y desde v2.15.3 se muda a «Program Files\\ObserverAgent» sin borrar el anterior, que queda ocupando disco sin entrada en Agregar o quitar programas. Sin argumentos responde si esta máquina arrastra el residuo y si puede limpiarse sin riesgo (salida 1 = hay residuo). Con -Aplicar lo borra, y sólo si pasan las cinco guardas: ruta viva leída del registro, comparación de rutas en forma larga, que el directorio parezca una instalación del agente, que no haya procesos corriendo desde ahí y que ninguna tarea programada apunte ahí. Nunca reescribe tareas: si alguna apunta al directorio viejo se detiene, porque borrarlo las mataría en silencio con 0x80070002.",
+    "shell": "powershell",
+    "category": "ObserverRMM (Win):Agente",
+    "default_timeout": 300,
+    "args": [],
+    "env": [],
+    "syntax": "agente-386-ruta-legacy.ps1 [-Aplicar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
   }
 ]
