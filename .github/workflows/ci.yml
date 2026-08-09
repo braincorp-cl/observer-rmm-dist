@@ -17,6 +17,7 @@ jobs:
   changelog:
     name: Changelog al dia
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -35,6 +36,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -105,6 +107,7 @@ jobs:
   go:
     name: nats-api (go build + vet)
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -140,6 +143,8 @@ jobs:
   backend:
     name: Backend Django (black + flake8 + pytest)
     runs-on: ubuntu-22.04
+    # el mas lento medido: 9 min
+    timeout-minutes: 20
 
     services:
       postgres:

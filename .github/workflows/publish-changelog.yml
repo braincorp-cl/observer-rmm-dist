@@ -28,6 +28,7 @@ on:
 jobs:
   publish-changelog:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 

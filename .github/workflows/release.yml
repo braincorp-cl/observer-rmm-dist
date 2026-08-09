@@ -26,6 +26,7 @@ jobs:
   validate-notes:
     name: Validate release notes
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -64,6 +65,7 @@ jobs:
   release:
     name: Create release
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     needs: [validate-notes]
     steps:
       - uses: actions/checkout@v7
