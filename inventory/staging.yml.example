@@ -32,7 +32,7 @@ all:
     # al CDN NO mueve a nadie: get_agent_url() arma la ruta con este valor, así que el CDN
     # es el depósito y esta variable es el interruptor. Debe ir aquí y no a mano en el
     # servidor: local_settings.py se RE-RENDERIZA en cada install.yml.
-    # observer_latest_agent_ver: "2.15.2"   # ej.: lo que ofrece staging al 2026-08-07
+    # observer_latest_agent_ver: "2.15.3"   # ej.: lo que ofrece staging al 2026-08-09
     #
     # 🪤 Esta variable NO basta por sí sola para mover un ambiente ya instalado:
     # `deploy-api.yml` NO renderiza `local_settings.py` (lo dice en su cabecera), así que
