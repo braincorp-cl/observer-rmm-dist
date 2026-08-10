@@ -75,12 +75,12 @@
       <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, inventory, asset location, and immediate response on the machine itself.</p>
 
       <div class="callout note lang-es">
-        <span class="tag">Novedades en 1.4.4</span>
-        <p>Lo más reciente son la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a> propias del producto, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> —que ahora se pide en un cuadro amplio, con ejemplos y espera visible— y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a> en el equipo. Antes de eso llegaron la <a href="#ubicacion">ubicación de la flota con geocerca</a> y la <a href="#respuesta-endpoint">respuesta rápida en el equipo</a>, que requieren el agente 2.14 o superior.</p>
+        <span class="tag">Novedades en 1.4.5</span>
+        <p>Lo más reciente es el <a href="#monitoreo-alertas">modo mantenimiento a la vista</a>: un aviso permanente mientras haya equipos silenciados, con quién lo activó, desde cuándo, registro en la auditoría y un correo si la ventana se estira. Lo acompañan que <a href="#seguridad-acceso">los secretos de la configuración ya no se pueden leer</a> y la <a href="#operacion-servidor">detección del agente de arquitectura equivocada</a>. Antes de eso llegaron la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a>, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a>.</p>
       </div>
       <div class="callout note lang-en">
-        <span class="tag">New in 1.4.4</span>
-        <p>The latest additions are the <a href="#plantillas-scripts">library of 44 script templates</a> that ship with the product, the <a href="#ejecucion-automatizacion">AI script draft</a> —now asked for in a roomy box, with examples and a visible wait— and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a> on the machine. Before those came <a href="#ubicacion">fleet location with geofencing</a> and <a href="#respuesta-endpoint">on-device quick response</a>, which need agent 2.14 or later.</p>
+        <span class="tag">New in 1.4.5</span>
+        <p>The latest addition is <a href="#monitoreo-alertas">maintenance mode out in the open</a>: a permanent banner while any machine is muted, with who enabled it, since when, an audit trail, and an email if the window drags on. Alongside it, <a href="#seguridad-acceso">configuration secrets can no longer be read back</a> and there's <a href="#operacion-servidor">wrong-architecture agent detection</a>. Before those came the <a href="#plantillas-scripts">library of 44 script templates</a>, the <a href="#ejecucion-automatizacion">AI script draft</a>, and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a>.</p>
       </div>
 
       <figure class="doc-shot">
@@ -238,8 +238,16 @@
           <p><span class="lang-es">Avisa cuando un agente deja de reportar o supera su ventana de contacto, por email, SMS o en el dashboard.</span><span class="lang-en">Alerts when an agent stops reporting or exceeds its check-in window, by email, SMS, or on the dashboard.</span></p>
         </div>
         <div class="feature">
-          <h3><span class="lang-es">Modo mantenimiento</span><span class="lang-en">Maintenance mode</span></h3>
-          <p><span class="lang-es">Silencia las alertas de un equipo durante ventanas de mantenimiento planificadas.</span><span class="lang-en">Mute a machine's alerts during planned maintenance windows.</span></p>
+          <h3><span class="lang-es">Modo mantenimiento, siempre a la vista</span><span class="lang-en">Maintenance mode, always visible</span></h3>
+          <p><span class="lang-es">Silencia las alertas de un equipo durante ventanas de mantenimiento planificadas. Mientras haya equipos marcados, un <strong>aviso permanente en el encabezado</strong> dice cuántos son y desde hace cuánto está el más antiguo, con un botón que los lista en un clic. El aviso <strong>no se puede cerrar</strong>: un mantenimiento olvidado es un equipo sin vigilancia.</span><span class="lang-en">Mute a machine's alerts during planned maintenance windows. While any machine is flagged, a <strong>permanent banner in the header</strong> shows how many there are and how long the oldest has been that way, with a button that lists them in one click. The banner <strong>cannot be dismissed</strong>: a forgotten maintenance window is an unmonitored machine.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Quién activó el mantenimiento, y cuándo</span><span class="lang-en">Who enabled maintenance, and when</span></h3>
+          <p><span class="lang-es">Cada equipo en mantenimiento muestra <strong>desde cuándo y quién lo activó</strong>, en la lista y en su ficha. Activarlo o desactivarlo por cliente o por sitio queda además <strong>registrado en la auditoría</strong>, con el usuario, el alcance y los equipos afectados.</span><span class="lang-en">Every machine in maintenance shows <strong>since when and who enabled it</strong>, both in the list and on its own page. Enabling or disabling it by client or by site is also <strong>recorded in the audit log</strong>, with the user, the scope, and the machines affected.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Aviso de mantenimiento prolongado</span><span class="lang-en">Long-running maintenance notice</span></h3>
+          <p><span class="lang-es">Un correo avisa cuando un equipo lleva demasiados días en mantenimiento. El umbral se configura en Configuración global (3 días por omisión) y se puede apagar. El modo mantenimiento <strong>no caduca solo</strong> —hay ventanas que legítimamente duran días— pero deja de poder olvidarse en silencio.</span><span class="lang-en">An email warns when a machine has spent too many days in maintenance. The threshold is set in Global settings (3 days by default) and can be turned off. Maintenance mode <strong>never expires on its own</strong> —some windows legitimately last days— but it can no longer be forgotten in silence.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Exclusiones de alerta</span><span class="lang-en">Alert exclusions</span></h3>
@@ -494,6 +502,10 @@
           <p><span class="lang-es">Bitácora de toda acción de usuario: sesiones remotas, ejecución de scripts, cambios, acciones masivas y logins.</span><span class="lang-en">A log of every user action: remote sessions, script runs, changes, bulk actions, and logins.</span></p>
         </div>
         <div class="feature">
+          <h3><span class="lang-es">Los secretos de la configuración no se pueden leer</span><span class="lang-en">Configuration secrets cannot be read back</span></h3>
+          <p><span class="lang-es">La contraseña del servidor SMTP, los tokens de Twilio y de MeshCentral y la clave del asistente de IA <strong>no vuelven a la consola una vez guardados</strong>: sólo se pueden reemplazar o borrar. La consola indica si hay algo configurado, sin conocer el valor, y tampoco aparecen en el registro de auditoría.</span><span class="lang-en">The SMTP server password, the Twilio and MeshCentral tokens, and the AI assistant key <strong>never come back to the console once saved</strong>: they can only be replaced or cleared. The console shows whether something is configured without knowing the value, and they don't appear in the audit log either.</span></p>
+        </div>
+        <div class="feature">
           <h3><span class="lang-es">Aviso si desinstalan el agente a mano</span><span class="lang-en">Alert when the agent is uninstalled by hand</span></h3>
           <p><span class="lang-es">Cuando alguien desinstala el agente directamente en el equipo, la consola se entera: llega una <strong>alerta por correo</strong> con qué equipo fue, quién lo hizo y cuándo, y queda registro en la auditoría. El equipo se da de baja de la consola y del control remoto tras una <strong>ventana de gracia de 10 minutos, cancelable</strong> —porque reinstalar el agente ejecuta esa misma desinstalación, y un reinstalador no debería costarle el historial al equipo—. La alerta se guarda de forma independiente, así que sobrevive a la baja del equipo.</span><span class="lang-en">When someone uninstalls the agent right on the machine, the console finds out: an <strong>email alert</strong> arrives with which machine it was, who did it, and when, and it's recorded in the audit log. The machine is then removed from the console and from remote control after a <strong>cancelable 10-minute grace window</strong> —because reinstalling the agent runs that very same uninstall, and a reinstall shouldn't cost the machine its history—. The alert is stored independently, so it outlives the machine's removal.</span></p>
         </div>
@@ -508,6 +520,14 @@
         <div class="feature">
           <h3><span class="lang-es">Distribución propia de los agentes</span><span class="lang-en">Self-hosted agent distribution</span></h3>
           <p><span class="lang-es">Los instaladores y binarios del agente se sirven desde infraestructura propia en <code>agents.observer.cl</code>, sin depender de descargas de terceros.</span><span class="lang-en">Agent installers and binaries are served from our own infrastructure at <code>agents.observer.cl</code>, with no third-party downloads involved.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Detección del agente de arquitectura equivocada</span><span class="lang-en">Wrong-architecture agent detection</span></h3>
+          <p><span class="lang-es">La consola <strong>marca los equipos con el agente de 32 bits instalado sobre un Windows de 64 bits</strong>. Es una instalación que no da ningún síntoma —el equipo está en línea y reporta— pero cuyas actualizaciones nunca surten efecto y cuyo inventario de software queda incompleto.</span><span class="lang-en">The console <strong>flags machines running the 32-bit agent on 64-bit Windows</strong>. It's an install with no visible symptom —the machine is online and reporting— but whose updates never take effect and whose software inventory stays incomplete.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Los instaladores verifican la arquitectura</span><span class="lang-en">Installers check the architecture</span></h3>
+          <p><span class="lang-es">Los instaladores de Windows, Linux y macOS comprueban la arquitectura del equipo y <strong>se niegan a instalar el agente equivocado</strong>, en vez de dejarlo corriendo con una instalación que nunca se va a poder actualizar.</span><span class="lang-en">The Windows, Linux, and macOS installers check the machine's architecture and <strong>refuse to install the wrong agent</strong>, instead of leaving it running an install that will never be able to update.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Mantenimiento del servidor</span><span class="lang-en">Server maintenance</span></h3>
