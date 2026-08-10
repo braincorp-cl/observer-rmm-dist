@@ -167,6 +167,10 @@ class AgentTableSerializer(serializers.ModelSerializer):
             "boot_time",
             "checks",
             "maintenance_mode",
+            # Feature 036: alimentan el tooltip "desde cuándo y quién" de la celda de
+            # estado. No agregan consultas — la vista usa .defer(), no .only().
+            "maintenance_mode_since",
+            "maintenance_mode_by",
             "logged_username",
             "italic",
             "policy",

@@ -247,7 +247,27 @@
               size="1.2em"
               :color="dash_positive_color"
             >
-              <q-tooltip>{{ $t("agentTable.maintenanceEnabled") }}</q-tooltip>
+              <!--
+                El color se queda en dash_positive_color (verde) por decisión: el
+                aviso lo carga el banner global de MainLayout, no el color de las
+                filas. Lo que sí cambia (feature 036) es que el tooltip diga desde
+                cuándo y quién.
+              -->
+              <q-tooltip>
+                {{ $t("agentTable.maintenanceEnabled") }}<br />
+                {{
+                  $t("agentTable.maintenanceSince", {
+                    since: maintenanceSinceText(props.row),
+                  })
+                }}<br />
+                {{
+                  $t("agentTable.maintenanceBy", {
+                    by:
+                      props.row.maintenance_mode_by ||
+                      $t("agentTable.maintenanceUnknown"),
+                  })
+                }}
+              </q-tooltip>
             </q-icon>
             <q-icon
               v-else-if="props.row.checks.failing > 0"
@@ -398,6 +418,15 @@ export default {
     };
   },
   methods: {
+    // Contrato del `since=None` (feature 036): un equipo puede estar en
+    // mantenimiento sin fecha —los que ya lo estaban antes de la migración, o
+    // cualquier escritura futura que se salte el sellado— y ahí se dice
+    // "desconocido". Nunca una fecha inventada.
+    maintenanceSinceText(row) {
+      if (!row.maintenance_mode_since)
+        return this.$t("agentTable.maintenanceUnknown");
+      return this.formatDate(row.maintenance_mode_since);
+    },
     filterTable(rows, terms, cols, cellValue) {
       const hiddenFields = [
         "version",
@@ -423,6 +452,7 @@ export default {
       let patches = false;
       let actions = false;
       let reboot = false;
+      let maintenance = false;
       let search = "";
 
       const params = lowerTerms.trim().split(" ");
@@ -435,6 +465,8 @@ export default {
           if (filter === "actionspending") actions = true;
           else if (filter === "checksfailing") checks = true;
           else if (filter === "rebootneeded") reboot = true;
+          // feature 036: destino del botón "Ver listado" del banner global
+          else if (filter === "maintenance") maintenance = true;
           else if (
             filter === "online" ||
             filter === "offline" ||
@@ -453,6 +485,7 @@ export default {
           if (patches && !row.has_patches_pending) return false;
           if (actions && row.pending_actions_count === 0) return false;
           if (reboot && !row.needs_reboot) return false;
+          if (maintenance && !row.maintenance_mode) return false;
           if (availability === "online" && row.status !== "online")
             return false;
           else if (availability === "offline" && row.status !== "offline")

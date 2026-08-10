@@ -31,7 +31,11 @@
     "resetPassword": "Reset Password",
     "reset2fa": "Reset 2FA",
     "logout": "Logout",
-    "reset2faConfirm": "Are you sure you would like to reset your 2FA token?"
+    "reset2faConfirm": "Are you sure you would like to reset your 2FA token?",
+    "maintenanceCount": "{count} agent(s) in maintenance mode.",
+    "maintenanceOldest": "Oldest one, {days} day(s) ago.",
+    "maintenanceSuppressed": "Alerts for those agents are suppressed.",
+    "maintenanceViewList": "View list"
   },
   "lang": {
     "en": "English",
@@ -170,6 +174,9 @@
     "typeServer": "Server",
     "typeWorkstation": "Workstation",
     "maintenanceEnabled": "Maintenance Mode Enabled",
+    "maintenanceSince": "Since: {since}",
+    "maintenanceBy": "By: {by}",
+    "maintenanceUnknown": "unknown",
     "checksFailing": "Checks failing",
     "checksWarning": "Checks warning",
     "checksInfo": "Checks info",
@@ -394,7 +401,11 @@
     "geoGeofence": "Alert when a machine leaves its site",
     "geoGeofenceTooltip": "Global switch. Compares each machine's MEASURED location (WiFi or OS-native) against its site coordinates and raises an alert when it exceeds the radius. Requires the site to have coordinates. Machines marked as allowed off-site are excluded. Approximate IP locations are never evaluated.",
     "geoGeofenceRadius": "Radius (m)",
-    "geoGeofenceRadiusRule": "Between 50 and 1,000,000 meters"
+    "geoGeofenceRadiusRule": "Between 50 and 1,000,000 meters",
+    "maintenanceAlert": "Email on long-running maintenance",
+    "maintenanceAlertTooltip": "Maintenance mode never expires on its own. Past the threshold, an email is sent for agents still flagged. One notice per agent per window.",
+    "maintenanceAlertDays": "Threshold (days)",
+    "maintenanceAlertDaysRule": "Between 1 and 365 days"
   },
   "bulkAction": {
     "close": "Close",

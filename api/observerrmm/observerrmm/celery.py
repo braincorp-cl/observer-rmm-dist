@@ -94,6 +94,15 @@ app.conf.beat_schedule = {
         "task": "core.tasks.mesh_orphan_nodes_census_task",
         "schedule": crontab(minute=40, hour=4),
     },
+    # Recordatorio de mantenimiento prolongado (feature 036). Una vez al día y en
+    # horario laboral, por el mismo criterio del censo de huérfanos: un mantenimiento
+    # olvidado es deriva, no un incidente. De madrugada tampoco serviría — el correo
+    # existe para que alguien lo lea y decida bajar el flag, así que llega cuando esa
+    # persona está frente al computador.
+    "maintenance-mode-reminder": {
+        "task": "core.tasks.maintenance_mode_reminder_task",
+        "schedule": crontab(minute=0, hour=9),
+    },
 }
 
 

@@ -41,6 +41,31 @@
           @click="$store.dispatch('reload')"
         />
       </q-banner>
+      <!--
+        Modo mantenimiento (feature 036). Tercer banner del header, mismo patrón que
+        los dos de arriba. NO se puede descartar a propósito: un banner que se cierra
+        vuelve a ser un olvido, y este es la ÚNICA superficie que avisa — el ícono de
+        la fila y el nodo del árbol se quedan verdes por decisión (ADR-027 / rediseño
+        WebUI), así que si esto no se ve, nada avisa.
+      -->
+      <q-banner
+        v-if="maintenanceCount > 0"
+        inline-actions
+        class="bg-warning text-black text-center"
+      >
+        <q-icon size="sm" name="construction" />
+        {{ $t("layout.maintenanceCount", { count: maintenanceCount }) }}
+        <template v-if="maintenanceOldestDays !== null">
+          {{ $t("layout.maintenanceOldest", { days: maintenanceOldestDays }) }}
+        </template>
+        {{ $t("layout.maintenanceSuppressed") }}
+        <q-btn
+          color="dark"
+          icon="filter_list"
+          :label="$t('layout.maintenanceViewList')"
+          @click="goToMaintenanceList"
+        />
+      </q-banner>
       <q-toolbar>
         <q-btn
           dense
@@ -250,6 +275,7 @@
 import { computed, onMounted, onBeforeUnmount, ref } from "vue";
 import { useQuasar } from "quasar";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
@@ -268,6 +294,7 @@ import UserPreferences from "@/components/modals/coresettings/UserPreferences.vu
 import ResetPass from "@/components/accounts/ResetPass.vue";
 
 const store = useStore();
+const router = useRouter();
 const $q = useQuasar();
 const { t } = useI18n();
 
@@ -312,6 +339,29 @@ const hosted = computed(() => store.state.hosted);
 const tokenExpired = computed(() => store.state.tokenExpired);
 const dash_warning_color = computed(() => store.state.dash_warning_color);
 const dash_negative_color = computed(() => store.state.dash_negative_color);
+
+// Modo mantenimiento (feature 036). El conteo llega ya filtrado por rol desde
+// /core/dashinfo/ y se refresca junto al dashboard.
+const maintenanceCount = computed(() => store.state.maintenanceCount);
+// `null` cuando TODOS los marcados tienen since=None (contrato del nulo): el banner
+// omite la frase de antigüedad en vez de mentir con "0 días".
+const maintenanceOldestDays = computed(() => {
+  const oldest = store.state.maintenanceOldestSince;
+  if (!oldest) return null;
+  const parsed = new Date(oldest).getTime();
+  if (Number.isNaN(parsed)) return null;
+  return Math.max(0, Math.floor((Date.now() - parsed) / 86400000));
+});
+
+function goToMaintenanceList() {
+  // Limpia el nodo del árbol antes de filtrar: si el usuario tenía un sitio
+  // seleccionado, la tabla mostraría sólo los de ese sitio y el listado no
+  // cuadraría con el conteo del banner.
+  store.dispatch("refreshDashboard", true);
+  router
+    .push({ name: "Dashboard", query: { search: "is:maintenance" } })
+    .catch(() => {});
+}
 
 const latestReleaseURL = computed(() => {
   // Changelog público servido por el CDN propio agents.observer.cl (escribible desde

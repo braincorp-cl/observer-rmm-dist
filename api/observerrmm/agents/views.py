@@ -1424,31 +1424,52 @@ def bulk(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, AgentPerms])
 def agent_maintenance(request):
+    enabled = request.data["action"]
+
     if request.data["type"] == "Client":
         if not _has_perm_on_client(request.user, request.data["id"]):
             raise PermissionDenied()
 
-        count = (
-            Agent.objects.filter_by_role(request.user)  # type: ignore
-            .filter(site__client_id=request.data["id"])
-            .update(maintenance_mode=request.data["action"])
+        agents = Agent.objects.filter_by_role(request.user).filter(  # type: ignore
+            site__client_id=request.data["id"]
         )
+        affected = {"target": "client", "client": request.data["id"]}
 
     elif request.data["type"] == "Site":
         if not _has_perm_on_site(request.user, request.data["id"]):
             raise PermissionDenied()
 
-        count = (
-            Agent.objects.filter_by_role(request.user)  # type: ignore
-            .filter(site_id=request.data["id"])
-            .update(maintenance_mode=request.data["action"])
+        agents = Agent.objects.filter_by_role(request.user).filter(  # type: ignore
+            site_id=request.data["id"]
         )
+        affected = {"target": "site", "site": request.data["id"]}
 
     else:
         return notify_error("Invalid data")
 
+    # Este es el segundo de los cuatro caminos de escritura del flag (ver el
+    # invariante junto al campo en agents/models.py). El `.update()` masivo no
+    # dispara señales, así que NO pasa por BaseAuditModel: sin las dos líneas de
+    # abajo, un clic que silencia 300 equipos no deja rastro de quién fue —
+    # que es justo el agujero que esta feature cierra.
+    agent_ids = list(agents.values_list("agent_id", flat=True))
+    count = agents.update(
+        **Agent.maintenance_field_updates(enabled, request.user.username)
+    )
+
     if count:
-        action = "disabled" if not request.data["action"] else "enabled"
+        action = "enabled" if enabled else "disabled"
+        # Una entrada de ámbito, no una por equipo: 300 filas de auditoría por un
+        # clic son ruido, y lo que se quiere poder reconstruir es "fulano silenció
+        # el sitio X el día Y", con la lista de afectados dentro del after_value.
+        affected["count"] = count
+        affected["agent_ids"] = agent_ids
+        AuditLog.audit_bulk_action(
+            request.user.username,
+            f"maintenance mode {action}",
+            affected,
+            debug_info={"ip": request._client_ip},
+        )
         return Response(f"Maintenance mode has been {action} on {count} agents")
 
     return Response(

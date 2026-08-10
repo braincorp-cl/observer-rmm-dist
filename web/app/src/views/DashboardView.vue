@@ -560,6 +560,16 @@ export default {
       if (newVal === "") this.clearFilter();
       else if (newVal.length < this.filterTextLength) this.clearFilter();
     },
+    // El botón "Ver listado" del banner de mantenimiento (feature 036) navega acá
+    // con ?search=is:maintenance. `data()` sólo lee la query al montar, así que sin
+    // este watcher el botón no haría nada si el usuario YA estaba en el dashboard —
+    // que es el caso normal, porque el banner vive en el header.
+    "$route.query.search"(newVal) {
+      if (newVal && newVal !== this.search) {
+        this.filterTextLength = 0;
+        this.search = newVal;
+      }
+    },
     selectedTree() {
       if (this.clearSearchWhenSwitching) this.clearFilter();
     },

@@ -121,6 +121,36 @@
                     ]"
                   />
                 </q-card-section>
+                <!--
+                  Recordatorio de mantenimiento prolongado (feature 036). NO es una
+                  caducidad: el modo mantenimiento sigue siendo indefinido por
+                  diseño, esto sólo avisa por correo para que el olvido tenga fecha
+                  de vencimiento humana.
+                -->
+                <q-card-section class="row items-center q-pl-lg q-gutter-md">
+                  <q-checkbox
+                    v-model="settings.maintenance_alert_enabled"
+                    :label="$t('editCoreSettings.maintenanceAlert')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.maintenanceAlertTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 12rem"
+                    v-model.number="settings.maintenance_alert_days"
+                    :disable="!settings.maintenance_alert_enabled"
+                    :label="$t('editCoreSettings.maintenanceAlertDays')"
+                    :rules="[
+                      (val) =>
+                        (val >= 1 && val <= 365) ||
+                        $t('editCoreSettings.maintenanceAlertDaysRule'),
+                    ]"
+                  />
+                </q-card-section>
                 <q-card-section v-if="!hosted" class="row">
                   <q-checkbox
                     v-model="settings.enable_server_scripts"

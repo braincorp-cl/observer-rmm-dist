@@ -49,8 +49,29 @@
       </q-icon>
       <b>{{ summary.hostname }}</b>
       <span v-if="summary.maintenance_mode" class="q-mr-sm">
+        <!--
+          Feature 036: el badge se queda verde, pero deja de ser un dato mudo —
+          el tooltip dice desde cuándo y quién lo activó. `since` nulo se muestra
+          como "desconocido", nunca como una fecha inventada.
+        -->
         <q-badge color="green">
           {{ $t("agentTabs.summary.maintenanceMode") }}
+          <q-tooltip>
+            {{
+              $t("agentTable.maintenanceSince", {
+                since: summary.maintenance_mode_since
+                  ? store.getters.formatDate(summary.maintenance_mode_since)
+                  : $t("agentTable.maintenanceUnknown"),
+              })
+            }}<br />
+            {{
+              $t("agentTable.maintenanceBy", {
+                by:
+                  summary.maintenance_mode_by ||
+                  $t("agentTable.maintenanceUnknown"),
+              })
+            }}
+          </q-tooltip>
         </q-badge>
       </span>
       <span>{{

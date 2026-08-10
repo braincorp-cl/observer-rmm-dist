@@ -46,6 +46,13 @@ export default function () {
         web_terminal_enabled: true,
         sso_enabled: false,
         block_local_user_logon: false,
+        // Modo mantenimiento (feature 036): alimentan el banner global de
+        // MainLayout. Vienen de /core/dashinfo/ ya filtrados por rol en el backend
+        // — acá no se vuelve a filtrar ni se cuenta sobre `agents`, porque la tabla
+        // puede venir acotada por el nodo del árbol seleccionado y el banner tiene
+        // que contar la flota entera que el usuario sí puede ver.
+        maintenanceCount: 0,
+        maintenanceOldestSince: null,
       };
     },
     getters: {
@@ -140,6 +147,10 @@ export default function () {
       },
       setOpenAIIntegrationStatus(state, val) {
         state.openAIIntegrationEnabled = val;
+      },
+      setMaintenanceInfo(state, { count, oldestSince }) {
+        state.maintenanceCount = count || 0;
+        state.maintenanceOldestSince = oldestSince || null;
       },
       setDashInfoColor(state, val) {
         state.dash_info_color = val;
@@ -266,6 +277,10 @@ export default function () {
         commit("setServerScriptsEnabled", data.server_scripts_enabled);
         commit("setWebTerminalEnabled", data.web_terminal_enabled);
         commit("setBlockLocalUserLogon", data.block_local_user_logon);
+        commit("setMaintenanceInfo", {
+          count: data.maintenance_count,
+          oldestSince: data.maintenance_oldest_since,
+        });
 
         if (data?.date_format !== "") commit("setDateFormat", data.date_format);
         else commit("setDateFormat", data.default_date_format);

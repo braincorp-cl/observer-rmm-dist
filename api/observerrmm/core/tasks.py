@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import traceback
 from contextlib import suppress
 from time import sleep
@@ -8,7 +9,7 @@ import nats
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.db.utils import DatabaseError
 from django.utils import timezone as djangotime
 from packaging import version as pyver
@@ -200,6 +201,86 @@ def mesh_orphan_nodes_census_task() -> str:
         log_type=DebugLogType.SYSTEM_ISSUES,
     )
     return f"{len(orphans)} huérfano(s) de {r['total_nodes']} nodos"
+
+
+@app.task
+def maintenance_mode_reminder_task() -> str:
+    """Avisa por correo de los equipos que llevan demasiado tiempo en mantenimiento.
+
+    Es el sustituto deliberado de una caducidad automática: el flag NO expira solo
+    (ver el comentario de `maintenance_alert_enabled` en core/models.py), así que lo
+    que se automatiza es el recordatorio, no la decisión de bajarlo.
+
+    Contrato del `since=None`: un equipo en mantenimiento sin fecha de inicio cuenta
+    como si YA hubiera cruzado el umbral. Un mantenimiento del que nadie sabe cuándo
+    empezó es, por definición, uno que nadie está mirando.
+
+    Un solo correo por equipo por ventana: `maintenance_alert_sent_at` es la marca, y
+    se limpia en cada cambio del flag (`Agent.maintenance_field_updates`). Sin eso,
+    esto sería un correo diario y la gente aprendería a filtrarlo.
+    """
+    core = get_core_settings()
+    if not core.maintenance_alert_enabled:
+        return "disabled"
+
+    cutoff = djangotime.now() - dt.timedelta(days=core.maintenance_alert_days)
+    agents = list(
+        Agent.objects.defer(*AGENT_DEFER)
+        .select_related("site__client")
+        .filter(maintenance_mode=True, maintenance_alert_sent_at=None)
+        .filter(Q(maintenance_mode_since__lte=cutoff) | Q(maintenance_mode_since=None))
+        .order_by("maintenance_mode_since")
+    )
+
+    if not agents:
+        return "no agents past threshold"
+
+    now = djangotime.now()
+    lines = []
+    for agent in agents:
+        if agent.maintenance_mode_since:
+            days = (now - agent.maintenance_mode_since).days
+            since = f"{agent.maintenance_mode_since:%Y-%m-%d %H:%M} ({days}d)"
+        else:
+            since = "desconocido"
+
+        lines.append(
+            f"- {agent.hostname} ({agent.site.client.name} / {agent.site.name}) "
+            f"-- desde: {since} -- por: {agent.maintenance_mode_by or 'desconocido'}"
+        )
+
+    subject = (
+        f"{len(agents)} equipo(s) llevan mas de {core.maintenance_alert_days} "
+        "dia(s) en modo mantenimiento"
+    )
+    body = (
+        "Los siguientes equipos estan en modo mantenimiento y sus alertas estan "
+        "SUPRIMIDAS. Mientras siga activo, el RMM no avisara por ellos:\n\n"
+        + "\n".join(lines)
+        + "\n\nSi la ventana ya termino, baje el modo mantenimiento desde la consola.\n"
+    )
+
+    msg, sent = core.send_mail(subject, body)
+    # 🪤 `send_mail` se traga las fallas SMTP: el booleano dice que la librería no
+    # reventó, no que el correo llegó. Por eso se loguea el par completo — y por eso
+    # la verificación de este ítem es abrir la casilla, no leer un True.
+    logger.info(f"maintenance_mode_reminder_task send_mail -> sent={sent} msg={msg}")
+
+    if not sent:
+        DebugLog.error(
+            message=(
+                f"Recordatorio de mantenimiento prolongado: no se pudo enviar el "
+                f"correo por {len(agents)} equipo(s) ({msg}). No se marca como "
+                f"avisado, se reintenta en la proxima corrida."
+            ),
+            log_type=DebugLogType.SYSTEM_ISSUES,
+        )
+        return f"send failed: {msg}"
+
+    Agent.objects.filter(pk__in=[a.pk for a in agents]).update(
+        maintenance_alert_sent_at=now
+    )
+    return f"reported {len(agents)} agents"
 
 
 @app.task
@@ -437,7 +518,13 @@ def _get_failing_data(agents: "QuerySet[Agent]") -> dict[str, bool]:
     data = {"error": False, "warning": False}
     for agent in agents:
         if agent.maintenance_mode:
-            break
+            # `continue`, no `break` (feature 036). Con `break` el primer equipo en
+            # mantenimiento cortaba el bucle ENTERO: el sitio y su cliente se
+            # pintaban sanos sin siquiera mirar a los demás equipos, incluidos los
+            # que sí estaban fallando. Heredado del proyecto de origen.
+            # El equipo en mantenimiento se sigue saltando —eso no cambia—, lo que
+            # deja de pasar es que tape a sus vecinos.
+            continue
 
         if (
             agent.overdue_email_alert

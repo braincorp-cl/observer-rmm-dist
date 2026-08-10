@@ -39,6 +39,7 @@ from observerrmm.constants import (
     PAStatus,
 )
 from observerrmm.helpers import has_script_actions, has_webhook, setup_nats_options
+from observerrmm.middleware import get_username
 from observerrmm.models import PermissionQuerySet
 
 if TYPE_CHECKING:
@@ -100,6 +101,26 @@ class Agent(BaseAuditModel):
         max_length=255, choices=TZ_CHOICES, null=True, blank=True
     )
     maintenance_mode = models.BooleanField(default=False)
+    # Trazabilidad del modo mantenimiento (feature 036). El flag de arriba es un
+    # interruptor de silencio: suprime alertas en seis puntos de alerts/models.py y
+    # corta el rollup del dashboard. Sin fecha ni autor, un mantenimiento de cuatro
+    # días es indistinguible de uno de cinco minutos — que es exactamente lo que pasó
+    # en staging: 8 de 10 equipos marcados por un clic, cuatro días sin alertas y
+    # nada en el producto que lo dijera.
+    #
+    # 🔑 INVARIANTE: el flag lo escriben CUATRO caminos y sólo uno pasa por save() —
+    # el detalle del agente (save), el bulk por Client/Site (agents/views.py), el
+    # comando server_maint_mode y cualquier .update() futuro. El sellado vive en
+    # maintenance_field_updates() y los tres caminos que NO pasan por save() lo
+    # llaman a mano. Si aparece un quinto camino y lo olvida, el registro queda con
+    # since=None, que la UI muestra como "desconocido": nulo y honesto, nunca una
+    # fecha inventada.
+    maintenance_mode_since = models.DateTimeField(null=True, blank=True)
+    maintenance_mode_by = models.CharField(max_length=255, null=True, blank=True)
+    # Marca del correo de mantenimiento prolongado: un solo aviso por ventana, no un
+    # recordatorio diario que la gente aprende a ignorar. Se limpia en cada cambio
+    # del flag para que una ventana nueva no herede el silencio de la anterior.
+    maintenance_alert_sent_at = models.DateTimeField(null=True, blank=True)
     block_policy_inheritance = models.BooleanField(default=False)
     # Equipo autorizado a salir del sitio físico (feature 026). Se marca en los
     # equipos móviles — notebooks, equipos de terreno — y tiene dos efectos:
@@ -145,13 +166,58 @@ class Agent(BaseAuditModel):
             block_inherit = (
                 self.block_policy_inheritance != orig.block_policy_inheritance
             )
+            # Sólo cuando el flag CAMBIA: un save() cualquiera del agente no debe
+            # pisar la fecha de inicio de una ventana que sigue abierta.
+            maintenance_changed = self.maintenance_mode != orig.maintenance_mode
 
             if mon_type_changed or site_changed or policy_changed or block_inherit:
                 self._processing_set_alert_template = True
                 self.set_alert_template()
                 self._processing_set_alert_template = False
+        else:
+            # Agente nuevo que nace en mantenimiento y SIN fecha. El sellado rellena,
+            # no pisa: si el llamador ya trae `since` (una carga de datos, un test que
+            # arma una ventana antigua), se respeta. En la recursión de
+            # set_alert_template() self.pk ya existe, así que tampoco re-sella.
+            maintenance_changed = (
+                not self.pk
+                and self.maintenance_mode
+                and not self.maintenance_mode_since
+            )
+
+        if maintenance_changed:
+            for field, value in Agent.maintenance_field_updates(
+                self.maintenance_mode, get_username()
+            ).items():
+                setattr(self, field, value)
 
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def maintenance_field_updates(
+        enabled: bool, username: Optional[str]
+    ) -> Dict[str, Any]:
+        """Valores que acompañan a `maintenance_mode` en CUALQUIERA de los cuatro
+        caminos de escritura (ver el invariante junto a la declaración del campo).
+
+        Devuelve un dict listo para `setattr` en save(), para `.update()` o para
+        `bulk_update`, justamente porque los cuatro caminos escriben de formas
+        distintas y lo único que puede ser común es el valor.
+        """
+        if enabled:
+            return {
+                "maintenance_mode": True,
+                "maintenance_mode_since": djangotime.now(),
+                "maintenance_mode_by": username or "system",
+                "maintenance_alert_sent_at": None,
+            }
+
+        return {
+            "maintenance_mode": False,
+            "maintenance_mode_since": None,
+            "maintenance_mode_by": None,
+            "maintenance_alert_sent_at": None,
+        }
 
     @property
     def client(self) -> "Client":

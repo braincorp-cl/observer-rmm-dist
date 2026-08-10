@@ -131,10 +131,30 @@ def dashboard_info(request):
     if request.user.is_installer_user:
         return notify_error("")
 
+    from django.db.models import Min
+
+    from agents.models import Agent
     from core.utils import token_is_expired
     from observerrmm.utils import get_latest_ormm_ver, runcmd_placeholder_text
 
     core_settings = get_core_settings()
+
+    # Conteo del modo mantenimiento para el banner global (feature 036). Va acá y no
+    # en un endpoint nuevo porque la consola ya consume /core/dashinfo/ y lo refresca
+    # junto al dashboard: un endpoint aparte sería otro polling por lo mismo.
+    #
+    # filter_by_role NO es opcional: un usuario que no ve el cliente tampoco debe ver
+    # su conteo, o el banner le avisaría de equipos que no puede ni listar.
+    #
+    # Min() ignora los NULL, que es justo el contrato del `since=None`: esos equipos
+    # cuentan en N pero no aportan al "más antiguo". Si TODOS son nulos, esto
+    # devuelve None y el banner omite la frase de antigüedad en vez de decir 0 días.
+    maintenance_agents = Agent.objects.filter_by_role(request.user).filter(  # type: ignore
+        maintenance_mode=True
+    )
+    maintenance_oldest = maintenance_agents.aggregate(
+        oldest=Min("maintenance_mode_since")
+    )["oldest"]
     return Response(
         {
             "ormm_version": settings.ORMM_VERSION,
@@ -165,6 +185,8 @@ def dashboard_info(request):
             "web_terminal_enabled": core_settings.web_terminal_enabled,
             "block_local_user_logon": core_settings.block_local_user_logon,
             "sso_enabled": core_settings.sso_enabled,
+            "maintenance_count": maintenance_agents.count(),
+            "maintenance_oldest_since": maintenance_oldest,
         }
     )
 

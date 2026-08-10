@@ -127,6 +127,15 @@ class CoreSettings(BaseAuditModel):
     # marcado con geo_offsite_allowed. Los fixes por IP nunca se evalúan: su error
     # típico es de cientos de km (ver feature 026) y dispararían falsos positivos.
     geo_geofence_radius_m = models.PositiveIntegerField(default=1000)
+    # Recordatorio de mantenimiento prolongado (feature 036). El modo mantenimiento
+    # NO caduca, y es una decisión, no un descuido: hay ventanas de migración que
+    # duran días y apagarlas solas sería peor que el olvido. Lo que se agrega no es
+    # un TTL sino un correo — pasado el umbral alguien se entera, y la decisión de
+    # bajar el flag sigue siendo de una persona.
+    maintenance_alert_enabled = models.BooleanField(default=True)
+    # Días en mantenimiento antes de avisar. 3 por defecto: cubre el fin de semana
+    # largo sin alcanzar a ser una semana de alertas suprimidas en silencio.
+    maintenance_alert_days = models.PositiveIntegerField(default=3)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="default_workstation_policy",
