@@ -6,7 +6,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.12.3
 	github.com/nats-io/nats.go v1.52.0
-	github.com/ugorji/go/codec v1.3.1
+	github.com/ugorji/go/codec v1.3.2
 )
 
 require github.com/sirupsen/logrus v1.9.4
