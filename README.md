@@ -4,7 +4,7 @@ Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
 (backend Django en `api/observerrmm/`, capa Go NATS, frontend Vue/Quasar en
 `web/`) + despliegue con Ansible.
 
-**Versión actual: 1.4.2** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (v2.14.2)
+**Versión actual: 1.4.5** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (el producto ofrece la v2.15.1)
 
 > **Al cortar una versión** hay que subir `ORMM_VERSION`, agregar la entrada al
 > [`CHANGELOG.md`](CHANGELOG.md), escribir `release-notes/vX.Y.Z.md` y pushear el tag.

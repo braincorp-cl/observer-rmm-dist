@@ -8,6 +8,26 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.5 — 2026-08-10
+
+- El **modo mantenimiento** deja de ser invisible: un aviso permanente en el encabezado dice cuántos equipos están marcados y desde hace cuánto, con un botón que los lista en un clic. El aviso no se puede cerrar mientras haya equipos marcados.
+- Cada equipo en mantenimiento muestra **desde cuándo y quién lo activó**, tanto en la lista como en su ficha. Los que ya estaban marcados desde antes de esta versión aparecen como "desconocido": el producto no inventa una fecha que no tiene.
+- Activar o desactivar el modo mantenimiento **por cliente o por sitio queda registrado en la auditoría**, con el usuario, el alcance y los equipos afectados. Antes no dejaba ningún rastro.
+- **Aviso por correo** cuando un equipo lleva demasiados días en mantenimiento. El umbral se configura en Configuración global (3 días por omisión) y se puede apagar. Se envía un solo aviso por equipo y por ventana.
+- ⚠️ **Corregido, y cambia lo que verá en el tablero:** un solo equipo en mantenimiento hacía que su sitio y su cliente completos se mostraran sanos, incluidos los equipos que sí estaban fallando. Al actualizar, los sitios que hoy se ven verdes por este motivo pasarán a mostrar su estado real. No es una regresión: esos equipos ya estaban fallando y estaban tapados.
+- Los **secretos de la configuración global** (contraseña SMTP, tokens de Twilio y de MeshCentral, clave del asistente de IA) dejan de ser legibles desde la consola: una vez guardados sólo se reemplazan o se borran. Los datos de conexión con MeshCentral pasan a sólo lectura, porque editarlos ahí nunca persistía y podía dejar el control remoto roto.
+- La consola **marca los equipos con el agente de 32 bits instalado sobre un Windows de 64 bits**. Ese equipo se ve sano pero nunca completa una actualización y reporta el inventario de software incompleto; hasta ahora no había forma de distinguirlo.
+- Los **instaladores de Linux y macOS verifican la arquitectura** del equipo antes de instalar y se niegan si no corresponde. El agente equivocado no fallaba de forma ruidosa: quedaba corriendo y pidiendo la arquitectura equivocada para siempre.
+- **Censo diario de nodos huérfanos** de MeshCentral: registros que quedaron de un enrolamiento fallido y que no aparecen en ninguna pantalla. El censo sólo informa, no borra.
+- Dos **plantillas de scripts** nuevas para censar y limpiar los archivos que queda en Windows tras migrar un agente de 32 bits, que el desinstalador no alcanza.
+- Corregido: los **correos de alerta** se reportaban como enviados aunque el servidor SMTP los rechazara. El botón "Probar" era la única ruta que no sufría el problema, así que el transporte podía verse verde mientras las alertas reales no salían.
+- Corregido: el instalador de Windows **no corría en Windows 7**, la única plataforma para la que existe el agente de 32 bits.
+- Corregido: al escribir un secreto en la configuración, el tabulador **duplicaba el primer carácter**.
+- Corregido: tres textos de la consola quedaban en inglés con la interfaz en español.
+- Corregido: el **borrador de script generado con IA** llegaba con el razonamiento interno del modelo mezclado en el código.
+- Corregido: la plantilla de servicios reportaba **FALLA a servicios que sí habían arrancado**.
+- Corregido: cuando la hora de una desinstalación manual llegaba ilegible, el producto lo dejaba pasar en silencio; ahora queda registrado.
+
 ## v1.4.4 — 2026-08-04
 
 - La versión de agente que el producto ofrece a la flota pasa a ser la **2.15.1**, que corrige los acentos y la ñ en los scripts ejecutados sobre Windows en español. Los equipos se actualizan solos al hacer check-in.
