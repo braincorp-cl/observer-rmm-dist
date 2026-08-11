@@ -819,5 +819,75 @@
     "supported_platforms": [
       "windows"
     ]
+  },
+  {
+    "guid": "414c9ff1-0a82-53d1-9670-5bd6c80f81e2",
+    "filename": "seguridad-firewall-linux.py",
+    "name": "Firewall - Estado (ufw/firewalld)",
+    "description": "Cierra el vacío de O-LIB-07 para Linux: informa si ufw o firewalld está activo, sus reglas de entrada y (en firewalld) zona por defecto, servicios y puertos abiertos. Solo lee, nunca cambia reglas. Sale con código 1 si no hay firewall activo o si no se encontró ninguno de los dos.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux):Seguridad",
+    "default_timeout": 60,
+    "args": [],
+    "env": [],
+    "syntax": "seguridad-firewall-linux.py",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux"
+    ]
+  },
+  {
+    "guid": "cac3f1c6-40cd-5622-8403-5dc322692094",
+    "filename": "software-paquetes-pendientes.py",
+    "name": "Software - Paquetes pendientes (apt/dnf/brew)",
+    "description": "Cierra parte de O-LIB-07: equivalente de 'Windows Update' para Linux (apt o dnf/yum) y macOS (Homebrew + actualizaciones del sistema vía softwareupdate). Por defecto lee sin tocar red; con 'refrescar' actualiza el índice antes de listar. En Linux también informa si el equipo quedó pidiendo reinicio. Sale con código 1 si hay paquetes pendientes o reinicio pendiente.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux/macOS):Software",
+    "default_timeout": 240,
+    "args": [
+      "listar"
+    ],
+    "env": [],
+    "syntax": "software-paquetes-pendientes.py [listar|refrescar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "208bc0f2-504e-53ab-b923-c7b7bf288baa",
+    "filename": "sistema-salud-systemd.py",
+    "name": "Sistema - Salud de systemd",
+    "description": "Cierra parte de O-LIB-07: equivalente de 'servicios-automaticos-detenidos.ps1' para Linux. Lee 'systemctl is-system-running' y enumera las unidades en estado failed (incluidas las que no aparecen en el agregado por defecto), con el motivo de cada una. Solo lee, no reinicia ni repara nada. Sale con código 1 si el estado no es running o hay unidades fallidas.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux):Sistema",
+    "default_timeout": 60,
+    "args": [],
+    "env": [],
+    "syntax": "sistema-salud-systemd.py",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux"
+    ]
+  },
+  {
+    "guid": "e1c53304-64ef-57ba-8693-832876d0e787",
+    "filename": "usuarios-locales-nix.py",
+    "name": "Usuarios locales - Gestión (Linux/macOS)",
+    "description": "Cierra parte de O-LIB-07: equivalente de 'usuarios-locales.ps1' para Linux y macOS. Listar funciona en las dos plataformas, filtrando cuentas de sistema por el rango de UID (login.defs en Linux, corte de Directory Service en macOS). Habilitar/deshabilitar solo está implementado en Linux (usermod -L/-U): en macOS el mecanismo equivalente no se pudo verificar en hardware real todavía y el script se niega a aplicarlo.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux/macOS):Usuarios",
+    "default_timeout": 60,
+    "args": [
+      "listar"
+    ],
+    "env": [],
+    "syntax": "usuarios-locales-nix.py listar | usuarios-locales-nix.py deshabilitar <usuario> | usuarios-locales-nix.py habilitar <usuario>",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux",
+      "darwin"
+    ]
   }
 ]
