@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.7 — 2026-08-12
+
+- ⚠️ **Corregido, y cambia la evidencia de un caso:** un equipo marcado como perdido que no lograba medir su posición **heredaba las coordenadas declaradas de su sitio**, así que el recorrido del caso lo mostraba sentado en la oficina mientras alguien se lo llevaba. Esa herencia existe para equipos estacionarios y ahí es correcta; en un equipo perdido es un dato falso, y un caso que puede terminar en una denuncia no puede llevar evidencia fabricada. Ahora, con el equipo marcado, se guarda la posición realmente medida —con su margen de error a la vista— o no se guarda ninguna.
+- Corregido: el aviso de gobernanza del módulo **Equipos perdidos** quedaba ilegible con la interfaz en modo oscuro, y su texto citaba una referencia interna del proyecto. Se corrigió el contraste y se reescribió en el idioma del producto.
+- La versión de agente que se ofrece a la flota pasa a la **2.15.15**, que corrige la demora en activar la ubicación intensiva al marcar un equipo encendido. Los equipos se actualizan solos al hacer check-in.
+
 ## v1.4.6 — 2026-08-11
 
 - **Modo perdido/robado, primera etapa.** Un equipo se puede marcar como perdido desde la consola, con un **motivo obligatorio**, y sólo se apaga marcándolo como recuperado. Mientras está marcado, el equipo **reporta su ubicación con mucha más frecuencia** (de una vez cada media hora a una vez por minuto, configurable entre 1 y 60). Todavía **no** captura pantalla ni fotos: eso llega en la próxima etapa.

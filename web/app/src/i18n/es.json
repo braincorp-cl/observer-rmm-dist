@@ -2941,7 +2941,7 @@
     "refresh": "Actualizar",
     "loading": "Cargando…",
     "noData": "No hay equipos marcados como perdidos.",
-    "governanceNotice": "Marcar un equipo enciende la recolección de evidencia regulada por ADR-025: exige un motivo, queda auditado con tu nombre e ignora el interruptor global de geolocalización. Úsalo sólo ante una pérdida o un robo concretos.",
+    "governanceNotice": "Marcar un equipo enciende la recolección de evidencia: exige un motivo, queda auditado con tu nombre e ignora el interruptor global de geolocalización. Úsalo sólo ante una pérdida o un robo concretos.",
     "colHostname": "Equipo",
     "colClient": "Cliente",
     "colSite": "Sitio",

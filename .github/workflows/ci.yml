@@ -15,7 +15,7 @@ jobs:
   # desplegada en produccion sin entrada hasta el 2026-07-26.
   # Esto corre en cada push (no solo al taggear) para que el hueco se vea temprano.
   changelog:
-    name: Changelog al dia
+    name: Changelog y docs al dia
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
@@ -33,6 +33,30 @@ jobs:
             exit 1
           fi
           echo "OK: ORMM_VERSION ${VER} tiene su entrada en el CHANGELOG."
+
+      # El sitio publico declara la version en tres lugares que nadie recuerda
+      # actualizar al liberar: el rotulo "Novedades en X" de /features/ (en sus dos
+      # idiomas) y el softwareVersion del JSON-LD de la portada, que es lo que lee
+      # Google. El 2026-08-12 el usuario abrio docs.observer.cl/features/ recien
+      # liberada la 1.4.6 y lo primero que leyo fue "Novedades en 1.4.5"; el JSON-LD
+      # iba cuatro versiones atras, en 1.4.2. Es documentacion publica: si dice la
+      # version equivocada, miente.
+      - name: La documentacion publica declara la version vigente
+        run: |
+          VER=$(grep -oP '^ORMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
+          FALLA=0
+          for PATRON in "<span class=\"tag\">Novedades en ${VER}</span>" "<span class=\"tag\">New in ${VER}</span>"; do
+            if ! grep -qF "$PATRON" docs-site/features/index.html; then
+              echo "::error::docs-site/features/index.html no rotula la version ${VER} (falta: $PATRON)."
+              FALLA=1
+            fi
+          done
+          if ! grep -qF "\"softwareVersion\": \"${VER}\"" docs-site/index.html; then
+            echo "::error::El JSON-LD de docs-site/index.html no declara softwareVersion ${VER}."
+            FALLA=1
+          fi
+          [ "$FALLA" = "0" ] || exit 1
+          echo "OK: la documentacion publica declara ${VER} en los tres lugares."
 
   lint:
     runs-on: ubuntu-22.04

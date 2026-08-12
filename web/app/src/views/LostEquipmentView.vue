@@ -15,7 +15,12 @@
       </q-btn>
     </div>
 
-    <q-banner dense class="bg-grey-3 q-mb-md">
+    <!-- El color de texto va EXPLICITO junto al de fondo: `bg-grey-3` sola deja
+         el texto heredando el del tema, y en modo oscuro eso es texto claro sobre
+         gris claro -- el aviso de gobernanza quedaba ilegible justo en el modulo
+         donde mas importa que se lea. Mismo par que usan los otros banners del
+         producto (`text-black bg-warning` en ScriptFormModal). -->
+    <q-banner dense class="bg-grey-3 text-black q-mb-md">
       <template v-slot:avatar>
         <q-icon name="policy" color="primary" />
       </template>

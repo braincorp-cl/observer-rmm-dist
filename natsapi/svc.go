@@ -41,6 +41,22 @@ func geoIngestAllowed(geoEnabled, lostMode bool) bool {
 	return geoEnabled || lostMode
 }
 
+// heredaCoordenadasDelSitio decide si un punto sin fix medido puede tomar las
+// coordenadas declaradas del sitio (feature 026).
+//
+// En su propia función por la misma razón que geoIngestAllowed: es una regla con
+// consecuencias —la diferencia entre "no sé dónde está" y "está en la oficina"—
+// y el handler donde vive necesita NATS y PostgreSQL para correr.
+func heredaCoordenadasDelSitio(lostMode, offsiteAllowed bool, source string) bool {
+	if lostMode {
+		return false
+	}
+	if offsiteAllowed {
+		return false
+	}
+	return source == geoSourceIP || source == geoSourceUnavailable
+}
+
 // agentLostMode responde si ESTE agente está marcado como perdido.
 //
 // Fail-safe APAGADO, igual que _lost_mode() en apiv3/utils.py: ante cualquier
@@ -277,12 +293,12 @@ func Svc(logger *logrus.Logger, cfg string) {
 					logger.Debugln("Geo: no se pudo leer la config global, descartando punto")
 					return
 				}
-				// La consulta extra sólo ocurre con la geo global APAGADA, que es el
-				// único caso donde el modo perdido cambia el desenlace.
-				lostMode := false
-				if !geoEnabled {
-					lostMode = agentLostMode(db, logger, p.Agentid)
-				}
+				// Se consulta SIEMPRE, no sólo con la geo apagada: el estado decide
+				// dos cosas distintas —si el punto entra, y si puede heredar las
+				// coordenadas del sitio— y la segunda aplica también con la geo
+				// encendida. Es una consulta por punto, y los puntos son raros
+				// (uno cada 25-35 min por equipo en operación normal).
+				lostMode := agentLostMode(db, logger, p.Agentid)
 				if !geoIngestAllowed(geoEnabled, lostMode) {
 					logger.Debugln("Geo: interruptor global apagado y el equipo no está marcado como perdido, descartando punto")
 					return
@@ -301,7 +317,24 @@ func Svc(logger *logrus.Logger, cfg string) {
 				// posición del sitio esconde el diagnóstico en la consola. NO aplica a
 				// equipos con geo_offsite_allowed: un notebook que se mueve no debe
 				// aparecer clavado en la oficina.
-				if source == geoSourceIP || source == geoSourceUnavailable {
+				// Feature 030 · en modo perdido NO se hereda la posición del sitio.
+				//
+				// El fallback de la 026 afirma "este equipo está dentro del sitio", y
+				// para un equipo estacionario es cierto y es mejor que un fix por IP.
+				// Para un equipo ROBADO es exactamente lo contrario: el recorrido del
+				// caso mostraría el equipo sentado en la oficina mientras alguien se
+				// lo lleva, y eso no es un dato pobre sino un dato FALSO. Un caso que
+				// puede terminar en una denuncia no puede llevar evidencia fabricada
+				// (ADR-025). Sin fallback, un fix por IP entra como "ip" con su error
+				// declarado —honesto y poco preciso— y un "unavailable" no entra.
+				//
+				// Hallado en terreno el 2026-08-11: los tres puntos del equipo marcado
+				// quedaron con source="site" y las coordenadas declaradas.
+				// El `!lostMode` de acá es sólo para ahorrarse la consulta: la regla
+				// que decide de verdad es heredaCoordenadasDelSitio, abajo, y la
+				// repite a propósito — si alguien afloja esta condición, el equipo
+				// robado sigue sin heredar la posición del sitio.
+				if !lostMode && (source == geoSourceIP || source == geoSourceUnavailable) {
 					var siteLat, siteLong sql.NullFloat64
 					var offsiteAllowed bool
 					err := db.QueryRow(`
@@ -311,7 +344,7 @@ func Svc(logger *logrus.Logger, cfg string) {
 					WHERE a.agent_id = $1;`, p.Agentid).Scan(&siteLat, &siteLong, &offsiteAllowed)
 					if err != nil {
 						logger.Debugln("Geo: no se pudo leer el sitio del agente:", err)
-					} else if !offsiteAllowed && siteLat.Valid && siteLong.Valid {
+					} else if heredaCoordenadasDelSitio(lostMode, offsiteAllowed, source) && siteLat.Valid && siteLong.Valid {
 						// La incertidumbre declarada es el propio perímetro del sitio:
 						// lo que se afirma es "este equipo está dentro del sitio".
 						lat, long, source = siteLat.Float64, siteLong.Float64, geoSourceSite

@@ -186,3 +186,34 @@ func TestGeoIngestAllowed(t *testing.T) {
 		}
 	}
 }
+
+// Feature 030 · el fallback de sitio de la 026 NO aplica a un equipo perdido.
+//
+// El caso que lo motiva se vio en terreno el 2026-08-11: los tres puntos del
+// equipo marcado quedaron con source="site" y las coordenadas DECLARADAS del
+// sitio. Para un equipo estacionario eso es mejor que un fix por IP; para uno
+// robado es evidencia fabricada — el recorrido muestra el equipo sentado en la
+// oficina mientras alguien se lo lleva.
+func TestHeredaCoordenadasDelSitio(t *testing.T) {
+	casos := []struct {
+		nombre         string
+		lostMode       bool
+		offsiteAllowed bool
+		source         string
+		quiere         bool
+	}{
+		{"estacionario sin fix medido: hereda, que es el caso de la 026", false, false, geoSourceIP, true},
+		{"estacionario sin ubicación disponible: hereda", false, false, geoSourceUnavailable, true},
+		{"equipo PERDIDO con fix por IP: NO hereda, entra el punto honesto", true, false, geoSourceIP, false},
+		{"equipo PERDIDO sin ubicación: NO hereda", true, false, geoSourceUnavailable, false},
+		{"equipo móvil declarado: NO hereda, no está clavado en la oficina", false, true, geoSourceIP, false},
+		{"permiso denegado: NO hereda, taparlo esconde el diagnóstico", false, false, geoSourceDenied, false},
+		{"fix medido de verdad: no hay nada que heredar", false, false, "native", false},
+	}
+	for _, c := range casos {
+		if got := heredaCoordenadasDelSitio(c.lostMode, c.offsiteAllowed, c.source); got != c.quiere {
+			t.Errorf("%s: heredaCoordenadasDelSitio(%v, %v, %q) = %v, quiere %v",
+				c.nombre, c.lostMode, c.offsiteAllowed, c.source, got, c.quiere)
+		}
+	}
+}

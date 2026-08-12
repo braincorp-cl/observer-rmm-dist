@@ -2941,7 +2941,7 @@
     "refresh": "Refresh",
     "loading": "Loading…",
     "noData": "No devices are marked as lost.",
-    "governanceNotice": "Marking a device starts the evidence collection governed by ADR-025: it requires a reason, is audited under your name, and overrides the global location tracking switch. Use it only for an actual loss or theft.",
+    "governanceNotice": "Marking a device starts evidence collection: it requires a reason, is audited under your name, and overrides the global location tracking switch. Use it only for an actual loss or theft.",
     "colHostname": "Device",
     "colClient": "Client",
     "colSite": "Site",
