@@ -8,6 +8,19 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.6 — 2026-08-11
+
+- **Modo perdido/robado, primera etapa.** Un equipo se puede marcar como perdido desde la consola, con un **motivo obligatorio**, y sólo se apaga marcándolo como recuperado. Mientras está marcado, el equipo **reporta su ubicación con mucha más frecuencia** (de una vez cada media hora a una vez por minuto, configurable entre 1 y 60). Todavía **no** captura pantalla ni fotos: eso llega en la próxima etapa.
+- El marcaje **funciona con el equipo apagado o sin red**: se aplica en cuanto vuelve a conectarse, sin depender de que el aviso lo haya alcanzado. Y **sobrevive a que lo reinicien** o a que le corten la energía, que es lo que suele pasar con un equipo robado.
+- Módulo **"Equipos perdidos"** en la consola, con la lista de equipos marcados, desde cuándo, quién los marcó y con qué motivo.
+- **Dos permisos nuevos y separados a propósito**: uno para operar el modo perdido y otro para ver la evidencia. Quien coordina la recuperación de un equipo no necesita ver lo que la cámara o la pantalla capturen.
+- Marcar y recuperar **quedan en la auditoría** con el usuario, el motivo y la hora, incluso cuando el equipo no contesta. La entrada deja escrito de forma explícita que el marcaje **pasa por encima del interruptor global de geolocalización**.
+- Cuatro **plantillas de scripts** nuevas para Linux y macOS.
+- ⚠️ **Corregido:** con la geolocalización global apagada —que es como viene una instalación nueva— el equipo marcado como perdido reportaba su ubicación y **el servidor la descartaba**. El recorrido quedaba vacío justo en el caso para el que existe la función. Se detectó midiendo contra un equipo real, no en las pruebas.
+- ⚠️ **Corregido:** el historial de ubicaciones de un equipo seguía siendo visible aunque la geolocalización global estuviera apagada. La posición actual sí se ocultaba; el recorrido completo, no.
+- Corregido: al encender el equipo, el modo perdido tardaba **hasta media hora** en activarse pese a que el dato ya estaba disponible desde el primer segundo. Ahora se aplica en el arranque.
+- Corregido: tras reiniciar el equipo, la ubicación volvía a reportarse a la frecuencia normal **hasta media hora**, en vez de retomar de inmediato la del caso.
+
 ## v1.4.5 — 2026-08-10
 
 - El **modo mantenimiento** deja de ser invisible: un aviso permanente en el encabezado dice cuántos equipos están marcados y desde hace cuánto, con un botón que los lista en un clic. El aviso no se puede cerrar mientras haya equipos marcados.

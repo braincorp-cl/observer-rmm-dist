@@ -33,16 +33,16 @@ LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.5"
+ORMM_VERSION = "1.4.6"
 
-WEB_VERSION = "0.101.60"
+WEB_VERSION = "0.2.0"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.0.206"
+APP_VER = "0.1.0"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
-LATEST_AGENT_VER = "2.15.1"
+LATEST_AGENT_VER = "2.15.14"
 
 MESH_VER = "1.1.32"
 
