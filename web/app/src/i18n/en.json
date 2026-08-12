@@ -72,6 +72,7 @@
     "serverMaintenance": "Server Maintenance",
     "clearCache": "Clear Cache",
     "recoverAllAgents": "Recover All Agents",
+    "lostEquipment": "Lost devices",
     "reportingManager": "Reporting Manager",
     "documentation": "Documentation",
     "githubRepo": "GitHub Repo",
@@ -901,7 +902,9 @@
     "manageWinUpdates": "Manage Windows Updates",
     "sendAlerts": "Send on-screen messages",
     "lockAgents": "Lock screen",
-    "soundAlarm": "Sound the alarm"
+    "soundAlarm": "Sound the alarm",
+    "manageLostMode": "Mark devices as lost",
+    "viewLostEvidence": "View lost device evidence"
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -2928,8 +2931,40 @@
       "no_audio_player": "The device has no audio player or system sound available.",
       "lock_unavailable": "No lock method worked on this device's desktop.",
       "empty_message": "The message cannot be empty.",
+      "empty_reason": "A reason is required to mark a device as lost: it is recorded in the audit log.",
       "agent_unreachable": "Could not reach the agent. The device may be powered off or offline.",
       "error": "The action failed on the device. Check the agent log for details."
     }
+  },
+  "lostEquipment": {
+    "title": "Lost or stolen devices",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "noData": "No devices are marked as lost.",
+    "governanceNotice": "Marking a device starts the evidence collection governed by ADR-025: it requires a reason, is audited under your name, and overrides the global location tracking switch. Use it only for an actual loss or theft.",
+    "colHostname": "Device",
+    "colClient": "Client",
+    "colSite": "Site",
+    "colMarkedAt": "Marked at",
+    "colMarkedBy": "Marked by",
+    "colReason": "Reason",
+    "colInterval": "Cadence (min)",
+    "colActions": "Actions",
+    "markLost": "Mark as lost",
+    "markTitle": "Mark a device as lost or stolen",
+    "agentLabel": "Device",
+    "reasonLabel": "Reason",
+    "reasonHint": "Recorded in the audit log. Describe the actual case, for example the ticket number or the police report.",
+    "reasonRequired": "The reason cannot be empty.",
+    "intervalLabel": "Capture cadence, in minutes",
+    "intervalHint": "Between 1 and 60. More often reconstructs the route better, but drains more battery.",
+    "markWarning": "While the device is marked, its location will be captured at this cadence even if location tracking is off for the rest of the fleet.",
+    "markedNotified": "Device marked as lost. It has been notified.",
+    "markedPending": "Device marked as lost. It could not be reached right now: it may be powered off or offline, and will find out when it reconnects.",
+    "recover": "Recover",
+    "recovered": "{hostname} was marked as recovered.",
+    "confirmRecoverTitle": "Confirm recovery",
+    "confirmRecoverMessage": "Evidence collection for {hostname} will stop. The case is closed and recorded.",
+    "cancel": "Cancel"
   }
 }

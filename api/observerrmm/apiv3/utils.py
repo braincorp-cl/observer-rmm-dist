@@ -29,7 +29,29 @@ def _geo_force_location_on() -> bool:
         return False
 
 
-def get_agent_config() -> AgentCheckInConfig:
+def _lost_mode(agentid: str) -> tuple[bool, int]:
+    """Feature 030: estado de modo perdido de ESTE agente.
+
+    Fail-safe apagado, igual que los interruptores de geo: ante cualquier
+    problema —agente inexistente, tabla no migrada, BD con hipo— se responde
+    "no está perdido". Encender una recolección de evidencia por un error de
+    lectura sería el peor fallo posible de esta feature.
+    """
+    try:
+        from agents.models import LostModeState
+
+        state = LostModeState.objects.filter(agent__agent_id=agentid).first()
+        if not state or not state.active:
+            return False, 0
+
+        return True, state.interval_min
+    except Exception:
+        return False, 0
+
+
+def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
+    lost_mode, lost_mode_interval_min = _lost_mode(agentid)
+
     return AgentCheckInConfig(
         # Fallbacks aligned to the anti-OOM production defaults in settings.py:
         # losing a CHECKIN_* line must never degrade to a more aggressive interval.
@@ -61,4 +83,6 @@ def get_agent_config() -> AgentCheckInConfig:
         geo_enabled=_geo_tracking_enabled(),
         checkin_geo=random.randint(*getattr(settings, "CHECKIN_GEO", (1500, 2100))),
         geo_force_on=_geo_force_location_on(),
+        lost_mode=lost_mode,
+        lost_mode_interval_min=lost_mode_interval_min,
     )

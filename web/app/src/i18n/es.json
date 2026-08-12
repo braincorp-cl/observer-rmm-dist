@@ -72,6 +72,7 @@
     "serverMaintenance": "Mantenimiento del servidor",
     "clearCache": "Limpiar caché",
     "recoverAllAgents": "Recuperar todos los agentes",
+    "lostEquipment": "Equipos perdidos",
     "reportingManager": "Gestor de reportes",
     "documentation": "Documentación",
     "githubRepo": "Repositorio GitHub",
@@ -901,7 +902,9 @@
     "manageWinUpdates": "Gestionar actualizaciones de Windows",
     "sendAlerts": "Enviar mensajes en pantalla",
     "lockAgents": "Bloquear pantalla",
-    "soundAlarm": "Hacer sonar la alarma"
+    "soundAlarm": "Hacer sonar la alarma",
+    "manageLostMode": "Marcar equipos como perdidos",
+    "viewLostEvidence": "Ver evidencia de equipos perdidos"
   },
   "uiConfirmDialog": {
     "yes": "Sí",
@@ -2928,8 +2931,40 @@
       "no_audio_player": "El equipo no tiene reproductor de audio ni un sonido del sistema disponible.",
       "lock_unavailable": "Ningún método de bloqueo funcionó en el escritorio de este equipo.",
       "empty_message": "El mensaje no puede quedar vacío.",
+      "empty_reason": "El motivo es obligatorio para marcar un equipo como perdido: queda registrado en la auditoría.",
       "agent_unreachable": "No se pudo contactar al agente. El equipo puede estar apagado o sin red.",
       "error": "La acción falló en el equipo. Revisa el log del agente para ver el detalle."
     }
+  },
+  "lostEquipment": {
+    "title": "Equipos perdidos o robados",
+    "refresh": "Actualizar",
+    "loading": "Cargando…",
+    "noData": "No hay equipos marcados como perdidos.",
+    "governanceNotice": "Marcar un equipo enciende la recolección de evidencia regulada por ADR-025: exige un motivo, queda auditado con tu nombre e ignora el interruptor global de geolocalización. Úsalo sólo ante una pérdida o un robo concretos.",
+    "colHostname": "Equipo",
+    "colClient": "Cliente",
+    "colSite": "Sitio",
+    "colMarkedAt": "Marcado el",
+    "colMarkedBy": "Marcado por",
+    "colReason": "Motivo",
+    "colInterval": "Cadencia (min)",
+    "colActions": "Acciones",
+    "markLost": "Marcar como perdido",
+    "markTitle": "Marcar un equipo como perdido o robado",
+    "agentLabel": "Equipo",
+    "reasonLabel": "Motivo",
+    "reasonHint": "Queda registrado en la auditoría. Escribe el caso concreto, por ejemplo el número de ticket o la denuncia.",
+    "reasonRequired": "El motivo no puede quedar vacío.",
+    "intervalLabel": "Cadencia de captura, en minutos",
+    "intervalHint": "Entre 1 y 60. Más seguido reconstruye mejor el recorrido, pero gasta más batería.",
+    "markWarning": "Mientras el equipo esté marcado, su ubicación se capturará con esta cadencia aunque la geolocalización esté apagada para el resto de la flota.",
+    "markedNotified": "Equipo marcado como perdido. Ya se le avisó.",
+    "markedPending": "Equipo marcado como perdido. No se pudo contactar ahora: puede estar apagado o sin red, y se enterará al reconectar.",
+    "recover": "Recuperar",
+    "recovered": "{hostname} se dio por recuperado.",
+    "confirmRecoverTitle": "Confirmar recuperación",
+    "confirmRecoverMessage": "Se detendrá la captura de evidencia de {hostname}. El caso queda cerrado y registrado.",
+    "cancel": "Cancelar"
   }
 }

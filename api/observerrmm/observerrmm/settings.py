@@ -25,6 +25,11 @@ MACOS_AGENT_SCRIPT = BASE_DIR / "core" / "agent_macos.sh"
 
 MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 
+# Evidencia del modo perdido/robado (feature 030, ADR-025). Ruta propia, fuera de
+# la de los assets de reporting: distinto régimen de retención y de acceso. Se
+# puede pisar desde local_settings.py para montarla en otro volumen.
+LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
+
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release

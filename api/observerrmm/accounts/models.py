@@ -142,6 +142,17 @@ class Role(BaseAuditModel):
     can_lock_agents = models.BooleanField(default=False)
     can_sound_alarm = models.BooleanField(default=False)
 
+    # agents · modo perdido/robado (feature 030, ADR-025)
+    #
+    # Separados igual que los de la 028 y por la misma razón, sólo que la
+    # distancia acá es mayor: `can_manage_lost_mode` es operar el caso (marcar
+    # un equipo como perdido y recuperarlo), y `can_view_lost_evidence` es ver
+    # el material capturado. Quien coordina la recuperación no necesariamente
+    # tiene que mirar capturas de pantalla de la persona que tiene el equipo, y
+    # ADR-025 pide justamente que esa segunda capacidad se conceda aparte.
+    can_manage_lost_mode = models.BooleanField(default=False)
+    can_view_lost_evidence = models.BooleanField(default=False)
+
     # core
     can_list_notes = models.BooleanField(default=False)
     can_manage_notes = models.BooleanField(default=False)

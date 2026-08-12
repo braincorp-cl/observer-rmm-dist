@@ -13,12 +13,14 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone as djangotime
 from nats.errors import TimeoutError
 from packaging import version as pyver
 from packaging.version import Version as LooseVersion
 
+from agents.lostmode_storage import get_lost_mode_evidence_fs
 from agents.utils import calculate_agent_checks, get_agent_url
 from core.models import TZ_CHOICES
 from core.utils import _b64_to_hex, get_core_settings, send_command_with_mesh
@@ -28,6 +30,8 @@ from observerrmm.constants import (
     AGENT_STATUS_ONLINE,
     AGENT_STATUS_OVERDUE,
     AGENT_TBL_PEND_ACTION_CNT_CACHE_PREFIX,
+    LOST_MODE_MAX_INTERVAL_MIN,
+    LOST_MODE_MIN_INTERVAL_MIN,
     ONLINE_AGENTS,
     AgentHistoryType,
     AgentMonType,
@@ -35,6 +39,7 @@ from observerrmm.constants import (
     CustomFieldType,
     DebugLogType,
     GoArch,
+    LostModeEvidenceKind,
     PAAction,
     PAStatus,
 )
@@ -1325,3 +1330,123 @@ class AgentHistory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - {self.type}"
+
+
+def lost_mode_evidence_path(instance: "LostModeEvidence", filename: str) -> str:
+    """Ruta relativa dentro de LOST_MODE_EVIDENCE_BASE_PATH.
+
+    Una carpeta por agente y por ciclo de captura: el ciclo es la unidad que el
+    operador ve en la línea de tiempo, y tenerlo en la ruta hace que borrar un
+    caso completo sea un `rm -r` de una carpeta y no un recorrido de filas.
+    """
+    return f"{instance.agent.agent_id}/{instance.cycle:06d}/{filename}"
+
+
+class LostModeState(models.Model):
+    """Estado de "equipo perdido/robado" de un agente (feature 030, ADR-025).
+
+    No hereda de `BaseAuditModel` a propósito: la auditoría de esta feature es
+    narrativa (`AuditLog.audit_lost_mode`, con el motivo que escribió el
+    operador), y la genérica de `save()` sólo agregaría ruido duplicado. Mismo
+    criterio que `Note`, `AgentCustomField` y `AgentHistory`.
+
+    La fila existe aunque el modo esté apagado: `active=False` con
+    `recovered_at` puesto es el registro de un caso cerrado, no la ausencia de
+    caso.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    agent = models.OneToOneField(
+        Agent,
+        related_name="lost_mode",
+        on_delete=models.CASCADE,
+    )
+    active = models.BooleanField(default=False)
+    # Motivo obligatorio a nivel de API (el endpoint rechaza el vacío). Acá no
+    # lleva `blank=False` estricto porque al recuperar el equipo la fila se
+    # conserva con el motivo del marcaje original.
+    reason = models.TextField(default="")
+    marked_by = models.ForeignKey(
+        "accounts.User",
+        related_name="lost_mode_markings",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    marked_at = models.DateTimeField(null=True, blank=True)
+    recovered_at = models.DateTimeField(null=True, blank=True)
+    # Cadencia de captura mientras el modo está activo. Acotada en los dos
+    # extremos: un 0 sería captura continua (mata la batería y delata al agente)
+    # y un valor enorme vuelve la feature inútil. El agente vuelve a acotarlo al
+    # leer el valor, porque el piso no puede depender sólo del servidor.
+    interval_min = models.PositiveIntegerField(
+        default=5,
+        validators=[
+            MinValueValidator(LOST_MODE_MIN_INTERVAL_MIN),
+            MaxValueValidator(LOST_MODE_MAX_INTERVAL_MIN),
+        ],
+    )
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {'perdido' if self.active else 'recuperado'}"
+
+
+class LostModeEvidence(models.Model):
+    """Una pieza de evidencia capturada durante un ciclo del modo perdido.
+
+    `kind=geo` guarda una **copia** del punto de ubicación, que ya existe en
+    `CheckHistory`. La duplicación es deliberada: los puntos de `CheckHistory`
+    los borra la poda `check_history_prune_days` (30 días por defecto), que es
+    una perilla de retención de *monitoreo*; la evidencia de ADR-025 tiene su
+    propio plazo y no puede depender de ella. Por eso la fila lleva
+    `accuracy_m`, `source` y `captured_at`: un punto sin precisión ni fuente no
+    sirve como prueba, porque un fix por IP y uno por GPS se ven idénticos.
+
+    `asset` queda vacío para `kind=geo` (no hay archivo) y poblado para
+    `screen`/`webcam`.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        Agent,
+        related_name="lost_mode_evidence",
+        on_delete=models.CASCADE,
+    )
+    # Número de ciclo de captura dentro del caso. Agrupa en la línea de tiempo
+    # las piezas que se tomaron juntas (geo + pantalla del mismo momento).
+    cycle = models.PositiveIntegerField(default=0)
+    kind: "LostModeEvidenceKind" = models.CharField(
+        max_length=20,
+        choices=LostModeEvidenceKind.choices,
+    )
+    asset = models.FileField(
+        storage=get_lost_mode_evidence_fs,
+        upload_to=lost_mode_evidence_path,
+        null=True,
+        blank=True,
+    )
+    lat = models.FloatField(null=True, blank=True)
+    lng = models.FloatField(null=True, blank=True)
+    accuracy_m = models.PositiveIntegerField(null=True, blank=True)
+    # native / wifi / ip / denied / unavailable — espeja las fuentes que declara
+    # el agente en geolocation.go (CONTRACT-01). Texto y no choices: si el
+    # agente suma una fuente, el servidor no debe rechazar la fila por eso.
+    source = models.CharField(max_length=20, null=True, blank=True)
+    session_user = models.CharField(max_length=255, null=True, blank=True)
+    # Reloj del EQUIPO al capturar. Distinto de `created`, que es el del
+    # servidor al recibir: entre los dos puede haber horas si el equipo estuvo
+    # sin red, y para un caso forense la diferencia importa.
+    captured_at = models.DateTimeField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created"]
+        indexes = [
+            models.Index(fields=["agent", "cycle"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {self.kind} - ciclo {self.cycle}"

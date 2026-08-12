@@ -757,7 +757,10 @@ class AgentConfig(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, agentid):
-        ret = get_agent_config()
+        # Feature 030: desde acá la config deja de ser 100 % global. El `agentid`
+        # ya llegaba en la ruta y se ignoraba; ahora resuelve el modo perdido de
+        # ESE equipo.
+        ret = get_agent_config(agentid)
         return Response(ret._to_dict())
 
 

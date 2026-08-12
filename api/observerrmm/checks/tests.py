@@ -1242,6 +1242,65 @@ class TestGeolocationHistory(ObserverTestCase):
 
         self.check_not_authenticated("get", url)
 
+    def test_modo_perdido_muestra_la_geo_con_el_switch_apagado(self):
+        """Feature 030 · la contraparte servidor del bypass del agente.
+
+        Sin esto, el agente de un equipo perdido publica puntos que la consola
+        nunca muestra: la feature sería un no-op visual en cualquier flota con la
+        geo apagada por omisión, que es la instalación por defecto (ADR-024) y
+        justo donde hace falta.
+        """
+        from agents.models import LostModeState
+
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = False
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+        self._make_point(agent, -33.4489, -70.6693, 35, "native", minutes_ago=1)
+
+        url = f"/agents/{agent.agent_id}/location/"
+        url_hist = f"/agents/{agent.agent_id}/location/history/"
+
+        # sin marcar: sigue oculto
+        self.assertFalse(self.client.get(url, format="json").data["enabled"])
+
+        state = LostModeState.objects.create(
+            agent=agent, active=True, reason="robo", interval_min=5
+        )
+
+        resp = self.client.get(url, format="json")
+        self.assertTrue(resp.data["enabled"])
+        self.assertEqual(resp.data["lat"], -33.4489)
+
+        resp_hist = self.client.get(url_hist, format="json")
+        self.assertTrue(resp_hist.data["enabled"])
+        self.assertEqual(len(resp_hist.data["points"]), 1)
+
+        # y al recuperar el equipo vuelve a ocultarse
+        state.active = False
+        state.save(update_fields=["active"])
+        self.assertFalse(self.client.get(url, format="json").data["enabled"])
+        self.assertFalse(self.client.get(url_hist, format="json").data["enabled"])
+
+    def test_history_switch_off(self):
+        """La trayectoria obedece el mismo interruptor que la posición actual.
+
+        Antes NO lo miraba: con la geo apagada, `location/` ocultaba la posición
+        pero `location/history/` devolvía el recorrido entero. Era una fuga, no
+        una decisión — el propio `test_latest_location_switch_off` dice que con
+        el switch apagado los puntos históricos no se exponen.
+        """
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = False
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+        self._make_point(agent, -33.44, -70.66, 40, "native", minutes_ago=30)
+
+        resp = self.client.get(
+            f"/agents/{agent.agent_id}/location/history/", format="json"
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.data["enabled"])
+        self.assertEqual(resp.data["points"], [])
+
     def test_prune_removes_geo_points(self):
         from checks.tasks import prune_check_history
 

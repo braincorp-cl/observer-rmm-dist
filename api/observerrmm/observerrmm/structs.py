@@ -32,3 +32,9 @@ class AgentCheckInConfig(ORMMStruct):
     checkin_geo: int
     # Gap 3: force-on del sensor de ubicación/radio WiFi en el endpoint corporativo.
     geo_force_on: bool
+    # Feature 030 (ADR-025): PRIMER campo per-agente de este endpoint — todos los
+    # anteriores son globales. Es el canal de respaldo del push por NATS: un
+    # equipo que estaba apagado cuando lo marcaron se entera acá al reconectar,
+    # que es justamente el escenario para el que existe la feature.
+    lost_mode: bool
+    lost_mode_interval_min: int

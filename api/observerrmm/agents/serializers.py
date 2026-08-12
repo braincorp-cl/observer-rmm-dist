@@ -8,7 +8,7 @@ from observerrmm.constants import (
 )
 from winupdate.serializers import WinUpdatePolicySerializer
 
-from .models import Agent, AgentCustomField, AgentHistory, Note
+from .models import Agent, AgentCustomField, AgentHistory, LostModeState, Note
 
 
 class AgentCustomFieldSerializer(serializers.ModelSerializer):
@@ -231,3 +231,34 @@ class AgentAuditSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
         exclude = ["disks", "services", "wmi_detail"]
+
+
+class LostModeStateSerializer(serializers.ModelSerializer):
+    """Feature 030: una fila del índice de equipos perdidos.
+
+    Trae el hostname y el nombre de quien marcó porque el índice es una tabla
+    plana: sin eso la consola tendría que pedir un agente por fila.
+    """
+
+    agent_id = serializers.ReadOnlyField(source="agent.agent_id")
+    hostname = serializers.ReadOnlyField(source="agent.hostname")
+    plat = serializers.ReadOnlyField(source="agent.plat")
+    client_name = serializers.ReadOnlyField(source="agent.client.name")
+    site_name = serializers.ReadOnlyField(source="agent.site.name")
+    marked_by = serializers.ReadOnlyField(source="marked_by.username")
+
+    class Meta:
+        model = LostModeState
+        fields = (
+            "agent_id",
+            "hostname",
+            "plat",
+            "client_name",
+            "site_name",
+            "active",
+            "reason",
+            "marked_by",
+            "marked_at",
+            "recovered_at",
+            "interval_min",
+        )

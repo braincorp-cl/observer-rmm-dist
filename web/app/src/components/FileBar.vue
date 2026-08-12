@@ -143,9 +143,7 @@
               <!-- respuesta rápida de endpoint en masa (feature 028) -->
               <q-separator />
               <q-item clickable v-close-popup @click="showBulkAction('alert')">
-                <q-item-section>{{
-                  $t("nav.bulkSendAlert")
-                }}</q-item-section>
+                <q-item-section>{{ $t("nav.bulkSendAlert") }}</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="showBulkAction('lock')">
                 <q-item-section>{{ $t("nav.bulkLock") }}</q-item-section>
@@ -160,6 +158,10 @@
               >
                 <q-item-section>{{ $t("nav.bulkStopAlarm") }}</q-item-section>
               </q-item>
+              <!-- módulo de equipos perdidos (feature 030) -->
+              <q-item clickable v-close-popup :to="{ name: 'LostEquipment' }">
+                <q-item-section>{{ $t("nav.lostEquipment") }}</q-item-section>
+              </q-item>
               <q-separator />
               <!-- server maintenance -->
               <q-item
@@ -167,7 +169,9 @@
                 v-close-popup
                 @click="showServerMaintenance = true"
               >
-                <q-item-section>{{ $t("nav.serverMaintenance") }}</q-item-section>
+                <q-item-section>{{
+                  $t("nav.serverMaintenance")
+                }}</q-item-section>
               </q-item>
               <!-- clear cache -->
               <q-item clickable v-close-popup @click="clearCache">
@@ -175,7 +179,9 @@
               </q-item>
               <!-- bulk recover agents -->
               <q-item clickable v-close-popup @click="bulkRecoverAgents">
-                <q-item-section>{{ $t("nav.recoverAllAgents") }}</q-item-section>
+                <q-item-section>{{
+                  $t("nav.recoverAllAgents")
+                }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -209,7 +215,9 @@
             </q-list>
             <q-list v-else dense style="min-width: 100px">
               <q-item clickable v-close-popup @click="showReportsManager">
-                <q-item-section>{{ $t("nav.reportingManager") }}</q-item-section>
+                <q-item-section>{{
+                  $t("nav.reportingManager")
+                }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>

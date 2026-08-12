@@ -11,6 +11,7 @@ from observerrmm.constants import (
     AuditObjType,
     DebugLogLevel,
     DebugLogType,
+    LostModeAction,
     PAAction,
     PAStatus,
 )
@@ -144,6 +145,47 @@ class AuditLog(models.Model):
             action=AuditActionType.ENDPOINT_RESPONSE,
             message=f"{username} sent endpoint response action '{action}' to {agent.hostname}.",
             after_value=detail or None,
+            debug_info=debug_info,
+        )
+
+    @staticmethod
+    def audit_lost_mode(
+        username: str,
+        agent: "Agent",
+        action: str,
+        reason: str = "",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 030 (ADR-025): quién abrió y quién cerró el caso de un equipo
+        # perdido, cuándo y con qué motivo.
+        #
+        # Hermano de audit_endpoint_response pero con `action` propio: marcar un
+        # equipo como perdido enciende una recolección de evidencia sobre la
+        # persona que lo tiene, y esa es exactamente la fila que un día habrá que
+        # poder mostrar. El motivo va en `after_value`, igual que el texto del
+        # alert y que el comando en audit_raw_command.
+        #
+        # El mensaje deja escrito TODO lo que el marcaje pisa: el interruptor
+        # global de geolocalización, el piso de cadencia de 300 s y el force-on
+        # del sensor de ubicación del equipo. Ese bypass es una decisión de
+        # ADR-025 —lo justifican el motivo obligatorio, el permiso dedicado y
+        # esta misma auditoría— y no puede quedar sólo implícito en el código.
+        detail = (
+            f"{username} marked {agent.hostname} as lost "
+            f"(overrides the global geo tracking switch, the capture cadence "
+            f"floor and the device location sensor setting)."
+            if action == LostModeAction.MARK
+            else f"{username} marked {agent.hostname} as recovered."
+        )
+
+        AuditLog.objects.create(
+            username=username,
+            agent=agent.hostname,
+            agent_id=agent.agent_id,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.LOST_MODE,
+            message=detail,
+            after_value=reason or None,
             debug_info=debug_info,
         )
 

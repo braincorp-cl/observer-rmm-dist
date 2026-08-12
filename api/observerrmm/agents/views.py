@@ -47,6 +47,8 @@ from observerrmm.constants import (
     ENDPOINT_RESPONSE_CODES,
     ENDPOINT_RESPONSE_PREFIX,
     GEO_CHECK_HISTORY_ID,
+    LOST_MODE_MAX_INTERVAL_MIN,
+    LOST_MODE_MIN_INTERVAL_MIN,
     NATS_UNREACHABLE,
     AgentHistoryType,
     AgentMonType,
@@ -54,6 +56,7 @@ from observerrmm.constants import (
     CustomFieldModel,
     EndpointResponseAction,
     EvtLogNames,
+    LostModeAction,
     PAAction,
     PAStatus,
 )
@@ -69,7 +72,7 @@ from winupdate.models import WinUpdate, WinUpdatePolicy
 from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
-from .models import Agent, AgentCustomField, AgentHistory, Note
+from .models import Agent, AgentCustomField, AgentHistory, LostModeState, Note
 from .permissions import (
     AgentHistoryPerms,
     AgentNotesPerms,
@@ -79,6 +82,7 @@ from .permissions import (
     EvtLogPerms,
     InstallAgentPerms,
     LockAgentPerms,
+    ManageLostModePerms,
     ManageProcPerms,
     MeshPerms,
     RebootAgentPerms,
@@ -97,6 +101,7 @@ from .serializers import (
     AgentNoteSerializer,
     AgentSerializer,
     AgentTableSerializer,
+    LostModeStateSerializer,
 )
 from .tasks import (
     bulk_endpoint_response_task,
@@ -851,6 +856,160 @@ class SoundAlarm(APIView):
         return _endpoint_response(agent, {"func": "stopalarm"})
 
 
+# Feature 030 · modo perdido/robado (ADR-025).
+#
+# DELIBERADAMENTE NO usa `_endpoint_response()`. Ese helper devuelve HTTP 400 si
+# el agente no contesta por NATS, que es lo correcto para `lock`/`alert`/`alarm`:
+# son acciones efímeras y si el equipo no las recibió, no pasaron. Acá es al
+# revés — el caso de uso central del modo perdido es un equipo **apagado, sin red
+# o ya en manos de otro** al momento de marcarlo. La BD es la fuente de verdad;
+# el empujón por NATS es *best-effort* y no condiciona el éxito de la operación.
+#
+# El canal garantizado de reconciliación es el polling de config que la geo ya
+# hace (`/api/v3/<agentid>/config/`, T005): un equipo que estaba apagado al
+# marcarlo se entera al reconectar, sin depender de este push.
+
+
+def _lost_mode_interval(value: object, fallback: int) -> int:
+    """Lee el intervalo en MINUTOS y lo acota en los dos extremos.
+
+    Un 0 sería captura continua —mata la batería y delata al agente frente a
+    quien tiene el equipo— y un valor enorme vuelve la feature inútil. El agente
+    vuelve a acotarlo de su lado: el piso no puede depender sólo del servidor,
+    porque el mismo valor le llega también por el polling de config.
+    """
+    try:
+        interval = int(value)
+    except (TypeError, ValueError):
+        return fallback
+
+    return max(LOST_MODE_MIN_INTERVAL_MIN, min(interval, LOST_MODE_MAX_INTERVAL_MIN))
+
+
+def _push_lost_mode(agent: "Agent", state: LostModeState) -> bool:
+    """Empuja el estado al agente. Devuelve si llegó, sin levantar nunca.
+
+    Cualquier fallo se traga a propósito: la operación ya quedó firme en la BD y
+    auditada, y un equipo incomunicado es el escenario esperado, no un error.
+    """
+    try:
+        r = asyncio.run(
+            agent.nats_cmd(
+                {
+                    "func": "lost_mode",
+                    "payload": {
+                        "active": "1" if state.active else "0",
+                        "interval_min": str(state.interval_min),
+                    },
+                },
+                timeout=15,
+            )
+        )
+    except Exception:
+        return False
+
+    return r == "ok"
+
+
+class LostMode(APIView):
+    permission_classes = [IsAuthenticated, ManageLostModePerms]
+
+    # marcar como perdido
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        reason = str(request.data.get("reason", "")).strip()
+
+        # El motivo es obligatorio por ADR-025, no por comodidad de la UI: es lo
+        # que sostiene la proporcionalidad de encender una recolección de
+        # evidencia sobre la persona que tiene el equipo.
+        if not reason:
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}empty_reason")
+
+        previo = LostModeState.objects.filter(agent=agent).first()
+        interval_min = _lost_mode_interval(
+            request.data.get("interval_min"),
+            (
+                previo.interval_min
+                if previo
+                else LostModeState._meta.get_field("interval_min").default
+            ),
+        )
+
+        state, _ = LostModeState.objects.update_or_create(
+            agent=agent,
+            defaults={
+                "active": True,
+                "reason": reason,
+                "marked_by": request.user,
+                "marked_at": djangotime.now(),
+                # Se limpia al re-marcar: un caso reabierto no arrastra la fecha
+                # de recuperación del anterior.
+                "recovered_at": None,
+                "interval_min": interval_min,
+            },
+        )
+
+        # La auditoría va SIEMPRE y antes del push: si el agente no contesta, el
+        # caso igual quedó abierto y tiene que quedar registrado quién lo abrió.
+        AuditLog.audit_lost_mode(
+            username=request.user.username,
+            agent=agent,
+            action=LostModeAction.MARK,
+            reason=reason,
+            debug_info={"ip": request._client_ip},
+        )
+
+        return Response(
+            {
+                "status": "ok",
+                "nats_delivered": _push_lost_mode(agent, state),
+                "interval_min": state.interval_min,
+            }
+        )
+
+    # marcar como recuperado
+    def delete(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        # Sin motivo: recuperar es apagar una capacidad, no encenderla. El motivo
+        # del marcaje original se conserva en la fila.
+        state, _ = LostModeState.objects.update_or_create(
+            agent=agent,
+            defaults={"active": False, "recovered_at": djangotime.now()},
+        )
+
+        AuditLog.audit_lost_mode(
+            username=request.user.username,
+            agent=agent,
+            action=LostModeAction.RECOVER,
+            debug_info={"ip": request._client_ip},
+        )
+
+        return Response(
+            {"status": "ok", "nats_delivered": _push_lost_mode(agent, state)}
+        )
+
+
+class LostModeList(APIView):
+    """Índice de equipos actualmente marcados como perdidos.
+
+    Sin `agent_id` en la ruta: el alcance lo recorta `filter_by_role`, igual que
+    en el resto de los listados de la consola.
+    """
+
+    permission_classes = [IsAuthenticated, ManageLostModePerms]
+
+    def get(self, request):
+        qs = (
+            LostModeState.objects.filter_by_role(request.user)
+            .filter(active=True)
+            .select_related("agent__site__client", "marked_by")
+            .order_by("-marked_at")
+        )
+        return Response(LostModeStateSerializer(qs, many=True).data)
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, InstallAgentPerms])
 def install_agent(request):
@@ -1508,6 +1667,25 @@ class AgentHistoryView(APIView):
         return Response(AgentHistorySerializer(history, many=True, context=ctx).data)
 
 
+def _geo_visible(agent: "Agent") -> bool:
+    """¿Se puede mostrar la ubicación de este equipo en la consola?
+
+    Feature 030: el interruptor global de geo apagado ya NO basta para ocultarla
+    si el equipo está marcado como perdido. Sin esta excepción, el bypass del
+    agente (svc.go) publicaría puntos que la consola nunca mostraría — la feature
+    sería un no-op visual en cualquier flota con la geo apagada por omisión, que
+    es la instalación por defecto (ADR-024) y justo donde hace falta.
+
+    Lo que sostiene la excepción es el mismo régimen de ADR-025 que sostiene el
+    bypass del agente: motivo obligatorio, permiso dedicado y auditoría del
+    marcaje. Y la consulta en sí ya queda auditada aparte (RF-09 / RN-02).
+    """
+    if get_core_settings().geo_tracking_enabled:
+        return True
+
+    return LostModeState.objects.filter(agent=agent, active=True).exists()
+
+
 class AgentLocation(APIView):
     """Feature 023: última ubicación conocida del equipo.
 
@@ -1525,7 +1703,7 @@ class AgentLocation(APIView):
             username=request.user.username, agent=agent
         )
 
-        if not get_core_settings().geo_tracking_enabled:
+        if not _geo_visible(agent):
             return Response({"enabled": False})
 
         latest = (
@@ -1557,6 +1735,17 @@ class AgentLocationHistory(APIView):
     Lee de CheckHistory por rango de x. Respeta la retención existente
     (check_history_prune_days): no hay puntos más viejos que la ventana. Tope
     server-side con bandera `truncated` para no devolver series enormes.
+
+    Feature 030: esta vista NO miraba el interruptor global, mientras que
+    `AgentLocation` sí — o sea que con la geo apagada la posición actual quedaba
+    oculta pero la trayectoria completa seguía saliendo por acá. Era una fuga, no
+    una decisión: el test `test_latest_location_switch_off` dice explícitamente
+    "aun habiendo puntos históricos, con el switch global apagado no se exponen".
+    Ahora las dos vistas comparten la misma regla, `_geo_visible()`, incluida la
+    excepción del modo perdido.
+
+    La forma de la respuesta se mantiene (`points` vacío + `truncated`) y se le
+    suma `enabled`, para no romper a un consumidor que sólo lee `points`.
     """
 
     permission_classes = [IsAuthenticated, AgentPerms]
@@ -1566,6 +1755,9 @@ class AgentLocationHistory(APIView):
         AuditLog.audit_agent_location_viewed(
             username=request.user.username, agent=agent
         )
+
+        if not _geo_visible(agent):
+            return Response({"enabled": False, "points": [], "truncated": False})
 
         qs = CheckHistory.objects.filter(
             agent_id=agent.agent_id, check_id=GEO_CHECK_HISTORY_ID
@@ -1596,7 +1788,7 @@ class AgentLocationHistory(APIView):
             for row in qs[:limit]
             if row.results
         ]
-        return Response({"points": points, "truncated": total > limit})
+        return Response({"enabled": True, "points": points, "truncated": total > limit})
 
 
 class ScriptRunHistory(APIView):

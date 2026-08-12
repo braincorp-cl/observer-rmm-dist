@@ -151,6 +151,15 @@
                 v-model="localRole.can_sound_alarm"
                 :label="$t('rolesForm.soundAlarm')"
               />
+              <!-- modo perdido/robado (feature 030) -->
+              <q-checkbox
+                v-model="localRole.can_manage_lost_mode"
+                :label="$t('rolesForm.manageLostMode')"
+              />
+              <q-checkbox
+                v-model="localRole.can_view_lost_evidence"
+                :label="$t('rolesForm.viewLostEvidence')"
+              />
             </div>
           </q-card-section>
           <div class="text-subtitle2">{{ $t("rolesForm.secCore") }}</div>
@@ -581,6 +590,9 @@ export default {
           can_send_alerts: false,
           can_lock_agents: false,
           can_sound_alarm: false,
+          // modo perdido/robado (feature 030)
+          can_manage_lost_mode: false,
+          can_view_lost_evidence: false,
         });
 
     const loading = ref(false);

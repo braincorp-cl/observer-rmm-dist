@@ -142,6 +142,9 @@ module.exports = {
         "src/components/accounts/UserSessionsTable.vue",
         "src/components/accounts/PermissionsManager.vue",
         "src/components/accounts/RolesForm.vue",
+        // feature 030 · módulo de equipos perdidos, en el gate estricto desde el
+        // día uno: entrar después obliga a repasar un archivo ya escrito.
+        "src/views/LostEquipmentView.vue",
         "src/components/modals/admin/UserForm.vue",
         "src/components/modals/admin/UserResetPasswordForm.vue",
         // Ola 8a: widgets compartidos ui/ (2 sin texto entran limpios al gate).

@@ -106,6 +106,34 @@ class SoundAlarmPerms(permissions.BasePermission):
         )
 
 
+class ManageLostModePerms(permissions.BasePermission):
+    """Feature 030: marcar un equipo como perdido y recuperarlo.
+
+    A diferencia de los tres de la 028, este permiso cubre además una vista de
+    listado que NO lleva `agent_id` en la ruta (el índice de equipos perdidos).
+    Por eso la comprobación por agente es condicional: si la vista apunta a un
+    equipo concreto se exige también alcance sobre él; si es el listado, basta
+    el permiso de rol y el queryset se recorta después con `filter_by_role`.
+    Leer `view.kwargs["agent_id"]` a secas reventaría con KeyError en el listado.
+    """
+
+    def has_permission(self, r, view) -> bool:
+        if not _has_perm(r, "can_manage_lost_mode"):
+            return False
+
+        agent_id = view.kwargs.get("agent_id")
+        if agent_id is None:
+            return True
+
+        return _has_perm_on_agent(r.user, agent_id)
+
+
+# `ViewLostEvidencePerms` se difiere a la Fase 1 a propósito: hoy no existe
+# ninguna vista que sirva evidencia, así que la clase sería código muerto. El
+# booleano en `Role` sí se crea ahora, para que la migración de permisos sea una
+# sola y no haya que volver a tocar la tabla al empezar a capturar.
+
+
 class InstallAgentPerms(permissions.BasePermission):
     def has_permission(self, r, view) -> bool:
         return _has_perm(r, "can_install_agents")

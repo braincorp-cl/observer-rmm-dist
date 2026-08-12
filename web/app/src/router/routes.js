@@ -15,6 +15,17 @@ const routes = [
         },
       },
       {
+        // Feature 030 · módulo de nivel superior, hermano del Dashboard. No es
+        // un diálogo: un caso de equipo perdido se sigue en el tiempo y tiene
+        // que poder compartirse por URL.
+        path: "lost-equipment",
+        name: "LostEquipment",
+        component: () => import("@/views/LostEquipmentView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         path: "",
         name: "Dashboard",
         component: () => import("@/views/DashboardView.vue"),

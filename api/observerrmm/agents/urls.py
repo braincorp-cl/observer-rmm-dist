@@ -38,6 +38,10 @@ urlpatterns = [
     path("<agent:agent_id>/alert/", views.SendAlert.as_view()),
     # POST hace sonar la alarma, DELETE la detiene
     path("<agent:agent_id>/alarm/", views.SoundAlarm.as_view()),
+    # modo perdido/robado (feature 030)
+    # POST marca el equipo como perdido, DELETE lo da por recuperado
+    path("<agent:agent_id>/lostmode/", views.LostMode.as_view()),
+    path("lostmode/", views.LostModeList.as_view()),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

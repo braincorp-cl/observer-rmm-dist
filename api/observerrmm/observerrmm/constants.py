@@ -258,6 +258,12 @@ class AuditActionType(models.TextChoices):
     # el registro de auditoría por sí solas, sin quedar mezcladas con la ejecución
     # de comandos.
     ENDPOINT_RESPONSE = "endpoint_response", "Endpoint Response"
+    # Feature 030: categoría propia, NO se reusa ENDPOINT_RESPONSE. Marcar un
+    # equipo como perdido no es una acción efímera sobre el endpoint: abre un
+    # caso con motivo, activa una recolección de evidencia regulada por ADR-025
+    # y tiene que poder auditarse y filtrarse por sí sola, sin quedar mezclada
+    # con los bloqueos y las alarmas.
+    LOST_MODE = "lost_mode", "Lost Mode"
     AGENT_UNINSTALL = "agent_uninstall", "Agent Uninstall"
 
 
@@ -360,6 +366,10 @@ ENDPOINT_RESPONSE_CODES = (
     "no_audio_player",
     "lock_unavailable",
     "empty_message",
+    # Feature 030: el motivo del marcaje es obligatorio. Viaja por esta familia
+    # de códigos —aunque no lo produzca el agente— porque la consola ya sabe
+    # traducirlos por un solo camino (endpointResponse.codes.<código>).
+    "empty_reason",
     "error",
     # Este último NO lo produce el agente: lo agrega el servidor cuando no pudo
     # hablar con él. Se mezcla acá porque para la consola es un código más de la
@@ -378,6 +388,29 @@ class EndpointResponseAction(models.TextChoices):
     ALERT = "alert", "On-screen Message"
     ALARM = "alarm", "Sound Alarm"
     STOP_ALARM = "stopalarm", "Stop Alarm"
+
+
+# Cadencia de captura del modo perdido, en minutos. El mismo par de topes se
+# aplica en el serializer del endpoint y en el agente al leer el valor: el piso
+# no puede depender sólo del servidor, porque el agente también recibe el
+# intervalo por el polling de config.
+LOST_MODE_MIN_INTERVAL_MIN = 1
+LOST_MODE_MAX_INTERVAL_MIN = 60
+
+
+# Tipos de evidencia del modo perdido/robado (feature 030, ADR-025). El código va
+# en inglés y la etiqueta traducida vive en el catálogo i18n del frontend, igual
+# que EndpointResponseAction: guardar la etiqueta traducida en la BD sería casi
+# imposible de revertir después.
+class LostModeAction(models.TextChoices):
+    MARK = "mark", "Mark as Lost"
+    RECOVER = "recover", "Mark as Recovered"
+
+
+class LostModeEvidenceKind(models.TextChoices):
+    SCREEN = "screen", "Screen Capture"
+    WEBCAM = "webcam", "Webcam Picture"
+    GEO = "geo", "Location Fix"
 
 
 class URLActionRestMethod(models.TextChoices):
