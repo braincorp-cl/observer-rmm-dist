@@ -105,7 +105,7 @@ jobs:
   # directiva del repo, asi que un PR que la suba se construye con la version que
   # pide, y si no compila se ve en el PR.
   go:
-    name: nats-api (go build + vet)
+    name: nats-api (go build + vet + test)
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -121,6 +121,13 @@ jobs:
 
       - name: go vet
         run: go vet ./...
+
+      # El paquete tiene pruebas desde la 023 (natsapi/geolocation_test.go) y hasta
+      # el 2026-08-11 NINGUNA corria en CI: el job era build + vet. Un test que no
+      # se ejecuta es un cero silencioso, y el que guarda la regla de ingesta de la
+      # 030 (geoIngestAllowed) es justamente el que no puede faltar.
+      - name: go test
+        run: go test -race ./...
 
   # Gates del backend Django. Vivian en el hub (`observer-rmm`,
   # .github/workflows/ci-tests.yml) y se movieron aca el 2026-08-03 por decision

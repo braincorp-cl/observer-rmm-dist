@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	nats "github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,37 @@ const (
 	geoSourceDenied      = "denied"
 	geoSourceUnavailable = "unavailable"
 )
+
+// geoIngestAllowed decide si un punto de ubicación entra a checks_checkhistory.
+//
+// Va en su propia función —y no en línea dentro del handler— porque es la regla
+// que decide si la feature 030 sirve o no sirve, y sin esta costura no habría
+// forma de probarla: el handler necesita NATS y PostgreSQL vivos.
+func geoIngestAllowed(geoEnabled, lostMode bool) bool {
+	return geoEnabled || lostMode
+}
+
+// agentLostMode responde si ESTE agente está marcado como perdido.
+//
+// Fail-safe APAGADO, igual que _lost_mode() en apiv3/utils.py: ante cualquier
+// problema —tabla no migrada, BD con hipo, agente inexistente— responde "no está
+// perdido". Del lado del servidor el peor desenlace es guardar ubicaciones de un
+// equipo que nadie marcó, así que la duda se resuelve descartando.
+func agentLostMode(db *sqlx.DB, logger *logrus.Logger, agentid string) bool {
+	var active bool
+	err := db.QueryRow(`
+	SELECT s.active
+	FROM agents_lostmodestate s
+	JOIN agents_agent a ON a.id = s.agent_id
+	WHERE a.agent_id = $1;`, agentid).Scan(&active)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			logger.Debugln("Geo: no se pudo leer el modo perdido del agente:", err)
+		}
+		return false
+	}
+	return active
+}
 
 func Svc(logger *logrus.Logger, cfg string) {
 	logger.Debugln("Starting Svc()")
@@ -225,10 +257,34 @@ func Svc(logger *logrus.Logger, cfg string) {
 				}
 				// Interruptor GLOBAL (defensa en profundidad): si está apagado,
 				// ignorar aunque un agente publique.
+				//
+				// Feature 030 · el modo perdido pisa el interruptor TAMBIÉN acá.
+				// Hasta el 2026-08-11 no lo hacía, y eso convertía la geo intensiva
+				// en un no-op de punta a punta justo en la instalación por omisión
+				// (geo apagada, ADR-024): medido en terreno contra staging, el
+				// agente publicó un punto cada 60 s durante 4 minutos y el servidor
+				// descartó los cuatro. El agente gastaba batería y se delataba
+				// frente a quien tiene el equipo, y el recorrido quedaba vacío.
+				// El régimen que lo autoriza es el de ADR-025 —motivo obligatorio,
+				// permiso dedicado y auditoría que deja escrito que el marcaje pisa
+				// esta perilla—, el mismo que ya aplican el agente (svc.go) y las
+				// vistas de lectura (_geo_visible).
 				var geoEnabled bool
 				var geofenceRadius int
-				if err := db.QueryRow(`SELECT geo_tracking_enabled, geo_geofence_radius_m FROM core_coresettings ORDER BY id LIMIT 1;`).Scan(&geoEnabled, &geofenceRadius); err != nil || !geoEnabled {
-					logger.Debugln("Geo: interruptor global apagado o no leído, descartando punto")
+				if err := db.QueryRow(`SELECT geo_tracking_enabled, geo_geofence_radius_m FROM core_coresettings ORDER BY id LIMIT 1;`).Scan(&geoEnabled, &geofenceRadius); err != nil {
+					// Sin poder leer la config no se ingiere: el fallo de lectura no
+					// puede volverse un permiso.
+					logger.Debugln("Geo: no se pudo leer la config global, descartando punto")
+					return
+				}
+				// La consulta extra sólo ocurre con la geo global APAGADA, que es el
+				// único caso donde el modo perdido cambia el desenlace.
+				lostMode := false
+				if !geoEnabled {
+					lostMode = agentLostMode(db, logger, p.Agentid)
+				}
+				if !geoIngestAllowed(geoEnabled, lostMode) {
+					logger.Debugln("Geo: interruptor global apagado y el equipo no está marcado como perdido, descartando punto")
 					return
 				}
 

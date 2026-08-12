@@ -159,3 +159,30 @@ func TestExistingCheckinsDecodeIntact(t *testing.T) {
 		}
 	})
 }
+
+// Feature 030 · la regla que decide si un punto entra a checks_checkhistory.
+//
+// El caso que motiva el test es el tercero: hasta el 2026-08-11 el handler
+// descartaba TODO punto con la geo global apagada, y como la instalación por
+// omisión viene con la geo apagada (ADR-024), la geo intensiva del modo perdido
+// era un no-op de punta a punta. Se midió en terreno contra staging: cuatro
+// publicaciones del agente, cero filas insertadas.
+func TestGeoIngestAllowed(t *testing.T) {
+	casos := []struct {
+		nombre     string
+		geoEnabled bool
+		lostMode   bool
+		quiere     bool
+	}{
+		{"operación normal con la geo encendida", true, false, true},
+		{"geo encendida y además equipo perdido", true, true, true},
+		{"geo apagada y equipo perdido: el modo perdido pisa el interruptor", false, true, true},
+		{"geo apagada y equipo no marcado: se descarta", false, false, false},
+	}
+	for _, c := range casos {
+		if got := geoIngestAllowed(c.geoEnabled, c.lostMode); got != c.quiere {
+			t.Errorf("%s: geoIngestAllowed(%v, %v) = %v, quiere %v",
+				c.nombre, c.geoEnabled, c.lostMode, got, c.quiere)
+		}
+	}
+}
