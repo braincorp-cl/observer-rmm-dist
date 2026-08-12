@@ -32,6 +32,7 @@
       flat
       bordered
       row-key="agent_id"
+      @row-click="openTimeline"
       :rows="rows"
       :columns="columns"
       :loading="loading"
@@ -52,20 +53,20 @@
             color="primary"
             icon="check_circle"
             :label="$t('lostEquipment.recover')"
-            @click="askRecover(props.row)"
+            @click.stop="askRecover(props.row)"
           />
         </q-td>
       </template>
     </q-table>
 
-    <!--
-      Fase 1 entra ACÁ: al pinchar una fila se abre el detalle del caso con la
-      línea de tiempo unificada (un renglón por ciclo de captura: punto en el
-      mapa + miniatura de la pantalla). El mapa reutiliza el patrón de
-      AgentLocationDialog.vue (L.map + L.tileLayer de OSM + L.circleMarker /
-      L.polyline); la galería es nueva. No se implementa hoy: la Fase 0 no
-      captura nada todavía.
-    -->
+    <!-- Detalle del caso: un renglón por ciclo de captura (punto en el mapa +
+         miniatura de la pantalla). Se abre al pinchar una fila. -->
+    <LostCaseTimelineDialog
+      v-if="selected"
+      v-model="timelineDialog"
+      :agent-id="selected.agent_id"
+      :hostname="selected.hostname"
+    />
 
     <!-- marcar como perdido -->
     <q-dialog v-model="markDialog" persistent>
@@ -184,6 +185,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import LostCaseTimelineDialog from "@/components/agents/LostCaseTimelineDialog.vue";
 import { fetchAgents } from "@/api/agents";
 import {
   fetchLostEquipment,
@@ -202,7 +204,7 @@ const DEFAULT_INTERVAL_MIN = 5;
 
 export default {
   name: "LostEquipmentView",
-  components: { ConfirmDialog },
+  components: { ConfirmDialog, LostCaseTimelineDialog },
   setup() {
     const { t } = useI18n();
     const $q = useQuasar();
@@ -214,6 +216,13 @@ export default {
     const markDialog = ref(false);
     const recoverDialog = ref(false);
     const pending = ref(null);
+
+    // El caso abierto en la línea de tiempo. Va en una variable propia y no en
+    // `pending` (que es la fila que se va a recuperar) porque son dos cosas que
+    // pueden estar vivas a la vez: mirar la evidencia de un equipo y confirmar
+    // la recuperación de otro.
+    const timelineDialog = ref(false);
+    const selected = ref(null);
 
     const agents = ref([]);
     const agentOptions = ref([]);
@@ -350,6 +359,11 @@ export default {
       }
     }
 
+    function openTimeline(evt, row) {
+      selected.value = row;
+      timelineDialog.value = true;
+    }
+
     function askRecover(row) {
       pending.value = row;
       recoverDialog.value = true;
@@ -375,6 +389,8 @@ export default {
       saving,
       markDialog,
       recoverDialog,
+      timelineDialog,
+      selected,
       pending,
       form,
       agentOptions,
@@ -382,6 +398,7 @@ export default {
       openMark,
       filterAgents,
       submitMark,
+      openTimeline,
       askRecover,
       doRecover,
       formatDate,

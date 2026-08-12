@@ -8,7 +8,14 @@ from observerrmm.constants import (
 )
 from winupdate.serializers import WinUpdatePolicySerializer
 
-from .models import Agent, AgentCustomField, AgentHistory, LostModeState, Note
+from .models import (
+    Agent,
+    AgentCustomField,
+    AgentHistory,
+    LostModeEvidence,
+    LostModeState,
+    Note,
+)
 
 
 class AgentCustomFieldSerializer(serializers.ModelSerializer):
@@ -262,3 +269,36 @@ class LostModeStateSerializer(serializers.ModelSerializer):
             "recovered_at",
             "interval_min",
         )
+
+
+class LostModeEvidenceSerializer(serializers.ModelSerializer):
+    """Feature 030 · Fase 1: una pieza de la línea de tiempo del caso.
+
+    NO expone la ruta del archivo. `asset.url` sería una URL servida por el
+    almacenamiento, y esta evidencia no se sirve así a propósito: se descarga
+    por su fila, con la sesión del operador y el permiso comprobado (ADR-025).
+    La consola sabe armar la URL de descarga a partir del `id`; lo que necesita
+    saber de acá es sólo SI hay archivo.
+    """
+
+    has_asset = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LostModeEvidence
+        fields = (
+            "id",
+            "cycle",
+            "kind",
+            "note",
+            "has_asset",
+            "lat",
+            "lng",
+            "accuracy_m",
+            "source",
+            "session_user",
+            "captured_at",
+            "created",
+        )
+
+    def get_has_asset(self, obj) -> bool:
+        return bool(obj.asset)

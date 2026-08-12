@@ -2965,6 +2965,29 @@
     "recovered": "{hostname} se dio por recuperado.",
     "confirmRecoverTitle": "Confirmar recuperación",
     "confirmRecoverMessage": "Se detendrá la captura de evidencia de {hostname}. El caso queda cerrado y registrado.",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "timeline": {
+      "title": "Caso de {hostname}",
+      "close": "Cerrar",
+      "caseMeta": "Motivo: {reason} · abierto por {who} el {when}",
+      "noCycles": "Todavía no hay capturas de este caso. El equipo sube la primera al enterarse de que está marcado; si está apagado o sin red, lo hará al reconectar.",
+      "noPoints": "Ninguno de los ciclos logró medir la ubicación.",
+      "cycleLabel": "Ciclo {cycle} · {when}",
+      "geoMeta": "Ubicación por {source} · precisión ±{accuracy} m",
+      "noGeo": "sin ubicación",
+      "sessionUser": "Sesión de {user}",
+      "screenAlt": "Captura de la pantalla del equipo",
+      "reason_sin_sesion": "Nadie tenía la sesión abierta",
+      "reason_wayland_no_soportado": "Sesión Wayland: no hay captura silenciosa posible",
+      "reason_sin_herramienta": "El equipo no tiene ninguna herramienta de captura",
+      "reason_permiso_denegado": "macOS no tiene concedido el permiso de grabación de pantalla",
+      "reason_pantalla_en_negro": "La captura salió en negro y se descartó",
+      "reason_pantalla_apagada": "La pantalla del equipo estaba apagada (protector o ahorro de energía)",
+      "reason_fallo_captura": "La captura falló",
+      "reason_so_no_soportado": "Este sistema operativo no captura pantalla",
+      "reason_formato_no_soportado": "El servidor rechazó el archivo: no era una imagen",
+      "reason_archivo_muy_grande": "El servidor rechazó el archivo: demasiado grande",
+      "reason_archivo_vacio": "El servidor rechazó el archivo: venía vacío"
+    }
   }
 }

@@ -128,10 +128,30 @@ class ManageLostModePerms(permissions.BasePermission):
         return _has_perm_on_agent(r.user, agent_id)
 
 
-# `ViewLostEvidencePerms` se difiere a la Fase 1 a propósito: hoy no existe
-# ninguna vista que sirva evidencia, así que la clase sería código muerto. El
-# booleano en `Role` sí se crea ahora, para que la migración de permisos sea una
-# sola y no haya que volver a tocar la tabla al empezar a capturar.
+class ViewLostEvidencePerms(permissions.BasePermission):
+    """Feature 030 · Fase 1: descargar una pieza de evidencia del caso.
+
+    El permiso vive SEPARADO de `can_manage_lost_mode` porque ADR-025 separa dos
+    capacidades distintas: operar el caso (marcar, recuperar, seguir el
+    recorrido) y MIRAR lo que el equipo estaba mostrando. La segunda expone a la
+    persona que tiene el equipo —que puede ser el propio dueño, no un ladrón— y
+    por eso se concede aparte.
+
+    Ojo con lo que NO hace: no distingue todavía entre pantalla y webcam, porque
+    en la Fase 1 no hay webcam. Cuando entre (T017), la foto de la cara queda
+    detrás de este mismo permiso y el resto de la línea de tiempo detrás de
+    `can_manage_lost_mode`, que es como está escrito el plan.
+    """
+
+    def has_permission(self, r, view) -> bool:
+        if not _has_perm(r, "can_view_lost_evidence"):
+            return False
+
+        agent_id = view.kwargs.get("agent_id")
+        if agent_id is None:
+            return True
+
+        return _has_perm_on_agent(r.user, agent_id)
 
 
 class InstallAgentPerms(permissions.BasePermission):

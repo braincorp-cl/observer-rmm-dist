@@ -1,23 +1,32 @@
 import asyncio
 import hashlib
 import os
+from datetime import datetime, timezone as dt_timezone
 
 import requests
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Prefetch
+from django.db.models import Max, Prefetch
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as djangotime
 from packaging import version as pyver
+from rest_framework import status as rest_framework_status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
-from agents.models import Agent, AgentHistory, Note
+from agents.models import (
+    Agent,
+    AgentHistory,
+    LostModeEvidence,
+    LostModeState,
+    Note,
+)
 from agents.serializers import AgentHistorySerializer
 from agents.tasks import manual_uninstall_delete_task
 from agents.uninstall import grace_seconds, record_manual_uninstall
@@ -54,6 +63,7 @@ from observerrmm.constants import (
     CheckStatus,
     CustomFieldModel,
     DebugLogType,
+    LostModeEvidenceKind,
     GoArch,
     MeshAgentIdent,
     TaskRunStatus,
@@ -859,3 +869,244 @@ class Geolocate(APIView):
         data = r.json()
         cache.set(cache_key, data, settings.GOOGLE_GEOLOCATION_CACHE_TTL)
         return Response(data)
+
+
+# ── Feature 030 · Fase 1 · subida de evidencia del modo perdido (T010) ────────
+
+
+def _agente_del_token(request) -> "Agent | None":
+    """Resuelve el agente a partir del TOKEN, nunca del cuerpo ni de la URL.
+
+    Mismo criterio que `AgentUninstalled`: el vínculo `User.agent` lo puebla
+    `NewAgent` al enrolar, y el respaldo por `username` cubre a los agentes
+    históricos que no lo tengan. Los dos caminos salen del token, así que la
+    propiedad que importa se conserva — un token no puede hablar por otro equipo.
+    """
+    agent = getattr(request.user, "agent", None)
+    if agent is not None:
+        return agent
+
+    return (
+        Agent.objects.defer(*AGENT_DEFER).filter(agent_id=request.user.username).first()
+    )
+
+
+def _fecha_de_captura(valor: object):
+    """Convierte el reloj del equipo (epoch en segundos) a datetime con zona.
+
+    Devuelve None ante cualquier valor ilegible: la fila se guarda igual y queda
+    con `created` (el reloj del servidor), que siempre existe. Perder la hora del
+    equipo empobrece la evidencia; rechazar la subida entera por eso la perdería
+    completa.
+    """
+    try:
+        epoch = int(valor)
+    except (TypeError, ValueError):
+        return None
+
+    if epoch <= 0:
+        return None
+
+    try:
+        return datetime.fromtimestamp(epoch, tz=dt_timezone.utc)
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
+def _numero(valor: object, tipo):
+    try:
+        return tipo(valor)
+    except (TypeError, ValueError):
+        return None
+
+
+# Firmas de los formatos que se aceptan como evidencia. Se mira el CONTENIDO y
+# no la extensión ni el Content-Type: los dos los elige quien sube, y esta
+# carpeta la sirve después el servidor a un navegador. Un archivo que dice ser
+# PNG y trae otra cosa no entra.
+_FIRMAS_IMAGEN = (
+    b"\x89PNG\r\n\x1a\n",  # PNG
+    b"\xff\xd8\xff",  # JPEG
+)
+
+# 25 MiB: una captura PNG de una pantalla 4K anda por los 3–6 MiB, así que sobra
+# con holgura, y el proxy admite 300M. El tope existe para que un agente con el
+# token robado no pueda llenar el disco del servidor a punta de subidas.
+LOST_MODE_MAX_EVIDENCE_BYTES = getattr(
+    settings, "LOST_MODE_MAX_EVIDENCE_BYTES", 25 * 2**20
+)
+
+
+class LostModeEvidenceUpload(APIView):
+    """Recibe el lote de un ciclo de captura: la pantalla y el punto de geo.
+
+    POR QUÉ ES UN ENDPOINT PROPIO Y NO EL FLUJO DE GEO POR NATS: el punto de
+    ubicación ya viaja por NATS y termina en `CheckHistory`, pero esa tabla la
+    poda `check_history_prune_days` (30 días por omisión), que es una perilla de
+    *monitoreo*. La evidencia de ADR-025 tiene su propio plazo de retención y no
+    puede depender de ella, así que el ciclo guarda una COPIA acá. Y el binario
+    no cabe en NATS: va por HTTP multipart, como los assets de reporting.
+
+    EL CICLO LO NUMERA EL SERVIDOR. El agente no lleva la cuenta a propósito: se
+    reinicia, se reinstala y puede estar semanas sin hablar, y dos ciclos con el
+    mismo número se pisarían el archivo en disco (la ruta lleva el número). El
+    contador es monótono por AGENTE y no se reinicia al reabrir un caso, por lo
+    mismo.
+
+    UNA FILA AUNQUE NO HAYA IMAGEN. Si la captura no se pudo hacer, el agente
+    manda el motivo (`sin_sesion`, `wayland_no_soportado`, `permiso_denegado`,
+    ...) y acá se guarda una fila de tipo `screen` con `note` y sin archivo. Sin
+    eso, la línea de tiempo no distinguiría "el equipo está apagado" de "este
+    equipo nunca va a dar capturas", que es la forma que toma el "ok falso" en
+    una feature de evidencia.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, agentid):
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint sólo lo puede llamar un agente")
+
+        # El `agentid` de la URL tiene que ser el del token. No es formalismo:
+        # esta evidencia puede terminar en una denuncia, y un agente capaz de
+        # escribir en el caso de otro equipo la volvería fabricable con un solo
+        # token robado.
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        state = (
+            LostModeState.objects.filter(agent=agent, active=True)
+            .only("id", "agent_id")
+            .first()
+        )
+        if state is None:
+            # 409 y no 400: no es una petición mal armada, es un estado que ya no
+            # corresponde —el caso se cerró mientras el equipo estaba sin red—.
+            # El agente lo trata como "deja de capturar" y se apaga sin esperar
+            # al próximo polling de config.
+            return Response(
+                {"status": "not_lost"}, status=rest_framework_status.HTTP_409_CONFLICT
+            )
+
+        ciclo = (
+            LostModeEvidence.objects.filter(agent=agent).aggregate(ultimo=Max("cycle"))[
+                "ultimo"
+            ]
+            or 0
+        ) + 1
+
+        captured_at = _fecha_de_captura(request.data.get("captured_at"))
+        session_user = (request.data.get("session_user") or "")[:255] or None
+        lat = _numero(request.data.get("lat"), float)
+        lng = _numero(request.data.get("lng"), float)
+        accuracy_m = _numero(request.data.get("accuracy_m"), int)
+        source = (request.data.get("source") or "")[:20] or None
+
+        creadas = []
+
+        # 1) El punto de ubicación del momento. Se guarda sólo con coordenadas
+        #    válidas: una fila de geo sin fix no es evidencia de nada
+        #    (CONTRACT-01 punto 3, la misma regla que aplica la ingesta por NATS).
+        if lat is not None and lng is not None and _coordenadas_validas(lat, lng):
+            creadas.append(
+                LostModeEvidence.objects.create(
+                    agent=agent,
+                    cycle=ciclo,
+                    kind=LostModeEvidenceKind.GEO,
+                    lat=lat,
+                    lng=lng,
+                    accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,
+                    source=source,
+                    session_user=session_user,
+                    captured_at=captured_at,
+                )
+            )
+
+        # 2) La captura de pantalla, o el motivo por el que no la hay.
+        archivo = request.FILES.get("screen")
+        motivo = (request.data.get("screen_reason") or "")[:50] or None
+
+        if archivo is not None:
+            error = _rechazo_de_imagen(archivo)
+            if error:
+                # Se registra en la propia línea de tiempo en vez de contestar un
+                # 400 y perder el ciclo: que el servidor haya rechazado el archivo
+                # es un hecho del caso, y el operador tiene que poder verlo.
+                DebugLog.warning(
+                    agent=agent,
+                    log_type=DebugLogType.AGENT_ISSUES,
+                    message=f"modo perdido: se rechazó la evidencia del ciclo {ciclo} ({error})",
+                )
+                archivo, motivo = None, error
+
+        if archivo is not None:
+            evidencia = LostModeEvidence(
+                agent=agent,
+                cycle=ciclo,
+                kind=LostModeEvidenceKind.SCREEN,
+                lat=lat,
+                lng=lng,
+                accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,
+                source=source,
+                session_user=session_user,
+                captured_at=captured_at,
+            )
+            # El nombre lo pone el servidor, no el agente: el que viene en el
+            # multipart es texto de afuera y termina siendo una ruta en disco.
+            evidencia.asset.save(f"pantalla-{ciclo:06d}.png", archivo, save=False)
+            evidencia.save()
+            creadas.append(evidencia)
+        elif motivo:
+            creadas.append(
+                LostModeEvidence.objects.create(
+                    agent=agent,
+                    cycle=ciclo,
+                    kind=LostModeEvidenceKind.SCREEN,
+                    note=motivo,
+                    lat=lat,
+                    lng=lng,
+                    accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,
+                    source=source,
+                    session_user=session_user,
+                    captured_at=captured_at,
+                )
+            )
+
+        if not creadas:
+            # Ni punto ni pantalla ni motivo: el ciclo no aporta nada y una fila
+            # vacía sólo ensuciaría la línea de tiempo.
+            return Response({"status": "empty", "cycle": ciclo})
+
+        return Response({"status": "ok", "cycle": ciclo, "saved": len(creadas)})
+
+
+def _coordenadas_validas(lat: float, lng: float) -> bool:
+    """WGS84 dentro de rango y distinto de (0,0).
+
+    (0,0) es Null Island: el artefacto típico de "sin fix" que llega como si
+    fuera una coordenada. Misma validación que hace la ingesta por NATS y que el
+    propio agente en `validCoords`; se repite acá a propósito, porque este es un
+    camino de entrada distinto.
+    """
+    if lat < -90 or lat > 90 or lng < -180 or lng > 180:
+        return False
+    return not (lat == 0 and lng == 0)
+
+
+def _rechazo_de_imagen(archivo) -> str:
+    """Devuelve el código del rechazo, o "" si el archivo se acepta."""
+    if archivo.size <= 0:
+        return "archivo_vacio"
+
+    if archivo.size > LOST_MODE_MAX_EVIDENCE_BYTES:
+        return "archivo_muy_grande"
+
+    cabecera = archivo.read(8)
+    archivo.seek(0)
+    if not any(cabecera.startswith(firma) for firma in _FIRMAS_IMAGEN):
+        return "formato_no_soportado"
+
+    return ""

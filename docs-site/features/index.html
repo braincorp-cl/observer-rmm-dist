@@ -75,12 +75,12 @@
       <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, inventory, asset location, and immediate response on the machine itself.</p>
 
       <div class="callout note lang-es">
-        <span class="tag">Novedades en 1.4.7</span>
-        <p>Lo más reciente es el <a href="#modo-perdido">modo perdido o robado</a>: marcar un equipo abre un caso con motivo y autor, y su ubicación pasa a reportarse hasta cada un minuto aunque la geolocalización esté apagada para el resto de la flota. Antes llegó el <a href="#monitoreo-alertas">modo mantenimiento a la vista</a>: un aviso permanente mientras haya equipos silenciados, con quién lo activó, desde cuándo, registro en la auditoría y un correo si la ventana se estira. Lo acompañan que <a href="#seguridad-acceso">los secretos de la configuración ya no se pueden leer</a> y la <a href="#operacion-servidor">detección del agente de arquitectura equivocada</a>. Antes de eso llegaron la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a>, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a>.</p>
+        <span class="tag">Novedades en 1.4.8</span>
+        <p>Lo más reciente es la <a href="#modo-perdido">evidencia del modo perdido o robado</a>: además de la ubicación, un equipo marcado captura su pantalla y el caso arma una línea de tiempo con las dos cosas. Antes llegó el propio modo perdido: marcar un equipo abre un caso con motivo y autor, y su ubicación pasa a reportarse hasta cada un minuto aunque la geolocalización esté apagada para el resto de la flota. Antes llegó el <a href="#monitoreo-alertas">modo mantenimiento a la vista</a>: un aviso permanente mientras haya equipos silenciados, con quién lo activó, desde cuándo, registro en la auditoría y un correo si la ventana se estira. Lo acompañan que <a href="#seguridad-acceso">los secretos de la configuración ya no se pueden leer</a> y la <a href="#operacion-servidor">detección del agente de arquitectura equivocada</a>. Antes de eso llegaron la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a>, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a>.</p>
       </div>
       <div class="callout note lang-en">
-        <span class="tag">New in 1.4.7</span>
-        <p>The latest addition is <a href="#modo-perdido">lost or stolen device mode</a>: marking a machine opens a case with a reason and an author, and its location starts reporting as often as every minute even if location tracking is off for the rest of the fleet. Before that came <a href="#monitoreo-alertas">maintenance mode out in the open</a>: a permanent banner while any machine is muted, with who enabled it, since when, an audit trail, and an email if the window drags on. Alongside it, <a href="#seguridad-acceso">configuration secrets can no longer be read back</a> and there's <a href="#operacion-servidor">wrong-architecture agent detection</a>. Before those came the <a href="#plantillas-scripts">library of 44 script templates</a>, the <a href="#ejecucion-automatizacion">AI script draft</a>, and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a>.</p>
+        <span class="tag">New in 1.4.8</span>
+        <p>The latest addition is <a href="#modo-perdido">evidence for lost or stolen device mode</a>: on top of location, a marked machine captures its screen and the case builds a timeline with both. Before that came lost mode itself: marking a machine opens a case with a reason and an author, and its location starts reporting as often as every minute even if location tracking is off for the rest of the fleet. Before that came <a href="#monitoreo-alertas">maintenance mode out in the open</a>: a permanent banner while any machine is muted, with who enabled it, since when, an audit trail, and an email if the window drags on. Alongside it, <a href="#seguridad-acceso">configuration secrets can no longer be read back</a> and there's <a href="#operacion-servidor">wrong-architecture agent detection</a>. Before those came the <a href="#plantillas-scripts">library of 44 script templates</a>, the <a href="#ejecucion-automatizacion">AI script draft</a>, and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a>.</p>
       </div>
 
       <figure class="doc-shot">
@@ -412,11 +412,11 @@
       <p class="lang-en">When a machine leaves its owner's control it stops being a row that went offline and becomes a <strong>case</strong>: with a reason, an author, a timestamp, and a location trail you can reconstruct. Marking it as lost raises how often it reports where it is, and the only way to turn it off is marking it as recovered.</p>
       <div class="callout note lang-es">
         <span class="tag">Alcance de esta versión</span>
-        <p>Esta primera etapa cubre el <strong>estado y la ubicación intensiva</strong>. La captura de pantalla como evidencia del caso llega en la etapa siguiente; la foto de cámara está postergada.</p>
+        <p>Esta etapa cubre el <strong>estado, la ubicación intensiva y la captura de pantalla</strong>. La foto de cámara está postergada. La evidencia todavía no se borra sola a los 90 días ni se guarda cifrada: eso llega en la etapa siguiente.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">Scope of this version</span>
-        <p>This first stage covers <strong>state and intensive location</strong>. Screen capture as case evidence lands in the next stage; camera photos are deferred.</p>
+        <p>This stage covers <strong>state, intensive location, and screen capture</strong>. Camera photos are deferred. Evidence is not yet auto-deleted after 90 days nor stored encrypted: that lands in the next stage.</p>
       </div>
       <figure class="doc-shot">
         <img src="/assets/shots/modo-perdido-dialogo.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Diálogo para marcar un equipo como perdido, con el motivo y la cadencia de captura">
@@ -427,6 +427,18 @@
         <figcaption><span class="lang-es">El caso abierto, con quién lo marcó, cuándo y con qué motivo. <em>Recuperar</em> es el único interruptor de apagado.</span><span class="lang-en">The open case, with who marked it, when, and why. <em>Recover</em> is the only off switch.</span></figcaption>
       </figure>
       <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Línea de tiempo del caso</span><span class="lang-en">Case timeline</span></h3>
+          <p><span class="lang-es">Cada ciclo deja un renglón: la hora del equipo, dónde estaba con su margen de error y una miniatura de lo que había en pantalla. El recorrido se dibuja en el mapa al lado, así que se lee de un vistazo dónde estuvo y qué se estaba haciendo con él.</span><span class="lang-en">Each cycle leaves a row: the machine's own clock, where it was with its margin of error, and a thumbnail of what was on screen. The trail is drawn on the map beside it, so you read at a glance where it went and what was being done with it.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Captura silenciosa, y honesta</span><span class="lang-en">Silent capture, and honest</span></h3>
+          <p><span class="lang-es">La captura no suena ni deja ventanas a la vista. Y cuando no se puede hacer, el caso lo dice con todas sus letras —la pantalla estaba apagada, nadie había iniciado sesión, el sistema no concede el permiso— en vez de guardar una imagen negra que parece evidencia y no lo es.</span><span class="lang-en">The capture makes no sound and leaves no windows on screen. And when it can't be done, the case says so plainly —the screen was off, nobody was signed in, the system won't grant permission— instead of storing a black image that looks like evidence and isn't.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Ver la pantalla se concede aparte</span><span class="lang-en">Seeing the screen is granted separately</span></h3>
+          <p><span class="lang-es">Coordinar la recuperación de un equipo y mirar lo que su pantalla mostraba son capacidades distintas y se otorgan por separado. La evidencia se descarga con la sesión del operador; no hay enlaces que funcionen fuera de la consola.</span><span class="lang-en">Coordinating a machine's recovery and looking at what its screen showed are different capabilities, granted separately. Evidence is downloaded with the operator's session; there are no links that work outside the console.</span></p>
+        </div>
         <div class="feature">
           <h3><span class="lang-es">Motivo obligatorio</span><span class="lang-en">Reason is mandatory</span></h3>
           <p><span class="lang-es">No se puede marcar un equipo sin escribir por qué. No es burocracia: es lo que sostiene la proporcionalidad de encender una recolección de datos sobre la persona que tiene el equipo, y queda en la auditoría junto con quién lo marcó y cuándo.</span><span class="lang-en">You cannot mark a machine without writing why. This isn't red tape: it's what makes it proportionate to switch on data collection about whoever holds the machine, and it lands in the audit log along with who marked it and when.</span></p>

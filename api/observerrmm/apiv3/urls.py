@@ -22,4 +22,11 @@ urlpatterns = [
     path("<int:pk>/<str:agentid>/histresult/", views.AgentHistoryResult.as_view()),
     path("<str:agentid>/config/", views.AgentConfig.as_view()),
     path("geolocate/", views.Geolocate.as_view()),
+    # Feature 030 · el agente sube el lote del ciclo (pantalla + punto de geo).
+    # Va en apiv3 y no en /agents/ porque quien llama es el AGENTE con su token,
+    # no un operador con su sesión.
+    path(
+        "<str:agentid>/lostmode/evidence/",
+        views.LostModeEvidenceUpload.as_view(),
+    ),
 ]

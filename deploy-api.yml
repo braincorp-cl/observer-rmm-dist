@@ -193,6 +193,20 @@
               Google Chrome". Causa habitual: un repo apt inalcanzable. Reintentar corriendo el
               playbook de nuevo cuando la red esté sana.
 
+    # Feature 030 · Fase 1: el directorio donde el storage escribe la evidencia del
+    # modo perdido. Va acá además de en el rol (roles/observer_api/tasks/main.yml)
+    # porque este playbook NO corre el rol: un servidor ya instalado que reciba la
+    # Fase 1 sólo por deploy-api se quedaría sin el directorio, y la primera subida
+    # de evidencia fallaría con un error de permisos que no menciona la feature.
+    # 0750 y no 0755 a propósito: son capturas de la pantalla de una persona.
+    - name: Crear directorio de evidencia del modo perdido
+      ansible.builtin.file:
+        path: "{{ observer_root }}/lostmode/evidence"
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0750"
+
     - name: Ejecutar Django migrate
       ansible.builtin.command:
         cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"

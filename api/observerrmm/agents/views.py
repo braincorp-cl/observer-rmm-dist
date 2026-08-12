@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import os
 import random
 import string
 import time
@@ -9,7 +10,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as djangotime
 from django.utils.dateparse import parse_datetime
@@ -72,7 +73,14 @@ from winupdate.models import WinUpdate, WinUpdatePolicy
 from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
-from .models import Agent, AgentCustomField, AgentHistory, LostModeState, Note
+from .models import (
+    Agent,
+    AgentCustomField,
+    AgentHistory,
+    LostModeEvidence,
+    LostModeState,
+    Note,
+)
 from .permissions import (
     AgentHistoryPerms,
     AgentNotesPerms,
@@ -93,6 +101,7 @@ from .permissions import (
     SendCMDPerms,
     SoundAlarmPerms,
     UpdateAgentPerms,
+    ViewLostEvidencePerms,
 )
 from .serializers import (
     AgentCustomFieldSerializer,
@@ -101,6 +110,7 @@ from .serializers import (
     AgentNoteSerializer,
     AgentSerializer,
     AgentTableSerializer,
+    LostModeEvidenceSerializer,
     LostModeStateSerializer,
 )
 from .tasks import (
@@ -1008,6 +1018,77 @@ class LostModeList(APIView):
             .order_by("-marked_at")
         )
         return Response(LostModeStateSerializer(qs, many=True).data)
+
+
+class LostModeEvidenceList(APIView):
+    """Feature 030 · Fase 1: la línea de tiempo del caso de un equipo.
+
+    Devuelve las piezas en orden CRONOLÓGICO INVERSO por ciclo: lo último que se
+    supo del equipo es lo que importa cuando alguien abre el caso.
+
+    Se sirve todo el historial del agente y no sólo el del caso abierto: un
+    equipo que se recuperó y se volvió a perder es un caso nuevo para el
+    operador, pero la evidencia del anterior sigue siendo evidencia, y el
+    número de ciclo —monótono por agente, nunca reiniciado— deja los dos
+    tramos ordenados sin ambigüedad.
+    """
+
+    permission_classes = [IsAuthenticated, ManageLostModePerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        # Sin `defer("asset")`: el serializer necesita saber si hay archivo, y un
+        # campo diferido se resuelve con UNA CONSULTA POR FILA en cuanto se toca.
+        # En un caso largo eso son cientos de consultas para responder un
+        # booleano — el N+1 clásico, disfrazado de optimización.
+        qs = LostModeEvidence.objects.filter(agent=agent).order_by("-cycle", "kind")
+
+        state = LostModeState.objects.filter(agent=agent).first()
+
+        return Response(
+            {
+                "state": LostModeStateSerializer(state).data if state else None,
+                "evidence": LostModeEvidenceSerializer(qs, many=True).data,
+            }
+        )
+
+
+class LostModeEvidenceFile(APIView):
+    """Feature 030 · Fase 1: descarga de una pieza de evidencia.
+
+    DOS PERMISOS, NO UNO: hay que poder operar el caso (`ManageLostModePerms`) y
+    además tener concedido `can_view_lost_evidence`. Es la separación que exige
+    ADR-025 — seguir el recorrido de un equipo y mirar lo que su pantalla estaba
+    mostrando son dos cosas distintas, y la segunda expone a la persona que lo
+    tiene.
+
+    El archivo se sirve por acá y NO por una URL del almacenamiento: así la
+    descarga pasa por la sesión del operador, por el alcance por rol y por el
+    permiso. Una URL estática sería un enlace que funciona para cualquiera que
+    lo tenga.
+    """
+
+    permission_classes = [IsAuthenticated, ManageLostModePerms, ViewLostEvidencePerms]
+
+    def get(self, request, agent_id, pk):
+        evidencia = get_object_or_404(
+            LostModeEvidence.objects.filter(agent__agent_id=agent_id), pk=pk
+        )
+
+        if not evidencia.asset:
+            # Una pieza sin archivo es la que dejó el motivo (`wayland_no_soportado`,
+            # `sin_sesion`, ...). No es un 500 ni un archivo vacío: es un 404
+            # honesto, y el motivo ya viajó en el listado.
+            return notify_error("Esta pieza de evidencia no tiene archivo")
+
+        return FileResponse(
+            evidencia.asset.open("rb"),
+            # `as_attachment=False` para que la consola pueda mostrar la miniatura
+            # en la línea de tiempo sin forzar una descarga.
+            as_attachment=False,
+            filename=os.path.basename(evidencia.asset.name),
+        )
 
 
 @api_view(["POST"])

@@ -145,6 +145,12 @@ module.exports = {
         // feature 030 · módulo de equipos perdidos, en el gate estricto desde el
         // día uno: entrar después obliga a repasar un archivo ya escrito.
         "src/views/LostEquipmentView.vue",
+        // Feature 030 · Fase 1: la línea de tiempo del caso. Nace traducida, con
+        // su propio sub-namespace (lostEquipment.timeline) y los motivos de "no
+        // se pudo capturar" como claves `reason_<código>` — el agente manda el
+        // código y la consola lo redacta, que es lo mismo que hace
+        // `endpointResponse.codes` con las respuestas de la 028.
+        "src/components/agents/LostCaseTimelineDialog.vue",
         "src/components/modals/admin/UserForm.vue",
         "src/components/modals/admin/UserResetPasswordForm.vue",
         // Ola 8a: widgets compartidos ui/ (2 sin texto entran limpios al gate).

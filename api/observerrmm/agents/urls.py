@@ -42,6 +42,14 @@ urlpatterns = [
     # POST marca el equipo como perdido, DELETE lo da por recuperado
     path("<agent:agent_id>/lostmode/", views.LostMode.as_view()),
     path("lostmode/", views.LostModeList.as_view()),
+    # Feature 030 · Fase 1: la línea de tiempo del caso y la descarga de cada
+    # pieza. La descarga pasa por la vista —y no por una URL del almacenamiento—
+    # para que el permiso `can_view_lost_evidence` se aplique de verdad.
+    path("<agent:agent_id>/lostmode/evidence/", views.LostModeEvidenceList.as_view()),
+    path(
+        "<agent:agent_id>/lostmode/evidence/<int:pk>/file/",
+        views.LostModeEvidenceFile.as_view(),
+    ),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

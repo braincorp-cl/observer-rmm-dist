@@ -8,6 +8,15 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.8 — 2026-08-12
+
+- **El modo perdido ahora ve la pantalla.** Mientras un equipo está marcado, cada ciclo junta su ubicación y una **captura de su pantalla**, y el caso las muestra juntas en una **línea de tiempo**: el recorrido en el mapa y, al lado, qué se estaba haciendo con el equipo en cada momento. La captura es silenciosa —no suena, no avisa, no deja ventanas a la vista— y sale de la sesión de la persona que tiene el equipo, que es la única forma de que la imagen no salga negra.
+- **Ninguna captura en negro entra al caso.** El equipo mira la imagen antes de mandarla y, si está vacía, manda el motivo en su lugar: la pantalla estaba apagada, nadie había iniciado sesión, el permiso del sistema no está concedido. Un caso lleno de imágenes negras parece tener evidencia y no la tiene.
+- **Ver la evidencia exige su propio permiso.** Seguir el recorrido de un equipo y mirar lo que su pantalla estaba mostrando son dos cosas distintas, y se conceden por separado. La evidencia se descarga desde la consola con la sesión del operador, nunca por un enlace que funcione para cualquiera que lo tenga.
+- **La evidencia no se acumula en el equipo perdido:** la imagen se borra apenas se sube.
+- La versión de agente que se ofrece a la flota pasa a la **2.15.16**, que es la que captura. Los equipos se actualizan solos al hacer check-in.
+- ⚠️ **Pendiente y dicho a tiempo:** la evidencia todavía **no se borra sola a los 90 días** ni se guarda cifrada. Las dos cosas llegan en la etapa siguiente; hasta entonces, cerrar un caso viejo implica pedir el borrado de su evidencia.
+
 ## v1.4.7 — 2026-08-12
 
 - ⚠️ **Corregido, y cambia la evidencia de un caso:** un equipo marcado como perdido que no lograba medir su posición **heredaba las coordenadas declaradas de su sitio**, así que el recorrido del caso lo mostraba sentado en la oficina mientras alguien se lo llevaba. Esa herencia existe para equipos estacionarios y ahí es correcta; en un equipo perdido es un dato falso, y un caso que puede terminar en una denuncia no puede llevar evidencia fabricada. Ahora, con el equipo marcado, se guarda la posición realmente medida —con su margen de error a la vista— o no se guarda ninguna.

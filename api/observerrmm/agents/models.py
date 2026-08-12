@@ -1436,6 +1436,17 @@ class LostModeEvidence(models.Model):
     # agente suma una fuente, el servidor no debe rechazar la fila por eso.
     source = models.CharField(max_length=20, null=True, blank=True)
     session_user = models.CharField(max_length=255, null=True, blank=True)
+    # Por qué este ciclo no trae imagen: `sin_sesion`, `wayland_no_soportado`,
+    # `permiso_denegado`, `pantalla_en_negro`, `sin_herramienta`, `fallo_captura`,
+    # `so_no_soportado`. Son los CÓDIGOS que declara el agente en capture.go y la
+    # consola los traduce, igual que `endpoint_response:<código>` de la 028.
+    #
+    # La fila existe aunque no haya archivo, y esa es la decisión que importa: un
+    # ciclo que no pudo capturar tiene que VERSE en la línea de tiempo. Si se
+    # omitiera, el operador no podría distinguir "el equipo está apagado" de
+    # "este equipo nunca va a dar capturas porque su sesión es Wayland", y esa
+    # confusión es la forma que toma el "ok falso" en una feature de evidencia.
+    note = models.CharField(max_length=50, null=True, blank=True)
     # Reloj del EQUIPO al capturar. Distinto de `created`, que es el del
     # servidor al recibir: entre los dos puede haber horas si el equipo estuvo
     # sin red, y para un caso forense la diferencia importa.

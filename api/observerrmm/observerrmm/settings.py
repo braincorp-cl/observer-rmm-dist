@@ -33,7 +33,7 @@ LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.7"
+ORMM_VERSION = "1.4.8"
 
 WEB_VERSION = "0.2.1"
 

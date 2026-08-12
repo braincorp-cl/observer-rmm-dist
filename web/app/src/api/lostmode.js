@@ -32,3 +32,27 @@ export async function recoverAgent(agent_id) {
   const { data } = await axios.delete(`${baseUrl}/${agent_id}/lostmode/`);
   return data;
 }
+
+// Feature 030 · Fase 1 · la línea de tiempo del caso.
+//
+// Devuelve `{state, evidence}`: el caso (motivo, quién lo abrió, cadencia) y sus
+// piezas ordenadas de la más reciente a la más antigua.
+export async function fetchLostEvidence(agent_id) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/lostmode/evidence/`);
+  return data;
+}
+
+// Descarga UNA pieza de evidencia como blob.
+//
+// Por qué blob y no un `<img src="...">` apuntando a la URL: la descarga tiene
+// que llevar la cabecera de autenticación —la evidencia está detrás de un
+// permiso propio (`can_view_lost_evidence`, ADR-025)— y una etiqueta <img> no la
+// manda. Además, así la imagen nunca queda en una URL que alguien pueda pegar
+// en otra parte: el object URL vive en esta pestaña y se revoca al cerrar.
+export async function fetchLostEvidenceFile(agent_id, id) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/lostmode/evidence/${id}/file/`,
+    { responseType: "blob" },
+  );
+  return data;
+}

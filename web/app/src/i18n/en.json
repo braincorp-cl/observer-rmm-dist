@@ -2965,6 +2965,29 @@
     "recovered": "{hostname} was marked as recovered.",
     "confirmRecoverTitle": "Confirm recovery",
     "confirmRecoverMessage": "Evidence collection for {hostname} will stop. The case is closed and recorded.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "timeline": {
+      "title": "{hostname} case",
+      "close": "Close",
+      "caseMeta": "Reason: {reason} · opened by {who} on {when}",
+      "noCycles": "No captures yet for this case. The device uploads the first one as soon as it learns it is flagged; if it is off or offline, it will do so when it reconnects.",
+      "noPoints": "None of the cycles managed to determine a location.",
+      "cycleLabel": "Cycle {cycle} · {when}",
+      "geoMeta": "Location via {source} · accuracy ±{accuracy} m",
+      "noGeo": "no location",
+      "sessionUser": "{user}'s session",
+      "screenAlt": "Screen capture of the device",
+      "reason_sin_sesion": "Nobody was signed in",
+      "reason_wayland_no_soportado": "Wayland session: silent capture is not possible",
+      "reason_sin_herramienta": "The device has no screen capture tool installed",
+      "reason_permiso_denegado": "macOS has not granted the screen recording permission",
+      "reason_pantalla_en_negro": "The capture came out black and was discarded",
+      "reason_pantalla_apagada": "The device screen was off (screensaver or power saving)",
+      "reason_fallo_captura": "The capture failed",
+      "reason_so_no_soportado": "This operating system does not capture the screen",
+      "reason_formato_no_soportado": "The server rejected the file: not an image",
+      "reason_archivo_muy_grande": "The server rejected the file: too large",
+      "reason_archivo_vacio": "The server rejected the file: it was empty"
+    }
   }
 }

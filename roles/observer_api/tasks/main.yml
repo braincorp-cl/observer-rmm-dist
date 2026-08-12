@@ -54,6 +54,20 @@
     - "{{ observer_root }}/reporting/assets"
     - "{{ observer_root }}/reporting/schemas"
 
+# Evidencia del modo perdido/robado (feature 030, ADR-025). Va en una tarea
+# aparte y no en el loop de arriba porque su modo NO es 0755: son capturas de la
+# pantalla de una persona, con un régimen de acceso propio (permiso dedicado
+# para verlas, borrado a plazo). Nadie fuera del usuario del servicio tiene por
+# qué poder listar el directorio; el servidor las sirve por su fila, nunca por
+# una URL de archivo estático.
+- name: Crear directorio de evidencia del modo perdido
+  ansible.builtin.file:
+    path: "{{ observer_root }}/lostmode/evidence"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+
 # Virtualenv
 - name: Crear virtualenv Python {{ observer_python_version }}
   ansible.builtin.command:
