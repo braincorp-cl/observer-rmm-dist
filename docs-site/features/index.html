@@ -76,11 +76,11 @@
 
       <div class="callout note lang-es">
         <span class="tag">Novedades en 1.4.5</span>
-        <p>Lo más reciente es el <a href="#monitoreo-alertas">modo mantenimiento a la vista</a>: un aviso permanente mientras haya equipos silenciados, con quién lo activó, desde cuándo, registro en la auditoría y un correo si la ventana se estira. Lo acompañan que <a href="#seguridad-acceso">los secretos de la configuración ya no se pueden leer</a> y la <a href="#operacion-servidor">detección del agente de arquitectura equivocada</a>. Antes de eso llegaron la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a>, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a>.</p>
+        <p>Lo más reciente es el <a href="#modo-perdido">modo perdido o robado</a>: marcar un equipo abre un caso con motivo y autor, y su ubicación pasa a reportarse hasta cada un minuto aunque la geolocalización esté apagada para el resto de la flota. Antes llegó el <a href="#monitoreo-alertas">modo mantenimiento a la vista</a>: un aviso permanente mientras haya equipos silenciados, con quién lo activó, desde cuándo, registro en la auditoría y un correo si la ventana se estira. Lo acompañan que <a href="#seguridad-acceso">los secretos de la configuración ya no se pueden leer</a> y la <a href="#operacion-servidor">detección del agente de arquitectura equivocada</a>. Antes de eso llegaron la <a href="#plantillas-scripts">biblioteca de 44 plantillas de scripts</a>, el <a href="#ejecucion-automatizacion">borrador de script con IA</a> y el <a href="#seguridad-acceso">aviso cuando alguien desinstala el agente a mano</a>.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">New in 1.4.5</span>
-        <p>The latest addition is <a href="#monitoreo-alertas">maintenance mode out in the open</a>: a permanent banner while any machine is muted, with who enabled it, since when, an audit trail, and an email if the window drags on. Alongside it, <a href="#seguridad-acceso">configuration secrets can no longer be read back</a> and there's <a href="#operacion-servidor">wrong-architecture agent detection</a>. Before those came the <a href="#plantillas-scripts">library of 44 script templates</a>, the <a href="#ejecucion-automatizacion">AI script draft</a>, and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a>.</p>
+        <p>The latest addition is <a href="#modo-perdido">lost or stolen device mode</a>: marking a machine opens a case with a reason and an author, and its location starts reporting as often as every minute even if location tracking is off for the rest of the fleet. Before that came <a href="#monitoreo-alertas">maintenance mode out in the open</a>: a permanent banner while any machine is muted, with who enabled it, since when, an audit trail, and an email if the window drags on. Alongside it, <a href="#seguridad-acceso">configuration secrets can no longer be read back</a> and there's <a href="#operacion-servidor">wrong-architecture agent detection</a>. Before those came the <a href="#plantillas-scripts">library of 44 script templates</a>, the <a href="#ejecucion-automatizacion">AI script draft</a>, and the <a href="#seguridad-acceso">alert when someone uninstalls the agent by hand</a>.</p>
       </div>
 
       <figure class="doc-shot">
@@ -404,6 +404,60 @@
         <div class="feature">
           <h3><span class="lang-es">Permiso propio y auditoría</span><span class="lang-en">Its own permission, and auditing</span></h3>
           <p><span class="lang-es">Mensaje, bloqueo y alarma tienen cada uno su permiso de rol, que se otorga por separado, y las tres quedan en el registro de auditoría tanto si funcionan como si fallan.</span><span class="lang-en">Message, lock, and alarm each have their own role permission, granted separately, and all three land in the audit log whether they succeed or fail.</span></p>
+        </div>
+      </div>
+
+      <h2 id="modo-perdido"><span class="lang-es">Equipo perdido o robado</span><span class="lang-en">Lost or stolen device</span></h2>
+      <p class="lang-es">Cuando un equipo sale del control de su dueño deja de ser una fila que se apagó y pasa a ser un <strong>caso</strong>: con motivo, autor, hora y una huella de ubicación que se puede reconstruir. Marcarlo como perdido sube la frecuencia con la que reporta dónde está, y sólo se apaga marcándolo como recuperado.</p>
+      <p class="lang-en">When a machine leaves its owner's control it stops being a row that went offline and becomes a <strong>case</strong>: with a reason, an author, a timestamp, and a location trail you can reconstruct. Marking it as lost raises how often it reports where it is, and the only way to turn it off is marking it as recovered.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Alcance de esta versión</span>
+        <p>Esta primera etapa cubre el <strong>estado y la ubicación intensiva</strong>. La captura de pantalla como evidencia del caso llega en la etapa siguiente; la foto de cámara está postergada.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Scope of this version</span>
+        <p>This first stage covers <strong>state and intensive location</strong>. Screen capture as case evidence lands in the next stage; camera photos are deferred.</p>
+      </div>
+      <figure class="doc-shot">
+        <img src="/assets/shots/modo-perdido-dialogo.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Diálogo para marcar un equipo como perdido, con el motivo y la cadencia de captura">
+        <figcaption><span class="lang-es">Marcar exige elegir el equipo, escribir el motivo del caso y fijar cada cuántos minutos reportará su ubicación. El aviso recuerda que la cadencia se aplica aunque la geolocalización esté apagada para el resto de la flota.</span><span class="lang-en">Marking requires picking the machine, writing the reason for the case, and setting how often it will report its location. The notice reminds you the cadence applies even if location tracking is off for the rest of the fleet.</span></figcaption>
+      </figure>
+      <figure class="doc-shot">
+        <img src="/assets/shots/modo-perdido-lista.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Listado de equipos marcados como perdidos, con motivo, autor, fecha y cadencia">
+        <figcaption><span class="lang-es">El caso abierto, con quién lo marcó, cuándo y con qué motivo. <em>Recuperar</em> es el único interruptor de apagado.</span><span class="lang-en">The open case, with who marked it, when, and why. <em>Recover</em> is the only off switch.</span></figcaption>
+      </figure>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Motivo obligatorio</span><span class="lang-en">Reason is mandatory</span></h3>
+          <p><span class="lang-es">No se puede marcar un equipo sin escribir por qué. No es burocracia: es lo que sostiene la proporcionalidad de encender una recolección de datos sobre la persona que tiene el equipo, y queda en la auditoría junto con quién lo marcó y cuándo.</span><span class="lang-en">You cannot mark a machine without writing why. This isn't red tape: it's what makes it proportionate to switch on data collection about whoever holds the machine, and it lands in the audit log along with who marked it and when.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Ubicación entre 1 y 60 minutos</span><span class="lang-en">Location every 1 to 60 minutes</span></h3>
+          <p><span class="lang-es">Mientras el caso está abierto, el equipo reporta su posición a la frecuencia que elijas. En operación normal el producto mantiene un piso de seguridad de 5 minutos entre capturas; el modo perdido lo saltea a propósito, porque un equipo que se mueve no se reconstruye con un punto cada media hora.</span><span class="lang-en">While the case is open, the machine reports its position at the interval you choose. In normal operation the product keeps a 5-minute safety floor between captures; lost mode skips it on purpose, because a machine on the move can't be reconstructed from a point every half hour.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Funciona con el equipo apagado</span><span class="lang-en">Works with the machine powered off</span></h3>
+          <p><span class="lang-es">Si lo marcas mientras está sin energía o sin red, el equipo se entera <strong>al reconectarse</strong>: el aviso inmediato no es el único camino. Marcar un equipo apagado no es un error, es el caso normal.</span><span class="lang-en">If you mark it while it's off or off the network, the machine finds out <strong>when it reconnects</strong>: the immediate push isn't the only path. Marking a powered-off machine isn't an error, it's the normal case.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Sobrevive al reinicio</span><span class="lang-en">Survives a reboot</span></h3>
+          <p><span class="lang-es">El estado se guarda en el propio equipo y se retoma al arrancar, sin esperar a hablar con el servidor. Un equipo robado se reinicia —lo apagan, o se queda sin batería—, así que un estado que sólo viviera en memoria se perdería justo cuando hace falta.</span><span class="lang-en">The state is stored on the machine itself and resumed at startup, without waiting to reach the server. A stolen machine gets restarted —someone powers it off, or the battery runs out— so a state living only in memory would be lost exactly when it's needed.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Pasa por encima del interruptor de ubicación</span><span class="lang-en">It overrides the location switch</span></h3>
+          <p><span class="lang-es">El caso ignora el interruptor global de geolocalización —una instalación nueva puede tenerlo apagado— y enciende también el sensor de ubicación del sistema mientras dura. La entrada de auditoría del marcaje lo dice de forma explícita: no es una excepción silenciosa.</span><span class="lang-en">The case ignores the global location switch —a fresh installation may have it off— and also turns on the system's location sensor while it lasts. The audit entry for the marking says so explicitly: it isn't a silent exception.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Dos permisos separados</span><span class="lang-en">Two separate permissions</span></h3>
+          <p><span class="lang-es">Uno para operar el modo perdido y otro para ver la evidencia. Quien coordina la recuperación de un equipo no necesita ver lo que la pantalla capture cuando esa etapa esté disponible. Los dos nacen apagados en todos los roles.</span><span class="lang-en">One to operate lost mode, another to view the evidence. Whoever coordinates recovering a machine doesn't need to see what the screen captures once that stage ships. Both start off for every role.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Recuperar no deja rastro en el equipo</span><span class="lang-en">Recovering leaves no trace on the machine</span></h3>
+          <p><span class="lang-es">Al marcarlo como recuperado, el archivo de estado <strong>se borra</strong> del equipo en vez de quedar marcado como inactivo. El caso y su historia siguen en el servidor.</span><span class="lang-en">When you mark it as recovered, the state file is <strong>deleted</strong> from the machine instead of being left flagged inactive. The case and its history stay on the server.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">Sin caducidad automática</span><span class="lang-en">No automatic expiry</span></h3>
+          <p><span class="lang-es">Un equipo marcado que nunca vuelve a hablar con el servidor sigue en modo perdido indefinidamente. Es una decisión, no un olvido: el caso de uso es precisamente un equipo que no vuelve.</span><span class="lang-en">A marked machine that never talks to the server again stays in lost mode indefinitely. That's a decision, not an oversight: the use case is precisely a machine that doesn't come back.</span></p>
         </div>
       </div>
 

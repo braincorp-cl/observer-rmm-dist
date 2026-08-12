@@ -156,7 +156,7 @@ class Capturer:
         print(f"  ⚠ no encontré texto {text!r} (rclick)")
         return False
 
-    def type_top(self, selector, text):
+    def type_top(self, selector, text, clear=False):
         """Escribe en un campo del diálogo de ENCIMA (CSS selector relativo a él).
 
         Acotarlo al diálogo de encima NO es cosmético: un `.q-dialog textarea`
@@ -174,7 +174,14 @@ class Capturer:
             return False
         self.d.execute_script(
             "arguments[0].setAttribute('spellcheck','false'); arguments[0].focus();", el)
-        time.sleep(0.2); el.send_keys(text); time.sleep(0.4)
+        time.sleep(0.2)
+        # `clear`: los campos con valor por omisión (p.ej. la cadencia del modo
+        # perdido, que nace en 5) concatenan en vez de reemplazar — escribir "1"
+        # sobre "5" deja "51", que además es un valor válido y pasa inadvertido.
+        if clear:
+            el.send_keys(Keys.CONTROL, "a")
+            time.sleep(0.2)
+        el.send_keys(text); time.sleep(0.4)
         return True
 
     def keys(self, *combo):
@@ -227,6 +234,18 @@ class Capturer:
         ActionChains(self.d).move_to_element_with_offset(body, 3, 3).perform()
         time.sleep(0.6)
 
+    def click_css(self, selector, nth=0):
+        """Clic por selector CSS. Necesario para los controles SIN texto: el botón
+        flotante de "Marcar como perdido" es un FAB con ícono y su etiqueta vive en
+        un tooltip, así que ningún XPath de texto lo encuentra (feature 030)."""
+        els = self.d.find_elements(By.CSS_SELECTOR, selector)
+        if not els:
+            raise RuntimeError(f"CSS sin resultados: {selector}")
+        self.d.execute_script("arguments[0].scrollIntoView({block:'center'});", els[nth])
+        time.sleep(0.4)
+        els[nth].click()
+        time.sleep(1.5)
+
     def esc(self):
         ActionChains(self.d).send_keys(Keys.ESCAPE).perform(); time.sleep(0.5)
 
@@ -236,7 +255,7 @@ class Capturer:
 
     def run_step(self, step):
         """step = {name, actions:[...]}; actions: get/click/clickc/dblclick/rclick/
-        tab/type/keys/scroll/maximize/away/esc/sleep/shot."""
+        tab/type/keys/scroll/maximize/away/css/esc/sleep/shot."""
         for a in step.get("actions", []):
             typ = a[0]
             if typ == "get":      self.d.get(self.base + a[1]); time.sleep(a[2] if len(a) > 2 else 3)
@@ -244,11 +263,12 @@ class Capturer:
             elif typ == "clickc":   self.click_contains(a[1], tuple(a[2]) if len(a) > 2 else ("div","span","button","a"))
             elif typ == "dblclick": self.dblclick_text(a[1], tuple(a[2]) if len(a) > 2 else ("td","div","span")); time.sleep(3)
             elif typ == "rclick":   self.rclick_text(a[1], tuple(a[2]) if len(a) > 2 else ("td","div","span"))
-            elif typ == "type":     self.type_top(a[1], a[2])
+            elif typ == "type":     self.type_top(a[1], a[2], a[3] if len(a) > 3 else False)
             elif typ == "keys":     self.keys(*a[1:])
             elif typ == "scroll":   self.scroll_dialog(a[1])
             elif typ == "maximize": self.maximize_dialog()
             elif typ == "away":     self.mouse_away()
+            elif typ == "css":      self.click_css(a[1], a[2] if len(a) > 2 else 0)
             elif typ == "tab":    self.click_text(a[1], ("div", "span")); time.sleep(2)
             elif typ == "esc":    self.esc()
             elif typ == "sleep":  time.sleep(a[1])
