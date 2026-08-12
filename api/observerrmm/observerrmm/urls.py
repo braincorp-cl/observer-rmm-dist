@@ -64,7 +64,20 @@ if getattr(settings, "ADMIN_ENABLED", False):
 
     urlpatterns += (path(settings.ADMIN_URL, admin.site.urls),)
 
-if getattr(settings, "DEBUG", False) and not getattr(settings, "DEMO", False):
+# La condición mira INSTALLED_APPS y no DEBUG a propósito. settings.py decide si
+# silk entra a INSTALLED_APPS UNA vez, al importarse; este archivo se importa en
+# otro momento, y con `DEBUG` de por medio los dos podían discrepar: bastaba que
+# algo encendiera DEBUG en caliente para que acá se intentara importar un paquete
+# que no está instalado (silk vive en requirements-dev.txt) y se cayera el
+# URLconf ENTERO — o sea, todas las rutas del producto, no sólo /silk/.
+#
+# Eso no es hipotético: la prueba `test_get_query_schema_file_missing` enciende
+# DEBUG en caliente, y cuando el sorteo de `pytest-randomly` la dejaba primera
+# —antes de que cualquier otra prueba hubiera importado este módulo— la CI se caía
+# con ModuleNotFoundError. Pasó el 2026-08-12 y hasta entonces sólo había sido
+# suerte. Mirar INSTALLED_APPS elimina la discrepancia: es el mismo hecho que ya
+# resolvió settings.py.
+if "silk" in getattr(settings, "INSTALLED_APPS", ()):
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
 
 if getattr(settings, "SWAGGER_ENABLED", False):
