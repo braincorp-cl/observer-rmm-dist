@@ -8,6 +8,16 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.10 — 2026-08-13
+
+- **El modo perdido ahora saca una foto de la cámara del equipo.** Junto a la captura de pantalla, cada ciclo de un caso puede sumar una foto de quién tiene el equipo delante, y la línea de tiempo la muestra como una segunda miniatura. Disponible en **Windows y Linux**; en macOS queda a la espera del permiso del sistema, que no se puede conceder a distancia.
+- **Nace apagada de fábrica.** Fotografiar la cara de una persona es más sensible que ubicar un activo, así que actualizar el producto no la enciende: hay un interruptor global en Configuración que hay que activar a propósito. Con él apagado, ningún equipo de la flota toma fotos.
+- **El LED de la cámara se enciende, y el producto no lo oculta.** En la mayoría de los equipos el LED está cableado al sensor y ninguna aplicación puede apagarlo. La foto nunca es invisible; prometer lo contrario sería, además de indebido, algo que el hardware no permite cumplir.
+- **Una foto en negro no se guarda como si fuera evidencia.** La tapa puesta o el cuarto a oscuras dan una imagen negra, y el agente la descarta con su motivo en vez de subirla —igual que ya hace con la pantalla—. En Windows funciona sin ninguna herramienta extra; en Linux usa `fswebcam` o `ffmpeg` si están instalados, y si no, el caso lo dice.
+- **La foto hereda el cifrado y el plazo de borrado** de la evidencia del caso, sin nada que configurar aparte: se guarda cifrada en el servidor y se borra sola con los mismos plazos que la captura de pantalla.
+- Corregido: el interruptor de la foto de cámara **se aplica al instante**, también al apagarlo. Antes, apagarlo durante un caso abierto no detenía las fotos hasta el siguiente reinicio del agente.
+- Acompaña al **agente 2.15.17**, que es quien toma la foto. Contra un servidor anterior, el agente sigue funcionando igual que la 2.15.16.
+
 ## v1.4.9 — 2026-08-12
 
 - **La evidencia del modo perdido ahora se borra sola.** Las capturas y los puntos de un caso se eliminan a los **90 días**, y también unos días después de marcar el equipo como recuperado —lo que ocurra primero—. Deja de ser una tarea que alguien tenga que acordarse de hacer: el servidor la corre por su cuenta, y **borra el archivo del disco además del registro**, que es la parte que no se ve desde la consola y la que de verdad importa.
