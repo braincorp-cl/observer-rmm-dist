@@ -8,6 +8,15 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.9 — 2026-08-12
+
+- **La evidencia del modo perdido ahora se borra sola.** Las capturas y los puntos de un caso se eliminan a los **90 días**, y también unos días después de marcar el equipo como recuperado —lo que ocurra primero—. Deja de ser una tarea que alguien tenga que acordarse de hacer: el servidor la corre por su cuenta, y **borra el archivo del disco además del registro**, que es la parte que no se ve desde la consola y la que de verdad importa.
+- **Dos plazos configurables, en Configuración global.** El de los 90 días admite entre 1 y 365 y **no se puede desactivar**: apagarlo dejaría un depósito de capturas de pantalla de personas creciendo sin fecha de término. El segundo es cuántos días sobrevive la evidencia después de cerrar el caso, con **7 por omisión** — la denuncia suele presentarse *después* de recuperar el equipo, y una evidencia que se evapora en la hora siguiente no serviría para presentarla. Ponerlo en 0 borra apenas se cierra el caso.
+- **La evidencia se guarda cifrada en el servidor.** Cada instalación genera su propia llave al instalarse; quien lea el disco del servidor no ve las imágenes. Desde la consola no cambia nada: la miniatura y la descarga funcionan igual. Lo capturado **antes** de esta versión se sigue leyendo sin problemas.
+- **La línea de tiempo del caso dice las dos cosas a la vista:** en cuántos días se borrará esa evidencia y si está cifrada. Un servidor que no la esté cifrando lo declara ahí, en vez de que se descubra el día que alguien mire el disco.
+- Corregido: los archivos de evidencia de un equipo **eliminado** de la consola quedaban en el disco del servidor para siempre. Ahora se recogen con el mismo plazo que el resto.
+- **No cambia la versión del agente**: la retención y el cifrado son enteramente del servidor. La flota sigue en la **2.15.16**.
+
 ## v1.4.8 — 2026-08-12
 
 - **El modo perdido ahora ve la pantalla.** Mientras un equipo está marcado, cada ciclo junta su ubicación y una **captura de su pantalla**, y el caso las muestra juntas en una **línea de tiempo**: el recorrido en el mapa y, al lado, qué se estaba haciendo con el equipo en cada momento. La captura es silenciosa —no suena, no avisa, no deja ventanas a la vista— y sale de la sesión de la persona que tiene el equipo, que es la única forma de que la imagen no salga negra.
