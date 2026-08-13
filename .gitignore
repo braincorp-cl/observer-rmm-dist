@@ -29,7 +29,7 @@ api/observerrmm/.pytest_cache/
 # índice en `0c0345c` y de ahí sale esta regla.
 api/observerrmm/nats-rmm.conf
 
-group_vars/*/vault.yml
+group_vars/*/vault*.yml
 inventory/produccion.yml
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -31,7 +31,7 @@ from core.utils import (
     token_is_valid,
     wake_on_lan,
 )
-from logs.models import AuditLog, PendingAction
+from logs.models import AuditLog, DebugLog, PendingAction
 from scripts.models import Script
 from scripts.tasks import bulk_command_task, bulk_script_task
 from observerrmm.constants import (
@@ -73,6 +73,7 @@ from winupdate.models import WinUpdate, WinUpdatePolicy
 from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
+from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
     Agent,
     AgentCustomField,
@@ -1046,10 +1047,33 @@ class LostModeEvidenceList(APIView):
 
         state = LostModeState.objects.filter(agent=agent).first()
 
+        core = get_core_settings()
+
+        try:
+            cifra = encryption_enabled()
+        except ValueError as e:
+            # Una llave mal formada NO puede tumbar la línea de tiempo: leer el
+            # caso es lo que el operador está haciendo mientras el equipo sigue
+            # perdido. Escribir y descifrar sí son estrictos; esto es sólo el
+            # rótulo. `null` = "el servidor no lo pudo decir", que la consola
+            # distingue de "no cifra".
+            DebugLog.error(message=f"modo perdido: {e}")
+            cifra = None
+
         return Response(
             {
                 "state": LostModeStateSerializer(state).data if state else None,
                 "evidence": LostModeEvidenceSerializer(qs, many=True).data,
+                # La política de retención y el cifrado viajan con el caso, no
+                # sólo en la Configuración global: quien mira la línea de tiempo
+                # tiene que saber cuánto le queda a lo que está mirando y si el
+                # material está cifrado en el servidor. Que un ambiente NO cifre
+                # se ve acá; no se descubre el día que alguien lea el disco.
+                "retention": {
+                    "prune_days": core.lost_mode_evidence_prune_days,
+                    "closed_case_days": core.lost_mode_evidence_closed_case_days,
+                },
+                "encryption": {"enabled": cifra},
             }
         )
 
@@ -1082,8 +1106,17 @@ class LostModeEvidenceFile(APIView):
             # honesto, y el motivo ya viajó en el listado.
             return notify_error("Esta pieza de evidencia no tiene archivo")
 
+        try:
+            contenido = evidencia.asset.open("rb")
+        except EvidenceKeyMissing as e:
+            # 400 con el motivo, no un 500 ni una imagen rota: "esta evidencia
+            # está cifrada y este servidor no tiene la llave" es un hecho que el
+            # operador puede accionar (restaurar el vault del ambiente), y
+            # confundirlo con una captura en negro sería el ok falso de siempre.
+            return notify_error(str(e))
+
         return FileResponse(
-            evidencia.asset.open("rb"),
+            contenido,
             # `as_attachment=False` para que la consola pueda mostrar la miniatura
             # en la línea de tiempo sin forzar una descarga.
             as_attachment=False,

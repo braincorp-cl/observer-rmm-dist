@@ -67,6 +67,19 @@ NATS_MAX_CONNECTIONS = {{ observer_nats_max_connections }}
 GOOGLE_GEOLOCATION_API_KEY = '{{ observer_google_geolocation_api_key }}'
 {% endif %}
 
+# Feature 030 · T020 — cifrado en reposo de la evidencia del modo perdido (ADR-025
+# punto 5). La llave la genera install.yml por ambiente (patrón autovault) y vive
+# cifrada en group_vars/observer_api/vault_lostmode.yml, que NO se versiona. Si la
+# variable está vacía no se emite la línea y el backend guarda la evidencia en claro
+# (lo declara en el listado del caso: `encryption.enabled` en false).
+#
+# ⚠️ ESTE ARCHIVO SE RE-RENDERIZA EN CADA install.yml: una llave puesta a mano acá se
+# perdería en el próximo deploy y dejaría ilegible toda la evidencia cifrada con ella.
+# ⚠️ deploy-api.yml NO renderiza este archivo: la llave llega con install.yml.
+{% if vault_lost_mode_evidence_key | default('') | length > 0 %}
+LOST_MODE_EVIDENCE_KEY = "{{ vault_lost_mode_evidence_key }}"
+{% endif %}
+
 # Versión del agente que ESTE ambiente ofrece a la flota. Si la variable está vacía no se
 # emite la línea y manda el LATEST_AGENT_VER de settings.py (la del producto). Permite que
 # un ambiente vaya adelante (staging probando un release) o quede congelado atrás sin

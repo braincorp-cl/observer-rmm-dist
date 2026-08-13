@@ -384,6 +384,10 @@
     "debugLogsDays": "Debug Logs (days):",
     "auditLogsDays": "Audit Logs (days):",
     "reportHistoryDays": "Report History (days):",
+    "lostEvidenceDays": "Lost Device Evidence (days):",
+    "lostEvidenceDaysHint": "Between 1 and 365 days. This retention cannot be disabled.",
+    "lostEvidenceClosedCaseDays": "Evidence After Case Closed (days):",
+    "lostEvidenceClosedCaseDaysHint": "Days kept after marking the device recovered. 0 = delete immediately.",
     "saveAndTestEmail": "Save and Test Email",
     "saveAndTestSms": "Save and Test SMS",
     "yes": "Yes",
@@ -2987,7 +2991,10 @@
       "reason_so_no_soportado": "This operating system does not capture the screen",
       "reason_formato_no_soportado": "The server rejected the file: not an image",
       "reason_archivo_muy_grande": "The server rejected the file: too large",
-      "reason_archivo_vacio": "The server rejected the file: it was empty"
+      "reason_archivo_vacio": "The server rejected the file: it was empty",
+      "retention": "Evidence is deleted automatically after {days} days, or {closed} days after the case is closed",
+      "encrypted": "Encrypted on the server",
+      "notEncrypted": "NOT encrypted on the server"
     }
   }
 }

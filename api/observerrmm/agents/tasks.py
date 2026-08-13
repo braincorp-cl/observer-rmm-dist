@@ -1,10 +1,12 @@
 import asyncio
 import datetime as dt
+import os
 from time import sleep
 from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 from django.core.management import call_command
+from django.db.models import Q
 from django.utils import timezone as djangotime
 
 from agents.models import Agent
@@ -401,6 +403,139 @@ def prune_agent_history(older_than_days: int) -> str:
     ).delete()
 
     return "ok"
+
+
+@app.task
+def prune_lost_mode_evidence(older_than_days: int, closed_case_days: int) -> str:
+    """Retención de la evidencia del modo perdido (030 · T019, ADR-025 punto 4).
+
+    Dos plazos que corren en paralelo, "lo que ocurra primero":
+
+    1. **Antigüedad**: la pieza cumplió `older_than_days` (90 por omisión).
+    2. **Caso cerrado**: el equipo se marcó recuperado hace más de
+       `closed_case_days`. Ahí se va TODA la evidencia de ese agente, no sólo la
+       vieja: cerrado el caso, ninguna de sus piezas tiene ya finalidad.
+       Un equipo re-marcado como perdido queda excluido (`active=True`), y su
+       evidencia anterior sigue viva hasta cumplir el plazo por antigüedad.
+
+    POR QUÉ BORRA ARCHIVOS Y NO SÓLO FILAS: `FileField` no toca el disco al
+    borrar la fila (Django lo dejó de hacer en la 1.3). Un `delete()` de
+    queryset habría vaciado la línea de tiempo dejando las capturas en
+    `/opt/observer/lostmode/evidence` para siempre — una retención que se ve
+    cumplida en la consola y es falsa en el disco, que es la peor de las dos
+    formas de fallar acá.
+
+    El barrido de huérfanos existe por el mismo motivo: borrar un AGENTE hace
+    cascada sobre las filas, y sin él sus archivos quedarían sin dueño y sin
+    nadie que los cuente.
+    """
+    from .models import LostModeEvidence, LostModeState
+
+    ahora = djangotime.now()
+    corte = ahora - dt.timedelta(days=older_than_days)
+    corte_cerrados = ahora - dt.timedelta(days=closed_case_days)
+
+    casos_cerrados = LostModeState.objects.filter(
+        active=False,
+        recovered_at__isnull=False,
+        recovered_at__lt=corte_cerrados,
+    ).values_list("agent_id", flat=True)
+
+    vencidas = LostModeEvidence.objects.filter(
+        Q(created__lt=corte) | Q(agent_id__in=casos_cerrados)
+    )
+
+    archivos = 0
+    con_archivo = vencidas.exclude(asset="").exclude(asset__isnull=True)
+    for pieza in con_archivo.only("id", "asset").iterator():
+        try:
+            pieza.asset.delete(save=False)
+            archivos += 1
+        except OSError as e:
+            # Un archivo que no se pudo borrar NO cancela la poda de los demás,
+            # pero tampoco se calla: la fila se va igual y el archivo quedaría
+            # huérfano, así que tiene que quedar dicho dónde.
+            DebugLog.error(
+                message=f"modo perdido: no se pudo borrar {pieza.asset.name} ({e})"
+            )
+
+    filas, _ = vencidas.delete()
+
+    huerfanos = _barrer_evidencia_huerfana(corte)
+    _borrar_directorios_vacios()
+
+    if filas or archivos or huerfanos:
+        DebugLog.info(
+            message=(
+                f"modo perdido: retención a {older_than_days} d "
+                f"(caso cerrado +{closed_case_days} d) — {filas} fila(s), "
+                f"{archivos} archivo(s), {huerfanos} huérfano(s)"
+            )
+        )
+
+    return f"{filas} filas, {archivos} archivos, {huerfanos} huerfanos"
+
+
+def _base_evidencia() -> str:
+    return os.path.abspath(settings.LOST_MODE_EVIDENCE_BASE_PATH)
+
+
+def _barrer_evidencia_huerfana(corte: "dt.datetime") -> int:
+    """Borra archivos que ninguna fila referencia y que ya cumplieron el plazo.
+
+    El corte por fecha de modificación no es cosmético: sin él, un archivo
+    recién escrito por `LostModeEvidenceUpload` podría barrerse en la ventana
+    que hay entre `asset.save(...)` y el `save()` de la fila.
+    """
+    base = _base_evidencia()
+    if not os.path.isdir(base):
+        return 0
+
+    from .models import LostModeEvidence
+
+    vivos = {
+        os.path.join(base, nombre)
+        for nombre in LostModeEvidence.objects.exclude(asset="")
+        .exclude(asset__isnull=True)
+        .values_list("asset", flat=True)
+    }
+
+    borrados = 0
+    for carpeta, _dirs, ficheros in os.walk(base):
+        for fichero in ficheros:
+            ruta = os.path.join(carpeta, fichero)
+            if ruta in vivos:
+                continue
+            try:
+                if (
+                    dt.datetime.fromtimestamp(
+                        os.path.getmtime(ruta), tz=dt.timezone.utc
+                    )
+                    >= corte
+                ):
+                    continue
+                os.remove(ruta)
+                borrados += 1
+            except OSError:
+                continue
+
+    return borrados
+
+
+def _borrar_directorios_vacios() -> None:
+    """Deja el árbol sin carpetas de ciclo vacías (la base se conserva)."""
+    base = _base_evidencia()
+    if not os.path.isdir(base):
+        return
+
+    for carpeta, _dirs, _ficheros in os.walk(base, topdown=False):
+        if carpeta == base:
+            continue
+        try:
+            os.rmdir(carpeta)
+        except OSError:
+            # No está vacía, o no se puede: no es un error, es el caso normal.
+            continue
 
 
 @app.task

@@ -17,7 +17,11 @@ from packaging import version as pyver
 from accounts.models import User
 from accounts.utils import is_superuser
 from agents.models import Agent
-from agents.tasks import clear_faults_task, prune_agent_history
+from agents.tasks import (
+    clear_faults_task,
+    prune_agent_history,
+    prune_lost_mode_evidence,
+)
 from agents.utils import calculate_agent_checks
 from alerts.models import Alert
 from alerts.tasks import prune_resolved_alerts
@@ -131,6 +135,16 @@ def core_maintenance_tasks() -> None:
 
     if core.report_history_prune_days > 0:
         prune_report_history_task.delay(core.report_history_prune_days)
+
+    # Retención de la evidencia del modo perdido (030 · T019, ADR-025 punto 4).
+    # SIN el `> 0` que llevan las podas de arriba: acá el 0 no existe como
+    # "apagado" (el campo está acotado a 1..365) y un guard así habría vuelto
+    # desactivable, por descuido, la única cosa de esta feature que la
+    # normativa exige que ocurra sola.
+    prune_lost_mode_evidence.delay(
+        core.lost_mode_evidence_prune_days,
+        core.lost_mode_evidence_closed_case_days,
+    )
 
 
 @app.task

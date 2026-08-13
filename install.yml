@@ -204,6 +204,54 @@
           changed_when: true
           no_log: true
 
+    # ------------------------------------------------------------------ 030 · T020
+    # Llave del cifrado en reposo de la evidencia del modo perdido (ADR-025 punto 5).
+    # SENTINELA PROPIO Y ARCHIVO PROPIO, no una línea más en observer_api/vault.yml:
+    # el sentinela de arriba es la EXISTENCIA de ese archivo, así que un ambiente ya
+    # instalado nunca volvería a entrar a ese bloque y se quedaría sin llave para
+    # siempre. Con archivo aparte, el próximo install.yml de un ambiente existente la
+    # genera sin descifrar ni reescribir el vault que ya tiene.
+    - name: ¿Ya existe la llave de la evidencia del modo perdido?
+      ansible.builtin.stat:
+        path: "{{ _gv }}/observer_api/vault_lostmode.yml"
+      register: _sentinel_lostmode
+
+    - name: Generar + cifrar la llave de la evidencia del modo perdido
+      when: not _sentinel_lostmode.stat.exists
+      block:
+        - name: Sembrar la llave Fernet
+          # No se usa random_string como los demás secretos: Fernet exige EXACTAMENTE
+          # 32 bytes en base64 URLSAFE, y una contraseña ASCII de largo 32 no lo es
+          # (la aceptaría por accidente, con bastante menos entropía de la que
+          # aparenta). `openssl rand -base64 32` da los 32 bytes reales y los dos
+          # `replace` lo pasan al alfabeto urlsafe. Mismo openssl que el README ya
+          # pide para crear .vault_pass, así que no suma dependencias.
+          ansible.builtin.set_fact:
+            _s_lostmode: >-
+              {{ lookup('pipe', 'openssl rand -base64 32') | replace('+', '-') | replace('/', '_') }}
+          no_log: true
+
+        - name: Escribir group_vars/observer_api/vault_lostmode.yml
+          ansible.builtin.copy:
+            dest: "{{ _gv }}/observer_api/vault_lostmode.yml"
+            mode: "0600"
+            content: |
+              ---
+              # AUTOGENERADO por install.yml (idempotente) — NO editar ni commitear (gitignored).
+              # Llave del cifrado en reposo de la evidencia del modo perdido (030 · T020).
+              # ⚠️ SI SE PIERDE, LA EVIDENCIA YA CIFRADA NO SE RECUPERA. Respaldar con el
+              # resto del vault del ambiente. Rotarla NO re-cifra lo viejo: la evidencia
+              # anterior queda ilegible y hay que borrarla.
+              vault_lost_mode_evidence_key: "{{ _s_lostmode }}"
+          no_log: true
+
+        - name: Cifrar la llave recién generada
+          ansible.builtin.command:
+            cmd: ansible-vault encrypt group_vars/observer_api/vault_lostmode.yml
+            chdir: "{{ playbook_dir }}"
+          changed_when: true
+          no_log: true
+
     - name: Cifrar GoDaddy (observer_proxy/vault.yml) si el humano lo dejó en claro
       when: observer_cert_mode | default('acme') == 'acme'
       block:
@@ -251,6 +299,16 @@
         vault_observer_db_password: "{{ hostvars['localhost']['_s_db'] }}"
         vault_observer_mesh_db_password: "{{ hostvars['localhost']['_s_meshdb'] }}"
         vault_observer_mesh_password: "{{ hostvars['localhost']['_s_mesh'] }}"
+      no_log: true
+
+    - name: Inyectar la llave de la evidencia del modo perdido (030 · T020)
+      # Condición APARTE de la de arriba: esta llave tiene su propio sentinela y se
+      # genera también en ambientes ya instalados, donde `_s_admin` no existe. Con la
+      # condición compartida, el ambiente que ya estaba instalado habría escrito el
+      # vault y renderizado local_settings.py SIN la llave, en silencio.
+      when: hostvars['localhost']['_s_lostmode'] is defined
+      ansible.builtin.set_fact:
+        vault_lost_mode_evidence_key: "{{ hostvars['localhost']['_s_lostmode'] }}"
       no_log: true
 
 - name: Dependencias comunes — todos los hosts

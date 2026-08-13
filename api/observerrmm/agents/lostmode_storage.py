@@ -16,9 +16,13 @@ migración quedaría congelada con la ruta que tenía el día que se escribió).
 """
 
 import os
+from typing import IO
 
 from django.conf import settings
+from django.core.files.base import ContentFile, File
 from django.core.files.storage import FileSystemStorage
+
+from agents.lostmode_crypto import decrypt_bytes, encrypt_bytes
 
 
 class LostModeEvidenceStorage(FileSystemStorage):
@@ -40,6 +44,11 @@ class LostModeEvidenceStorage(FileSystemStorage):
     Con estas dos propiedades, `override_settings(LOST_MODE_EVIDENCE_BASE_PATH=…)`
     basta para aislar la evidencia en un temporal, y montar la evidencia en otro
     volumen desde `local_settings.py` sigue funcionando igual.
+
+    ⚠️ `size()` informa el tamaño EN DISCO, o sea el del archivo cifrado (Fernet
+    suma ~33% de base64 más la cabecera). Nadie lo consume hoy —el serializer
+    sólo publica si hay archivo o no— pero quien lo use tiene que saber que no
+    es el peso de la imagen.
     """
 
     @property
@@ -51,6 +60,31 @@ class LostModeEvidenceStorage(FileSystemStorage):
     @property
     def location(self) -> str:
         return os.path.abspath(self.base_location)
+
+    def _save(self, name: str, content: File) -> str:
+        """Cifra el contenido antes de que toque el disco (T020, ADR-025 punto 5).
+
+        EL CIFRADO VIVE ACÁ Y NO EN LA VISTA DE INGESTA porque las dos puntas
+        —lo que escribe `LostModeEvidenceUpload` y lo que lee
+        `LostModeEvidenceFile`— pasan obligatoriamente por este storage. Puesto
+        en la vista, cualquier camino nuevo que guardara un `asset` (una
+        importación, un comando de gestión, la webcam de la Fase 2) escribiría
+        en claro sin que nadie lo note.
+
+        El archivo se lee entero en memoria: el tope de ingesta son 25 MB
+        (`LOST_MODE_MAX_EVIDENCE_BYTES`) y Fernet no es incremental.
+        """
+        return super()._save(name, ContentFile(encrypt_bytes(content.read())))
+
+    def _open(self, name: str, mode: str = "rb") -> IO:
+        """Descifra al leer. Un archivo sin la cabecera se devuelve intacto.
+
+        Devuelve un `ContentFile` en memoria y no el descriptor del archivo: el
+        contenido descifrado no existe en disco en ningún momento, ni siquiera
+        en un temporal.
+        """
+        with super()._open(name, "rb") as f:
+            return ContentFile(decrypt_bytes(f.read()), name=os.path.basename(name))
 
 
 def get_lost_mode_evidence_fs() -> LostModeEvidenceStorage:

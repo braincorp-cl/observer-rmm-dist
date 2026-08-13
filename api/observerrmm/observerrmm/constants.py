@@ -397,6 +397,29 @@ class EndpointResponseAction(models.TextChoices):
 LOST_MODE_MIN_INTERVAL_MIN = 1
 LOST_MODE_MAX_INTERVAL_MIN = 60
 
+# Retención de la evidencia del modo perdido (feature 030 · Fase 3, ADR-025
+# punto 4: "90 días o al cerrar el caso, lo que ocurra primero").
+#
+# NO EXISTE EL VALOR "0 = nunca borrar", a diferencia del resto de las podas
+# (`check_history_prune_days`, `audit_log_prune_days`, ...). Esas son perillas de
+# monitoreo y apagarlas sólo cuesta disco; ésta es un requisito de gobernanza y
+# apagarla desde un campo más del formulario dejaría un depósito de capturas de
+# pantalla de personas creciendo para siempre. El piso es 1 día y el techo 365:
+# el plazo se ajusta si legal fija otro, no se desactiva.
+LOST_MODE_EVIDENCE_MIN_PRUNE_DAYS = 1
+LOST_MODE_EVIDENCE_MAX_PRUNE_DAYS = 365
+LOST_MODE_EVIDENCE_DEFAULT_PRUNE_DAYS = 90
+
+# Gracia después de CERRAR el caso (marcar el equipo recuperado). El ADR dice
+# "lo que ocurra primero", y la lectura literal es borrar en la próxima corrida
+# del beat. Se dejan 7 días por omisión porque la denuncia suele presentarse
+# DESPUÉS de recuperar el equipo, y una evidencia que se evapora dentro de la
+# hora siguiente al `recovered_at` es irrecuperable. El 0 sí es válido acá:
+# significa la lectura literal del ADR, y no apaga nada — los 90 días siguen
+# corriendo en paralelo.
+LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS = 365
+LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS = 7
+
 
 # Tipos de evidencia del modo perdido/robado (feature 030, ADR-025). El código va
 # en inglés y la etiqueta traducida vive en el catálogo i18n del frontend, igual

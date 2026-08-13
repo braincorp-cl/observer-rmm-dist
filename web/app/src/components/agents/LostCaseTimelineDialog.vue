@@ -37,6 +37,37 @@
           </div>
         </q-card-section>
 
+        <!-- La política del ambiente, a la vista. Que la evidencia se borra sola
+             y si está cifrada es lo que ADR-025 exige que sea verdad; mostrarlo
+             acá es lo que permite desmentirlo cuando NO lo es. -->
+        <q-card-section v-if="retention" class="q-pt-sm q-pb-none">
+          <q-chip dense square icon="auto_delete" class="text-caption">
+            {{
+              $t("lostEquipment.timeline.retention", {
+                days: retention.prune_days,
+                closed: retention.closed_case_days,
+              })
+            }}
+          </q-chip>
+          <q-chip
+            v-if="encrypted !== null"
+            dense
+            square
+            class="text-caption"
+            :icon="encrypted ? 'lock' : 'lock_open'"
+            :color="encrypted ? 'green-2' : 'orange-2'"
+            text-color="black"
+          >
+            {{
+              $t(
+                encrypted
+                  ? "lostEquipment.timeline.encrypted"
+                  : "lostEquipment.timeline.notEncrypted",
+              )
+            }}
+          </q-chip>
+        </q-card-section>
+
         <q-card-section v-if="!cycles.length">
           <!-- Un caso recién abierto no tiene ciclos todavía: se dice, en vez de
                mostrar una lista vacía que se lee como "algo falló". -->
@@ -195,6 +226,11 @@ export default {
     const loading = ref(false);
     const state = ref(null);
     const evidence = ref([]);
+    // Política de retención y cifrado del ambiente (030 · Fase 3). Vienen con el
+    // caso y no de la Configuración global: quien mira la línea de tiempo tiene
+    // que saber cuánto le queda a lo que está mirando, sin cambiar de pantalla.
+    const retention = ref(null);
+    const encrypted = ref(null);
     const thumbs = ref({});
     const fullDialog = ref(false);
     const fullSrc = ref("");
@@ -248,10 +284,17 @@ export default {
       loading.value = true;
       state.value = null;
       evidence.value = [];
+      retention.value = null;
+      encrypted.value = null;
       try {
         const data = await fetchLostEvidence(props.agentId);
         state.value = data?.state ?? null;
         evidence.value = data?.evidence ?? [];
+        retention.value = data?.retention ?? null;
+        // `?? null` y no `?? false`: "el servidor no lo dijo" (una consola
+        // nueva contra un backend viejo) no es lo mismo que "no cifra", y
+        // pintar el aviso rojo en ese caso sería una alarma inventada.
+        encrypted.value = data?.encryption?.enabled ?? null;
       } catch (e) {
         console.error(e);
       }
@@ -377,6 +420,8 @@ export default {
       show,
       loading,
       state,
+      retention,
+      encrypted,
       cycles,
       points,
       thumbs,

@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client as TwClient
@@ -20,6 +21,11 @@ from logs.models import BaseAuditModel, DebugLog
 from observerrmm.constants import (
     ALL_TIMEZONES,
     CORESETTINGS_CACHE_KEY,
+    LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS,
+    LOST_MODE_EVIDENCE_DEFAULT_PRUNE_DAYS,
+    LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS,
+    LOST_MODE_EVIDENCE_MAX_PRUNE_DAYS,
+    LOST_MODE_EVIDENCE_MIN_PRUNE_DAYS,
     CustomFieldModel,
     CustomFieldType,
     DebugLogLevel,
@@ -73,6 +79,29 @@ class CoreSettings(BaseAuditModel):
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)
+    # Retención de la evidencia del modo perdido/robado (feature 030 · Fase 3,
+    # ADR-025 punto 4). Va acá y no en `LostModeState` porque es política del
+    # ambiente, no de un caso: dos equipos perdidos no pueden tener plazos
+    # distintos sin volver la retención imposible de auditar.
+    #
+    # SIN "0 = nunca borrar", a diferencia de las podas de arriba: apagar esto
+    # no cuesta disco, deja capturas de pantalla de personas acumulándose sin
+    # plazo. Ver el comentario de LOST_MODE_EVIDENCE_MIN_PRUNE_DAYS.
+    lost_mode_evidence_prune_days = models.PositiveIntegerField(
+        default=LOST_MODE_EVIDENCE_DEFAULT_PRUNE_DAYS,
+        validators=[
+            MinValueValidator(LOST_MODE_EVIDENCE_MIN_PRUNE_DAYS),
+            MaxValueValidator(LOST_MODE_EVIDENCE_MAX_PRUNE_DAYS),
+        ],
+    )
+    # Días que sobrevive la evidencia DESPUÉS de marcar el equipo recuperado.
+    # El 0 es válido y significa la lectura literal del ADR (borrar en la
+    # próxima corrida del beat); el default de 7 existe porque la denuncia se
+    # presenta casi siempre después de recuperar el equipo.
+    lost_mode_evidence_closed_case_days = models.PositiveIntegerField(
+        default=LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS,
+        validators=[MaxValueValidator(LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS)],
+    )
     agent_debug_level = models.CharField(
         max_length=20, choices=DebugLogLevel.choices, default=DebugLogLevel.INFO
     )

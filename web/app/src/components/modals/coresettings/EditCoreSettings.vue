@@ -824,6 +824,46 @@
                     :hint="$t('editCoreSettings.disableFeatureHint')"
                   />
                 </q-card-section>
+
+                <!-- 030 · T019 (ADR-025): estas dos NO llevan disableFeatureHint.
+                     El 0 no apaga la retención de la evidencia — el campo está
+                     acotado a 1..365 en el modelo. Reutilizar ese hint acá le
+                     diría al operador que puede desactivar algo que la
+                     normativa exige que ocurra solo. -->
+                <q-card-section class="row">
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.lostEvidenceDays") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    min="1"
+                    max="365"
+                    v-model="settings.lost_mode_evidence_prune_days"
+                    class="col-6"
+                    :hint="$t('editCoreSettings.lostEvidenceDaysHint')"
+                  />
+                </q-card-section>
+                <q-card-section class="row">
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.lostEvidenceClosedCaseDays") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    min="0"
+                    max="365"
+                    v-model="settings.lost_mode_evidence_closed_case_days"
+                    class="col-6"
+                    :hint="
+                      $t('editCoreSettings.lostEvidenceClosedCaseDaysHint')
+                    "
+                  />
+                </q-card-section>
               </q-tab-panel>
 
               <q-tab-panel name="apikeys">

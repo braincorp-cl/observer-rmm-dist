@@ -412,11 +412,11 @@
       <p class="lang-en">When a machine leaves its owner's control it stops being a row that went offline and becomes a <strong>case</strong>: with a reason, an author, a timestamp, and a location trail you can reconstruct. Marking it as lost raises how often it reports where it is, and the only way to turn it off is marking it as recovered.</p>
       <div class="callout note lang-es">
         <span class="tag">Alcance de esta versión</span>
-        <p>Esta etapa cubre el <strong>estado, la ubicación intensiva y la captura de pantalla</strong>. La foto de cámara está postergada. La evidencia todavía no se borra sola a los 90 días ni se guarda cifrada: eso llega en la etapa siguiente.</p>
+        <p>Esta etapa cubre el <strong>estado, la ubicación intensiva y la captura de pantalla</strong>, y la evidencia ya <strong>se borra sola y se guarda cifrada</strong> en el servidor. La foto de cámara sigue postergada.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">Scope of this version</span>
-        <p>This stage covers <strong>state, intensive location, and screen capture</strong>. Camera photos are deferred. Evidence is not yet auto-deleted after 90 days nor stored encrypted: that lands in the next stage.</p>
+        <p>This stage covers <strong>state, intensive location, and screen capture</strong>, and evidence is now <strong>auto-deleted and stored encrypted</strong> on the server. Camera photos are still deferred.</p>
       </div>
       <figure class="doc-shot">
         <img src="/assets/shots/modo-perdido-dialogo.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Diálogo para marcar un equipo como perdido, con el motivo y la cadencia de captura">
@@ -438,6 +438,10 @@
         <div class="feature">
           <h3><span class="lang-es">Ver la pantalla se concede aparte</span><span class="lang-en">Seeing the screen is granted separately</span></h3>
           <p><span class="lang-es">Coordinar la recuperación de un equipo y mirar lo que su pantalla mostraba son capacidades distintas y se otorgan por separado. La evidencia se descarga con la sesión del operador; no hay enlaces que funcionen fuera de la consola.</span><span class="lang-en">Coordinating a machine's recovery and looking at what its screen showed are different capabilities, granted separately. Evidence is downloaded with the operator's session; there are no links that work outside the console.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">La evidencia se borra sola, y está cifrada</span><span class="lang-en">Evidence deletes itself, and it's encrypted</span></h3>
+          <p><span class="lang-es">Las capturas y los puntos de un caso se borran a los 90 días, y también unos días después de marcar el equipo recuperado —lo que ocurra primero—. No es una tarea que alguien tenga que acordarse de hacer: el servidor la corre solo, borra el archivo del disco además de la fila, y los dos plazos se ajustan desde la configuración. Mientras tanto, lo capturado se guarda cifrado con una llave propia de cada instalación: quien lea el disco del servidor no ve las imágenes. La línea de tiempo del caso muestra ambas cosas a la vista.</span><span class="lang-en">A case's captures and location points are deleted after 90 days, and also a few days after the machine is marked recovered —whichever comes first—. It isn't a chore anyone has to remember: the server runs it on its own, deletes the file from disk as well as the row, and both windows are configurable. Meanwhile, what was captured is stored encrypted with a key unique to each installation: whoever reads the server's disk does not see the images. The case timeline shows both facts up front.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Motivo obligatorio</span><span class="lang-en">Reason is mandatory</span></h3>

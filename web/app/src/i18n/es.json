@@ -384,6 +384,10 @@
     "debugLogsDays": "Registros de depuración (días):",
     "auditLogsDays": "Registros de auditoría (días):",
     "reportHistoryDays": "Historial de informes (días):",
+    "lostEvidenceDays": "Evidencia de equipos perdidos (días):",
+    "lostEvidenceDaysHint": "Entre 1 y 365 días. Esta retención no se puede desactivar.",
+    "lostEvidenceClosedCaseDays": "Evidencia tras cerrar el caso (días):",
+    "lostEvidenceClosedCaseDaysHint": "Días que se conserva después de marcar el equipo recuperado. 0 = borrar de inmediato.",
     "saveAndTestEmail": "Guardar y probar correo",
     "saveAndTestSms": "Guardar y probar SMS",
     "yes": "Sí",
@@ -2987,7 +2991,10 @@
       "reason_so_no_soportado": "Este sistema operativo no captura pantalla",
       "reason_formato_no_soportado": "El servidor rechazó el archivo: no era una imagen",
       "reason_archivo_muy_grande": "El servidor rechazó el archivo: demasiado grande",
-      "reason_archivo_vacio": "El servidor rechazó el archivo: venía vacío"
+      "reason_archivo_vacio": "El servidor rechazó el archivo: venía vacío",
+      "retention": "La evidencia se borra sola a los {days} días, o {closed} días después de cerrar el caso",
+      "encrypted": "Cifrada en el servidor",
+      "notEncrypted": "SIN cifrar en el servidor"
     }
   }
 }

@@ -30,6 +30,14 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 # puede pisar desde local_settings.py para montarla en otro volumen.
 LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
 
+# Llave Fernet del cifrado en reposo de esa evidencia (030 · T020, ADR-025 punto
+# 5). Vacía = sin cifrar. NO se versiona ni se pone a mano acá: la genera
+# install.yml por ambiente (patrón autovault) y la renderiza en
+# local_settings.py, que se RE-RENDERIZA en cada deploy — una llave parchada a
+# mano en el servidor se perdería en silencio y, peor, dejaría la evidencia ya
+# cifrada ilegible. Ver agents/lostmode_crypto.py.
+LOST_MODE_EVIDENCE_KEY = ""
+
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
@@ -39,7 +47,7 @@ WEB_VERSION = "0.2.1"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.1.1"
+APP_VER = "0.1.2"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
 LATEST_AGENT_VER = "2.15.15"
