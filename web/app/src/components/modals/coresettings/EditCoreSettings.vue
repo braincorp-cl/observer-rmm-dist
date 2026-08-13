@@ -122,6 +122,34 @@
                   />
                 </q-card-section>
                 <!--
+                  Foto de webcam del modo perdido (feature 030 · Fase 2, ADR-025).
+                  APAGADA de fábrica y separada de la geolocalización a propósito:
+                  ubicar un activo corporativo y fotografiar la cara de quien lo
+                  tiene son dos cosas distintas, y la segunda no puede quedar
+                  encendida porque alguien encendió la primera.
+                -->
+                <q-card-section class="row">
+                  <q-checkbox
+                    v-model="settings.lost_mode_webcam_enabled"
+                    :label="$t('editCoreSettings.lostWebcam')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.lostWebcamTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
+                <q-card-section
+                  v-if="settings.lost_mode_webcam_enabled"
+                  class="row q-pl-lg q-pt-none"
+                >
+                  <q-banner dense class="bg-orange-2 text-black full-width">
+                    <template v-slot:avatar>
+                      <q-icon name="warning" />
+                    </template>
+                    {{ $t("editCoreSettings.lostWebcamWarning") }}
+                  </q-banner>
+                </q-card-section>
+                <!--
                   Recordatorio de mantenimiento prolongado (feature 036). NO es una
                   caducidad: el modo mantenimiento sigue siendo indefinido por
                   diseño, esto sólo avisa por correo para que el olvido tenga fecha

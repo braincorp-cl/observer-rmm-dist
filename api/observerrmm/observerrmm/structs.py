@@ -38,3 +38,5 @@ class AgentCheckInConfig(ORMMStruct):
     # que es justamente el escenario para el que existe la feature.
     lost_mode: bool
     lost_mode_interval_min: int
+    # Feature 030 · Fase 2: interruptor global de la foto de webcam (ADR-025).
+    lost_mode_webcam: bool

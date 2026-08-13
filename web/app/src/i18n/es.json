@@ -410,7 +410,10 @@
     "maintenanceAlert": "Avisar por correo el mantenimiento prolongado",
     "maintenanceAlertTooltip": "El modo mantenimiento no caduca solo. Pasado el umbral, se envía un correo por los equipos que siguen marcados. Un aviso por equipo por ventana.",
     "maintenanceAlertDays": "Umbral (días)",
-    "maintenanceAlertDaysRule": "Entre 1 y 365 días"
+    "maintenanceAlertDaysRule": "Entre 1 y 365 días",
+    "lostWebcam": "Foto de webcam en equipos perdidos",
+    "lostWebcamTooltip": "Mientras un equipo está marcado como perdido, cada ciclo toma además una foto con su cámara. Apagado de fábrica.",
+    "lostWebcamWarning": "El LED de la cámara se enciende y no se puede apagar: la foto nunca es invisible para quien tiene el equipo. Ver la foto exige además el permiso de ver evidencia."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -2994,7 +2997,12 @@
       "reason_archivo_vacio": "El servidor rechazó el archivo: venía vacío",
       "retention": "La evidencia se borra sola a los {days} días, o {closed} días después de cerrar el caso",
       "encrypted": "Cifrada en el servidor",
-      "notEncrypted": "SIN cifrar en el servidor"
+      "notEncrypted": "SIN cifrar en el servidor",
+      "webcamAlt": "Foto de la cámara del equipo",
+      "reason_sin_camara": "El equipo no tiene cámara",
+      "reason_camara_ocupada": "Otro programa está usando la cámara",
+      "reason_camara_sin_imagen": "La cámara no dio imagen (tapa puesta, oscuridad o controlador)",
+      "reason_permiso_denegado_camara": "El sistema no concede el permiso de cámara"
     }
   }
 }

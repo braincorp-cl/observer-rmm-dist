@@ -102,6 +102,19 @@ class CoreSettings(BaseAuditModel):
         default=LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS,
         validators=[MaxValueValidator(LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS)],
     )
+    # Feature 030 · Fase 2 (ADR-025 punto 3): interruptor GLOBAL de la foto de
+    # webcam. **Apagado de fábrica y sin excepción por agente.**
+    #
+    # Va al revés que `geo_tracking_enabled`, que ADR-024 dejó encendido de
+    # fábrica, y la asimetría es la decisión: ubicar un activo corporativo se
+    # sostiene en que el activo es de la empresa; fotografiar la CARA de quien
+    # lo tiene es cualitativamente más sensible y no puede empezar a ocurrir
+    # porque alguien actualizó el producto. Encenderlo es un acto deliberado,
+    # con nombre y fecha en la auditoría de la configuración.
+    #
+    # No es por-agente a propósito: una excepción por equipo volvería la
+    # política imposible de auditar, que es justo lo que ADR-025 evita.
+    lost_mode_webcam_enabled = models.BooleanField(default=False)
     agent_debug_level = models.CharField(
         max_length=20, choices=DebugLogLevel.choices, default=DebugLogLevel.INFO
     )

@@ -938,7 +938,7 @@ LOST_MODE_MAX_EVIDENCE_BYTES = getattr(
 
 
 class LostModeEvidenceUpload(APIView):
-    """Recibe el lote de un ciclo de captura: la pantalla y el punto de geo.
+    """Recibe el lote de un ciclo de captura: el punto de geo, la pantalla y la foto.
 
     POR QUÉ ES UN ENDPOINT PROPIO Y NO EL FLUJO DE GEO POR NATS: el punto de
     ubicación ya viaja por NATS y termina en `CheckHistory`, pero esa tabla la
@@ -1066,6 +1066,63 @@ class LostModeEvidenceUpload(APIView):
                     cycle=ciclo,
                     kind=LostModeEvidenceKind.SCREEN,
                     note=motivo,
+                    lat=lat,
+                    lng=lng,
+                    accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,
+                    source=source,
+                    session_user=session_user,
+                    captured_at=captured_at,
+                )
+            )
+
+        # 3) La foto de webcam, o el motivo por el que no la hay (Fase 2).
+        #
+        # SÓLO SI EL AGENTE MANDÓ ALGO. Con el interruptor global apagado, el
+        # agente no manda ni archivo ni motivo, y acá no se crea ninguna fila:
+        # una flota que nunca activó la webcam no tiene por qué ver, en cada
+        # ciclo de cada caso, un renglón hablando de una cámara.
+        #
+        # El servidor NO comprueba el interruptor para decidir si acepta: si un
+        # agente manda una foto es porque cuando armó el ciclo el interruptor
+        # estaba encendido, y descartarla acá perdería evidencia de un caso real
+        # por una carrera de milisegundos con la configuración.
+        foto = request.FILES.get("webcam")
+        motivo_webcam = (request.data.get("webcam_reason") or "")[:50] or None
+
+        if foto is not None:
+            error = _rechazo_de_imagen(foto)
+            if error:
+                DebugLog.warning(
+                    agent=agent,
+                    log_type=DebugLogType.AGENT_ISSUES,
+                    message=f"modo perdido: se rechazó la foto del ciclo {ciclo} ({error})",
+                )
+                foto, motivo_webcam = None, error
+
+        if foto is not None:
+            pieza = LostModeEvidence(
+                agent=agent,
+                cycle=ciclo,
+                kind=LostModeEvidenceKind.WEBCAM,
+                lat=lat,
+                lng=lng,
+                accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,
+                source=source,
+                session_user=session_user,
+                captured_at=captured_at,
+            )
+            # El nombre lo pone el servidor, igual que en la pantalla: el del
+            # multipart es texto de afuera y termina siendo una ruta en disco.
+            pieza.asset.save(f"webcam-{ciclo:06d}.jpg", foto, save=False)
+            pieza.save()
+            creadas.append(pieza)
+        elif motivo_webcam:
+            creadas.append(
+                LostModeEvidence.objects.create(
+                    agent=agent,
+                    cycle=ciclo,
+                    kind=LostModeEvidenceKind.WEBCAM,
+                    note=motivo_webcam,
                     lat=lat,
                     lng=lng,
                     accuracy_m=accuracy_m if accuracy_m and accuracy_m > 0 else None,

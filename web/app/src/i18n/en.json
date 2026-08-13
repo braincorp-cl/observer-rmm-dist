@@ -410,7 +410,10 @@
     "maintenanceAlert": "Email on long-running maintenance",
     "maintenanceAlertTooltip": "Maintenance mode never expires on its own. Past the threshold, an email is sent for agents still flagged. One notice per agent per window.",
     "maintenanceAlertDays": "Threshold (days)",
-    "maintenanceAlertDaysRule": "Between 1 and 365 days"
+    "maintenanceAlertDaysRule": "Between 1 and 365 days",
+    "lostWebcam": "Webcam photo on lost devices",
+    "lostWebcamTooltip": "While a device is marked as lost, each cycle also takes a photo with its camera. Off by default.",
+    "lostWebcamWarning": "The camera LED turns on and cannot be turned off: the photo is never invisible to whoever holds the device. Viewing it also requires the view-evidence permission."
   },
   "bulkAction": {
     "close": "Close",
@@ -2994,7 +2997,12 @@
       "reason_archivo_vacio": "The server rejected the file: it was empty",
       "retention": "Evidence is deleted automatically after {days} days, or {closed} days after the case is closed",
       "encrypted": "Encrypted on the server",
-      "notEncrypted": "NOT encrypted on the server"
+      "notEncrypted": "NOT encrypted on the server",
+      "webcamAlt": "Photo from the device camera",
+      "reason_sin_camara": "The device has no camera",
+      "reason_camara_ocupada": "Another program is using the camera",
+      "reason_camara_sin_imagen": "The camera returned no image (cover on, darkness, or driver)",
+      "reason_permiso_denegado_camara": "The system won't grant camera permission"
     }
   }
 }

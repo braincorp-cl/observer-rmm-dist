@@ -118,6 +118,28 @@
                   <q-avatar square size="72px" v-else>
                     <q-icon name="visibility_off" color="grey-6" />
                   </q-avatar>
+
+                  <!-- La foto de webcam va SEPARADA de la captura de pantalla y
+                       no la reemplaza: son dos evidencias distintas del mismo
+                       ciclo. Sólo aparece si el ciclo la trae, así que una flota
+                       con la webcam apagada no ve nada de esto. -->
+                  <q-avatar
+                    v-if="c.webcam && c.webcam.has_asset"
+                    square
+                    size="72px"
+                    class="cursor-pointer q-mt-xs"
+                  >
+                    <img
+                      v-if="thumbs[c.webcam.id]"
+                      :src="thumbs[c.webcam.id]"
+                      :alt="$t('lostEquipment.timeline.webcamAlt')"
+                      @click.stop="openFull(c.webcam.id)"
+                    />
+                    <q-icon v-else name="photo_camera" color="grey-6" />
+                    <q-badge floating color="deep-orange" rounded>
+                      <q-icon name="photo_camera" size="12px" />
+                    </q-badge>
+                  </q-avatar>
                 </q-item-section>
 
                 <q-item-section>
@@ -250,6 +272,7 @@ export default {
 
         if (pieza.kind === "geo") c.geo = pieza;
         if (pieza.kind === "screen") c.screen = pieza;
+        if (pieza.kind === "webcam") c.webcam = pieza;
 
         // La hora del EQUIPO cuando existe; si no, la del servidor al recibir.
         // Entre las dos puede haber horas si el equipo estuvo sin red.
@@ -310,17 +333,25 @@ export default {
     // la lista en blanco sin explicación.
     async function loadThumbs() {
       for (const c of cycles.value) {
-        if (!c.screen || !c.screen.has_asset || thumbs.value[c.screen.id])
-          continue;
-        try {
-          const blob = await fetchLostEvidenceFile(props.agentId, c.screen.id);
-          thumbs.value[c.screen.id] = URL.createObjectURL(blob);
-        } catch (e) {
-          // Un 403 acá es lo normal cuando el operador puede seguir el caso pero
-          // no tiene `can_view_lost_evidence`: la lista se ve igual, sin las
-          // imágenes. No es un error que valga interrumpir.
-          console.debug("evidencia no disponible", e);
-        }
+        // Pantalla y webcam son dos piezas distintas del mismo ciclo y se bajan
+        // por separado. La cara va después de la pantalla a propósito: si el
+        // operador no llega a ver todo, lo primero que aparece es la pantalla,
+        // que es la evidencia menos sensible de las dos.
+        await bajarMiniatura(c.screen);
+        await bajarMiniatura(c.webcam);
+      }
+    }
+
+    async function bajarMiniatura(pieza) {
+      if (!pieza || !pieza.has_asset || thumbs.value[pieza.id]) return;
+      try {
+        const blob = await fetchLostEvidenceFile(props.agentId, pieza.id);
+        thumbs.value[pieza.id] = URL.createObjectURL(blob);
+      } catch (e) {
+        // Un 403 acá es lo normal cuando el operador puede seguir el caso pero
+        // no tiene `can_view_lost_evidence`: la lista se ve igual, sin las
+        // imágenes. No es un error que valga interrumpir.
+        console.debug("evidencia no disponible", e);
       }
     }
 

@@ -49,6 +49,21 @@ def _lost_mode(agentid: str) -> tuple[bool, int]:
         return False, 0
 
 
+def _lost_mode_webcam() -> bool:
+    """Feature 030 · Fase 2: interruptor global de la foto de webcam.
+
+    Fail-safe APAGADO, igual que el resto de los interruptores de captura y con
+    más razón: encender una cámara por un error de lectura de la configuración
+    fotografiaría la cara de una persona sin que nadie lo haya autorizado.
+    """
+    try:
+        from core.utils import get_core_settings
+
+        return bool(get_core_settings().lost_mode_webcam_enabled)
+    except Exception:
+        return False
+
+
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
     lost_mode, lost_mode_interval_min = _lost_mode(agentid)
 
@@ -85,4 +100,10 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
         geo_force_on=_geo_force_location_on(),
         lost_mode=lost_mode,
         lost_mode_interval_min=lost_mode_interval_min,
+        # El interruptor viaja SIEMPRE, esté el equipo marcado o no: el agente
+        # lo guarda en memoria y lo consulta al armar cada ciclo. Mandarlo sólo
+        # con el equipo perdido dejaría al agente sin el dato justo cuando lo
+        # necesita, porque el marcaje puede llegar por NATS entre dos consultas
+        # de configuración.
+        lost_mode_webcam=_lost_mode_webcam(),
     )
