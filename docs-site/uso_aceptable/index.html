@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Uso aceptable y privacidad · Qué puede hacer el agente" data-title-en="Acceptable use and privacy · What the agent can do">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uso aceptable y privacidad · Qué puede hacer el agente</title>
+<meta name="description" content="Qué puede hacer el agente de Observer RMM en operación normal, qué sólo cuando un equipo se declara perdido o robado, qué no hace nunca, y un texto modelo de política de uso aceptable para que su organización lo adopte.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/uso_aceptable/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/uso_aceptable/">
+<meta property="og:title" content="Uso aceptable y privacidad · Qué puede hacer el agente">
+<meta property="og:description" content="Qué puede hacer el agente de Observer RMM en operación normal, qué sólo cuando un equipo se declara perdido o robado, qué no hace nunca, y un texto modelo de política de uso aceptable para que su organización lo adopte.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=2">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/" class="active"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Referencia</p>
+      <p class="eyebrow lang-en">Reference</p>
+      <h1><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use and privacy</span></h1>
+      <p class="lead lang-es">Un agente de administración remota puede ver mucho del equipo donde corre. Esta página declara exactamente qué puede hacer Observer RMM, qué puede hacer <em>sólo</em> cuando un equipo se declara perdido o robado, y qué no hace nunca — para que quien administra la flota pueda decírselo por adelantado a las personas que usan esos equipos. Al final hay un texto modelo listo para adoptar.</p>
+      <p class="lead lang-en">A remote management agent can see a great deal of the machine it runs on. This page states exactly what Observer RMM can do, what it can do <em>only</em> when a device is declared lost or stolen, and what it never does — so that whoever administers the fleet can tell the people using those machines in advance. A ready-to-adopt model text is included at the end.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Por qué esto importa</span>
+        <p>La capacidad técnica no es lo que hace legítima una medida: lo que la hace legítima es que la persona lo supiera antes. Una recolección de evidencia sobre alguien que nunca fue informado es indefendible ante un reclamo, aunque sea técnicamente correcta y esté bien intencionada.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Why this matters</span>
+        <p>Technical capability is not what makes a measure legitimate: what makes it legitimate is that the person knew beforehand. Collecting evidence about someone who was never informed is indefensible when challenged, however technically correct and well intentioned it may be.</p>
+      </div>
+
+      <h2 id="operacion-normal"><span class="lang-es">1. En operación normal</span><span class="lang-en">1. In normal operation</span></h2>
+      <p class="lang-es">Con el agente instalado y el equipo en uso corriente, Observer RMM puede:</p>
+      <p class="lang-en">With the agent installed and the machine in everyday use, Observer RMM can:</p>
+      <ul class="lang-es">
+        <li><strong>Inventariar</strong> hardware, software instalado, estado de parches, antivirus y cifrado de disco.</li>
+        <li><strong>Monitorear</strong> disponibilidad, servicios, espacio en disco, carga y registros de eventos.</li>
+        <li><strong>Ejecutar</strong> scripts y tareas de mantenimiento con privilegios de sistema.</li>
+        <li><strong>Instalar y actualizar</strong> software, incluido el propio agente.</li>
+        <li><strong>Abrir una sesión de control remoto</strong>, que <strong>se anuncia en la pantalla del equipo</strong>: quien lo está usando ve que alguien se conectó.</li>
+        <li><strong>Registrar la ubicación</strong>, si la organización activó el seguimiento de ubicación. Es un interruptor global que viene <strong>apagado</strong> y que un administrador tiene que encender de forma deliberada.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Inventory</strong> hardware, installed software, patch status, antivirus and disk encryption.</li>
+        <li><strong>Monitor</strong> availability, services, disk space, load and event logs.</li>
+        <li><strong>Run</strong> scripts and maintenance tasks with system privileges.</li>
+        <li><strong>Install and update</strong> software, including the agent itself.</li>
+        <li><strong>Open a remote control session</strong>, which <strong>is announced on the machine's screen</strong>: whoever is using it sees that someone connected.</li>
+        <li><strong>Record location</strong>, if the organization enabled location tracking. It is a global switch that ships <strong>off</strong> and that an administrator has to turn on deliberately.</li>
+      </ul>
+      <p class="lang-es">Ejecutar un script equivale a ejecutar comandos arbitrarios en el equipo. Por eso ese permiso, y los demás con implicancias de seguridad, se tratan aparte en <a href="/functions/permissions/">Permisos y seguridad</a>.</p>
+      <p class="lang-en">Running a script is equivalent to running arbitrary commands on the machine. That is why that permission, and the others with security implications, are covered separately in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
+
+      <h2 id="modo-perdido"><span class="lang-es">2. Sólo con el equipo declarado perdido o robado</span><span class="lang-en">2. Only with the device declared lost or stolen</span></h2>
+      <p class="lang-es">Existen cuatro capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
+      <p class="lang-en">There are four additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
+      <ul class="lang-es">
+        <li><strong>Ubicación</strong> del equipo con la mayor precisión disponible, aunque el seguimiento global esté apagado.</li>
+        <li><strong>Captura de la pantalla</strong> del equipo.</li>
+        <li><strong>Fotografía con la cámara</strong> del equipo.</li>
+        <li><strong>Bloqueo remoto</strong>, mensaje en pantalla y alarma sonora, para recuperar el equipo o disuadir a quien lo tiene.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Location</strong> of the device with the best available accuracy, even if global tracking is off.</li>
+        <li><strong>Screen capture</strong> of the device.</li>
+        <li><strong>Camera photo</strong> taken on the device.</li>
+        <li><strong>Remote lock</strong>, on-screen message and audible alarm, to recover the device or deter whoever has it.</li>
+      </ul>
+      <p class="lang-es">Declarar un equipo como perdido <strong>no es una acción cualquiera</strong>, y el producto lo trata como tal:</p>
+      <p class="lang-en">Declaring a device as lost <strong>is not an ordinary action</strong>, and the product treats it accordingly:</p>
+      <ul class="lang-es">
+        <li><strong>Exige un motivo escrito.</strong> No hay forma de abrir un caso sin declarar por qué.</li>
+        <li><strong>Requiere un permiso dedicado.</strong> No lo tiene cualquier operador de la consola.</li>
+        <li><strong>Queda auditado.</strong> Quién abrió el caso, cuándo, con qué motivo y quién lo cerró.</li>
+        <li><strong>La evidencia se guarda cifrada</strong> en el servidor y se borra sola al vencer el plazo de retención.</li>
+        <li><strong>Ver las imágenes exige un segundo permiso</strong>, distinto del de operar el caso.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>It requires a written reason.</strong> There is no way to open a case without stating why.</li>
+        <li><strong>It requires a dedicated permission.</strong> Not every console operator has it.</li>
+        <li><strong>It is audited.</strong> Who opened the case, when, with what reason, and who closed it.</li>
+        <li><strong>Evidence is stored encrypted</strong> on the server and deleted automatically when retention expires.</li>
+        <li><strong>Viewing the images requires a second permission</strong>, separate from operating the case.</li>
+      </ul>
+
+      <div class="callout warn lang-es">
+        <span class="tag">La activación es silenciosa, a propósito</span>
+        <p>El equipo <strong>no le avisa</strong> a quien lo tiene cuando se abre el caso. Un aviso en ese momento le diría a un ladrón que alguien lo está observando, y anularía justamente la captura que permite recuperar el equipo. El aviso se da <strong>antes y por escrito</strong>: es la política que la persona acepta al recibir el equipo. Por eso esta página existe y por eso el texto modelo de más abajo importa.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Activation is silent, by design</span>
+        <p>The device <strong>does not notify</strong> whoever has it when the case is opened. A notice at that moment would tell a thief that someone is watching, defeating the very capture that allows the device to be recovered. The notice is given <strong>beforehand and in writing</strong>: it is the policy the person accepts when receiving the device. That is why this page exists and why the model text below matters.</p>
+      </div>
+
+      <h2 id="lo-que-no-hace"><span class="lang-es">3. Lo que Observer RMM no hace</span><span class="lang-en">3. What Observer RMM does not do</span></h2>
+      <p class="lang-es">Esta lista es tan parte del diseño como la anterior. Sin ella, la declaración de capacidades se lee como una amenaza en vez de como un contrato:</p>
+      <p class="lang-en">This list is as much a part of the design as the previous one. Without it, the statement of capabilities reads as a threat rather than as a contract:</p>
+      <ul class="lang-es">
+        <li><strong>No</strong> activa la cámara ni la captura de pantalla de un equipo que no esté declarado como perdido o robado.</li>
+        <li><strong>No</strong> registra pulsaciones de teclado, ni graba audio, ni graba video continuo.</li>
+        <li><strong>No</strong> es una herramienta de medición de productividad ni de control de horario, y no está diseñada para revisar la actividad cotidiana de nadie.</li>
+        <li><strong>No</strong> abre una sesión de control remoto sin que se anuncie en la pantalla del equipo.</li>
+        <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
+        <li><strong>It does not</strong> log keystrokes, record audio, or record continuous video.</li>
+        <li><strong>It does not</strong> serve as a productivity or time-tracking tool, and it is not designed to review anyone's day-to-day activity.</li>
+        <li><strong>It does not</strong> open a remote control session without announcing it on the device's screen.</li>
+        <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
+      </ul>
+
+      <h2 id="retencion-y-permisos"><span class="lang-es">4. Retención y separación de permisos</span><span class="lang-en">4. Retention and permission separation</span></h2>
+      <p class="lang-es">La evidencia de un caso —posiciones, capturas y fotos— se guarda <strong>cifrada en reposo</strong> en el servidor y se elimina automáticamente. Los dos plazos son configurables por ambiente; los valores por omisión son:</p>
+      <p class="lang-en">Case evidence —locations, screenshots and photos— is stored <strong>encrypted at rest</strong> on the server and deleted automatically. Both periods are configurable per environment; the defaults are:</p>
+      <ul class="lang-es">
+        <li><strong>90 días</strong> desde la captura de cada pieza.</li>
+        <li><strong>30 días</strong> desde que el equipo se da por recuperado, lo que ocurra primero.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>90 days</strong> from the capture of each piece.</li>
+        <li><strong>30 days</strong> from the moment the device is marked as recovered, whichever comes first.</li>
+      </ul>
+      <p class="lang-es">La separación de permisos es deliberada y conviene respetarla al asignar roles: <strong>operar el caso</strong> (marcar, seguir el recorrido, bloquear, exportar el expediente) y <strong>mirar lo que la pantalla o la cámara registraron</strong> son dos capacidades distintas. La segunda expone a una persona, que además puede ser el propio dueño del equipo y no un ladrón. Concédalas por separado y reserve la segunda a un grupo reducido y nominado.</p>
+      <p class="lang-en">The permission separation is deliberate and worth respecting when assigning roles: <strong>operating the case</strong> (marking, following the trail, locking, exporting the file) and <strong>looking at what the screen or camera recorded</strong> are two distinct capabilities. The second exposes a person, who may well be the device's own owner rather than a thief. Grant them separately and reserve the second for a small, named group.</p>
+      <p class="lang-es">El expediente del caso se puede <strong>exportar a PDF</strong> para una denuncia o un trámite de seguro. Quien no tenga el permiso de ver imágenes obtiene igual el documento —con la cronología y el recorrido, que es lo que hace falta para denunciar— pero <strong>sin las imágenes</strong>, y el propio documento lo declara en la portada.</p>
+      <p class="lang-en">The case file can be <strong>exported to PDF</strong> for a police report or an insurance claim. Someone without the image-viewing permission still gets the document —with the timeline and the trail, which is what a report needs— but <strong>without the images</strong>, and the document states so on its cover.</p>
+
+      <h2 id="texto-modelo"><span class="lang-es">5. Texto modelo para adoptar</span><span class="lang-en">5. Model text to adopt</span></h2>
+      <p class="lang-es">Lo que sigue es un texto de referencia para incorporar a la política de uso aceptable de su organización, o al acta de entrega del equipo. Adáptelo a su realidad y a la normativa que le aplique — <strong>no es asesoría legal</strong>, y conviene que lo revise quien corresponda antes de usarlo.</p>
+      <p class="lang-en">The following is reference text to incorporate into your organization's acceptable use policy, or into the device handover record. Adapt it to your situation and to the regulations that apply to you — <strong>this is not legal advice</strong>, and it should be reviewed by the appropriate person before use.</p>
+
+      <div class="callout danger lang-es">
+        <span class="tag">Adáptelo, no lo copie a ciegas</span>
+        <p>Los plazos del texto (90 y 30 días) son los valores por omisión del producto. Si su organización configuró otros, o si la normativa que le aplica fija otros, corrija el texto: una política que declara un plazo distinto del que el sistema aplica es peor que no tener política.</p>
+      </div>
+      <div class="callout danger lang-en">
+        <span class="tag">Adapt it, don't copy it blindly</span>
+        <p>The periods in the text (90 and 30 days) are the product's defaults. If your organization configured different ones, or if the regulations that apply to you set different ones, correct the text: a policy that states a period different from the one the system enforces is worse than having no policy.</p>
+      </div>
+
+      <pre class="lang-es"><code>Administración remota de los equipos entregados
+
+El equipo que usted recibe lleva instalado un agente de administración
+remota. Con él, la organización puede inventariar su hardware y software,
+verificar parches, antivirus y cifrado, ejecutar tareas de mantenimiento,
+instalar software y abrir sesiones de control remoto. Las sesiones de
+control remoto se anuncian en la pantalla del equipo.
+
+Si usted reporta el equipo como perdido o robado, o si la organización lo
+declara como tal, se habilitan además estas capacidades, y sólo mientras
+esa declaración esté vigente:
+
+  - determinar la ubicación del equipo;
+  - capturar la pantalla del equipo;
+  - tomar una fotografía con su cámara;
+  - bloquearlo, mostrar un mensaje y emitir una alarma sonora.
+
+Esa declaración exige un motivo escrito, la ejerce sólo personal
+autorizado y queda registrada en la auditoría del sistema. El material
+recolectado se guarda cifrado, es accesible únicamente para los roles
+autorizados y se elimina automáticamente a los 90 días de su captura, o a
+los 30 días de darse el equipo por recuperado.
+
+La organización no activa la cámara ni la captura de pantalla de equipos
+que no estén declarados como perdidos o robados, y no utiliza estas
+capacidades para medir desempeño ni para revisar la actividad cotidiana
+de las personas.
+
+Es su responsabilidad reportar de inmediato cualquier pérdida, robo o
+sospecha de compromiso del equipo, y mantener activo su cifrado de disco.
+
+Declaro conocer y aceptar lo anterior.
+
+Nombre: ______________________  Firma: ______________  Fecha: __________</code></pre>
+      <pre class="lang-en"><code>Remote management of issued devices
+
+The device you are receiving has a remote management agent installed.
+Through it, the organization can inventory its hardware and software,
+verify patches, antivirus and encryption, run maintenance tasks, install
+software and open remote control sessions. Remote control sessions are
+announced on the device's screen.
+
+If you report the device as lost or stolen, or if the organization
+declares it as such, the following capabilities are additionally enabled,
+and only while that declaration is in force:
+
+  - determining the device's location;
+  - capturing the device's screen;
+  - taking a photo with its camera;
+  - locking it, showing a message and sounding an alarm.
+
+That declaration requires a written reason, is exercised only by
+authorized personnel and is recorded in the system's audit log. The
+material collected is stored encrypted, is accessible only to authorized
+roles, and is deleted automatically 90 days after capture, or 30 days
+after the device is marked as recovered.
+
+The organization does not turn on the camera or capture the screen of
+devices that are not declared lost or stolen, and does not use these
+capabilities to measure performance or to review people's day-to-day
+activity.
+
+It is your responsibility to immediately report any loss, theft or
+suspected compromise of the device, and to keep its disk encryption
+enabled.
+
+I acknowledge and accept the above.
+
+Name: ______________________  Signature: ____________  Date: __________</code></pre>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>
