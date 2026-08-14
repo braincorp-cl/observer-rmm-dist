@@ -11,7 +11,7 @@ observer_nodejs_version: "20"
 # ESTÁNDAR GLOBAL (2026-07-08): 1.2.1 es LA versión para TODAS las plataformas
 # (server + Linux + Windows 10/11 + macOS). KVM validado en vivo en server/Linux/
 # Win10/Win11. Caveat conocido: el AGENTE mesh 1.2.1 crashea en macOS 26 arm64
-# (bug del core upstream Ylianst/MeshAgent#359, trackeado). NO es bloqueante para
+# (bug conocido del core upstream, seguido aparte). NO es bloqueante para
 # estandarizar: el core anterior tampoco servía KVM en macOS 26 (pantalla negra),
 # así que no hay regresión de capacidad útil. El "hold macOS" previo queda LEVANTADO.
 observer_meshcentral_version: "1.2.1"
