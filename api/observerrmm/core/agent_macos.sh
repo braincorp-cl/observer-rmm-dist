@@ -236,3 +236,34 @@ if [ "${proxy}" != '' ]; then
 fi
 
 eval "${INSTALL_CMD}"
+
+# ── Permisos de privacidad (TCC) ──────────────────────────────────────────────
+#
+# Feature 030 · T016b. Este aviso NO es decorativo: en macOS la Cámara y la
+# Grabación de pantalla no se conceden por administración remota —el perfil PPPC
+# de Apple sólo sabe NEGARLAS— y la única vía que existe es el diálogo del
+# sistema, con una persona frente al equipo. Este momento, con quien instala
+# todavía sentado ahí, es la mejor oportunidad que va a haber.
+#
+# 🪤 Los diálogos NO los dispara este script, y no es un olvido: el instalador
+# corre desde Terminal.app, y macOS le atribuye el permiso al `responsible
+# process` — o sea al terminal. La fila de TCC nacería a nombre de Terminal (que
+# además suele tener la cámara ya concedida, con lo que ni siquiera aparecería
+# un diálogo) y el agente se quedaría sin permiso creyendo que lo pidió. Los
+# pide el SERVICIO recién instalado, a los pocos segundos de arrancar, para que
+# la fila quede a su nombre y con su firma. Medido en terreno el 2026-08-13.
+echo ""
+echo "------------------------------------------------------------------"
+echo " IMPORTANTE: no cierre la sesion de este equipo todavia."
+echo ""
+echo " En unos segundos van a aparecer dos solicitudes de permiso del"
+echo " sistema, a nombre de Observer RMM:"
+echo ""
+echo "   - Camara"
+echo "   - Grabacion de pantalla"
+echo ""
+echo " Hay que pulsar Permitir en ambas. Sin ellas este equipo no"
+echo " puede aportar evidencia si se pierde o se lo roban, y no se"
+echo " pueden conceder despues a distancia: hay que estar aqui."
+echo "------------------------------------------------------------------"
+echo ""
