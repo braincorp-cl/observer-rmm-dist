@@ -1124,6 +1124,92 @@ class LostModeEvidenceFile(APIView):
         )
 
 
+class LostModeExport(APIView):
+    """Feature 030 · Fase 3 · T022: el caso completo en un PDF.
+
+    UN SOLO PERMISO EN LA PUERTA, y el segundo adentro. Exportar exige
+    `can_manage_lost_mode` y nada más: el recorrido y la cronología son
+    justamente lo que hace falta para una denuncia, y bloquearlos detrás del
+    permiso de ver rostros dejaría sin documento a quien opera el caso.
+
+    `can_view_lost_evidence` no desaparece, decide OTRA COSA: si el PDF lleva o
+    no las imágenes. Un documento se genera una vez y después circula solo, así
+    que meter las capturas adentro sería la forma más limpia de saltarse la
+    separación que ADR-025 exige. Cuando faltan, el documento lo dice en la
+    portada — omitir sin avisar convierte un informe incompleto en uno
+    engañoso.
+
+    🪤 La auditoría va SIEMPRE y antes de generar: si WeasyPrint revienta con un
+    caso raro, el intento de sacar la evidencia de la consola igual quedó
+    registrado. Al revés —auditar después del `generate_pdf`— dejaría sin rastro
+    exactamente el caso que más interesa mirar.
+    """
+
+    permission_classes = [IsAuthenticated, ManageLostModePerms]
+
+    def get(self, request, agent_id):
+        from ee.reporting.utils import generate_pdf
+
+        from .lostmode_export import (
+            CSS_INFORME,
+            armar_contexto,
+            armar_html,
+            nombre_archivo,
+        )
+
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        con_imagenes = _has_perm(request, "can_view_lost_evidence")
+
+        # Mismo orden que la línea de tiempo de la consola, para que el PDF y la
+        # pantalla se lean igual: lo último que se supo del equipo, primero.
+        piezas = list(
+            LostModeEvidence.objects.filter(agent=agent).order_by("-cycle", "kind")
+        )
+        state = LostModeState.objects.filter(agent=agent).first()
+        core = get_core_settings()
+
+        try:
+            cifra = encryption_enabled()
+        except ValueError as e:
+            # Igual que en la línea de tiempo: una llave mal formada no puede
+            # impedir exportar el caso. El documento dirá que no se pudo
+            # determinar, que es la verdad.
+            DebugLog.error(message=f"modo perdido: {e}")
+            cifra = None
+
+        AuditLog.audit_lost_mode(
+            username=request.user.username,
+            agent=agent,
+            action=LostModeAction.EXPORT,
+            reason=f"images={'yes' if con_imagenes else 'no'} pieces={len(piezas)}",
+            debug_info={"ip": request._client_ip},
+        )
+
+        ctx = armar_contexto(
+            agent=agent,
+            state=state,
+            piezas=piezas,
+            retencion={
+                "prune_days": core.lost_mode_evidence_prune_days,
+                "closed_case_days": core.lost_mode_evidence_closed_case_days,
+            },
+            cifrado=cifra,
+            exportado_por=request.user.username,
+            con_imagenes=con_imagenes,
+        )
+
+        pdf = generate_pdf(html=armar_html(ctx), css=CSS_INFORME)
+
+        respuesta = HttpResponse(pdf, content_type="application/pdf")
+        # `attachment`: esto no es una miniatura para mirar en la consola, es un
+        # archivo que alguien va a adjuntar a algo.
+        respuesta["Content-Disposition"] = (
+            f'attachment; filename="{nombre_archivo(agent)}"'
+        )
+        return respuesta
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, InstallAgentPerms])
 def install_agent(request):

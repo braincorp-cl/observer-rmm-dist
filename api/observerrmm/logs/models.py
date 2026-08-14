@@ -170,13 +170,20 @@ class AuditLog(models.Model):
         # del sensor de ubicación del equipo. Ese bypass es una decisión de
         # ADR-025 —lo justifican el motivo obligatorio, el permiso dedicado y
         # esta misma auditoría— y no puede quedar sólo implícito en el código.
-        detail = (
-            f"{username} marked {agent.hostname} as lost "
-            f"(overrides the global geo tracking switch, the capture cadence "
-            f"floor and the device location sensor setting)."
-            if action == LostModeAction.MARK
-            else f"{username} marked {agent.hostname} as recovered."
-        )
+        # T022 exporta: es la accion que saca la evidencia del control de la
+        # consola. El mensaje dice ADEMAS si el PDF llevo imagenes, porque es la
+        # diferencia entre un documento con el recorrido y uno con la cara de
+        # quien tenia el equipo — y eso es justo lo que ADR-025 separa.
+        if action == LostModeAction.MARK:
+            detail = (
+                f"{username} marked {agent.hostname} as lost "
+                f"(overrides the global geo tracking switch, the capture cadence "
+                f"floor and the device location sensor setting)."
+            )
+        elif action == LostModeAction.EXPORT:
+            detail = f"{username} exported the lost device case for {agent.hostname}."
+        else:
+            detail = f"{username} marked {agent.hostname} as recovered."
 
         AuditLog.objects.create(
             username=username,

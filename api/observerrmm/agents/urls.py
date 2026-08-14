@@ -50,6 +50,14 @@ urlpatterns = [
         "<agent:agent_id>/lostmode/evidence/<int:pk>/file/",
         views.LostModeEvidenceFile.as_view(),
     ),
+    # Feature 030 · Fase 3 · T022: el caso completo en un PDF, para que salga de
+    # la consola y entre en una denuncia. Basta `can_manage_lost_mode`; las
+    # imágenes se embeben sólo si además hay `can_view_lost_evidence`, y el
+    # documento declara en la portada cuando faltan.
+    path(
+        "<agent:agent_id>/lostmode/export/",
+        views.LostModeExport.as_view(),
+    ),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

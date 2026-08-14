@@ -2973,6 +2973,8 @@
     "confirmRecoverTitle": "Confirm recovery",
     "confirmRecoverMessage": "Evidence collection for {hostname} will stop. The case is closed and recorded.",
     "cancel": "Cancel",
+    "exportCase": "Export case (PDF)",
+    "exported": "The case for {hostname} was downloaded. If the exporter lacks permission to view visual evidence, the document ships without images and says so on the cover.",
     "timeline": {
       "title": "{hostname} case",
       "close": "Close",
@@ -2985,7 +2987,8 @@
       "sessionUser": "{user}'s session",
       "screenAlt": "Screen capture of the device",
       "reason_sin_sesion": "Nobody was signed in",
-      "reason_wayland_no_soportado": "Wayland session: silent capture is not possible",
+      "reason_wayland_no_soportado": "Wayland session: this device has no capture path available",
+      "reason_wayland_sin_autorizacion": "Wayland session: capture must be authorized once from the device",
       "reason_sin_herramienta": "The device has no screen capture tool installed",
       "reason_permiso_denegado": "macOS has not granted the screen recording permission",
       "reason_pantalla_en_negro": "The capture came out black and was discarded",

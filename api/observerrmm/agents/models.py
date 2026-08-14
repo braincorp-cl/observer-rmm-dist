@@ -1437,9 +1437,15 @@ class LostModeEvidence(models.Model):
     source = models.CharField(max_length=20, null=True, blank=True)
     session_user = models.CharField(max_length=255, null=True, blank=True)
     # Por qué este ciclo no trae imagen: `sin_sesion`, `wayland_no_soportado`,
-    # `permiso_denegado`, `pantalla_en_negro`, `sin_herramienta`, `fallo_captura`,
-    # `so_no_soportado`. Son los CÓDIGOS que declara el agente en capture.go y la
-    # consola los traduce, igual que `endpoint_response:<código>` de la 028.
+    # `wayland_sin_autorizacion`, `permiso_denegado`, `pantalla_en_negro`,
+    # `sin_herramienta`, `fallo_captura`, `so_no_soportado`. Son los CÓDIGOS que
+    # declara el agente en capture.go y la consola los traduce, igual que
+    # `endpoint_response:<código>` de la 028.
+    #
+    # Los dos de Wayland (T021) dicen cosas distintas y por eso son dos: el
+    # `no_soportado` es un equipo que de verdad no puede, y el
+    # `sin_autorizacion` es uno al que le falta el enrolamiento del portal —o
+    # sea, reparable con una visita.
     #
     # La fila existe aunque no haya archivo, y esa es la decisión que importa: un
     # ciclo que no pudo capturar tiene que VERSE en la línea de tiempo. Si se

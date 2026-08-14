@@ -56,3 +56,20 @@ export async function fetchLostEvidenceFile(agent_id, id) {
   );
   return data;
 }
+
+// Feature 030 · Fase 3 · T022 · exportación del caso a PDF.
+//
+// Devuelve la RESPUESTA COMPLETA y no sólo el blob, a diferencia de las otras
+// de este archivo: el nombre del archivo lo decide el servidor y viaja en
+// `Content-Disposition`. Armarlo en el cliente daría un nombre distinto al que
+// quedó registrado en la auditoría, y este documento es justamente el que
+// alguien va a tener que poder rastrear.
+//
+// El permiso `can_view_lost_evidence` NO se comprueba acá: exportar sólo exige
+// operar el caso. Lo que ese permiso decide en el servidor es si el PDF lleva
+// las imágenes, y el propio documento lo declara en la portada cuando faltan.
+export async function exportLostCase(agent_id) {
+  return await axios.get(`${baseUrl}/${agent_id}/lostmode/export/`, {
+    responseType: "blob",
+  });
+}

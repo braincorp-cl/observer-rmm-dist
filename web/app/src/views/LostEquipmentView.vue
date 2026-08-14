@@ -46,6 +46,70 @@
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
+          <!-- T023 · paraguas 028. Las tres acciones de la 028 se alcanzan
+               desde acá y no sólo desde el menú del equipo: quien opera un caso
+               está en ESTA pantalla, y obligarlo a buscar el equipo en el
+               listado general para bloquearlo es el minuto que no tiene. Son
+               las mismas llamadas y los mismos modales, sin copia. -->
+          <q-btn
+            dense
+            flat
+            round
+            color="primary"
+            icon="more_vert"
+            @click.stop
+            :aria-label="$t('lostEquipment.colActions')"
+          >
+            <q-menu auto-close>
+              <q-list dense style="min-width: 210px">
+                <q-item clickable @click="lockScreen(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="lock" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{ $t("endpointResponse.lock") }}</q-item-section>
+                </q-item>
+
+                <q-item clickable @click="showAlertModal(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="campaign" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("endpointResponse.sendAlert")
+                  }}</q-item-section>
+                </q-item>
+
+                <q-item clickable @click="soundAlarm(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="volume_up" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{ $t("endpointResponse.alarm") }}</q-item-section>
+                </q-item>
+
+                <q-item clickable @click="stopAlarm(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="volume_off" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("endpointResponse.stopAlarm")
+                  }}</q-item-section>
+                </q-item>
+
+                <q-separator />
+
+                <!-- T022 · el caso completo en un PDF, para que salga de la
+                     consola y entre en una denuncia. -->
+                <q-item clickable @click="exportCase(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="picture_as_pdf" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("lostEquipment.exportCase")
+                  }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
           <q-btn
             dense
             flat
@@ -185,9 +249,13 @@ import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import ConfirmYesDialog from "@/components/agents/ConfirmYesDialog.vue";
 import LostCaseTimelineDialog from "@/components/agents/LostCaseTimelineDialog.vue";
-import { fetchAgents } from "@/api/agents";
+import SendEndpointAlert from "@/components/modals/agents/SendEndpointAlert.vue";
+import SoundEndpointAlarm from "@/components/modals/agents/SoundEndpointAlarm.vue";
+import { fetchAgents, agentLockScreen, agentStopAlarm } from "@/api/agents";
 import {
+  exportLostCase,
   fetchLostEquipment,
   markAgentLost,
   recoverAgent,
@@ -369,6 +437,104 @@ export default {
       recoverDialog.value = true;
     }
 
+    // T023 · paraguas 028: las mismas tres acciones del menú del equipo,
+    // alcanzables desde el caso.
+    //
+    // Se llaman las funciones de `@/api/agents` directo y se reutilizan los dos
+    // modales de la 028 en vez de montar variantes propias: si mañana la alarma
+    // suma un campo, tiene que sumarlo en los dos lugares a la vez. Duplicar el
+    // modal acá sería garantizar que un día divergen.
+    //
+    // `lock` confirma y `alarm`/`alert` traen su propio modal, igual que en
+    // AgentActionMenu. `stopAlarm` no confirma: detener el ruido es urgente.
+
+    function lockScreen(row) {
+      $q.dialog({
+        component: ConfirmYesDialog,
+        componentProps: {
+          hostname: row.hostname,
+          actionVerb: t("endpointResponse.verbLock"),
+          title: t("endpointResponse.confirmLockTitle"),
+          okLabel: t("endpointResponse.lock"),
+          okColor: "negative",
+        },
+      }).onOk(async () => {
+        $q.loading.show();
+        try {
+          await agentLockScreen(row.agent_id);
+          notifySuccess(
+            t("endpointResponse.lockSuccess", { hostname: row.hostname }),
+          );
+        } catch (e) {
+          console.error(e);
+        }
+        $q.loading.hide();
+      });
+    }
+
+    function showAlertModal(row) {
+      $q.dialog({
+        component: SendEndpointAlert,
+        componentProps: { agent_id: row.agent_id, hostname: row.hostname },
+      });
+    }
+
+    function soundAlarm(row) {
+      $q.dialog({
+        component: SoundEndpointAlarm,
+        componentProps: { agent_id: row.agent_id, hostname: row.hostname },
+      });
+    }
+
+    async function stopAlarm(row) {
+      $q.loading.show();
+      try {
+        await agentStopAlarm(row.agent_id);
+        notifySuccess(
+          t("endpointResponse.stopAlarmSuccess", { hostname: row.hostname }),
+        );
+      } catch (e) {
+        console.error(e);
+      }
+      $q.loading.hide();
+    }
+
+    // T022 · descarga del caso en PDF.
+    //
+    // El nombre sale de `Content-Disposition` y no se arma acá: es el que el
+    // servidor dejó en la auditoría, y un documento de evidencia tiene que
+    // poder rastrearse por su nombre. Si la cabecera no llega —un proxy que la
+    // recorte— se cae a uno derivado del hostname, que es peor pero sirve.
+    function nombreDeLaCabecera(headers, hostname) {
+      const cd = headers?.["content-disposition"] ?? "";
+      const m = /filename="([^"]+)"/.exec(cd);
+      return m ? m[1] : `caso-equipo-perdido-${hostname}.pdf`;
+    }
+
+    async function exportCase(row) {
+      $q.loading.show();
+      try {
+        const r = await exportLostCase(row.agent_id);
+        const blob = new Blob([r.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = nombreDeLaCabecera(r.headers, row.hostname);
+        link.click();
+
+        // El object URL se revoca: si no, el PDF entero queda vivo en memoria
+        // de la pestaña hasta que alguien la cierre, y un caso largo con
+        // imágenes embebidas no es un archivo chico.
+        window.URL.revokeObjectURL(url);
+
+        notifySuccess(t("lostEquipment.exported", { hostname: row.hostname }));
+      } catch (e) {
+        console.error(e);
+      }
+      $q.loading.hide();
+    }
+
     async function doRecover() {
       await recoverAgent(pending.value.agent_id);
       notifySuccess(
@@ -401,6 +567,11 @@ export default {
       openTimeline,
       askRecover,
       doRecover,
+      lockScreen,
+      showAlertModal,
+      soundAlarm,
+      stopAlarm,
+      exportCase,
       formatDate,
     };
   },

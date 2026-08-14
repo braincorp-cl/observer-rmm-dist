@@ -428,6 +428,10 @@ LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS = 7
 class LostModeAction(models.TextChoices):
     MARK = "mark", "Mark as Lost"
     RECOVER = "recover", "Mark as Recovered"
+    # T022: exportar el caso saca la evidencia de la consola y la deja en un
+    # archivo que despues circula solo. Es la accion mas dificil de deshacer de
+    # las tres, asi que es la que mas necesita quedar registrada.
+    EXPORT = "export", "Export Case"
 
 
 class LostModeEvidenceKind(models.TextChoices):

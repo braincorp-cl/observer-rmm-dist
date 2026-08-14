@@ -2973,6 +2973,8 @@
     "confirmRecoverTitle": "Confirmar recuperación",
     "confirmRecoverMessage": "Se detendrá la captura de evidencia de {hostname}. El caso queda cerrado y registrado.",
     "cancel": "Cancelar",
+    "exportCase": "Exportar el caso (PDF)",
+    "exported": "Se descargó el caso de {hostname}. Si quien exporta no tiene permiso para ver evidencia visual, el documento sale sin imágenes y lo dice en la portada.",
     "timeline": {
       "title": "Caso de {hostname}",
       "close": "Cerrar",
@@ -2985,7 +2987,8 @@
       "sessionUser": "Sesión de {user}",
       "screenAlt": "Captura de la pantalla del equipo",
       "reason_sin_sesion": "Nadie tenía la sesión abierta",
-      "reason_wayland_no_soportado": "Sesión Wayland: no hay captura silenciosa posible",
+      "reason_wayland_no_soportado": "Sesión Wayland: este equipo no tiene ninguna vía de captura",
+      "reason_wayland_sin_autorizacion": "Sesión Wayland: falta autorizar la captura una vez desde el equipo",
       "reason_sin_herramienta": "El equipo no tiene ninguna herramienta de captura",
       "reason_permiso_denegado": "macOS no tiene concedido el permiso de grabación de pantalla",
       "reason_pantalla_en_negro": "La captura salió en negro y se descartó",
