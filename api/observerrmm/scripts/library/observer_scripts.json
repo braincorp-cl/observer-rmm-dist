@@ -58,6 +58,22 @@
     ]
   },
   {
+    "guid": "38d9e6d1-f0e7-4f59-b62d-14a165a5f4cd",
+    "filename": "agente-mesh-endurecer.py",
+    "name": "Agente - Endurecer el servicio Mesh (control remoto)",
+    "description": "Le quita la capability CAP_SYS_MODULE al servicio del Mesh, que es lo que evita que un `lshw` del propio agente quede colgado dentro de un driver que se porte mal —el vmnet de VMware Workstation es el caso medido— y deje al equipo EN LÍNEA Y SORDO: sin «Tomar control» y sin ningún síntoma visible. Va en todos los equipos Linux y no sólo en los que hoy tienen VMware, porque el disparador viaja en el core de arranque del propio MeshAgent y la exposición aparece el día que se instala cualquier driver que se bloquee al cargar módulos. Es idempotente: si el equipo ya está endurecido no escribe ni reinicia nada. Verifica el efecto sobre el proceso vivo (CapBnd), no sólo que el archivo exista. ⚠️ Cuando aplica, reinicia el servicio del Mesh: corta las sesiones de control remoto abiertas contra ese equipo. Con `--solo-verificar` no toca nada y sólo informa.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux):Agente",
+    "default_timeout": 180,
+    "args": [],
+    "env": [],
+    "syntax": "agente-mesh-endurecer.py [--solo-verificar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux"
+    ]
+  },
+  {
     "guid": "73a04411-140d-5d4f-9ffa-761b7c327a55",
     "filename": "defender-exclusiones-observerrmm.ps1",
     "name": "Defender - Exclusiones para ObserverRMM",
