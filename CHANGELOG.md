@@ -8,6 +8,16 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.11 — 2026-08-14
+
+- **Un caso de modo perdido se puede exportar a PDF.** Desde la pantalla del caso sale un informe que se lee **sin la consola al lado**: portada con el equipo, el motivo, quién lo marcó y la política de retención vigente; el recorrido y la cronología completa; y las imágenes **dentro del documento**, no como enlaces que a quien lo reciba le pedirían iniciar sesión. Es el formato que sirve para una denuncia, un sumario interno o un seguro.
+- **La cronología del informe imprime los dos relojes:** la hora del equipo y la del servidor. Entre las dos puede haber horas de diferencia si el equipo estuvo sin red, y en un documento que puede terminar ante un tercero esa diferencia es justo lo que alguien va a preguntar.
+- **Quien opera el caso puede exportarlo aunque no tenga permiso para ver los rostros.** Exportar exige el permiso de gestionar el modo perdido; el de ver la evidencia decide **otra cosa**: si el PDF lleva o no las imágenes. Cuando no las lleva, **el documento lo declara en la portada** — un informe incompleto que no lo dice es un informe engañoso. Cada exportación queda en la auditoría.
+- **Las acciones de respuesta, a mano en la pantalla de equipos perdidos.** Cada fila suma un menú con bloquear el equipo, mandarle un mensaje, hacer sonar la alarma, detenerla y exportar el caso. Son las mismas acciones que ya existían en el listado general: quien está operando un caso deja de tener que ir a buscar el equipo a otra pantalla.
+- **El instalador de macOS avisa de los permisos que van a pedirse.** Le dice a quien instala que no cierre la sesión todavía y que hay dos solicitudes que hay que aceptar, porque después **no se pueden conceder a distancia**.
+- **Nueva página pública de uso aceptable y privacidad** en la documentación, con las reglas de uso del modo perdido y de la evidencia que genera.
+- Acompaña al **agente 2.15.20**, que en macOS pide por su cuenta los permisos que el sistema le quita en cada actualización, y en Linux con **Wayland** vuelve a poder capturar la pantalla. Contra un agente anterior, el producto funciona igual que en la 1.4.10.
+
 ## v1.4.10 — 2026-08-13
 
 - **El modo perdido ahora saca una foto de la cámara del equipo.** Junto a la captura de pantalla, cada ciclo de un caso puede sumar una foto de quién tiene el equipo delante, y la línea de tiempo la muestra como una segunda miniatura. Disponible en **Windows y Linux**; en macOS queda a la espera del permiso del sistema, que no se puede conceder a distancia.
