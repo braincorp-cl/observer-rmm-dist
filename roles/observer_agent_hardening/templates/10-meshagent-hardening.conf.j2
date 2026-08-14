@@ -27,8 +27,8 @@
 # POR QUE ES SEGURO: el MeshAgent no carga modulos del kernel. Sin la capability,
 # el kernel ni siquiera intenta el request_module del paso 2.
 #
-# Reportado aguas arriba como Ylianst/MeshAgent#382 (el defecto de fondo es que
-# un hijo atascado paralice el bucle de mensajes del agente, no el lshw).
+# Reportado aguas arriba al proyecto del agente (el defecto de fondo es que un
+# hijo atascado paralice el bucle de mensajes del agente, no el lshw).
 [Service]
 CapabilityBoundingSet=~CAP_SYS_MODULE
 TimeoutStopSec={{ observer_meshagent_stop_timeout }}

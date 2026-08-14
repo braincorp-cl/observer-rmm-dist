@@ -27,7 +27,7 @@ agente ni refrescar el core la evitan. La exposición tampoco es «tener VMware 
 es adquirir cualquier driver que se bloquee en `request_module`, y el día que
 alguien instale Workstation el equipo queda sordo sin ningún síntoma.
 
-Reportado aguas arriba como `Ylianst/MeshAgent#382` — lo reportable es que un hijo
+Reportado aguas arriba al proyecto del agente — lo reportable es que un hijo
 atascado paralice el bucle de mensajes, no el `lshw`.
 
 ## Qué hace

@@ -59,7 +59,7 @@ BIT_CAP_SYS_MODULE = 16
 CONTENIDO = """# Escrito por el script 'Agente - Endurecer el servicio Mesh' de Observer RMM.
 # Sin esta linea, un `lshw` del agente puede quedar en estado D dentro de un driver
 # que se porte mal y dejar al equipo en linea pero sordo al servidor.
-# Ver Ylianst/MeshAgent#382.
+# Reportado aguas arriba al proyecto del agente.
 [Service]
 CapabilityBoundingSet=~CAP_SYS_MODULE
 TimeoutStopSec=20

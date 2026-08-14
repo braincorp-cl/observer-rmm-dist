@@ -159,11 +159,11 @@ InstallMesh() {
 #
 # Es seguro: el MeshAgent no carga modulos del kernel. El drop-in va en
 # /etc/systemd/system y no en /lib, porque /lib lo reescribe el instalador del
-# propio mesh en cada reinstalacion. Ylianst/MeshAgent#382.
+# propio mesh en cada reinstalacion. Reportado aguas arriba al proyecto del agente.
 HardenMesh() {
     mkdir -p ${meshDropInDir}
     cat << EOF > ${meshDropIn}
-# Escrito por el instalador de Observer RMM. Ver Ylianst/MeshAgent#382.
+# Escrito por el instalador de Observer RMM.
 # Sin esta linea, un `lshw` del agente puede quedar en estado D dentro de un
 # driver que se porte mal y dejar al equipo en linea pero sordo al servidor.
 [Service]
