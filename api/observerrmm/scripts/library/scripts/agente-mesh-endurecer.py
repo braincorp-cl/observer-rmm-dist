@@ -82,7 +82,9 @@ def correr(argumentos, plazo=60):
 def pid_del_mesh():
     """PID del meshagent. Se busca por la ruta del binario y no por nombre: en
     algunos equipos el proceso aparece con argumentos y en otros no."""
-    codigo, salida = correr(["systemctl", "show", "-p", "MainPID", "--value", SERVICIO], 20)
+    codigo, salida = correr(
+        ["systemctl", "show", "-p", "MainPID", "--value", SERVICIO], 20
+    )
     if codigo == 0 and salida.isdigit() and salida != "0":
         return int(salida)
     codigo, salida = correr(["pgrep", "-x", "meshagent"], 20)
@@ -147,7 +149,9 @@ def main():
         return 1
 
     if not os.path.exists("/opt/observermesh/meshagent"):
-        print("Este equipo no tiene el agente Mesh instalado: no hay nada que endurecer.")
+        print(
+            "Este equipo no tiene el agente Mesh instalado: no hay nada que endurecer."
+        )
         return 0
 
     if os.geteuid() != 0:
@@ -158,8 +162,11 @@ def main():
     pid = pid_del_mesh()
     presente = capability_presente(pid) if pid else None
     print("  PID del servicio      : {}".format(pid if pid else "no esta corriendo"))
-    print("  CAP_SYS_MODULE        : {}".format(
-        {True: "presente", False: "ausente", None: "no se pudo leer"}[presente]))
+    print(
+        "  CAP_SYS_MODULE        : {}".format(
+            {True: "presente", False: "ausente", None: "no se pudo leer"}[presente]
+        )
+    )
     ya_estaba = directiva_puesta()
     print("  Drop-in al dia        : {}".format("si" if ya_estaba else "no"))
 
@@ -172,7 +179,9 @@ def main():
         if ya_estaba and presente is False:
             print("  El equipo ya esta endurecido.")
             return 0
-        print("  Falta aplicar el endurecimiento: correr el script sin --solo-verificar.")
+        print(
+            "  Falta aplicar el endurecimiento: correr el script sin --solo-verificar."
+        )
         return 1
 
     if ya_estaba and presente is False:
@@ -212,8 +221,11 @@ def main():
     pid = pid_del_mesh()
     presente = capability_presente(pid) if pid else None
     print("  PID del servicio      : {}".format(pid if pid else "no esta corriendo"))
-    print("  CAP_SYS_MODULE        : {}".format(
-        {True: "presente", False: "ausente", None: "no se pudo leer"}[presente]))
+    print(
+        "  CAP_SYS_MODULE        : {}".format(
+            {True: "presente", False: "ausente", None: "no se pudo leer"}[presente]
+        )
+    )
 
     print("")
     print("== Resultado ==")
@@ -222,10 +234,16 @@ def main():
         return 0
     if presente is None:
         print("  El drop-in quedo escrito, pero no se pudo confirmar sobre el proceso.")
-        print("  Revisar que el servicio este corriendo y volver a correr con --solo-verificar.")
+        print(
+            "  Revisar que el servicio este corriendo y volver a correr con --solo-verificar."
+        )
         return 1
     print("  El drop-in quedo escrito y la capability SIGUE presente.")
-    print("  Suele ser un override propio del equipo: revisar 'systemctl cat {}'.".format(SERVICIO))
+    print(
+        "  Suele ser un override propio del equipo: revisar 'systemctl cat {}'.".format(
+            SERVICIO
+        )
+    )
     return 1
 
 
