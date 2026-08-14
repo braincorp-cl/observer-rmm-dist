@@ -47,6 +47,7 @@ import os
 import platform
 import subprocess
 import sys
+import time
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -124,6 +125,39 @@ def directiva_puesta():
         except Exception:
             continue
     return False
+
+
+def capability_segun_systemd():
+    """Lo que systemd tiene CONFIGURADO para la unidad. Es el segundo testigo:
+    si el proceso vivo no se puede leer, esto al menos dice si el drop-in llego
+    a la unidad o lo esta pisando otro override."""
+    codigo, salida = correr(
+        ["systemctl", "show", "-p", "CapabilityBoundingSet", "--value", SERVICIO], 20
+    )
+    if codigo != 0:
+        return None
+    return "cap_sys_module" in salida.lower()
+
+
+def esperar_capability_ausente(intentos=8, espera=1.5):
+    """Vuelve a leer el proceso vivo hasta que la capability se haya ido.
+
+    Hay una ventana despues del restart en la que /proc todavia muestra el
+    conjunto ANTERIOR: systemd hace fork, despues suelta la capability del
+    bounding set y recien ahi exec. Leer una sola vez ahi dentro confunde esa
+    ventana con un fallo real. Medido el 2026-08-14 en un equipo de la flota:
+    el MISMO pid daba 'presente' al instante de aplicar y 'ausente' un minuto
+    despues, con el drop-in bien puesto y systemd ya sin la capability."""
+    pid = 0
+    presente = None
+    for intento in range(intentos):
+        pid = pid_del_mesh()
+        presente = capability_presente(pid) if pid else None
+        if presente is False:
+            return pid, presente
+        if intento < intentos - 1:
+            time.sleep(espera)
+    return pid, presente
 
 
 def procesos_colgados():
@@ -216,14 +250,22 @@ def main():
 
     print("")
     print("== Verificacion sobre el proceso vivo ==")
-    # El servicio recien arranco: el PID cambio y hay que volver a leerlo. Un
+    # El servicio recien arranco: el PID cambio y hay que volver a leerlo, y con
+    # reintentos, porque el conjunto viejo sigue visible unos instantes. Un
     # `exit 0` del restart no prueba que la capability se haya ido.
-    pid = pid_del_mesh()
-    presente = capability_presente(pid) if pid else None
+    pid, presente = esperar_capability_ausente()
+    en_systemd = capability_segun_systemd()
     print("  PID del servicio      : {}".format(pid if pid else "no esta corriendo"))
     print(
         "  CAP_SYS_MODULE        : {}".format(
             {True: "presente", False: "ausente", None: "no se pudo leer"}[presente]
+        )
+    )
+    print(
+        "  Segun la unidad       : {}".format(
+            {True: "presente", False: "ausente", None: "no se pudo consultar"}[
+                en_systemd
+            ]
         )
     )
 
@@ -238,12 +280,17 @@ def main():
             "  Revisar que el servicio este corriendo y volver a correr con --solo-verificar."
         )
         return 1
-    print("  El drop-in quedo escrito y la capability SIGUE presente.")
-    print(
-        "  Suele ser un override propio del equipo: revisar 'systemctl cat {}'.".format(
-            SERVICIO
+    print("  El drop-in quedo escrito y la capability SIGUE presente en el proceso.")
+    if en_systemd is False:
+        print("  Pero la unidad ya NO la declara: el proceso es anterior al cambio.")
+        print(
+            "  Reiniciar el servicio otra vez, o volver a correr con --solo-verificar."
         )
-    )
+    else:
+        print(
+            "  Y la unidad tambien la declara: hay otro override en el equipo,"
+            " revisar 'systemctl cat {}'.".format(SERVICIO)
+        )
     return 1
 
 
