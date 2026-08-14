@@ -1,0 +1,23 @@
+---
+# Servicio del MeshAgent (el de MeshCentral, NO el agente Go de Observer RMM).
+observer_meshagent_service: meshagent.service
+
+# Carpeta de drop-ins. Va en /etc/systemd/system y no en /lib, porque /lib lo
+# reescribe el instalador del propio MeshAgent en cada reinstalacion.
+observer_meshagent_dropin_dir: "/etc/systemd/system/{{ observer_meshagent_service }}.d"
+observer_meshagent_dropin_name: 10-meshagent-hardening.conf
+
+# El stop del servicio esperaba 90 s (DefaultTimeoutStopSec) mientras existiera
+# el hijo colgado, y terminaba en SIGKILL. Con la capability fuera ya no deberia
+# pasar; el plazo corto es el cinturon.
+observer_meshagent_stop_timeout: 20
+
+# Reiniciar el servicio al aplicar el drop-in. El reinicio corta las sesiones de
+# control remoto abiertas contra ese equipo (~2 s), asi que se puede diferir a la
+# proxima ventana con -e observer_meshagent_restart=false: el drop-in queda
+# escrito y toma efecto en el siguiente arranque.
+observer_meshagent_restart: true
+
+# Retirar el drop-in manual `10-xsession.conf` que se dejo en terreno el
+# 2026-08-14 (FAZOCAR). Solo se borra si lleva nuestra marca; nunca uno ajeno.
+observer_meshagent_drop_legacy_xsession: true

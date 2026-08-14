@@ -1,0 +1,26 @@
+---
+# Endurecimiento del servicio MeshAgent en equipos Linux (drop-in de systemd).
+#
+# Por que existe: el MeshAgent lanza `lshw -class disk` en su core de arranque y,
+# en un equipo con un driver que se bloquee dentro de request_module --el vmnet de
+# VMware Workstation es el caso medido--, ese hijo queda en estado D y el agente
+# deja de leer los mensajes del servidor: el equipo queda EN LINEA Y SORDO, sin
+# "Tomar control" y sin sintoma visible. Detalle completo en el drop-in y en
+# roles/observer_agent_hardening/README.md.
+#
+# Uso:
+#   ansible-playbook -i inventory/linux-endpoints.yml harden-linux-agents.yml
+#   ansible-playbook -i inventory/linux-endpoints.yml harden-linux-agents.yml \
+#     --check --diff                      # ver que cambiaria, sin tocar nada
+#   ansible-playbook ... -e observer_meshagent_restart=false
+#                                         # aplicar sin cortar sesiones abiertas
+#
+# El inventario de equipos NO viaja en el repo (ver inventory/linux-endpoints.example.yml):
+# son maquinas de clientes y su lista cambia sola. Este playbook es no-op donde no
+# hay MeshAgent instalado, asi que es seguro apuntarlo a un grupo mixto.
+- name: Endurecer el MeshAgent en equipos Linux
+  hosts: observer_linux_endpoints
+  become: true
+  gather_facts: true
+  roles:
+    - observer_agent_hardening

@@ -1,0 +1,55 @@
+---
+# El rol es NO-OP donde no hay MeshAgent: se usa contra grupos de equipos Linux
+# administrados que pueden o no tener el agente instalado, y fallar ahi seria
+# ruido. Se mira el binario y no `systemctl status`, porque un servicio caido o
+# enmascarado igual necesita el drop-in.
+- name: Detectar el MeshAgent
+  ansible.builtin.stat:
+    path: /opt/observermesh/meshagent
+  register: observer_meshagent_bin
+
+- name: Endurecer el servicio MeshAgent
+  when: observer_meshagent_bin.stat.exists
+  block:
+    - name: Crear la carpeta de drop-ins del servicio
+      ansible.builtin.file:
+        path: "{{ observer_meshagent_dropin_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Desplegar el drop-in de endurecimiento
+      ansible.builtin.template:
+        src: 10-meshagent-hardening.conf.j2
+        dest: "{{ observer_meshagent_dropin_dir }}/{{ observer_meshagent_dropin_name }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - systemd daemon-reload
+        - restart meshagent
+
+    # El drop-in que se dejo a mano en terreno el 2026-08-14 tiene otro nombre y
+    # las MISMAS directivas: dejarlo convierte cada equipo en un caso particular.
+    # Se lee antes de borrar y solo se retira si lleva nuestra marca; uno ajeno
+    # con ese nombre se queda donde esta.
+    - name: Leer el drop-in manual heredado
+      ansible.builtin.slurp:
+        src: "{{ observer_meshagent_dropin_dir }}/10-xsession.conf"
+      register: observer_meshagent_legacy
+      failed_when: false
+      when: observer_meshagent_drop_legacy_xsession | bool
+
+    - name: Retirar el drop-in manual heredado
+      ansible.builtin.file:
+        path: "{{ observer_meshagent_dropin_dir }}/10-xsession.conf"
+        state: absent
+      when:
+        - observer_meshagent_drop_legacy_xsession | bool
+        - observer_meshagent_legacy.content is defined
+        - "'observer-rmm' in (observer_meshagent_legacy.content | b64decode)"
+        - "'CAP_SYS_MODULE' in (observer_meshagent_legacy.content | b64decode)"
+      notify:
+        - systemd daemon-reload
+        - restart meshagent

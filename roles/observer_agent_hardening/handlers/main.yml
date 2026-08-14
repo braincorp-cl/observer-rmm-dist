@@ -1,0 +1,16 @@
+---
+- name: Systemd daemon-reload
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  listen: systemd daemon-reload
+
+# El restart es lo unico que se nota desde afuera: corta las sesiones de control
+# remoto abiertas contra ese equipo. Se puede diferir con
+# -e observer_meshagent_restart=false y el drop-in toma efecto en el proximo
+# arranque igual.
+- name: Restart meshagent
+  ansible.builtin.systemd_service:
+    name: "{{ observer_meshagent_service }}"
+    state: restarted
+  when: observer_meshagent_restart | bool
+  listen: restart meshagent

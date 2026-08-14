@@ -52,6 +52,8 @@ meshDir='/opt/observermesh'
 meshSystemBin="${meshDir}/meshagent"
 meshSvcName='meshagent.service'
 meshSysD="/lib/systemd/system/${meshSvcName}"
+meshDropInDir="/etc/systemd/system/${meshSvcName}.d"
+meshDropIn="${meshDropInDir}/10-meshagent-hardening.conf"
 
 deb=(ubuntu debian raspbian kali linuxmint)
 rhe=(fedora rocky centos rhel amzn arch opensuse)
@@ -132,6 +134,48 @@ InstallMesh() {
     env LC_ALL=en_US.UTF-8 LANGUAGE=en_US XAUTHORITY=foo DISPLAY=bar ${meshTmpBin} -install --installPath=${meshDir}
     sleep 1
     rm -rf ${meshTmpDir}
+    HardenMesh
+}
+
+# HardenMesh le quita CAP_SYS_MODULE al servicio del MeshAgent.
+#
+# El MeshAgent ejecuta `lshw -class disk` en su core de ARRANQUE (medido: a los
+# ~0,7 s de cada inicio; recien ~3 s despues toma el relevo el core bueno, que ya
+# usa `-disable network` y no cuelga). lshw hace un ioctl de red con el nombre de
+# interfaz "/dev/vmnet1"; dev_load() del kernel intenta autocargar el modulo dos
+# veces y el SEGUNDO intento --request_module("%s", name)-- solo ocurre si el
+# llamador tiene CAP_SYS_MODULE. Ese intento lanza `modprobe -q -- /dev/vmnet1`,
+# que se bloquea para siempre dentro del driver vmnet de VMware Workstation: lshw
+# queda en estado D, el agente se queda esperando a ese hijo y DEJA DE LEER los
+# mensajes del servidor. El equipo aparece en linea y no responde a nada, sin
+# "Tomar control" y sin ningun sintoma que lo delate (medido el 2026-08-14 en
+# FAZOCAR; el testigo es el Recv-Q del socket agente->servidor, estancado).
+#
+# Va en TODOS los equipos y no solo donde hay VMware porque el disparador viaja
+# dentro del binario oficial del MeshAgent y corre antes que cualquier core que
+# el servidor pueda enviar: no lo evita actualizar el agente ni refrescar el
+# core. Y la exposicion no es "tener VMware hoy" sino adquirir cualquier driver
+# que se bloquee en request_module.
+#
+# Es seguro: el MeshAgent no carga modulos del kernel. El drop-in va en
+# /etc/systemd/system y no en /lib, porque /lib lo reescribe el instalador del
+# propio mesh en cada reinstalacion. Ylianst/MeshAgent#382.
+HardenMesh() {
+    mkdir -p ${meshDropInDir}
+    cat << EOF > ${meshDropIn}
+# Escrito por el instalador de Observer RMM. Ver Ylianst/MeshAgent#382.
+# Sin esta linea, un `lshw` del agente puede quedar en estado D dentro de un
+# driver que se porte mal y dejar al equipo en linea pero sordo al servidor.
+[Service]
+CapabilityBoundingSet=~CAP_SYS_MODULE
+TimeoutStopSec=20
+EOF
+    chmod 644 ${meshDropIn}
+    systemctl daemon-reload
+    # El servicio ya quedo corriendo con el `-install` de arriba, asi que hay que
+    # reiniciarlo para que tome el drop-in; si el reinicio falla no se aborta la
+    # instalacion: el drop-in ya esta escrito y toma efecto en el proximo arranque.
+    systemctl restart ${meshSvcName} >/dev/null 2>&1
 }
 
 RemoveMesh() {
@@ -161,6 +205,11 @@ RemoveMesh() {
         systemctl disable ${meshSvcName} >/dev/null 2>&1
         rm -f ${meshSysD}
     fi
+
+    # El drop-in es nuestro y va aparte del .service: sin esto queda una carpeta
+    # huerfana en /etc/systemd/system apuntando a un servicio que ya no existe.
+    rm -f ${meshDropIn}
+    rmdir ${meshDropInDir} 2>/dev/null
 
     rm -rf ${meshDir}
     systemctl daemon-reload

@@ -1,0 +1,13 @@
+---
+# Ejemplo de inventario para harden-linux-agents.yml. Copiar a
+# inventory/linux-endpoints.yml (gitignored) y completar con los equipos reales.
+#
+# Los equipos administrados por el RMM no estan en ningun inventario de Ansible:
+# este playbook sirve para el subconjunto al que SI se llega por SSH. Para el
+# resto, el vehiculo es el instalador (enrolamientos nuevos) o un script de la
+# biblioteca ejecutado desde la consola.
+observer_linux_endpoints:
+  hosts:
+    equipo-ejemplo:
+      ansible_host: 172.16.128.66
+      ansible_user: operador

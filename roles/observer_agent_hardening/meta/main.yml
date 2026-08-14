@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: BrainCorp Chile
+  description: Endurecimiento del servicio MeshAgent en equipos Linux administrados
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+dependencies: []

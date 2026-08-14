@@ -1,0 +1,34 @@
+# {{ ansible_managed }}
+#
+# Observer RMM -- endurecimiento del servicio MeshAgent en Linux.
+#
+# QUE PROBLEMA RESUELVE (medido el 2026-08-14 en FAZOCAR, Ubuntu 24.04):
+# el MeshAgent ejecuta `lshw -class disk` como parte de su inventario. lshw hace
+# un ioctl de red con el nombre de interfaz "/dev/vmnet1"; dev_load() del kernel
+# intenta autocargar el modulo dos veces y el SEGUNDO intento --
+# request_module("%s", name) -- SOLO ocurre si el llamador tiene CAP_SYS_MODULE.
+# Ese intento lanza `modprobe -q -- /dev/vmnet1`, que abre esa ruta como si fuera
+# un .ko y se bloquea para siempre dentro del driver vmnet de VMware Workstation.
+# lshw queda en estado D, el agente se queda esperando a ese hijo y DEJA DE LEER
+# los mensajes del servidor: el equipo aparece en linea y no responde a nada
+# --"Tomar control" sale deshabilitado--. El testigo es el Recv-Q del socket
+# agente->servidor, estancado (122 bytes) hasta que se mata el modprobe.
+#
+# POR QUE VA EN TODOS LOS LINUX Y NO SOLO DONDE HAY VMWARE:
+# el disparador viaja en el CORE DE ARRANQUE del propio MeshAgent, dentro del
+# binario oficial (medido: identico al que publica MeshCentral 1.2.1). Ese core
+# corre a los ~0,7 s de cada arranque con la forma VIEJA del comando; recien ~3 s
+# despues toma el relevo el core bueno, que ya trae `-disable network` y no
+# cuelga. O sea: ni actualizar el agente ni refrescar el core evitan el
+# disparador, porque ocurre antes. Y la exposicion no es "tener VMware hoy" sino
+# adquirir cualquier driver que se bloquee en request_module: el dia que alguien
+# instale Workstation, ese equipo queda en linea y sordo sin ningun sintoma.
+#
+# POR QUE ES SEGURO: el MeshAgent no carga modulos del kernel. Sin la capability,
+# el kernel ni siquiera intenta el request_module del paso 2.
+#
+# Reportado aguas arriba como Ylianst/MeshAgent#382 (el defecto de fondo es que
+# un hijo atascado paralice el bucle de mensajes del agente, no el lshw).
+[Service]
+CapabilityBoundingSet=~CAP_SYS_MODULE
+TimeoutStopSec={{ observer_meshagent_stop_timeout }}
