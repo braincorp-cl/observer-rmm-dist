@@ -101,15 +101,28 @@ fi
 
 launchctl bootout system /Library/LaunchDaemons/observeragent.plist
 
-# Feature 030 · T016: el ayudante que saca la foto de webcam es un LaunchAgent y
-# vive en la sesion de quien tenga la consola abierta, no en el dominio system.
-# Se descarga ANTES de borrar su plist: al reves queda un trabajo registrado
+# Feature 030 · T016: el ayudante que saca la foto y la captura es un LaunchAgent
+# que vive en la sesion de quien tenga la consola abierta, no en el dominio
+# system, y ademas es un bundle .app REGISTRADO en LaunchServices. Hay que
+# deshacer las dos cosas.
+#
+# El bootout va ANTES de borrar el plist: al reves queda un trabajo registrado
 # apuntando a un archivo que ya no existe, y launchd lo arrastra hasta que la
-# persona cierre sesion. El bootout falla si nunca se cargo -- una instalacion
-# que jamas saco una foto -- y eso no es un error, por eso el `|| true`.
+# persona cierre sesion.
+#
+# Y el `lsregister -u` no es opcional: el registro es lo que permite que
+# `tccutil` nombre al ayudante, y un registro huerfano apuntando a un bundle
+# borrado ensucia LaunchServices hasta que se reconstruya la base.
+#
+# Los dos comandos fallan si nunca se cargo o nunca se registro -- una
+# instalacion que jamas saco una foto -- y eso no es un error: de ahi el `|| true`.
 CONSOLE_UID=$(stat -f%u /dev/console 2>/dev/null)
 if [ -n "${CONSOLE_UID}" ] && [ "${CONSOLE_UID}" != "0" ]; then
-  launchctl bootout "gui/${CONSOLE_UID}/cl.observer.agent.camara" || true
+  launchctl bootout "gui/${CONSOLE_UID}/cl.observer.agent.captura" || true
+fi
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+if [ -x "${LSREGISTER}" ]; then
+  "${LSREGISTER}" -u /opt/observeragent/ObserverCaptura.app || true
 fi
 
 rm -rf /usr/local/mesh_services
@@ -117,5 +130,5 @@ rm -rf /opt/observermesh
 rm -f /etc/observeragent
 rm -rf /opt/observeragent
 rm -f /Library/LaunchDaemons/observeragent.plist
-rm -f /Library/LaunchAgents/cl.observer.agent.camara.plist
+rm -f /Library/LaunchAgents/cl.observer.agent.captura.plist
 rm -f /Library/LaunchAgents/meshagent-agent.plist
