@@ -3005,7 +3005,8 @@
       "reason_sin_camara": "The device has no camera",
       "reason_camara_ocupada": "Another program is using the camera",
       "reason_camara_sin_imagen": "The camera returned no image (cover on, darkness, or driver)",
-      "reason_permiso_denegado_camara": "The system won't grant camera permission"
+      "reason_permiso_denegado_camara": "The system won't grant camera permission",
+      "reason_so_no_soportado_camara": "This operating system cannot take camera photos"
     }
   }
 }

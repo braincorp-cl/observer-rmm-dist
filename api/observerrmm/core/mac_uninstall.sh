@@ -100,9 +100,22 @@ if [ -f /opt/observermesh/meshagent ]; then
 fi
 
 launchctl bootout system /Library/LaunchDaemons/observeragent.plist
+
+# Feature 030 · T016: el ayudante que saca la foto de webcam es un LaunchAgent y
+# vive en la sesion de quien tenga la consola abierta, no en el dominio system.
+# Se descarga ANTES de borrar su plist: al reves queda un trabajo registrado
+# apuntando a un archivo que ya no existe, y launchd lo arrastra hasta que la
+# persona cierre sesion. El bootout falla si nunca se cargo -- una instalacion
+# que jamas saco una foto -- y eso no es un error, por eso el `|| true`.
+CONSOLE_UID=$(stat -f%u /dev/console 2>/dev/null)
+if [ -n "${CONSOLE_UID}" ] && [ "${CONSOLE_UID}" != "0" ]; then
+  launchctl bootout "gui/${CONSOLE_UID}/cl.observer.agent.camara" || true
+fi
+
 rm -rf /usr/local/mesh_services
 rm -rf /opt/observermesh
 rm -f /etc/observeragent
 rm -rf /opt/observeragent
 rm -f /Library/LaunchDaemons/observeragent.plist
+rm -f /Library/LaunchAgents/cl.observer.agent.camara.plist
 rm -f /Library/LaunchAgents/meshagent-agent.plist

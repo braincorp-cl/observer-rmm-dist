@@ -180,6 +180,24 @@
                     </q-chip>
                   </q-item-label>
 
+                  <!-- El motivo de la webcam es una fila aparte y no un texto
+                       pegado al de la pantalla: en un mismo ciclo puede haber
+                       captura y no foto, o al revés, y juntarlos haría pensar
+                       que falló todo. El icono es lo que distingue de cuál de
+                       las dos evidencias habla el motivo. -->
+                  <q-item-label caption v-if="c.webcam && c.webcam.note">
+                    <q-chip
+                      dense
+                      square
+                      size="sm"
+                      color="warning"
+                      text-color="black"
+                      icon="photo_camera"
+                    >
+                      {{ $t(reasonWebcamKey(c.webcam.note)) }}
+                    </q-chip>
+                  </q-item-label>
+
                   <q-item-label caption v-if="c.sessionUser">
                     {{
                       $t("lostEquipment.timeline.sessionUser", {
@@ -301,6 +319,20 @@ export default {
 
     function reasonKey(note) {
       return `lostEquipment.timeline.reason_${note}`;
+    }
+
+    // La cámara y la pantalla comparten códigos de motivo —el agente los emite
+    // desde el mismo catálogo— pero no siempre significan lo mismo para quien
+    // lee el caso: `permiso_denegado` en la pantalla habla de Grabación de
+    // pantalla y en la cámara habla de Cámara, que son dos permisos distintos
+    // que se conceden por separado. Los que difieren llevan sufijo `_camara`; el
+    // resto —`sin_sesion`, `fallo_captura`— describen la misma situación desde
+    // el mismo equipo y se traducen una sola vez.
+    const motivosPropiosDeLaCamara = ["permiso_denegado", "so_no_soportado"];
+
+    function reasonWebcamKey(note) {
+      const sufijo = motivosPropiosDeLaCamara.includes(note) ? `${note}_camara` : note;
+      return `lostEquipment.timeline.reason_${sufijo}`;
     }
 
     async function load() {
@@ -461,6 +493,7 @@ export default {
       fullSrc,
       sourceKey,
       reasonKey,
+      reasonWebcamKey,
       renderMap,
       focusCycle,
       openFull,
