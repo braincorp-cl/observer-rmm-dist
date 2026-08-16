@@ -179,3 +179,17 @@ CSS sí, así que no se puede asumir por tipo de archivo.
 
 - Memoria: `reference_docs_screenshots_selenium` (índice en MEMORY.md).
 - Feature docs: `feature_docs_site_observer_cl` (actualizaciones 2026-07-16b).
+
+## Notas de versión públicas (docs.observer.cl/release-notes/)
+
+`build_release_notes.py` consolida los GitHub Releases de **observer-rmm-dist**
+(servidor) y **observer-agent-dist** (agente) en `docs-site/release-notes/index.html`.
+Los repos son privados; esta es la copia pública de sus notas. Regenerar y publicar:
+
+```bash
+python3 scripts/docs/build_release_notes.py     # usa `gh api` (token de gh)
+# publicar al appserver igual que el resto de docs (sección 5 de este README)
+```
+
+Se desacopló a propósito de `WEB_VERSION`: esa variable ya no arma ninguna URL
+(el `get_webtar_url` del tarball de assets se retiró por muerto).

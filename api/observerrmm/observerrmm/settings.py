@@ -251,7 +251,6 @@ if not DOCKER_BUILD:
 CHECK_TOKEN_URL = f"{AGENT_BASE_URL}/api/v2/checktoken"
 AGENTS_URL = f"{AGENT_BASE_URL}/api/v2/agents/?"
 EXE_GEN_URL = f"{AGENT_BASE_URL}/api/v2/exe"
-WEBTAR_DL_URL = f"{AGENT_BASE_URL}/api/v2/webtar/?"
 
 if "GHACTIONS" in os.environ:
     DEBUG = False
