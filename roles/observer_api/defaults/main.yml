@@ -11,7 +11,8 @@ celery_max_workers: 20
 # wmi hasta ~70h) dejaban a un agente recién enrolado sin inventario por horas/días.
 # El ÚNICO con riesgo real de OOM en MeshCentral es syncmesh → se mantiene >= 3600
 # (lección MINSAL). Para flotas muy grandes (~28k agentes), subir agentinfo/disks/
-# hw_assets vía group_vars (estos defaults los parametriza el rol; override per-site).
+# hw_assets en el INVENTARIO del ambiente — no en group_vars/, que le gana al inventario
+# y dejaría el override decorativo (por eso el bloque salió de ahí el 2026-08-15).
 observer_checkin_hello_min: 30
 observer_checkin_hello_max: 60
 observer_checkin_agentinfo_min: 200

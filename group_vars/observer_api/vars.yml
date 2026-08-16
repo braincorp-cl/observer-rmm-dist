@@ -24,32 +24,23 @@ celery_min_workers: 2
 celery_max_workers: 20
 
 # ============================================================
-# Intervalos de check-in (segundos) — perfil FLOTA CHICA/MEDIA (baseline genérico)
+# Intervalos de check-in (segundos) — NO se declaran acá (2026-08-15)
 # ============================================================
-# Baseline para despliegues de flota chica/media: heartbeat responsivo (hello 30-60s)
-# + colectores pesados relajados (sw/hw inventory 1-2h) para no cargar la DB de más.
-# Para flotas MUY grandes (decenas de miles de agentes) subir agentinfo/disks/inventory
-# (menos frecuencia) overrideando estos valores en el inventario del ambiente.
-# Regla dura: SYNCMESH >= 3600 (piso anti-OOM, RN-030). Los 8 CHECKIN_* + jitter + NATS
-# max conn se parametrizan completos (F009); nombres = los que lee apiv3/utils.py.
-observer_checkin_hello_min: 30
-observer_checkin_hello_max: 60
-observer_checkin_agentinfo_min: 300
-observer_checkin_agentinfo_max: 600
-observer_checkin_win_services_min: 2400
-observer_checkin_win_services_max: 3000
-observer_checkin_pubip_min: 600
-observer_checkin_pubip_max: 900
-observer_checkin_disks_min: 1000
-observer_checkin_disks_max: 2000
-observer_checkin_sw_inventory_min: 3600
-observer_checkin_sw_inventory_max: 7200
-observer_checkin_hw_assets_min: 3600
-observer_checkin_hw_assets_max: 7200
-observer_checkin_syncmesh_min: 3600
-observer_checkin_syncmesh_max: 7200
-observer_check_interval_jitter_min: 3
-observer_check_interval_jitter_max: 120
+# Los 8 CHECKIN_* + CHECK_INTERVAL_JITTER viven SÓLO en roles/observer_api/defaults/
+# main.yml, por la misma regla de precedencia que echó a los checkin_geo (ver el bloque
+# de abajo): declarados acá, ningún inventario de ambiente podía subirlos, que es
+# justamente lo que hay que poder hacer cuando una flota crece.
+#
+# Además estaban DESALINEADOS con el producto. Este archivo llevaba un perfil "flota
+# chica/media" propio —agentinfo 300/600, pubip 600/900, sw 3600/7200, hw_assets
+# 3600/7200— escrito antes de GAP-052 (2026-06-27), que recalibró el bloque entero. O
+# sea el CHECKIN_WMI efectivo de los servidores era 1-2 h mientras el producto declaraba
+# 50-66 min, y nadie miraba la capa que de verdad manda. Verificado antes de borrar:
+# los 9 nombres tienen default en el rol, y ni staging.yml ni produccion.yml declaran
+# ninguno, así que el efectivo pasa a ser exactamente el default del producto.
+#
+# Regla dura que sobrevive a todo esto: SYNCMESH >= 3600 (piso anti-OOM, RN-030).
+# Para flotas muy grandes: subir agentinfo/disks/hw_assets en el inventario del ambiente.
 observer_nats_max_connections: 50000
 
 # Geolocalización (feature 023) e intervalos por ambiente — NO declarar acá.
