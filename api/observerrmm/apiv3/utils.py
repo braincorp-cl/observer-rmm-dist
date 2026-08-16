@@ -82,7 +82,13 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
             *getattr(settings, "CHECKIN_DISKS", (240000, 250000))
         ),
         checkin_sw=random.randint(*getattr(settings, "CHECKIN_SW", (50000, 51000))),
-        checkin_wmi=random.randint(*getattr(settings, "CHECKIN_WMI", (24000, 254000))),
+        # GAP-052 (2026-06-27) recalibró CHECKIN_WMI en settings.py a (3000, 4000) y
+        # este fallback quedó atrás con el valor viejo de producción: hasta 254000 s
+        # = 70,5 h. Un servidor que perdiera la línea de settings dejaba a la flota
+        # con el inventario de hardware que GAP-052 declaró inaceptable, en silencio.
+        # Alineado el 2026-08-15 (feature 037): el fallback espeja el default que se
+        # despacha, ni más agresivo ni décadas más lento.
+        checkin_wmi=random.randint(*getattr(settings, "CHECKIN_WMI", (3000, 4000))),
         checkin_syncmesh=random.randint(
             *getattr(settings, "CHECKIN_SYNCMESH", (3600, 7200))
         ),
