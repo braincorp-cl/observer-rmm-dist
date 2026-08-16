@@ -2993,6 +2993,7 @@
       "reason_permiso_denegado": "macOS no tiene concedido el permiso de grabación de pantalla",
       "reason_pantalla_en_negro": "La captura salió en negro y se descartó",
       "reason_pantalla_apagada": "La pantalla del equipo estaba apagada (protector o ahorro de energía)",
+      "reason_pantalla_bloqueada": "El equipo estaba bloqueado: la pantalla no mostraba nada que capturar",
       "reason_fallo_captura": "La captura falló",
       "reason_so_no_soportado": "Este sistema operativo no captura pantalla",
       "reason_formato_no_soportado": "El servidor rechazó el archivo: no era una imagen",

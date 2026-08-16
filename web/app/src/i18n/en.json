@@ -2993,6 +2993,7 @@
       "reason_permiso_denegado": "macOS has not granted the screen recording permission",
       "reason_pantalla_en_negro": "The capture came out black and was discarded",
       "reason_pantalla_apagada": "The device screen was off (screensaver or power saving)",
+      "reason_pantalla_bloqueada": "The device was locked: the screen had nothing to capture",
       "reason_fallo_captura": "The capture failed",
       "reason_so_no_soportado": "This operating system does not capture the screen",
       "reason_formato_no_soportado": "The server rejected the file: not an image",
