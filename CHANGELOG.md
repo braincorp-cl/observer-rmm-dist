@@ -8,6 +8,16 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.12 — 2026-08-16
+
+- **El modo perdido ya captura la pantalla en Linux con Wayland (GNOME y KDE).** En los escritorios modernos, un caso no lograba sacar la captura de pantalla aunque el equipo lo permitía: la imagen se tomaba pero se daba por perdida. Con el **agente 2.15.28** eso queda resuelto, y en KDE se acabó además la falsa «pantalla en negro» que se leía como avería. La foto de cámara ya funcionaba antes; ahora la pantalla también.
+- **«Tomar control» vuelve a funcionar en los Linux virtualizados.** El control remoto del escritorio fallaba en equipos Linux sobre VMware por un permiso que el servicio del Mesh no necesitaba y que el hipervisor rechazaba. Se le retira ese permiso en toda la flota Linux y el control remoto se restablece.
+- **macOS: la línea de tiempo dice por qué no hay foto de cámara.** Cuando la cámara del Mac no entrega imagen, el caso ahora muestra el motivo en vez de dejar un hueco, igual que ya hacía con la pantalla.
+- **Nuevo motivo en la cronología del caso: «pantalla bloqueada».** Si el equipo tenía la sesión bloqueada al intentar la captura, el caso lo registra como tal —un dato del caso— en lugar de reportarlo como un fallo.
+- **Nuevo script en la biblioteca para endurecer el servicio de control remoto** en la flota Linux, con su verificación posterior.
+- **Mayor fidelidad en el estado de cifrado de disco que reportan los equipos**, al corregir unos valores de respaldo que habían quedado rezagados.
+- Acompaña al **agente 2.15.28**. Contra un agente anterior, el producto se comporta igual que en la 1.4.11.
+
 ## v1.4.11 — 2026-08-14
 
 - **Un caso de modo perdido se puede exportar a PDF.** Desde la pantalla del caso sale un informe que se lee **sin la consola al lado**: portada con el equipo, el motivo, quién lo marcó y la política de retención vigente; el recorrido y la cronología completa; y las imágenes **dentro del documento**, no como enlaces que a quien lo reciba le pedirían iniciar sesión. Es el formato que sirve para una denuncia, un sumario interno o un seguro.
