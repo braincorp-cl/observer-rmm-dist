@@ -68,26 +68,23 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
     lost_mode, lost_mode_interval_min = _lost_mode(agentid)
 
     return AgentCheckInConfig(
-        # Fallbacks aligned to the anti-OOM production defaults in settings.py:
-        # losing a CHECKIN_* line must never degrade to a more aggressive interval.
-        checkin_hello=random.randint(*getattr(settings, "CHECKIN_HELLO", (200, 400))),
+        # Cada fallback espeja el default que settings.py despacha: perder una línea
+        # de CHECKIN_* no puede volver el intervalo ni más agresivo ni más lento.
+        # GAP-052 (2026-06-27) recalibró el bloque en settings.py y estos fallbacks
+        # quedaron atrás con los valores viejos —disks 250000 s = 69 h, sw 14 h,
+        # agentinfo 11 h—, así que un servidor al que se le cayera ese renglón
+        # degradaba en silencio al inventario que GAP-052 declaró inaceptable.
+        # Alineados el 2026-08-15 (feature 037); el WMI ya lo estaba.
+        checkin_hello=random.randint(*getattr(settings, "CHECKIN_HELLO", (30, 60))),
         checkin_agentinfo=random.randint(
-            *getattr(settings, "CHECKIN_AGENTINFO", (24000, 40000))
+            *getattr(settings, "CHECKIN_AGENTINFO", (200, 400))
         ),
         checkin_winsvc=random.randint(
-            *getattr(settings, "CHECKIN_WINSVC", (24000, 30000))
+            *getattr(settings, "CHECKIN_WINSVC", (2400, 3000))
         ),
-        checkin_pubip=random.randint(*getattr(settings, "CHECKIN_PUBIP", (3000, 5000))),
-        checkin_disks=random.randint(
-            *getattr(settings, "CHECKIN_DISKS", (240000, 250000))
-        ),
-        checkin_sw=random.randint(*getattr(settings, "CHECKIN_SW", (50000, 51000))),
-        # GAP-052 (2026-06-27) recalibró CHECKIN_WMI en settings.py a (3000, 4000) y
-        # este fallback quedó atrás con el valor viejo de producción: hasta 254000 s
-        # = 70,5 h. Un servidor que perdiera la línea de settings dejaba a la flota
-        # con el inventario de hardware que GAP-052 declaró inaceptable, en silencio.
-        # Alineado el 2026-08-15 (feature 037): el fallback espeja el default que se
-        # despacha, ni más agresivo ni décadas más lento.
+        checkin_pubip=random.randint(*getattr(settings, "CHECKIN_PUBIP", (300, 500))),
+        checkin_disks=random.randint(*getattr(settings, "CHECKIN_DISKS", (1000, 2000))),
+        checkin_sw=random.randint(*getattr(settings, "CHECKIN_SW", (2800, 3500))),
         checkin_wmi=random.randint(*getattr(settings, "CHECKIN_WMI", (3000, 4000))),
         checkin_syncmesh=random.randint(
             *getattr(settings, "CHECKIN_SYNCMESH", (3600, 7200))

@@ -654,8 +654,12 @@ class Agent(BaseAuditModel):
                 # don't allow check runs less than 15s
                 interval = 15 if check.run_interval < 15 else check.run_interval
 
+        # Mismo criterio que los CHECKIN_*: el fallback espeja lo que settings.py
+        # despacha —(3, 120)— en vez de un rango más angosto. Un jitter menor
+        # concentra las corridas de checks de toda la flota en menos segundos, que
+        # es lo contrario de para qué existe este sumando.
         return interval + random.randint(
-            *getattr(settings, "CHECK_INTERVAL_JITTER", (1, 60))
+            *getattr(settings, "CHECK_INTERVAL_JITTER", (3, 120))
         )
 
     def run_script(

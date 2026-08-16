@@ -73,26 +73,41 @@ class TestAgentConfigAntiOOM(SimpleTestCase):
             with self.subTest(field=field):
                 self.assertGreater(getattr(cfg, field), 0, msg=f"{field} <= 0")
 
-    def test_fallbacks_are_never_more_aggressive_than_settings(self):
-        # La protección que de verdad importa ante una línea perdida: el fallback
-        # puede ser MÁS conservador que el valor configurado, nunca más
-        # frecuente. Se comparan los mínimos de cada tupla, que es el peor caso
-        # del `random.randint`.
+    def test_fallbacks_mirror_the_configured_range(self):
+        # Endurecido el 2026-08-15 (feature 037). Antes esto sólo exigía que el
+        # fallback no fuera MÁS agresivo que settings, y esa asimetría dejó pasar
+        # el drift real: GAP-052 recalibró `settings.py` y los fallbacks quedaron
+        # décadas más lentos (disks 69 h contra 33 min) sin que nada se pusiera
+        # rojo. El invariante correcto es de IGUALDAD: perder una línea de
+        # `settings.py` tiene que dejar el mismo intervalo que se despacha.
+        #
+        # Como el valor sale de un `random.randint`, se comprueba por contención
+        # sobre muchos sorteos: cada uno tiene que caer dentro del rango
+        # configurado, en los dos sentidos.
         empty = SimpleNamespace()
         with patch.object(apiv3_utils, "settings", empty):
-            fallback = apiv3_utils.get_agent_config()
+            draws = [apiv3_utils.get_agent_config() for _ in range(200)]
 
         for field in CHECKIN_FIELDS:
             setting_name = field.replace("checkin_", "CHECKIN_").upper()
             configured = getattr(django_settings, setting_name, None)
             if configured is None:
                 continue  # sin línea en settings no hay nada que comparar
+            observed = [getattr(cfg, field) for cfg in draws]
             with self.subTest(field=field):
                 self.assertGreaterEqual(
-                    getattr(fallback, field),
+                    min(observed),
                     min(configured),
                     msg=(
                         f"el fallback de {setting_name} es MÁS agresivo que el "
                         f"valor configurado {configured}"
+                    ),
+                )
+                self.assertLessEqual(
+                    max(observed),
+                    max(configured),
+                    msg=(
+                        f"el fallback de {setting_name} es MÁS LENTO que el valor "
+                        f"configurado {configured}: quedó rezagado como en GAP-052"
                     ),
                 )
