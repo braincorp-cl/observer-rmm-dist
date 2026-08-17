@@ -58,6 +58,14 @@ urlpatterns = [
         "<agent:agent_id>/lostmode/export/",
         views.LostModeExport.as_view(),
     ),
+    # Feature 037 · cifrado de disco. El índice de flota va PRIMERO y sin
+    # `agent_id`: es el panel de cumplimiento, no una vista del agente.
+    #
+    # 🪤 El refresco on-demand (RF-06) NO se declara acá: es el
+    # `POST <agent_id>/wmi/` que ya existe más abajo. Agregar una ruta propia
+    # habría duplicado el camino del `func: wmi` con otro nombre.
+    path("diskencryption/", views.DiskEncryptionFleet.as_view()),
+    path("<agent:agent_id>/diskencryption/", views.DiskEncryptionDetail.as_view()),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

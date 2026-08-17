@@ -87,4 +87,63 @@ agent_with_services = agent.extend(
     ],
 )
 
+# Feature 037 · el bloque de cifrado, tal como lo manda el agente dentro de
+# `agent-wmi`. Va acá y no en el JSON de `test_data/` a propósito: ese archivo es
+# una captura real del inventario de un equipo anterior a la feature, y editarlo
+# borraría la evidencia de qué mandaba un agente viejo — que es justo el caso
+# «sin dato» que RN-A03 obliga a distinguir.
+#
+# 🔑 Las claves son las de WIRE, escritas a mano. Si alguien renombra una en el
+# contrato, esta receta deja de reflejar la realidad y los tests que la usan lo
+# muestran. Los nulos son deliberados: el volumen de datos trae la Fase 1b sin
+# leer, y un `0` ahí significaría «cero protectores», que es otra cosa.
+DISK_ENCRYPTION_WMI_BLOCK = {
+    "soportado": True,
+    "error": None,
+    "volumenes": [
+        {
+            "device_id": "\\\\?\\Volume{11111111-2222-3333-4444-555555555555}\\",
+            "drive_letter": "C:",
+            "protection_status": 1,
+            "conversion_status": 1,
+            "encryption_method": 6,
+            "persistent_volume_id": "pvid-c",
+            "is_volume_initialized_for_protection": True,
+            "encryption_percentage": 100,
+            "volume_type": 0,
+            "is_system_volume": True,
+            "key_protector_count": 2,
+            "key_protector_types": [3, 8],
+        },
+        {
+            "device_id": "\\\\?\\Volume{99999999-8888-7777-6666-555555555555}\\",
+            "drive_letter": None,
+            "protection_status": 0,
+            "conversion_status": 0,
+            "encryption_method": 0,
+            "persistent_volume_id": "",
+            "is_volume_initialized_for_protection": False,
+            "encryption_percentage": None,
+            "volume_type": 1,
+            "is_system_volume": False,
+            "key_protector_count": None,
+            "key_protector_types": None,
+        },
+    ],
+}
+
+
+def get_wmi_data_with_disk_encryption():
+    """El inventario de siempre MÁS el bloque de cifrado (feature 037)."""
+    datos = get_wmi_data()
+    datos["disk_encryption"] = DISK_ENCRYPTION_WMI_BLOCK
+    return datos
+
+
 agent_with_wmi = agent.extend(wmi_detail=get_wmi_data())
+# Un agente que ya reporta cifrado. Separado de `agent_with_wmi` para que los
+# tests que dependen del inventario viejo —el del agente sin la feature— sigan
+# probando ese caso, que no es hipotético: la flota tarda días en actualizarse.
+agent_with_disk_encryption_wmi = agent.extend(
+    wmi_detail=get_wmi_data_with_disk_encryption()
+)

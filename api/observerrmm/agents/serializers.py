@@ -8,10 +8,13 @@ from observerrmm.constants import (
 )
 from winupdate.serializers import WinUpdatePolicySerializer
 
+from .diskencryption import derivar_estado, volumen_de_sistema
 from .models import (
     Agent,
     AgentCustomField,
     AgentHistory,
+    DiskEncryptionHistory,
+    DiskEncryptionVolume,
     LostModeEvidence,
     LostModeState,
     Note,
@@ -302,3 +305,97 @@ class LostModeEvidenceSerializer(serializers.ModelSerializer):
 
     def get_has_asset(self, obj) -> bool:
         return bool(obj.asset)
+
+
+class DiskEncryptionVolumeSerializer(serializers.ModelSerializer):
+    """Feature 037 · un volumen del detalle del agente (RF-05).
+
+    Los códigos van crudos (RN-A05): la consola traduce. Y `measured_at` viaja
+    por volumen porque es lo que contesta «¿qué tan viejo es esto?», que en un
+    panel de cumplimiento es parte del dato y no un adorno — por `agent-wmi` la
+    latencia normal es de 50 a 66 minutos.
+    """
+
+    class Meta:
+        model = DiskEncryptionVolume
+        fields = (
+            "device_id",
+            "drive_letter",
+            "protection_status",
+            "conversion_status",
+            "encryption_method",
+            "encryption_percentage",
+            "volume_type",
+            "is_system_volume",
+            "key_protector_count",
+            "key_protector_types",
+            "measured_at",
+        )
+
+
+class DiskEncryptionHistorySerializer(serializers.ModelSerializer):
+    """Feature 037 · una línea del registro de cambios (RF-09/RN-A09)."""
+
+    class Meta:
+        model = DiskEncryptionHistory
+        fields = ("device_id", "previous_status", "new_status", "changed_at")
+
+
+class DiskEncryptionFleetSerializer(serializers.ModelSerializer):
+    """Feature 037 · una fila del panel de flota (RF-04).
+
+    El sujeto es el AGENTE y no el volumen, y ahí está la decisión: un equipo
+    ocupa una línea con el veredicto de su volumen de sistema (RN-A02). Si la
+    fila fuera el volumen, un equipo con tres unidades apareceria tres veces y el
+    conteo de cumplimiento —«cuántos equipos incumplen»— dejaría de ser legible.
+
+    `state` NO es una columna: se deriva en `diskencryption.py`, que es también
+    donde vive la versión SQL que usa el filtro.
+    """
+
+    hostname = serializers.ReadOnlyField()
+    client_name = serializers.ReadOnlyField(source="client.name")
+    site_name = serializers.ReadOnlyField(source="site.name")
+    state = serializers.SerializerMethodField()
+    supported = serializers.SerializerMethodField()
+    query_error = serializers.SerializerMethodField()
+    measured_at = serializers.SerializerMethodField()
+    system_volume = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Agent
+        fields = (
+            "agent_id",
+            "hostname",
+            "plat",
+            "client_name",
+            "site_name",
+            "state",
+            "supported",
+            "query_error",
+            "measured_at",
+            "system_volume",
+        )
+
+    def get_state(self, obj) -> str:
+        return derivar_estado(obj)
+
+    def get_supported(self, obj) -> bool:
+        estado = getattr(obj, "disk_encryption", None)
+        # Un equipo que nunca reportó no es "soportado" ni "no soportado": no
+        # sabemos. El nulo lo dice; un `True` por omisión afirmaría de más.
+        return estado.supported if estado else None
+
+    def get_query_error(self, obj):
+        estado = getattr(obj, "disk_encryption", None)
+        return estado.query_error if estado else None
+
+    def get_measured_at(self, obj):
+        estado = getattr(obj, "disk_encryption", None)
+        return estado.measured_at if estado else None
+
+    def get_system_volume(self, obj):
+        volumen = volumen_de_sistema(obj)
+        if volumen is None:
+            return None
+        return DiskEncryptionVolumeSerializer(volumen).data

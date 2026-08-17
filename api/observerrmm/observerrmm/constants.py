@@ -711,4 +711,42 @@ CONFIG_MGMT_CMDS = (
     "keyfile",
 )
 
+
+# --- Feature 037 · cifrado de disco ---
+#
+# Los códigos son los de WMI (`Win32_EncryptableVolume`) y se guardan CRUDOS
+# (RN-A05): la traducción a etiqueta ocurre en la consola, porque el texto del
+# enum lo produce el cmdlet de PowerShell —localizado— y la flota es mixta
+# español/inglés. Estos nombres existen para que las consultas del panel no
+# comparen contra números sueltos.
+#
+# 🪤 Espejo: `natsapi/diskencryption.go` escribe estas columnas sin interpretar
+# los códigos, y el único que compara es `protection_status` contra su valor
+# anterior. Si acá se agrega un código, el que tiene que enterarse es el
+# frontend, no el microservicio Go.
+DISK_ENCRYPTION_PROTECTION_OFF = 0
+DISK_ENCRYPTION_PROTECTION_ON = 1
+DISK_ENCRYPTION_PROTECTION_UNKNOWN = 2
+
+
+class DiskEncryptionStatus(models.TextChoices):
+    """Los cuatro estados del panel de cumplimiento (RF-04).
+
+    No son columnas de la base: se DERIVAN del estado del equipo y de su volumen
+    de sistema (RN-A02). Existen como enumeración porque son el vocabulario del
+    filtro, y porque RN-A03 exige que las cuatro sigan siendo cuatro: fusionar
+    «sin dato» con «sin cifrar» es el ok falso que esta feature existe para
+    evitar — mostraría como incumplidor a un equipo del que no sabemos nada.
+    """
+
+    ENCRYPTED = "encrypted", "Encrypted"
+    UNENCRYPTED = "unencrypted", "Not Encrypted"
+    # El equipo no ofrece BitLocker (Home, Win7 Professional) o no tiene el
+    # proveedor WMI. No es incumplimiento ni error (RN-A07).
+    UNSUPPORTED = "unsupported", "Not Supported"
+    # Nunca reportó, la consulta falló, o el reporte no trae volumen de sistema.
+    # Los tres son "no sabemos", y ninguno se muestra como "sin cifrar" (RF-07).
+    NO_DATA = "no_data", "No Data"
+
+
 ALL_TIMEZONES = sorted(zoneinfo.available_timezones())

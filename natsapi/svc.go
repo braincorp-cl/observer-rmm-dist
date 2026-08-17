@@ -255,6 +255,20 @@ func Svc(logger *logrus.Logger, cfg string) {
 					if err != nil {
 						logger.Errorln(err)
 					}
+
+					// Feature 037 · el estado de cifrado ADEMÁS se persiste en
+					// tablas propias (RF-03). El mensaje se decodifica una
+					// segunda vez, tipado: el mapa de arriba pasa por
+					// interface{} y ahí un puntero nulo y un cero dejan de
+					// distinguirse, que es justo la distinción que sostiene la
+					// feature (RF-07). Decoder nuevo porque el de arriba ya
+					// consumió los bytes.
+					var d shared.WinWMIDiskEncryptionNats
+					if err := codec.NewDecoderBytes(msg.Data, &mh).Decode(&d); err != nil {
+						logger.Debugln("Cifrado: no se pudo decodificar el bloque:", err)
+						return
+					}
+					guardarDiskEncryption(db, logger, r.Agentid, d.WMI.DiskEncryption)
 				}
 			}()
 

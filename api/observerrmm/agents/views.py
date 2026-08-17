@@ -73,11 +73,13 @@ from winupdate.models import WinUpdate, WinUpdatePolicy
 from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
+from .diskencryption import filtro_por_estado
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
     Agent,
     AgentCustomField,
     AgentHistory,
+    DiskEncryptionVolume,
     LostModeEvidence,
     LostModeState,
     Note,
@@ -111,6 +113,9 @@ from .serializers import (
     AgentNoteSerializer,
     AgentSerializer,
     AgentTableSerializer,
+    DiskEncryptionFleetSerializer,
+    DiskEncryptionHistorySerializer,
+    DiskEncryptionVolumeSerializer,
     LostModeEvidenceSerializer,
     LostModeStateSerializer,
 )
@@ -2354,3 +2359,111 @@ def modify_registry_value(request, agent_id):
             },
         }
     )
+
+
+class DiskEncryptionFleet(APIView):
+    """Feature 037 · Fase 2 — el panel de cumplimiento de cifrado (RF-04).
+
+    Sin `agent_id` en la ruta: el alcance lo recorta `filter_by_role`, igual que
+    el resto de los listados. RN-A08 en una línea — el estado de cifrado lo ve
+    quien ya puede ver el agente, sin permiso nuevo.
+
+    🔑 El sujeto de la consulta es el AGENTE, no la tabla de cifrado, y esa
+    inversión es lo que hace posible el cuarto estado: «sin dato» es **ausencia
+    de fila** (RN-A03), y un equipo sin reporte no existiría en un listado que
+    saliera de `DiskEncryptionState`. Justo el que más importa ver, además: el
+    que nunca contestó.
+
+    Sólo agentes Windows. La Fase A no lee macOS ni Linux, y mostrarlos todos en
+    «sin dato» convertiría el panel en una lista de falsos incumplidores — el
+    resto de la flota entra con la Fase B.
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request):
+        qs = (
+            Agent.objects.filter_by_role(request.user)  # type: ignore
+            .filter(plat=AgentPlat.WINDOWS)
+            .select_related("disk_encryption", "site__client")
+            .prefetch_related(
+                # El volumen de sistema es lo único que el panel necesita de la
+                # tabla de volúmenes. Sin este Prefetch, `derivar_estado` hace
+                # una consulta POR FILA: el N+1 clásico, y en una flota grande
+                # es la diferencia entre una pantalla y un timeout.
+                Prefetch(
+                    "disk_encryption_volumes",
+                    queryset=DiskEncryptionVolume.objects.filter(is_system_volume=True),
+                    to_attr="system_volumes",
+                )
+            )
+        )
+
+        if estado := request.query_params.get("state"):
+            filtro = filtro_por_estado(estado)
+            if filtro is None:
+                # Un filtro desconocido NO puede devolver la flota completa como
+                # si se hubiera aplicado: en un panel de cumplimiento eso se lee
+                # como "todos cumplen".
+                return notify_error(f"Unknown state filter: {estado}")
+            qs = qs.filter(filtro)
+
+        if client := request.query_params.get("client"):
+            qs = qs.filter(site__client_id=client)
+
+        if site := request.query_params.get("site"):
+            qs = qs.filter(site_id=site)
+
+        # distinct() porque los filtros por estado cruzan la tabla de volúmenes:
+        # un agente con dos filas que matchean saldría dos veces.
+        return Response(
+            DiskEncryptionFleetSerializer(
+                qs.distinct().order_by("hostname"), many=True
+            ).data
+        )
+
+
+class DiskEncryptionDetail(APIView):
+    """Feature 037 · Fase 2 — el detalle de un agente (RF-05 y RF-09).
+
+    Devuelve TODOS los volúmenes, no sólo el de sistema: el veredicto del equipo
+    sale del de sistema (RN-A02), pero un volumen de datos sin cifrar es
+    información que el operador quiere ver, y esconderla sería decidir por él.
+
+    Y devuelve el registro de cambios del agente, que es lo que convierte el
+    «está sin cifrar» en «está sin cifrar **desde el martes**». Sin esto, RN-A09
+    escribiría historia que nadie puede leer.
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    # Un equipo con muchos cambios reales es raro —el estado de cifrado no
+    # oscila— pero el tope existe igual: la retención de esta tabla es SIN
+    # VENCIMIENTO por decisión del usuario, así que el único límite del tamaño de
+    # la respuesta es este número.
+    HISTORY_LIMIT = 100
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        volumenes = agent.disk_encryption_volumes.order_by(
+            "-is_system_volume", "drive_letter", "device_id"
+        )
+        historial = agent.disk_encryption_history.all()[: self.HISTORY_LIMIT]
+        estado = getattr(agent, "disk_encryption", None)
+
+        return Response(
+            {
+                "agent_id": agent.agent_id,
+                "hostname": agent.hostname,
+                "plat": agent.plat,
+                # Los tres campos del equipo van explícitos y no fusionados en un
+                # rótulo: la consola necesita distinguir "no lo soporta" de "no
+                # pudimos leer" de "nunca reportó" (RN-A03, RF-07).
+                "supported": estado.supported if estado else None,
+                "query_error": estado.query_error if estado else None,
+                "measured_at": estado.measured_at if estado else None,
+                "volumes": DiskEncryptionVolumeSerializer(volumenes, many=True).data,
+                "history": DiskEncryptionHistorySerializer(historial, many=True).data,
+            }
+        )

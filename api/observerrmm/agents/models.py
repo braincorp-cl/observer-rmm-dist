@@ -1471,3 +1471,159 @@ class LostModeEvidence(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - {self.kind} - ciclo {self.cycle}"
+
+
+# --- Feature 037 · cifrado de disco (Fase 2) ---
+#
+# Tres tablas y no dos, y la diferencia es una laguna del plan que apareció al
+# implementarlo. El plan declaraba `supported` y `query_error` como columnas de
+# la fila del VOLUMEN, y ahí no caben: los dos casos que describen —el equipo no
+# ofrece BitLocker (RN-A07) y la consulta falló (RF-07)— son justamente los que
+# llegan con CERO volúmenes. Puestos en la fila del volumen, un equipo sin
+# soporte no tendría dónde constar, y "no soportado" sería indistinguible de
+# "nunca reportó", que es la fusión que RN-A03 prohíbe explícitamente.
+#
+# La alternativa era una fila centinela con `device_id=''`, que obliga a
+# excluirla a mano en cada consulta del panel para siempre. Se prefirió separar
+# el hecho POR EQUIPO (¿pudimos leer? ¿lo soporta? ¿cuándo?) del hecho POR
+# VOLUMEN (¿está protegido?), que es lo que realmente son.
+#
+# Ninguno hereda de BaseAuditModel: el escritor es el microservicio Go, no
+# Django, así que `save()` no corre (DT-002). La auditoría de esta feature es el
+# historial de RN-A09, que se escribe en el mismo SQL.
+
+
+class DiskEncryptionState(models.Model):
+    """Lo que sabemos del cifrado de UN EQUIPO en su último reporte.
+
+    La fila existe desde el primer reporte que trae el bloque, con volúmenes o
+    sin ellos. Su ausencia es el cuarto estado del panel —«sin dato»— y por eso
+    no se crea nunca por adelantado ni con backfill: un agente viejo, que no
+    manda `disk_encryption`, no tiene fila (RN-A03).
+
+    Los tres estados que esta fila separa:
+
+    * `supported=False` → el equipo no ofrece BitLocker. No es incumplimiento
+      ni error (RN-A07).
+    * `query_error` con texto → no sabemos. **Jamás se muestra como «sin
+      cifrar»** (RF-07).
+    * `supported=True` y sin error → el veredicto sale de los volúmenes.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    agent = models.OneToOneField(
+        Agent,
+        related_name="disk_encryption",
+        on_delete=models.CASCADE,
+    )
+    supported = models.BooleanField(default=True)
+    query_error = models.TextField(null=True, blank=True)
+    # Fecha del REPORTE, no del cambio: se refresca en cada latido aunque nada
+    # haya cambiado. Es la "edad del dato" que el panel tiene que mostrar —por
+    # `agent-wmi` la latencia normal es de 50 a 66 minutos— porque un tablero de
+    # cumplimiento sin la edad del dato induce a error.
+    measured_at = models.DateTimeField()
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {'soportado' if self.supported else 'no soportado'}"
+
+
+class DiskEncryptionVolume(models.Model):
+    """Estado de cifrado de UN volumen cifrable (RN-A01).
+
+    Un equipo tiene tantas filas como volúmenes reporte, y el veredicto del
+    equipo sale **sólo** del volumen de sistema (RN-A02): los de datos se
+    muestran con su estado individual y no producen un «parcial».
+
+    Los códigos se guardan **crudos**, como los entrega WMI (RN-A05). La
+    traducción a etiqueta vive en la consola: guardar acá el texto de un enum
+    localizado es lo que esta feature evita desde el agente hacia abajo.
+
+    Los nulos son datos, no huecos: `key_protector_count` nulo es «no se pudo
+    contar» y **no** «cero protectores»; `encryption_percentage` nulo es «no lo
+    leímos» y **no** «0 %».
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    agent = models.ForeignKey(
+        Agent,
+        related_name="disk_encryption_volumes",
+        on_delete=models.CASCADE,
+    )
+    # Identificador del volumen en Windows: `\\?\Volume{guid}\`. Es la clave del
+    # upsert junto con el agente, y no la letra: la letra puede cambiar entre
+    # reportes y hay volúmenes que no tienen ninguna.
+    device_id = models.CharField(max_length=255)
+    drive_letter = models.CharField(max_length=10, null=True, blank=True)
+    protection_status = models.PositiveSmallIntegerField()
+    conversion_status = models.PositiveSmallIntegerField()
+    encryption_method = models.PositiveSmallIntegerField()
+    encryption_percentage = models.PositiveSmallIntegerField(null=True, blank=True)
+    volume_type = models.PositiveSmallIntegerField()
+    # Lo decide el AGENTE (RN-A02), que es el único que sabe cuál es
+    # `%SystemDrive%`. La consola no lo recalcula.
+    is_system_volume = models.BooleanField(default=False)
+    key_protector_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Sólo el TIPO de cada protector, nunca material de clave (RN-A06). El largo
+    # de esta lista coincide con `key_protector_count` cuando los dos existen; un
+    # protector cuyo tipo no se pudo leer viaja como 0 ("desconocido u otro").
+    key_protector_types = ArrayField(
+        models.PositiveSmallIntegerField(),
+        null=True,
+        blank=True,
+    )
+    measured_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = (("agent", "device_id"),)
+        indexes = [
+            # El panel filtra por estado sobre el volumen de sistema: sin este
+            # índice, la vista de flota es un recorrido de toda la tabla.
+            models.Index(fields=["is_system_volume", "protection_status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {self.drive_letter or self.device_id}"
+
+
+class DiskEncryptionHistory(models.Model):
+    """Una línea por CAMBIO de protección de un volumen (RN-A09).
+
+    Nunca por latido: un reporte que confirma lo mismo sólo refresca
+    `measured_at` del estado actual. La línea se escribe con un `INSERT`
+    condicional en el mismo SQL del handler, comparando con `IS DISTINCT FROM`,
+    para que no exista una segunda copia de la regla en Python.
+
+    `previous_status` nulo es la primera vez que se ve el volumen, que es un
+    cambio legítimo y vale la pena registrar: es el momento en que el equipo
+    entró al inventario de cumplimiento.
+
+    **Retención sin vencimiento** (decisión del usuario, 2026-08-16): no hay
+    poda ni comando de mantenimiento. Excepción explícita al molde del ADR-025,
+    que nació para evidencia con datos personales; una línea por cambio real
+    crece lentísimo y borrarla destruye la auditoría que motivó guardarla.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        Agent,
+        related_name="disk_encryption_history",
+        on_delete=models.CASCADE,
+    )
+    device_id = models.CharField(max_length=255)
+    previous_status = models.PositiveSmallIntegerField(null=True, blank=True)
+    new_status = models.PositiveSmallIntegerField()
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-changed_at"]
+        indexes = [
+            models.Index(fields=["agent", "device_id"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {self.device_id}: {self.previous_status} -> {self.new_status}"
