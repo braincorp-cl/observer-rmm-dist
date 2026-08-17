@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.core.cache import cache
 from rest_framework import serializers
 
@@ -380,7 +382,7 @@ class DiskEncryptionFleetSerializer(serializers.ModelSerializer):
     def get_state(self, obj) -> str:
         return derivar_estado(obj)
 
-    def get_supported(self, obj) -> bool:
+    def get_supported(self, obj) -> Optional[bool]:
         estado = getattr(obj, "disk_encryption", None)
         # Un equipo que nunca reportó no es "soportado" ni "no soportado": no
         # sabemos. El nulo lo dice; un `True` por omisión afirmaría de más.
