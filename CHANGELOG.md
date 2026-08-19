@@ -8,6 +8,15 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.13 — 2026-08-18
+
+- **Nuevo panel de cifrado de disco para la flota Windows.** Una vista dedicada muestra, equipo por equipo, si el disco del sistema está cifrado con BitLocker. Se filtra por estado, por cliente y por sitio, así que ver "cuántos equipos de este cliente están sin cifrar" es una sola pantalla en lugar de una auditoría manual.
+- **Cuatro estados que no se confunden.** El panel distingue *cifrado*, *sin cifrar*, *no compatible* y *sin dato*, cada uno con su color. Un equipo del que todavía no hay lectura **no** aparece como incumplidor: "sin dato" y "sin cifrar" son cosas distintas, y mezclarlas marcaría como riesgo a un equipo del que simplemente no se sabe nada aún.
+- **Detalle por equipo, dentro de su ficha.** En la pestaña de activos, cada equipo Windows suma el estado de cifrado **por volumen** —método, porcentaje, protección y tipo de protectores—, la fecha de la última medición y el historial de cambios, para leer no sólo *cómo está* sino *desde cuándo*.
+- **Botón para volver a medir.** Pide al equipo una lectura nueva del estado de cifrado; si está fuera de línea, la consola lo avisa y no manda el comando en vano. El dato se actualiza cuando el equipo vuelve a reportar.
+- **Sin exponer material sensible.** El producto guarda y muestra el *estado* del cifrado —cantidad y tipo de protectores—, nunca claves ni contraseñas de recuperación.
+- Acompaña al **agente 2.15.33**. Contra un agente anterior, el estado de cifrado aparece como "sin dato" hasta que el equipo actualice; el resto del producto se comporta igual que en la 1.4.12.
+
 ## v1.4.12 — 2026-08-16
 
 - **El modo perdido ya captura la pantalla en Linux con Wayland (GNOME y KDE).** En los escritorios modernos, un caso no lograba sacar la captura de pantalla aunque el equipo lo permitía: la imagen se tomaba pero se daba por perdida. Con el **agente 2.15.28** eso queda resuelto, y en KDE se acabó además la falsa «pantalla en negro» que se leía como avería. La foto de cámara ya funcionaba antes; ahora la pantalla también.
