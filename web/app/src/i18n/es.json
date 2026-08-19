@@ -73,6 +73,7 @@
     "clearCache": "Limpiar caché",
     "recoverAllAgents": "Recuperar todos los agentes",
     "lostEquipment": "Equipos perdidos",
+    "diskEncryption": "Cifrado de disco",
     "reportingManager": "Gestor de reportes",
     "documentation": "Documentación",
     "githubRepo": "Repositorio GitHub",
@@ -662,7 +663,8 @@
       "networkConfig": "Configuración de red",
       "graphics": "Gráficos",
       "desktopMonitor": "Monitores",
-      "networkAdapter": "Adaptadores de red"
+      "networkAdapter": "Adaptadores de red",
+      "encryption": "Cifrado"
     },
     "debug": "Depuración",
     "audit": "Auditoría",
@@ -3008,6 +3010,83 @@
       "reason_camara_sin_imagen": "La cámara no dio imagen (tapa puesta, oscuridad o controlador)",
       "reason_permiso_denegado_camara": "El sistema no concede el permiso de cámara",
       "reason_so_no_soportado_camara": "Este sistema operativo no toma fotos con la cámara"
+    }
+  },
+  "diskEncryption": {
+    "title": "Cifrado de disco",
+    "refresh": "Actualizar",
+    "loading": "Cargando…",
+    "noData": "No hay equipos que mostrar.",
+    "windowsOnlyNotice": "Este panel cubre sólo equipos Windows: es la única plataforma que reporta cifrado en esta fase. Los equipos macOS y Linux no aparecen acá.",
+    "filterState": "Estado",
+    "filterClient": "Cliente",
+    "filterSite": "Sitio",
+    "colHostname": "Equipo",
+    "colClient": "Cliente",
+    "colSite": "Sitio",
+    "colState": "Estado",
+    "colMethod": "Método (volumen de sistema)",
+    "colMeasuredAt": "Última medición",
+    "state": {
+      "encrypted": "Cifrado",
+      "unencrypted": "Sin cifrar",
+      "unsupported": "No compatible",
+      "no_data": "Sin dato"
+    },
+    "detailTitle": "Cifrado de disco",
+    "lastMeasured": "Última medición: {when}",
+    "refreshAgent": "Volver a medir",
+    "refreshAgentTooltip": "Le pide al agente que vuelva a leer el estado de cifrado.",
+    "refreshRequested": "Se pidió al equipo volver a medir. El dato se actualizará cuando el agente reporte.",
+    "agentOffline": "El equipo está fuera de línea: no se envió el comando.",
+    "notSupported": "Este equipo no ofrece BitLocker o no expone el proveedor de cifrado de WMI.",
+    "queryError": "No se pudo leer el estado de cifrado: {error}",
+    "neverReported": "Este equipo todavía no ha reportado su estado de cifrado.",
+    "noVolumes": "El equipo no reportó volúmenes cifrables.",
+    "systemVolumeYes": "Sistema",
+    "historyTitle": "Registro de cambios",
+    "volDrive": "Unidad",
+    "volSystem": "Sistema",
+    "volProtection": "Protección",
+    "volConversion": "Conversión",
+    "volMethod": "Método",
+    "volPercent": "Cifrado",
+    "volType": "Tipo",
+    "volProtectors": "Protectores",
+    "volProtectorTypes": "Tipos de protector",
+    "volMeasuredAt": "Medido el",
+    "histColDevice": "Volumen",
+    "histColFrom": "Antes",
+    "histColTo": "Después",
+    "histColWhen": "Cuándo",
+    "codeUnknown": "Código {code}",
+    "protection": {
+      "0": "Apagada",
+      "1": "Encendida",
+      "2": "Desconocida"
+    },
+    "conversion": {
+      "0": "Descifrado",
+      "1": "Cifrado",
+      "2": "Cifrando",
+      "3": "Descifrando",
+      "4": "Cifrado en pausa",
+      "5": "Descifrado en pausa"
+    },
+    "method": {
+      "0": "Ninguno",
+      "1": "AES-128 con difusor",
+      "2": "AES-256 con difusor",
+      "3": "AES-128",
+      "4": "AES-256",
+      "5": "Cifrado por hardware",
+      "6": "XTS-AES-128",
+      "7": "XTS-AES-256"
+    },
+    "volumeType": {
+      "0": "Volumen de sistema",
+      "1": "Datos fijos",
+      "2": "Datos extraíbles"
     }
   }
 }

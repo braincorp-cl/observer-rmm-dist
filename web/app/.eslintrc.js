@@ -151,6 +151,13 @@ module.exports = {
         // código y la consola lo redacta, que es lo mismo que hace
         // `endpointResponse.codes` con las respuestas de la 028.
         "src/components/agents/LostCaseTimelineDialog.vue",
+        // Feature 037 · cifrado de disco (Fase 3, la consola). El panel de flota
+        // y el detalle por agente nacen traducidos, con namespace propio
+        // (diskEncryption.*) y los códigos crudos de WMI redactados por clave
+        // (method.<n>, conversion.<n>, ...): el agente manda el número y la
+        // consola lo lee, igual que endpointResponse.codes con la 028.
+        "src/views/DiskEncryptionView.vue",
+        "src/components/agents/DiskEncryptionDetail.vue",
         "src/components/modals/admin/UserForm.vue",
         "src/components/modals/admin/UserResetPasswordForm.vue",
         // Ola 8a: widgets compartidos ui/ (2 sin texto entran limpios al gate).

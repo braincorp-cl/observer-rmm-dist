@@ -26,6 +26,17 @@ const routes = [
         },
       },
       {
+        // Feature 037 · panel de cumplimiento de cifrado, hermano del Dashboard
+        // y de Equipos perdidos. Es una vista de flota que se comparte por URL,
+        // no un diálogo.
+        path: "disk-encryption",
+        name: "DiskEncryption",
+        component: () => import("@/views/DiskEncryptionView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         path: "",
         name: "Dashboard",
         component: () => import("@/views/DashboardView.vue"),

@@ -38,6 +38,8 @@
         name="network_adapter"
         :label="$t('agentTabs.assets.networkAdapter')"
       />
+      <!-- Feature 037 · el cifrado es un activo del equipo, junto al resto. -->
+      <q-tab name="encryption" :label="$t('agentTabs.assets.encryption')" />
     </q-tabs>
 
     <q-separator />
@@ -82,6 +84,13 @@
       <q-tab-panel name="network_adapter">
         <WmiDetail :info="assets.network_adapter" />
       </q-tab-panel>
+      <q-tab-panel name="encryption">
+        <DiskEncryptionDetail
+          v-if="selectedAgent"
+          :agent-id="selectedAgent"
+          :status="agentStatus"
+        />
+      </q-tab-panel>
     </q-tab-panels>
   </div>
 </template>
@@ -94,10 +103,11 @@ import { fetchAgent } from "@/api/agents";
 
 // ui imports
 import WmiDetail from "@/components/agents/WmiDetail.vue";
+import DiskEncryptionDetail from "@/components/agents/DiskEncryptionDetail.vue";
 
 export default {
   name: "AssetsTab",
-  components: { WmiDetail },
+  components: { WmiDetail, DiskEncryptionDetail },
   setup() {
     // setup vuex
     const store = useStore();
@@ -108,11 +118,16 @@ export default {
     // assets tab logic
     const assets = ref({});
     const tab = ref("os");
+    // Feature 037: el estado de última señal del agente lo lee el detalle de
+    // cifrado para no mandar el refresco a un equipo fuera de línea. Sale del
+    // mismo `fetchAgent` que ya trae los activos, sin una segunda llamada.
+    const agentStatus = ref("");
 
     async function getWMIData() {
       loading.value = true;
-      const { wmi_detail } = await fetchAgent(selectedAgent.value);
-      assets.value = wmi_detail;
+      const agent = await fetchAgent(selectedAgent.value);
+      assets.value = agent?.wmi_detail ?? {};
+      agentStatus.value = agent?.status ?? "";
       loading.value = false;
     }
 
@@ -132,6 +147,7 @@ export default {
       tab,
       selectedAgent,
       agentPlatform,
+      agentStatus,
     };
   },
 };

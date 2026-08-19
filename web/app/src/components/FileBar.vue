@@ -162,6 +162,12 @@
               <q-item clickable v-close-popup :to="{ name: 'LostEquipment' }">
                 <q-item-section>{{ $t("nav.lostEquipment") }}</q-item-section>
               </q-item>
+              <!-- panel de cifrado de disco (feature 037) -->
+              <q-item clickable v-close-popup :to="{ name: 'DiskEncryption' }">
+                <q-item-section>{{
+                  $t("nav.diskEncryption")
+                }}</q-item-section>
+              </q-item>
               <q-separator />
               <!-- server maintenance -->
               <q-item

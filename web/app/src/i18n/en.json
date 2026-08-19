@@ -73,6 +73,7 @@
     "clearCache": "Clear Cache",
     "recoverAllAgents": "Recover All Agents",
     "lostEquipment": "Lost devices",
+    "diskEncryption": "Disk encryption",
     "reportingManager": "Reporting Manager",
     "documentation": "Documentation",
     "githubRepo": "GitHub Repo",
@@ -662,7 +663,8 @@
       "networkConfig": "Network Config",
       "graphics": "Graphics",
       "desktopMonitor": "Monitors",
-      "networkAdapter": "Network Adapters"
+      "networkAdapter": "Network Adapters",
+      "encryption": "Encryption"
     },
     "debug": "Debug",
     "audit": "Audit",
@@ -3008,6 +3010,83 @@
       "reason_camara_sin_imagen": "The camera returned no image (cover on, darkness, or driver)",
       "reason_permiso_denegado_camara": "The system won't grant camera permission",
       "reason_so_no_soportado_camara": "This operating system cannot take camera photos"
+    }
+  },
+  "diskEncryption": {
+    "title": "Disk encryption",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "noData": "No endpoints to show.",
+    "windowsOnlyNotice": "This panel covers Windows endpoints only: it is the only platform that reports encryption in this phase. macOS and Linux endpoints do not appear here.",
+    "filterState": "State",
+    "filterClient": "Client",
+    "filterSite": "Site",
+    "colHostname": "Endpoint",
+    "colClient": "Client",
+    "colSite": "Site",
+    "colState": "State",
+    "colMethod": "Method (system volume)",
+    "colMeasuredAt": "Last measured",
+    "state": {
+      "encrypted": "Encrypted",
+      "unencrypted": "Not encrypted",
+      "unsupported": "Not supported",
+      "no_data": "No data"
+    },
+    "detailTitle": "Disk encryption",
+    "lastMeasured": "Last measured: {when}",
+    "refreshAgent": "Re-measure",
+    "refreshAgentTooltip": "Asks the agent to re-read the encryption state.",
+    "refreshRequested": "The endpoint was asked to re-measure. The data will update once the agent reports.",
+    "agentOffline": "The endpoint is offline: the command was not sent.",
+    "notSupported": "This endpoint does not offer BitLocker or does not expose the WMI encryption provider.",
+    "queryError": "Could not read the encryption state: {error}",
+    "neverReported": "This endpoint has not reported its encryption state yet.",
+    "noVolumes": "The endpoint reported no encryptable volumes.",
+    "systemVolumeYes": "System",
+    "historyTitle": "Change log",
+    "volDrive": "Drive",
+    "volSystem": "System",
+    "volProtection": "Protection",
+    "volConversion": "Conversion",
+    "volMethod": "Method",
+    "volPercent": "Encrypted",
+    "volType": "Type",
+    "volProtectors": "Protectors",
+    "volProtectorTypes": "Protector types",
+    "volMeasuredAt": "Measured at",
+    "histColDevice": "Volume",
+    "histColFrom": "Before",
+    "histColTo": "After",
+    "histColWhen": "When",
+    "codeUnknown": "Code {code}",
+    "protection": {
+      "0": "Off",
+      "1": "On",
+      "2": "Unknown"
+    },
+    "conversion": {
+      "0": "Fully decrypted",
+      "1": "Fully encrypted",
+      "2": "Encryption in progress",
+      "3": "Decryption in progress",
+      "4": "Encryption paused",
+      "5": "Decryption paused"
+    },
+    "method": {
+      "0": "None",
+      "1": "AES-128 with Diffuser",
+      "2": "AES-256 with Diffuser",
+      "3": "AES-128",
+      "4": "AES-256",
+      "5": "Hardware encryption",
+      "6": "XTS-AES-128",
+      "7": "XTS-AES-256"
+    },
+    "volumeType": {
+      "0": "System volume",
+      "1": "Fixed data",
+      "2": "Removable data"
     }
   }
 }
