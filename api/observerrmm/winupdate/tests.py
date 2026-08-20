@@ -215,3 +215,29 @@ class WinupdateTasks(ObserverTestCase):
     #     winupdates = WinUpdate.objects.all()
     #     for update in winupdates:
     #         self.assertEqual(update.action, "approve")
+
+    def test_approve_updates_preserves_manual_ignore(self):
+        # a KB manually set to "ignore" by the operator must survive
+        # Agent.approve_updates() even if its severity is auto-approved by
+        # policy -- regression test for the bug fixed in
+        # agents.models.Agent.approve_updates() (the exclude() only covered
+        # action="approve", not action="ignore", so a manually-ignored patch
+        # got silently flipped back to "approve" on the next run)
+        from .models import WinUpdatePolicy
+
+        agent = self.online_agents[0]
+        WinUpdatePolicy.objects.create(agent=agent, critical="approve")
+
+        pending = baker.make_recipe(
+            "winupdate.winupdate", agent=agent, severity="Critical", action="nothing"
+        )
+        ignored = baker.make_recipe(
+            "winupdate.winupdate", agent=agent, severity="Critical", action="ignore"
+        )
+
+        agent.approve_updates()
+
+        pending.refresh_from_db()
+        ignored.refresh_from_db()
+        self.assertEqual(pending.action, "approve")
+        self.assertEqual(ignored.action, "ignore")

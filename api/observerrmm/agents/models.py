@@ -749,7 +749,7 @@ class Agent(BaseAuditModel):
             severity_list.append("")
 
         self.winupdates.filter(severity__in=severity_list, installed=False).exclude(
-            action="approve"
+            action__in=["approve", "ignore"]
         ).update(action="approve")
 
     # returns agent policy merged with a client or site specific policy
