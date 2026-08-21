@@ -8,6 +8,16 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.14 — 2026-08-20
+
+- **Cascada automática de contramedidas al marcar un equipo perdido o robado.** Marcar un equipo ya no es sólo "empezar a mirar dónde está": según la configuración, encadena solo el bloqueo de pantalla, el encendido de la cámara, la no-hibernación del equipo y —si se pidió— la alarma. Antes esas acciones se disparaban a mano, una por una, desde otra pantalla.
+- **Configuración en tres niveles con precedencia clara.** Cada contramedida se decide en el nivel **global** (Configuración), **por equipo** (la ficha del equipo) o **por caso** (el diálogo de marcar). La precedencia es *caso > equipo > global*, y cada control tiene tres estados —Heredar, Activar, Desactivar—; la ficha muestra qué valor se hereda hoy, así que "Heredar" nunca es una caja negra.
+- **Bloqueo silencioso y diferido.** El bloqueo de pantalla espera una ventana configurable mientras se recolecta evidencia y recién entonces bloquea; recuperar el equipo dentro de esa ventana lo cancela. Un `0` bloquea de inmediato.
+- **Override de cámara por caso.** Un equipo perdido puede forzar la captura de cámara aunque el interruptor global esté apagado. Vale sólo dentro del caso activo y queda auditado con el motivo del marcaje.
+- **No-hibernación con revert limpio (Windows).** Mientras el equipo está perdido se evita que se suspenda o hiberne; al recuperar, el esquema de energía vuelve exactamente al que tenía antes. Ninguna contramedida queda pegada tras la recuperación.
+- **Todo queda en la auditoría.** Cada cascada disparada se registra con la configuración resuelta —qué se encendió sobre la persona que tiene el equipo— junto al motivo del caso y a quién lo marcó.
+- Acompaña al **agente 2.16.0**, que ejecuta las contramedidas en el equipo (bloqueo diferido, cámara y no-hibernación en Windows). Contra un agente anterior, el marcaje abre el caso y recolecta evidencia igual, pero las contramedidas nuevas no se aplican hasta que el equipo actualice. La cascada de bloqueo y no-hibernación es sólo Windows en esta versión.
+
 ## v1.4.13 — 2026-08-18
 
 - **Nuevo panel de cifrado de disco para la flota Windows.** Una vista dedicada muestra, equipo por equipo, si el disco del sistema está cifrado con BitLocker. Se filtra por estado, por cliente y por sitio, así que ver "cuántos equipos de este cliente están sin cifrar" es una sola pantalla en lugar de una auditoría manual.
