@@ -147,3 +147,88 @@ class TestMarcarConOverridesDeCascada(ObserverTestCase):
         self.assertTrue(r.data["cascade"]["alarm"])
         self.assertEqual(r.data["cascade"]["lock_delay_min"], 0)
         self.assertFalse(r.data["cascade"]["webcam_override"])
+
+
+class TestPoliticaPorEquipo(ObserverTestCase):
+    """Feature 038 · T008: los defaults de la cascada POR EQUIPO (GET/PUT).
+
+    El nivel de equipo es el intermedio: pisa al global campo a campo y el caso
+    lo pisa a él. Lo que puede romperse en silencio y se prueba acá: que un PUT
+    que deja todo en "heredar" NO deje una fila vacía en la BD (invariante del
+    modelo), que un override sí cree/actualice la fila, y que el GET muestre la
+    cascada resuelta para que la UI sepa qué se hereda.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.agent = baker.make_recipe("agents.online_agent")
+        self.url = f"/agents/{self.agent.agent_id}/lostmode/policy/"
+
+    def test_get_sin_politica_hereda_todo(self):
+        """Sin fila, los overrides salen en NULO y `resolved` es el global."""
+        cs = get_core_settings()
+        cs.lost_mode_alarm_enabled = True
+        cs.lost_mode_lock_delay_min = 9
+        cs.save()
+
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertIsNone(r.data["policy"]["alarm"])
+        self.assertIsNone(r.data["policy"]["lock_delay_min"])
+        # `resolved` refleja el global cuando no hay override de equipo.
+        self.assertTrue(r.data["resolved"]["alarm"])
+        self.assertEqual(r.data["resolved"]["lock_delay_min"], 9)
+
+    def test_put_crea_fila_y_pisa_al_global(self):
+        cs = get_core_settings()
+        cs.lost_mode_alarm_enabled = False
+        cs.save()
+
+        r = self.client.put(
+            self.url,
+            {"alarm": True, "lock_delay_min": 15},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200)
+
+        policy = LostModePolicy.objects.get(agent=self.agent)
+        self.assertTrue(policy.alarm)
+        self.assertEqual(policy.lock_delay_min, 15)
+        # Lo NO enviado queda NULO = heredar.
+        self.assertIsNone(policy.auto_lock)
+        self.assertIsNone(policy.no_hibernate)
+        # `resolved` ya muestra el valor del equipo pisando al global.
+        self.assertTrue(r.data["resolved"]["alarm"])
+        self.assertEqual(r.data["resolved"]["lock_delay_min"], 15)
+
+    def test_put_todo_heredado_borra_la_fila(self):
+        """Un PUT que deja todo en NULO no debe dejar una fila vacía."""
+        LostModePolicy.objects.create(agent=self.agent, alarm=True)
+
+        r = self.client.put(self.url, {}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(LostModePolicy.objects.filter(agent=self.agent).exists())
+
+    def test_put_delay_fuera_de_rango_es_400(self):
+        r = self.client.put(self.url, {"lock_delay_min": 999}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(LostModePolicy.objects.filter(agent=self.agent).exists())
+
+    def test_put_con_equipo_perdido_reempuja(self):
+        """Si el equipo está perdido, cambiar la política re-empuja la cascada."""
+        from unittest.mock import patch
+
+        LostModeState.objects.create(
+            agent=self.agent,
+            active=True,
+            reason="robo",
+            interval_min=5,
+            marked_at=timezone.now(),
+        )
+
+        with patch("agents.models.Agent.nats_cmd", return_value="ok") as nats:
+            r = self.client.put(self.url, {"no_hibernate": True}, format="json")
+
+        self.assertEqual(r.status_code, 200)
+        nats.assert_called_once()

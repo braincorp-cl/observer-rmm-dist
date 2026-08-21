@@ -84,6 +84,7 @@ from .models import (
     AgentHistory,
     DiskEncryptionVolume,
     LostModeEvidence,
+    LostModePolicy,
     LostModeState,
     Note,
 )
@@ -120,6 +121,7 @@ from .serializers import (
     DiskEncryptionHistorySerializer,
     DiskEncryptionVolumeSerializer,
     LostModeEvidenceSerializer,
+    LostModePolicySerializer,
     LostModeStateSerializer,
 )
 from .tasks import (
@@ -1084,6 +1086,80 @@ class LostMode(APIView):
         return Response(
             {"status": "ok", "nats_delivered": _push_lost_mode(agent, state)}
         )
+
+
+class LostModePolicyView(APIView):
+    """Feature 038 · T008: los defaults de la cascada POR EQUIPO.
+
+    Nivel intermedio de precedencia (equipo) entre el global (`CoreSettings`) y
+    el caso concreto (`LostModeState`). Cada campo es NULO = "heredar del global"
+    o un valor que pisa al global para este equipo.
+
+    La fila `LostModePolicy` sólo existe si el equipo tiene algún override: si el
+    PUT deja todo en "heredar", la fila se BORRA en vez de quedar con todos los
+    campos nulos, para no ensuciar la BD con una fila que no dice nada (invariante
+    del modelo). GET sin fila = todo heredado, se devuelve el molde vacío.
+    """
+
+    permission_classes = [IsAuthenticated, ManageLostModePerms]
+
+    # Campos de override que edita la ficha; coinciden 1:1 con LostModePolicy.
+    _FIELDS = (
+        "auto_lock",
+        "lock_delay_min",
+        "no_hibernate",
+        "webcam_override",
+        "alarm",
+    )
+
+    def _payload(self, agent: "Agent") -> dict:
+        """Overrides del equipo + la cascada RESUELTA (equipo>global, sin caso).
+
+        La resolución la calcula el único dueño de la precedencia
+        (`resolve_lost_mode_cascade`, W002): la UI la muestra como el valor que
+        rige cuando un campo queda en "heredar", sin recalcularla de su lado.
+        """
+        policy = LostModePolicy.objects.filter(agent=agent).first()
+        overrides = (
+            LostModePolicySerializer(policy).data
+            if policy
+            else {f: None for f in self._FIELDS}
+        )
+        resolved = resolve_lost_mode_cascade(agent, state=None)
+        return {"policy": overrides, "resolved": dataclasses.asdict(resolved)}
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        return Response(self._payload(agent))
+
+    def put(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        # `partial=False` a propósito: la ficha manda el juego completo de
+        # controles tri-estado, así que un campo ausente es una decisión de
+        # "heredar" (nulo), no un "no lo toques".
+        serializer = LostModePolicySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        overrides = {f: data.get(f) for f in self._FIELDS}
+
+        if all(v is None for v in overrides.values()):
+            # Todo heredado: la fila no aporta nada. Borrarla mantiene el
+            # invariante "existe sólo si hay override".
+            LostModePolicy.objects.filter(agent=agent).delete()
+        else:
+            LostModePolicy.objects.update_or_create(agent=agent, defaults=overrides)
+
+        # Si el equipo está perdido AHORA MISMO, la nueva política cambia la
+        # cascada resuelta: se re-empuja best-effort para que el efecto no espere
+        # al próximo polling de config. Igual que el resto del modo perdido, la BD
+        # ya quedó firme y un push fallido no es un error (equipo incomunicado).
+        state = LostModeState.objects.filter(agent=agent, active=True).first()
+        if state is not None:
+            _push_lost_mode(agent, state)
+
+        return Response(self._payload(agent))
 
 
 class LostModeList(APIView):

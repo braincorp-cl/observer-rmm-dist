@@ -33,6 +33,27 @@ export async function recoverAgent(agent_id) {
   return data;
 }
 
+// Feature 038 · T008 · defaults de la cascada POR EQUIPO.
+//
+// Nivel intermedio de precedencia entre el global (core-settings) y el caso
+// concreto (el modal de marcar). Cada campo es `null` = "heredar del global" o
+// un valor que lo pisa para este equipo. El GET devuelve `{policy, resolved}`:
+// `policy` son los overrides editables y `resolved` la cascada que hoy rige
+// (equipo>global, sin caso), para que la UI muestre lo heredado. El PUT que deja
+// todo en "heredar" borra la fila en el servidor; acá no hay nada que manejar.
+export async function fetchLostModePolicy(agent_id) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/lostmode/policy/`);
+  return data;
+}
+
+export async function saveLostModePolicy(agent_id, payload) {
+  const { data } = await axios.put(
+    `${baseUrl}/${agent_id}/lostmode/policy/`,
+    payload,
+  );
+  return data;
+}
+
 // Feature 030 · Fase 1 · la línea de tiempo del caso.
 //
 // Devuelve `{state, evidence}`: el caso (motivo, quién lo abrió, cadencia) y sus

@@ -18,6 +18,7 @@ from .models import (
     DiskEncryptionHistory,
     DiskEncryptionVolume,
     LostModeEvidence,
+    LostModePolicy,
     LostModeState,
     Note,
 )
@@ -273,6 +274,27 @@ class LostModeStateSerializer(serializers.ModelSerializer):
             "marked_at",
             "recovered_at",
             "interval_min",
+        )
+
+
+class LostModePolicySerializer(serializers.ModelSerializer):
+    """Feature 038: los defaults de la cascada POR EQUIPO (nivel intermedio).
+
+    Cada campo es NULO = "heredar del global" o un valor que pisa al global para
+    este equipo. La UI de la ficha edita exactamente estos overrides; el caso
+    concreto puede a su vez pisarlos al marcar. NO expone el valor resuelto: eso
+    lo calcula `resolve_lost_mode_cascade()`, único dueño de la precedencia (W002),
+    y la vista lo adjunta aparte para que la UI muestre lo heredado.
+    """
+
+    class Meta:
+        model = LostModePolicy
+        fields = (
+            "auto_lock",
+            "lock_delay_min",
+            "no_hibernate",
+            "webcam_override",
+            "alarm",
         )
 
 

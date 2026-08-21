@@ -66,7 +66,9 @@
                   <q-item-section avatar>
                     <q-icon name="lock" size="xs" />
                   </q-item-section>
-                  <q-item-section>{{ $t("endpointResponse.lock") }}</q-item-section>
+                  <q-item-section>{{
+                    $t("endpointResponse.lock")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item clickable @click="showAlertModal(props.row)">
@@ -82,7 +84,9 @@
                   <q-item-section avatar>
                     <q-icon name="volume_up" size="xs" />
                   </q-item-section>
-                  <q-item-section>{{ $t("endpointResponse.alarm") }}</q-item-section>
+                  <q-item-section>{{
+                    $t("endpointResponse.alarm")
+                  }}</q-item-section>
                 </q-item>
 
                 <q-item clickable @click="stopAlarm(props.row)">
@@ -104,6 +108,21 @@
                   </q-item-section>
                   <q-item-section>{{
                     $t("lostEquipment.exportCase")
+                  }}</q-item-section>
+                </q-item>
+
+                <q-separator />
+
+                <!-- Feature 038 · T008 · los defaults de la cascada POR EQUIPO:
+                     el nivel intermedio de precedencia entre el global y el
+                     caso. Se edita desde acá porque es una propiedad del equipo
+                     del caso, no del caso en sí. -->
+                <q-item clickable @click="openPolicy(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="tune" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("lostEquipment.policyMenu")
                   }}</q-item-section>
                 </q-item>
               </q-list>
@@ -270,6 +289,98 @@
       </q-card>
     </q-dialog>
 
+    <!--
+      Feature 038 · T008: los defaults de la cascada POR EQUIPO. Mismos controles
+      tri-estado que el modal de marcar, pero un nivel más abajo en la
+      precedencia: "Heredar" acá deja mandar al global, y el caso concreto puede
+      pisar esto al marcar. El texto de cada control muestra qué se hereda hoy
+      (`policyResolved`), para que "Heredar" no sea una caja negra.
+    -->
+    <q-dialog v-model="policyDialog" persistent>
+      <q-card style="min-width: 440px">
+        <q-card-section class="text-subtitle1 text-bold">
+          {{ $t("lostEquipment.policyTitle") }}
+          <div class="text-caption text-grey-7">
+            {{ policyTarget?.hostname }}
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none text-body2 text-grey-8">
+          {{ $t("lostEquipment.policyCaption") }}
+        </q-card-section>
+
+        <q-card-section class="q-pt-none q-gutter-sm">
+          <q-select
+            dense
+            filled
+            emit-value
+            map-options
+            v-model="policyForm.auto_lock"
+            :options="triOptions"
+            :label="$t('lostEquipment.cascadeAutoLock')"
+            :hint="inheritedHint('auto_lock')"
+          />
+          <q-input
+            dense
+            filled
+            type="number"
+            v-model.number="policyForm.lock_delay_min"
+            :label="$t('lostEquipment.cascadeLockDelay')"
+            :hint="
+              $t('lostEquipment.policyDelayHint', {
+                value: policyResolved.lock_delay_min,
+              })
+            "
+            :min="0"
+            :max="60"
+          />
+          <q-select
+            dense
+            filled
+            emit-value
+            map-options
+            v-model="policyForm.no_hibernate"
+            :options="triOptions"
+            :label="$t('lostEquipment.cascadeNoHibernate')"
+            :hint="inheritedHint('no_hibernate')"
+          />
+          <q-select
+            dense
+            filled
+            emit-value
+            map-options
+            v-model="policyForm.webcam_override"
+            :options="triOptions"
+            :label="$t('lostEquipment.cascadeWebcamOverride')"
+            :hint="inheritedHint('webcam_override')"
+          />
+          <q-select
+            dense
+            filled
+            emit-value
+            map-options
+            v-model="policyForm.alarm"
+            :options="triOptions"
+            :label="$t('lostEquipment.cascadeAlarm')"
+            :hint="inheritedHint('alarm')"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat :label="$t('lostEquipment.cancel')" v-close-popup />
+          <q-btn
+            flat
+            color="primary"
+            :loading="savingPolicy"
+            :label="$t('lostEquipment.policySave')"
+            @click="submitPolicy"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <ConfirmDialog
       v-model="recoverDialog"
       type="confirm"
@@ -321,8 +432,10 @@ import { fetchAgents, agentLockScreen, agentStopAlarm } from "@/api/agents";
 import {
   exportLostCase,
   fetchLostEquipment,
+  fetchLostModePolicy,
   markAgentLost,
   recoverAgent,
+  saveLostModePolicy,
 } from "@/api/lostmode";
 import { notifySuccess, notifyWarning } from "@/utils/notify";
 import { formatDate } from "@/utils/format";
@@ -382,6 +495,22 @@ export default {
       reason: "",
       interval_min: DEFAULT_INTERVAL_MIN,
       cascade: emptyCascade(),
+    });
+
+    // Feature 038 · T008: los defaults de la cascada POR EQUIPO. `policyForm`
+    // son los overrides editables (mismo molde tri-estado que el caso) y
+    // `policyResolved` la cascada que hoy rige por herencia (equipo>global), que
+    // el diálogo muestra como pista de qué significa "Heredar" en cada control.
+    const policyDialog = ref(false);
+    const savingPolicy = ref(false);
+    const policyTarget = ref(null);
+    const policyForm = ref(emptyCascade());
+    const policyResolved = ref({
+      auto_lock: false,
+      lock_delay_min: 0,
+      no_hibernate: false,
+      webcam_override: false,
+      alarm: false,
     });
 
     const columns = [
@@ -623,6 +752,73 @@ export default {
       $q.loading.hide();
     }
 
+    // Feature 038 · T008: abre el diálogo de política del equipo.
+    //
+    // Carga los overrides guardados y la cascada resuelta ANTES de mostrar el
+    // diálogo, para que no aparezca con el molde vacío y luego salte a los
+    // valores reales. Un equipo sin fila de política vuelve todo en `null`
+    // (heredar), que es exactamente el molde vacío.
+    async function openPolicy(row) {
+      policyTarget.value = row;
+      $q.loading.show();
+      try {
+        const data = await fetchLostModePolicy(row.agent_id);
+        policyForm.value = { ...emptyCascade(), ...(data?.policy ?? {}) };
+        if (data?.resolved) {
+          policyResolved.value = data.resolved;
+        }
+        policyDialog.value = true;
+      } catch (e) {
+        console.error(e);
+      } finally {
+        $q.loading.hide();
+      }
+    }
+
+    // Pista de "qué se hereda hoy" para un control booleano: el valor que rige
+    // cuando el override queda en "Heredar". El delay tiene su propia pista con
+    // el número, así que no pasa por acá.
+    function inheritedHint(field) {
+      const estado = policyResolved.value[field]
+        ? t("lostEquipment.cascadeEnable")
+        : t("lostEquipment.cascadeDisable");
+      return t("lostEquipment.policyInheritedHint", { value: estado });
+    }
+
+    async function submitPolicy() {
+      savingPolicy.value = true;
+      try {
+        // El delay vacío tiene que salir como `null` = heredar, NO como cadena
+        // vacía: `v-model.number` sobre un input en blanco deja `""`, y el
+        // serializer del backend rechaza `""` como entero (400). Lo demás ya es
+        // booleano o `null`.
+        const delay = policyForm.value.lock_delay_min;
+        const payload = {
+          ...policyForm.value,
+          lock_delay_min: delay === "" || delay == null ? null : delay,
+        };
+
+        // El servidor interpreta `null` = heredar y, si todo queda heredado,
+        // borra la fila. Devuelve `{policy, resolved}` ya reconciliado, con lo
+        // que se refresca la pista de herencia sin un segundo viaje.
+        const data = await saveLostModePolicy(
+          policyTarget.value.agent_id,
+          payload,
+        );
+        if (data?.resolved) {
+          policyResolved.value = data.resolved;
+        }
+        policyDialog.value = false;
+        notifySuccess(
+          t("lostEquipment.policySaved", {
+            hostname: policyTarget.value.hostname,
+          }),
+        );
+      } finally {
+        savingPolicy.value = false;
+      }
+    }
+
     async function doRecover() {
       await recoverAgent(pending.value.agent_id);
       notifySuccess(
@@ -649,6 +845,11 @@ export default {
       form,
       triOptions,
       agentOptions,
+      policyDialog,
+      savingPolicy,
+      policyTarget,
+      policyForm,
+      policyResolved,
       load,
       openMark,
       filterAgents,
@@ -656,6 +857,9 @@ export default {
       openTimeline,
       askRecover,
       doRecover,
+      openPolicy,
+      submitPolicy,
+      inheritedHint,
       lockScreen,
       showAlertModal,
       soundAlarm,

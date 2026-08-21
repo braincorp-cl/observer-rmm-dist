@@ -41,6 +41,9 @@ urlpatterns = [
     # modo perdido/robado (feature 030)
     # POST marca el equipo como perdido, DELETE lo da por recuperado
     path("<agent:agent_id>/lostmode/", views.LostMode.as_view()),
+    # Feature 038 · T008: defaults de la cascada POR EQUIPO (GET/PUT). Nivel
+    # intermedio de precedencia entre el global (core-settings) y el caso (modal).
+    path("<agent:agent_id>/lostmode/policy/", views.LostModePolicyView.as_view()),
     path("lostmode/", views.LostModeList.as_view()),
     # Feature 030 · Fase 1: la línea de tiempo del caso y la descarga de cada
     # pieza. La descarga pasa por la vista —y no por una URL del almacenamiento—

@@ -2998,6 +2998,13 @@
     "cancel": "Cancel",
     "exportCase": "Export case (PDF)",
     "exported": "The case for {hostname} was downloaded. If the exporter lacks permission to view visual evidence, the document ships without images and says so on the cover.",
+    "policyMenu": "Device policy",
+    "policyTitle": "Device default countermeasures",
+    "policyCaption": "These values apply when a case leaves a countermeasure on \"Inherit\". They in turn override the global value, and the specific case can override them when marking. \"Inherit\" here defers to the global configuration.",
+    "policyInheritedHint": "Inherited today: {value}",
+    "policyDelayHint": "Empty = inherit (currently {value} min). 0 locks immediately; higher collects more evidence first.",
+    "policySave": "Save policy",
+    "policySaved": "Cascade policy for {hostname} was saved.",
     "timeline": {
       "title": "{hostname} case",
       "close": "Close",

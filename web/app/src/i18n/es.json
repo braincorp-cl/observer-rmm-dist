@@ -2998,6 +2998,13 @@
     "cancel": "Cancelar",
     "exportCase": "Exportar el caso (PDF)",
     "exported": "Se descargó el caso de {hostname}. Si quien exporta no tiene permiso para ver evidencia visual, el documento sale sin imágenes y lo dice en la portada.",
+    "policyMenu": "Política del equipo",
+    "policyTitle": "Contramedidas por defecto del equipo",
+    "policyCaption": "Estos valores rigen cuando un caso deja la contramedida en \"Heredar\". A su vez pisan al valor global, y el caso concreto puede pisarlos al marcar. \"Heredar\" acá deja mandar a la configuración global.",
+    "policyInheritedHint": "Heredado hoy: {value}",
+    "policyDelayHint": "Vacío = heredar (hoy {value} min). 0 bloquea de inmediato; más alto recolecta más evidencia antes.",
+    "policySave": "Guardar política",
+    "policySaved": "Se guardó la política de cascada de {hostname}.",
     "timeline": {
       "title": "Caso de {hostname}",
       "close": "Cerrar",
