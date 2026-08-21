@@ -150,6 +150,63 @@
                   </q-banner>
                 </q-card-section>
                 <!--
+                  Feature 038: defaults GLOBALES de la cascada al marcar un equipo
+                  como perdido/robado. Son el nivel MÁS BAJO de precedencia: la
+                  ficha del equipo y el propio caso pueden pisarlos. El bloqueo es
+                  silencioso-diferido (se recolecta evidencia y recién luego se
+                  bloquea); la alarma es opt-in.
+                -->
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-checkbox
+                    v-model="settings.lost_mode_auto_lock_enabled"
+                    :label="$t('editCoreSettings.lostAutoLock')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.lostAutoLockTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 14rem"
+                    v-model.number="settings.lost_mode_lock_delay_min"
+                    :disable="!settings.lost_mode_auto_lock_enabled"
+                    :label="$t('editCoreSettings.lostLockDelay')"
+                    :rules="[
+                      (val) =>
+                        (val >= 0 && val <= 60) ||
+                        $t('editCoreSettings.lostLockDelayRule'),
+                    ]"
+                  />
+                </q-card-section>
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-checkbox
+                    v-model="settings.lost_mode_no_hibernate_enabled"
+                    :label="$t('editCoreSettings.lostNoHibernate')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.lostNoHibernateTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-checkbox
+                    v-model="settings.lost_mode_webcam_override_default"
+                    :label="$t('editCoreSettings.lostWebcamOverride')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.lostWebcamOverrideTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-checkbox
+                    v-model="settings.lost_mode_alarm_enabled"
+                    :label="$t('editCoreSettings.lostAlarm')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.lostAlarmTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
+                <!--
                   Recordatorio de mantenimiento prolongado (feature 036). NO es una
                   caducidad: el modo mantenimiento sigue siendo indefinido por
                   diseño, esto sólo avisa por correo para que el olvido tenga fecha

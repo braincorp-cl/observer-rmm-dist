@@ -181,6 +181,70 @@
           />
         </q-card-section>
 
+        <!--
+          Feature 038: overrides de la cascada POR ESTE CASO. Máxima precedencia.
+          "Heredar" (por defecto) deja decidir a la política del equipo o global,
+          así que un operador que no toca nada no cambia nada. El bloqueo es
+          silencioso-diferido: se recolecta evidencia y recién luego se bloquea.
+        -->
+        <q-card-section class="q-pt-none">
+          <q-expansion-item
+            dense
+            icon="tune"
+            :label="$t('lostEquipment.cascadeTitle')"
+            :caption="$t('lostEquipment.cascadeCaption')"
+          >
+            <div class="q-pt-sm q-gutter-sm">
+              <q-select
+                dense
+                filled
+                emit-value
+                map-options
+                v-model="form.cascade.auto_lock"
+                :options="triOptions"
+                :label="$t('lostEquipment.cascadeAutoLock')"
+              />
+              <q-input
+                dense
+                filled
+                type="number"
+                v-model.number="form.cascade.lock_delay_min"
+                :label="$t('lostEquipment.cascadeLockDelay')"
+                :hint="$t('lostEquipment.cascadeLockDelayHint')"
+                :min="0"
+                :max="60"
+              />
+              <q-select
+                dense
+                filled
+                emit-value
+                map-options
+                v-model="form.cascade.no_hibernate"
+                :options="triOptions"
+                :label="$t('lostEquipment.cascadeNoHibernate')"
+              />
+              <q-select
+                dense
+                filled
+                emit-value
+                map-options
+                v-model="form.cascade.webcam_override"
+                :options="triOptions"
+                :label="$t('lostEquipment.cascadeWebcamOverride')"
+              />
+              <q-select
+                dense
+                filled
+                emit-value
+                map-options
+                v-model="form.cascade.alarm"
+                :options="triOptions"
+                :label="$t('lostEquipment.cascadeAlarm')"
+              />
+            </div>
+          </q-expansion-item>
+        </q-card-section>
+
         <q-card-section class="q-pt-none">
           <q-banner dense class="bg-orange-1 text-orange-9">
             <template v-slot:avatar>
@@ -294,10 +358,30 @@ export default {
 
     const agents = ref([]);
     const agentOptions = ref([]);
+
+    // Feature 038: overrides de la cascada por caso. `null` = heredar (del equipo
+    // o del global). El servidor sólo pisa la precedencia con un valor explícito,
+    // así que "heredar" en todo equivale a no mandar nada.
+    const emptyCascade = () => ({
+      auto_lock: null,
+      lock_delay_min: null,
+      no_hibernate: null,
+      webcam_override: null,
+      alarm: null,
+    });
+
+    // Tri-estado para cada contramedida: heredar / activar / desactivar.
+    const triOptions = [
+      { label: t("lostEquipment.cascadeInherit"), value: null },
+      { label: t("lostEquipment.cascadeEnable"), value: true },
+      { label: t("lostEquipment.cascadeDisable"), value: false },
+    ];
+
     const form = ref({
       agent_id: null,
       reason: "",
       interval_min: DEFAULT_INTERVAL_MIN,
+      cascade: emptyCascade(),
     });
 
     const columns = [
@@ -370,6 +454,7 @@ export default {
         agent_id: null,
         reason: "",
         interval_min: DEFAULT_INTERVAL_MIN,
+        cascade: emptyCascade(),
       };
       markDialog.value = true;
 
@@ -406,6 +491,9 @@ export default {
         const r = await markAgentLost(form.value.agent_id, {
           reason: form.value.reason.trim(),
           interval_min: form.value.interval_min,
+          // Feature 038: los overrides por caso. `null` = heredar; el servidor
+          // los interpreta y devuelve la cascada resuelta en `r.cascade`.
+          cascade: form.value.cascade,
         });
         markDialog.value = false;
 
@@ -559,6 +647,7 @@ export default {
       selected,
       pending,
       form,
+      triOptions,
       agentOptions,
       load,
       openMark,
