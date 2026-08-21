@@ -397,6 +397,17 @@ class EndpointResponseAction(models.TextChoices):
 LOST_MODE_MIN_INTERVAL_MIN = 1
 LOST_MODE_MAX_INTERVAL_MIN = 60
 
+# Feature 038: ventana del bloqueo de sesión SILENCIOSO-DIFERIDO de la cascada.
+# Decisión del usuario (2026-08-20): al marcar perdido, el agente recolecta
+# evidencia esta cantidad de minutos y RECIÉN AHÍ bloquea la sesión, porque
+# bloquear de inmediato le avisa a quien tiene el equipo y puede apagarlo antes
+# de que llegue nada. El mismo par de topes se aplica en los tres niveles de
+# configuración (global, equipo, caso) y el agente vuelve a acotarlo de su lado.
+# El 0 es válido y significa bloqueo inmediato, sin ventana.
+LOST_MODE_LOCK_DELAY_MIN_MINUTES = 0
+LOST_MODE_LOCK_DELAY_MAX_MINUTES = 60
+LOST_MODE_LOCK_DELAY_DEFAULT_MINUTES = 5
+
 # Retención de la evidencia del modo perdido (feature 030 · Fase 3, ADR-025
 # punto 4: "90 días o al cerrar el caso, lo que ocurra primero").
 #

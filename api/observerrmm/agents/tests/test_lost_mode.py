@@ -59,10 +59,21 @@ class TestLostMode(ObserverTestCase):
 
         # El payload tiene que ser exactamente el que el agente espera: un typo
         # en `func` o en una clave no falla, el agente sólo ignora el mensaje.
+        # Feature 038: además de active/interval_min viaja la cascada RESUELTA con
+        # los defaults de fábrica (auto_lock on, delay 5', no-hibernación on,
+        # webcam-override on por "override total en perdido", alarma opt-in off).
         nats_cmd.assert_called_with(
             {
                 "func": "lost_mode",
-                "payload": {"active": "1", "interval_min": "5"},
+                "payload": {
+                    "active": "1",
+                    "interval_min": "5",
+                    "auto_lock": "1",
+                    "lock_delay_min": "5",
+                    "no_hibernate": "1",
+                    "webcam_override": "1",
+                    "alarm": "0",
+                },
             },
             timeout=15,
         )
@@ -171,10 +182,22 @@ class TestLostMode(ObserverTestCase):
         # El motivo del marcaje original se conserva.
         self.assertEqual(estado.reason, "robo")
 
+        # Feature 038: al recuperar viaja active="0" y la misma cascada resuelta
+        # (el caso no fijó overrides, así que son los defaults globales). El
+        # agente la usa para revertir —apagar la no-hibernación, cancelar el
+        # bloqueo pendiente— al recibir active="0".
         nats_cmd.assert_called_with(
             {
                 "func": "lost_mode",
-                "payload": {"active": "0", "interval_min": "5"},
+                "payload": {
+                    "active": "0",
+                    "interval_min": "5",
+                    "auto_lock": "1",
+                    "lock_delay_min": "5",
+                    "no_hibernate": "1",
+                    "webcam_override": "1",
+                    "alarm": "0",
+                },
             },
             timeout=15,
         )

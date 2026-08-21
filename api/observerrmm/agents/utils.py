@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import logging
 import urllib.parse
 from io import StringIO
@@ -21,6 +22,70 @@ from observerrmm.constants import (
 from observerrmm.helpers import notify_error
 
 logger = logging.getLogger("ormm")
+
+
+# Feature 038: cascada de contramedidas que dispara marcar un equipo como
+# perdido/robado. Los campos coinciden 1:1 con los overrides de LostModePolicy
+# (por equipo) y con los cascade_* de LostModeState (por caso).
+_CASCADE_FIELDS = (
+    "auto_lock",
+    "lock_delay_min",
+    "no_hibernate",
+    "webcam_override",
+    "alarm",
+)
+
+
+@dataclasses.dataclass
+class LostModeCascade:
+    auto_lock: bool
+    lock_delay_min: int
+    no_hibernate: bool
+    webcam_override: bool
+    alarm: bool
+
+
+def resolve_lost_mode_cascade(agent, state=None, core=None) -> LostModeCascade:
+    """Resuelve la cascada del modo perdido con precedencia **incidente > equipo > global**.
+
+    - Global: los `lost_mode_*` de `CoreSettings` (siempre presentes, son la base).
+    - Equipo: `LostModePolicy` del agente; cada campo no-nulo pisa al global.
+    - Caso: los `cascade_*` de `LostModeState`; cada campo no-nulo pisa a todo.
+
+    Regla única y central: nadie más resuelve esta precedencia. Vive acá para que
+    el endpoint de config (polling) y el push por NATS entreguen exactamente el
+    mismo valor, y para que un cambio de política no haya que replicarlo en dos
+    lugares (watch item W002 de la feature 038).
+    """
+    core = core or get_core_settings()
+
+    resolved = {
+        "auto_lock": bool(core.lost_mode_auto_lock_enabled),
+        "lock_delay_min": int(core.lost_mode_lock_delay_min),
+        "no_hibernate": bool(core.lost_mode_no_hibernate_enabled),
+        "webcam_override": bool(core.lost_mode_webcam_override_default),
+        "alarm": bool(core.lost_mode_alarm_enabled),
+    }
+
+    # Import perezoso: evita el ciclo agents.models <-> agents.utils.
+    from agents.models import LostModePolicy, LostModeState
+
+    policy = LostModePolicy.objects.filter(agent=agent).first()
+    if policy is not None:
+        for field in _CASCADE_FIELDS:
+            value = getattr(policy, field)
+            if value is not None:
+                resolved[field] = value
+
+    if state is None:
+        state = LostModeState.objects.filter(agent=agent).first()
+    if state is not None:
+        for field in _CASCADE_FIELDS:
+            value = getattr(state, f"cascade_{field}")
+            if value is not None:
+                resolved[field] = value
+
+    return LostModeCascade(**resolved)
 
 
 def get_agent_url(*, goarch: str, plat: str, token: str = "") -> str:

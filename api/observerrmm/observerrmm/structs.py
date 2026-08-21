@@ -40,3 +40,15 @@ class AgentCheckInConfig(ORMMStruct):
     lost_mode_interval_min: int
     # Feature 030 · Fase 2: interruptor global de la foto de webcam (ADR-025).
     lost_mode_webcam: bool
+    # Feature 038: cascada RESUELTA (incidente > equipo > global) que el agente
+    # ejecuta al entrar en modo perdido. Sólo son significativos cuando
+    # `lost_mode=True`; viajan siempre (aditivos: un agente viejo los ignora).
+    # El bloqueo es silencioso-diferido: el agente espera `lost_mode_lock_delay_min`
+    # minutos recolectando evidencia y recién ahí bloquea si `lost_mode_auto_lock`.
+    lost_mode_auto_lock: bool
+    lost_mode_lock_delay_min: int
+    lost_mode_no_hibernate: bool
+    # Fuerza la foto de webcam para el caso aunque `lost_mode_webcam` (global)
+    # esté apagado (decisión "override total en perdido", 2026-08-20).
+    lost_mode_webcam_override: bool
+    lost_mode_alarm: bool

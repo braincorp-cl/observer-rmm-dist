@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 import datetime as dt
 import os
 import random
@@ -48,6 +49,8 @@ from observerrmm.constants import (
     ENDPOINT_RESPONSE_CODES,
     ENDPOINT_RESPONSE_PREFIX,
     GEO_CHECK_HISTORY_ID,
+    LOST_MODE_LOCK_DELAY_MAX_MINUTES,
+    LOST_MODE_LOCK_DELAY_MIN_MINUTES,
     LOST_MODE_MAX_INTERVAL_MIN,
     LOST_MODE_MIN_INTERVAL_MIN,
     NATS_UNREACHABLE,
@@ -125,7 +128,11 @@ from .tasks import (
     run_script_email_results_task,
     send_agent_update_task,
 )
-from .utils import get_validated_agent, send_nats_command
+from .utils import (
+    get_validated_agent,
+    resolve_lost_mode_cascade,
+    send_nats_command,
+)
 
 
 class GetAgents(APIView):
@@ -909,6 +916,11 @@ def _push_lost_mode(agent: "Agent", state: LostModeState) -> bool:
     auditada, y un equipo incomunicado es el escenario esperado, no un error.
     """
     try:
+        # Feature 038: la cascada resuelta (incidente > equipo > global) viaja en
+        # el mismo push para acción INMEDIATA, sin esperar al polling de config.
+        # El agente ignora las claves que no conozca, así que un agente 030 viejo
+        # sigue leyendo `active`/`interval_min` como antes.
+        cascade = resolve_lost_mode_cascade(agent, state=state)
         r = asyncio.run(
             agent.nats_cmd(
                 {
@@ -916,6 +928,11 @@ def _push_lost_mode(agent: "Agent", state: LostModeState) -> bool:
                     "payload": {
                         "active": "1" if state.active else "0",
                         "interval_min": str(state.interval_min),
+                        "auto_lock": "1" if cascade.auto_lock else "0",
+                        "lock_delay_min": str(cascade.lock_delay_min),
+                        "no_hibernate": "1" if cascade.no_hibernate else "0",
+                        "webcam_override": "1" if cascade.webcam_override else "0",
+                        "alarm": "1" if cascade.alarm else "0",
                     },
                 },
                 timeout=15,
@@ -925,6 +942,41 @@ def _push_lost_mode(agent: "Agent", state: LostModeState) -> bool:
         return False
 
     return r == "ok"
+
+
+def _cascade_bool_override(data: dict, key: str) -> "bool | None":
+    """Feature 038: lee un override booleano por-caso de la cascada.
+
+    Ausente o vacío = `None` = "heredar del equipo/global". Sólo un valor
+    explícito pisa la precedencia; no forzamos una decisión que el operador no tomó.
+    """
+    if key not in data:
+        return None
+    value = data.get(key)
+    if value is None or value == "":
+        return None
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _cascade_delay_override(data: dict) -> "int | None":
+    """Feature 038: override por-caso del delay de bloqueo silencioso, en minutos.
+
+    Ausente/ inválido = `None` = heredar. Un valor se acota a los topes, igual
+    que el intervalo de captura: el piso no puede depender sólo de la UI.
+    """
+    if "lock_delay_min" not in data:
+        return None
+    value = data.get("lock_delay_min")
+    if value is None or value == "":
+        return None
+    try:
+        minutes = int(value)
+    except (TypeError, ValueError):
+        return None
+    return max(
+        LOST_MODE_LOCK_DELAY_MIN_MINUTES,
+        min(minutes, LOST_MODE_LOCK_DELAY_MAX_MINUTES),
+    )
 
 
 class LostMode(APIView):
@@ -952,6 +1004,12 @@ class LostMode(APIView):
             ),
         )
 
+        # Feature 038: overrides de la cascada POR CASO. `None` = heredar del
+        # equipo/global; sólo un valor explícito de la UI pisa la precedencia.
+        cascade_overrides = request.data.get("cascade") or {}
+        if not isinstance(cascade_overrides, dict):
+            cascade_overrides = {}
+
         state, _ = LostModeState.objects.update_or_create(
             agent=agent,
             defaults={
@@ -963,8 +1021,25 @@ class LostMode(APIView):
                 # de recuperación del anterior.
                 "recovered_at": None,
                 "interval_min": interval_min,
+                "cascade_auto_lock": _cascade_bool_override(
+                    cascade_overrides, "auto_lock"
+                ),
+                "cascade_lock_delay_min": _cascade_delay_override(cascade_overrides),
+                "cascade_no_hibernate": _cascade_bool_override(
+                    cascade_overrides, "no_hibernate"
+                ),
+                "cascade_webcam_override": _cascade_bool_override(
+                    cascade_overrides, "webcam_override"
+                ),
+                "cascade_alarm": _cascade_bool_override(cascade_overrides, "alarm"),
             },
         )
+
+        # La cascada RESUELTA queda en la auditoría del marcaje: es el registro de
+        # qué contramedidas se encendieron sobre la persona que tiene el equipo
+        # —incluido el override de webcam sobre el switch global (ADR-025)—, y
+        # tiene que quedar junto al motivo y a quién lo marcó, no sólo implícito.
+        cascade = resolve_lost_mode_cascade(agent, state=state)
 
         # La auditoría va SIEMPRE y antes del push: si el agente no contesta, el
         # caso igual quedó abierto y tiene que quedar registrado quién lo abrió.
@@ -973,7 +1048,10 @@ class LostMode(APIView):
             agent=agent,
             action=LostModeAction.MARK,
             reason=reason,
-            debug_info={"ip": request._client_ip},
+            debug_info={
+                "ip": request._client_ip,
+                "cascade": dataclasses.asdict(cascade),
+            },
         )
 
         return Response(
@@ -981,6 +1059,7 @@ class LostMode(APIView):
                 "status": "ok",
                 "nats_delivered": _push_lost_mode(agent, state),
                 "interval_min": state.interval_min,
+                "cascade": dataclasses.asdict(cascade),
             }
         )
 

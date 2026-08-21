@@ -30,6 +30,8 @@ from observerrmm.constants import (
     AGENT_STATUS_ONLINE,
     AGENT_STATUS_OVERDUE,
     AGENT_TBL_PEND_ACTION_CNT_CACHE_PREFIX,
+    LOST_MODE_LOCK_DELAY_MAX_MINUTES,
+    LOST_MODE_LOCK_DELAY_MIN_MINUTES,
     LOST_MODE_MAX_INTERVAL_MIN,
     LOST_MODE_MIN_INTERVAL_MIN,
     ONLINE_AGENTS,
@@ -1391,9 +1393,57 @@ class LostModeState(models.Model):
             MaxValueValidator(LOST_MODE_MAX_INTERVAL_MIN),
         ],
     )
+    # Feature 038: overrides de la cascada POR CASO. Máxima precedencia: pisan al
+    # equipo (LostModePolicy) y al global (CoreSettings). NULO = "heredar". Se
+    # fijan al marcar y valen hasta recuperar. La resolución vive en
+    # agents.utils.resolve_lost_mode_cascade(); acá sólo se guardan los overrides.
+    cascade_auto_lock = models.BooleanField(null=True, blank=True)
+    cascade_lock_delay_min = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(LOST_MODE_LOCK_DELAY_MIN_MINUTES),
+            MaxValueValidator(LOST_MODE_LOCK_DELAY_MAX_MINUTES),
+        ],
+    )
+    cascade_no_hibernate = models.BooleanField(null=True, blank=True)
+    cascade_webcam_override = models.BooleanField(null=True, blank=True)
+    cascade_alarm = models.BooleanField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - {'perdido' if self.active else 'recuperado'}"
+
+
+class LostModePolicy(models.Model):
+    """Feature 038: defaults de la cascada de perdido/robado POR EQUIPO.
+
+    Nivel intermedio de precedencia entre el global (`CoreSettings`) y el caso
+    concreto (`LostModeState`). Cada campo NULO significa "heredar del global";
+    con valor, pisa al global para este equipo, y el caso puede a su vez pisar
+    esto. La fila sólo existe si alguien fijó un override para el equipo: su
+    ausencia equivale a heredar todo, así que no hace falta crear una por agente.
+    """
+
+    agent = models.OneToOneField(
+        Agent,
+        related_name="lost_mode_policy",
+        on_delete=models.CASCADE,
+    )
+    auto_lock = models.BooleanField(null=True, blank=True)
+    lock_delay_min = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(LOST_MODE_LOCK_DELAY_MIN_MINUTES),
+            MaxValueValidator(LOST_MODE_LOCK_DELAY_MAX_MINUTES),
+        ],
+    )
+    no_hibernate = models.BooleanField(null=True, blank=True)
+    webcam_override = models.BooleanField(null=True, blank=True)
+    alarm = models.BooleanField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - lost mode policy"
 
 
 class LostModeEvidence(models.Model):

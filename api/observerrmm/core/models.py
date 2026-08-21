@@ -26,6 +26,9 @@ from observerrmm.constants import (
     LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS,
     LOST_MODE_EVIDENCE_MAX_PRUNE_DAYS,
     LOST_MODE_EVIDENCE_MIN_PRUNE_DAYS,
+    LOST_MODE_LOCK_DELAY_DEFAULT_MINUTES,
+    LOST_MODE_LOCK_DELAY_MAX_MINUTES,
+    LOST_MODE_LOCK_DELAY_MIN_MINUTES,
     CustomFieldModel,
     CustomFieldType,
     DebugLogLevel,
@@ -115,6 +118,35 @@ class CoreSettings(BaseAuditModel):
     # No es por-agente a propósito: una excepción por equipo volvería la
     # política imposible de auditar, que es justo lo que ADR-025 evita.
     lost_mode_webcam_enabled = models.BooleanField(default=False)
+    # Feature 038: defaults GLOBALES de la cascada que dispara marcar un equipo
+    # como perdido/robado. Son el nivel MÁS BAJO de precedencia: la ficha del
+    # equipo (LostModePolicy) y el propio caso (LostModeState) pueden pisarlos.
+    # La resolución final la hace agents.utils.resolve_lost_mode_cascade().
+    #
+    # Bloqueo de sesión: encendido de fábrica, SILENCIOSO-DIFERIDO por
+    # `lost_mode_lock_delay_min` minutos (ver constants). Se recolecta evidencia
+    # y recién después se bloquea.
+    lost_mode_auto_lock_enabled = models.BooleanField(default=True)
+    lost_mode_lock_delay_min = models.PositiveIntegerField(
+        default=LOST_MODE_LOCK_DELAY_DEFAULT_MINUTES,
+        validators=[
+            MinValueValidator(LOST_MODE_LOCK_DELAY_MIN_MINUTES),
+            MaxValueValidator(LOST_MODE_LOCK_DELAY_MAX_MINUTES),
+        ],
+    )
+    # No dejar dormir/hibernar el equipo mientras dure el caso (así no se apaga
+    # con la tapa cerrada y sigue reportando). El agente restaura el esquema de
+    # energía previo al recuperar. Encendido de fábrica.
+    lost_mode_no_hibernate_enabled = models.BooleanField(default=True)
+    # Override de webcam EN modo perdido: enciende la foto para el caso aunque el
+    # interruptor global `lost_mode_webcam_enabled` esté apagado. Decisión del
+    # usuario (2026-08-20): "override total en perdido". A diferencia del switch
+    # global —deliberadamente sin excepción por equipo—, ESTE default sí se puede
+    # afinar por equipo y por caso, y cada encendido queda en la auditoría del
+    # marcaje (motivo obligatorio + AuditLog), que es lo que ADR-025 exige.
+    lost_mode_webcam_override_default = models.BooleanField(default=True)
+    # Alarma a todo volumen: OPT-IN, apagada por omisión (decisión del usuario).
+    lost_mode_alarm_enabled = models.BooleanField(default=False)
     agent_debug_level = models.CharField(
         max_length=20, choices=DebugLogLevel.choices, default=DebugLogLevel.INFO
     )

@@ -29,24 +29,53 @@ def _geo_force_location_on() -> bool:
         return False
 
 
-def _lost_mode(agentid: str) -> tuple[bool, int]:
-    """Feature 030: estado de modo perdido de ESTE agente.
+# Feature 038: cascada apagada. Se despacha cuando el equipo NO está perdido
+# (el agente no la usa igual, pero mandar ceros evita cualquier disparo por un
+# valor heredado) o ante cualquier fallo de lectura (mismo fail-safe que la geo).
+_CASCADE_OFF: dict = {
+    "auto_lock": False,
+    "lock_delay_min": 0,
+    "no_hibernate": False,
+    "webcam_override": False,
+    "alarm": False,
+}
+
+
+def _lost_mode(agentid: str) -> tuple[bool, int, dict]:
+    """Feature 030 + 038: estado de modo perdido de ESTE agente y su cascada resuelta.
 
     Fail-safe apagado, igual que los interruptores de geo: ante cualquier
     problema —agente inexistente, tabla no migrada, BD con hipo— se responde
-    "no está perdido". Encender una recolección de evidencia por un error de
-    lectura sería el peor fallo posible de esta feature.
+    "no está perdido" y cascada en cero. Encender una recolección de evidencia
+    —o peor, una contramedida— por un error de lectura sería el peor fallo
+    posible de esta feature.
     """
     try:
         from agents.models import LostModeState
+        from agents.utils import resolve_lost_mode_cascade
 
-        state = LostModeState.objects.filter(agent__agent_id=agentid).first()
+        state = (
+            LostModeState.objects.filter(agent__agent_id=agentid)
+            .select_related("agent")
+            .first()
+        )
         if not state or not state.active:
-            return False, 0
+            return False, 0, dict(_CASCADE_OFF)
 
-        return True, state.interval_min
+        cascade = resolve_lost_mode_cascade(state.agent, state=state)
+        return (
+            True,
+            state.interval_min,
+            {
+                "auto_lock": cascade.auto_lock,
+                "lock_delay_min": cascade.lock_delay_min,
+                "no_hibernate": cascade.no_hibernate,
+                "webcam_override": cascade.webcam_override,
+                "alarm": cascade.alarm,
+            },
+        )
     except Exception:
-        return False, 0
+        return False, 0, dict(_CASCADE_OFF)
 
 
 def _lost_mode_webcam() -> bool:
@@ -65,7 +94,7 @@ def _lost_mode_webcam() -> bool:
 
 
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
-    lost_mode, lost_mode_interval_min = _lost_mode(agentid)
+    lost_mode, lost_mode_interval_min, lost_mode_cascade = _lost_mode(agentid)
 
     return AgentCheckInConfig(
         # Cada fallback espeja el default que settings.py despacha: perder una línea
@@ -109,4 +138,9 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
         # necesita, porque el marcaje puede llegar por NATS entre dos consultas
         # de configuración.
         lost_mode_webcam=_lost_mode_webcam(),
+        lost_mode_auto_lock=lost_mode_cascade["auto_lock"],
+        lost_mode_lock_delay_min=lost_mode_cascade["lock_delay_min"],
+        lost_mode_no_hibernate=lost_mode_cascade["no_hibernate"],
+        lost_mode_webcam_override=lost_mode_cascade["webcam_override"],
+        lost_mode_alarm=lost_mode_cascade["alarm"],
     )
