@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Notas de versión · Servidor (plataforma) · Observer RMM" data-title-en="Release notes · Server (platform) · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notas de versión · Servidor (plataforma) · Observer RMM</title>
+<meta name="description" content="Notas de versión del servidor (plataforma) de Observer RMM: cada release con lo que cambió para el usuario y cómo actualizar.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/release-notes/server/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/release-notes/server/">
+<meta property="og:title" content="Notas de versión · Servidor (plataforma) · Observer RMM">
+<meta property="og:description" content="Notas de versión del servidor (plataforma) de Observer RMM: cada release con lo que cambió para el usuario y cómo actualizar.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=2">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .rn-tracks{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:1.2rem 0}
+  .rn-track{border:1px solid var(--line,#2a3a52);border-radius:.6rem;padding:1.1rem 1.2rem;text-decoration:none;display:block}
+  .rn-track h2{margin:.1rem 0 .3rem;font-size:1.1rem}
+  .rn-track .rn-latest{font-size:.85rem;opacity:.8;font-variant-numeric:tabular-nums}
+  .rn-track .rn-go{margin-top:.6rem;font-size:.85rem;font-weight:600}
+  .rn-toc{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 1.4rem}
+  .rn-toc a{font-size:.82rem;padding:.15rem .5rem;border:1px solid var(--line,#2a3a52);border-radius:.4rem;text-decoration:none}
+  .rn-rel{border-top:1px solid var(--line,#2a3a52);padding-top:1.1rem;margin-top:1.6rem}
+  .rn-rel h2{margin:0 0 .1rem;scroll-margin-top:5rem}
+  .rn-date{font-size:.8rem;opacity:.7;font-variant-numeric:tabular-nums}
+  .rn-body h3{margin:1rem 0 .3rem;font-size:1.02rem}
+  .rn-body h4{margin:.8rem 0 .2rem;font-size:.92rem;opacity:.85}
+  .rn-switch{display:flex;gap:.5rem;margin:.2rem 0 1rem}
+  .rn-switch a{font-size:.85rem;padding:.25rem .7rem;border:1px solid var(--line,#2a3a52);border-radius:.4rem;text-decoration:none}
+  .rn-switch a[aria-current="page"]{background:var(--line,#2a3a52)}
+  .table-wrap{overflow-x:auto}
+  .rn-body table{border-collapse:collapse;font-size:.86rem;margin:.5rem 0}
+  .rn-body th,.rn-body td{border:1px solid var(--line,#2a3a52);padding:.3rem .55rem;text-align:left;vertical-align:top}
+</style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "CollectionPage",
+ "inLanguage": "es-CL",
+ "name": "Notas de versión · Servidor (plataforma) · Observer RMM",
+ "url": "https://docs.observer.cl/release-notes/server/",
+ "isPartOf": {
+  "@type": "CollectionPage",
+  "name": "Notas de versión · Observer RMM",
+  "url": "https://docs.observer.cl/release-notes/"
+ },
+ "about": {
+  "@type": "SoftwareApplication",
+  "name": "Observer RMM",
+  "applicationCategory": "Remote Monitoring and Management",
+  "operatingSystem": "Windows, Linux, macOS"
+ }
+}
+</script>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/release-notes/" class="active"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+<p class="eyebrow lang-es">Notas de versión</p>
+<p class="eyebrow lang-en">Release notes</p>
+<h1><span class="lang-es">Servidor (plataforma)</span><span class="lang-en">Server (platform)</span></h1>
+<div class="rn-switch"><a href="/release-notes/"><span class="lang-es">Todo</span><span class="lang-en">Overview</span></a><a href="/release-notes/server/" aria-current="page"><span class="lang-es">Servidor</span><span class="lang-en">Server</span></a><a href="/release-notes/agent/"><span class="lang-es">Agente</span><span class="lang-en">Agent</span></a></div><p class="lead lang-es">El historial de versiones del <strong>servidor</strong> —la plataforma de Observer RMM—. Cada entrada describe lo que cambió para el usuario y cómo actualizar. Las notas del <strong>agente</strong> que corre en cada equipo están en su propia página: <a href="/release-notes/agent/">Notas del agente</a>.</p>
+<p class="lead lang-en">The version history of the <strong>server</strong> —the Observer RMM platform—. Each entry describes what changed for the user and how to update. The notes for the <strong>agent</strong> that runs on each machine live on their own page: <a href="/release-notes/agent/">Agent release notes</a>.</p>
+<div class="rn-toc"><a href="#srv-v1.4.14">v1.4.14</a><a href="#srv-v1.4.13">v1.4.13</a><a href="#srv-v1.4.12">v1.4.12</a><a href="#srv-v1.4.11">v1.4.11</a><a href="#srv-v1.4.10">v1.4.10</a><a href="#srv-v1.4.9">v1.4.9</a><a href="#srv-v1.4.8">v1.4.8</a><a href="#srv-v1.4.7">v1.4.7</a><a href="#srv-v1.4.6">v1.4.6</a><a href="#srv-v1.4.5">v1.4.5</a><a href="#srv-v1.4.4">v1.4.4</a><a href="#srv-v1.4.3">v1.4.3</a><a href="#srv-v1.4.2">v1.4.2</a><a href="#srv-v1.4.1">v1.4.1</a></div>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.14">Observer RMM 1.4.14</h2>
+  <p class="rn-date">2026-08-21</p>
+  <div class="rn-body"><p>Esta versión estrena la <strong>cascada automática de contramedidas al marcar un equipo como perdido o robado</strong>. Hasta ahora, marcar un equipo abría el caso y encendía la geolocalización intensiva, pero bloquear la pantalla, sonar la alarma o evitar que el equipo se durmiera eran acciones que el operador disparaba <strong>a mano</strong>, una por una, desde otra pantalla. Ahora esas contramedidas se <strong>encadenan solas</strong> al marcar, según una configuración que se decide de antemano y en tres niveles.</p>
+<p><strong>Acompaña al agente <code>v2.16.0</code></strong>, que ejecuta las contramedidas en el equipo (bloqueo diferido, override de cámara y no-hibernación en Windows). Contra un agente anterior, el marcaje sigue funcionando —el caso se abre y la evidencia se recolecta igual—, pero las contramedidas nuevas no se aplican hasta que el equipo actualice. En esta fase la cascada de bloqueo y no-hibernación es <strong>sólo Windows</strong>; macOS y Linux llegan en una fase posterior.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li><strong>La cascada se dispara al marcar.</strong> Marcar perdido/robado ya no es sólo &quot;empezar a mirar dónde está&quot;: según la configuración, bloquea la pantalla, enciende la cámara, evita que el equipo se duerma y —si se pidió— suena la alarma. Todo con un solo acto del operador, y todo reversible al recuperar.</li><li><strong>Configuración en tres niveles con precedencia clara.</strong> Cada contramedida se decide en el nivel <strong>global</strong> (Configuración → valores por defecto), en el nivel <strong>por equipo</strong> (la ficha del equipo, para una flota o un usuario con reglas propias) y en el nivel <strong>por caso</strong> (el diálogo de marcar, para este robo concreto). La precedencia es <strong>caso &gt; equipo &gt; global</strong>: lo más específico manda, y cada control tiene tres estados —<strong>Heredar / Activar / Desactivar</strong>—, así que &quot;Heredar&quot; nunca es una caja negra: la ficha muestra qué valor se hereda hoy.</li><li><strong>Bloqueo silencioso y diferido.</strong> El bloqueo de pantalla no es inmediato: espera una ventana configurable mientras se recolecta evidencia (fotos, pantalla, ubicación), y <strong>recién entonces</strong> bloquea. Recuperar el equipo dentro de esa ventana <strong>cancela</strong> el bloqueo pendiente. Un <code>0</code> bloquea de inmediato; más alto recolecta más antes de cerrar la pantalla.</li><li><strong>Override de cámara por caso.</strong> Un equipo perdido puede forzar la captura de cámara <strong>aunque el interruptor global esté apagado</strong>, porque la proporcionalidad de sacarle una foto a quien tiene el equipo la sostiene el caso, no una preferencia global. El override vale <strong>sólo</strong> dentro del caso activo y <strong>sólo</strong> para ese caso; al recuperar, vuelve a mandar el interruptor global. Queda <strong>auditado</strong> con el motivo del marcaje.</li><li><strong>No-hibernación con revert limpio (Windows).</strong> Mientras el equipo está perdido, se evita que se suspenda o hiberne —si duerme, deja de reportar dónde está—. Al recuperar, el esquema de energía vuelve <strong>exactamente</strong> al que tenía antes: la contramedida no queda pegada. Un equipo que quede sin dormir para siempre sería un defecto silencioso, y esta versión existe justamente para no dejarlo.</li><li><strong>Revert total al recuperar.</strong> Cerrar el caso restaura el esquema de energía previo y cancela cualquier bloqueo pendiente. Ninguna contramedida sobrevive a la recuperación.</li><li><strong>Todo queda en la auditoría.</strong> Cada cascada disparada se registra con la configuración <strong>resuelta</strong> —qué se encendió sobre la persona que tiene el equipo— junto al motivo del caso y a quién lo marcó.</li></ul>
+<h3>Lo que se verificó antes de publicar</h3>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>Gate i18n estricto del frontend (claves y texto)</td><td>verde; catálogos <code>es</code>/<code>en</code> simétricos</td></tr><tr><td>Gates de CI del producto (Python, Go, Ansible)</td><td>verdes, incluida la suite de <em>pytest</em></td></tr><tr><td>Pruebas de la resolución de precedencia de la cascada</td><td>11/11 verdes (herencia global→equipo→caso, borrado de la política vacía, re-empuje con equipo perdido)</td></tr><tr><td>Despliegue a <em>staging</em></td><td><code>ORMM_VERSION 1.4.14</code> desplegado (settings en el host + servicios reiniciados: rmm/daphne/celery/nats); el frontend con la nueva UI queda servido</td></tr><tr><td>Configuración de la cascada en la consola (3 niveles)</td><td>pendiente de E2E en la UI, junto con el agente <code>v2.16.0</code> en terreno</td></tr></tbody></table></div>
+<p><strong>Verificación del efecto en el equipo</strong> (bloqueo tras la ventana, <code>powercfg</code> sin hibernación con revert, cámara con el global apagado): se cierra por separado con el agente <code>v2.16.0</code> desplegado en terreno.</p>
+<h3>Notas de actualización</h3>
+<ul><li>El despliegue es el de siempre: la API y el frontend por sus playbooks. <strong>No hay migración de datos nueva</strong> en esta versión (el modelo de configuración por equipo ya venía de la línea anterior).</li><li>La flota Windows recibe el agente por la vía de actualización habitual; hasta que un equipo actualice, marcarlo abre el caso y recolecta evidencia, pero no aplica las contramedidas nuevas.</li><li>El <strong>cifrado en robo</strong> sigue diferido: la cascada no cifra el disco (requiere activación remota y escrow de claves, que aún no existen). Sólo verifica el estado que ya reporta el monitoreo de cifrado.</li><li>La cascada de <strong>bloqueo y no-hibernación</strong> es <strong>sólo Windows</strong> en esta versión; macOS y Linux llegan después.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.13">Observer RMM 1.4.13</h2>
+  <p class="rn-date">2026-08-19</p>
+  <div class="rn-body"><p>Esta versión estrena el <strong>monitoreo de cifrado de disco (BitLocker) para la flota Windows</strong>: un panel de cumplimiento que dice, equipo por equipo, si el disco del sistema está cifrado, y un detalle por volumen dentro de la ficha de cada equipo. Es la primera versión del producto que expone en la consola todo el trabajo de cifrado que el agente ya venía midiendo y el servidor ya venía guardando.</p>
+<p><strong>Acompaña al agente <code>v2.15.33</code></strong>, que lee el estado real de BitLocker y lo reporta en su <em>check-in</em>. Contra un agente anterior, un equipo aparece como &quot;sin dato&quot; hasta que actualice; el resto del producto se comporta igual que en la <code>v1.4.12</code>.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li><strong>Panel de cifrado de disco de la flota (Windows).</strong> Vista dedicada, hermana del panel de equipos perdidos, con una fila por equipo y el veredicto de su <strong>volumen de sistema</strong>. Filtros por estado, por cliente y por sitio. El estado se pinta con color: verde <em>cifrado</em>, rojo <em>sin cifrar</em>, gris <em>no compatible</em>, naranjo <em>sin dato</em>.</li><li><strong>Cuatro estados que no se fusionan.</strong> &quot;Sin dato&quot; —el equipo nunca reportó, la lectura falló, o no trae volumen de sistema— <strong>nunca</strong> se muestra como &quot;sin cifrar&quot;. Mezclarlos marcaría como incumplidor a un equipo del que no se sabe nada todavía, que es justo el error que este panel existe para evitar. El equipo que nunca contestó aparece igual en la lista: es el que más importa ver.</li><li><strong>Detalle por equipo, en la pestaña de activos.</strong> Cada equipo Windows suma el estado de cifrado <strong>por volumen</strong> —método (p. ej. XTS-AES-128), porcentaje, protección y cantidad/tipo de protectores—, la <strong>fecha de la última medición</strong> y el <strong>registro de cambios</strong> (desde cuándo el estado es el que es).</li><li><strong>Botón para volver a medir.</strong> Pide al agente una lectura nueva reutilizando el mismo <em>sysinfo</em> que puebla el resto de los activos. Si el equipo está <strong>fuera de línea</strong>, la consola lo avisa y <strong>no envía</strong> el comando. El dato no cambia al instante: se actualiza cuando el agente vuelve a reportar (la latencia normal del <em>check-in</em> de inventario es de ~1 hora).</li><li><strong>Sin material de clave.</strong> El producto transporta y muestra sólo el <em>estado</em>: cantidad y tipo de protectores. Nunca claves de recuperación ni secretos.</li><li><strong>La consola traduce los códigos crudos de Windows.</strong> El agente y el servidor guardan los números de WMI sin interpretarlos; es la consola la que los lee a texto legible, en español e inglés, y un código desconocido de una versión futura de Windows se muestra tal cual en vez de tragarse.</li></ul>
+<h3>Lo que se verificó antes de publicar</h3>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>Gate i18n estricto del frontend (claves y texto)</td><td>verde; catálogos <code>es</code>/<code>en</code> simétricos</td></tr><tr><td>Gates de CI del producto (Python, Go, Ansible)</td><td>verdes, incluida la suite de <em>pytest</em></td></tr><tr><td>Despliegue a <em>staging</em></td><td><code>ORMM_VERSION 1.4.13</code> vive por la API y en el encabezado de la consola; el frontend con el panel queda servido</td></tr><tr><td>Endpoint de cumplimiento contra datos reales</td><td><code>GET /agents/diskencryption/</code> devuelve la flota (200) con estados reales; el filtro por estado responde, y un estado inválido devuelve <strong>400</strong>, nunca la flota entera</td></tr><tr><td>Panel de flota en la consola</td><td>renderiza con datos reales (5 equipos Windows): estados con <strong>color por caso</strong> —«sin cifrar» en rojo, «sin dato» en naranjo, sin fundirse—, filtros por estado/cliente/sitio y el método del volumen de sistema</td></tr><tr><td>Detalle por equipo en la consola</td><td>la pestaña <em>Cifrado</em> muestra el volumen de sistema con su protección, conversión, método y <strong>porcentaje que respeta el nulo</strong> (no lo aplana a «0 %»), la última medición, el registro de cambios y el botón <em>Volver a medir</em></td></tr></tbody></table></div>
+<p><strong>Veredicto de cumplimiento de un equipo con volumen de sistema cifrado de verdad</strong>: la sonda del agente ya se validó contra un volumen BitLocker real; el veredicto de extremo a extremo del panel (RN del volumen de sistema) requiere un equipo con <code>C:</code> cifrado y se cierra por separado.</p>
+<h3>Notas de actualización</h3>
+<ul><li>El despliegue es el de siempre: la API y el frontend por sus playbooks; el backend de cifrado (tablas e <em>endpoints</em>) ya venía de la línea anterior.</li><li><strong>No hay migración de datos nueva</strong> en esta versión más allá de la que ya estaba aplicada.</li><li>La flota Windows recibe el agente <code>2.15.33</code> por la vía de actualización habitual; hasta que un equipo actualice, aparece como &quot;sin dato&quot;, que es correcto.</li><li>Los protectores de clave pueden verse como dato ausente en equipos que aún no reportan esa parte; es esperado, no un error.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.12">Observer RMM 1.4.12</h2>
+  <p class="rn-date">2026-08-16</p>
+  <div class="rn-body"><p>Esta versión cierra la <strong>captura de pantalla del modo perdido en Linux con Wayland</strong> —el hueco que quedaba del ciclo de captura multiplataforma— y repone el <strong>control remoto</strong> en los Linux virtualizados. El grueso del cambio de captura vive en el agente; el producto lo acompaña, ofrece la versión nueva a la flota y suma un motivo más a la cronología del caso.</p>
+<p><strong>Acompaña al agente <code>v2.15.28</code></strong>, que trae la captura por el portal de Wayland en GNOME y KDE. Contra un agente anterior, el producto se comporta igual que en la <code>v1.4.11</code>.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li><strong>Captura de pantalla del modo perdido en Linux con Wayland (GNOME y KDE).</strong> En los escritorios modernos, Wayland no deja que una aplicación lea la pantalla como en X11: hay que pedírselo al portal del escritorio. El agente lo hacía mal —pedía por un canal y escuchaba por otro—, así que la captura se tomaba pero se reportaba como espera agotada. El agente <code>2.15.28</code> lo corrige; en KDE, además, la imagen ya no se va por un camino de X11 que devolvía negro y se leía como avería. La foto de cámara ya funcionaba; ahora la pantalla completa el par.</li><li><strong>«Tomar control» restablecido en la flota Linux virtualizada.</strong> El control remoto del escritorio (KVM del Mesh) fallaba en Linux sobre VMware: el servicio del agente Mesh arrancaba con una capacidad del kernel (<code>CAP_SYS_MODULE</code>) que no usa y que el hipervisor rechaza, y la detección de sesión gráfica se caía por eso. Se le retira esa capacidad con un <em>drop-in</em> de systemd en toda la flota Linux, sin tocar el binario del Mesh.</li><li><strong>Nuevo script de endurecimiento del servicio de control remoto</strong> en la biblioteca, aplicable a la flota Linux, con una verificación posterior que ya no lee el estado antes de tiempo.</li><li><strong>macOS: se muestra el motivo cuando la cámara no entrega foto</strong>, y la desinstalación sigue correctamente al ayudante de captura renombrado (T016). La línea de tiempo deja de mostrar un hueco silencioso.</li><li><strong>Nuevo motivo <code>pantalla_bloqueada</code> en la cronología del caso.</strong> Si el equipo tenía la sesión bloqueada en el momento de la captura, el caso lo registra como tal en vez de contarlo como fallo.</li><li><strong>Estado de cifrado de disco más fiel.</strong> Se corrigieron unos valores de respaldo del <em>check-in</em> que habían quedado rezagados respecto de la recalibración anterior, de modo que el estado que reporta un equipo sin dato fresco deja de estar inflado.</li><li><strong>Ansible: los valores de <em>check-in</em> dejan de pisarse entre el producto y el inventario</strong>, un arreglo de despliegue sin efecto visible en la consola.</li></ul>
+<h3>Lo que se verificó antes de publicar</h3>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>Captura por Wayland en <strong>GNOME 50.4</strong> (equipo real)</td><td>imagen válida y ronda de permiso que pasa a <strong>autorizada</strong> (detalle en las notas del agente <code>v2.15.28</code>)</td></tr><tr><td>«Tomar control» en Linux/VMware</td><td>el <em>drop-in</em> retira <code>CAP_SYS_MODULE</code>; la detección de sesión vuelve a resolver</td></tr><tr><td>Gates de CI del producto (Python)</td><td>verdes</td></tr><tr><td>Versión efectiva tras el despliegue</td><td><code>ORMM_VERSION 1.4.12</code> por la API, <code>LATEST_AGENT_VER 2.15.28</code></td></tr></tbody></table></div>
+<p><strong>KDE sobre Wayland</strong> ya estaba medido; <strong>wlroots</strong> (sway, Hyprland) usa una vía que no cambió y no se midió en un equipo real.</p>
+<h3>Notas de actualización</h3>
+<ul><li>El despliegue es el de siempre. Esta versión estrena la capacidad de captura en Wayland del lado del agente; del lado del producto, sólo cambia la versión que se ofrece a la flota.</li><li><strong>No hay migración de datos que revisar</strong> aparte de las de rutina.</li><li>La flota Linux recibe el agente <code>2.15.28</code> por la vía de actualización automática habitual, y el <em>drop-in</em> de systemd del control remoto se aplica con el playbook de despliegue.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.11">Observer RMM 1.4.11</h2>
+  <p class="rn-date">2026-08-14</p>
+  <div class="rn-body"><p>Cierre de la etapa del <strong>modo perdido o robado</strong>: la que convierte el caso en un <strong>documento</strong>. Hasta la <code>v1.4.10</code> un caso se veía en la consola; desde esta versión sale de ella en un PDF que se sostiene solo, y las acciones de respuesta quedan en la misma pantalla donde se opera.</p>
+<p><strong>Acompaña al agente <code>v2.15.20</code></strong>, que trae la ronda de permisos de macOS y la captura de pantalla en Wayland. Contra un agente anterior, el producto se comporta igual que en la <code>v1.4.10</code>.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li><strong>Exportación del caso a PDF.</strong> Un botón en el caso genera un informe pensado para leerse <strong>fuera</strong> de la consola: portada con el equipo, el motivo, quién lo marcó, cuándo, y la política de retención vigente; después el recorrido y la cronología completa. Las imágenes van <strong>embebidas en el documento</strong>, no enlazadas: un enlace a la consola es una pantalla de inicio de sesión para quien recibe el informe.</li><li><strong>Los dos relojes, siempre.</strong> Cada evento imprime la hora del equipo y la del servidor. Si el equipo estuvo sin red, entre las dos hay horas de diferencia; imprimir una sola sería elegir por el lector en el punto exacto que alguien va a discutir.</li><li><strong>Un permiso en la puerta y otro adentro.</strong> Exportar exige <code>can_manage_lost_mode</code>: el recorrido y la cronología son lo que hace falta para presentar una denuncia, y dejarlos tras el permiso de ver rostros dejaría sin documento a quien opera el caso. El permiso de ver la evidencia (<code>can_view_lost_evidence</code>) decide algo distinto: <strong>si el PDF lleva las imágenes</strong>. Un PDF se genera una vez y después circula solo, así que embeberlas para quien no puede verlas en pantalla sería la forma más limpia de saltarse esa separación.</li><li><strong>Cuando el informe sale sin imágenes, lo dice en la portada.</strong> Omitirlo en silencio convertiría un informe incompleto en uno engañoso.</li><li><strong>Cada exportación queda auditada</strong>, con quién la pidió y sobre qué caso, antes de generarse.</li><li><strong>Las acciones de respuesta, en la pantalla de equipos perdidos.</strong> Cada fila suma un menú con <strong>bloquear</strong>, <strong>mensaje en pantalla</strong>, <strong>alarma</strong>, <strong>detener alarma</strong> y <strong>exportar el caso</strong>. Son las mismas acciones y los mismos diálogos del listado general —no una copia—: lo que cambia es que dejan de estar a dos pantallas de distancia de quien está atendiendo el caso.</li><li><strong>El instalador de macOS avisa de los permisos que vienen.</strong> Le indica a quien instala que no cierre la sesión todavía y que hay dos solicitudes del sistema que debe aceptar. El instalador no puede dispararlas él —macOS le atribuiría el permiso a la Terminal desde la que se instaló, y el agente se quedaría sin él—, así que las pide el servicio a los pocos segundos de arrancar.</li><li><strong>Nueva página pública de uso aceptable y privacidad</strong> en <code>docs.observer.cl</code>, con las reglas de uso del modo perdido, qué evidencia genera, quién puede verla y por cuánto tiempo se conserva.</li></ul>
+<h3>Lo que se verificó antes de publicar</h3>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>Exportación del caso, de punta a punta</td><td><strong>14 pruebas</strong>, con el PDF generado, abierto y leído — no sólo la respuesta del servidor</td></tr><tr><td>Informe sin permiso de ver evidencia</td><td>sale sin imágenes y <strong>con la advertencia en la portada</strong></td></tr><tr><td>Informe de un caso sin evidencia</td><td>se genera igual, con el recorrido y la cronología</td></tr><tr><td>Auditoría</td><td>queda la fila de la exportación, con autor y caso</td></tr></tbody></table></div>
+<p>Del lado del agente, la ronda de permisos de macOS y la captura en Wayland <strong>todavía no se han medido en un equipo real</strong> — el detalle está en las notas del agente <code>v2.15.20</code>. Ninguna de las dos toca el camino que hoy funciona en Windows, en Linux con X11 ni en macOS.</p>
+<h3>Notas de actualización</h3>
+<ul><li>El despliegue es el de siempre y no cambia ninguna configuración existente.</li><li><strong>No hay migración de datos que revisar</strong> aparte de las de rutina.</li><li>La documentación pública se publica aparte: commitearla no la publica.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.10">Observer RMM 1.4.10</h2>
+  <p class="rn-date">2026-08-13</p>
+  <div class="rn-body"><p>Cuarta etapa del <strong>modo perdido o robado</strong>: la que le pone <strong>cara</strong> al caso. Hasta la <code>v1.4.9</code> un equipo marcado reportaba dónde estaba y qué había en su pantalla; desde esta versión, además, puede sacar una foto de la cámara de quién lo tiene delante.</p>
+<p><strong>Acompaña al agente <code>v2.15.17</code></strong>, que es el que toma la foto. La actualización de la flota al nuevo agente se hace por la vía de siempre; contra un agente anterior, el caso sigue con ubicación y pantalla como hasta ahora.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li><strong>El modo perdido saca una foto de la cámara del equipo.</strong> Junto a la captura de pantalla, cada ciclo de un caso puede sumar una foto de quién está frente al equipo, y la línea de tiempo la muestra como una segunda miniatura. A diferencia de la pantalla, la foto <strong>no depende de que alguien haya iniciado sesión</strong>: sirve incluso en la pantalla de inicio, que suele ser justo donde está un equipo recién sustraído.</li><li><strong>Nace apagada de fábrica.</strong> Fotografiar la cara de una persona es cualitativamente más sensible que ubicar un activo, así que actualizar el producto <strong>no</strong> la enciende. Hay un interruptor global en Configuración que hay que activar a propósito; con él apagado, ningún equipo de la flota toma fotos.</li><li><strong>El LED de la cámara se enciende, y no se oculta.</strong> En la enorme mayoría de los equipos el LED está cableado a la alimentación del sensor y ninguna aplicación puede apagarlo. La foto nunca es invisible: el producto lo documenta en vez de prometer lo contrario, porque ocultarlo sería el peor camino y, además, algo que el hardware no permite cumplir.</li><li><strong>Una foto en negro nunca se sube como si fuera evidencia.</strong> La tapa de privacidad puesta o el cuarto a oscuras dan una imagen negra; el agente la mira antes de mandarla y, si no muestra nada, manda el motivo en su lugar. Un caso lleno de fotos negras parece tener evidencia y no la tiene.</li><li><strong>Disponible en Windows y Linux.</strong> En Windows la foto se toma sin ninguna herramienta extra. En Linux usa <code>fswebcam</code> o <code>ffmpeg</code> si están instalados, y si no lo están, el caso lo dice con todas sus letras. En macOS la función queda a la espera del permiso del sistema, que no se puede conceder a distancia.</li><li><strong>La foto hereda el cifrado y el plazo de borrado del caso</strong>, sin nada que configurar aparte: se guarda cifrada en el servidor y se borra sola con los mismos plazos que la captura de pantalla que llegó en la <code>v1.4.9</code>.</li><li>Corregido: el interruptor de la foto de cámara <strong>surte efecto al instante</strong>, también al apagarlo. Antes, apagarlo durante un caso abierto no detenía las fotos hasta el siguiente reinicio del agente — al revés de como debe comportarse una perilla que existe justamente para poder dejar de fotografiar a alguien.</li></ul>
+<h3>Lo que se midió en un equipo real</h3>
+<p>Terreno del <strong>13 de agosto de 2026</strong>:</p>
+<div class="table-wrap"><table><thead><tr><th>qué se verificó</th><th>resultado</th></tr></thead><tbody><tr><td>Foto de webcam en Windows (equipo físico con cámara integrada)</td><td><strong>imagen nítida 1280×720</strong>, con orientación y color correctos, subida y cifrada</td></tr><tr><td>Foto de webcam en Linux (equipo real, cámara integrada)</td><td>captura correcta; con la cámara tapada, el caso recibe el motivo <em>cámara sin imagen</em>, no una foto negra</td></tr><tr><td>Ciclo completo del caso</td><td>ubicación + captura de pantalla + foto de cámara, subidas juntas y cifradas, un ciclo por minuto</td></tr><tr><td>Interruptor global apagado en caliente</td><td>las fotos se detienen en el mismo ciclo, sin reiniciar el equipo</td></tr><tr><td>Foto de cámara con el permiso del equipo &quot;denegado&quot; (Windows)</td><td>la captura del agente <strong>igual funciona</strong>: ese permiso rige para las aplicaciones del usuario, no para el servicio del sistema</td></tr></tbody></table></div>
+<p>⚠️ <strong>macOS sigue sin foto de cámara</strong> en esta versión: el permiso de cámara no se puede conceder por administración remota, así que la función queda a la espera de que se autorice en el equipo.</p>
+<h3>Compatibilidad</h3>
+<ul><li>La foto de cámara requiere el <strong>agente <code>v2.15.17</code></strong>. Con un agente anterior, el caso sigue reuniendo ubicación y captura de pantalla como en la <code>v1.4.9</code>.</li><li>Sin cambios para las funciones existentes. La evidencia capturada antes de esta versión se sigue leyendo igual.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.9">Observer RMM 1.4.9</h2>
+  <p class="rn-date">2026-08-13</p>
+  <div class="rn-body"><p>Tercera etapa del <strong>modo perdido o robado</strong>: la que le pone <strong>fecha de vencimiento</strong> a la evidencia. Hasta la <code>v1.4.8</code> un caso acumulaba capturas y puntos de ubicación sin plazo y sin cifrar; desde esta versión se borran solos y se guardan cifrados en el servidor.</p>
+<p><strong>No cambia la versión del agente.</strong> Todo ocurre en el servidor; la flota sigue en la <strong>v2.15.16</strong>.</p>
+<h3>Cambios en esta versión</h3>
+<ul><li>La evidencia de un caso <strong>se borra sola</strong> a los 90 días, o unos días después de cerrarlo — lo que ocurra primero. Se va el archivo del disco, no sólo el registro.</li><li><strong>Dos plazos configurables</strong> en Configuración global. El de los 90 días no se puede desactivar.</li><li>La evidencia <strong>se guarda cifrada</strong> en el servidor, con una llave propia de cada instalación.</li><li>La línea de tiempo del caso <strong>declara ambas cosas</strong>: cuánto le queda a esa evidencia y si está cifrada.</li><li>Corregido: los archivos de un equipo <strong>eliminado</strong> de la consola quedaban en el disco para siempre.</li></ul>
+<h4>La evidencia se borra sola</h4>
+<p>Las capturas y los puntos de un caso se eliminan a los <strong>90 días</strong>, y también unos días después de marcar el equipo como recuperado — lo que ocurra primero. Lo corre el propio servidor, cada hora, junto al resto del mantenimiento.</p>
+<p>Lo que importa de esta función no se ve desde la consola: <strong>se borra el archivo del disco, no sólo el registro</strong>. Una consola que ya no lista la evidencia con las imágenes todavía en el servidor sería una retención cumplida en la pantalla e incumplida en los hechos, y nadie lo notaría hasta una auditoría.</p>
+<h4>Dos plazos, en Configuración global</h4>
+<div class="table-wrap"><table><thead><tr><th>Plazo</th><th>Rango</th><th>Por omisión</th></tr></thead><tbody><tr><td>Evidencia de equipos perdidos</td><td>1 a 365 días — <strong>no se puede desactivar</strong></td><td>90</td></tr><tr><td>Evidencia tras cerrar el caso</td><td>0 a 365 días</td><td>7</td></tr></tbody></table></div>
+<p>El primero no admite el valor 0 a propósito. Las demás retenciones del producto (historial de chequeos, registros de auditoría) sí se pueden apagar: son de monitoreo y apagarlas sólo cuesta disco. Ésta no — apagarla dejaría capturas de pantalla de personas acumulándose sin fecha de término.</p>
+<p>El segundo existe porque <strong>la denuncia suele presentarse después de recuperar el equipo</strong>. Borrar la evidencia dentro de la hora siguiente al cierre del caso es irreversible y llega tarde para quien la necesita. Quien prefiera el borrado inmediato al cerrar, pone 0.</p>
+<h4>La evidencia se guarda cifrada</h4>
+<p>Cada instalación genera su propia llave al instalarse. Quien lea el disco del servidor no ve las imágenes: encuentra material cifrado.</p>
+<p>Desde la consola no cambia nada — la miniatura y la descarga funcionan igual que antes. Y <strong>lo capturado antes de esta versión se sigue leyendo</strong>: el cifrado se reconoce archivo por archivo, así que actualizar no deja ilegible ningún caso abierto.</p>
+<h4>La política, a la vista en el caso</h4>
+<p>La línea de tiempo muestra en cuántos días se borrará esa evidencia y si está cifrada. Un servidor que <strong>no</strong> la esté cifrando lo declara ahí mismo, en vez de que se descubra el día que alguien mire el disco.</p>
+<h4>Corregido: la evidencia que sobrevivía al equipo</h4>
+<p>Los archivos de un equipo <strong>eliminado</strong> de la consola quedaban en el disco del servidor para siempre: nadie los listaba, nadie los contaba y nadie los borraba. Ahora se recogen con el mismo plazo que el resto.</p>
+<h3>Lo que se verificó en un equipo real</h3>
+<p>Terreno contra el ambiente de pruebas, con un equipo Linux de escritorio:</p>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>El archivo en el disco del servidor</td><td>cifrado — la imagen no está ahí en ninguna forma legible</td></tr><tr><td>La misma pieza descargada desde la consola</td><td>la captura original, íntegra</td></tr><tr><td>La captura recibida contra lo que mostraba la pantalla en ese momento</td><td>coinciden</td></tr><tr><td>Borrado al cerrar el caso</td><td>registros <strong>y</strong> archivos <strong>y</strong> carpetas en cero</td></tr><tr><td>Borrado por el plazo de los 90 días</td><td>registros y archivos en cero, también con el caso abierto</td></tr><tr><td>Archivo sin registro (equipo eliminado)</td><td>recogido al cumplir el plazo, conservado mientras es reciente</td></tr></tbody></table></div>
+<h3>Antes de actualizar</h3>
+<ul><li>Esta versión <strong>trae una migración</strong> (<code>core.0062</code>): dos campos nuevos con valor por omisión. No reescribe ninguna fila existente.</li><li><strong>Actualice con el playbook de instalación, no con el de despliegue de backend.</strong> La llave de cifrado se genera y se instala como parte de la configuración del servidor, y el despliegue de backend no la toca: quedaría un servidor al día pero guardando la evidencia sin cifrar. Lo declara en el caso, pero sin cifrar.</li><li>⚠️ <strong>Respalde la llave junto con el resto de las credenciales del ambiente.</strong> Si se pierde, la evidencia cifrada con ella no se recupera — no hay rescate posible, y es deliberado.</li><li>La evidencia capturada <strong>antes</strong> de actualizar queda sin cifrar y se sigue leyendo con normalidad. Se irá con su plazo, como el resto.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.8">Observer RMM 1.4.8</h2>
+  <p class="rn-date">2026-08-12</p>
+  <div class="rn-body"><p>Segunda etapa del <strong>modo perdido o robado</strong> de Observer RMM: la que le da <strong>ojos</strong> al caso. Hasta la <code>v1.4.7</code> un equipo marcado decía dónde estaba; desde esta versión, además muestra qué se está haciendo con él.</p>
+<p>Acompaña al agente <strong>v2.15.16</strong>, que es el que captura.</p>
+<h3>Cambios en esta versión</h3>
+<h4>La línea de tiempo del caso</h4>
+<p>El detalle de un equipo marcado pasa a ser una <strong>línea de tiempo</strong>: un renglón por ciclo de captura, con la hora del propio equipo, dónde estaba —con su margen de error— y una miniatura de lo que había en su pantalla en ese momento. Al lado, el mapa dibuja el recorrido completo del caso.</p>
+<p>La captura es <strong>silenciosa</strong>: no suena, no muestra ningún aviso y no deja ventanas a la vista. Y sale de la sesión de la persona que tiene el equipo, no del servicio del sistema; es la única forma de que la imagen no salga negra.</p>
+<h4>Ninguna imagen en negro entra al caso</h4>
+<p>El equipo mira la imagen <strong>antes</strong> de mandarla. Si está vacía, no la sube: manda el motivo en su lugar. Es la diferencia entre un caso con evidencia y un caso que <em>parece</em> tener evidencia — una carpeta llena de imágenes negras que nadie marcó como fallidas es peor que una carpeta vacía.</p>
+<p>Cuando no se puede capturar, el ciclo igual queda registrado y el caso lo explica con todas sus letras:</p>
+<ul><li>la pantalla del equipo estaba apagada;</li><li>nadie había iniciado sesión todavía;</li><li>el sistema no concede el permiso de grabación de pantalla (macOS);</li><li>el equipo no tiene ninguna herramienta de captura instalada (Linux);</li><li>la sesión no admite captura silenciosa (Linux con Wayland).</li></ul>
+<h4>Ver la pantalla se concede aparte</h4>
+<p>Coordinar la recuperación de un equipo y <strong>mirar lo que su pantalla estaba mostrando</strong> son capacidades distintas, y se otorgan por separado. Quien sigue el recorrido de un caso no ve las imágenes salvo que se le conceda el permiso dedicado.</p>
+<p>La evidencia se descarga desde la consola, con la sesión del operador y el permiso comprobado en cada descarga. No existe un enlace de archivo que funcione fuera de ella.</p>
+<h4>La evidencia no se acumula en el equipo perdido</h4>
+<p>La imagen se borra del equipo apenas se sube. Y si el equipo está sin red, el ciclo <strong>se pierde</strong> en vez de guardarse para después: dejar un depósito de capturas de pantalla —sin cifrar— en el equipo que alguien se llevó sería peor que perder una imagen.</p>
+<h3>Lo que se verificó en un equipo real</h3>
+<p>Terreno contra el ambiente de pruebas, con un equipo Linux de escritorio:</p>
+<div class="table-wrap"><table><thead><tr><th>qué</th><th>resultado</th></tr></thead><tbody><tr><td>Captura con la sesión abierta</td><td>imagen legible del escritorio, con el reloj del equipo coincidiendo con la hora registrada</td></tr><tr><td>Captura con la sesión bloqueada</td><td>imagen legible de la pantalla de bloqueo — el escenario típico de un equipo robado</td></tr><tr><td>Captura con la pantalla apagada</td><td>sin imagen y con el motivo correcto</td></tr><tr><td>Imagen completamente negra</td><td>descartada; el caso recibe el motivo</td></tr><tr><td>Línea de tiempo en la consola</td><td>recorrido en el mapa y motivos redactados, en su idioma</td></tr></tbody></table></div>
+<p>⚠️ <strong>Windows y macOS no tienen verificación de terreno de esta función</strong> al momento de publicar. En macOS hay además una limitación conocida y ajena al producto: el permiso de grabación de pantalla <strong>no se puede conceder por administración remota</strong>; si nadie lo autorizó a mano en el equipo, el caso recibirá el motivo correspondiente en vez de imágenes.</p>
+<h3>Antes de actualizar</h3>
+<ul><li>Esta versión <strong>trae una migración</strong> (<code>agents.0065</code>). Es un campo nuevo y anulable: no reescribe ninguna fila existente.</li><li>El servidor necesita el directorio de evidencia (<code>/opt/observer/lostmode/evidence</code>). Los playbooks de instalación y de despliegue del backend lo crean solos; si despliega a mano, créelo antes con el usuario del servicio y permisos <code>0750</code>.</li><li>Los equipos se actualizarán solos al agente <strong>2.15.16</strong> al hacer check-in. Para escalonarlo, fije <code>LATEST_AGENT_VER</code> en la configuración local del servidor antes de desplegar.</li><li>⚠️ <strong>Pendiente, y conviene tenerlo presente al abrir casos:</strong> la evidencia todavía <strong>no se borra sola a los 90 días</strong> ni se guarda cifrada en reposo. Las dos cosas llegan en la etapa siguiente; hasta entonces, cerrar un caso viejo implica pedir el borrado de su evidencia.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.7">Observer RMM 1.4.7</h2>
+  <p class="rn-date">2026-08-12</p>
+  <div class="rn-body"><p>Versión de mantenimiento de la plataforma <strong>Observer RMM</strong>. Cierra los tres hallazgos que dejó abiertos la verificación en terreno de la <code>v1.4.6</code>: dos de ellos afectaban la <strong>calidad de la evidencia</strong> del modo perdido y el tercero la hacía difícil de leer.</p>
+<p>Acompaña al agente <strong>v2.15.15</strong>, que trae el tercero de esos arreglos.</p>
+<h3>Cambios en esta versión</h3>
+<h4>🔴 Corregido: en modo perdido, la posición del sitio se guardaba como si fuera la del equipo</h4>
+<p>Cuando un equipo no logra medir su ubicación —una VM sin radio WiFi, por ejemplo— el producto le hereda las <strong>coordenadas declaradas de su sitio</strong>. Para un equipo estacionario esa herencia es correcta y es estrictamente mejor que un fix por IP, cuyo error se mide en centenas de kilómetros.</p>
+<p>Para un equipo <strong>marcado como perdido</strong> es lo contrario: el recorrido del caso mostraba el equipo sentado en la oficina mientras alguien se lo llevaba. No es un dato pobre, es un dato <strong>falso</strong>, y un caso que puede terminar en una denuncia no puede llevar evidencia fabricada.</p>
+<p>Con el equipo marcado, ahora se guarda la posición <strong>realmente medida</strong> —con su margen de error declarado, aunque sea de 20 km— o no se guarda ninguna. Fuera del modo perdido, la herencia del sitio sigue funcionando igual que antes.</p>
+<p>Se detectó en terreno: los tres puntos que registró la verificación de la <code>v1.4.6</code> decían <code>sitio (declarada)</code>. Y se verificó el arreglo del mismo modo — el equipo marcado pasó de registrar <code>sitio (declarada)</code> con 1 km de incertidumbre a registrar <code>ip</code> con 20 km, que es la verdad de lo que ese equipo puede medir; fuera del modo perdido siguió heredando el sitio, como corresponde.</p>
+<h4>Corregido: el aviso de gobernanza no se podía leer en modo oscuro</h4>
+<p>El aviso que encabeza el módulo <strong>Equipos perdidos</strong> —el que recuerda que marcar exige un motivo, queda auditado y pasa por encima del interruptor global de ubicación— se pintaba con un fondo claro y dejaba que el texto heredara el color del tema. Con la interfaz en modo oscuro, eso era texto claro sobre fondo claro.</p>
+<p>De paso, su texto citaba una referencia interna del proyecto. La consola no es el lugar de esa referencia: el aviso ahora dice lo mismo en el idioma del producto.</p>
+<h4>Agente</h4>
+<ul><li>La versión ofrecida a la flota pasa a la <strong>2.15.15</strong>. Su cambio central: al marcar un equipo <strong>encendido y en línea</strong>, la ubicación intensiva empezaba en el siguiente ciclo normal —hasta media hora después—. Ahora arranca en el momento, y toma el primer punto de inmediato.</li></ul>
+<h3>Antes de actualizar</h3>
+<ul><li>Los equipos se actualizarán solos a la <code>2.15.15</code> al hacer check-in. Si necesita escalonarlo, fije <code>LATEST_AGENT_VER</code> en la configuración local del servidor antes de desplegar.</li><li>Esta versión <strong>no trae migraciones</strong>.</li><li>Los puntos ya guardados como <code>sitio (declarada)</code> en casos anteriores <strong>no se reescriben</strong>: el producto no reinterpreta evidencia histórica. Lo que cambia es lo que se registra de aquí en adelante.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.6">Observer RMM 1.4.6</h2>
+  <p class="rn-date">2026-08-12</p>
+  <div class="rn-body"><p>Versión de la plataforma <strong>Observer RMM</strong> de BrainCorp. Acumula lo trabajado desde la <code>v1.4.5</code>, y su cambio central es la <strong>primera etapa del modo perdido/robado</strong>: un equipo que sale del control de su dueño deja de ser un punto que se apagó y pasa a ser un caso, con motivo, autor, auditoría y una huella de ubicación que se puede reconstruir.</p>
+<p>Esta etapa <strong>no captura pantalla ni fotos</strong> — eso llega en la siguiente. Lo que entrega es el andamiaje completo debajo: el estado, el permiso, la auditoría, la ubicación intensiva y el módulo en la consola.</p>
+<p>⚠️ Esta versión sube la versión de agente ofrecida a la flota a la <strong>2.15.14</strong>. Los equipos se actualizan solos al hacer check-in.</p>
+<h3>Cambios en esta versión</h3>
+<h4>Modo perdido/robado — primera etapa</h4>
+<ul><li>Un equipo se marca como perdido desde la consola con un <strong>motivo obligatorio</strong>. No es burocracia: es lo que sostiene la proporcionalidad de encender una recolección de datos sobre la persona que tiene el equipo, y queda escrito en la auditoría. El único interruptor de apagado es marcarlo como <strong>recuperado</strong>.</li><li>Mientras está marcado, el equipo <strong>reporta su ubicación entre una vez por minuto y una vez por hora</strong> (5 minutos por omisión, configurable al marcar). En operación normal el producto mantiene un piso de seguridad de 5 minutos entre capturas; el modo perdido lo saltea a propósito, porque un equipo que se mueve no se reconstruye con un punto cada media hora.</li><li><strong>Funciona con el equipo apagado.</strong> Si lo marcan mientras está sin energía o sin red, el equipo se entera al reconectarse: el aviso inmediato no es el único camino, el estado también viaja en la consulta de configuración que el agente hace por su cuenta. Marcar un equipo apagado <strong>no es un error</strong> y la consola lo trata como el caso normal que es.</li><li><strong>Sobrevive al reinicio.</strong> El estado se guarda en el equipo y se retoma al arrancar el servicio, sin esperar a hablar con el servidor. Un equipo robado se reinicia —lo apaga quien lo tiene, o se queda sin batería—, así que un estado que sólo viviera en memoria se perdería justo en el escenario para el que existe.</li><li>Al marcarlo como recuperado, el rastro del marcaje <strong>se borra del equipo</strong>: no queda en el disco un archivo que delate que se lo estuvo siguiendo.</li><li>Módulo <strong>&quot;Equipos perdidos&quot;</strong> en la consola: lista de equipos marcados, desde cuándo, quién y con qué motivo, y las acciones de marcar y recuperar. Es una sección propia con URL compartible, no un cuadro de diálogo — un caso se sigue en el tiempo.</li><li><strong>Dos permisos separados a propósito</strong>: <code>Operar modo perdido</code> y <code>Ver evidencia</code>. Coordinar la recuperación de un equipo no exige poder ver lo que la pantalla o la cámara capturen cuando esa etapa esté disponible.</li><li><strong>Sin fusible por falta de contacto, y es una decisión.</strong> Un equipo marcado que nunca vuelve a hablar con el servidor sigue en modo perdido indefinidamente. El caso de uso es precisamente un equipo que no vuelve.</li></ul>
+<h4>🔴 Corregido: con la geolocalización global apagada, la ubicación del equipo perdido se descartaba</h4>
+<p>Una instalación nueva viene con la geolocalización <strong>apagada</strong>. Marcar un equipo como perdido pasa por encima de ese interruptor —así está declarado en la auditoría del marcaje— y el agente efectivamente empezaba a reportar cada minuto. <strong>El servidor descartaba cada uno de esos puntos.</strong></p>
+<p>El resultado era el peor de los dos mundos: el equipo gastaba batería y se exponía frente a quien lo tenía, y el recorrido quedaba vacío. Es decir, la función era un no-op de punta a punta exactamente en la configuración por omisión, que es donde más falta hace.</p>
+<p>Se detectó <strong>midiendo contra un equipo real</strong>, no en las pruebas: las pruebas del servidor y del agente estaban todas verdes.</p>
+<h4>🔴 Corregido: el historial de ubicaciones se filtraba con la geolocalización apagada</h4>
+<p>La posición <strong>actual</strong> de un equipo se ocultaba cuando el interruptor global estaba apagado, pero el <strong>recorrido histórico completo</strong> seguía saliendo por otra vista. Era una fuga, no una decisión de diseño. Las dos vistas comparten ahora la misma regla.</p>
+<h4>Corregido: dos demoras que dejaban ventanas ciegas</h4>
+<ul><li>Al <strong>encender</strong> un equipo marcado, el modo perdido podía tardar <strong>hasta media hora</strong> en activarse, pese a que el dato ya venía en la primera consulta de configuración del arranque.</li><li>Tras <strong>reiniciar</strong> un equipo ya marcado, la ubicación volvía a reportarse a la frecuencia normal por otra media hora, en vez de retomar de inmediato la del caso — justo lo que la persistencia del estado venía a evitar.</li></ul>
+<p>Las dos se midieron en terreno y las dos están cerradas: el estado se aplica en el arranque y la frecuencia del caso rige desde el primer segundo.</p>
+<h4>Biblioteca de scripts</h4>
+<ul><li>Cuatro <strong>plantillas nuevas</strong> para Linux y macOS.</li></ul>
+<h4>Interno</h4>
+<ul><li>El job de la integración continua que valida el servicio de mensajería del servidor corría <code>build</code> y <code>vet</code> pero <strong>nunca ejecutaba las pruebas</strong> del paquete. Ahora las ejecuta: un test que no corre es un cero silencioso.</li></ul>
+<h3>Antes de actualizar</h3>
+<ul><li>La versión de agente ofrecida sube a <strong>2.15.14</strong> y los equipos se actualizarán solos. Si necesita escalonarlo, fije <code>LATEST_AGENT_VER</code> en la configuración local del servidor antes de desplegar.</li><li>Las migraciones de esta versión (<code>agents.0064</code>, <code>accounts.0043</code>, <code>logs.0028</code>) sólo agregan tablas y columnas; no reescriben datos existentes.</li><li>Los permisos del modo perdido nacen <strong>apagados</strong> para todos los roles: hay que concederlos de forma explícita en cada rol que deba operarlo.</li></ul></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.5">Observer RMM 1.4.5</h2>
+  <p class="rn-date">2026-08-10</p>
+  <div class="rn-body"><p>Versión de la plataforma <strong>Observer RMM</strong> de BrainCorp. Acumula todo lo trabajado desde la <code>v1.4.4</code>, y su cambio central es el <strong>modo mantenimiento</strong>: era un interruptor de silencio que suprimía alertas sin fecha, sin autor y sin decirlo en ninguna parte. Ahora se anuncia, se audita y avisa cuando se estira.</p>
+<p>⚠️ <strong>Lea &quot;Antes de actualizar&quot; antes de desplegar.</strong> Esta versión cambia lo que el tablero pinta: sitios que hoy se ven verdes pasarán a mostrar su estado real.</p>
+<h3>Cambios en esta versión</h3>
+<h4>Modo mantenimiento — visible, atribuible y con fecha de vencimiento humana</h4>
+<ul><li><strong>Aviso permanente en el encabezado</strong> cuando hay equipos en mantenimiento: cuántos son, desde hace cuántos días está el más antiguo, y un botón que deja la lista filtrada por esos equipos. <strong>No se puede cerrar</strong> mientras haya equipos marcados: un aviso que se descarta vuelve a ser un olvido.</li><li>El aviso <strong>respeta los permisos</strong>: un usuario que no ve un cliente tampoco ve sus equipos en el conteo.</li><li>Cada equipo marcado muestra <strong>desde cuándo y quién lo activó</strong>, en el tooltip de la lista y en la ficha del equipo.</li><li><strong>Auditoría del cambio masivo.</strong> Activar o desactivar el modo mantenimiento por cliente o por sitio deja una entrada con el usuario, el alcance y los equipos afectados. Antes usaba una escritura directa a la base que no dejaba ningún rastro: nadie podía saber quién había silenciado un sitio entero.</li><li><strong>Aviso por correo</strong> cuando un equipo supera el umbral de días en mantenimiento. Configurable en Configuración global (<strong>3 días</strong> por omisión, se puede apagar). Un solo aviso por equipo y por ventana; bajar y volver a subir el modo mantenimiento empieza una ventana nueva.</li><li><strong>No se agregó caducidad automática, y es a propósito.</strong> Hay ventanas de mantenimiento que legítimamente duran días; apagarlas solas sería peor que el olvido. Lo que cambia es que el olvido ahora se ve.</li><li>Los equipos que ya estaban en mantenimiento antes de actualizar aparecen con fecha <strong>&quot;desconocido&quot;</strong>. La migración <strong>no inventa una fecha</strong> que no tiene; esos equipos igual cuentan en el aviso y igual disparan el correo.</li><li><strong>El color no cambia.</strong> El ícono de la fila y los nodos del árbol siguen en verde para los equipos en mantenimiento. El aviso lo carga el encabezado, no el color de las filas.</li></ul>
+<h4>🔴 Corregido: un equipo en mantenimiento ocultaba a todo su sitio</h4>
+<p>Al calcular el estado de un sitio y de un cliente, el primer equipo en mantenimiento <strong>interrumpía la evaluación completa</strong>: los demás equipos del sitio no se miraban, y el sitio y el cliente se pintaban sanos aunque hubiera equipos fallando.</p>
+<p>El impacto es proporcional a cuántos equipos estén marcados. En el ambiente donde se detectó, con 8 de 10 equipos en mantenimiento, explicaba buena parte de por qué la consola se veía tranquila durante cuatro días.</p>
+<p><strong>Al actualizar, sitios que hoy se ven verdes van a aparecer en rojo.</strong> Eso es el arreglo, no una regresión: esos equipos ya estaban fallando y estaban tapados. El equipo en mantenimiento se sigue ignorando y sigue verde — lo que deja de hacer es tapar a sus vecinos.</p>
+<h4>Seguridad de la configuración global</h4>
+<ul><li>La <strong>contraseña SMTP</strong>, los <strong>tokens de Twilio y de MeshCentral</strong> y la <strong>clave del asistente de IA</strong> ya no se pueden leer desde la consola: una vez guardados sólo se reemplazan o se borran. La consola indica si hay algo configurado, sin conocer el valor, y tampoco quedan en el registro de auditoría. Dejar el campo vacío significa &quot;no lo toqué&quot;; para quitar un secreto hay que borrarlo de forma explícita.</li><li>Los <strong>datos de conexión con MeshCentral</strong> pasan a sólo lectura en la consola. Editarlos ahí nunca fue la vía correcta: el valor que manda lo despliega Ansible, la edición no persistía, y hasta el siguiente despliegue completo podía dejar &quot;Tomar control&quot; roto. Lo único que queda editable de esa pestaña es el nombre visible de la compañía.</li></ul>
+<h4>Agentes e instaladores</h4>
+<ul><li>La consola <strong>marca los equipos con el agente de 32 bits instalado sobre un Windows de 64 bits</strong>. Ese equipo se ve perfectamente sano —está en línea, reporta, su registro dice que se está actualizando— pero la actualización nunca surte efecto: vuelve a descargar el mismo paquete cada hora, para siempre, y su inventario de software queda incompleto. Hasta ahora no había forma de distinguirlo en la consola.</li><li>Los <strong>instaladores de Linux y macOS verifican la arquitectura</strong> del equipo y se niegan a instalar el agente equivocado. El modo de falla que esto ataja no es ruidoso: el binario de 32 bits corre sin error sobre un equipo de 64 bits, y el equipo queda pidiendo esa arquitectura indefinidamente.</li><li>Corregido: el instalador de Windows <code>installer.ps1</code> <strong>no corría en Windows 7</strong> de fábrica (PowerShell 2.0), que es justamente la única plataforma para la que existe el agente de 32 bits. Terminaba en un &quot;Unable to connect to server&quot; y cero instalación.</li></ul>
+<h4>Operación</h4>
+<ul><li><strong>Censo diario de nodos huérfanos de MeshCentral</strong>: registros que quedaron de un enrolamiento fallido y que, por definición, no aparecen en ninguna pantalla de la consola. El censo <strong>sólo informa</strong>, no borra; el borrado sigue siendo un procedimiento manual.</li><li>Dos <strong>plantillas de scripts</strong> nuevas para censar y limpiar los archivos que quedan en Windows tras migrar un agente de 32 bits a 64. Ese residuo no es inerte: borrarlo sin cuidado deja tareas programadas rotas en silencio, y por eso el censo y la limpieza van separados y no se automatizan.</li><li>Corregido: los <strong>correos de alerta se reportaban como enviados aunque el servidor SMTP los rechazara</strong> — conexión rechazada, login fallido, tiempo agotado. El botón &quot;Probar&quot; de la consola era la única ruta inmune al problema, así que el transporte podía verificarse verde mientras las alertas reales no salían.</li><li>Corregido: cuando la hora de una desinstalación manual llegaba ilegible, el producto lo dejaba pasar en silencio. Ahora queda registrado.</li></ul>
+<h4>Consola</h4>
+<ul><li>Corregido: al escribir un secreto en la configuración, el <strong>tabulador duplicaba el primer carácter</strong>.</li><li>Corregido: <strong>tres textos quedaban en inglés</strong> con la interfaz en español.</li><li>Corregido: el <strong>borrador de script generado con IA</strong> llegaba con el razonamiento interno del modelo mezclado en el código.</li><li>Corregido: la <strong>plantilla de servicios reportaba FALLA a servicios que sí habían arrancado</strong>.</li></ul>
+<h3>Antes de actualizar</h3>
+<p>⚠️ <strong>El tablero va a cambiar de aspecto.</strong> Por el arreglo descrito arriba, los sitios y clientes que hoy se ven sanos por tener un equipo en mantenimiento pasarán a mostrar el estado real de los demás equipos. Conviene avisarlo al equipo de operación <strong>antes</strong> del despliegue, para que no se lea como una falla del despliegue.</p>
+<p>⚠️ <strong>Revise el modo mantenimiento antes de actualizar.</strong> Con esta versión el aviso aparecerá apenas alguien entre a la consola. Si hay equipos marcados desde hace tiempo, su fecha figurará como &quot;desconocido&quot; (el producto no la inventa) y <strong>entrarán en el primer correo de aviso</strong>, que es el comportamiento buscado: un mantenimiento sin fecha es uno que nadie está mirando.</p>
+<h3>Migraciones</h3>
+<p>Esta versión <strong>sí trae migraciones de base de datos</strong>: <code>agents/0063</code> (metadatos del modo mantenimiento) y <code>core/0061</code> (umbral y activación del aviso por correo). El propio despliegue las aplica. Ninguna borra ni reescribe datos existentes: los campos nuevos nacen vacíos.</p>
+<h3>Agente</h3>
+<p><code>LATEST_AGENT_VER</code> <strong>no cambia</strong> en esta versión: sigue siendo la <strong>2.15.1</strong>. La promoción de la 2.15.3 a producción es una decisión aparte.</p>
+<h3>Actualización</h3>
+<p>Despliegue con Ansible sobre la instalación existente (<code>deploy-api.yml</code> y <code>deploy-frontend.yml</code>).</p>
+<p>El frontend <strong>debe redesplegarse</strong>: esta versión trae cambios de consola (el aviso del encabezado, el filtro y los tooltips) y sube <code>APP_VER</code>, que es lo que le pide al navegador recargar la aplicación.</p>
+<p>---</p>
+<p><strong>Instalación y guía:</strong> ver <code>README.md</code>.</p>
+<p><strong>Licencia:</strong> uso interno BrainCorp.</p></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.4">Observer RMM 1.4.4</h2>
+  <p class="rn-date">2026-08-04</p>
+  <div class="rn-body"><p>Versión de mantenimiento de la plataforma <strong>Observer RMM</strong> de BrainCorp. Un solo cambio: el producto pasa a ofrecerle a la flota el <strong>agente v2.15.1</strong>.</p>
+<h3>Cambios en esta versión</h3>
+<h4>Agente ofrecido a la flota</h4>
+<ul><li><code>LATEST_AGENT_VER</code> pasa de <strong>2.14.3</strong> a <strong>2.15.1</strong>. Es la versión que la consola ofrece y a la que los equipos se actualizan solos al hacer check-in.</li><li>La 2.15.1 corrige los <strong>acentos y la ñ</strong> en los scripts ejecutados sobre <strong>Windows en español</strong>: antes se perdían tanto en el código del script como en su salida. Verificado en dos equipos Windows en español reales.</li><li>El valor por omisión del producto estaba una versión atrás desde que se publicó la 2.15.1. Los ambientes que ya la ofrecían lo hacían mediante un pin de inventario (<code>observer_latest_agent_ver</code>), que sigue funcionando y <strong>manda sobre este valor</strong> cuando está declarado.</li></ul>
+<h3>Agente</h3>
+<p>Esta versión se acompaña del <strong>Observer RMM Agent v2.15.1</strong> (<a href="/release-notes/agent/#agt-v2.15.1" rel="noopener">notas</a>). No hay que reinstalar nada: la flota se actualiza sola.</p>
+<h3>Actualización</h3>
+<p>Despliegue con Ansible sobre la instalación existente (<code>deploy-api.yml</code> y <code>deploy-frontend.yml</code>).</p>
+<p>⚠️ <strong><code>LATEST_AGENT_VER</code> se sirve desde <code>local_settings.py</code></strong>, que <code>deploy-api.yml</code> <strong>no</strong> re-renderiza (lo excluye del <code>synchronize</code> para no pisar secretos). En una instalación cuyo inventario declare <code>observer_latest_agent_ver</code>, ese pin es el que manda y hay que actualizarlo ahí; si el pin apunta a una versión anterior, seguirá ganándole a este valor por omisión.</p>
+<p>Esta versión <strong>no trae migraciones de base de datos propias</strong>. Quien venga desde <code>v1.4.2</code> o anterior sí recibirá las de <code>v1.4.3</code>, que el propio despliegue aplica.</p>
+<p>---</p>
+<p><strong>Instalación y guía:</strong> ver <code>README.md</code>.</p>
+<p><strong>Licencia:</strong> uso interno BrainCorp.</p></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.3">Observer RMM 1.4.3</h2>
+  <p class="rn-date">2026-08-04</p>
+  <div class="rn-body"><p>Versión de funcionalidades de la plataforma <strong>Observer RMM</strong> de BrainCorp. Suma la <strong>biblioteca de plantillas de scripts</strong> propia del producto y el <strong>Asistente IA</strong> para redactar scripts, además de la respuesta ante la <strong>desinstalación manual del agente</strong> y las correcciones acumuladas desde <code>v1.4.2</code>.</p>
+<h3>Cambios en esta versión</h3>
+<h4>Biblioteca de plantillas de scripts</h4>
+<ul><li><strong>44 plantillas propias</strong> del producto para Windows, Linux y macOS, que se cargan solas con el despliegue. Ya no se clona ningún repositorio externo: los scripts son parte del producto y se versionan con él.</li><li>Se distinguen en el Administrador de scripts con <strong>isotipo propio</strong>, y el interruptor de la barra ahora dice qué hace de verdad: mostrar u ocultar las plantillas frente a los scripts que escribe el operador.</li><li>Abrir una plantilla muestra sus <strong>argumentos y variables de entorno</strong>, que se pueden ajustar para una prueba puntual sin clonarla. La consola avisa que esos cambios no se guardan.</li><li>Las plantillas están escritas para funcionar <strong>igual en un equipo en español que en uno en inglés</strong>: no comparan texto traducido del sistema operativo, sino identificadores estables.</li></ul>
+<h4>Asistente IA</h4>
+<ul><li>Pestaña <strong>&quot;Asistente IA&quot;</strong> en Configuración global. Funciona con cualquier proveedor que exponga una API estilo OpenAI: se configuran la <strong>URL base</strong>, el <strong>modelo</strong>, el <strong>límite de tokens</strong> y la <strong>temperatura</strong>.</li><li>La temperatura puede dejarse vacía, porque hay modelos que rechazan la petición completa si se les manda un valor distinto del suyo por omisión.</li><li>Botón <strong>&quot;Generar borrador con IA&quot;</strong> en el Administrador de scripts: se describe en lenguaje natural lo que se necesita y la IA redacta el script en el editor, para revisarlo antes de guardarlo.</li><li>El despliegue puede sembrar una credencial de cortesía <strong>sin pisar la credencial propia</strong> del cliente si ya hay una configurada.</li></ul>
+<h4>Respuesta ante la desinstalación manual del agente</h4>
+<ul><li>Cuando alguien desinstala el agente <strong>a mano en el equipo</strong>, la consola ahora se entera: llega una <strong>alerta por correo</strong> con quién, dónde y cuándo, y queda registro en el log de auditoría.</li><li>El equipo se da de baja de la consola y de MeshCentral tras una <strong>ventana de gracia de 10 minutos, cancelable</strong>. La ventana existe porque reinstalar el agente ejecuta esa misma desinstalación, y un reinstalador no debería perder el historial del equipo.</li><li>La alerta sobrevive al borrado del equipo: se guarda sin depender del registro que la denuncia.</li></ul>
+<h4>Otros</h4>
+<ul><li>La alarma antirrobo suena al <strong>volumen máximo</strong> del equipo y no se detiene bajando el volumen.</li><li><strong>Geolocalización</strong> y su forzado quedan activados por omisión en instalaciones nuevas.</li><li>Documentación pública en <code>docs.observer.cl</code>, indexable, con la tabla de funciones soportadas por plataforma y la guía del borrador con IA.</li></ul>
+<h4>Correcciones</h4>
+<ul><li><strong>Corregido:</strong> el cuadro para pedirle el borrador a la IA era un campo de una sola línea. Uno escribía tres renglones y solo veía el último tramo, sin poder releer la instrucción antes de enviarla. Ahora es un cuadro amplio, con ejemplos clicables, contador de caracteres y Ctrl+Enter para generar.</li><li><strong>Corregido:</strong> la espera por la respuesta del proveedor de IA sube de 60 a 120 segundos. Con 60 se descartaban modelos que responden bien pero lento. Mientras espera, la consola muestra los segundos transcurridos en vez de una rueda sin información.</li><li><strong>Corregido:</strong> el desinstalador del agente en Linux se quedaba colgado esperando una confirmación en pantalla que nadie iba a dar.</li><li><strong>Corregido:</strong> la desinstalación en macOS quedaba colgada cuando MeshCentral no respondía.</li><li><strong>Corregido:</strong> el respaldo programado informaba éxito sin haber escrito el archivo.</li><li><strong>Corregido:</strong> la hora de las alertas se informaba en una zona horaria distinta de la del producto.</li><li><strong>Corregido:</strong> respuestas inválidas del servidor de control ya no se registran como identificadores de equipo.</li></ul>
+<h3>Agente</h3>
+<p>Esta versión se acompaña del <strong>Observer RMM Agent v2.15.1</strong> (<a href="/release-notes/agent/#agt-v2.15.1" rel="noopener">notas</a>), que corrige los <strong>acentos y la ñ</strong> en los scripts ejecutados sobre Windows en español: antes se perdían tanto en el código del script como en su salida. La flota se actualiza sola al hacer check-in; no hay que reinstalar nada.</p>
+<p>La versión que cada ambiente <strong>ofrece</strong> a su flota se fija por inventario (<code>observer_latest_agent_ver</code>), así que un ambiente puede quedarse en una versión anterior del agente aunque corra esta versión del producto.</p>
+<h3>Actualización</h3>
+<p>Despliegue con Ansible sobre la instalación existente (<code>deploy-api.yml</code> y <code>deploy-frontend.yml</code>). Esta versión trae <strong>migraciones de base de datos</strong>, que el propio despliegue aplica.</p>
+<p><code>APP_VER</code> sube a <code>0.0.205</code>: las consolas que estén abiertas mostrarán el aviso de recarga.</p>
+<p>---</p>
+<p><strong>Instalación y guía:</strong> ver <code>README.md</code>.</p>
+<p><strong>Licencia:</strong> uso interno BrainCorp.</p></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.2">Observer RMM 1.4.2</h2>
+  <p class="rn-date">2026-07-26</p>
+  <div class="rn-body"><p>Versión de mantenimiento y funcionalidades de la plataforma <strong>Observer RMM</strong> de BrainCorp. Suma la <strong>geolocalización de activos</strong> y la <strong>respuesta rápida sobre el equipo</strong> (bloqueo remoto, mensaje en pantalla y alarma sonora), además de las correcciones acumuladas desde <code>v1.4.1</code>.</p>
+<h3>Cambios en esta versión</h3>
+<h4>Respuesta rápida en el equipo</h4>
+<ul><li><strong>Bloqueo remoto de pantalla</strong>, <strong>mensaje en pantalla</strong> y <strong>alarma sonora</strong>, disponibles equipo por equipo o como acción masiva desde la consola.</li><li>El bloqueo es el <strong>nativo del sistema operativo</strong> (el equivalente a Win+L), no un candado propio.</li><li>Las tres acciones tienen <strong>permiso propio por rol</strong> —se otorgan por separado, porque su impacto sobre el usuario del equipo es muy distinto— y quedan registradas en el log de auditoría, tanto si se ejecutan como si fallan.</li><li>Cuando una acción no se puede completar, la consola explica <strong>por qué</strong> en el idioma del operador: nadie con sesión abierta, sin herramienta de diálogo, sin reproductor de audio, o sin método de bloqueo disponible.</li></ul>
+<h4>Geolocalización de activos</h4>
+<ul><li><strong>Mapa</strong> con la ubicación de cada equipo y <strong>trayectoria histórica</strong> de posiciones.</li><li>Ubicación por <strong>redes WiFi cercanas</strong>, con precisión típica de unos 20 metros, en vez de solo por dirección IP. En macOS se usa la ubicación <strong>nativa del sistema operativo</strong>.</li><li><strong>Coordenadas declarables por sitio</strong>, que se usan como respaldo cuando el equipo no puede resolver su posición por sí mismo.</li><li><strong>Geocerca opcional</strong> por equipo, con alerta por correo y aviso en la consola cuando un activo sale del perímetro de su sitio.</li></ul>
+<h4>Otros</h4>
+<ul><li>Control remoto compatible con <strong>doble proxy inverso</strong>.</li><li>Notas de versión de las publicaciones anteriores del producto disponibles en el changelog público (<code>agents.observer.cl/changelog/</code>).</li></ul>
+<h3>Agente</h3>
+<p>Esta versión se acompaña del <strong>Observer RMM Agent v2.14.2</strong> (<a href="/release-notes/agent/#agt-v2.14.2" rel="noopener">notas</a>). La flota se actualiza sola al hacer check-in; no hay que reinstalar nada.</p>
+<h3>Actualización</h3>
+<p>Despliegue con Ansible sobre la instalación existente (<code>deploy-api.yml</code> y <code>deploy-frontend.yml</code>). Esta versión trae <strong>migraciones de base de datos</strong>, que el propio despliegue aplica.</p>
+<p>---</p>
+<p><strong>Instalación y guía:</strong> ver <code>README.md</code>.</p>
+<p><strong>Licencia:</strong> uso interno BrainCorp.</p></div>
+</article>
+<article class="rn-rel">
+  <h2 id="srv-v1.4.1">Observer RMM 1.4.1</h2>
+  <p class="rn-date">2026-07-22</p>
+  <div class="rn-body"><p>Primera publicación versionada de la plataforma <strong>Observer RMM</strong> de BrainCorp: monitoreo y administración remota de flotas (RMM) desplegable con Ansible sobre Ubuntu, <strong>sin Docker</strong>. Esta versión consolida el producto (backend Django + capa Go/NATS + frontend Vue/Quasar), el agente multiplataforma y el despliegue con Ansible en un estado probado end-to-end y <strong>en producción (tier1)</strong>.</p>
+<h3>Destacados</h3>
+<h4>Plataforma</h4>
+<ul><li><strong>Consola web</strong> completa (Vue/Quasar) con tema propio <em>Observation Deck</em>.</li><li><strong>Internacionalización ES/EN</strong> de toda la UI (128/128 vistas) y del módulo de Reportes; idioma por defecto <code>es-CL</code>.</li><li><strong>Reportería</strong>: 19 plantillas curadas (inventario de equipos, especificaciones, software, actualizaciones de Windows, auditoría, cobertura de antivirus) + 4 <em>dashboards</em> con gráficos <strong>self-hosted</strong> (sin CDN externo); exportación HTML/PDF, editor Jinja, consultas de datos y reportes programados por correo.</li><li><strong>Alertas por correo (SMTP)</strong> y <strong>control remoto</strong> integrado (MeshCentral).</li><li><strong>RBAC</strong>, 2FA, registro de auditoría, campos personalizados y políticas de automatización.</li></ul>
+<h4>Agente</h4>
+<ul><li><strong>Observer RMM Agent v2.10.8</strong> — Windows, Linux y macOS (amd64/arm64/386/arm), distribuido por CDN propio (<code>agents.observer.cl</code>). Actualización de flota automática al hacer check-in.</li><li>El instalador de Linux ya <strong>no aborta</strong> en estaciones con entorno gráfico: maneja <code>DISPLAY</code> automáticamente y se instala headless.</li></ul>
+<h4>Despliegue</h4>
+<ul><li><strong>6 roles Ansible</strong> (PostgreSQL 15, Redis, MeshCentral, API Django + NATS + Celery, nginx + TLS) en modo <strong>all-in-one</strong>, greenfield, sin Docker.</li><li><strong>TLS</strong> por ACME (wildcard, desafío DNS-01) o certificados provistos; credenciales autogeneradas y cifradas.</li><li>Publicación a Internet detrás de un reverse-proxy corporativo, con recuperación de la <strong>IP real del cliente</strong> y manejo del pin de certificado del canal de control remoto tras double-proxy.</li></ul>
+<h4>Robustez y correcciones</h4>
+<ul><li>Mejoras de UX del frontend: autocompletado de login, ordenamiento de alertas y estado de equipos, popups centrados multi-monitor, mejor manejo de errores.</li><li>Mejoras de backend: validación del token de firma de código, hostname en los asuntos de alerta, limpieza de instalación en macOS.</li></ul>
+<p>---</p>
+<p><strong>Instalación y guía:</strong> ver <code>README.md</code>.</p>
+<p><strong>Licencia:</strong> uso interno BrainCorp.</p></div>
+</article>
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

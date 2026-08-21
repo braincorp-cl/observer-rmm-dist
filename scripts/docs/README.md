@@ -182,13 +182,24 @@ CSS sí, así que no se puede asumir por tipo de archivo.
 
 ## Notas de versión públicas (docs.observer.cl/release-notes/)
 
-`build_release_notes.py` consolida los GitHub Releases de **observer-rmm-dist**
-(servidor) y **observer-agent-dist** (agente) en `docs-site/release-notes/index.html`.
-Los repos son privados; esta es la copia pública de sus notas. Regenerar y publicar:
+`build_release_notes.py` toma los GitHub Releases de **observer-rmm-dist**
+(servidor) y **observer-agent-dist** (agente) y genera **tres** páginas, en pistas
+separadas por URL:
+
+- `docs-site/release-notes/index.html` — landing con las dos pistas.
+- `docs-site/release-notes/server/index.html` — servidor (`/release-notes/server/`).
+- `docs-site/release-notes/agent/index.html` — agente (`/release-notes/agent/`).
+
+Los repos son privados; esta es la copia pública de sus notas, así que el
+generador **elimina todo enlace a github.com** del render (serían enlaces rotos):
+los cruces entre versiones se reescriben a anclas del propio sitio, el resto de
+los enlaces a github se des-enlazan a texto y las líneas «Full Changelog» se
+descartan. Regenerar y publicar:
 
 ```bash
 python3 scripts/docs/build_release_notes.py     # usa `gh api` (token de gh)
-# publicar al appserver igual que el resto de docs (sección 5 de este README)
+# publicar los TRES al appserver igual que el resto de docs (sección 5 de este README):
+#   release-notes/index.html, release-notes/server/index.html, release-notes/agent/index.html
 ```
 
 Se desacopló a propósito de `WEB_VERSION`: esa variable ya no arma ninguna URL
