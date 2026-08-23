@@ -151,18 +151,20 @@ def _keep_awake_baseline() -> bool:
 def _open_wifi_enabled() -> bool:
     """Feature 041 · T034: toggle global de RF-05 (asociarse a WiFi abierta).
 
-    De `CoreSettings.open_wifi_enabled`. Aquí el fail-safe SÍ es APAGAR (a
-    diferencia del baseline): encender de más es exactamente el daño —un equipo
-    asociándose solo a redes de terceros sin que nadie lo haya autorizado—, así
-    que un error de lectura nunca puede dejarlo prendido. Espeja el default del
-    modelo (False).
+    De `CoreSettings.open_wifi_enabled`. ON por omisión: es parte del módulo de
+    perdidos/robados y el uso corporativo del equipo está cubierto por el acta de
+    entrega; el toggle es un opt-out para el cliente que desestima el módulo. El
+    fail-safe espeja ese default (True): ante un error de lectura, un equipo
+    posiblemente robado no debe dejar de intentar reportarse por un hipo de BD.
+    Igual que `_keep_awake_baseline`. (El intento igual está acotado en runtime a
+    fuera-de-geocerca + sin conectividad; el flag sólo lo habilita.)
     """
     try:
         from core.utils import get_core_settings
 
         return bool(get_core_settings().open_wifi_enabled)
     except Exception:
-        return False
+        return True
 
 
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:

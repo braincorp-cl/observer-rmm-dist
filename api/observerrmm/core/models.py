@@ -215,14 +215,13 @@ class CoreSettings(BaseAuditModel):
     keep_awake_baseline_enabled = models.BooleanField(default=True)
     # Feature 041 (RF-05/RN-06/T034): toggle global de la asociación a redes WiFi
     # ABIERTAS cuando un equipo queda fuera de su geocerca y sin conectividad
-    # utilizable (recuperar contacto anti-robo). OFF por omisión a propósito: es
-    # una conducta sensible (el equipo se asocia solo a redes de terceros) que NO
-    # puede quedar viva por el solo hecho de desplegar un agente que trae el
-    # código. Debe encenderse deliberadamente y sólo tras cerrar la línea en la
-    # política de uso aceptable + visto legal (T022). Viaja al agente como
-    # open_wifi en el config; el agente lo consulta como PRIMER gate. Nunca cruza
-    # portales cautivos ni auto-autentica; macOS es no-op (RF-10).
-    open_wifi_enabled = models.BooleanField(default=False)
+    # utilizable, para recuperar contacto y reportar estado/ubicación (anti-robo).
+    # ON por omisión: es parte del módulo de perdidos/robados y el uso corporativo
+    # del equipo está cubierto por el acta de entrega. El toggle existe como
+    # OPT-OUT para el cliente que desestima ese módulo. Viaja al agente como
+    # open_wifi en el config; el agente lo consulta como PRIMER gate. Sólo redes
+    # abiertas, nunca cruza portales cautivos ni auto-autentica; macOS no-op (RF-10).
+    open_wifi_enabled = models.BooleanField(default=True)
     # Recordatorio de mantenimiento prolongado (feature 036). El modo mantenimiento
     # NO caduca, y es una decisión, no un descuido: hay ventanas de migración que
     # duran días y apagarlas solas sería peor que el olvido. Lo que se agrega no es

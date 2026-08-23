@@ -141,11 +141,11 @@
                   </q-checkbox>
                 </q-card-section>
                 <!--
-                  RF-05 (feature 041 · RN-06, T034/T016/T017). Toggle global OFF por
-                  omisión: conducta sensible (el equipo se asocia solo a redes WiFi
-                  abiertas de terceros fuera de su geocerca). NO habilitar sin la
-                  línea en la política de uso aceptable + visto legal (T022). El
-                  agente lo consulta como primer gate; con esto en false es no-op.
+                  RF-05 (feature 041 · RN-06, T034/T016/T017). Toggle global ON por
+                  omisión: parte del módulo de perdidos/robados (uso corporativo
+                  cubierto por el acta de entrega). Es un OPT-OUT para el cliente que
+                  desestima ese módulo. El agente lo consulta como primer gate; con
+                  esto en false es no-op en toda la flota.
                 -->
                 <q-card-section class="row items-center">
                   <q-checkbox
@@ -157,8 +157,7 @@
                     </q-tooltip>
                   </q-checkbox>
                   <q-icon
-                    name="warning"
-                    color="warning"
+                    name="ion-information-circle-outline"
                     size="sm"
                     class="q-ml-sm cursor-help"
                   >
