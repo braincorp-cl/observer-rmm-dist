@@ -1175,7 +1175,23 @@ class LostModeList(APIView):
         qs = (
             LostModeState.objects.filter_by_role(request.user)
             .filter(active=True)
-            .select_related("agent__site__client", "marked_by")
+            .select_related(
+                "agent__site__client",
+                "marked_by",
+                # T013 (RF-11): el serializer deriva el estado de cifrado del
+                # equipo del caso. Sin este `select_related` sería una consulta
+                # por fila; con él, el estado viaja en el mismo golpe.
+                "agent__disk_encryption",
+            )
+            .prefetch_related(
+                # `derivar_estado` mira el volumen de sistema (RN-A02). Mismo
+                # Prefetch que el panel de la 037: sin él, el N+1 por fila.
+                Prefetch(
+                    "agent__disk_encryption_volumes",
+                    queryset=DiskEncryptionVolume.objects.filter(is_system_volume=True),
+                    to_attr="system_volumes",
+                )
+            )
             .order_by("-marked_at")
         )
         return Response(LostModeStateSerializer(qs, many=True).data)

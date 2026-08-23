@@ -259,6 +259,14 @@ class LostModeStateSerializer(serializers.ModelSerializer):
     client_name = serializers.ReadOnlyField(source="agent.client.name")
     site_name = serializers.ReadOnlyField(source="agent.site.name")
     marked_by = serializers.ReadOnlyField(source="marked_by.username")
+    # Feature 038 · T013 (RF-11): el índice del caso REPORTA el estado de cifrado
+    # del equipo, sin activarlo. Es el mismo veredicto del panel de la 037
+    # (RN-A02), derivado acá para que quien opera un robo lo vea sin cambiar de
+    # pantalla. `derivar_estado` lee `agent.disk_encryption` + su volumen de
+    # sistema; la vista prepara ambos con `select_related`/`Prefetch` para no
+    # caer en un N+1 por fila. Un equipo mac/Linux (sin BitLocker) sale "sin
+    # dato", nunca "sin cifrar" — la honestidad de RN-A03 vale también acá.
+    encryption_state = serializers.SerializerMethodField()
 
     class Meta:
         model = LostModeState
@@ -274,7 +282,11 @@ class LostModeStateSerializer(serializers.ModelSerializer):
             "marked_at",
             "recovered_at",
             "interval_min",
+            "encryption_state",
         )
+
+    def get_encryption_state(self, obj) -> str:
+        return derivar_estado(obj.agent)
 
 
 class LostModePolicySerializer(serializers.ModelSerializer):

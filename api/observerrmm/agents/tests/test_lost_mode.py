@@ -20,14 +20,23 @@ Lo que se prueba acá es lo que puede romperse en silencio:
 
 from unittest.mock import patch
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from django.utils import timezone as djangotime
 from model_bakery import baker
 
-from agents.models import LostModeState
+from agents.models import (
+    DiskEncryptionState,
+    DiskEncryptionVolume,
+    LostModeState,
+)
 from logs.models import AuditLog
 from observerrmm.constants import (
     LOST_MODE_MAX_INTERVAL_MIN,
     LOST_MODE_MIN_INTERVAL_MIN,
+    AgentPlat,
     AuditActionType,
+    DiskEncryptionStatus,
 )
 from observerrmm.test import ObserverTestCase
 
@@ -312,3 +321,132 @@ class TestLostModePermissions(ObserverTestCase):
         r = self.client.get(url, format="json")
         self.assertEqual(len(r.data), 1)
         self.assertEqual(r.data[0]["agent_id"], self.agent.agent_id)
+
+
+class TestLostModeListEncryption(ObserverTestCase):
+    """Feature 038 · T013 (RF-11): el índice del caso REPORTA el cifrado.
+
+    El listado de equipos perdidos muestra el estado de cifrado del equipo,
+    **derivado del veredicto único de la 037** (`derivar_estado`, RN-A02/A03) y
+    **sin activarlo**. Lo que puede romperse en silencio, y que se prueba acá:
+
+    - que los cuatro estados lleguen bien a la fila (y que "sin dato" NO se
+      confunda con "sin cifrar" — la honestidad de RN-A03 en esta superficie);
+    - que agregar equipos perdidos NO agregue consultas: el `select_related` +
+      `Prefetch` de la vista tienen que matar el N+1, o el índice se cae a
+      escala. Es la única forma de cazar por regresión que alguien borre esa
+      optimización sin que ningún test unitario "de estado" se ponga rojo.
+    """
+
+    def setUp(self):
+        self.setup_coresettings()
+        self.authenticate()
+        self.url = f"{base_url}/lostmode/"
+
+    def _volumen(self, agent, **kwargs):
+        datos = {
+            "device_id": r"\\?\Volume{11111111-1111-1111-1111-111111111111}\\",
+            "drive_letter": "C:",
+            "protection_status": 1,
+            "conversion_status": 1,
+            "encryption_method": 6,
+            "volume_type": 0,
+            "is_system_volume": True,
+            "measured_at": djangotime.now(),
+        }
+        datos.update(kwargs)
+        return DiskEncryptionVolume.objects.create(agent=agent, **datos)
+
+    def _estado(self, agent, **kwargs):
+        datos = {
+            "supported": True,
+            "query_error": None,
+            "measured_at": djangotime.now(),
+        }
+        datos.update(kwargs)
+        return DiskEncryptionState.objects.create(agent=agent, **datos)
+
+    def _marcar(self, agent):
+        with patch("agents.models.Agent.nats_cmd", return_value="ok"):
+            r = self.client.post(
+                f"{base_url}/{agent.agent_id}/lostmode/",
+                {"reason": "robo"},
+                format="json",
+            )
+        self.assertEqual(r.status_code, 200)
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_estado_de_cifrado_por_fila(self, nats_cmd):
+        """Cada estado del veredicto 037 llega a su fila del índice."""
+        nats_cmd.return_value = "ok"
+
+        cifrado = baker.make_recipe("agents.agent", plat=AgentPlat.WINDOWS)
+        self._estado(cifrado)
+        self._volumen(cifrado, protection_status=1)
+
+        sin_cifrar = baker.make_recipe("agents.agent", plat=AgentPlat.WINDOWS)
+        self._estado(sin_cifrar)
+        self._volumen(sin_cifrar, protection_status=0)
+
+        no_soportado = baker.make_recipe("agents.agent", plat=AgentPlat.WINDOWS)
+        self._estado(no_soportado, supported=False)
+
+        # Nunca reportó (típico de un mac/Linux sin BitLocker): "sin dato", NO
+        # "sin cifrar" — el invariante que esta feature existe para no romper.
+        sin_dato = baker.make_recipe("agents.agent", plat=AgentPlat.LINUX)
+
+        esperado = {
+            cifrado.agent_id: DiskEncryptionStatus.ENCRYPTED,
+            sin_cifrar.agent_id: DiskEncryptionStatus.UNENCRYPTED,
+            no_soportado.agent_id: DiskEncryptionStatus.UNSUPPORTED,
+            sin_dato.agent_id: DiskEncryptionStatus.NO_DATA,
+        }
+        for agent in (cifrado, sin_cifrar, no_soportado, sin_dato):
+            self._marcar(agent)
+
+        r = self.client.get(self.url, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.data), 4)
+
+        got = {fila["agent_id"]: fila["encryption_state"] for fila in r.data}
+        self.assertEqual(got, esperado)
+
+        # RN-A03 explícito: el equipo sin reporte jamás sale "sin cifrar".
+        self.assertNotEqual(got[sin_dato.agent_id], DiskEncryptionStatus.UNENCRYPTED)
+
+    @patch("agents.models.Agent.nats_cmd")
+    def test_sin_n_mas_uno_al_crecer_el_indice(self, nats_cmd):
+        """El costo en consultas es constante, no proporcional a las filas.
+
+        Se compara el número de consultas del listado con 1 equipo perdido y con
+        4: si el `select_related`/`Prefetch` de `LostModeList` desapareciera, el
+        segundo número crecería (una consulta de cifrado por fila). Igualdad =
+        el N+1 sigue muerto.
+        """
+        nats_cmd.return_value = "ok"
+
+        uno = baker.make_recipe("agents.agent", plat=AgentPlat.WINDOWS)
+        self._estado(uno)
+        self._volumen(uno, protection_status=1)
+        self._marcar(uno)
+
+        with CaptureQueriesContext(connection) as ctx_uno:
+            self.client.get(self.url, format="json")
+        consultas_con_uno = len(ctx_uno)
+
+        for _ in range(3):
+            extra = baker.make_recipe("agents.agent", plat=AgentPlat.WINDOWS)
+            self._estado(extra)
+            self._volumen(extra, protection_status=1)
+            self._marcar(extra)
+
+        with CaptureQueriesContext(connection) as ctx_cuatro:
+            r = self.client.get(self.url, format="json")
+        self.assertEqual(len(r.data), 4)
+
+        self.assertEqual(
+            len(ctx_cuatro),
+            consultas_con_uno,
+            "el índice de perdidos disparó consultas por fila: volvió el N+1 "
+            "que el select_related/Prefetch de T013 debía matar",
+        )

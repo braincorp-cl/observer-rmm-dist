@@ -44,6 +44,19 @@
         <q-td :props="props">{{ formatDate(props.row.marked_at) }}</q-td>
       </template>
 
+      <!-- T013 · RF-11: el estado de cifrado del equipo, sólo REPORTADO. Mismo
+           vocabulario de cuatro estados y mismos colores que el panel de la 037
+           (RN-A03): "sin cifrar" en rojo, "sin dato" en naranjo, "no aplica" en
+           gris. La cascada no activa nada acá; sólo deja ver si el disco estaba
+           protegido cuando el equipo se perdió. -->
+      <template v-slot:body-cell-encryption="props">
+        <q-td :props="props">
+          <q-badge :color="encryptionColor(props.row.encryption_state)">
+            {{ encryptionLabel(props.row.encryption_state) }}
+          </q-badge>
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <!-- T023 · paraguas 028. Las tres acciones de la 028 se alcanzan
@@ -513,6 +526,25 @@ export default {
       alarm: false,
     });
 
+    // T013 · RF-11. El mismo mapa de colores del panel de la 037: separar
+    // "sin cifrar" (rojo) de "no sabemos" (naranjo) y de "no aplica" (gris) es
+    // la regla RN-A03, y fusionarlos sería el ok falso pintado en pantalla. El
+    // label reusa las claves i18n `diskEncryption.state.*` que ya existen.
+    const encryptionColorMap = {
+      encrypted: "positive",
+      unencrypted: "negative",
+      unsupported: "grey",
+      no_data: "warning",
+    };
+
+    function encryptionColor(state) {
+      return encryptionColorMap[state] ?? "grey";
+    }
+
+    function encryptionLabel(state) {
+      return t(`diskEncryption.state.${state ?? "no_data"}`);
+    }
+
     const columns = [
       {
         name: "hostname",
@@ -532,6 +564,13 @@ export default {
         name: "site_name",
         label: t("lostEquipment.colSite"),
         field: "site_name",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "encryption",
+        label: t("lostEquipment.colEncryption"),
+        field: "encryption_state",
         align: "left",
         sortable: true,
       },
@@ -866,6 +905,8 @@ export default {
       stopAlarm,
       exportCase,
       formatDate,
+      encryptionColor,
+      encryptionLabel,
     };
   },
 };
