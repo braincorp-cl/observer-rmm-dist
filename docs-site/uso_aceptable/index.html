@@ -108,19 +108,21 @@
       <p class="lang-en">Running a script is equivalent to running arbitrary commands on the machine. That is why that permission, and the others with security implications, are covered separately in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
 
       <h2 id="modo-perdido"><span class="lang-es">2. Sólo con el equipo declarado perdido o robado</span><span class="lang-en">2. Only with the device declared lost or stolen</span></h2>
-      <p class="lang-es">Existen cuatro capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
-      <p class="lang-en">There are four additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
+      <p class="lang-es">Existen cinco capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
+      <p class="lang-en">There are five additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
       <ul class="lang-es">
         <li><strong>Ubicación</strong> del equipo con la mayor precisión disponible, aunque el seguimiento global esté apagado.</li>
         <li><strong>Captura de la pantalla</strong> del equipo.</li>
         <li><strong>Fotografía con la cámara</strong> del equipo.</li>
         <li><strong>Bloqueo remoto</strong>, mensaje en pantalla y alarma sonora, para recuperar el equipo o disuadir a quien lo tiene.</li>
+        <li><strong>Reconexión por WiFi abierta</strong> para recuperar salida a Internet y reportar su ubicación cuando el equipo quedó fuera de su zona asignada y sin red utilizable. Sólo se asocia a redes <strong>abiertas</strong>; nunca ingresa credenciales ni supera portales cautivos. La organización puede desactivar esta reconexión desde la consola.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>Location</strong> of the device with the best available accuracy, even if global tracking is off.</li>
         <li><strong>Screen capture</strong> of the device.</li>
         <li><strong>Camera photo</strong> taken on the device.</li>
         <li><strong>Remote lock</strong>, on-screen message and audible alarm, to recover the device or deter whoever has it.</li>
+        <li><strong>Open-WiFi reconnection</strong> to regain Internet access and report its location when the device is outside its assigned area and has no usable network. It joins <strong>open</strong> networks only; it never enters credentials or gets past captive portals. The organization can disable this reconnection from the console.</li>
       </ul>
       <p class="lang-es">Declarar un equipo como perdido <strong>no es una acción cualquiera</strong>, y el producto lo trata como tal:</p>
       <p class="lang-en">Declaring a device as lost <strong>is not an ordinary action</strong>, and the product treats it accordingly:</p>
@@ -157,6 +159,7 @@
         <li><strong>No</strong> es una herramienta de medición de productividad ni de control de horario, y no está diseñada para revisar la actividad cotidiana de nadie.</li>
         <li><strong>No</strong> abre una sesión de control remoto sin que se anuncie en la pantalla del equipo.</li>
         <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
+        <li><strong>No</strong> se conecta a redes WiFi protegidas por contraseña ni supera portales cautivos: la reconexión de un equipo perdido usa únicamente redes abiertas.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
@@ -164,6 +167,7 @@
         <li><strong>It does not</strong> serve as a productivity or time-tracking tool, and it is not designed to review anyone's day-to-day activity.</li>
         <li><strong>It does not</strong> open a remote control session without announcing it on the device's screen.</li>
         <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
+        <li><strong>It does not</strong> connect to password-protected WiFi networks or get past captive portals: a lost device's reconnection uses open networks only.</li>
       </ul>
 
       <h2 id="retencion-y-permisos"><span class="lang-es">4. Retención y separación de permisos</span><span class="lang-en">4. Retention and permission separation</span></h2>
@@ -210,7 +214,8 @@ esa declaración esté vigente:
   - determinar la ubicación del equipo;
   - capturar la pantalla del equipo;
   - tomar una fotografía con su cámara;
-  - bloquearlo, mostrar un mensaje y emitir una alarma sonora.
+  - bloquearlo, mostrar un mensaje y emitir una alarma sonora;
+  - reconectarse por una red WiFi abierta para reportar su ubicación.
 
 Esa declaración exige un motivo escrito, la ejerce sólo personal
 autorizado y queda registrada en la auditoría del sistema. El material
@@ -244,7 +249,8 @@ and only while that declaration is in force:
   - determining the device's location;
   - capturing the device's screen;
   - taking a photo with its camera;
-  - locking it, showing a message and sounding an alarm.
+  - locking it, showing a message and sounding an alarm;
+  - reconnecting through an open WiFi network to report its location.
 
 That declaration requires a written reason, is exercised only by
 authorized personnel and is recorded in the system's audit log. The
