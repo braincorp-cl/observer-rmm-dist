@@ -599,6 +599,7 @@ def geofence_check_task() -> str:
             "agent_id",
             "hostname",
             "alert_template",
+            "outside_geofence",
             "site__name",
             "site__latitude",
             "site__longitude",
@@ -676,6 +677,19 @@ def _open_geofence_alert(agent: "Agent", distance: float, radius: int) -> None:
     from alerts.models import Alert
     from observerrmm.constants import AlertSeverity, AlertType
 
+    # Feature 041 · marca el estado "fuera de geocerca" en el propio Agent. Es la
+    # fuente que el config del agente lee directo (sin join a alerts, ver
+    # get_agent_config / interfaces/agent-config.md), y de la que cuelgan el
+    # no-dormir reactivo, la radio WiFi forzada y la cadencia geo apretada.
+    #
+    # Se escribe ANTES del dedup de la alerta y sólo si cambió: así el flag se
+    # auto-corrige aunque una alerta ya estuviera abierta con el campo en false
+    # (p. ej. tras una migración), sin costar un UPDATE en cada pasada mientras
+    # el equipo siga fuera.
+    if not agent.outside_geofence:
+        agent.outside_geofence = True
+        agent.save(update_fields=["outside_geofence"])
+
     # Ya hay una alerta abierta: no se duplica ni se re-notifica en cada pasada.
     # El operador la resuelve o la silencia con la maquinaria estándar de alertas.
     if Alert.objects.filter(
@@ -717,6 +731,15 @@ def _resolve_geofence_alert(alert, *, back_inside: bool) -> None:
 
     if not agent:
         return
+
+    # Feature 041 · el equipo dejó de estar fuera de la geocerca: se apaga la
+    # fuente reactiva. Misma "transacción" lógica que la resolución de la alerta
+    # (idempotente: sólo escribe si cambió). Con esto, la próxima lectura de
+    # config del agente revierte no-dormir/WiFi/cadencia si ninguna otra fuente
+    # (p. ej. modo perdido) los sostiene.
+    if agent.outside_geofence:
+        agent.outside_geofence = False
+        agent.save(update_fields=["outside_geofence"])
 
     site = f"{agent.site.client.name} / {agent.site.name}"
     message = (

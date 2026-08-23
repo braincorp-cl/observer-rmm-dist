@@ -209,6 +209,111 @@ class TestGeofenceTask(ObserverTestCase):
         self.assertEqual(self._open_alerts().count(), 1)
 
 
+class TestGeofenceOutsideFlag(ObserverTestCase):
+    """Feature 041 · geofence_check_task espeja el estado dentro/fuera en el campo
+    `Agent.outside_geofence`, la fuente reactiva que lee el config del agente.
+
+    Lo que se congela acá: se prende al abrir la alerta, se apaga al resolver (por
+    volver al sitio o por dejar de ser evaluable), y NO se prende para equipos
+    eximidos —autorizado a salir / mantención—, que son justamente los que no
+    deben gatillar contramedidas.
+    """
+
+    def setUp(self):
+        self.setup_coresettings()
+        self.core = self.coresettings
+        self.core.geo_tracking_enabled = True
+        self.core.geo_geofence_enabled = True
+        self.core.geo_geofence_radius_m = 1000
+        self.core.save()
+
+        self.site = baker.make("clients.Site", latitude=TALCA[0], longitude=TALCA[1])
+        self.agent = baker.make_recipe("agents.online_agent", site=self.site)
+
+    def _geo_point(self, lat, long, source, accuracy=20):
+        return baker.make(
+            "checks.CheckHistory",
+            check_id=GEO_CHECK_HISTORY_ID,
+            agent_id=self.agent.agent_id,
+            y=accuracy,
+            results={"lat": lat, "long": long, "source": source},
+        )
+
+    def _flag(self):
+        self.agent.refresh_from_db(fields=["outside_geofence"])
+        return self.agent.outside_geofence
+
+    # --- se prende al abrir ----------------------------------------------------
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_fuera_prende_el_flag(self, _mail):
+        self.assertFalse(self._flag())
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertTrue(self._flag())
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_dentro_no_prende_el_flag(self, _mail):
+        self._geo_point(TALCA[0] + 0.001, TALCA[1], "wifi")  # ~111 m, dentro
+        geofence_check_task()
+        self.assertFalse(self._flag())
+
+    # --- se apaga al resolver --------------------------------------------------
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_volver_al_sitio_apaga_el_flag(self, _mail):
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertTrue(self._flag())
+
+        self._geo_point(*TALCA, "wifi")
+        geofence_check_task()
+        self.assertFalse(self._flag())
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_autorizarlo_despues_apaga_el_flag(self, _mail):
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertTrue(self._flag())
+
+        self.agent.geo_offsite_allowed = True
+        self.agent.save(update_fields=["geo_offsite_allowed"])
+        geofence_check_task()
+        self.assertFalse(self._flag())
+
+    # --- eximidos NO prenden el flag -------------------------------------------
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_autorizado_a_salir_no_prende_el_flag(self, _mail):
+        self.agent.geo_offsite_allowed = True
+        self.agent.save(update_fields=["geo_offsite_allowed"])
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertFalse(self._flag())
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_mantencion_no_prende_el_flag(self, _mail):
+        self.agent.maintenance_mode = True
+        self.agent.save(update_fields=["maintenance_mode"])
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertFalse(self._flag())
+
+    @patch("agents.tasks._send_geofence_email")
+    def test_no_reescribe_en_cada_pasada_estando_fuera(self, _mail):
+        """El flag ya prendido no debe costar un UPDATE por pasada."""
+        self._geo_point(*SANTIAGO, "wifi")
+        geofence_check_task()
+        self.assertTrue(self._flag())
+
+        with patch(
+            "agents.models.Agent.save", side_effect=AssertionError("no debía guardar")
+        ):
+            # Sigue fuera y con el flag ya en True: no hay nada que escribir.
+            geofence_check_task()
+        self.assertTrue(self._flag())
+
+
 class TestSiteCoordinatesValidation(ObserverTestCase):
     """Las coordenadas del sitio son OPCIONALES pero no a medias."""
 
