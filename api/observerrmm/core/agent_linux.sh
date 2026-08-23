@@ -351,6 +351,14 @@ NotifyUninstall() {
 }
 
 Uninstall() {
+    # Feature 041 (T033): restaurar el baseline keep-awake ANTES de borrar el
+    # binario. `-m cleanup` borra el drop-in de logind si estaba aplicado (no-op
+    # si no). Va SÓLO acá, en la desinstalación: el update en sitio pasa por
+    # RemoveOldAgent, que NO debe revertir el baseline de un equipo enrolado.
+    # Best-effort: un fallo no aborta la desinstalación.
+    if [ -f "${agentBin}" ]; then
+        "${agentBin}" -m cleanup >/dev/null 2>&1 || true
+    fi
     NotifyUninstall
     RemoveMesh
     RemoveOldAgent

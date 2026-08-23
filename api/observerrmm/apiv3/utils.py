@@ -93,6 +93,61 @@ def _lost_mode_webcam() -> bool:
         return False
 
 
+def _outside_geofence(agentid: str) -> bool:
+    """Feature 041: bandera de salida de geocerca de ESTE agente.
+
+    Lee directo de `Agent.outside_geofence` (la escribe `geofence_check_task` en
+    la misma transacción que abre/resuelve la alerta), SIN join a la tabla de
+    alertas: el booleano ya es el estado resuelto. Fail-safe apagado, igual que
+    el resto de los interruptores de geo: ante agente inexistente, tabla no
+    migrada o BD con hipo se responde "dentro del radio" (no apretar cadencia ni
+    forzar la radio por un error de lectura).
+    """
+    try:
+        from agents.models import Agent
+
+        return bool(
+            Agent.objects.filter(agent_id=agentid)
+            .values_list("outside_geofence", flat=True)
+            .first()
+        )
+    except Exception:
+        return False
+
+
+def _geofence_interval_min() -> int:
+    """Feature 041: cadencia apretada mientras el equipo está fuera de la geocerca.
+
+    GLOBAL, de `CoreSettings.geo_geofence_interval_min`. Ante fallo espeja el
+    default del modelo/dataclass (5 min): perder la lectura no puede volver la
+    cadencia ni más agresiva ni más lenta que el default declarado.
+    """
+    try:
+        from core.utils import get_core_settings
+
+        return int(get_core_settings().geo_geofence_interval_min)
+    except Exception:
+        return 5
+
+
+def _keep_awake_baseline() -> bool:
+    """Feature 041 · D-12: baseline keep-awake global (prerrequisito Must).
+
+    De `CoreSettings.keep_awake_baseline_enabled`. A diferencia de los
+    interruptores reactivos —donde el fail-safe es APAGAR porque encender es el
+    daño—, acá el estado deseado por defecto es ENCENDIDO (equipo dormido nunca
+    se puede medir fuera). El daño real de un error de lectura sería el flapeo:
+    revertir el baseline por un hipo de BD y reaplicarlo al siguiente poll. Por
+    eso el fail-safe espeja el default del modelo (True) y no fuerza revert.
+    """
+    try:
+        from core.utils import get_core_settings
+
+        return bool(get_core_settings().keep_awake_baseline_enabled)
+    except Exception:
+        return True
+
+
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
     lost_mode, lost_mode_interval_min, lost_mode_cascade = _lost_mode(agentid)
 
@@ -143,4 +198,11 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
         lost_mode_no_hibernate=lost_mode_cascade["no_hibernate"],
         lost_mode_webcam_override=lost_mode_cascade["webcam_override"],
         lost_mode_alarm=lost_mode_cascade["alarm"],
+        # Feature 041: la bandera es por-agente (Agent.outside_geofence); la
+        # cadencia y el toggle del baseline son globales (CoreSettings). Viajan
+        # siempre, esté el equipo fuera o no: el agente los guarda y recompone
+        # cadencia/no-dormir/baseline al armar cada ciclo.
+        outside_geofence=_outside_geofence(agentid),
+        outside_geofence_interval_min=_geofence_interval_min(),
+        keep_awake_baseline=_keep_awake_baseline(),
     )

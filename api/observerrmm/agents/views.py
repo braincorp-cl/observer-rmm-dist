@@ -1438,6 +1438,21 @@ def install_agent(request):
         user=installer_user, expiry=dt.timedelta(hours=int(request.data["expires"]))
     )
 
+    # Feature 041 (D-12): el flag -power del instalador (no-dormir persistente)
+    # por defecto sigue el toggle global keep_awake_baseline_enabled. Si el
+    # cliente manda "power" explícito respeta su elección; si no viene, cae al
+    # baseline global. Ante error de lectura NO se fuerza el cambio de energía
+    # (0): un instalador es one-shot y el baseline runtime (T030) lo reconcilia
+    # igual en el primer poll, así que acá el fail-safe conservador es no tocar.
+    power_flag = request.data.get("power")
+    if power_flag in (None, ""):
+        try:
+            from core.utils import get_core_settings
+
+            power_flag = int(bool(get_core_settings().keep_awake_baseline_enabled))
+        except Exception:
+            power_flag = 0
+
     install_flags = [
         "-m",
         "install",
@@ -1462,7 +1477,7 @@ def install_agent(request):
             agent_type=request.data["agenttype"],
             rdp=request.data["rdp"],
             ping=request.data["ping"],
-            power=request.data["power"],
+            power=power_flag,
             goarch=goarch,
             token=token,
             api=request.data["api"],
@@ -1511,7 +1526,7 @@ def install_agent(request):
             cmd.append("--rdp")
         if int(request.data["ping"]):
             cmd.append("--ping")
-        if int(request.data["power"]):
+        if int(power_flag):
             cmd.append("--power")
 
         if insecure:
@@ -1544,7 +1559,7 @@ def install_agent(request):
             "sitechange": str(site_id),
             "apichange": request.data["api"],
             "atypechange": request.data["agenttype"],
-            "powerchange": str(request.data["power"]),
+            "powerchange": str(power_flag),
             "rdpchange": str(request.data["rdp"]),
             "pingchange": str(request.data["ping"]),
             "downloadchange": download_url,

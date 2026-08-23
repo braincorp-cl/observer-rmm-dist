@@ -99,6 +99,13 @@ if [ -f /opt/observermesh/meshagent ]; then
   perl -e 'alarm shift; exec @ARGV' 120 /opt/observermesh/meshagent -fulluninstall --no-embedded=1
 fi
 
+# Feature 041 (T033): restaurar el baseline keep-awake ANTES de descargar el
+# daemon y borrar el binario. `-m cleanup` restaura `pmset` al estado capturado si
+# estaba aplicado (no-op si no). Best-effort: un fallo no aborta la desinstalacion.
+if [ -x /opt/observeragent/observeragent ]; then
+  /opt/observeragent/observeragent -m cleanup >/dev/null 2>&1 || true
+fi
+
 launchctl bootout system /Library/LaunchDaemons/observeragent.plist
 
 # Feature 030 · T016: el ayudante que saca la foto y la captura es un LaunchAgent
