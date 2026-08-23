@@ -201,6 +201,18 @@ class CoreSettings(BaseAuditModel):
     # marcado con geo_offsite_allowed. Los fixes por IP nunca se evalúan: su error
     # típico es de cientos de km (ver feature 026) y dispararían falsos positivos.
     geo_geofence_radius_m = models.PositiveIntegerField(default=1000)
+    # Feature 041 (RF-06): cadencia geo apretada, en minutos, mientras un equipo
+    # está fuera de la geocerca. El agente la recibe como outside_geofence_interval_min
+    # y aplica el piso geoMinInterval=300 s. 5 min por defecto: reconstruye el
+    # recorrido sin martillar el endpoint ni la batería.
+    geo_geofence_interval_min = models.PositiveIntegerField(default=5)
+    # Feature 041 (RN-08/RF-12): toggle global del baseline keep-awake. ON por
+    # omisión — un equipo que se suspende al cerrar la tapa nunca se mide fuera y
+    # el paquete antirrobo no dispara. (a) fija el default del flag -power al
+    # generar instaladores; (b) viaja al agente como keep_awake_baseline en el
+    # config. Apagarlo restaura la política de energía previa en la flota
+    # enrolada, sin reinstalar. Para el cliente que prefiera ahorro de energía.
+    keep_awake_baseline_enabled = models.BooleanField(default=True)
     # Recordatorio de mantenimiento prolongado (feature 036). El modo mantenimiento
     # NO caduca, y es una decisión, no un descuido: hay ventanas de migración que
     # duran días y apagarlas solas sería peor que el olvido. Lo que se agrega no es

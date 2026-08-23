@@ -137,6 +137,11 @@ class Agent(BaseAuditModel):
     #      es más honesto mostrar la posición aproximada real.
     # Por defecto False: el caso mayoritario de un RMM corporativo es el equipo fijo.
     geo_offsite_allowed = models.BooleanField(default=False)
+    # Feature 041: estado "fuera de geocerca" del equipo. Lo escribe SOLO
+    # geofence_check_task — True al abrir _open_geofence_alert, False al resolver,
+    # en la MISMA transacción que la alerta GEOFENCE. get_agent_config lo lee
+    # directo (sin join a alerts). Migración 0068; el default cubre las filas viejas.
+    outside_geofence = models.BooleanField(default=False)
     alert_template = models.ForeignKey(
         "alerts.AlertTemplate",
         related_name="agents",

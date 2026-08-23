@@ -52,3 +52,11 @@ class AgentCheckInConfig(ORMMStruct):
     # esté apagado (decisión "override total en perdido", 2026-08-20).
     lost_mode_webcam_override: bool
     lost_mode_alarm: bool
+    # Feature 041: aditivos (RN-07). Llevan default para no romper el único
+    # constructor (get_agent_config) hasta que T014 los cablee con los valores
+    # reales de Agent.outside_geofence y CoreSettings. Un agente viejo los ignora
+    # (copia el struct campo por campo). El config sigue siendo solo bool/int:
+    # ni lat/long ni SSIDs (NFR §6).
+    outside_geofence: bool = False
+    outside_geofence_interval_min: int = 5
+    keep_awake_baseline: bool = True
