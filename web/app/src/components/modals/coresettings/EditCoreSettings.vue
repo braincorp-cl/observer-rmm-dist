@@ -141,6 +141,33 @@
                   </q-checkbox>
                 </q-card-section>
                 <!--
+                  RF-05 (feature 041 · RN-06, T034/T016/T017). Toggle global OFF por
+                  omisión: conducta sensible (el equipo se asocia solo a redes WiFi
+                  abiertas de terceros fuera de su geocerca). NO habilitar sin la
+                  línea en la política de uso aceptable + visto legal (T022). El
+                  agente lo consulta como primer gate; con esto en false es no-op.
+                -->
+                <q-card-section class="row items-center">
+                  <q-checkbox
+                    v-model="settings.open_wifi_enabled"
+                    :label="$t('editCoreSettings.openWifi')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.openWifiTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                  <q-icon
+                    name="warning"
+                    color="warning"
+                    size="sm"
+                    class="q-ml-sm cursor-help"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.openWifiWarning") }}
+                    </q-tooltip>
+                  </q-icon>
+                </q-card-section>
+                <!--
                   Foto de webcam del modo perdido (feature 030 · Fase 2, ADR-025).
                   APAGADA de fábrica y separada de la geolocalización a propósito:
                   ubicar un activo corporativo y fotografiar la cara de quien lo

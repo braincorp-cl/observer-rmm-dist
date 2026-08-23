@@ -148,6 +148,23 @@ def _keep_awake_baseline() -> bool:
         return True
 
 
+def _open_wifi_enabled() -> bool:
+    """Feature 041 · T034: toggle global de RF-05 (asociarse a WiFi abierta).
+
+    De `CoreSettings.open_wifi_enabled`. Aquí el fail-safe SÍ es APAGAR (a
+    diferencia del baseline): encender de más es exactamente el daño —un equipo
+    asociándose solo a redes de terceros sin que nadie lo haya autorizado—, así
+    que un error de lectura nunca puede dejarlo prendido. Espeja el default del
+    modelo (False).
+    """
+    try:
+        from core.utils import get_core_settings
+
+        return bool(get_core_settings().open_wifi_enabled)
+    except Exception:
+        return False
+
+
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
     lost_mode, lost_mode_interval_min, lost_mode_cascade = _lost_mode(agentid)
 
@@ -205,4 +222,7 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
         outside_geofence=_outside_geofence(agentid),
         outside_geofence_interval_min=_geofence_interval_min(),
         keep_awake_baseline=_keep_awake_baseline(),
+        # T034: RF-05 viaja siempre (global), pero OFF por omisión; el agente no
+        # intenta asociarse a WiFi abierta hasta que este flag esté en True.
+        open_wifi=_open_wifi_enabled(),
     )

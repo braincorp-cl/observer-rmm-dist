@@ -60,3 +60,7 @@ class AgentCheckInConfig(ORMMStruct):
     outside_geofence: bool = False
     outside_geofence_interval_min: int = 5
     keep_awake_baseline: bool = True
+    # T034: toggle global de RF-05 (asociarse a WiFi abierta fuera de geocerca).
+    # Default False: un agente viejo lo ignora y uno nuevo NO intenta conectar
+    # mientras el servidor no lo encienda. Sigue siendo solo bool (NFR §6).
+    open_wifi: bool = False
