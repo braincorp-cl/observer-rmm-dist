@@ -690,8 +690,14 @@ def _open_geofence_alert(agent: "Agent", distance: float, radius: int) -> None:
         agent.outside_geofence = True
         agent.save(update_fields=["outside_geofence"])
 
-    # Ya hay una alerta abierta: no se duplica ni se re-notifica en cada pasada.
-    # El operador la resuelve o la silencia con la maquinaria estándar de alertas.
+    # Feature 041 · RF-07 (dedup once-per-open): ya hay una alerta abierta ⇒ no se
+    # duplica ni se re-notifica en cada pasada. Este guard es lo único que RF-07
+    # necesita: _send_geofence_email se dispara UNA vez al abrir (más abajo) y UNA
+    # vez al resolver (_resolve_geofence_alert); mientras la alerta siga abierta,
+    # cada pasada retorna acá sin re-enviar. No hace falta una ventana de
+    # re-notificación configurable (no está pedida) — por eso T021 queda como no-op
+    # de código: el comportamiento requerido ya vive en este `.exists()`. El
+    # operador resuelve o silencia con la maquinaria estándar de alertas.
     if Alert.objects.filter(
         agent=agent, alert_type=AlertType.GEOFENCE, resolved=False
     ).exists():

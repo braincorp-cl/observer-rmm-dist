@@ -408,6 +408,8 @@
     "geoGeofenceTooltip": "Global switch. Compares each machine's MEASURED location (WiFi or OS-native) against its site coordinates and raises an alert when it exceeds the radius. Requires the site to have coordinates. Machines marked as allowed off-site are excluded. Approximate IP locations are never evaluated.",
     "geoGeofenceRadius": "Radius (m)",
     "geoGeofenceRadiusRule": "Between 50 and 1,000,000 meters",
+    "keepAwakeBaseline": "Keep devices awake (baseline)",
+    "keepAwakeBaselineTooltip": "Global switch, on by default. Keeps managed devices from sleeping or hibernating on lid-close or unplug and keeps the WiFi radio available, so the agent stays awake and can keep measuring geofence exits. It is passive: it never locks, alarms, or changes cadence on its own. Turning it off restores the previous power settings on the whole enrolled fleet (no reinstall), and also sets the default for the installer's -power flag on future installers.",
     "maintenanceAlert": "Email on long-running maintenance",
     "maintenanceAlertTooltip": "Maintenance mode never expires on its own. Past the threshold, an email is sent for agents still flagged. One notice per agent per window.",
     "maintenanceAlertDays": "Threshold (days)",

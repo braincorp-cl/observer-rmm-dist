@@ -408,6 +408,8 @@
     "geoGeofenceTooltip": "Interruptor global. Compara la ubicación MEDIDA de cada equipo (WiFi o nativa del SO) con las coordenadas de su sitio y genera una alerta si supera el radio. Requiere que el sitio tenga coordenadas. Los equipos marcados como autorizados a salir quedan excluidos. Las ubicaciones aproximadas por IP no se evalúan.",
     "geoGeofenceRadius": "Radio (m)",
     "geoGeofenceRadiusRule": "Entre 50 y 1.000.000 metros",
+    "keepAwakeBaseline": "Mantener los equipos despiertos (baseline)",
+    "keepAwakeBaselineTooltip": "Interruptor global, activo por omisión. Evita que los equipos gestionados se suspendan o hibernen al cerrar la tapa o desconectar la corriente y mantiene disponible la radio WiFi, para que el agente siga despierto y pueda medir las salidas de geocerca. Es pasivo: nunca bloquea, alarma ni cambia la cadencia por sí solo. Al apagarlo se restaura la configuración de energía previa en toda la flota enrolada (sin reinstalar) y además fija el valor por omisión del flag -power en los instaladores futuros.",
     "maintenanceAlert": "Avisar por correo el mantenimiento prolongado",
     "maintenanceAlertTooltip": "El modo mantenimiento no caduca solo. Pasado el umbral, se envía un correo por los equipos que siguen marcados. Un aviso por equipo por ventana.",
     "maintenanceAlertDays": "Umbral (días)",

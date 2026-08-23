@@ -122,6 +122,25 @@
                   />
                 </q-card-section>
                 <!--
+                  Baseline keep-awake (feature 041 · RN-08/RF-12, T032). Toggle
+                  global ON por omisión: NO se indenta bajo geo_tracking porque es
+                  un prerrequisito de la MEDICIÓN, no una sub-opción de geocerca —
+                  un equipo dormido nunca reporta que salió del sitio. Pasivo (no
+                  bloquea/alarma). Persiste en CoreSettings.keep_awake_baseline_enabled
+                  y viaja al agente por el config; apagarlo revierte la flota
+                  enrolada y fija el default de -power en instaladores futuros.
+                -->
+                <q-card-section class="row">
+                  <q-checkbox
+                    v-model="settings.keep_awake_baseline_enabled"
+                    :label="$t('editCoreSettings.keepAwakeBaseline')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.keepAwakeBaselineTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
+                <!--
                   Foto de webcam del modo perdido (feature 030 · Fase 2, ADR-025).
                   APAGADA de fábrica y separada de la geolocalización a propósito:
                   ubicar un activo corporativo y fotografiar la cara de quien lo
