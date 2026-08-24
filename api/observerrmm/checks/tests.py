@@ -1242,6 +1242,23 @@ class TestGeolocationHistory(ObserverTestCase):
 
         self.check_not_authenticated("get", url)
 
+    def test_location_history_switch_off(self):
+        # Feature 038: el historial comparte el guard _geo_visible() con la
+        # posición actual. Con el switch global apagado, aun habiendo puntos
+        # históricos, la trayectoria no se expone (antes era una fuga: /location/
+        # ocultaba la posición pero /location/history/ seguía devolviendo todo).
+        agent = baker.make_recipe("agents.agent")
+        self.coresettings.geo_tracking_enabled = False
+        self.coresettings.save(update_fields=["geo_tracking_enabled"])
+        self._make_point(agent, -33.4489, -70.6693, 35, "native", minutes_ago=1)
+
+        url = f"/agents/{agent.agent_id}/location/history/"
+        resp = self.client.get(url, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.data["enabled"])
+        self.assertEqual(resp.data["points"], [])
+        self.assertFalse(resp.data["truncated"])
+
     def test_modo_perdido_muestra_la_geo_con_el_switch_apagado(self):
         """Feature 030 · la contraparte servidor del bypass del agente.
 

@@ -8,6 +8,14 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.15 — 2026-08-23
+
+- **Un equipo que sale de su zona autorizada se mantiene despierto solo.** Cuando un equipo cruza fuera de su geocerca, el servidor le indica que no se suspenda ni hiberne, para que siga reportando ubicación y estado mientras esté fuera; al volver a la zona, se restaura el comportamiento normal de energía. La decisión de "está fuera" la toma el servidor a partir de la geocerca, no el equipo por su cuenta.
+- **Línea base de "no dormir" configurable por equipo.** Un nuevo control permite fijar que ciertos equipos no se suspendan como estado de base —independiente de cualquier caso—, para que estén disponibles para medición y respuesta. Se activa desde la ficha del equipo y se revierte de forma limpia al desinstalar el agente.
+- **Reconexión por redes WiFi abiertas.** Para no perder de vista un equipo que quedó sin conexión, el agente puede reconectarse por redes WiFi abiertas y resolver portales cautivos, y así volver a reportar. Está gobernado por un interruptor global (viene activado y se puede desactivar) y queda descrito en la política de uso aceptable.
+- **La ficha del caso perdido ahora muestra el estado de cifrado del equipo.** Al abrir un caso de equipo perdido o robado, la ficha reporta si el disco está cifrado —reutilizando el mismo veredicto del panel de cifrado—, sin activar ni cambiar nada: es sólo información para decidir el curso del caso.
+- Acompaña al **agente 2.17.1**, que ejecuta la no-suspensión por geocerca, la reconexión por WiFi y la no-suspensión reactiva del modo perdido en Windows, Linux y macOS. Contra un agente anterior, el servidor sigue calculando la geocerca y abriendo casos igual, pero las acciones nuevas en el equipo no se aplican hasta que actualice.
+
 ## v1.4.14 — 2026-08-20
 
 - **Cascada automática de contramedidas al marcar un equipo perdido o robado.** Marcar un equipo ya no es sólo "empezar a mirar dónde está": según la configuración, encadena solo el bloqueo de pantalla, el encendido de la cámara, la no-hibernación del equipo y —si se pidió— la alarma. Antes esas acciones se disparaban a mano, una por una, desde otra pantalla.
