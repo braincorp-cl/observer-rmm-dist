@@ -153,6 +153,19 @@ class Role(BaseAuditModel):
     can_manage_lost_mode = models.BooleanField(default=False)
     can_view_lost_evidence = models.BooleanField(default=False)
 
+    # agents · Observer Erase / bloque destructivo (feature 039, ADR-029)
+    #
+    # Permiso DEDICADO y off por omisión: ningún rol lo trae por herencia. Un rol
+    # que puede marcar un equipo como perdido (can_manage_lost_mode) NO puede
+    # borrarlo por eso. Ordenar un borrado es la operación de mayor riesgo del
+    # producto —no tiene vuelta atrás— y ADR-029 exige que la capacidad se conceda
+    # aparte, con doble confirmación de dos personas. Este booleano es esa llave.
+    can_wipe_device = models.BooleanField(default=False)
+    # Ver certificados y la cadena de custodia (Bloques C/D). Separado de la
+    # capacidad de ordenar el borrado: quien audita no necesita poder destruir.
+    can_view_erase_certificates = models.BooleanField(default=False)
+    can_manage_asset_intake = models.BooleanField(default=False)
+
     # core
     can_list_notes = models.BooleanField(default=False)
     can_manage_notes = models.BooleanField(default=False)
