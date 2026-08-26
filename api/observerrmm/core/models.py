@@ -97,6 +97,18 @@ class CoreSettings(BaseAuditModel):
             MaxValueValidator(LOST_MODE_EVIDENCE_MAX_PRUNE_DAYS),
         ],
     )
+    # Retención de evidencia de Observer Erase (D5). Mínimo legal 12 meses (Ley
+    # 21.663); 36 meses para sector público. El piso se hace cumplir con el
+    # validador: no se permite bajar del mínimo legal, a diferencia de las podas
+    # operativas de arriba. IMPORTANTE: esto NUNCA borra el certificado ni su hash
+    # —la fila de EraseCertificate/EraseAuditRecord es append-only y permanente—;
+    # a lo sumo purga adjuntos pesados vencidos (ej. registro fotográfico de C7),
+    # preservando el encadenamiento C3. Global por ambiente en este incremento; el
+    # override por-tenant del RF queda como paso siguiente.
+    erase_attachment_retention_days = models.PositiveIntegerField(
+        default=365,
+        validators=[MinValueValidator(365)],
+    )
     # Días que sobrevive la evidencia DESPUÉS de marcar el equipo recuperado.
     # El 0 es válido y significa la lectura literal del ADR (borrar en la
     # próxima corrida del beat); el default de 7 existe porque la denuncia se
