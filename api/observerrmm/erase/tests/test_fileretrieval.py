@@ -152,6 +152,7 @@ class FileRetrievalServiceTests(ObserverTestCase):
 
 class FileRetrievalUploadTests(ObserverTestCase):
     def setUp(self):
+        self.setup_client()  # self.client = APIClient (para .credentials del token)
         self.setup_coresettings()
         self.client_obj = baker.make("clients.Client")
         self.site = baker.make("clients.Site", client=self.client_obj)
