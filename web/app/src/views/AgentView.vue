@@ -12,6 +12,7 @@
         'history',
         'notes',
         'assets',
+        'erase',
         'audit',
       ]"
     />

@@ -71,6 +71,16 @@
           icon="fas fa-barcode"
           :label="$t('agentTabs.labels.assets')"
         />
+        <!-- Feature 039 · certificados de borrado del equipo. Pestaña de nivel
+             superior (no dentro de Activos, que es Windows-only): un certificado
+             de borrado aplica a cualquier plataforma. -->
+        <q-tab
+          v-if="activeTabs.includes('erase')"
+          content-class="min-width"
+          name="erase"
+          icon="verified"
+          :label="$t('agentTabs.labels.erase')"
+        />
         <q-tab
           v-if="activeTabs.includes('debug')"
           content-class="min-width"
@@ -147,6 +157,13 @@
           <AssetsTab />
         </q-tab-panel>
         <q-tab-panel
+          v-if="activeTabs.includes('erase')"
+          name="erase"
+          class="q-pa-none"
+        >
+          <EraseCertificatesTab />
+        </q-tab-panel>
+        <q-tab-panel
           v-if="activeTabs.includes('debug')"
           name="debug"
           class="q-pa-none"
@@ -180,6 +197,7 @@ import AuditTab from "@/components/agents/AuditTab.vue";
 import DebugTab from "@/components/agents/DebugTab.vue";
 import AssetsTab from "@/components/agents/AssetsTab.vue";
 import NotesTab from "@/components/agents/NotesTab.vue";
+import EraseCertificatesTab from "@/components/agents/EraseCertificatesTab.vue";
 
 export default {
   name: "SubTableTabs",
@@ -194,6 +212,7 @@ export default {
     DebugTab,
     AssetsTab,
     NotesTab,
+    EraseCertificatesTab,
   },
   props: {
     activeTabs: {

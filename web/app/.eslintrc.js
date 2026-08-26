@@ -158,6 +158,19 @@ module.exports = {
         // consola lo lee, igual que endpointResponse.codes con la 028.
         "src/views/DiskEncryptionView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
+        // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
+        // consola nace traducida, con namespace propio (erase.*) y los códigos
+        // (kind, action, status, intake.state) redactados por clave: el servidor
+        // manda el enum crudo y la consola lo lee, igual que diskEncryption.* con
+        // los códigos de WMI.
+        "src/views/EraseCertificatesView.vue",
+        "src/views/WipeOrdersView.vue",
+        "src/components/agents/EraseCertificatesTab.vue",
+        "src/components/agents/EraseCertificatesTable.vue",
+        "src/components/agents/EraseCertificateDetailDialog.vue",
+        "src/components/agents/AssetIntakeForm.vue",
+        "src/components/agents/ConfirmWipeOrderDialog.vue",
+        "src/components/agents/RecoveryWindowDialog.vue",
         "src/components/modals/admin/UserForm.vue",
         "src/components/modals/admin/UserResetPasswordForm.vue",
         // Ola 8a: widgets compartidos ui/ (2 sin texto entran limpios al gate).

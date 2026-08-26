@@ -37,6 +37,28 @@ const routes = [
         },
       },
       {
+        // Feature 039 · Observer Erase · reportería de certificados de borrado y
+        // custodia de activos (Bloques C+D). Vista de nivel superior, hermana del
+        // Dashboard: la reportería se comparte por URL, no es un diálogo.
+        path: "erase-certificates",
+        name: "EraseCertificates",
+        component: () => import("@/views/EraseCertificatesView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
+        // Feature 039 · Observer Erase · gobernanza de las órdenes de borrado
+        // (B0). No crea nada destructivo (Bloque A GATED): confirma a dos
+        // personas y gobierna la ventana de arrepentimiento.
+        path: "erase-orders",
+        name: "EraseOrders",
+        component: () => import("@/views/WipeOrdersView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         path: "",
         name: "Dashboard",
         component: () => import("@/views/DashboardView.vue"),

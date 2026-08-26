@@ -168,6 +168,20 @@
                   $t("nav.diskEncryption")
                 }}</q-item-section>
               </q-item>
+              <!-- Observer Erase (feature 039): certificados de borrado + órdenes
+                   gobernadas. Ninguna acción destructiva vive acá. -->
+              <q-item
+                clickable
+                v-close-popup
+                :to="{ name: 'EraseCertificates' }"
+              >
+                <q-item-section>{{
+                  $t("nav.eraseCertificates")
+                }}</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup :to="{ name: 'EraseOrders' }">
+                <q-item-section>{{ $t("nav.eraseOrders") }}</q-item-section>
+              </q-item>
               <q-separator />
               <!-- server maintenance -->
               <q-item

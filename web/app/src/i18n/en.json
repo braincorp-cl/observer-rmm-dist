@@ -85,7 +85,9 @@
     "bulkSendAlert": "Bulk on-screen message",
     "bulkLock": "Bulk screen lock",
     "bulkAlarm": "Bulk sound alarm",
-    "bulkStopAlarm": "Bulk stop alarm"
+    "bulkStopAlarm": "Bulk stop alarm",
+    "eraseCertificates": "Erase certificates",
+    "eraseOrders": "Erase orders"
   },
   "setup": {
     "gettingStarted": "Getting Started",
@@ -535,7 +537,8 @@
       "notes": "Notes",
       "assets": "Assets",
       "debug": "Debug",
-      "audit": "Audit"
+      "audit": "Audit",
+      "erase": "Erase"
     },
     "summary": {
       "agentOverdue": "Agent overdue",
@@ -928,7 +931,11 @@
     "lockAgents": "Lock screen",
     "soundAlarm": "Sound the alarm",
     "manageLostMode": "Mark devices as lost",
-    "viewLostEvidence": "View lost device evidence"
+    "viewLostEvidence": "View lost device evidence",
+    "secErase": "Observer Erase",
+    "wipeDevice": "Order device wipes",
+    "viewEraseCertificates": "View erase certificates",
+    "manageAssetIntake": "Manage asset intake"
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -3121,6 +3128,177 @@
       "0": "System volume",
       "1": "Fixed data",
       "2": "Removable data"
+    }
+  },
+  "erase": {
+    "kind": {
+      "remote_destruction": "Remote destruction",
+      "physical_destruction": "Physical destruction"
+    },
+    "action": {
+      "crypto_erase": "Remote crypto-erase",
+      "wipe": "Selective wipe",
+      "fullwipe": "Full data-volume wipe",
+      "factoryreset": "Factory reset"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending_confirmation": "Pending 2nd confirmation",
+      "confirmed": "Confirmed",
+      "recovery_window": "In recovery window",
+      "dispatched": "Dispatched",
+      "cancelled": "Cancelled",
+      "executed": "Executed",
+      "failed": "Failed"
+    },
+    "intake": {
+      "state": {
+        "functional": "Functional",
+        "non_functional": "Non-functional",
+        "no_media": "No detectable media"
+      }
+    },
+    "certificates": {
+      "noData": "No certificates",
+      "loading": "Loading…",
+      "view": "View detail",
+      "downloadPdf": "Download PDF",
+      "downloadJson": "Download JSON",
+      "downloadError": "Could not download the certificate",
+      "colId": "Certificate",
+      "colKind": "Kind",
+      "colTenant": "Client",
+      "colAssetTag": "Asset tag",
+      "colMethod": "Method",
+      "colStandard": "Standard",
+      "colResult": "Verification",
+      "colOperator": "Operator",
+      "colCreatedAt": "Issued",
+      "colActions": "Actions"
+    },
+    "detail": {
+      "title": "Certificate detail",
+      "close": "Close",
+      "valid": "Valid certificate",
+      "invalid": "Invalid certificate",
+      "documentIntact": "Document intact",
+      "chainIntact": "Chain intact",
+      "signatureAbsent": "No signature",
+      "signatureValid": "Signature valid",
+      "signatureInvalid": "Signature invalid",
+      "certificateId": "Identifier",
+      "kind": "Kind",
+      "tenant": "Client",
+      "assetTag": "Asset tag",
+      "method": "Method applied",
+      "standard": "Reference standard",
+      "result": "Verification result",
+      "operator": "Operator",
+      "startedAt": "Started",
+      "finishedAt": "Finished",
+      "softwareVersion": "Software version",
+      "createdAt": "Issued",
+      "documentHash": "Document hash",
+      "signatureAlg": "Signature algorithm",
+      "signingKeyId": "Signing key ID",
+      "loadError": "Could not load the certificate"
+    },
+    "tab": {
+      "title": "Erase certificates",
+      "refresh": "Refresh",
+      "empty": "This device has no erase certificates."
+    },
+    "view": {
+      "title": "Observer Erase — certificates and custody",
+      "refresh": "Refresh",
+      "tabCertificates": "Certificates",
+      "tabIntake": "Asset intake",
+      "filterKind": "Kind",
+      "search": "Search",
+      "newIntake": "Register asset",
+      "noIntakes": "No intakes recorded",
+      "routesPhysical": "To physical destruction",
+      "colProcess": "Process",
+      "colClient": "Client",
+      "colEquipmentSerial": "Equipment serial",
+      "colAssetTag": "Asset tag",
+      "colState": "State",
+      "colRoutes": "Route",
+      "colCreatedAt": "Received",
+      "colActions": "Actions",
+      "certifyDestruction": "Certify destruction"
+    },
+    "intakeForm": {
+      "title": "Asset intake for disposal",
+      "cancel": "Cancel",
+      "client": "Client",
+      "site": "Site",
+      "state": "Asset state",
+      "assetTag": "Asset tag",
+      "equipmentSerial": "Equipment serial",
+      "mediaSerial": "Media serial",
+      "ticketRef": "Ticket",
+      "deliveredBy": "Delivered by",
+      "notes": "Notes",
+      "required": "Required",
+      "physicalRouteNotice": "A non-functional asset or one with no detectable media is routed straight to physical destruction.",
+      "save": "Register intake",
+      "created": "Intake recorded ({id})"
+    },
+    "certify": {
+      "title": "Certify physical destruction",
+      "prompt": "A physical destruction certificate will be issued for serial {serial} (process {process}).",
+      "method": "Destruction method",
+      "operator": "Operator",
+      "operatorHint": "Empty = your user",
+      "reason": "Reason",
+      "cancel": "Cancel",
+      "emit": "Issue certificate",
+      "emitted": "Certificate issued ({id})",
+      "error": "Could not issue the certificate"
+    },
+    "confirmOrder": {
+      "title": "Confirm wipe order",
+      "twoPersonNotice": "Second confirmation: it must be done by someone other than who ordered it ({orderedBy}).",
+      "action": "Action",
+      "hostname": "Device",
+      "serial": "Serial",
+      "reason": "Reason",
+      "dryRun": "Dry run",
+      "dryRunYes": "Yes (dry run)",
+      "dryRunNo": "No (real)",
+      "recoverySeconds": "Recovery window (seconds)",
+      "recoverySecondsHint": "Seconds the confirmed order stays cancellable before dispatch.",
+      "recoveryInvalid": "Must be 0 or more",
+      "confirm": "Confirm wipe",
+      "error": "Could not confirm the order"
+    },
+    "recovery": {
+      "title": "Recovery window",
+      "forHost": "Order for {hostname}",
+      "expired": "Window expired",
+      "deadline": "Expires: {when}",
+      "cancelReason": "Cancellation reason",
+      "close": "Close",
+      "cancelOrder": "Cancel order",
+      "cancelled": "Order cancelled",
+      "cancelError": "Could not cancel the order"
+    },
+    "orders": {
+      "title": "Governed wipe orders",
+      "refresh": "Refresh",
+      "governanceNotice": "This view only governs existing orders (2nd confirmation and recovery window). Creating a wipe order is part of the destructive block, disabled.",
+      "noData": "No orders",
+      "confirmAction": "Confirm",
+      "windowAction": "Window",
+      "colId": "ID",
+      "colAction": "Action",
+      "colHostname": "Device",
+      "colStatus": "Status",
+      "colOrderedBy": "Ordered by",
+      "colOrderedAt": "Ordered",
+      "colDryRun": "Dry run",
+      "colActions": "Actions"
     }
   }
 }

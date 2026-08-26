@@ -8,6 +8,17 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.16 — 2026-08-26
+
+- **Nuevo módulo Observer Erase: certificados de borrado y custodia de activos.** El producto ahora emite y conserva **certificados de borrado** —de destrucción remota o de destrucción física— y lleva el registro de ingreso de los equipos que entran a proceso de baja. Es la base para poder demostrar, con un documento verificable, que un equipo fue dado de baja como corresponde.
+- **Certificados a prueba de manipulación.** Cada certificado se guarda en un repositorio de sólo-escritura, encadenado por hash: una vez emitido no se modifica ni se elimina, y si alguien alterara o borrara un registro intermedio, la cadena se rompe y queda en evidencia. La evidencia sobrevive al borrado del equipo.
+- **Firma y verificación.** Cada certificado se firma criptográficamente y la consola verifica, al abrirlo, que el documento esté íntegro, que la firma sea válida y que la cadena no esté rota. La clave de firma vive fuera de la aplicación y el esquema queda listo para firma electrónica avanzada.
+- **Reportería y descargas.** Una vista dedicada lista los certificados por cliente, con filtro por tipo y búsqueda, y permite descargar cada uno en **PDF** y **JSON**. En la ficha de cada equipo aparece además una pestaña propia con sus certificados de borrado, en cualquier plataforma.
+- **Custodia de activos y destrucción física.** Un formulario formaliza el ingreso del equipo a baja (cadena de custodia) y, desde ahí, se emite el certificado de destrucción física. Un equipo no funcional o sin medio detectable se enruta directo a destrucción física.
+- **Gobernanza del borrado con doble confirmación.** Las órdenes de borrado exigen la confirmación de **dos personas distintas** y abren una **ventana de arrepentimiento** cancelable, con cuenta regresiva. En esta versión el borrado destructivo del equipo sigue **deshabilitado** a la espera de la aprobación legal correspondiente: la consola gobierna y audita las órdenes, pero no se envía ninguna acción destructiva al equipo.
+- **Permisos separados.** Se agregan tres permisos independientes —ordenar borrado (desactivado por omisión), ver certificados y gestionar ingresos de activos—, para que ver la evidencia no implique poder ordenar un borrado.
+- **Sin cambios de agente en esta versión.** Todo lo anterior es del servidor y la consola; la flota sigue con el agente `v2.17.1` y no necesita actualizarse por este release.
+
 ## v1.4.15 — 2026-08-23
 
 - **Un equipo que sale de su zona autorizada se mantiene despierto solo.** Cuando un equipo cruza fuera de su geocerca, el servidor le indica que no se suspenda ni hiberne, para que siga reportando ubicación y estado mientras esté fuera; al volver a la zona, se restaura el comportamiento normal de energía. La decisión de "está fuera" la toma el servidor a partir de la geocerca, no el equipo por su cuenta.

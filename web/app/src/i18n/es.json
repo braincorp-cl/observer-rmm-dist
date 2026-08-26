@@ -85,7 +85,9 @@
     "bulkSendAlert": "Mensaje en pantalla masivo",
     "bulkLock": "Bloqueo de pantalla masivo",
     "bulkAlarm": "Alarma sonora masiva",
-    "bulkStopAlarm": "Detener alarma en masa"
+    "bulkStopAlarm": "Detener alarma en masa",
+    "eraseCertificates": "Certificados de borrado",
+    "eraseOrders": "Órdenes de borrado"
   },
   "setup": {
     "gettingStarted": "Primeros pasos",
@@ -535,7 +537,8 @@
       "notes": "Notas",
       "assets": "Activos",
       "debug": "Depuración",
-      "audit": "Auditoría"
+      "audit": "Auditoría",
+      "erase": "Borrado"
     },
     "summary": {
       "agentOverdue": "Agente atrasado",
@@ -928,7 +931,11 @@
     "lockAgents": "Bloquear pantalla",
     "soundAlarm": "Hacer sonar la alarma",
     "manageLostMode": "Marcar equipos como perdidos",
-    "viewLostEvidence": "Ver evidencia de equipos perdidos"
+    "viewLostEvidence": "Ver evidencia de equipos perdidos",
+    "secErase": "Observer Erase",
+    "wipeDevice": "Ordenar borrado de equipos",
+    "viewEraseCertificates": "Ver certificados de borrado",
+    "manageAssetIntake": "Gestionar ingreso de activos"
   },
   "uiConfirmDialog": {
     "yes": "Sí",
@@ -3121,6 +3128,177 @@
       "0": "Volumen de sistema",
       "1": "Datos fijos",
       "2": "Datos extraíbles"
+    }
+  },
+  "erase": {
+    "kind": {
+      "remote_destruction": "Destrucción remota",
+      "physical_destruction": "Destrucción física"
+    },
+    "action": {
+      "crypto_erase": "Crypto-borrado remoto",
+      "wipe": "Wipe selectivo",
+      "fullwipe": "Borrado total del volumen",
+      "factoryreset": "Restauración de fábrica"
+    },
+    "status": {
+      "draft": "Borrador",
+      "pending_confirmation": "Pendiente de 2ª confirmación",
+      "confirmed": "Confirmada",
+      "recovery_window": "En ventana de arrepentimiento",
+      "dispatched": "Despachada",
+      "cancelled": "Cancelada",
+      "executed": "Ejecutada",
+      "failed": "Fallida"
+    },
+    "intake": {
+      "state": {
+        "functional": "Funcional",
+        "non_functional": "No funcional",
+        "no_media": "Sin medio detectable"
+      }
+    },
+    "certificates": {
+      "noData": "Sin certificados",
+      "loading": "Cargando…",
+      "view": "Ver detalle",
+      "downloadPdf": "Descargar PDF",
+      "downloadJson": "Descargar JSON",
+      "downloadError": "No se pudo descargar el certificado",
+      "colId": "Certificado",
+      "colKind": "Tipo",
+      "colTenant": "Cliente",
+      "colAssetTag": "Etiqueta de activo",
+      "colMethod": "Método",
+      "colStandard": "Estándar",
+      "colResult": "Verificación",
+      "colOperator": "Operador",
+      "colCreatedAt": "Emitido",
+      "colActions": "Acciones"
+    },
+    "detail": {
+      "title": "Detalle del certificado",
+      "close": "Cerrar",
+      "valid": "Certificado válido",
+      "invalid": "Certificado inválido",
+      "documentIntact": "Documento íntegro",
+      "chainIntact": "Cadena íntegra",
+      "signatureAbsent": "Sin firma",
+      "signatureValid": "Firma válida",
+      "signatureInvalid": "Firma inválida",
+      "certificateId": "Identificador",
+      "kind": "Tipo",
+      "tenant": "Cliente",
+      "assetTag": "Etiqueta de activo",
+      "method": "Método aplicado",
+      "standard": "Estándar de referencia",
+      "result": "Resultado de verificación",
+      "operator": "Operador",
+      "startedAt": "Inicio",
+      "finishedAt": "Fin",
+      "softwareVersion": "Versión de software",
+      "createdAt": "Emitido",
+      "documentHash": "Hash del documento",
+      "signatureAlg": "Algoritmo de firma",
+      "signingKeyId": "ID de clave de firma",
+      "loadError": "No se pudo cargar el certificado"
+    },
+    "tab": {
+      "title": "Certificados de borrado",
+      "refresh": "Actualizar",
+      "empty": "Este equipo no tiene certificados de borrado."
+    },
+    "view": {
+      "title": "Observer Erase — certificados y custodia",
+      "refresh": "Actualizar",
+      "tabCertificates": "Certificados",
+      "tabIntake": "Ingresos de activos",
+      "filterKind": "Tipo",
+      "search": "Buscar",
+      "newIntake": "Ingresar activo",
+      "noIntakes": "Sin ingresos registrados",
+      "routesPhysical": "A destrucción física",
+      "colProcess": "Proceso",
+      "colClient": "Cliente",
+      "colEquipmentSerial": "Serie del equipo",
+      "colAssetTag": "Etiqueta de activo",
+      "colState": "Estado",
+      "colRoutes": "Ruta",
+      "colCreatedAt": "Ingresado",
+      "colActions": "Acciones",
+      "certifyDestruction": "Certificar destrucción"
+    },
+    "intakeForm": {
+      "title": "Ingreso de activo a baja",
+      "cancel": "Cancelar",
+      "client": "Cliente",
+      "site": "Sitio",
+      "state": "Estado del activo",
+      "assetTag": "Etiqueta de activo",
+      "equipmentSerial": "Serie del equipo",
+      "mediaSerial": "Serie del medio",
+      "ticketRef": "Ticket",
+      "deliveredBy": "Entregado por",
+      "notes": "Notas",
+      "required": "Obligatorio",
+      "physicalRouteNotice": "Un activo no funcional o sin medio detectable se enruta directo a destrucción física.",
+      "save": "Registrar ingreso",
+      "created": "Ingreso registrado ({id})"
+    },
+    "certify": {
+      "title": "Certificar destrucción física",
+      "prompt": "Se emitirá un certificado de destrucción física para la serie {serial} (proceso {process}).",
+      "method": "Método de destrucción",
+      "operator": "Operador",
+      "operatorHint": "Vacío = tu usuario",
+      "reason": "Motivo",
+      "cancel": "Cancelar",
+      "emit": "Emitir certificado",
+      "emitted": "Certificado emitido ({id})",
+      "error": "No se pudo emitir el certificado"
+    },
+    "confirmOrder": {
+      "title": "Confirmar orden de borrado",
+      "twoPersonNotice": "Segunda confirmación: debe hacerla una persona distinta de quien la ordenó ({orderedBy}).",
+      "action": "Acción",
+      "hostname": "Equipo",
+      "serial": "Serie",
+      "reason": "Motivo",
+      "dryRun": "Simulacro",
+      "dryRunYes": "Sí (simulacro)",
+      "dryRunNo": "No (real)",
+      "recoverySeconds": "Ventana de arrepentimiento (segundos)",
+      "recoverySecondsHint": "Segundos en que la orden confirmada sigue cancelable antes del despacho.",
+      "recoveryInvalid": "Debe ser 0 o más",
+      "confirm": "Confirmar borrado",
+      "error": "No se pudo confirmar la orden"
+    },
+    "recovery": {
+      "title": "Ventana de arrepentimiento",
+      "forHost": "Orden para {hostname}",
+      "expired": "Ventana vencida",
+      "deadline": "Vence: {when}",
+      "cancelReason": "Motivo de la cancelación",
+      "close": "Cerrar",
+      "cancelOrder": "Cancelar orden",
+      "cancelled": "Orden cancelada",
+      "cancelError": "No se pudo cancelar la orden"
+    },
+    "orders": {
+      "title": "Órdenes de borrado gobernadas",
+      "refresh": "Actualizar",
+      "governanceNotice": "Esta vista sólo gobierna órdenes existentes (2ª confirmación y ventana de arrepentimiento). Crear una orden de borrado es parte del bloque destructivo, deshabilitado.",
+      "noData": "Sin órdenes",
+      "confirmAction": "Confirmar",
+      "windowAction": "Ventana",
+      "colId": "ID",
+      "colAction": "Acción",
+      "colHostname": "Equipo",
+      "colStatus": "Estado",
+      "colOrderedBy": "Ordenada por",
+      "colOrderedAt": "Ordenada",
+      "colDryRun": "Simulacro",
+      "colActions": "Acciones"
     }
   }
 }

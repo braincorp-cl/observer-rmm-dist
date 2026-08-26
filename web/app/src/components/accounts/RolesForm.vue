@@ -162,6 +162,30 @@
               />
             </div>
           </q-card-section>
+
+          <!-- Observer Erase (feature 039). `can_wipe_device` es la llave del
+               borrado destructivo: separada del modo perdido y off por omisión.
+               Ver certificados y gestionar ingresos son permisos aparte, más
+               laxos. -->
+          <div class="text-subtitle2">{{ $t("rolesForm.secErase") }}</div>
+          <q-separator />
+          <q-card-section class="row">
+            <div class="q-gutter-sm">
+              <q-checkbox
+                v-model="localRole.can_wipe_device"
+                :label="$t('rolesForm.wipeDevice')"
+              />
+              <q-checkbox
+                v-model="localRole.can_view_erase_certificates"
+                :label="$t('rolesForm.viewEraseCertificates')"
+              />
+              <q-checkbox
+                v-model="localRole.can_manage_asset_intake"
+                :label="$t('rolesForm.manageAssetIntake')"
+              />
+            </div>
+          </q-card-section>
+
           <div class="text-subtitle2">{{ $t("rolesForm.secCore") }}</div>
           <q-separator />
           <q-card-section class="row">
@@ -593,6 +617,11 @@ export default {
           // modo perdido/robado (feature 030)
           can_manage_lost_mode: false,
           can_view_lost_evidence: false,
+          // Observer Erase (feature 039). El borrado destructivo off por
+          // omisión (ADR-029); ver certificados y gestionar ingresos aparte.
+          can_wipe_device: false,
+          can_view_erase_certificates: false,
+          can_manage_asset_intake: false,
         });
 
     const loading = ref(false);

@@ -126,6 +126,12 @@ class EraseCertificateList(APIView):
 
     def get(self, request):
         qs = EraseCertificate.objects.filter_by_role(request.user).order_by("-id")
+        # La pestaña de la ficha del activo recorta al equipo con `?agent_id=` (el
+        # identificador público del agente, no el pk). Sin el filtro, el listado
+        # general devuelve todo lo que el rol ya autoriza (reportería, RF-C).
+        agent_id = request.query_params.get("agent_id")
+        if agent_id:
+            qs = qs.filter(agent__agent_id=agent_id)
         return Response(EraseCertificateListSerializer(qs, many=True).data)
 
 
