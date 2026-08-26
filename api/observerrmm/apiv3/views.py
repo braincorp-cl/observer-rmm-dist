@@ -1167,3 +1167,145 @@ def _rechazo_de_imagen(archivo) -> str:
         return "formato_no_soportado"
 
     return ""
+
+
+class FileRetrievalUpload(APIView):
+    """El agente sube los archivos recuperados de una orden de fileretrieval (042).
+
+    Va en apiv3 y no en /erase/ porque quien llama es el AGENTE con su token, igual
+    que la evidencia del modo perdido. Reusa el mismo almacén cifrado en reposo
+    (`get_lost_mode_evidence_fs`, vía `RetrievedFile.asset`).
+
+    Protocolo:
+      - una petición por archivo: campo `file` + `source_path`;
+      - una petición final `done=1` (para dry-run trae `plan` en vez de archivos);
+      - o `error=<motivo>` si el agente falló.
+
+    Idempotente: el `order_id` de la URL y la unicidad `(order, source_path)`
+    garantizan que reenviar no duplica ni reejecuta al reconectar.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, agentid, order_id):
+        from django.db.models import Sum
+
+        from erase.models import FileRetrievalOrder, FileRetrievalStatus, RetrievedFile
+        from erase.services import record_retrieval_event
+
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint sólo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        order = FileRetrievalOrder.objects.filter(pk=order_id, agent=agent).first()
+        if order is None:
+            # 404 y no 400: el token es válido pero la orden no es de este equipo o
+            # no existe. Un token robado no puede escribir en la orden de otro.
+            return notify_error("orden inexistente para este equipo")
+
+        # Estados terminales: el agente deja de intentar (cancelada/expirada mientras
+        # estaba offline, o ya completada).
+        if order.status in (
+            FileRetrievalStatus.CANCELLED,
+            FileRetrievalStatus.EXPIRED,
+            FileRetrievalStatus.DONE,
+            FileRetrievalStatus.FAILED,
+        ):
+            return Response(
+                {"status": order.status},
+                status=rest_framework_status.HTTP_409_CONFLICT,
+            )
+
+        # Falla reportada por el agente.
+        error = request.data.get("error")
+        if error:
+            order.status = FileRetrievalStatus.FAILED
+            order.failure_reason = str(error)[:255]
+            order.save(update_fields=["status", "failure_reason"])
+            record_retrieval_event(
+                order=order,
+                event="retrieval_failed",
+                actor="agent",
+                detail={"error": order.failure_reason},
+            )
+            return Response({"status": "failed"})
+
+        # Cierre de la orden (dry-run trae el plan; real la marca completada).
+        if request.data.get("done"):
+            if order.dry_run:
+                plan = request.data.get("plan") or ""
+                order.result = {"plan": plan}
+                record_retrieval_event(
+                    order=order,
+                    event="retrieval_plan",
+                    actor="agent",
+                    detail={"plan_bytes": len(str(plan))},
+                )
+            else:
+                order.result = {"files": order.files.count()}
+                record_retrieval_event(
+                    order=order,
+                    event="retrieval_completed",
+                    actor="agent",
+                    detail={"files": order.files.count()},
+                )
+            order.status = FileRetrievalStatus.DONE
+            order.completed_at = djangotime.now()
+            order.save(update_fields=["status", "completed_at", "result"])
+            return Response({"status": "done"})
+
+        # dry-run no sube archivos: sólo el cierre con `plan` de arriba.
+        if order.dry_run:
+            return Response({"status": "dry_run_no_upload"})
+
+        # Subida de un archivo real.
+        archivo = request.FILES.get("file")
+        source_path = (request.data.get("source_path") or "")[:2000]
+        if archivo is None or not source_path:
+            return notify_error("falta el archivo o su ruta de origen")
+
+        # Tope por orden (RF-08): tamaño acumulado no puede pasar el límite.
+        limite = order.size_limit_bytes or 0
+        if limite:
+            ya = (
+                RetrievedFile.objects.filter(order=order).aggregate(s=Sum("size"))["s"]
+                or 0
+            )
+            if ya + archivo.size > limite:
+                order.status = FileRetrievalStatus.FAILED
+                order.failure_reason = "supera el tope de tamaño por orden (RF-08)"
+                order.save(update_fields=["status", "failure_reason"])
+                record_retrieval_event(
+                    order=order,
+                    event="retrieval_failed",
+                    actor="agent",
+                    detail={"error": order.failure_reason},
+                )
+                return Response(
+                    {"status": "limit_exceeded"},
+                    status=rest_framework_status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                )
+
+        if order.status == FileRetrievalStatus.DISPATCHED:
+            order.status = FileRetrievalStatus.UPLOADING
+            order.save(update_fields=["status"])
+
+        # Idempotente: la misma ruta de la misma orden no se re-crea.
+        rf, creado = RetrievedFile.objects.get_or_create(
+            order=order,
+            source_path=source_path,
+            defaults={"size": archivo.size},
+        )
+        if creado:
+            # El nombre en disco lo pone el servidor, no el agente: el del multipart
+            # es texto de afuera y termina siendo una ruta.
+            safe_name = source_path.replace("/", "_").replace("\\", "_")[-120:]
+            rf.asset.save(safe_name, archivo, save=False)
+            rf.size = archivo.size
+            rf.save()
+
+        return Response({"status": "ok", "stored": bool(creado)})

@@ -1,22 +1,25 @@
 import uuid
 
+from django.db.models import Max
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from agents.models import Agent
+from agents.models import Agent, LostModeEvidence, LostModeState
 from erase import certificate as cert_mod
 from erase import services
 from erase.models import (
     AssetIntake,
     CertificateKind,
     EraseCertificate,
+    FileRetrievalOrder,
     WipeOrder,
 )
 from erase.permissions import (
     ManageAssetIntakePerms,
+    RetrieveFilesPerms,
     ViewEraseCertificatesPerms,
     WipeDevicePerms,
 )
@@ -26,6 +29,9 @@ from erase.serializers import (
     EraseAuditRecordSerializer,
     EraseCertificateDetailSerializer,
     EraseCertificateListSerializer,
+    FileRetrievalOrderCreateSerializer,
+    FileRetrievalOrderSerializer,
+    RetrievedFileSerializer,
     WipeOrderCancelSerializer,
     WipeOrderConfirmSerializer,
     WipeOrderCreateSerializer,
@@ -119,6 +125,114 @@ class WipeOrderCancel(APIView):
         except services.OrderStateError as e:
             return Response({"detail": str(e)}, status=409)
         return Response(WipeOrderSerializer(order).data)
+
+
+class FileRetrievalOrderList(APIView):
+    permission_classes = [IsAuthenticated, RetrieveFilesPerms]
+
+    def get(self, request):
+        qs = FileRetrievalOrder.objects.filter_by_role(request.user).select_related(
+            "agent", "client", "site"
+        )
+        agent_id = request.query_params.get("agent_id")
+        if agent_id:
+            qs = qs.filter(agent__agent_id=agent_id)
+        return Response(FileRetrievalOrderSerializer(qs, many=True).data)
+
+
+class FileRetrievalOrderCreate(APIView):
+    """Ordena recuperar archivos de un equipo (fileretrieval).
+
+    Anclada a un caso perdido ABIERTO (RF-G06/RN-01): exige un `LostModeState`
+    activo para el equipo — imposible ordenar desde el listado general. No es
+    destructiva: no hay doble confirmación ni ventana; el permiso liviano
+    `can_retrieve_files` la gobierna.
+    """
+
+    permission_classes = [IsAuthenticated, RetrieveFilesPerms]
+
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        # RF-G06: sólo desde un caso perdido abierto.
+        if not LostModeState.objects.filter(agent=agent, active=True).exists():
+            return Response(
+                {
+                    "detail": "no hay un caso perdido abierto para este equipo; "
+                    "fileretrieval se ordena desde el caso, no desde el listado "
+                    "general (RF-G06)"
+                },
+                status=409,
+            )
+
+        s = FileRetrievalOrderCreateSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+
+        cycle = (
+            LostModeEvidence.objects.filter(agent=agent).aggregate(m=Max("cycle"))["m"]
+            or 0
+        )
+        try:
+            order = services.create_retrieval_order(
+                agent=agent,
+                client=agent.site.client,
+                site=agent.site,
+                paths=s.validated_data["paths"],
+                requested_by=request.user.username,
+                dry_run=s.validated_data.get("dry_run", False),
+                lost_mode_cycle=cycle,
+            )
+        except services.OrderStateError as e:
+            return Response({"detail": str(e)}, status=400)
+        return Response(FileRetrievalOrderSerializer(order).data, status=201)
+
+
+class FileRetrievalOrderDetail(APIView):
+    permission_classes = [IsAuthenticated, RetrieveFilesPerms]
+
+    def get(self, request, pk):
+        order = get_object_or_404(
+            FileRetrievalOrder.objects.filter_by_role(request.user), pk=pk
+        )
+        data = FileRetrievalOrderSerializer(order).data
+        data["files"] = RetrievedFileSerializer(
+            order.files.order_by("id"), many=True
+        ).data
+        return Response(data)
+
+
+class FileRetrievalOrderCancel(APIView):
+    permission_classes = [IsAuthenticated, RetrieveFilesPerms]
+
+    def post(self, request, pk):
+        order = get_object_or_404(
+            FileRetrievalOrder.objects.filter_by_role(request.user), pk=pk
+        )
+        try:
+            services.cancel_retrieval_order(
+                order=order,
+                cancelled_by=request.user.username,
+                reason=request.data.get("reason", ""),
+            )
+        except services.OrderStateError as e:
+            return Response({"detail": str(e)}, status=409)
+        return Response(FileRetrievalOrderSerializer(order).data)
+
+
+class RetrievedFileDownload(APIView):
+    """Descarga un archivo recuperado (descifrado al vuelo por el storage)."""
+
+    permission_classes = [IsAuthenticated, RetrieveFilesPerms]
+
+    def get(self, request, pk, file_id):
+        order = get_object_or_404(
+            FileRetrievalOrder.objects.filter_by_role(request.user), pk=pk
+        )
+        rf = get_object_or_404(order.files, pk=file_id)
+        if not rf.asset:
+            return Response({"detail": "el archivo no tiene contenido"}, status=404)
+        resp = FileResponse(rf.asset.open("rb"), as_attachment=True)
+        return resp
 
 
 class EraseCertificateList(APIView):

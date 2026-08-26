@@ -7,14 +7,18 @@ está GATED por ADR-029 y por `settings.ERASE_DESTRUCTIVE_DISPATCH_ENABLED`
 (default False): en este incremento la orden se gobierna pero no viaja al equipo.
 """
 
+import asyncio
+import json
 from datetime import timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.utils import timezone
 
 from erase.models import (
     EraseAuditRecord,
+    FileRetrievalOrder,
+    FileRetrievalStatus,
     WipeOrder,
     WipeOrderStatus,
 )
@@ -22,6 +26,14 @@ from erase.models import (
 # Ventana de arrepentimiento por defecto (segundos). Configurable por settings; el
 # valor exacto y su flujo es la laguna L-03 del requirements, se fija acá.
 DEFAULT_RECOVERY_SECONDS = 300
+
+# --- fileretrieval (feature 042) — defaults configurables por settings ---------
+# TTL de la orden encolada: si el equipo no la toma antes, expira (no queda zombie).
+DEFAULT_FILERETRIEVAL_TTL_SECONDS = 7 * 24 * 3600  # 7 días
+# Tope por orden (RF-08). Piso de retención (RF-D5): mínimo legal 12 meses.
+DEFAULT_FILERETRIEVAL_SIZE_LIMIT_BYTES = 500 * 2**20  # 500 MiB
+DEFAULT_FILERETRIEVAL_FILE_LIMIT = 500
+DEFAULT_FILERETRIEVAL_RETENTION_DAYS = 366  # ≥ 12 meses (RF-D5)
 
 
 class OrderStateError(Exception):
@@ -188,3 +200,191 @@ def dispatch_order(*, order: WipeOrder) -> WipeOrder:
     order.save(update_fields=["status", "dispatched_at"])
     record_event(order=order, event="dispatched", actor="system", detail={})
     return order
+
+
+# ===========================================================================
+# fileretrieval (Bloque A · B1) — recuperar archivos antes de borrar.
+#
+# No destructivo: el despacho al agente NO está atado a
+# `ERASE_DESTRUCTIVE_DISPATCH_ENABLED` y no exige doble confirmación ni ventana.
+# Reusa la cadena inmutable `EraseAuditRecord` para la auditoría que sobrevive
+# (RF-G04/RF-07), atando la fila a la orden por `detail` (su FK apunta a
+# `WipeOrder`, así que aquí `order=None` y el id va en el detalle).
+# ===========================================================================
+
+
+def _fr_setting(name: str, default: Any) -> Any:
+    return getattr(settings, name, default)
+
+
+def record_retrieval_event(
+    *,
+    order: FileRetrievalOrder,
+    event: str,
+    actor: str,
+    detail: Optional[Dict[str, Any]] = None,
+) -> EraseAuditRecord:
+    """Auditoría de fileretrieval en la cadena inmutable (RF-G04/RF-07)."""
+    payload = {"retrieval_order": str(order.pk), "dry_run": order.dry_run}
+    payload.update(detail or {})
+    rec = EraseAuditRecord(
+        order=None,
+        agent_id=order.agent_id_snapshot,
+        hostname=order.agent_hostname,
+        event=event,
+        actor=actor,
+        detail=payload,
+    )
+    rec.save()
+    return rec
+
+
+def create_retrieval_order(
+    *,
+    agent,
+    client,
+    site,
+    paths: List[str],
+    requested_by: str,
+    dry_run: bool = False,
+    lost_mode_cycle: Optional[int] = None,
+) -> FileRetrievalOrder:
+    """Crea una orden de recuperación y la despacha (best-effort).
+
+    Valida el tope (RF-08) ANTES de despachar. Fija `expires_at` para que una orden
+    a un equipo que nunca reconecta no quede zombie (D-04).
+    """
+    if not paths:
+        raise OrderStateError("la orden debe designar al menos una ruta a recuperar")
+
+    file_limit = _fr_setting(
+        "FILERETRIEVAL_FILE_LIMIT", DEFAULT_FILERETRIEVAL_FILE_LIMIT
+    )
+    size_limit = _fr_setting(
+        "FILERETRIEVAL_SIZE_LIMIT_BYTES", DEFAULT_FILERETRIEVAL_SIZE_LIMIT_BYTES
+    )
+    if file_limit and len(paths) > file_limit:
+        raise OrderStateError(
+            f"la orden supera el tope de {file_limit} archivos por orden (RF-08)"
+        )
+
+    ttl = _fr_setting("FILERETRIEVAL_TTL_SECONDS", DEFAULT_FILERETRIEVAL_TTL_SECONDS)
+    now = timezone.now()
+    order = FileRetrievalOrder.objects.create(
+        agent=agent,
+        client=client,
+        site=site,
+        agent_id_snapshot=getattr(agent, "agent_id", "") or "",
+        agent_hostname=getattr(agent, "hostname", "") or "",
+        agent_serial=getattr(agent, "serial_number", "") or "",
+        paths=list(paths),
+        dry_run=dry_run,
+        lost_mode_cycle=lost_mode_cycle,
+        size_limit_bytes=size_limit,
+        file_limit=file_limit,
+        status=FileRetrievalStatus.PENDING,
+        requested_by=requested_by,
+        expires_at=now + timedelta(seconds=ttl),
+    )
+    record_retrieval_event(
+        order=order,
+        event="retrieval_created",
+        actor=requested_by,
+        detail={"paths": list(paths), "path_count": len(paths)},
+    )
+    dispatch_retrieval_order(order=order)
+    return order
+
+
+def dispatch_retrieval_order(*, order: FileRetrievalOrder) -> FileRetrievalOrder:
+    """Despacha la orden al agente por NATS (no destructivo, sin gate ADR-029).
+
+    Idempotente: solo despacha órdenes en `pending`. Si el equipo está offline
+    (`natsdown`/`timeout`), la orden queda `pending` y la reintenta el beat
+    `redispatch_pending_retrieval_orders` hasta `expires_at`. El `order_id` viaja
+    al agente y garantiza ejecución única al reconectar.
+    """
+    if order.status != FileRetrievalStatus.PENDING:
+        return order
+    if order.agent is None:
+        return order
+
+    # Envelope NATS: {func, payload:{str:str}} — el agente decodifica `payload`
+    # en un map[string]string, así que TODO viaja como texto (las rutas van como
+    # JSON y el agente las parsea). Espeja el molde de `lost_mode`.
+    payload = {
+        "func": "fileretrieval",
+        "payload": {
+            "order_id": str(order.pk),
+            "paths": json.dumps(order.paths),
+            "dry_run": "1" if order.dry_run else "0",
+            "size_limit_bytes": str(order.size_limit_bytes),
+            "file_limit": str(order.file_limit),
+        },
+    }
+    try:
+        ret = asyncio.run(order.agent.nats_cmd(payload, timeout=15))
+    except Exception as e:  # noqa: BLE001 — el transporte no debe tumbar la orden
+        ret = str(e)
+
+    # El equipo no está (offline / NATS caído): la orden sigue en cola y la
+    # reintenta el beat `redispatch_pending_retrieval_orders` hasta expirar.
+    no_llego = not isinstance(ret, dict) and (
+        ret in ("natsdown", "timeout")
+        or (isinstance(ret, str) and ret.startswith(("Errno", "nats")))
+    )
+    if no_llego:
+        return order
+
+    order.status = FileRetrievalStatus.DISPATCHED
+    order.dispatched_at = timezone.now()
+    order.save(update_fields=["status", "dispatched_at"])
+    record_retrieval_event(
+        order=order, event="retrieval_dispatched", actor="system", detail={"ack": ret}
+    )
+    return order
+
+
+def cancel_retrieval_order(
+    *, order: FileRetrievalOrder, cancelled_by: str, reason: str = ""
+) -> FileRetrievalOrder:
+    if order.status in (
+        FileRetrievalStatus.DONE,
+        FileRetrievalStatus.CANCELLED,
+        FileRetrievalStatus.EXPIRED,
+        FileRetrievalStatus.FAILED,
+    ):
+        raise OrderStateError(f"la orden ya no es cancelable (está {order.status})")
+    order.status = FileRetrievalStatus.CANCELLED
+    order.cancelled_by = cancelled_by
+    order.cancelled_at = timezone.now()
+    order.save(update_fields=["status", "cancelled_by", "cancelled_at"])
+    record_retrieval_event(
+        order=order,
+        event="retrieval_cancelled",
+        actor=cancelled_by,
+        detail={"reason": reason},
+    )
+    return order
+
+
+def expire_stale_retrieval_orders() -> int:
+    """Mueve a `expired` las órdenes no completadas cuya ventana venció (D-04)."""
+    now = timezone.now()
+    stale = FileRetrievalOrder.objects.filter(
+        status__in=[
+            FileRetrievalStatus.PENDING,
+            FileRetrievalStatus.DISPATCHED,
+            FileRetrievalStatus.UPLOADING,
+        ],
+        expires_at__lt=now,
+    )
+    count = 0
+    for order in stale:
+        order.status = FileRetrievalStatus.EXPIRED
+        order.save(update_fields=["status"])
+        record_retrieval_event(
+            order=order, event="retrieval_expired", actor="system", detail={}
+        )
+        count += 1
+    return count

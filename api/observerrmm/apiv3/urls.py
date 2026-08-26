@@ -29,4 +29,10 @@ urlpatterns = [
         "<str:agentid>/lostmode/evidence/",
         views.LostModeEvidenceUpload.as_view(),
     ),
+    # Feature 042 · el agente sube los archivos recuperados de una orden de
+    # fileretrieval. Token de agente, no sesión de operador.
+    path(
+        "<str:agentid>/fileretrieval/<uuid:order_id>/upload/",
+        views.FileRetrievalUpload.as_view(),
+    ),
 ]

@@ -165,6 +165,11 @@ class Role(BaseAuditModel):
     # capacidad de ordenar el borrado: quien audita no necesita poder destruir.
     can_view_erase_certificates = models.BooleanField(default=False)
     can_manage_asset_intake = models.BooleanField(default=False)
+    # Recuperar archivos ANTES de borrar (fileretrieval, feature 042). Permiso
+    # DEDICADO y off por omisión, SEPARADO de `can_wipe_device`: recuperar no es
+    # destruir, así que no arrastra la doble confirmación ni la ventana de
+    # arrepentimiento del borrado, pero tampoco se hereda de poder marcar perdido.
+    can_retrieve_files = models.BooleanField(default=False)
 
     # core
     can_list_notes = models.BooleanField(default=False)

@@ -30,10 +30,13 @@ aparte.
 
 import hashlib
 import json
+import uuid
 from typing import TYPE_CHECKING, Any, Dict
 
 from django.db import models, transaction
 from django.utils import timezone
+
+from agents.lostmode_storage import get_lost_mode_evidence_fs
 
 if TYPE_CHECKING:
     from accounts.models import User
@@ -424,3 +427,160 @@ class AssetIntake(models.Model):
             AssetIntakeState.NON_FUNCTIONAL,
             AssetIntakeState.NO_MEDIA,
         )
+
+
+# ---------------------------------------------------------------------------
+# fileretrieval (Bloque A · B1) — recuperar archivos ANTES de borrar.
+#
+# fileretrieval es la primera acción del orden invariante de irreversibilidad
+# (`fileretrieval → wipe → fullwipe → factoryreset`): "recuperar antes de
+# borrar". A diferencia de `WipeOrder`, NO es destructiva, así que:
+#   - NO reusa la máquina de estados destructiva (sin doble confirmación de dos
+#     personas ni ventana de arrepentimiento — decisión de clarify 2026-08-26);
+#   - NO está atada a `ERASE_DESTRUCTIVE_DISPATCH_ENABLED` (ese gate protege el
+#     borrado, no la recuperación);
+#   - SÍ conserva lo que la gobernanza B0 exige igual: permiso dedicado propio
+#     (`can_retrieve_files`, off por omisión), anclaje a un caso perdido abierto
+#     (`lost_mode_cycle`, RF-G06) y auditoría en la cadena inmutable
+#     (`EraseAuditRecord`, RF-G04/RF-07).
+#
+# Es además el vehículo no destructivo con el que se construye y valida la vía
+# de despacho servidor→agente (RF-G05, dry-run) que las acciones destructivas
+# reutilizarán después.
+# ---------------------------------------------------------------------------
+
+
+class FileRetrievalStatus(models.TextChoices):
+    PENDING = "pending", "Pendiente de despacho / en cola"
+    DISPATCHED = "dispatched", "Despachada al equipo"
+    UPLOADING = "uploading", "Subiendo archivos"
+    DONE = "done", "Completada"
+    EXPIRED = "expired", "Expirada (equipo no reconectó a tiempo)"
+    CANCELLED = "cancelled", "Cancelada"
+    FAILED = "failed", "Fallida"
+
+
+def retrieval_file_path(instance: "RetrievedFile", filename: str) -> str:
+    """Ruta relativa dentro de LOST_MODE_EVIDENCE_BASE_PATH (storage cifrado).
+
+    Reusa el mismo almacén cifrado en reposo de la evidencia del modo perdido
+    (Option A: se comparte el storage, no el modelo). Una carpeta por orden hace
+    que purgar una orden vencida sea un `rm -r` y no un recorrido de filas.
+    """
+    return f"fileretrieval/{instance.order.agent_id_snapshot or 'unknown'}/{instance.order_id}/{filename}"
+
+
+class FileRetrievalOrder(models.Model):
+    """Orden de recuperación de archivos (no destructiva).
+
+    Se persiste con estado y `expires_at` para sobrevivir a un equipo offline sin
+    perder ni duplicar la ejecución al reconectar; la idempotencia la garantiza el
+    `id` (UUID) que viaja al agente. Snapshotea la identidad del equipo en columnas
+    propias para que la traza sobreviva al des-enrolamiento, igual que `WipeOrder`.
+    """
+
+    objects = EraseQuerySet.as_manager()
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    agent = models.ForeignKey(
+        "agents.Agent",
+        related_name="fileretrieval_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    client = models.ForeignKey(
+        "clients.Client", related_name="fileretrieval_orders", on_delete=models.CASCADE
+    )
+    site = models.ForeignKey(
+        "clients.Site",
+        related_name="fileretrieval_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    agent_id_snapshot = models.CharField(max_length=255, blank=True, default="")
+    agent_hostname = models.CharField(max_length=255, blank=True, default="")
+    agent_serial = models.CharField(max_length=255, blank=True, default="")
+
+    # Rutas/archivos a recuperar. `dry_run` (RF-G05): el agente responde el plan
+    # de lo que recuperaría sin empaquetar ni subir nada.
+    paths = models.JSONField(default=list, blank=True)
+    dry_run = models.BooleanField(default=False)
+
+    # Ancla al caso perdido abierto (RF-G06): imposible ordenar desde el listado
+    # general. Espeja la semántica de `WipeOrder.lost_mode_cycle`.
+    lost_mode_cycle = models.PositiveIntegerField(null=True, blank=True)
+
+    # Topes efectivos aplicados (RF-08); 0 = usar el default de settings al validar.
+    size_limit_bytes = models.PositiveBigIntegerField(default=0)
+    file_limit = models.PositiveIntegerField(default=0)
+
+    status = models.CharField(
+        max_length=32,
+        choices=FileRetrievalStatus.choices,
+        default=FileRetrievalStatus.PENDING,
+    )
+
+    requested_by = models.CharField(max_length=255)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    dispatched_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    cancelled_by = models.CharField(max_length=255, blank=True, default="")
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    result = models.JSONField(null=True, blank=True)
+    failure_reason = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        ordering = ["-requested_at"]
+        indexes = [
+            models.Index(
+                fields=["status", "expires_at"], name="fr_order_status_expires_idx"
+            ),
+            models.Index(fields=["lost_mode_cycle"], name="fr_order_lostcycle_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"FileRetrievalOrder<{self.pk}> {self.agent_hostname} [{self.status}]"
+
+
+class RetrievedFile(models.Model):
+    """Un archivo recuperado por una `FileRetrievalOrder`, cifrado en reposo.
+
+    Reusa el almacén cifrado del modo perdido (`get_lost_mode_evidence_fs`). La
+    retención (RF-D5) purga estos adjuntos vencidos; el `EraseAuditRecord` de la
+    orden nunca se toca.
+    """
+
+    order = models.ForeignKey(
+        FileRetrievalOrder,
+        related_name="files",
+        on_delete=models.CASCADE,
+    )
+    # Ruta original en el equipo (para mostrarla en el panel). No es la ruta en
+    # disco del servidor, que la arma `retrieval_file_path`.
+    source_path = models.TextField(blank=True, default="")
+    asset = models.FileField(
+        storage=get_lost_mode_evidence_fs,
+        upload_to=retrieval_file_path,
+        null=True,
+        blank=True,
+    )
+    size = models.PositiveBigIntegerField(default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+        # Idempotencia: la misma ruta de la misma orden no se duplica al
+        # reconectar/reenviar.
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order", "source_path"],
+                name="uniq_retrieved_file_per_order_path",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"RetrievedFile<{self.pk}> {self.source_path}"

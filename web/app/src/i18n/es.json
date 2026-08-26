@@ -935,7 +935,8 @@
     "secErase": "Observer Erase",
     "wipeDevice": "Ordenar borrado de equipos",
     "viewEraseCertificates": "Ver certificados de borrado",
-    "manageAssetIntake": "Gestionar ingreso de activos"
+    "manageAssetIntake": "Gestionar ingreso de activos",
+    "retrieveFiles": "Recuperar archivos (antes de borrar)"
   },
   "uiConfirmDialog": {
     "yes": "Sí",
@@ -3131,6 +3132,40 @@
     }
   },
   "erase": {
+    "fileretrieval": {
+      "title": "Recuperar archivos — {hostname}",
+      "close": "Cerrar",
+      "open": "Recuperar archivos",
+      "pathsLabel": "Rutas a recuperar (una por línea)",
+      "pathsHint": "Archivos o carpetas del equipo; las carpetas se recuperan recursivamente",
+      "dryRun": "Simulacro en seco (reporta el plan sin recuperar)",
+      "launch": "Recuperar",
+      "launched": "Orden de recuperación enviada",
+      "launchError": "No se pudo crear la orden de recuperación",
+      "needPaths": "Ingresá al menos una ruta",
+      "noOrders": "Sin órdenes de recuperación",
+      "colStatus": "Estado",
+      "colDryRun": "Simulacro",
+      "colFiles": "Archivos",
+      "colCreated": "Solicitada",
+      "colActions": "Acciones",
+      "view": "Ver archivos",
+      "cancel": "Cancelar orden",
+      "download": "Descargar",
+      "downloadError": "No se pudo descargar el archivo",
+      "filesTitle": "Archivos recuperados",
+      "noFiles": "Aún no hay archivos recuperados",
+      "plan": "Plan del simulacro: {plan}",
+      "status": {
+        "pending": "En cola",
+        "dispatched": "Despachada",
+        "uploading": "Subiendo",
+        "done": "Completada",
+        "expired": "Expirada",
+        "cancelled": "Cancelada",
+        "failed": "Fallida"
+      }
+    },
     "kind": {
       "remote_destruction": "Destrucción remota",
       "physical_destruction": "Destrucción física"

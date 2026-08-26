@@ -96,3 +96,42 @@ export async function cancelWipeOrder(pk, payload) {
   const { data } = await axios.post(`${baseUrl}/orders/${pk}/cancel/`, payload);
   return data;
 }
+
+// --- Recuperación de archivos (fileretrieval · B1 · NO destructiva) ----------
+//
+// Recuperar archivos ANTES de borrar. Se ordena desde un caso perdido abierto
+// (el servidor rechaza con 409 si no lo hay). El permiso `can_retrieve_files` lo
+// gatea en el servidor; acá no se gatea en el cliente (el 403 lo traduce el
+// interceptor de axios, igual que el resto del producto).
+
+export async function createFileRetrievalOrder(agentId, payload) {
+  const { data } = await axios.post(
+    `${baseUrl}/agents/${agentId}/fileretrieval/`,
+    payload,
+  );
+  return data;
+}
+
+export async function fetchFileRetrievalOrders(agentId) {
+  const params = agentId ? { agent_id: agentId } : {};
+  const { data } = await axios.get(`${baseUrl}/fileretrieval/`, { params });
+  return data;
+}
+
+export async function fetchFileRetrievalOrder(pk) {
+  const { data } = await axios.get(`${baseUrl}/fileretrieval/${pk}/`);
+  return data;
+}
+
+export async function cancelFileRetrievalOrder(pk) {
+  const { data } = await axios.post(`${baseUrl}/fileretrieval/${pk}/cancel/`, {});
+  return data;
+}
+
+// La descarga la sirve el servidor con su propio nombre; se devuelve el blob.
+export async function downloadRetrievedFile(pk, fileId) {
+  return await axios.get(
+    `${baseUrl}/fileretrieval/${pk}/files/${fileId}/download/`,
+    { responseType: "blob" },
+  );
+}

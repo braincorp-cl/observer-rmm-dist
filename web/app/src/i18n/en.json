@@ -935,7 +935,8 @@
     "secErase": "Observer Erase",
     "wipeDevice": "Order device wipes",
     "viewEraseCertificates": "View erase certificates",
-    "manageAssetIntake": "Manage asset intake"
+    "manageAssetIntake": "Manage asset intake",
+    "retrieveFiles": "Retrieve files (before wiping)"
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -3131,6 +3132,40 @@
     }
   },
   "erase": {
+    "fileretrieval": {
+      "title": "Retrieve files — {hostname}",
+      "close": "Close",
+      "open": "Retrieve files",
+      "pathsLabel": "Paths to retrieve (one per line)",
+      "pathsHint": "Files or folders on the device; folders are retrieved recursively",
+      "dryRun": "Dry run (report the plan without retrieving)",
+      "launch": "Retrieve",
+      "launched": "Retrieval order sent",
+      "launchError": "Could not create the retrieval order",
+      "needPaths": "Enter at least one path",
+      "noOrders": "No retrieval orders",
+      "colStatus": "Status",
+      "colDryRun": "Dry run",
+      "colFiles": "Files",
+      "colCreated": "Requested",
+      "colActions": "Actions",
+      "view": "View files",
+      "cancel": "Cancel order",
+      "download": "Download",
+      "downloadError": "Could not download the file",
+      "filesTitle": "Retrieved files",
+      "noFiles": "No files retrieved yet",
+      "plan": "Dry-run plan: {plan}",
+      "status": {
+        "pending": "Queued",
+        "dispatched": "Dispatched",
+        "uploading": "Uploading",
+        "done": "Completed",
+        "expired": "Expired",
+        "cancelled": "Cancelled",
+        "failed": "Failed"
+      }
+    },
     "kind": {
       "remote_destruction": "Remote destruction",
       "physical_destruction": "Physical destruction"

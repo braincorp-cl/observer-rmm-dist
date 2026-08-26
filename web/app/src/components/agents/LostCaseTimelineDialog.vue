@@ -11,10 +11,27 @@
           {{ $t("lostEquipment.timeline.title", { hostname: hostname }) }}
         </div>
         <q-space />
+        <!-- fileretrieval (042): recuperar archivos antes de borrar, desde el
+             caso (RF-G06). El permiso lo gatea el servidor. -->
+        <q-btn
+          dense
+          flat
+          icon="download_for_offline"
+          :aria-label="$t('erase.fileretrieval.open')"
+          @click="showRetrieval = true"
+        >
+          <q-tooltip>{{ $t("erase.fileretrieval.open") }}</q-tooltip>
+        </q-btn>
         <q-btn v-close-popup dense flat icon="close">
           <q-tooltip>{{ $t("lostEquipment.timeline.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
+
+      <file-retrieval-dialog
+        v-model="showRetrieval"
+        :agent-id="agentId"
+        :hostname="hostname"
+      />
 
       <q-card-section
         v-if="loading"
@@ -248,9 +265,11 @@ import "leaflet/dist/leaflet.css";
 
 import { fetchLostEvidence, fetchLostEvidenceFile } from "@/api/lostmode";
 import { formatDate } from "@/utils/format";
+import FileRetrievalDialog from "@/components/agents/FileRetrievalDialog.vue";
 
 export default {
   name: "LostCaseTimelineDialog",
+  components: { FileRetrievalDialog },
   props: {
     modelValue: { type: Boolean, default: false },
     agentId: { type: String, required: true },
@@ -264,6 +283,7 @@ export default {
     });
 
     const loading = ref(false);
+    const showRetrieval = ref(false);
     const state = ref(null);
     const evidence = ref([]);
     // Política de retención y cifrado del ambiente (030 · Fase 3). Vienen con el
@@ -481,6 +501,7 @@ export default {
 
     return {
       show,
+      showRetrieval,
       loading,
       state,
       retention,

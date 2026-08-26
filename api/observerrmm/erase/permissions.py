@@ -38,3 +38,22 @@ class ViewEraseCertificatesPerms(permissions.BasePermission):
 class ManageAssetIntakePerms(permissions.BasePermission):
     def has_permission(self, r, view) -> bool:
         return _has_perm(r, "can_manage_asset_intake")
+
+
+class RetrieveFilesPerms(permissions.BasePermission):
+    """Recuperar archivos (fileretrieval, feature 042).
+
+    Off por omisión y separado de `can_wipe_device`: recuperar no es destruir. Sigue
+    el molde de `WipeDevicePerms` — exige alcance sobre el equipo sólo cuando la
+    vista apunta a uno concreto; el listado se recorta después con `filter_by_role`.
+    """
+
+    def has_permission(self, r, view) -> bool:
+        if not _has_perm(r, "can_retrieve_files"):
+            return False
+
+        agent_id = view.kwargs.get("agent_id")
+        if agent_id is None:
+            return True
+
+        return _has_perm_on_agent(r.user, agent_id)

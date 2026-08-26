@@ -4,6 +4,8 @@ from erase.models import (
     AssetIntake,
     EraseAuditRecord,
     EraseCertificate,
+    FileRetrievalOrder,
+    RetrievedFile,
     WipeOrder,
 )
 
@@ -84,3 +86,32 @@ class CertifyDestructionSerializer(serializers.Serializer):
     method = serializers.CharField(required=False, allow_blank=True, default="")
     reason = serializers.CharField(required=False, allow_blank=True, default="")
     operator = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+# --- fileretrieval (feature 042) --------------------------------------------
+
+
+class RetrievedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RetrievedFile
+        fields = ["id", "source_path", "size", "uploaded_at"]
+
+
+class FileRetrievalOrderSerializer(serializers.ModelSerializer):
+    file_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FileRetrievalOrder
+        fields = "__all__"
+
+    def get_file_count(self, obj) -> int:
+        return obj.files.count()
+
+
+class FileRetrievalOrderCreateSerializer(serializers.Serializer):
+    paths = serializers.ListField(
+        child=serializers.CharField(allow_blank=False),
+        allow_empty=False,
+    )
+    dry_run = serializers.BooleanField(required=False, default=False)
+    lost_mode_cycle = serializers.IntegerField(required=False, allow_null=True)

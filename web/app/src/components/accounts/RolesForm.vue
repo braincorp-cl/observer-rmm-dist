@@ -183,6 +183,13 @@
                 v-model="localRole.can_manage_asset_intake"
                 :label="$t('rolesForm.manageAssetIntake')"
               />
+              <!-- fileretrieval (feature 042): recuperar archivos antes de
+                   borrar. Permiso liviano, separado de can_wipe_device: recuperar
+                   no es destruir. -->
+              <q-checkbox
+                v-model="localRole.can_retrieve_files"
+                :label="$t('rolesForm.retrieveFiles')"
+              />
             </div>
           </q-card-section>
 
@@ -622,6 +629,8 @@ export default {
           can_wipe_device: false,
           can_view_erase_certificates: false,
           can_manage_asset_intake: false,
+          // fileretrieval (feature 042): recuperar antes de borrar, off por omisión.
+          can_retrieve_files: false,
         });
 
     const loading = ref(false);
