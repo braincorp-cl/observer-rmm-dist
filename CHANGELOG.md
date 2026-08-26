@@ -8,6 +8,17 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.17 — 2026-08-26
+
+- **Recuperación de archivos antes de borrar (Observer Erase · fileretrieval).** Desde el caso de un equipo perdido o robado, un operador autorizado puede **recuperar archivos del equipo antes de cualquier borrado** — "recuperar antes de borrar". Los archivos viajan por el mismo canal cifrado de la evidencia del modo perdido, quedan cifrados en reposo y se listan y descargan desde el panel del caso.
+- **Permiso dedicado, separado del borrado.** La recuperación se gobierna con un permiso propio (**recuperar archivos**), desactivado por omisión y **separado** de la capacidad de ordenar un borrado: recuperar no es destruir, así que no arrastra la doble confirmación ni la ventana de arrepentimiento del borrado, pero tampoco se hereda de poder marcar un equipo como perdido.
+- **Sólo desde un caso abierto.** Una orden de recuperación exige un **caso perdido abierto** para el equipo; no se puede lanzar desde el listado general. Toda orden queda registrada en la auditoría que sobrevive al equipo.
+- **Simulacro en seco.** Cada orden puede lanzarse en modo **simulacro**: el equipo reporta qué archivos recuperaría **sin subir nada**, para validar el circuito de punta a punta antes de una recuperación real.
+- **Órdenes resistentes a equipos sin conexión.** Si el equipo está apagado o sin red, la orden queda **en cola** y se entrega cuando reconecta, sin ejecutarse dos veces; si el equipo no vuelve dentro de una ventana configurable, la orden **expira** sola. Hay un **tope** de tamaño y de número de archivos por orden.
+- **Retención con piso legal.** Los archivos recuperados se conservan con un piso legal de retención (mínimo 12 meses) y se purgan al vencer, sin borrar jamás el registro de auditoría ni su cadena.
+- **El borrado destructivo sigue deshabilitado.** Esta versión habilita **sólo** la recuperación (no destructiva); las acciones destructivas del equipo continúan **deshabilitadas** a la espera de la aprobación legal correspondiente.
+- **Acompaña al agente `v2.17.2`,** que ejecuta la recuperación de archivos en Windows, Linux y macOS. Un agente anterior ignora la nueva orden sin romperse; la recuperación se aplica cuando el equipo actualice.
+
 ## v1.4.16 — 2026-08-26
 
 - **Nuevo módulo Observer Erase: certificados de borrado y custodia de activos.** El producto ahora emite y conserva **certificados de borrado** —de destrucción remota o de destrucción física— y lleva el registro de ingreso de los equipos que entran a proceso de baja. Es la base para poder demostrar, con un documento verificable, que un equipo fue dado de baja como corresponde.
