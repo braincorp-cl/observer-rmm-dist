@@ -108,14 +108,15 @@
       <p class="lang-en">Running a script is equivalent to running arbitrary commands on the machine. That is why that permission, and the others with security implications, are covered separately in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
 
       <h2 id="modo-perdido"><span class="lang-es">2. Sólo con el equipo declarado perdido o robado</span><span class="lang-en">2. Only with the device declared lost or stolen</span></h2>
-      <p class="lang-es">Existen cinco capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
-      <p class="lang-en">There are five additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
+      <p class="lang-es">Existen seis capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
+      <p class="lang-en">There are six additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
       <ul class="lang-es">
         <li><strong>Ubicación</strong> del equipo con la mayor precisión disponible, aunque el seguimiento global esté apagado.</li>
         <li><strong>Captura de la pantalla</strong> del equipo.</li>
         <li><strong>Fotografía con la cámara</strong> del equipo.</li>
         <li><strong>Bloqueo remoto</strong>, mensaje en pantalla y alarma sonora, para recuperar el equipo o disuadir a quien lo tiene.</li>
         <li><strong>Reconexión por WiFi abierta</strong> para recuperar salida a Internet y reportar su ubicación cuando el equipo quedó fuera de su zona asignada y sin red utilizable. Sólo se asocia a redes <strong>abiertas</strong>; nunca ingresa credenciales ni supera portales cautivos. La organización puede desactivar esta reconexión desde la consola.</li>
+        <li><strong>Recuperación de archivos</strong> del equipo: un operador autorizado puede pedir que se recuperen archivos o carpetas específicos y se suban <strong>cifrados</strong> al servidor, para rescatar datos de la organización que hubieran quedado en el equipo. Sólo opera sobre un caso abierto, exige un permiso propio y no destruye nada en el equipo.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>Location</strong> of the device with the best available accuracy, even if global tracking is off.</li>
@@ -123,6 +124,7 @@
         <li><strong>Camera photo</strong> taken on the device.</li>
         <li><strong>Remote lock</strong>, on-screen message and audible alarm, to recover the device or deter whoever has it.</li>
         <li><strong>Open-WiFi reconnection</strong> to regain Internet access and report its location when the device is outside its assigned area and has no usable network. It joins <strong>open</strong> networks only; it never enters credentials or gets past captive portals. The organization can disable this reconnection from the console.</li>
+        <li><strong>File recovery</strong> from the device: an authorized operator can request that specific files or folders be retrieved and uploaded to the server <strong>encrypted</strong>, to rescue the organization's data left on the device. It operates only on an open case, requires its own permission, and destroys nothing on the device.</li>
       </ul>
       <p class="lang-es">Declarar un equipo como perdido <strong>no es una acción cualquiera</strong>, y el producto lo trata como tal:</p>
       <p class="lang-en">Declaring a device as lost <strong>is not an ordinary action</strong>, and the product treats it accordingly:</p>
@@ -132,6 +134,7 @@
         <li><strong>Queda auditado.</strong> Quién abrió el caso, cuándo, con qué motivo y quién lo cerró.</li>
         <li><strong>La evidencia se guarda cifrada</strong> en el servidor y se borra sola al vencer el plazo de retención.</li>
         <li><strong>Ver las imágenes exige un segundo permiso</strong>, distinto del de operar el caso.</li>
+        <li><strong>Recuperar archivos exige su propio permiso dedicado</strong>, que ningún rol trae por omisión y que es independiente del de operar el caso y del de ver imágenes.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>It requires a written reason.</strong> There is no way to open a case without stating why.</li>
@@ -139,6 +142,7 @@
         <li><strong>It is audited.</strong> Who opened the case, when, with what reason, and who closed it.</li>
         <li><strong>Evidence is stored encrypted</strong> on the server and deleted automatically when retention expires.</li>
         <li><strong>Viewing the images requires a second permission</strong>, separate from operating the case.</li>
+        <li><strong>Recovering files requires its own dedicated permission</strong>, which no role has by default and which is independent of operating the case and of viewing images.</li>
       </ul>
 
       <div class="callout warn lang-es">
@@ -160,6 +164,7 @@
         <li><strong>No</strong> abre una sesión de control remoto sin que se anuncie en la pantalla del equipo.</li>
         <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
         <li><strong>No</strong> se conecta a redes WiFi protegidas por contraseña ni supera portales cautivos: la reconexión de un equipo perdido usa únicamente redes abiertas.</li>
+        <li><strong>No</strong> recupera archivos de un equipo que no esté declarado como perdido o robado, ni sin el permiso dedicado para ello, ni fuera de un caso abierto.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
@@ -168,6 +173,7 @@
         <li><strong>It does not</strong> open a remote control session without announcing it on the device's screen.</li>
         <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
         <li><strong>It does not</strong> connect to password-protected WiFi networks or get past captive portals: a lost device's reconnection uses open networks only.</li>
+        <li><strong>It does not</strong> retrieve files from a device that is not declared lost or stolen, nor without the dedicated permission for it, nor outside an open case.</li>
       </ul>
 
       <h2 id="retencion-y-permisos"><span class="lang-es">4. Retención y separación de permisos</span><span class="lang-en">4. Retention and permission separation</span></h2>
@@ -181,6 +187,8 @@
         <li><strong>90 days</strong> from the capture of each piece.</li>
         <li><strong>30 days</strong> from the moment the device is marked as recovered, whichever comes first.</li>
       </ul>
+      <p class="lang-es">Los <strong>archivos recuperados</strong> de un equipo perdido son un caso aparte: como pueden ser registros de la propia organización con valor legal o administrativo, se conservan <strong>al menos 12 meses</strong> —un piso configurable, alineado con la Ley 19.628— y <strong>no</strong> siguen los plazos de 90/30 días de las capturas y fotos. Los adjuntos vencidos se purgan; el registro de auditoría nunca.</p>
+      <p class="lang-en">The <strong>recovered files</strong> from a lost device are a separate case: because they may be the organization's own records with legal or administrative value, they are kept for <strong>at least 12 months</strong> —a configurable floor, aligned with Law 19.628— and do <strong>not</strong> follow the 90/30-day periods of screenshots and photos. Expired attachments are purged; the audit log never is.</p>
       <p class="lang-es">La separación de permisos es deliberada y conviene respetarla al asignar roles: <strong>operar el caso</strong> (marcar, seguir el recorrido, bloquear, exportar el expediente) y <strong>mirar lo que la pantalla o la cámara registraron</strong> son dos capacidades distintas. La segunda expone a una persona, que además puede ser el propio dueño del equipo y no un ladrón. Concédalas por separado y reserve la segunda a un grupo reducido y nominado.</p>
       <p class="lang-en">The permission separation is deliberate and worth respecting when assigning roles: <strong>operating the case</strong> (marking, following the trail, locking, exporting the file) and <strong>looking at what the screen or camera recorded</strong> are two distinct capabilities. The second exposes a person, who may well be the device's own owner rather than a thief. Grant them separately and reserve the second for a small, named group.</p>
       <p class="lang-es">El expediente del caso se puede <strong>exportar a PDF</strong> para una denuncia o un trámite de seguro. Quien no tenga el permiso de ver imágenes obtiene igual el documento —con la cronología y el recorrido, que es lo que hace falta para denunciar— pero <strong>sin las imágenes</strong>, y el propio documento lo declara en la portada.</p>
@@ -192,11 +200,11 @@
 
       <div class="callout danger lang-es">
         <span class="tag">Adáptelo, no lo copie a ciegas</span>
-        <p>Los plazos del texto (90 y 30 días) son los valores por omisión del producto. Si su organización configuró otros, o si la normativa que le aplica fija otros, corrija el texto: una política que declara un plazo distinto del que el sistema aplica es peor que no tener política.</p>
+        <p>Los plazos del texto (90 y 30 días para capturas y fotos; al menos 12 meses para archivos recuperados) son los valores por omisión del producto. Si su organización configuró otros, o si la normativa que le aplica fija otros, corrija el texto: una política que declara un plazo distinto del que el sistema aplica es peor que no tener política.</p>
       </div>
       <div class="callout danger lang-en">
         <span class="tag">Adapt it, don't copy it blindly</span>
-        <p>The periods in the text (90 and 30 days) are the product's defaults. If your organization configured different ones, or if the regulations that apply to you set different ones, correct the text: a policy that states a period different from the one the system enforces is worse than having no policy.</p>
+        <p>The periods in the text (90 and 30 days for screenshots and photos; at least 12 months for recovered files) are the product's defaults. If your organization configured different ones, or if the regulations that apply to you set different ones, correct the text: a policy that states a period different from the one the system enforces is worse than having no policy.</p>
       </div>
 
       <pre class="lang-es"><code>Administración remota de los equipos entregados
@@ -215,13 +223,17 @@ esa declaración esté vigente:
   - capturar la pantalla del equipo;
   - tomar una fotografía con su cámara;
   - bloquearlo, mostrar un mensaje y emitir una alarma sonora;
-  - reconectarse por una red WiFi abierta para reportar su ubicación.
+  - reconectarse por una red WiFi abierta para reportar su ubicación;
+  - recuperar archivos específicos del equipo y subirlos cifrados al
+    servidor.
 
 Esa declaración exige un motivo escrito, la ejerce sólo personal
 autorizado y queda registrada en la auditoría del sistema. El material
 recolectado se guarda cifrado, es accesible únicamente para los roles
 autorizados y se elimina automáticamente a los 90 días de su captura, o a
-los 30 días de darse el equipo por recuperado.
+los 30 días de darse el equipo por recuperado. Los archivos recuperados
+se conservan por un plazo mayor, de al menos 12 meses, por su posible
+valor legal o administrativo para la organización.
 
 La organización no activa la cámara ni la captura de pantalla de equipos
 que no estén declarados como perdidos o robados, y no utiliza estas
@@ -250,13 +262,17 @@ and only while that declaration is in force:
   - capturing the device's screen;
   - taking a photo with its camera;
   - locking it, showing a message and sounding an alarm;
-  - reconnecting through an open WiFi network to report its location.
+  - reconnecting through an open WiFi network to report its location;
+  - retrieving specific files from the device and uploading them
+    encrypted to the server.
 
 That declaration requires a written reason, is exercised only by
 authorized personnel and is recorded in the system's audit log. The
 material collected is stored encrypted, is accessible only to authorized
 roles, and is deleted automatically 90 days after capture, or 30 days
-after the device is marked as recovered.
+after the device is marked as recovered. Recovered files are kept for a
+longer period, at least 12 months, given their possible legal or
+administrative value to the organization.
 
 The organization does not turn on the camera or capture the screen of
 devices that are not declared lost or stolen, and does not use these
