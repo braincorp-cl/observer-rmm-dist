@@ -100,6 +100,24 @@
   register: observer_initial_db
   changed_when: "'Core db populated' in observer_initial_db.stdout"
 
+# Siembra los roles granulares del modo perdido/robado y de Observer Erase (ADR-025 /
+# ADR-029 / feature 042): Operador de Equipos Perdidos, Revisor de Evidencia, Recuperador
+# de Archivos, Ordenante de Borrado, Auditor de Custodia. Así una instalación nueva —o una
+# actualización de una previa que aún no los tenía— arranca con la separación de deberes sin
+# crearlos a mano por consola. Va DESPUÉS de migrate (necesita accounts.0045 can_retrieve_files).
+# Idempotente y NO destructivo: crea el rol si falta y nunca pisa uno que ya exista (el cliente
+# es dueño de sus roles). is_superuser queda False; el bypass total sigue siendo del superusuario.
+- name: Sembrar roles granulares por defecto (seed_default_roles)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py seed_default_roles"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  register: observer_seed_roles
+  changed_when: "'SEEDED role' in observer_seed_roles.stdout"
+
 # Siembra la config del Asistente IA (feature 032) con la key de cortesía del despliegue,
 # para que el cliente pueda probar «Generar borrador con IA» sin registrarse en ningún lado.
 # Va DESPUÉS de initial_db_setup porque necesita la fila singleton de CoreSettings.

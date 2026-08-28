@@ -218,6 +218,22 @@
       register: django_migrate_result
       changed_when: "'No migrations to apply' not in django_migrate_result.stdout"
 
+    # Roles granulares del modo perdido/borrado (ADR-025/ADR-029/042): RÉPLICA de la tarea del
+    # rol observer_api (roles/observer_api/tasks/django_deploy.yml). Este playbook NO usa el rol,
+    # así que sin esta copia una actualización de una instalación previa nunca sembraría los
+    # roles y habría que crearlos a mano por consola. Va tras migrate (necesita accounts.0045).
+    # Idempotente y NO destructivo: crea el rol si falta, nunca pisa uno existente (seed_default_roles.py).
+    - name: Sembrar roles granulares por defecto (seed_default_roles)
+      ansible.builtin.command:
+        cmd: "{{ observer_root }}/api/env/bin/python manage.py seed_default_roles"
+        chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+      become: true
+      become_user: "{{ observer_user }}"
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+      register: observer_seed_roles
+      changed_when: "'SEEDED role' in observer_seed_roles.stdout"
+
     - name: Ejecutar Django collectstatic
       ansible.builtin.command:
         cmd: "{{ observer_root }}/api/env/bin/python manage.py collectstatic --noinput"
