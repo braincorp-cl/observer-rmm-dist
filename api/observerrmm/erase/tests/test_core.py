@@ -71,6 +71,10 @@ class ImmutableStoreTests(TestCase):
         self.assertNotEqual(a.record_hash, a.compute_record_hash(a.prev_hash))
 
 
+async def _fake_nats_ok(*a, **k):
+    return "ok"
+
+
 class OrderGovernanceTests(TestCase):
     def setUp(self):
         self.client_obj = baker.make("clients.Client")
@@ -130,8 +134,11 @@ class OrderGovernanceTests(TestCase):
         )
 
     @override_settings(ERASE_DESTRUCTIVE_DISPATCH_ENABLED=True)
+    @patch("agents.models.Agent.nats_cmd", _fake_nats_ok)
     @patch("erase.tasks.dispatch_wipe_order.apply_async")
     def test_despacho_habilitado_marca_dispatched(self, _mock):
+        # Con el flag ON y el equipo alcanzable (nats_cmd mockeado), dispatch_order
+        # envía el comando al agente y marca la orden DISPATCHED (feature 043).
         order = self._order()
         services.confirm_order(order=order, confirmed_by="jefe2", recovery_seconds=60)
         services.dispatch_order(order=order)
