@@ -427,6 +427,17 @@ class AssetIntake(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+    def __str__(self) -> str:
+        return f"AssetIntake<{self.process_id}> {self.equipment_serial}"
+
+    @property
+    def routes_to_physical_destruction(self) -> bool:
+        # Regla D1: no funcional o sin medio ⇒ destrucción física.
+        return self.state in (
+            AssetIntakeState.NON_FUNCTIONAL,
+            AssetIntakeState.NO_MEDIA,
+        )
+
 
 class WipePathTemplate(models.Model):
     """Plantilla de rutas base para una orden de wipe (feature 043 · RN-07).
@@ -471,17 +482,6 @@ class WipePathTemplate(models.Model):
 
     def __str__(self) -> str:
         return f"WipePathTemplate<{self.pk}> {self.name} [{self.os_scope}]"
-
-    def __str__(self) -> str:
-        return f"AssetIntake<{self.process_id}> {self.equipment_serial}"
-
-    @property
-    def routes_to_physical_destruction(self) -> bool:
-        # Regla D1: no funcional o sin medio ⇒ destrucción física.
-        return self.state in (
-            AssetIntakeState.NON_FUNCTIONAL,
-            AssetIntakeState.NO_MEDIA,
-        )
 
 
 # ---------------------------------------------------------------------------

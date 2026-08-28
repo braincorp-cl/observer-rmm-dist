@@ -329,7 +329,10 @@ def apply_wipe_report(
         order.executed_at = now
         order.save(update_fields=["status", "failure_reason", "executed_at"])
         record_event(
-            order=order, event="failed", actor="agent", detail={"error": order.failure_reason}
+            order=order,
+            event="failed",
+            actor="agent",
+            detail={"error": order.failure_reason},
         )
         return order
 

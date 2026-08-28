@@ -68,7 +68,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("paths", models.JSONField(blank=True, default=list)),
-                ("created_by", models.CharField(blank=True, default="", max_length=255)),
+                (
+                    "created_by",
+                    models.CharField(blank=True, default="", max_length=255),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "client",

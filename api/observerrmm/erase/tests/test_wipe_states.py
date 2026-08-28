@@ -15,7 +15,6 @@ from model_bakery import baker
 from erase import services
 from erase.models import (
     EraseAction,
-    WipeOrder,
     WipeOrderStatus,
     WipePathTemplate,
 )
@@ -139,9 +138,7 @@ class DispatchWipeTests(TestCase):
         o.refresh_from_db()
         # Sigue en ventana; deja constancia del gate y no viaja al equipo.
         self.assertEqual(o.status, WipeOrderStatus.RECOVERY_WINDOW)
-        self.assertTrue(
-            o.audit_records.filter(event="dispatch_gated_adr029").exists()
-        )
+        self.assertTrue(o.audit_records.filter(event="dispatch_gated_adr029").exists())
 
     @override_settings(ERASE_DESTRUCTIVE_DISPATCH_ENABLED=True)
     @patch("agents.models.Agent.nats_cmd", _fake_nats_ok)
