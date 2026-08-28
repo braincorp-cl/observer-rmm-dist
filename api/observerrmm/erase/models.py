@@ -62,6 +62,9 @@ class WipeOrderStatus(models.TextChoices):
     DISPATCHED = "dispatched", "Despachada al equipo"
     CANCELLED = "cancelled", "Cancelada"
     EXECUTED = "executed", "Ejecutada"
+    # Borrado hecho pero la verificación por relectura no confirmó irrecuperabilidad
+    # (RN-08, feature 043): la orden NO emite certificado (RF-10). Estado terminal.
+    INCOMPLETE = "incomplete", "Ejecutada sin verificación (incompleta)"
     FAILED = "failed", "Fallida"
 
 
@@ -230,6 +233,13 @@ class WipeOrder(models.Model):
     executed_at = models.DateTimeField(null=True, blank=True)
     result = models.JSONField(null=True, blank=True)
     failure_reason = models.CharField(max_length=255, blank=True, default="")
+
+    # Verificación por relectura (feature 043 · wipe · RN-08). `null` = pendiente;
+    # `True` = el agente confirmó que las rutas quedaron irrecuperables (habilita el
+    # certificado C, RF-10); `False` = quedó residuo detectable → orden `incomplete`.
+    verified = models.BooleanField(null=True, blank=True)
+    # Técnica aplicada por el agente (nivel NIST "Clear"), alimenta el certificado.
+    method_applied = models.CharField(max_length=64, blank=True, default="")
 
     class Meta:
         ordering = ["-ordered_at"]
@@ -416,6 +426,51 @@ class AssetIntake(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class WipePathTemplate(models.Model):
+    """Plantilla de rutas base para una orden de wipe (feature 043 · RN-07).
+
+    El origen de las rutas es "plantilla por política/cliente como base + ajustes
+    del ordenante" (decisión clarify 2026-08-28). La plantilla acota por cliente y
+    SO; la orden MATERIALIZA las rutas resueltas en `WipeOrder.scope` al crearse, así
+    que editar la plantilla después no altera órdenes ya emitidas.
+    """
+
+    objects = EraseQuerySet.as_manager()
+
+    OS_CHOICES = [
+        ("windows", "Windows"),
+        ("linux", "Linux"),
+        ("macos", "macOS"),
+        ("any", "Cualquiera"),
+    ]
+
+    name = models.CharField(max_length=255)
+    client = models.ForeignKey(
+        "clients.Client",
+        related_name="wipe_path_templates",
+        on_delete=models.CASCADE,
+    )
+    site = models.ForeignKey(
+        "clients.Site",
+        related_name="wipe_path_templates",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    os_scope = models.CharField(max_length=16, choices=OS_CHOICES, default="any")
+    # Rutas base; soportan variables por-SO (`%USERPROFILE%`, `$HOME`) que resuelve
+    # el agente al ejecutar. Lista de strings.
+    paths = models.JSONField(default=list, blank=True)
+    created_by = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["client_id", "name"]
+
+    def __str__(self) -> str:
+        return f"WipePathTemplate<{self.pk}> {self.name} [{self.os_scope}]"
 
     def __str__(self) -> str:
         return f"AssetIntake<{self.process_id}> {self.equipment_serial}"

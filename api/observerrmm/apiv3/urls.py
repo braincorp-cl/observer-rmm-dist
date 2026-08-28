@@ -35,4 +35,10 @@ urlpatterns = [
         "<str:agentid>/fileretrieval/<uuid:order_id>/upload/",
         views.FileRetrievalUpload.as_view(),
     ),
+    # Feature 043 · el agente reporta el resultado de una orden de wipe (result por
+    # ruta + verified + method_applied). Token de agente, no sesión de operador.
+    path(
+        "<str:agentid>/wipe/<int:order_id>/report/",
+        views.WipeReport.as_view(),
+    ),
 ]

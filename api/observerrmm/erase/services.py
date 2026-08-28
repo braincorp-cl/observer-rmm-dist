@@ -35,6 +35,10 @@ DEFAULT_FILERETRIEVAL_SIZE_LIMIT_BYTES = 500 * 2**20  # 500 MiB
 DEFAULT_FILERETRIEVAL_FILE_LIMIT = 500
 DEFAULT_FILERETRIEVAL_RETENTION_DAYS = 366  # ≥ 12 meses (RF-D5)
 
+# --- wipe (feature 043) — tope por orden (RF-07). Configurable por settings. ------
+DEFAULT_WIPE_MAX_PATHS_PER_ORDER = 200
+DEFAULT_WIPE_MAX_BYTES_PER_ORDER = 5 * 2**30  # 5 GiB
+
 
 class OrderStateError(Exception):
     """Transición inválida de una orden (ej. confirmar una ya cancelada)."""
@@ -169,13 +173,52 @@ def cancel_order(*, order: WipeOrder, cancelled_by: str, reason: str = "") -> Wi
     return order
 
 
+def resolve_wipe_paths(
+    *,
+    template: Optional["Any"] = None,
+    paths_add: Optional[List[str]] = None,
+    paths_remove: Optional[List[str]] = None,
+) -> List[str]:
+    """Materializa las rutas de un wipe: plantilla base + ajustes (RN-07 / feature 043).
+
+    Resultado = rutas de la plantilla + `paths_add` − `paths_remove`, preservando el
+    orden y sin duplicados. Se congela en `WipeOrder.scope` al crear la orden: cambiar
+    la plantilla después no altera órdenes ya emitidas.
+    """
+    resolved: List[str] = []
+    base = list(getattr(template, "paths", []) or []) if template is not None else []
+    for p in base + list(paths_add or []):
+        if p and p not in resolved:
+            resolved.append(p)
+    remove = set(paths_remove or [])
+    return [p for p in resolved if p not in remove]
+
+
+def validate_wipe_paths(paths: List[str]) -> None:
+    """Valida el tope por orden de wipe (RF-07 / feature 043). Solo cuenta de rutas.
+
+    El tope de volumen (`WIPE_MAX_BYTES_PER_ORDER`) lo hace cumplir el agente al
+    enumerar (viaja en el payload); acá se acota lo que el servidor sí conoce.
+    """
+    if not paths:
+        raise OrderStateError("la orden de wipe debe designar al menos una ruta")
+    max_paths = getattr(
+        settings, "WIPE_MAX_PATHS_PER_ORDER", DEFAULT_WIPE_MAX_PATHS_PER_ORDER
+    )
+    if max_paths and len(paths) > max_paths:
+        raise OrderStateError(
+            f"la orden supera el tope de {max_paths} rutas por orden (RF-07)"
+        )
+
+
 def dispatch_order(*, order: WipeOrder) -> WipeOrder:
     """Punto de despacho al agente — GATED por ADR-029 (Bloque A).
 
-    En este incremento no envía nada al equipo. Si la orden sigue en ventana y no
-    fue cancelada, deja constancia de que el despacho quedó bloqueado por el gate
-    legal. El envío real (case en `rpc.go`, con dry-run RF-G05) entra cuando
-    ADR-029 pase a ACEPTADO y se active `ERASE_DESTRUCTIVE_DISPATCH_ENABLED`.
+    Con `ERASE_DESTRUCTIVE_DISPATCH_ENABLED=False` (default en prod) no envía nada al
+    equipo y solo deja constancia de que el despacho quedó bloqueado por el gate legal.
+    Con el flag activo (staging, tras el simulacro en seco RF-G05), envía el `nats_cmd`
+    al agente espejando el molde de `fileretrieval` (feature 042); el agente respeta
+    `dry_run` y el borrado real es del case `wipe` en `rpc.go` (feature 043).
     """
     if order.status != WipeOrderStatus.RECOVERY_WINDOW:
         # Cancelada o ya resuelta: no se hace nada (idempotente).
@@ -194,11 +237,133 @@ def dispatch_order(*, order: WipeOrder) -> WipeOrder:
         )
         return order
 
-    # Reservado para Fase A: aquí iría el nats_cmd al agente + reconciliación.
+    if order.agent is None:
+        # El equipo se des-enroló: no hay a quién despachar. Queda en ventana y la
+        # reconciliación/expiración la maneja el beat.
+        return order
+
+    # Envelope NATS {func, payload:{str:str}} — todo viaja como texto (las rutas van
+    # como JSON y el agente las parsea). `func` = la acción destructiva (wipe, …).
+    paths = (order.scope or {}).get("paths", [])
+    payload = {
+        "func": order.action,  # "wipe" (prepara fullwipe/factoryreset)
+        "payload": {
+            "order_id": str(order.pk),
+            "paths": json.dumps(paths),
+            "dry_run": "1" if order.dry_run else "0",
+            "path_limit": str(
+                getattr(
+                    settings,
+                    "WIPE_MAX_PATHS_PER_ORDER",
+                    DEFAULT_WIPE_MAX_PATHS_PER_ORDER,
+                )
+            ),
+            "size_limit_bytes": str(
+                getattr(
+                    settings,
+                    "WIPE_MAX_BYTES_PER_ORDER",
+                    DEFAULT_WIPE_MAX_BYTES_PER_ORDER,
+                )
+            ),
+        },
+    }
+    try:
+        ret = asyncio.run(order.agent.nats_cmd(payload, timeout=15))
+    except Exception as e:  # noqa: BLE001 — el transporte no debe tumbar la orden
+        ret = str(e)
+
+    no_llego = not isinstance(ret, dict) and (
+        ret in ("natsdown", "timeout")
+        or (isinstance(ret, str) and ret.startswith(("Errno", "nats")))
+    )
+    if no_llego:
+        # Equipo offline: queda en ventana; la reconciliación/reintento la hace el
+        # beat hasta que el equipo reconecte y tome la orden por `order_id`.
+        record_event(
+            order=order,
+            event="dispatch_deferred_offline",
+            actor="system",
+            detail={"ack": ret},
+        )
+        return order
+
     order.status = WipeOrderStatus.DISPATCHED
     order.dispatched_at = timezone.now()
     order.save(update_fields=["status", "dispatched_at"])
-    record_event(order=order, event="dispatched", actor="system", detail={})
+    record_event(order=order, event="dispatched", actor="system", detail={"ack": ret})
+    return order
+
+
+def apply_wipe_report(
+    *,
+    order: WipeOrder,
+    result: Optional[Dict[str, Any]] = None,
+    verified: Optional[bool] = None,
+    method_applied: str = "",
+    plan: Optional[str] = None,
+    error: str = "",
+) -> WipeOrder:
+    """Aplica el reporte del agente sobre una orden de wipe (feature 043).
+
+    Transiciona `DISPATCHED` → terminal según lo reportado:
+      - `error`               → `FAILED`.
+      - `dry_run` (con plan)  → `EXECUTED` (sin borrado, sin certificado).
+      - real con `verified`   → `EXECUTED` (habilita certificado C, RF-10, en T016).
+      - real sin verificación → `INCOMPLETE` (NO emite certificado, RN-08).
+
+    Idempotente: si la orden ya está en estado terminal, no reejecuta.
+    """
+    terminal = (
+        WipeOrderStatus.EXECUTED,
+        WipeOrderStatus.INCOMPLETE,
+        WipeOrderStatus.FAILED,
+        WipeOrderStatus.CANCELLED,
+    )
+    if order.status in terminal:
+        return order
+
+    now = timezone.now()
+    if error:
+        order.status = WipeOrderStatus.FAILED
+        order.failure_reason = str(error)[:255]
+        order.executed_at = now
+        order.save(update_fields=["status", "failure_reason", "executed_at"])
+        record_event(
+            order=order, event="failed", actor="agent", detail={"error": order.failure_reason}
+        )
+        return order
+
+    if order.dry_run:
+        order.result = {"plan": plan or ""}
+        order.status = WipeOrderStatus.EXECUTED
+        order.executed_at = now
+        order.save(update_fields=["status", "result", "executed_at"])
+        record_event(
+            order=order,
+            event="dry_run_plan",
+            actor="agent",
+            detail={"plan_bytes": len(str(plan or ""))},
+        )
+        return order
+
+    order.result = result or {}
+    order.method_applied = (method_applied or "")[:64]
+    order.verified = bool(verified)
+    order.executed_at = now
+    order.status = (
+        WipeOrderStatus.EXECUTED if order.verified else WipeOrderStatus.INCOMPLETE
+    )
+    order.save(
+        update_fields=["status", "result", "method_applied", "verified", "executed_at"]
+    )
+    record_event(
+        order=order,
+        event="executed" if order.verified else "incomplete",
+        actor="agent",
+        detail={"verified": order.verified, "method_applied": order.method_applied},
+    )
+    # El enganche al certificado C (solo si verified=True, RF-10) es T016 — fuera de
+    # esta ronda no destructiva.
     return order
 
 

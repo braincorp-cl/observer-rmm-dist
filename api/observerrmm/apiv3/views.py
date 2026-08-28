@@ -1309,3 +1309,58 @@ class FileRetrievalUpload(APIView):
             rf.save()
 
         return Response({"status": "ok", "stored": bool(creado)})
+
+
+class WipeReport(APIView):
+    """El agente reporta el resultado de una orden de `wipe` (feature 043).
+
+    Va en apiv3 (token de AGENTE, no sesión de operador), como el upload de
+    fileretrieval. El agente no sube archivos: solo el resultado por-ruta, el
+    veredicto de la verificación por relectura (`verified`, RN-08) y la técnica
+    aplicada (`method_applied`). En dry-run trae `plan` en vez de resultado.
+
+    Idempotente: la orden se toma por `(pk, agent)`; un reenvío en estado terminal
+    responde 409 y el agente deja de intentar.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, agentid, order_id):
+        from erase.models import WipeOrder, WipeOrderStatus
+        from erase.services import apply_wipe_report
+
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint sólo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        order = WipeOrder.objects.filter(pk=order_id, agent=agent).first()
+        if order is None:
+            return notify_error("orden inexistente para este equipo")
+
+        if order.status in (
+            WipeOrderStatus.EXECUTED,
+            WipeOrderStatus.INCOMPLETE,
+            WipeOrderStatus.FAILED,
+            WipeOrderStatus.CANCELLED,
+        ):
+            return Response(
+                {"status": order.status},
+                status=rest_framework_status.HTTP_409_CONFLICT,
+            )
+
+        verified = request.data.get("verified")
+        if verified is not None:
+            verified = str(verified) in ("1", "true", "True")
+
+        apply_wipe_report(
+            order=order,
+            result=request.data.get("result"),
+            verified=verified,
+            method_applied=request.data.get("method_applied", ""),
+            plan=request.data.get("plan"),
+            error=request.data.get("error", ""),
+        )
+        return Response({"status": order.status})

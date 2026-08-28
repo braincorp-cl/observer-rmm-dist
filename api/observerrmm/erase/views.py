@@ -13,9 +13,11 @@ from erase import services
 from erase.models import (
     AssetIntake,
     CertificateKind,
+    EraseAction,
     EraseCertificate,
     FileRetrievalOrder,
     WipeOrder,
+    WipePathTemplate,
 )
 from erase.permissions import (
     ManageAssetIntakePerms,
@@ -63,13 +65,38 @@ class WipeOrderCreate(APIView):
         agent = get_object_or_404(Agent, agent_id=agent_id)
         s = WipeOrderCreateSerializer(data=request.data)
         s.is_valid(raise_exception=True)
+        action = s.validated_data["action"]
+        scope = s.validated_data.get("scope") or {}
+
+        # wipe (feature 043): materializa las rutas = plantilla + ajustes (RN-07) y
+        # valida el tope por orden (RF-07) ANTES de crear. Las órdenes ya emitidas no
+        # se alteran si la plantilla cambia después: se congela en `scope`.
+        if action == EraseAction.WIPE:
+            template = None
+            template_id = s.validated_data.get("template")
+            if template_id is not None:
+                template = get_object_or_404(
+                    WipePathTemplate.objects.filter_by_role(request.user),
+                    pk=template_id,
+                )
+            paths = services.resolve_wipe_paths(
+                template=template,
+                paths_add=s.validated_data.get("paths_add") or [],
+                paths_remove=s.validated_data.get("paths_remove") or [],
+            )
+            try:
+                services.validate_wipe_paths(paths)
+            except services.OrderStateError as e:
+                return Response({"detail": str(e)}, status=422)
+            scope = {**scope, "paths": paths}
+
         order = services.create_order(
             agent=agent,
             client=agent.site.client,
             site=agent.site,
-            action=s.validated_data["action"],
+            action=action,
             ordered_by=request.user.username,
-            scope=s.validated_data.get("scope") or {},
+            scope=scope,
             dry_run=s.validated_data.get("dry_run", True),
             reason=s.validated_data["reason"],
             lost_mode_cycle=s.validated_data.get("lost_mode_cycle"),

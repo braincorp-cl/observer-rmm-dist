@@ -38,6 +38,16 @@ class WipeOrderCreateSerializer(serializers.Serializer):
     dry_run = serializers.BooleanField(required=False, default=True)
     reason = serializers.CharField(required=True, allow_blank=False)
     lost_mode_cycle = serializers.IntegerField(required=False, allow_null=True)
+    # Rutas del wipe (feature 043 · RN-07): plantilla base + ajustes del ordenante.
+    # La vista resuelve `plantilla.paths + paths_add − paths_remove` y lo materializa
+    # en `scope["paths"]`. Ignorados para acciones que no son `wipe`.
+    template = serializers.IntegerField(required=False, allow_null=True)
+    paths_add = serializers.ListField(
+        child=serializers.CharField(), required=False, default=list
+    )
+    paths_remove = serializers.ListField(
+        child=serializers.CharField(), required=False, default=list
+    )
 
 
 class WipeOrderConfirmSerializer(serializers.Serializer):
