@@ -38,6 +38,7 @@ from erase.serializers import (
     WipeOrderConfirmSerializer,
     WipeOrderCreateSerializer,
     WipeOrderSerializer,
+    WipePathTemplateSerializer,
 )
 
 
@@ -113,6 +114,10 @@ class WipeOrderDetail(APIView):
         data["audit_records"] = EraseAuditRecordSerializer(
             order.audit_records.order_by("id"), many=True
         ).data
+        # Enlace al certificado C (feature 043 · T019): no-null sólo si la orden
+        # se ejecutó y verificó (RF-10/D-07); el frontend ofrece su descarga.
+        cert = order.certificates.first()
+        data["certificate"] = cert.pk if cert else None
         return Response(data)
 
 
@@ -152,6 +157,31 @@ class WipeOrderCancel(APIView):
         except services.OrderStateError as e:
             return Response({"detail": str(e)}, status=409)
         return Response(WipeOrderSerializer(order).data)
+
+
+class WipePathTemplateList(APIView):
+    """Plantillas de rutas para precargar una orden de wipe (feature 043 · T017).
+
+    Sólo lectura y gobernado por `can_wipe_device`, igual que las órdenes. Con
+    `?agent_id=` recorta a las plantillas del cliente/sitio del equipo (el diálogo
+    de wipe se abre desde la ficha de un equipo); sin él, devuelve todo lo que el
+    rol autoriza (`filter_by_role`). No hay materialización acá: sólo lista la
+    base de rutas que el ordenante ajusta y el servidor congela al crear.
+    """
+
+    permission_classes = [IsAuthenticated, WipeDevicePerms]
+
+    def get(self, request):
+        qs = WipePathTemplate.objects.filter_by_role(request.user).select_related(
+            "client", "site"
+        )
+        agent_id = request.query_params.get("agent_id")
+        if agent_id:
+            agent = get_object_or_404(Agent, agent_id=agent_id)
+            qs = qs.filter(client=agent.site.client)
+        return Response(
+            WipePathTemplateSerializer(qs.order_by("name"), many=True).data
+        )
 
 
 class FileRetrievalOrderList(APIView):

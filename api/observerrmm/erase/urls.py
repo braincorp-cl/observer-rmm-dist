@@ -9,6 +9,8 @@ urlpatterns = [
     path("orders/<int:pk>/", views.WipeOrderDetail.as_view()),
     path("orders/<int:pk>/confirm/", views.WipeOrderConfirm.as_view()),
     path("orders/<int:pk>/cancel/", views.WipeOrderCancel.as_view()),
+    # Plantillas de rutas para precargar una orden de wipe (feature 043)
+    path("wipe-templates/", views.WipePathTemplateList.as_view()),
     # Recuperación de archivos (fileretrieval · B1 · no destructiva)
     path("fileretrieval/", views.FileRetrievalOrderList.as_view()),
     path(

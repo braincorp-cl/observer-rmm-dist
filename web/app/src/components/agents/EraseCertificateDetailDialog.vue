@@ -60,6 +60,39 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Resultado por-ruta del wipe (feature 043 · T019): un certificado de
+               destrucción remota lleva la verificación por relectura ruta por ruta
+               (RN-08). Sólo aparece cuando el certificado es de un wipe A2. -->
+          <template v-if="pathRows.length">
+            <div class="text-subtitle2 q-mt-md q-mb-xs">
+              {{ $t("erase.wipe.certPathsTitle", { count: pathRows.length }) }}
+            </div>
+            <div
+              v-if="verificationLevel"
+              class="text-caption text-grey-7 q-mb-sm"
+            >
+              {{ $t("erase.wipe.certLevel", { level: verificationLevel }) }}
+            </div>
+            <q-markup-table dense flat bordered>
+              <thead>
+                <tr>
+                  <th class="text-left">{{ $t("erase.wipe.colPath") }}</th>
+                  <th class="text-left">
+                    {{ $t("erase.wipe.colPathStatus") }}
+                  </th>
+                  <th class="text-right">{{ $t("erase.wipe.colBytes") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in pathRows" :key="r.path">
+                  <td class="text-left oe-path">{{ r.path }}</td>
+                  <td class="text-left">{{ r.status }}</td>
+                  <td class="text-right">{{ r.bytes }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </template>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -151,6 +184,23 @@ export default {
       ];
     });
 
+    // Verificación por-ruta del wipe A2 (feature 043): el emisor la guarda en
+    // `data.paths_result` = {ruta: {status, bytes}}. Vacío en certificados que no
+    // son de wipe (destrucción física, crypto-erase), y entonces no se pinta.
+    const pathRows = computed(() => {
+      const pr = cert.value?.data?.paths_result;
+      if (!pr || typeof pr !== "object") return [];
+      return Object.entries(pr).map(([path, v]) => ({
+        path,
+        status: v && typeof v === "object" ? v.status ?? dash : String(v),
+        bytes: v && typeof v === "object" && v.bytes != null ? v.bytes : dash,
+      }));
+    });
+
+    const verificationLevel = computed(
+      () => cert.value?.data?.verification_level ?? "",
+    );
+
     function chipColor(ok) {
       return ok ? "positive" : "negative";
     }
@@ -218,6 +268,8 @@ export default {
       cert,
       verification,
       fields,
+      pathRows,
+      verificationLevel,
       downloading,
       chipColor,
       signatureChipColor,
@@ -247,6 +299,10 @@ export default {
   opacity: 0.75;
 }
 .oe-detail-table td {
+  word-break: break-all;
+}
+.oe-path {
+  font-family: monospace;
   word-break: break-all;
 }
 </style>

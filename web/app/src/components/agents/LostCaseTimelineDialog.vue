@@ -22,6 +22,18 @@
         >
           <q-tooltip>{{ $t("erase.fileretrieval.open") }}</q-tooltip>
         </q-btn>
+        <!-- wipe (043): borrado selectivo por rutas, desde el caso (RF-G06),
+             después de recuperar (orden invariante RN-03). Gateado por el
+             servidor con `can_wipe_device`. -->
+        <q-btn
+          dense
+          flat
+          icon="delete_sweep"
+          :aria-label="$t('erase.wipe.open')"
+          @click="showWipe = true"
+        >
+          <q-tooltip>{{ $t("erase.wipe.open") }}</q-tooltip>
+        </q-btn>
         <q-btn v-close-popup dense flat icon="close">
           <q-tooltip>{{ $t("lostEquipment.timeline.close") }}</q-tooltip>
         </q-btn>
@@ -31,6 +43,13 @@
         v-model="showRetrieval"
         :agent-id="agentId"
         :hostname="hostname"
+      />
+
+      <wipe-order-dialog
+        v-model="showWipe"
+        :agent-id="agentId"
+        :hostname="hostname"
+        :lost-mode-cycle="activeCycle"
       />
 
       <q-card-section
@@ -266,10 +285,11 @@ import "leaflet/dist/leaflet.css";
 import { fetchLostEvidence, fetchLostEvidenceFile } from "@/api/lostmode";
 import { formatDate } from "@/utils/format";
 import FileRetrievalDialog from "@/components/agents/FileRetrievalDialog.vue";
+import WipeOrderDialog from "@/components/agents/WipeOrderDialog.vue";
 
 export default {
   name: "LostCaseTimelineDialog",
-  components: { FileRetrievalDialog },
+  components: { FileRetrievalDialog, WipeOrderDialog },
   props: {
     modelValue: { type: Boolean, default: false },
     agentId: { type: String, required: true },
@@ -284,6 +304,7 @@ export default {
 
     const loading = ref(false);
     const showRetrieval = ref(false);
+    const showWipe = ref(false);
     const state = ref(null);
     const evidence = ref([]);
     // Política de retención y cifrado del ambiente (030 · Fase 3). Vienen con el
@@ -321,6 +342,10 @@ export default {
 
       return [...porCiclo.values()].sort((a, b) => b.cycle - a.cycle);
     });
+
+    // Ciclo vigente del caso (el más reciente): ancla la orden de wipe al caso
+    // perdido abierto (RF-G06). Null si aún no hay evidencia cargada.
+    const activeCycle = computed(() => cycles.value[0]?.cycle ?? null);
 
     const points = computed(() =>
       cycles.value
@@ -502,6 +527,8 @@ export default {
     return {
       show,
       showRetrieval,
+      showWipe,
+      activeCycle,
       loading,
       state,
       retention,

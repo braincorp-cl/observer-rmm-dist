@@ -7,6 +7,7 @@ from erase.models import (
     FileRetrievalOrder,
     RetrievedFile,
     WipeOrder,
+    WipePathTemplate,
 )
 
 
@@ -28,6 +29,24 @@ class WipeOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = WipeOrder
         fields = "__all__"
+
+
+class WipePathTemplateSerializer(serializers.ModelSerializer):
+    """Plantilla de rutas base para poblar el selector del diálogo de wipe
+    (feature 043 · T017). Sólo lectura: las plantillas se administran aparte, la
+    consola las consume para precargar rutas en una orden nueva."""
+
+    class Meta:
+        model = WipePathTemplate
+        fields = [
+            "id",
+            "name",
+            "client",
+            "site",
+            "os_scope",
+            "paths",
+            "created_at",
+        ]
 
 
 class WipeOrderCreateSerializer(serializers.Serializer):

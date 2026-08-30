@@ -77,6 +77,27 @@ export async function fetchWipeOrders() {
   return data;
 }
 
+// Crear una orden de wipe (feature 043 · A2). Nace pendiente de segunda
+// confirmación; el servidor materializa `plantilla + paths_add − paths_remove`
+// en `scope.paths`, valida el tope (422) y ancla al caso perdido abierto. El
+// despacho real sigue GATED (ADR-029). Gateado por `can_wipe_device` en el
+// servidor (403 vía interceptor).
+export async function createWipeOrder(agentId, payload) {
+  const { data } = await axios.post(
+    `${baseUrl}/agents/${agentId}/orders/`,
+    payload,
+  );
+  return data;
+}
+
+// Plantillas de rutas para precargar el diálogo de wipe. Con `agentId` recorta
+// al cliente del equipo.
+export async function fetchWipePathTemplates(agentId) {
+  const params = agentId ? { agent_id: agentId } : {};
+  const { data } = await axios.get(`${baseUrl}/wipe-templates/`, { params });
+  return data;
+}
+
 export async function fetchWipeOrder(pk) {
   const { data } = await axios.get(`${baseUrl}/orders/${pk}/`);
   return data;
