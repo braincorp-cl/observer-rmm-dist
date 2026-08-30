@@ -108,8 +108,8 @@
       <p class="lang-en">Running a script is equivalent to running arbitrary commands on the machine. That is why that permission, and the others with security implications, are covered separately in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
 
       <h2 id="modo-perdido"><span class="lang-es">2. Sólo con el equipo declarado perdido o robado</span><span class="lang-en">2. Only with the device declared lost or stolen</span></h2>
-      <p class="lang-es">Existen seis capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
-      <p class="lang-en">There are six additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
+      <p class="lang-es">Existen siete capacidades adicionales que <strong>no están disponibles en operación normal</strong>. Se habilitan únicamente mientras un equipo está declarado como perdido o robado, y se apagan al cerrar el caso:</p>
+      <p class="lang-en">There are seven additional capabilities that are <strong>not available in normal operation</strong>. They are enabled only while a device is declared lost or stolen, and they switch off when the case is closed:</p>
       <ul class="lang-es">
         <li><strong>Ubicación</strong> del equipo con la mayor precisión disponible, aunque el seguimiento global esté apagado.</li>
         <li><strong>Captura de la pantalla</strong> del equipo.</li>
@@ -117,6 +117,7 @@
         <li><strong>Bloqueo remoto</strong>, mensaje en pantalla y alarma sonora, para recuperar el equipo o disuadir a quien lo tiene.</li>
         <li><strong>Reconexión por WiFi abierta</strong> para recuperar salida a Internet y reportar su ubicación cuando el equipo quedó fuera de su zona asignada y sin red utilizable. Sólo se asocia a redes <strong>abiertas</strong>; nunca ingresa credenciales ni supera portales cautivos. La organización puede desactivar esta reconexión desde la consola.</li>
         <li><strong>Recuperación de archivos</strong> del equipo: un operador autorizado puede pedir que se recuperen archivos o carpetas específicos y se suban <strong>cifrados</strong> al servidor, para rescatar datos de la organización que hubieran quedado en el equipo. Sólo opera sobre un caso abierto, exige un permiso propio y no destruye nada en el equipo.</li>
+        <li><strong>Borrado selectivo de archivos</strong> del equipo: un operador autorizado puede ordenar el <strong>borrado seguro</strong> de archivos o carpetas específicos, para impedir que datos de la organización sigan accesibles en un equipo que ya no se recuperará. Es la única de estas capacidades que <strong>destruye datos</strong> y es <strong>irreversible</strong>: por eso exige un permiso propio, la orden de una persona y la <strong>confirmación de una segunda</strong>, una <strong>ventana para cancelar</strong> antes de que se aplique, y sólo opera sobre un caso abierto. El sistema <strong>verifica</strong> que el borrado se completó y emite un <strong>certificado</strong>; recuperar antes de borrar es lo recomendado, pero no es obligatorio.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>Location</strong> of the device with the best available accuracy, even if global tracking is off.</li>
@@ -125,6 +126,7 @@
         <li><strong>Remote lock</strong>, on-screen message and audible alarm, to recover the device or deter whoever has it.</li>
         <li><strong>Open-WiFi reconnection</strong> to regain Internet access and report its location when the device is outside its assigned area and has no usable network. It joins <strong>open</strong> networks only; it never enters credentials or gets past captive portals. The organization can disable this reconnection from the console.</li>
         <li><strong>File recovery</strong> from the device: an authorized operator can request that specific files or folders be retrieved and uploaded to the server <strong>encrypted</strong>, to rescue the organization's data left on the device. It operates only on an open case, requires its own permission, and destroys nothing on the device.</li>
+        <li><strong>Selective file erasure</strong> on the device: an authorized operator can order the <strong>secure erasure</strong> of specific files or folders, to prevent the organization's data from remaining accessible on a device that will no longer be recovered. It is the only one of these capabilities that <strong>destroys data</strong> and it is <strong>irreversible</strong>: for that reason it requires its own permission, one person to order it and a <strong>second person to confirm</strong>, a <strong>window to cancel</strong> before it is applied, and it operates only on an open case. The system <strong>verifies</strong> that the erasure completed and issues a <strong>certificate</strong>; recovering before erasing is recommended, but not mandatory.</li>
       </ul>
       <p class="lang-es">Declarar un equipo como perdido <strong>no es una acción cualquiera</strong>, y el producto lo trata como tal:</p>
       <p class="lang-en">Declaring a device as lost <strong>is not an ordinary action</strong>, and the product treats it accordingly:</p>
@@ -135,6 +137,7 @@
         <li><strong>La evidencia se guarda cifrada</strong> en el servidor y se borra sola al vencer el plazo de retención.</li>
         <li><strong>Ver las imágenes exige un segundo permiso</strong>, distinto del de operar el caso.</li>
         <li><strong>Recuperar archivos exige su propio permiso dedicado</strong>, que ningún rol trae por omisión y que es independiente del de operar el caso y del de ver imágenes.</li>
+        <li><strong>Borrar archivos exige su propio permiso y la confirmación de una segunda persona.</strong> Ninguna orden de borrado se ejecuta con una sola persona, y hay una ventana para cancelarla antes de que se aplique.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>It requires a written reason.</strong> There is no way to open a case without stating why.</li>
@@ -143,6 +146,7 @@
         <li><strong>Evidence is stored encrypted</strong> on the server and deleted automatically when retention expires.</li>
         <li><strong>Viewing the images requires a second permission</strong>, separate from operating the case.</li>
         <li><strong>Recovering files requires its own dedicated permission</strong>, which no role has by default and which is independent of operating the case and of viewing images.</li>
+        <li><strong>Erasing files requires its own permission and a second person's confirmation.</strong> No erasure order runs with a single person, and there is a window to cancel it before it is applied.</li>
       </ul>
 
       <div class="callout warn lang-es">
@@ -165,6 +169,7 @@
         <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
         <li><strong>No</strong> se conecta a redes WiFi protegidas por contraseña ni supera portales cautivos: la reconexión de un equipo perdido usa únicamente redes abiertas.</li>
         <li><strong>No</strong> recupera archivos de un equipo que no esté declarado como perdido o robado, ni sin el permiso dedicado para ello, ni fuera de un caso abierto.</li>
+        <li><strong>No</strong> borra archivos de un equipo que no esté declarado como perdido o robado, ni sin el permiso dedicado, ni con una sola persona, ni fuera de un caso abierto; y no borra el disco completo ni restablece el equipo de fábrica.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
@@ -174,6 +179,7 @@
         <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
         <li><strong>It does not</strong> connect to password-protected WiFi networks or get past captive portals: a lost device's reconnection uses open networks only.</li>
         <li><strong>It does not</strong> retrieve files from a device that is not declared lost or stolen, nor without the dedicated permission for it, nor outside an open case.</li>
+        <li><strong>It does not</strong> erase files from a device that is not declared lost or stolen, nor without the dedicated permission, nor with a single person, nor outside an open case; and it does not wipe the whole disk or reset the device to factory.</li>
       </ul>
 
       <h2 id="retencion-y-permisos"><span class="lang-es">4. Retención y separación de permisos</span><span class="lang-en">4. Retention and permission separation</span></h2>
@@ -225,7 +231,9 @@ esa declaración esté vigente:
   - bloquearlo, mostrar un mensaje y emitir una alarma sonora;
   - reconectarse por una red WiFi abierta para reportar su ubicación;
   - recuperar archivos específicos del equipo y subirlos cifrados al
-    servidor.
+    servidor;
+  - borrar de forma segura archivos específicos del equipo, con
+    verificación y certificado, mediando la confirmación de dos personas.
 
 Esa declaración exige un motivo escrito, la ejerce sólo personal
 autorizado y queda registrada en la auditoría del sistema. El material
@@ -264,7 +272,9 @@ and only while that declaration is in force:
   - locking it, showing a message and sounding an alarm;
   - reconnecting through an open WiFi network to report its location;
   - retrieving specific files from the device and uploading them
-    encrypted to the server.
+    encrypted to the server;
+  - securely erasing specific files from the device, with verification
+    and a certificate, subject to a second person's confirmation.
 
 That declaration requires a written reason, is exercised only by
 authorized personnel and is recorded in the system's audit log. The
