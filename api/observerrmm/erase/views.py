@@ -179,9 +179,7 @@ class WipePathTemplateList(APIView):
         if agent_id:
             agent = get_object_or_404(Agent, agent_id=agent_id)
             qs = qs.filter(client=agent.site.client)
-        return Response(
-            WipePathTemplateSerializer(qs.order_by("name"), many=True).data
-        )
+        return Response(WipePathTemplateSerializer(qs.order_by("name"), many=True).data)
 
 
 class FileRetrievalOrderList(APIView):
