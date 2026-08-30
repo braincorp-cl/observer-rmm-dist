@@ -41,9 +41,9 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.17"
+ORMM_VERSION = "1.4.18"
 
-WEB_VERSION = "0.2.7"
+WEB_VERSION = "0.2.8"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser

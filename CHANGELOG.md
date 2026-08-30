@@ -8,6 +8,17 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.18 — 2026-08-30
+
+- **Borrado selectivo de archivos en el equipo perdido (Observer Erase · wipe A2).** Desde el caso de un equipo perdido o robado, un operador autorizado puede ordenar el **borrado seguro de archivos o carpetas designados** —"recuperar antes de borrar" sigue siendo lo recomendado, pero ya no es obligatorio: si no se recuperó nada, la consola **advierte y permite continuar**. Es la primera capacidad del modo perdido que **destruye datos**.
+- **Consola de la orden de wipe.** Nuevo diálogo desde el caso: precarga una **plantilla de rutas** por cliente, deja **añadir y quitar** rutas con vista previa, y ejerce la orden con **simulacro en seco** por omisión. La segunda confirmación de otra persona y la ventana de arrepentimiento se conducen desde ahí; el panel muestra el **resultado por-ruta** y el estado de verificación.
+- **Verificación por relectura antes de certificar.** El servidor sólo da una orden por **completada** si el equipo confirmó, ruta por ruta, que el archivo ya no está (verificación por relectura). Sin esa confirmación la orden queda **incompleta** y **no** se emite certificado.
+- **Certificado de destrucción remota.** Una orden verificada emite un **certificado** de destrucción remota (nivel NIST SP 800-88 «Clear») con el método aplicado y el detalle por-ruta, descargable en PDF y JSON, encadenado por hash como el resto de los certificados de Observer Erase.
+- **Gobernanza de dos personas y auditoría que sobrevive.** Ordenar un borrado exige un **permiso dedicado**, la **confirmación de una segunda persona** distinta de quien ordenó, una ventana de arrepentimiento y un caso perdido abierto. Toda la traza vive en la cadena de auditoría inmutable, que **sobrevive** aunque el equipo se dé de baja.
+- **El despacho destructivo sigue GATED.** Como en la versión anterior, el borrado real al equipo permanece **deshabilitado en producción** (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) hasta completar el simulacro en seco obligatorio sobre un equipo de descarte. Esta versión trae el circuito completo listo para ese simulacro.
+- **Acompaña al agente `v2.17.3`,** que ejecuta el borrado seguro y su verificación por relectura en Windows y Linux (macOS queda fuera de esta modalidad). Un agente anterior ignora la nueva orden sin romperse.
+- **Sin migraciones.** Esta versión no altera el esquema de la base de datos.
+
 ## v1.4.17 — 2026-08-26
 
 - **Recuperación de archivos antes de borrar (Observer Erase · fileretrieval).** Desde el caso de un equipo perdido o robado, un operador autorizado puede **recuperar archivos del equipo antes de cualquier borrado** — "recuperar antes de borrar". Los archivos viajan por el mismo canal cifrado de la evidencia del modo perdido, quedan cifrados en reposo y se listan y descargan desde el panel del caso.
