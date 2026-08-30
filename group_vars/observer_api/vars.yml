@@ -69,12 +69,23 @@ observer_nats_max_connections: 50000
 # inventario la sobrescribe (el que cambia es el vault).
 observer_google_geolocation_api_key: "{{ vault_google_geolocation_api_key | default('') }}"
 
-# Key del proveedor LLM del Asistente IA (feature 032). Misma lógica que la de Google:
-# es la indirección al vault, no un valor por ambiente, así que SÍ va acá.
-# Vacía = no se siembra nada y el botón «Generar borrador con IA» no aparece.
+# Key del proveedor LLM del Asistente IA (feature 032).
 #
 # ⚠️ Es una key DE CORTESÍA, compartida por todos los despliegues: existe para que el
 # cliente pueda probar la generación de borradores. En cuanto el cliente pone la suya
 # en Configuración global → Asistente IA, el deploy deja de tocar el bloque entero
 # (ver la regla de no-pisado en core/management/commands/seed_ai_assistant.py).
-observer_open_ai_token: "{{ vault_observer_open_ai_token | default('') }}"
+#
+# 2026-08-30 (·cxxxix·): se BAKEA como default committeado — decisión explícita del usuario
+# de que "debe venir en la configuración de instalación". Antes vivía SOLO en el vault
+# por-clon y un greenfield nuevo la perdía en silencio: el vault autogenerado NO la incluye
+# (no es un secreto aleatorio), el token quedaba vacío, el seed_ai_assistant se saltaba
+# (when: token|length>0) y el Asistente caía al default del producto (api.openai.com /
+# gpt-3.5-turbo). Al ser la MISMA key para todos los ambientes (modelo gratis compartido),
+# el lugar correcto es un default committeado, no un input manual por-cliente.
+# El vault SIGUE GANANDO: poner vault_observer_open_ai_token en el vault del ambiente la
+# sobrescribe (rotar la de cortesía, o fijar una propia). base_url/model openrouter viven en
+# roles/observer_api/defaults/main.yml. Excepción consciente a "secretos nunca al repo" para
+# ESTA key de cortesía de bajo riesgo (modelo gratuito); NO extender a otras credenciales.
+observer_open_ai_courtesy_token: "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"
+observer_open_ai_token: "{{ vault_observer_open_ai_token | default(observer_open_ai_courtesy_token) }}"
