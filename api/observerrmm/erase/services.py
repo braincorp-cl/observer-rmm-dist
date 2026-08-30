@@ -16,6 +16,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from erase.models import (
+    CertificateKind,
     EraseAuditRecord,
     FileRetrievalOrder,
     FileRetrievalStatus,
@@ -365,9 +366,71 @@ def apply_wipe_report(
         actor="agent",
         detail={"verified": order.verified, "method_applied": order.method_applied},
     )
-    # El enganche al certificado C (solo si verified=True, RF-10) es T016 — fuera de
-    # esta ronda no destructiva.
+    # Enganche al certificado C (RF-10 / T016): SOLO con `verified=True`. Una orden
+    # `incomplete` (verificación por relectura fallida, RN-08) nunca lo emite.
+    if order.verified:
+        issue_wipe_certificate(order=order)
     return order
+
+
+def issue_wipe_certificate(*, order: WipeOrder) -> None:
+    """Emite el certificado C de un wipe verificado (RF-10 / feature 043 · T016).
+
+    Solo se invoca con `verified=True` (RN-08): un borrado sin verificación queda
+    `incomplete` y NO certifica. Idempotente: no reemite si la orden ya tiene
+    certificado. El wipe A2 es destrucción remota (`REMOTE_DESTRUCTION`) a nivel
+    NIST SP 800-88 "Clear", verificada por relectura por-ruta —no por sectores, que
+    es del Bloque B—, así que se llenan por `extra` los campos que el wipe SÍ conoce.
+
+    Blindado: si la emisión falla, la orden ya quedó `EXECUTED`; se deja constancia
+    en la cadena inmutable y no se tumba el reporte del agente.
+    """
+    from erase import certificate  # import diferido: evita ciclo services↔certificate
+
+    if order.certificates.exists():
+        return
+
+    result = order.result or {}
+    paths_result = {k: v for k, v in result.items() if k != "_"}
+    started = order.dispatched_at or order.confirmed_at or order.ordered_at
+    operator = order.confirmed_by or order.ordered_by
+    try:
+        certificate.issue_certificate(
+            kind=CertificateKind.REMOTE_DESTRUCTION,
+            client=order.client,
+            site=order.site,
+            agent=order.agent,
+            order=order,
+            actor=operator,
+            method_applied=order.method_applied,
+            standard_ref="NIST SP 800-88r1 Clear",
+            verification_result="PASS",
+            operator=operator,
+            started_at=started.isoformat() if started else "",
+            finished_at=order.executed_at.isoformat() if order.executed_at else "",
+            equipment={
+                "model": order.agent_hostname or "",
+                "serial": order.agent_serial or "",
+            },
+            software_version=getattr(order.agent, "version", "") or "",
+            extra={
+                "action": order.action,
+                "passes": 1,
+                "patterns": "aleatorio (1 pasada)",
+                "verification_level": "relectura por-ruta (RN-08)",
+                "paths_total": len(paths_result),
+                "paths_result": paths_result,
+            },
+        )
+    except (
+        Exception
+    ) as e:  # noqa: BLE001 — la orden ya es EXECUTED; no tumbar el reporte
+        record_event(
+            order=order,
+            event="certificate_error",
+            actor="system",
+            detail={"error": str(e)[:255]},
+        )
 
 
 # ===========================================================================
