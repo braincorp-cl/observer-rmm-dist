@@ -4,7 +4,7 @@ Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
 (backend Django en `api/observerrmm/`, capa Go NATS, frontend Vue/Quasar en
 `web/`) + despliegue con Ansible.
 
-**Versión actual: 1.4.11** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (el producto ofrece la v2.15.21)
+**Versión actual: 1.4.18** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (el producto ofrece la v2.17.3)
 
 > **Al cortar una versión** hay que subir `ORMM_VERSION`, agregar la entrada al
 > [`CHANGELOG.md`](CHANGELOG.md), escribir `release-notes/vX.Y.Z.md` y pushear el tag.
@@ -187,6 +187,15 @@ all:
 
     # (La URL ofuscada del panel /admin de Django la genera el playbook automáticamente
     #  en la primera corrida — ya no se define aquí; ver Paso 6.)
+
+    # --- Versión del agente que este ambiente ofrece a la flota ---
+    # DECISIÓN explícita del ambiente: pínela a la última versión publicada del agente
+    # (https://github.com/braincorp-cl/observer-agent-dist/releases). Este pin manda sobre
+    # el default del producto (settings.py) y lo emite el template de local_settings.py.
+    # 🪤 Déjelo durable AQUÍ (en el inventario), NUNCA en group_vars: group_vars del playbook
+    # le gana al inventario y el override se perdería en silencio (la flota caería al default
+    # del producto). Sin esta línea, el ambiente ofrece la versión de settings.py.
+    observer_latest_agent_ver: "2.17.3"
 
     # --- Proxy reverso corporativo delante de nginx (OPCIONAL) ---
     # Descomente SOLO si publica detrás de un proxy reverso (ej. Nginx Proxy Manager).
@@ -405,6 +414,10 @@ Comprueba PostgreSQL, Redis, MeshCentral, el API y el proxy. Todo debe pasar (`f
 2. Configure el **2FA (TOTP)** cuando se lo pida (obligatorio).
 3. A `https://mesh.ejemplo.cl` puede entrar como `meshcentral_admin`, pero el control
    remoto desde la consola RMM (botón "Tomar control") funciona vía SSO sin login manual.
+4. Instale el primer agente desde la consola y confirme que enrola y reporta la versión
+   fijada en `observer_latest_agent_ver` (Paso 3). El auto-update de la flota corre por
+   celerybeat al minuto :35 de cada hora; para probar el binario/CDN de inmediato puede
+   forzar un update, pero eso valida la descarga, no el mecanismo de despliegue.
 
 ## Publicación tras un proxy reverso corporativo (NPM double-proxy)
 
