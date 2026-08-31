@@ -3,6 +3,7 @@ import inspect
 import json
 import re
 from enum import Enum
+from types import SimpleNamespace
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -82,10 +83,17 @@ env = SandboxedEnvironment(
 )
 
 
+def public_mod(module):
+    # expose only a module's public API (__all__) to report templates instead of
+    # the whole module, shrinking the Jinja sandbox escape surface
+    exported = getattr(module, "__all__", ())
+    return SimpleNamespace(**{i: getattr(module, i) for i in exported})
+
+
 custom_globals = {
-    "datetime": datetime,
+    "datetime": public_mod(datetime),
     "ZoneInfo": ZoneInfo,
-    "re": re,
+    "re": public_mod(re),
 }
 
 env.globals.update(custom_globals)
