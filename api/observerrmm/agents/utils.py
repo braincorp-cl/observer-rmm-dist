@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import dataclasses
 import logging
 import urllib.parse
@@ -252,6 +253,31 @@ def send_nats_command(agent, func: str, payload: dict, timeout: int = 60):
         )
 
     return response
+
+
+def strip_relation_caches_for_cache(instances: list, keep: tuple = ("script",)) -> list:
+    # returns shallow copies of model instances safe to pickle into redis cache
+    # found when an appserver used an enormous amount of RAM for the redis cache: adding many
+    # agents to policy exclusions made cached checks/tasks carry their select_related/prefetch
+    # graph (check -> policy -> excluded_agents -> full agent rows with wmi_detail etc.),
+    # blowing cache keys up to ~25 MB each instead of a few KB.
+    # only relations listed in "keep" (e.g. check.script for the check runner) are preserved,
+    # because consumers of the cached values need them.
+    cleaned = []
+    for instance in instances:
+        obj = copy.copy(instance)
+        obj._state = copy.copy(instance._state)
+        obj._state.fields_cache = {
+            field: value
+            for field, value in instance._state.fields_cache.items()
+            if field in keep
+        }
+        obj._prefetched_objects_cache = {}
+        # results are attached per agent at runtime, never valid to cache
+        obj.__dict__.pop("check_result", None)
+        obj.__dict__.pop("task_result", None)
+        cleaned.append(obj)
+    return cleaned
 
 
 def calculate_agent_checks(agent) -> dict:

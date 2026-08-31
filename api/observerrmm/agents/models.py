@@ -21,7 +21,11 @@ from packaging import version as pyver
 from packaging.version import Version as LooseVersion
 
 from agents.lostmode_storage import get_lost_mode_evidence_fs
-from agents.utils import calculate_agent_checks, get_agent_url
+from agents.utils import (
+    calculate_agent_checks,
+    get_agent_url,
+    strip_relation_caches_for_cache,
+)
 from core.models import TZ_CHOICES
 from core.utils import _b64_to_hex, get_core_settings, send_command_with_mesh
 from logs.models import BaseAuditModel, DebugLog, PendingAction
@@ -601,6 +605,7 @@ class Agent(BaseAuditModel):
 
     def get_agent_policies(self) -> "Dict[str, Optional[Policy]]":
         from checks.models import Check
+        from clients.models import Client, Site
 
         site_policy = getattr(self.site, f"{self.monitoring_type}_policy", None)
         client_policy = getattr(self.client, f"{self.monitoring_type}_policy", None)
@@ -608,16 +613,19 @@ class Agent(BaseAuditModel):
             get_core_settings(), f"{self.monitoring_type}_policy", None
         )
 
-        # prefetch excluded objects on polices only if policy is not Non
+        # prefetch excluded objects on policies only if policy is not None
+        # exclusions are only ever checked by pk (is_agent_excluded), so don't
+        # load full rows; a policy with many excluded agents would otherwise
+        # drag every excluded agent's wmi_detail/services into memory
         models.prefetch_related_objects(
             [
                 policy
                 for policy in (self.policy, site_policy, client_policy, default_policy)
                 if policy
             ],
-            "excluded_agents",
-            "excluded_sites",
-            "excluded_clients",
+            models.Prefetch("excluded_agents", queryset=Agent.objects.only("pk")),
+            models.Prefetch("excluded_sites", queryset=Site.objects.only("pk")),
+            models.Prefetch("excluded_clients", queryset=Client.objects.only("pk")),
             models.Prefetch(
                 "policychecks", queryset=Check.objects.select_related("script")
             ),
@@ -908,7 +916,7 @@ class Agent(BaseAuditModel):
             self.agentchecks.update(overridden_by_policy=False)  # type: ignore
 
             # get agent checks based on policies
-            checks = Policy.get_policy_checks(self)
+            checks = strip_relation_caches_for_cache(Policy.get_policy_checks(self))
             cache.set(cache_key, checks, 600)
             return checks
 
@@ -930,7 +938,7 @@ class Agent(BaseAuditModel):
             return cached_tasks
         else:
             # get agent tasks based on policies
-            tasks = Policy.get_policy_tasks(self)
+            tasks = strip_relation_caches_for_cache(Policy.get_policy_tasks(self))
             cache.set(cache_key, tasks, 600)
             return tasks
 
