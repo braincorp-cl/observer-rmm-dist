@@ -439,7 +439,7 @@ Internet ──HTTPS(cert del NPM)──► NPM ──HTTPS(cert wildcard de Obs
 | Forward Port | 443 | 443 | 443 |
 | Block Common Exploits | ON | ON | ON |
 | **Websockets Support** | ON | **ON** | **ON** |
-| SSL | cert LE propio del NPM (puede ser multi-dominio api+rmm+mesh) | idem | idem |
+| SSL | cert del NPM: propio LE, **o** el wildcard de Observer como *Custom* (ver abajo) | idem | idem |
 
 **Custom Nginx Configuration** por host (alta carga / sesiones largas):
 
@@ -464,7 +464,40 @@ Internet ──HTTPS(cert del NPM)──► NPM ──HTTPS(cert wildcard de Obs
    remoto. En `rmm.*`/`api.*` sí puede dejarlos.
 5. **No hace falta copiar certificados al NPM.** El servidor ya sirve un wildcard Let's
    Encrypt público-confiable; el NPM lo valida al re-encriptar. (Si algún día necesita los
-   `.pem` sueltos —`cert.pem`/`chain.pem`— el rol ya los deja en `/etc/ssl/observer/`.)
+   `.pem` sueltos —`cert.pem`/`chain.pem`— el rol ya los deja en `/etc/ssl/observer/`; ver
+   la sección siguiente para subirlos al NPM como cert *Custom*.)
+
+### Opción: el NPM termina TLS con el MISMO wildcard (cert Custom)
+
+Por defecto el NPM puede usar **su propio** certificado LE (columna SSL de la tabla). Si
+prefiere que **el NPM y el vhost del RMM terminen TLS con el mismo certificado** (mismos
+terminadores en el borde y en el servidor), suba el wildcard de Observer al NPM como
+certificado **Custom**. Los archivos ya existen en el servidor (`/etc/ssl/observer/`,
+escritos por acme.sh `--install-cert`); bájelos al nodo de control con el helper incluido:
+
+```bash
+ansible-playbook -i inventory/produccion.yml fetch-npm-cert.yml
+# ⇒ ./npm-certs/<observer_base_domain>/{cert,chain,privkey,fullchain}.pem
+```
+
+En el NPM: **SSL Certificates → Add SSL Certificate → Custom**, y mapee:
+
+| Campo del NPM | Archivo |
+|---|---|
+| Certificate Key | `privkey.pem` |
+| Certificate | `cert.pem` (si el NPM lo rechaza, use `fullchain.pem`) |
+| Intermediate Certificate | `chain.pem` |
+
+Luego asigne ese cert Custom a los 3 Proxy Hosts (columna SSL).
+
+- 🪤 **Renovación (importante).** acme.sh **renueva el certificado en el servidor solo**
+  (cron), pero el cert Custom del NPM es una **copia estática** que no se entera. Vuelva a
+  correr `fetch-npm-cert.yml` y re-suba los PEM al NPM **antes del vencimiento** (~cada 60
+  días; `cert.pem` vence a los ~90). El servidor no requiere reemisión manual — solo el NPM.
+- 🪤 `chain.pem` puede traer **varios** intermedios (la cadena de Let's Encrypt) — es
+  válido; el campo Intermediate del NPM los acepta todos.
+- La clave privada baja al nodo de control bajo `npm-certs/` (**gitignorado**). No la
+  commitee; bórrela cuando termine si no la necesita en reposo.
 
 ### IP real del cliente en los logs (anti-spoofing) — `observer_trusted_proxy_ip`
 

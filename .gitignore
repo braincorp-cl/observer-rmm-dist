@@ -33,6 +33,9 @@ api/observerrmm/nats-rmm.conf
 group_vars/*/vault*.yml
 inventory/produccion.yml
 
+# Certificados wildcard recolectados por fetch-npm-cert.yml (incluye privkey.pem).
+npm-certs/
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Este repo es el PRODUCTO: un `git clone` debe traer sólo lo que se instala con
 # el playbook, y nada más. Ni specs, ni salidas de test, ni configuración de

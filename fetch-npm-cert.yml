@@ -1,0 +1,44 @@
+---
+# fetch-npm-cert.yml — Recolecta el certificado wildcard del servidor (/etc/ssl/observer)
+# al nodo de control, para subirlo al Nginx Proxy Manager como certificado *Custom*.
+#
+# Cuándo: cuando el NPM que publica este ambiente termina TLS con EL MISMO wildcard que el
+# vhost del RMM (mismos terminadores en el proxy y en el servidor), en vez de emitir su
+# propio certificado. Ver README → "Publicación tras un proxy reverso corporativo".
+#
+# Es READ-ONLY sobre el servidor: NO reemite ni toca nada, solo copia 4 archivos que el rol
+# observer_proxy ya deja escritos por acme.sh (--install-cert).
+#
+#   ansible-playbook -i inventory/produccion.yml fetch-npm-cert.yml
+#
+# Deja los PEM en ./npm-certs/<observer_base_domain>/ (gitignorado: contiene la clave privada).
+#
+# 🪤 Renovación: acme.sh renueva el certificado en el servidor solo (cron), pero el cert
+#    Custom del NPM es una COPIA ESTÁTICA — vuelva a correr este playbook y re-suba los PEM
+#    al NPM antes del vencimiento (~cada 60 días; cert.pem vence a los ~90).
+- name: Recolectar el wildcard TLS para el NPM (cert Custom)
+  hosts: observer_proxy
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Bajar los PEM del wildcard al nodo de control
+      # become es necesario: privkey.pem es root:root 0600.
+      # flat + dest con '/' final ⇒ deja solo el basename, sin el árbol que fetch arma por host.
+      ansible.builtin.fetch:
+        src: "/etc/ssl/observer/{{ item }}"
+        dest: "npm-certs/{{ observer_base_domain }}/"
+        flat: true
+      loop:
+        - cert.pem        # leaf (Certificate en NPM)
+        - chain.pem       # intermedios (Intermediate Certificate en NPM)
+        - privkey.pem     # clave privada (Certificate Key en NPM)
+        - fullchain.pem   # leaf+chain (fallback si NPM exige fullchain en Certificate)
+
+    - name: Instrucción de subida al NPM
+      ansible.builtin.debug:
+        msg:
+          - "PEM en ./npm-certs/{{ observer_base_domain }}/"
+          - "NPM → SSL Certificates → Add SSL Certificate → Custom:"
+          - "  Certificate Key           = privkey.pem"
+          - "  Certificate               = cert.pem   (si NPM lo rechaza, use fullchain.pem)"
+          - "  Intermediate Certificate  = chain.pem"
