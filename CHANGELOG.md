@@ -8,6 +8,15 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.19 — 2026-08-31
+
+- **Menos memoria del servidor al aplicar políticas.** Con políticas que excluyen muchos equipos, sitios o clientes, la consola cacheaba mucho más de lo necesario (el detalle completo de cada equipo excluido) e inflaba la memoria del servidor. Ahora sólo cachea lo indispensable —las claves de caché bajan de megabytes a kilobytes— sin cambiar el comportamiento de las políticas. Se nota en flotas grandes.
+- **Correr scripts en el servidor exige un permiso dedicado.** Ejecutar un script «en el servidor» requiere ahora, además del interruptor global, un **permiso RBAC específico** del usuario. El mismo control se aplica al configurar una **plantilla de alerta** cuya acción o acción de resolución corra un script en el servidor, cerrando esa vía de escalada.
+- **Las alertas ocultas ya no aparecen en el Resumen de alertas.** Quedan fuera de ambas vistas del resumen, consistente con el conteo del tablero que ya las excluía.
+- **Plantillas de reportes en un entorno más acotado.** El motor de reportes expone a las plantillas sólo la superficie pública de sus utilidades de fecha y expresiones regulares; los reportes existentes funcionan igual.
+- **El inventario de Windows Update se limpia solo.** Al reportar un equipo su escaneo, el servidor descarta los parches pendientes que Windows dejó de listar (superseded), para que el inventario y el conteo de «atrasados» no acumulen parches fantasma; nunca borra pendientes legítimos.
+- **Sin release de agente y sin migraciones.** La flota sigue en su versión vigente; esta versión no altera el esquema de la base de datos. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.18 — 2026-08-30
 
 - **Borrado selectivo de archivos en el equipo perdido (Observer Erase · wipe A2).** Desde el caso de un equipo perdido o robado, un operador autorizado puede ordenar el **borrado seguro de archivos o carpetas designados** —"recuperar antes de borrar" sigue siendo lo recomendado, pero ya no es obligatorio: si no se recuperó nada, la consola **advierte y permite continuar**. Es la primera capacidad del modo perdido que **destruye datos**.
