@@ -73,7 +73,7 @@ class CoreSettings(BaseAuditModel):
     smtp_port = models.PositiveIntegerField(default=587, blank=True)
     smtp_requires_auth = models.BooleanField(default=True)
     default_time_zone = models.CharField(
-        max_length=255, choices=TZ_CHOICES, default="America/Los_Angeles"
+        max_length=255, choices=TZ_CHOICES, default="America/Santiago"
     )
     # removes check history older than days
     check_history_prune_days = models.PositiveIntegerField(default=30)
