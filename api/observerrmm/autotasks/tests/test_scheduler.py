@@ -19,7 +19,9 @@ los_angeles = ZoneInfo("America/Los_Angeles")
 def setup_instance(db):
     client1 = baker.make("clients.Client")
     site1 = baker.make("clients.Site", client=client1)
-    baker.make("core.CoreSettings")
+    # tz explícita: estos tests viajan a horas de America/Los_Angeles y no deben
+    # depender del default del producto (ahora America/Santiago, ver core 0069).
+    baker.make("core.CoreSettings", default_time_zone="America/Los_Angeles")
 
     now = djangotime.now()
 
