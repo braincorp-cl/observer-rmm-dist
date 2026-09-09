@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Topología de la plataforma · Observer RMM" data-title-en="Platform topology · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topología de la plataforma · Observer RMM</title>
+<meta name="description" content="Cómo está construido Observer RMM: consola web, API, workers, bus de mensajes, base de datos, control remoto, CDN de agentes y la flota administrada.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/topologia/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/topologia/">
+<meta property="og:title" content="Topología de la plataforma · Observer RMM">
+<meta property="og:description" content="Cómo está construido Observer RMM: consola web, API, workers, bus de mensajes, base de datos, control remoto, CDN de agentes y la flota administrada.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=2">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .diagram-bleed { margin: 22px 0 6px; }
+  .diagram-frame {
+    display: block; width: 100%; height: 72vh; min-height: 560px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+  }
+  .diagram-bleed figcaption { color: var(--muted); font-size: .92rem; margin-top: 10px; line-height: 1.5; }
+  .content ul { color: var(--text); line-height: 1.6; padding-left: 1.2em; }
+  .content ul li { margin: 4px 0; }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/" class="active"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Arquitectura</p>
+      <p class="eyebrow lang-en">Architecture</p>
+      <h1><span class="lang-es">Topología de la plataforma</span><span class="lang-en">Platform topology</span></h1>
+      <p class="lead lang-es">Una vista de conjunto de las piezas que forman Observer RMM y cómo circulan los datos entre ellas: desde el operador en la consola web hasta la flota de agentes administrados.</p>
+      <p class="lead lang-en">A bird's-eye view of the parts that make up Observer RMM and how data flows between them: from the operator at the web console to the fleet of managed agents.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/topologia/observer-topologia.html" title="Diagrama de topología de Observer RMM" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo — usa los controles <b>PATH · MAP · LENS</b> y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/topologia/observer-topologia.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram — use the <b>PATH · MAP · LENS</b> controls and zoom inside the frame. Feels cramped? <a href="/topologia/observer-topologia.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
+
+      <h2 id="componentes"><span class="lang-es">Los componentes</span><span class="lang-en">The components</span></h2>
+      <p class="lang-es">El corazón de la plataforma vive en el <strong>servidor de aplicación</strong>. Todo el tráfico entra por un <strong>reverse proxy</strong> que termina TLS y preserva la IP real del cliente.</p>
+      <p class="lang-en">The heart of the platform lives in the <strong>application server</strong>. All traffic enters through a <strong>reverse proxy</strong> that terminates TLS and preserves the client's real IP.</p>
+
+      <ul class="lang-es">
+        <li><strong>Consola Web</strong> — la interfaz de operación, servida como archivos estáticos.</li>
+        <li><strong>API RMM</strong> — la puerta de entrada REST; autentica por token y coordina todo lo demás.</li>
+        <li><strong>Workers</strong> — ejecutan las tareas asíncronas (parches, scripts, reportes) tomándolas de una <strong>cola / broker</strong>.</li>
+        <li><strong>Bus de mensajes</strong> — el canal por el que los agentes hacen <em>check-in</em> y reciben instrucciones.</li>
+        <li><strong>Base de datos</strong> — el estado de toda la flota.</li>
+        <li><strong>Control remoto</strong> — sesiones de escritorio y shell hacia los equipos.</li>
+        <li><strong>CDN de agentes</strong> — sirve los instaladores firmados y sus actualizaciones.</li>
+        <li><strong>Flota de agentes</strong> — los equipos administrados: Windows, Linux y macOS.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Web Console</strong> — the operator interface, served as static files.</li>
+        <li><strong>RMM API</strong> — the REST entry point; authenticates by token and coordinates everything else.</li>
+        <li><strong>Workers</strong> — run the asynchronous jobs (patching, scripts, reports), pulling them from a <strong>queue / broker</strong>.</li>
+        <li><strong>Message bus</strong> — the channel agents use to <em>check in</em> and receive instructions.</li>
+        <li><strong>Database</strong> — the state of the whole fleet.</li>
+        <li><strong>Remote control</strong> — desktop and shell sessions to the machines.</li>
+        <li><strong>Agent CDN</strong> — serves signed agent installers and their updates.</li>
+        <li><strong>Agent fleet</strong> — the managed machines: Windows, Linux, and macOS.</li>
+      </ul>
+
+      <p class="lang-es">El código se despliega al servidor desde el repositorio con CI/CD por HTTPS, y este mismo <a href="/">sitio de documentación</a> es estático y autocontenido.</p>
+      <p class="lang-en">Code is deployed to the server from the repository via CI/CD over HTTPS, and this <a href="/">documentation site</a> itself is static and self-contained.</p>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+})();
+</script>
+</body>
+</html>
