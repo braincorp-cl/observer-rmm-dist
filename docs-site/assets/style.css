@@ -120,8 +120,8 @@ html[data-lang="en"] .lang-es { display: none !important; }
 
 /* ---------- Shell ---------- */
 .shell {
-  max-width: 1160px; margin: 0 auto; padding: 0 22px;
-  display: grid; grid-template-columns: 232px 1fr; gap: 40px;
+  max-width: none; margin: 0; padding: 0 16px;
+  display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 36px;
 }
 /* ---------- Rail (nav consola) ---------- */
 .rail {
@@ -145,7 +145,7 @@ html[data-lang="en"] .lang-es { display: none !important; }
 
 /* ---------- Content ---------- */
 main { padding: 38px 0 90px; min-width: 0; }
-.content { max-width: var(--maxw); }
+.content { max-width: 100%; }
 .eyebrow {
   font-family: var(--mono); font-size: .72rem; text-transform: uppercase;
   letter-spacing: 2.5px; color: var(--cyan); margin: 0 0 10px;
