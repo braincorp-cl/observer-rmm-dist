@@ -24,6 +24,15 @@
 <!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .diagram-bleed { margin: 22px 0 6px; }
+  .diagram-frame {
+    display: block; width: 100%; height: 72vh; min-height: 560px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+  }
+  .diagram-bleed figcaption { color: var(--muted); font-size: .92rem; margin-top: 10px; line-height: 1.5; }
+</style>
 <script>
 (function () {
   var d = document.documentElement;
@@ -88,6 +97,18 @@
         <p>You need your console URL and the first administrator account credentials shown at the end of the installation. If you don't have them handy, check the deployment's access summary.</p>
       </div>
 
+      <h2 id="proceso"><span class="lang-es">El proceso de enrolamiento, de un vistazo</span><span class="lang-en">The enrollment process at a glance</span></h2>
+      <p class="lang-es">Enrolar un agente recorre tres etapas: <strong>preparar</strong> (generar el instalador firmado en la consola y excluir las carpetas y binarios del agente en el <strong>antivirus</strong>), <strong>conectar</strong> (permitir los sitios RMM en el <strong>firewall</strong> para que el agente conecte al servidor Observer RMM por el <strong>puerto 443</strong> sobre TLS) y <strong>registrar</strong> (la API valida el token de enrolamiento y da de alta el equipo en <strong>observerrmm</strong> y en <strong>MeshCentral</strong>). El diagrama muestra el recorrido completo entre el equipo, el frontend y el backend.</p>
+      <p class="lang-en">Enrolling an agent goes through three stages: <strong>prepare</strong> (generate the signed installer in the console and exclude the agent's folders and binaries in the <strong>antivirus</strong>), <strong>connect</strong> (allow the RMM sites in the <strong>firewall</strong> so the agent connects to the Observer RMM server over <strong>port 443</strong> on TLS), and <strong>register</strong> (the API validates the enrollment token and registers the machine in <strong>observerrmm</strong> and <strong>MeshCentral</strong>). The diagram shows the full path across the machine, the frontend, and the backend.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/guide_gettingstarted/observer-enrolamiento.html" title="Diagrama del proceso de enrolamiento de un agente en Observer RMM" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo del proceso de enrolamiento — usa los controles del visor y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/guide_gettingstarted/observer-enrolamiento.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram of the enrollment process — use the viewer controls and zoom inside the frame. Feels cramped? <a href="/guide_gettingstarted/observer-enrolamiento.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
+
       <h2 id="acceso"><span class="lang-es">1. Primer inicio de sesión y 2FA</span><span class="lang-en">1. First sign-in and 2FA</span></h2>
       <p class="lang-es">Abre la consola web en tu navegador e inicia sesión con el usuario administrador. En el primer acceso, Observer te pedirá configurar la <strong>autenticación en dos pasos (2FA)</strong>:</p>
       <p class="lang-en">Open the web console in your browser and sign in with the administrator account. On first sign-in, Observer will ask you to set up <strong>two-factor authentication (2FA)</strong>:</p>
@@ -146,6 +167,15 @@
       </ol>
       <p class="lang-es">En un par de minutos el equipo aparecerá en línea en la consola, con su inventario y sus métricas.</p>
       <p class="lang-en">Within a couple of minutes the machine will appear online in the console, with its inventory and metrics.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Antivirus y firewall</span>
+        <p>Para que el agente instale y conecte sin bloqueos: en el <strong>antivirus</strong>, excluye las carpetas y los binarios del agente (evita que el motor los ponga en cuarentena); en el <strong>firewall</strong>, permite la salida a los <strong>sitios RMM por el puerto 443</strong> (TLS). El agente conecta al servidor Observer RMM por 443 y, tras validar su token de enrolamiento, queda registrado en <strong>observerrmm</strong> y en <strong>MeshCentral</strong> (control remoto). Un <strong>proxy con inspección TLS</strong> puede romper la conexión: exceptúa los sitios RMM. Consulta el <a href="#proceso">diagrama del proceso</a>.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Antivirus &amp; firewall</span>
+        <p>So the agent installs and connects without being blocked: in the <strong>antivirus</strong>, exclude the agent's folders and binaries (so the engine won't quarantine them); in the <strong>firewall</strong>, allow outbound access to the <strong>RMM sites on port 443</strong> (TLS). The agent connects to the Observer RMM server over 443 and, after its enrollment token is validated, is registered in <strong>observerrmm</strong> and in <strong>MeshCentral</strong> (remote control). A <strong>TLS-inspecting proxy</strong> can break the connection: make an exception for the RMM sites. See the <a href="#proceso">process diagram</a>.</p>
+      </div>
 
       <div class="callout warn lang-es">
         <span class="tag">Advertencia</span>
