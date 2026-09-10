@@ -4973,6 +4973,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       svg [data-node-id], svg [data-edge-from], svg [data-detail], svg [data-detail-anchor], svg [data-legend-hit], svg { transition: none !important; }
     }
   </style>
+  <style id="observer-fullbleed">
+    /* docs.observer.cl: la vista standalone ocupa todo el ancho de la ventana.
+       Se anula el tope de lectura del visor (1440/1920px + centrado) para que
+       el diagrama se escale al ancho completo. Reaplicar tras re-render. */
+    .container { max-width: none !important; margin: 0 !important; }
+  </style>
 </head>
 <body>
   <!-- Toolbar: theme, live visual style, trace motion, presentation stage, and export.
