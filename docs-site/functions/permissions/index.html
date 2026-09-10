@@ -24,6 +24,15 @@
 <!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .diagram-bleed { margin: 22px 0 6px; }
+  .diagram-frame {
+    display: block; width: 100%; height: 72vh; min-height: 560px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+  }
+  .diagram-bleed figcaption { color: var(--muted); font-size: .92rem; margin-top: 10px; line-height: 1.5; }
+</style>
 <script>
 (function () {
   var d = document.documentElement;
@@ -78,6 +87,18 @@
       <h1><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></h1>
       <p class="lead lang-es">Observer RMM controla lo que cada usuario puede ver y hacer mediante roles. Entender el modelo —y qué permisos son especialmente sensibles— es clave para operar con seguridad.</p>
       <p class="lead lang-en">Observer RMM controls what each user can see and do through roles. Understanding the model —and which permissions are especially sensitive— is key to operating securely.</p>
+
+      <h2 id="proceso"><span class="lang-es">El sistema RBAC, de un vistazo</span><span class="lang-en">The RBAC system at a glance</span></h2>
+      <p class="lang-es">El control de acceso de Observer RMM es <strong>RBAC</strong> (basado en roles) y se entiende en tres momentos: <strong>modelar</strong> (un <strong>rol</strong> es un conjunto de <strong>permisos</strong> —ver, crear, editar, eliminar, ejecutar— con un <strong>alcance</strong> acotado a determinados clientes y sitios, o global), <strong>heredar</strong> (un usuario puede tener <strong>uno o más roles</strong> y su acceso efectivo es la <strong>unión</strong> de todos ellos, bajo el principio de <strong>mínimo privilegio</strong>) y <strong>aplicar</strong> (en cada petición el <strong>backend</strong> valida el permiso y el alcance —es la autoridad real—, el <strong>frontend</strong> oculta lo que el usuario no puede hacer y el <strong>agente</strong> solo ejecuta lo autorizado, incluidos los scripts que corren con privilegios de sistema). El diagrama muestra el recorrido completo entre el frontend, el backend y el agente.</p>
+      <p class="lang-en">Access control in Observer RMM is <strong>RBAC</strong> (role-based) and is best understood in three moments: <strong>model</strong> (a <strong>role</strong> is a set of <strong>permissions</strong> —view, create, edit, delete, run— with a <strong>scope</strong> limited to specific clients and sites, or global), <strong>inherit</strong> (a user can hold <strong>one or more roles</strong> and their effective access is the <strong>union</strong> of them all, under the principle of <strong>least privilege</strong>), and <strong>enforce</strong> (on every request the <strong>backend</strong> validates the permission and the scope —it is the real authority—, the <strong>frontend</strong> hides what the user cannot do, and the <strong>agent</strong> only runs what is authorized, including scripts that run with system privileges). The diagram shows the full path across the frontend, the backend, and the agent.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/functions/permissions/observer-permisos-rbac.html" title="Diagrama del sistema de permisos RBAC en Observer RMM" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo del sistema de permisos RBAC — usa los controles del visor y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/functions/permissions/observer-permisos-rbac.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram of the RBAC permission system — use the viewer controls and zoom inside the frame. Feels cramped? <a href="/functions/permissions/observer-permisos-rbac.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
 
       <h2 id="modelo-de-roles"><span class="lang-es">El modelo de roles</span><span class="lang-en">The role model</span></h2>
       <p class="lang-es">El acceso se asigna con <strong>roles</strong>. Un rol es un conjunto de permisos; a cada usuario se le asigna uno o más roles, y su acceso efectivo es la suma de ellos. Los permisos cubren dos dimensiones:</p>
