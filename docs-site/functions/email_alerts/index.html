@@ -24,6 +24,15 @@
 <!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .diagram-bleed { margin: 22px 0 6px; }
+  .diagram-frame {
+    display: block; width: 100%; height: 72vh; min-height: 560px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+  }
+  .diagram-bleed figcaption { color: var(--muted); font-size: .92rem; margin-top: 10px; line-height: 1.5; }
+</style>
 <script>
 (function () {
   var d = document.documentElement;
@@ -87,6 +96,18 @@
         <span class="tag">Before you begin</span>
         <p>You need a user with access to <em>Global Settings</em> and the details of an outgoing mailbox (SMTP server): address, port, and username/password if it requires authentication.</p>
       </div>
+
+      <h2 id="proceso"><span class="lang-es">El proceso de alertas por correo, de un vistazo</span><span class="lang-en">The email alerting process at a glance</span></h2>
+      <p class="lang-es">El envío de una alerta recorre tres etapas: <strong>configurar</strong> (en la consola se define el <strong>relay SMTP</strong> según protocolo y puerto —<code>587</code> STARTTLS, <code>465</code> TLS implícito o <code>25</code> relay interno—, los destinatarios y las plantillas de alerta), <strong>disparar</strong> (los <strong>chequeos, tareas o políticas aplicados en el agente</strong> levantan una condición —agente caído, chequeo o tarea fallida— que el backend evalúa y resuelve contra la plantilla más específica) y <strong>enviar</strong> (el <strong>firewall perimetral</strong> permite la salida del servidor Observer RMM al <strong>smtp-relay remoto</strong>, y el SMTP entrega el correo a los <strong>administradores definidos</strong>). El diagrama muestra el recorrido completo entre el agente, el frontend y el backend.</p>
+      <p class="lang-en">Sending an alert goes through three stages: <strong>configure</strong> (in the console you set the <strong>SMTP relay</strong> by protocol and port —<code>587</code> STARTTLS, <code>465</code> implicit TLS, or <code>25</code> internal relay—, the recipients, and the alert templates), <strong>trigger</strong> (the <strong>checks, tasks, or policies applied on the agent</strong> raise a condition —agent overdue, failed check or task— that the backend evaluates and resolves against the most specific template), and <strong>send</strong> (the <strong>perimeter firewall</strong> allows the Observer RMM server outbound to the <strong>remote smtp-relay</strong>, and SMTP delivers the email to the <strong>defined administrators</strong>). The diagram shows the full path across the agent, the frontend, and the backend.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/functions/email_alerts/observer-email-alertas.html" title="Diagrama del proceso de alertas por correo (SMTP) en Observer RMM" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo del proceso de alertas por correo — usa los controles del visor y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/functions/email_alerts/observer-email-alertas.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram of the email alerting process — use the viewer controls and zoom inside the frame. Feels cramped? <a href="/functions/email_alerts/observer-email-alertas.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
 
       <h2 id="smtp"><span class="lang-es">1. Configura el servidor de correo (SMTP)</span><span class="lang-en">1. Set up the mail server (SMTP)</span></h2>
       <p class="lang-es">Ve a <em>Configuración → Configuración global → Alertas por correo</em> y completa la sección <strong>Configuración SMTP</strong>:</p>
@@ -169,6 +190,7 @@
         <li>Vuelve a <strong>Guardar y probar correo</strong>: es la forma más rápida de ver el error real.</li>
         <li>Revisa la carpeta de <strong>spam</strong> del destinatario y que la dirección esté bien escrita.</li>
         <li>Confirma el <strong>puerto</strong> (587, 465 o 25) y, si usas autenticación, el usuario y la contraseña.</li>
+        <li>Revisa el <strong>firewall perimetral</strong>: el servidor Observer RMM debe tener permitida la <strong>salida al smtp-relay remoto</strong> por el puerto configurado. Un <em>timeout</em> en la prueba suele ser egreso bloqueado.</li>
         <li>Verifica que la condición realmente disparó una alerta y que la casilla de correo del chequeo/tarea está activa.</li>
         <li>Si la prueba funciona pero las alertas no, casi siempre es el paso 5 (casilla de correo sin marcar) o la plantilla sin asignar.</li>
       </ul>
@@ -176,6 +198,7 @@
         <li>Run <strong>Save and Test Email</strong> again: it's the fastest way to see the actual error.</li>
         <li>Check the recipient's <strong>spam</strong> folder and that the address is spelled correctly.</li>
         <li>Confirm the <strong>port</strong> (587, 465, or 25) and, if using authentication, the username and password.</li>
+        <li>Check the <strong>perimeter firewall</strong>: the Observer RMM server must be allowed <strong>outbound to the remote smtp-relay</strong> on the configured port. A <em>timeout</em> in the test is usually blocked egress.</li>
         <li>Make sure the condition actually raised an alert and that the check/task email box is enabled.</li>
         <li>If the test works but alerts don't, it's almost always step 5 (unchecked email box) or an unassigned template.</li>
       </ul>
