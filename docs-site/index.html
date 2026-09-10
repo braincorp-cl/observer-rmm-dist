@@ -22,13 +22,14 @@
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=3">
+<link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
 (function () {
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
   // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
   // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
   // renderizaban la página en inglés mientras el <title>, la descripción y el
@@ -96,6 +97,7 @@
 </head>
 <body>
 <header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
@@ -248,6 +250,14 @@
     var next = isDark ? 'light' : 'dark';
     d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
   });
 })();
 </script>

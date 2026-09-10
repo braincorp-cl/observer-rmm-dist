@@ -123,6 +123,15 @@ html[data-lang="en"] .lang-es { display: none !important; }
   max-width: none; margin: 0; padding: 0 16px;
   display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 36px;
 }
+/* Rail contraíble: el toggle del header colapsa la columna de navegación */
+:root[data-rail="collapsed"] .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+:root[data-rail="collapsed"] .rail { display: none; }
+.rail-toggle {
+  background: transparent; border: 1px solid #2f4763; color: var(--header-text);
+  border-radius: 7px; padding: 5px 9px; margin-right: 10px; cursor: pointer;
+  font-size: 1rem; line-height: 1;
+}
+.rail-toggle:hover { border-color: var(--cyan); }
 /* ---------- Rail (nav consola) ---------- */
 .rail {
   position: sticky; top: 58px; align-self: start;
