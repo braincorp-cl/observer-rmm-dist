@@ -37,7 +37,7 @@
       >
         <template #top>
           <!--
-            Feature 007 · BrainCorp deshabilita la CREACIÓN/importación de
+            BrainCorp deshabilita la CREACIÓN/importación de
             reportes por el usuario final (dropdown "Agregar/Importar" removido).
             Los reportes los arma BrainCorp y se suman al Gestor. Se conservan
             Plantillas base, Recursos, Consultas, Programaciones e Historial.
@@ -115,7 +115,7 @@
             <q-menu context-menu>
               <q-list dense style="min-width: 200px">
                 <!--
-                  Feature 007 · BrainCorp deshabilita la autoría de reportes por
+                  BrainCorp deshabilita la autoría de reportes por
                   el usuario final (Editar / Clonar / Exportar). Los reportes se
                   solicitan a BrainCorp y se suman al Gestor. Ver también el
                   @dblclick de la fila (arriba) que también abría Editar.

@@ -109,7 +109,7 @@ const routes = [
     },
   },
   {
-    // Feature 007 · fix — vista "Abrir reporte" del Historial de reportes.
+    // BrainCorp · fix — vista "Abrir reporte" del Historial de reportes.
     // openReportHistory() hace window.open("/reports/history/:id?..."); sin esta
     // ruta caía en el catchAll → NotFound (404). Va antes de "/reports/:id" para
     // que el segmento estático "history" tenga prioridad.
@@ -125,7 +125,7 @@ const routes = [
     },
   },
   {
-    // Feature 007 · fix — la vista de "Abrir reporte" (PDF/HTML) del Gestor de
+    // BrainCorp · fix — la vista de "Abrir reporte" (PDF/HTML) del Gestor de
     // Reportes. openReport() hace window.open("/reports/:id?..."); sin esta ruta
     // caía en el catchAll → NotFound (404). Es pantalla completa (iframe del
     // reporte), por eso va al nivel superior, no dentro de MainLayout.
