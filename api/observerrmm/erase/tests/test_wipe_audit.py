@@ -85,11 +85,17 @@ class WipeAuditTrailTests(TestCase):
             "erase.WipeOrder", action=EraseAction.WIPE, ordered_by="john"
         )
         services.record_event(order=order, event="created", actor="john")
-        baker.make("logs.AuditLog")  # ruido operativo purgable
 
+        # Línea base tolerante: pytest-randomly baraja el orden de los tests y
+        # reseedea baker, así que la BD puede traer AuditLog incidentales al
+        # materializar la WipeOrder. Se mide el delta que introduce ESTE test,
+        # nunca un conteo absoluto.
         antes = EraseAuditRecord.objects.count()
+        audit_antes = AuditLog.objects.count()
         self.assertGreaterEqual(antes, 1)
-        self.assertEqual(AuditLog.objects.count(), 1)
+
+        baker.make("logs.AuditLog")  # ruido operativo purgable
+        self.assertEqual(AuditLog.objects.count(), audit_antes + 1)
 
         # older_than_days=-1 → umbral en el futuro: purga hasta las filas recién creadas.
         prune_audit_log(-1)
