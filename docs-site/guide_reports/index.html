@@ -24,6 +24,16 @@
 <!-- seo:end -->
 <link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  /* Diagrama archify embebido a ancho completo (mismo patrón que Topología/Permisos/Alertas). */
+  .diagram-bleed { margin: 22px 0 6px; }
+  .diagram-frame {
+    display: block; width: 100%; height: 72vh; min-height: 560px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface);
+  }
+  .diagram-bleed figcaption { color: var(--muted); font-size: .92rem; margin-top: 10px; line-height: 1.5; }
+</style>
 <script>
 (function () {
   var d = document.documentElement;
@@ -96,6 +106,18 @@
         <span class="tag">Custom reports</span>
         <p>User creation and editing of templates is <strong>disabled</strong>: reports are designed and maintained by BrainCorp so they come out consistent. If you need a tailored report —different fields, a different format, your organization's logo—, write to <a href="#personalizados">Support</a> and we'll add it to the manager.</p>
       </div>
+
+      <h2 id="arquitectura"><span class="lang-es">Cómo funciona la reportería, por dentro</span><span class="lang-en">How reporting works, under the hood</span></h2>
+      <p class="lang-es">El dato nace en el <strong>agente</strong> de cada equipo: sus chequeos, actualizaciones de Windows, inventario de software y datos del sistema viajan al servidor por dos canales —el <strong>check-in por NATS</strong> (el servicio <code>natsapi</code> escribe el estado del equipo) y los <strong>envíos HTTP de <code>apiv3</code></strong>— y se recolectan de toda la flota en la base de datos <strong>PostgreSQL <code>observerrmm</code></strong>. Cuando pides un reporte desde la <strong>Consola</strong> (frontend), la <strong>API Django</strong> invoca el <strong>motor de reportería</strong> (<code>ee.reporting</code>): consulta esos datos con el ORM (solo los modelos permitidos), arma la plantilla con <strong>Jinja + Markdown</strong> y produce la salida —<strong>HTML</strong>, o <strong>PDF</strong> con WeasyPrint y gráficos rendidos por Kaleido—. Para <strong>programar</strong>, <strong>Celery Beat</strong> dispara cada minuto al <em>worker</em>, que genera el reporte, guarda el historial y, si corresponde, lo <strong>envía por correo</strong> vía SMTP a los destinatarios.</p>
+      <p class="lang-en">The data originates in each machine's <strong>agent</strong>: its checks, Windows updates, software inventory, and system data travel to the server over two channels —the <strong>NATS check-in</strong> (the <code>natsapi</code> service writes the machine's state) and <strong><code>apiv3</code> HTTP posts</strong>— and are collected across the whole fleet into the <strong>PostgreSQL <code>observerrmm</code></strong> database. When you request a report from the <strong>Console</strong> (frontend), the <strong>Django API</strong> invokes the <strong>reporting engine</strong> (<code>ee.reporting</code>): it queries that data through the ORM (only the allowed models), assembles the template with <strong>Jinja + Markdown</strong>, and produces the output —<strong>HTML</strong>, or <strong>PDF</strong> via WeasyPrint with charts rendered by Kaleido—. For <strong>scheduling</strong>, <strong>Celery Beat</strong> triggers the <em>worker</em> every minute, which generates the report, saves the history and, when configured, <strong>emails it</strong> over SMTP to the recipients.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/guide_reports/observer-reporteria.html" title="Diagrama del sistema de reportería de Observer RMM: agente, backend, base de datos, generación de salida, programación y envío por correo" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo del sistema de reportería —del agente a la base de datos, la generación de HTML/PDF, la programación y el envío por correo—. Usa los controles del visor y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/guide_reports/observer-reporteria.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram of the reporting system —from the agent to the database, HTML/PDF generation, scheduling, and email delivery—. Use the viewer controls and zoom inside the frame. Feels cramped? <a href="/guide_reports/observer-reporteria.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
 
       <p class="lang-es">Lo que cubre esta guía, en orden:</p>
       <p class="lang-en">What this guide covers, in order:</p>
