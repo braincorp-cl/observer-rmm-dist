@@ -109,6 +109,42 @@ const routes = [
     },
   },
   {
+    // Feature 007 · fix — vista "Abrir reporte" del Historial de reportes.
+    // openReportHistory() hace window.open("/reports/history/:id?..."); sin esta
+    // ruta caía en el catchAll → NotFound (404). Va antes de "/reports/:id" para
+    // que el segmento estático "history" tenga prioridad.
+    path: "/reports/history/:id",
+    name: "ReportHistoryView",
+    component: () => import("@/ee/reporting/views/ReportHistoryView.vue"),
+    props: (route) => ({
+      id: Number(route.params.id),
+      format: route.query.format,
+    }),
+    meta: {
+      requireAuth: true,
+    },
+  },
+  {
+    // Feature 007 · fix — la vista de "Abrir reporte" (PDF/HTML) del Gestor de
+    // Reportes. openReport() hace window.open("/reports/:id?..."); sin esta ruta
+    // caía en el catchAll → NotFound (404). Es pantalla completa (iframe del
+    // reporte), por eso va al nivel superior, no dentro de MainLayout.
+    path: "/reports/:id",
+    name: "ReportView",
+    component: () => import("@/ee/reporting/views/ReportView.vue"),
+    props: (route) => ({
+      id: Number(route.params.id),
+      format: route.query.format,
+      dependsOn: route.query.dependsOn ? JSON.parse(route.query.dependsOn) : [],
+      dependencies: route.query.dependencies
+        ? JSON.parse(route.query.dependencies)
+        : {},
+    }),
+    meta: {
+      requireAuth: true,
+    },
+  },
+  {
     path: "/remotebackground/:agent_id",
     name: "RemoteBackground",
     component: () => import("@/views/RemoteBackground.vue"),

@@ -36,62 +36,12 @@
         :rows-per-page-options="[0]"
       >
         <template #top>
-          <q-btn-dropdown
-            class="q-ml-sm"
-            icon="add"
-            :label="$t('reporting.manager.templateDropdown')"
-            no-caps
-            dense
-            flat
-          >
-            <q-list dense>
-              <q-item
-                v-close-popup
-                clickable
-                @click="openNewReportTemplateForm('markdown')"
-              >
-                <q-item-section>
-                  <q-item-label>{{
-                    $t("reporting.manager.markdownTemplate")
-                  }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item
-                v-close-popup
-                clickable
-                @click="openNewReportTemplateForm('html')"
-              >
-                <q-item-section>
-                  <q-item-label>{{
-                    $t("reporting.manager.htmlTemplate")
-                  }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item
-                v-close-popup
-                clickable
-                @click="openNewReportTemplateForm('plaintext')"
-              >
-                <q-item-section>
-                  <q-item-label>{{
-                    $t("reporting.manager.plainTextTemplate")
-                  }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-separator />
-
-              <q-item clickable v-close-popup @click="importReportTemplate">
-                <q-item-section>
-                  <q-item-label>{{
-                    $t("reporting.manager.importReportTemplate")
-                  }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+          <!--
+            Feature 007 · BrainCorp deshabilita la CREACIÓN/importación de
+            reportes por el usuario final (dropdown "Agregar/Importar" removido).
+            Los reportes los arma BrainCorp y se suman al Gestor. Se conservan
+            Plantillas base, Recursos, Consultas, Programaciones e Historial.
+          -->
           <q-btn
             class="q-ml-sm"
             :label="$t('reporting.manager.baseTemplates')"
@@ -152,33 +102,24 @@
           <q-tr
             :props="props"
             class="cursor-pointer"
-            @dblclick="openEditReportTemplateForm(props.row)"
+            @dblclick="
+              openReport(
+                props.row.id,
+                props.row.type !== 'plaintext' ? 'html' : 'plaintext',
+                props.row.depends_on,
+                {},
+              )
+            "
           >
             <!-- Context Menu -->
             <q-menu context-menu>
               <q-list dense style="min-width: 200px">
-                <q-item
-                  v-close-popup
-                  clickable
-                  @click="openEditReportTemplateForm(props.row)"
-                >
-                  <q-item-section>{{
-                    $t("reporting.common.edit")
-                  }}</q-item-section>
-                </q-item>
-
-                <q-item
-                  v-close-popup
-                  clickable
-                  @click="cloneTemplate(props.row)"
-                >
-                  <q-item-section>{{
-                    $t("reporting.manager.clone")
-                  }}</q-item-section>
-                </q-item>
-
-                <q-separator />
-
+                <!--
+                  Feature 007 · BrainCorp deshabilita la autoría de reportes por
+                  el usuario final (Editar / Clonar / Exportar). Los reportes se
+                  solicitan a BrainCorp y se suman al Gestor. Ver también el
+                  @dblclick de la fila (arriba) que también abría Editar.
+                -->
                 <q-item
                   v-close-popup
                   clickable
@@ -269,18 +210,6 @@
                 <q-item
                   v-close-popup
                   clickable
-                  @click="exportReport(props.row.id)"
-                >
-                  <q-item-section>{{
-                    $t("reporting.common.export")
-                  }}</q-item-section>
-                </q-item>
-
-                <q-separator />
-
-                <q-item
-                  v-close-popup
-                  clickable
                   @click="deleteTemplate(props.row)"
                 >
                   <q-item-section>{{
@@ -324,11 +253,9 @@ import { useSharedReportTemplates } from "../api/reporting";
 import { capitalize } from "@/utils/format";
 
 // ui imports
-import ReportTemplateForm from "./ReportTemplateForm.vue";
 import ReportAssets from "./ReportAssets.vue";
 import ReportHTMLTemplateTable from "./ReportHTMLTemplateTable.vue";
 import ReportDataQueryTable from "./ReportDataQueryTable.vue";
-import ReportTemplateImport from "./ReportTemplateImport.vue";
 import ReportScheduleTable from "./ReportScheduleTable.vue";
 import ReportHistoryTable from "./ReportHistoryTable.vue";
 import ReportScheduleForm from "./ReportScheduleForm.vue";
@@ -376,31 +303,11 @@ const {
   getReportTemplates,
   deleteReportTemplate,
   openReport,
-  exportReport,
   downloadReport,
 } = useSharedReportTemplates;
 
 onMounted(getReportTemplates);
 const search = ref("");
-
-function openNewReportTemplateForm(templateType: string) {
-  $q.dialog({
-    component: ReportTemplateForm,
-    componentProps: {
-      templateType: templateType,
-    },
-  });
-}
-
-function openEditReportTemplateForm(template: ReportTemplate) {
-  $q.dialog({
-    component: ReportTemplateForm,
-    componentProps: {
-      reportTemplate: template,
-      templateType: template.type,
-    },
-  });
-}
 
 function openReportAssets() {
   $q.dialog({
@@ -461,19 +368,4 @@ function deleteTemplate(template: ReportTemplate) {
   });
 }
 
-async function cloneTemplate(template: ReportTemplate) {
-  $q.dialog({
-    component: ReportTemplateForm,
-    componentProps: {
-      cloneTemplate: template,
-      templateType: template.type,
-    },
-  });
-}
-
-function importReportTemplate() {
-  $q.dialog({
-    component: ReportTemplateImport,
-  });
-}
 </script>
