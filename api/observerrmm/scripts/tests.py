@@ -26,9 +26,13 @@ class TestScriptViews(ObserverTestCase):
 
     def test_get_scripts(self):
         url = "/scripts/"
-        scripts = baker.make("scripts.Script", _quantity=3)
+        baker.make("scripts.Script", _quantity=3)
 
-        serializer = ScriptTableSerializer(scripts, many=True)
+        # Mirror the endpoint ordering (GetAddScripts.get -> order_by("category"))
+        # so the assertion no longer depends on the random creation order.
+        serializer = ScriptTableSerializer(
+            Script.objects.order_by("category"), many=True
+        )
         resp = self.client.get(url, format="json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(serializer.data, resp.data)
