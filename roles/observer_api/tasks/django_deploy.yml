@@ -297,6 +297,21 @@
   # requiere restart de rmm y no debe reportar changed en cada pasada.
   changed_when: false
 
+# Plantillas de reportes curadas (BrainCorp): las 19 del Gestor + la base HTML
+# "Observer Base v1". Son DATOS, no las trae el synchronize de código; sin esto un
+# tenant nuevo mostraba el Gestor de Reportes VACÍO (visto 2026-09-16 en TNS/Unitec).
+# SIN --no-overwrite a propósito: BrainCorp centraliza la autoría (edición de
+# plantillas deshabilitada en la UI), así que cada deploy re-sella las 19 curadas.
+- name: Cargar las plantillas de reportes curadas en la BD (load_curated_reports)
+  ansible.builtin.command:
+    cmd: "{{ observer_root }}/api/env/bin/python manage.py load_curated_reports"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ observer_app_name }}.settings"
+  changed_when: false
+
 # R-04 / CONTRACT-01 — genera nats-rmm.conf con user `observerrmm`
 # (no el nombre legacy del upstream). Backend Django en observerrmm/utils.py:178-256
 # escribe el JSON config con `users[0].user = "observerrmm"` y luego intenta
