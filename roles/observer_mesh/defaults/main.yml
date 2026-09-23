@@ -17,10 +17,12 @@ observer_mesh_db_user: meshcentral
 # cert interno que MeshCentral fija -> "Agent bad web cert hash ... holding connection"
 # -> el nodo nunca registra y "Tomar control" no funciona. En true el TLS SIGUE
 # validándose (cadena LE); solo se omite el pin del hash exacto.
-# NOTA: tier1 (PROD) Y staging quedan detrás del NPM double-proxy (incluso por LAN),
-# así que AMBOS lo activan en su inventario (true). El default se deja false para
-# instalaciones nuevas single-proxy.
-observer_mesh_ignore_agent_hash_check: false
+# DEFAULT DERIVADO: se activa solo cuando el inventario declara observer_trusted_proxy_ip
+# (= "publico detrás de un proxy reverso"). Así un clon nuevo tras el NPM queda correcto
+# sin recordar esta variable (TNS y unitec nacieron en false y Tomar control no funcionó,
+# 2026-09-23). Single-proxy (sin trusted_proxy_ip) conserva el pin estricto (false).
+# Se puede forzar true/false explícito en el inventario.
+observer_mesh_ignore_agent_hash_check: "{{ (observer_trusted_proxy_ip | default('')) | length > 0 }}"
 
 # Cuenta admin de MeshCentral (= install.sh meshusername/letsemail). El usuario debe
 # coincidir con MESH_USERNAME de Django (local_settings.j2 default: meshcentral_admin),

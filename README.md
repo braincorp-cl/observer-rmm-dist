@@ -202,6 +202,8 @@ all:
     # Activa el módulo real_ip para que los logs/auditoría registren la IP real del
     # cliente (no la del proxy) e ignora X-Forwarded-For spoofeado. Ponga la IP LAN del
     # proxy. Acepta un valor o una lista. Ver sección "Publicación tras NPM" más abajo.
+    # Definirla TAMBIÉN relaja el pin de hash del agente de MeshCentral (el agente ve el
+    # cert del proxy, no el del servidor); sin eso "Tomar control" no conecta.
     # observer_trusted_proxy_ip: "10.20.0.254"
 
     # --- Tuning de PostgreSQL — AJUSTAR A LA RAM DEL SERVIDOR ---

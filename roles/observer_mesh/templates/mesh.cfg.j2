@@ -21,7 +21,7 @@
       "https://{{ observer_app_domain }}"
     ],
 {#
-  ignoreAgentHashCheck: variable observer_mesh_ignore_agent_hash_check (default false).
+  ignoreAgentHashCheck: variable observer_mesh_ignore_agent_hash_check (default: true si hay observer_trusted_proxy_ip).
   false = pin ESTRICTO del hash de cert del agente (correcto solo en single-proxy: el
   agente ve el mismo cert LE que MeshCentral fija tras tlsOffload+nginx local).
   true = necesario cuando un reverse-proxy RE-ENCRIPTA delante del mesh (NPM corporativo
@@ -32,7 +32,7 @@
   LAN) -> AMBOS lo activan en su inventario. Verificado 2026-07-22 (PROD: nodo TESLADRP
   registró tras el cambio; staging: 7 nodos reconectaron, 0 rechazos). NO global.
 #}
-    "ignoreAgentHashCheck": {{ observer_mesh_ignore_agent_hash_check | to_json }},
+    "ignoreAgentHashCheck": {{ observer_mesh_ignore_agent_hash_check | bool | to_json }},
 {#
   autoBackup nativo de MeshCentral.
   DESACTIVADO (observer_mesh_autobackup_enabled=false) al CIERRE DEL PROYECTO 2026-07-03,
