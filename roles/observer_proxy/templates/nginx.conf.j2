@@ -3,6 +3,10 @@
 # se reemplaza nginx.conf para incluir conf.d/*.conf Y sites-enabled/* (donde el rol
 # despliega rmm/frontend/meshcentral).
 worker_rlimit_nofile 1000000;
+# Tope a los workers que salen en cada reload: sin él, los websockets de larga vida (agentes y
+# MeshCentral) retienen workers viejos indefinidamente; se acumulan y agotan los descriptores del
+# master, que entonces rechaza los reload en silencio (systemctl devuelve 0 igual).
+worker_shutdown_timeout {{ observer_proxy_worker_shutdown_timeout }};
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
