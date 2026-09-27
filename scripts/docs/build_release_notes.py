@@ -313,6 +313,7 @@ __JSONLD__
     <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/release-notes/" class="active"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
     <a href="/guide_reports/"><span class="lang-es">Generar reportes</span><span class="lang-en">Generating reports</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>

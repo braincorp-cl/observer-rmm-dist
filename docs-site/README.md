@@ -16,6 +16,7 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 | `/functions/email_alerts/` | Guía independiente (no enlazada desde la UI): configuración de correos de alerta |
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
+| `/api/` | Referencia pública de la API REST para integraciones de terceros (ITSM/CMDB) con API key. **Generada**: `python3 scripts/docs/build_api_page.py` (rutas y métodos extraídos de `urls.py` + vistas; descripciones en `scripts/docs/api_catalog.py`; falla si una ruta nueva no está descrita) |
 
 Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
 dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"

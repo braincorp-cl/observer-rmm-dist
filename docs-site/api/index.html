@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<!-- GENERADO por scripts/docs/build_api_page.py a partir del código (urls.py + vistas) y de
+     scripts/docs/api_catalog.py. No editar a mano: editar la plantilla o el catálogo y regenerar. -->
+<html lang="es" data-title-es="API REST · Observer RMM" data-title-en="REST API · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API REST de Observer RMM: referencia y API key</title>
+<meta name="description" content="Referencia de la API REST de Observer RMM: cómo generar una API key y todos los endpoints de inventario de equipos, parches, alertas y automatización.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/api/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/api/">
+<meta property="og:title" content="API REST de Observer RMM: referencia y API key">
+<meta property="og:description" content="Integre su ITSM, CMDB o mesa de ayuda con Observer RMM: autenticación por API key y referencia de todos los endpoints REST.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "TechArticle",
+   "@id": "https://docs.observer.cl/api/#article",
+   "headline": "API REST de Observer RMM: referencia y API key",
+   "description": "Cómo autenticarse con una API key y referencia de los endpoints REST de Observer RMM para integraciones de terceros (ITSM, CMDB, mesa de ayuda).",
+   "inLanguage": ["es-CL", "en"],
+   "dateModified": "2026-09-26",
+   "proficiencyLevel": "Expert",
+   "about": {"@type": "SoftwareApplication", "name": "Observer RMM", "applicationCategory": "BusinessApplication"},
+   "author": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "publisher": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "mainEntityOfPage": "https://docs.observer.cl/api/"
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Observer RMM Docs", "item": "https://docs.observer.cl/"},
+    {"@type": "ListItem", "position": 2, "name": "API REST", "item": "https://docs.observer.cl/api/"}
+   ]
+  }
+ ]
+}
+</script>
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .content ol, .content ul { line-height: 1.6; padding-left: 1.3em; }
+  .content ol li, .content ul li { margin: 5px 0; }
+  .toc { columns: 2; column-gap: 28px; padding-left: 1.2em; }
+  .toc li { break-inside: avoid; }
+  .tbl { overflow-x: auto; margin: 12px 0 26px; border: 1px solid var(--border); border-radius: 10px; }
+  table.api, table.plain { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  table.api th, table.api td, table.plain th, table.plain td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  table.api th, table.plain th { background: var(--surface); font-weight: 600; white-space: nowrap; }
+  table.api tr:last-child td, table.plain tr:last-child td { border-bottom: 0; }
+  table.api td:nth-child(2) { white-space: nowrap; }
+  table.api td.perm { color: var(--muted); font-size: .85rem; min-width: 160px; }
+  table.api code, table.plain code { font-size: .85em; }
+  .m { display: inline-block; min-width: 58px; text-align: center; font: 600 .74rem/1.9 ui-monospace, SFMono-Regular, Menlo, monospace; border-radius: 6px; color: #fff; letter-spacing: .02em; }
+  .m-get { background: #0E8FA8; } .m-post { background: #2E7D32; } .m-put { background: #B26A00; }
+  .m-patch { background: #6A4FB3; } .m-delete { background: #C62828; }
+  .steps li { margin: 8px 0; }
+  .kbd { font: 600 .85em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
+  @media (max-width: 760px) { .toc { columns: 1; } }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/api/" class="active"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Integraciones</p>
+      <p class="eyebrow lang-en">Integrations</p>
+      <h1><span class="lang-es">API REST</span><span class="lang-en">REST API</span></h1>
+      <p class="lead lang-es">Observer RMM expone una API REST en JSON para que otros sistemas —un ITSM, una CMDB, una mesa de ayuda o su propio tablero— lean el inventario de equipos y, si se les autoriza, operen sobre la flota. Todo lo que hace la consola web pasa por esta misma API: aquí se documentan sus <strong>184 rutas</strong> y <strong>264 operaciones</strong>, y cómo autenticarse con una <strong>API key</strong>.</p>
+      <p class="lead lang-en">Observer RMM exposes a JSON REST API so other systems —an ITSM, a CMDB, a help desk or your own dashboard— can read the device inventory and, if authorized, act on the fleet. Everything the web console does goes through this same API: this page documents its <strong>184 routes</strong> and <strong>264 operations</strong>, and how to authenticate with an <strong>API key</strong>.</p>
+
+      <h2 id="contenido"><span class="lang-es">Contenido</span><span class="lang-en">Contents</span></h2>
+      <ul class="toc lang-es">
+        <li><a href="#inicio-rapido">Inicio rápido</a></li>
+        <li><a href="#obtener-api-key">Cómo obtener una API key</a></li>
+        <li><a href="#autenticacion">Autenticación y permisos</a></li>
+        <li><a href="#convenciones">Convenciones</a></li>
+        <li><a href="#inventario">Leer el inventario (ITSM / CMDB)</a></li>
+        <li><a href="#ejemplos">Ejemplos: curl, PowerShell y Python</a></li>
+        <li><a href="#seguridad">Buenas prácticas de seguridad</a></li>
+        <li><a href="#referencia">Referencia de endpoints</a></li>
+        <li><a href="#fuera-de-alcance">Rutas fuera del alcance de una API key</a></li>
+      </ul>
+      <ul class="toc lang-en">
+        <li><a href="#inicio-rapido">Quick start</a></li>
+        <li><a href="#obtener-api-key">How to get an API key</a></li>
+        <li><a href="#autenticacion">Authentication and permissions</a></li>
+        <li><a href="#convenciones">Conventions</a></li>
+        <li><a href="#inventario">Reading the inventory (ITSM / CMDB)</a></li>
+        <li><a href="#ejemplos">Examples: curl, PowerShell and Python</a></li>
+        <li><a href="#seguridad">Security best practices</a></li>
+        <li><a href="#referencia">Endpoint reference</a></li>
+        <li><a href="#fuera-de-alcance">Routes outside the scope of an API key</a></li>
+      </ul>
+
+      <!-- ============================================================ inicio rápido -->
+      <h2 id="inicio-rapido"><span class="lang-es">Inicio rápido</span><span class="lang-en">Quick start</span></h2>
+      <p class="lang-es">La API vive en el nombre de host <strong>API</strong> de su servidor Observer RMM —el mismo que usa la consola, normalmente <code>https://api.su-dominio.cl</code>— y se consume sólo por HTTPS. Cada solicitud lleva la clave en el encabezado <code>X-API-KEY</code>:</p>
+      <p class="lang-en">The API lives on the <strong>API</strong> hostname of your Observer RMM server —the same one the console uses, typically <code>https://api.your-domain.com</code>— and is served over HTTPS only. Every request carries the key in the <code>X-API-KEY</code> header:</p>
+<pre><code>curl -s https://api.su-dominio.cl/agents/?detail=false \
+  -H "X-API-KEY: ABCDEFGHIJKLMNOPQRSTUVWXYZ012345" \
+  -H "Accept: application/json"</code></pre>
+      <p class="lang-es">La respuesta es un arreglo JSON con los equipos que el usuario dueño de la clave puede ver. El nombre de host de la API es el mismo al que se conecta el navegador al iniciar sesión en la consola.</p>
+      <p class="lang-en">The response is a JSON array with the devices the key's owner can see. The API hostname is the same one the browser connects to when you sign in to the console.</p>
+
+      <!-- ============================================================ obtener api key -->
+      <h2 id="obtener-api-key"><span class="lang-es">Cómo obtener una API key</span><span class="lang-en">How to get an API key</span></h2>
+      <p class="lang-es">Una API key <strong>actúa en nombre de un usuario</strong> de Observer RMM y hereda exactamente sus permisos. Por eso la práctica recomendada es crear un <strong>usuario de servicio</strong> dedicado a la integración, con un rol de sólo lectura, y generarle la clave. Lo hace un administrador desde la consola web del servidor RMM:</p>
+      <p class="lang-en">An API key <strong>acts on behalf of an Observer RMM user</strong> and inherits exactly that user's permissions. The recommended practice is therefore to create a dedicated <strong>service user</strong> for the integration, with a read-only role, and issue the key to it. An administrator does this from the RMM server's web console:</p>
+      <ol class="steps lang-es">
+        <li><strong>Cree un rol para la integración.</strong> <span class="kbd">Configuración → Gestor de permisos</span> → nuevo rol (p. ej. «Integración ITSM»). Marque sólo lo que la integración necesita leer, por ejemplo <em>Listar agentes</em>, <em>Listar clientes</em>, <em>Listar sitios</em> y <em>Listar software</em>. En <em>Clientes permitidos</em> / <em>Sitios permitidos</em> puede acotar la visibilidad (vacío = todos).</li>
+        <li><strong>Cree el usuario de servicio.</strong> <span class="kbd">Configuración → Administración de usuarios</span> → nuevo usuario con ese rol. Active <em>Denegar inicios de sesión al panel</em>: el usuario existirá sólo para la API y nadie podrá entrar a la consola con él.</li>
+        <li><strong>Genere la clave.</strong> <span class="kbd">Configuración → Configuración global → Claves de API → Agregar clave</span>. Indique un <em>Nombre</em> descriptivo, elija el <em>Usuario</em> de servicio y, opcionalmente, una <em>Expiración de la clave</em>. El servidor genera una clave aleatoria de 32 caracteres, visible en la tabla de claves.</li>
+        <li><strong>Entregue la clave por un canal seguro</strong> (gestor de contraseñas, no correo en claro) al equipo que opera la integración.</li>
+      </ol>
+      <ol class="steps lang-en">
+        <li><strong>Create a role for the integration.</strong> <span class="kbd">Settings → Permissions Manager</span> → new role (e.g. “ITSM integration”). Tick only what the integration needs to read, for example <em>List Agents</em>, <em>List Clients</em>, <em>List Sites</em> and <em>List Software</em>. Use <em>Allowed Clients</em> / <em>Allowed Sites</em> to narrow visibility (empty = all).</li>
+        <li><strong>Create the service user.</strong> <span class="kbd">Settings → User Administration</span> → new user with that role. Enable <em>Deny Dashboard Logins</em>: the user exists only for the API and nobody can sign in to the console with it.</li>
+        <li><strong>Generate the key.</strong> <span class="kbd">Settings → Global Settings → API Keys → Add key</span>. Enter a descriptive <em>Name</em>, pick the service <em>User</em> and, optionally, a <em>Key Expiration</em>. The server generates a random 32-character key, shown in the keys table.</li>
+        <li><strong>Hand the key over through a secure channel</strong> (a password manager, not plain email) to the team running the integration.</li>
+      </ol>
+      <div class="callout note">
+        <p class="lang-es"><span class="tag">Permisos</span> Para ver y crear claves, el administrador necesita en su propio rol <em>Listar claves de API</em> y <em>Gestionar claves de API</em>. Una clave se revoca eliminándola de la misma tabla, con efecto inmediato.</p>
+        <p class="lang-en"><span class="tag">Permissions</span> To view and create keys, the administrator's own role needs <em>List API Keys</em> and <em>Manage API Keys</em>. A key is revoked by deleting it from the same table, effective immediately.</p>
+      </div>
+
+      <!-- ============================================================ autenticación -->
+      <h2 id="autenticacion"><span class="lang-es">Autenticación y permisos</span><span class="lang-en">Authentication and permissions</span></h2>
+      <ul class="lang-es">
+        <li><strong>Encabezado:</strong> <code>X-API-KEY: &lt;clave&gt;</code> en cada solicitud. No hay sesión, cookies ni renovación de tokens.</li>
+        <li><strong>Permisos:</strong> cada operación exige un permiso del rol del usuario dueño de la clave; la columna <em>Permiso del rol</em> de la <a href="#referencia">referencia</a> lo indica con el mismo nombre que muestra la consola.</li>
+        <li><strong>Visibilidad:</strong> los listados se recortan a los <em>Clientes permitidos</em> y <em>Sitios permitidos</em> del rol; un equipo fuera de ese alcance responde como si no existiera.</li>
+        <li><strong>Respuestas de error:</strong> <code>401</code> clave inválida, expirada o de un usuario inactivo · <code>403</code> el rol no tiene el permiso · <code>404</code> el recurso no existe o no es visible · <code>400</code> datos inválidos (el cuerpo trae el motivo en texto).</li>
+        <li><strong>Auditoría:</strong> las acciones hechas con la clave quedan en la auditoría a nombre del usuario de servicio.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Header:</strong> <code>X-API-KEY: &lt;key&gt;</code> on every request. There are no sessions, cookies or token refreshes.</li>
+        <li><strong>Permissions:</strong> every operation requires a permission on the key owner's role; the <em>Role permission</em> column of the <a href="#referencia">reference</a> names it exactly as the console shows it.</li>
+        <li><strong>Visibility:</strong> listings are trimmed to the role's <em>Allowed Clients</em> and <em>Allowed Sites</em>; a device outside that scope behaves as if it did not exist.</li>
+        <li><strong>Error responses:</strong> <code>401</code> invalid or expired key, or inactive user · <code>403</code> the role lacks the permission · <code>404</code> the resource does not exist or is not visible · <code>400</code> invalid data (the body explains why, as text).</li>
+        <li><strong>Audit:</strong> actions performed with the key are recorded in the audit log under the service user.</li>
+      </ul>
+
+      <!-- ============================================================ convenciones -->
+      <h2 id="convenciones"><span class="lang-es">Convenciones</span><span class="lang-en">Conventions</span></h2>
+      <ul class="lang-es">
+        <li><strong>JSON</strong> de entrada y salida (<code>Content-Type: application/json</code>). Fechas en ISO 8601 y <strong>UTC</strong>.</li>
+        <li><strong>La barra final es obligatoria:</strong> <code>/agents/</code>, no <code>/agents</code>.</li>
+        <li><strong>Equipos:</strong> las rutas usan el <code>agent_id</code> (cadena larga única por equipo), no el <code>id</code> numérico. Obténgalo del listado <code>GET /agents/</code>.</li>
+        <li><strong>Consultas con filtros:</strong> algunos listados grandes (alertas, auditoría, historial de chequeos) se consultan con <code>PATCH</code> y los filtros en el cuerpo JSON; son lecturas, no modifican nada.</li>
+        <li><strong>Acciones sobre equipos</strong> (comandos, scripts, reinicios) se entregan al agente en línea; si el equipo está apagado la operación falla o queda como acción pendiente.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>JSON</strong> in and out (<code>Content-Type: application/json</code>). Dates in ISO 8601 and <strong>UTC</strong>.</li>
+        <li><strong>The trailing slash is required:</strong> <code>/agents/</code>, not <code>/agents</code>.</li>
+        <li><strong>Devices:</strong> routes use the <code>agent_id</code> (a long string unique per device), not the numeric <code>id</code>. Get it from the <code>GET /agents/</code> listing.</li>
+        <li><strong>Filtered queries:</strong> some large listings (alerts, audit log, check history) are queried with <code>PATCH</code> and the filters in the JSON body; they are reads and change nothing.</li>
+        <li><strong>Device actions</strong> (commands, scripts, reboots) are delivered to the online agent; if the device is off the operation fails or is queued as a pending action.</li>
+      </ul>
+
+      <!-- ============================================================ inventario -->
+      <h2 id="inventario"><span class="lang-es">Leer el inventario (ITSM / CMDB)</span><span class="lang-en">Reading the inventory (ITSM / CMDB)</span></h2>
+      <p class="lang-es">Una integración de inventario típica sólo necesita cuatro lecturas. Todas funcionan con el rol de sólo lectura descrito arriba.</p>
+      <p class="lang-en">A typical inventory integration needs only four reads. All of them work with the read-only role described above.</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Paso</span><span class="lang-en">Step</span></th><th><span class="lang-es">Solicitud</span><span class="lang-en">Request</span></th><th><span class="lang-es">Para qué</span><span class="lang-en">What for</span></th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>GET /clients/</code></td><td><span class="lang-es">Clientes con sus sitios: la jerarquía para ubicar cada equipo.</span><span class="lang-en">Clients with their sites: the hierarchy to place each device.</span></td></tr>
+          <tr><td>2</td><td><code>GET /agents/</code></td><td><span class="lang-es">Todos los equipos visibles con los campos de la tabla de abajo. Filtre con <code>?client=</code> o <code>?site=</code> para sincronizar por partes.</span><span class="lang-en">Every visible device with the fields in the table below. Filter with <code>?client=</code> or <code>?site=</code> to sync in batches.</span></td></tr>
+          <tr><td>3</td><td><code>GET /agents/{agent_id}/</code></td><td><span class="lang-es">Ficha completa de un equipo, con el inventario de hardware detallado en <code>wmi_detail</code>.</span><span class="lang-en">A device's full record, with detailed hardware inventory in <code>wmi_detail</code>.</span></td></tr>
+          <tr><td>4</td><td><code>GET /software/{agent_id}/</code></td><td><span class="lang-es">Software instalado en el equipo (nombre, versión, editor, fecha).</span><span class="lang-en">Software installed on the device (name, version, publisher, date).</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">Campos de cada equipo en <code>GET /agents/</code>:</p>
+      <p class="lang-en">Fields of each device in <code>GET /agents/</code>:</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Campo</span><span class="lang-en">Field</span></th><th><span class="lang-es">Contenido</span><span class="lang-en">Content</span></th></tr></thead>
+        <tbody>
+          <tr><td><code>agent_id</code></td><td><span class="lang-es">Identificador único del equipo; úselo como clave de sincronización.</span><span class="lang-en">Unique device identifier; use it as your sync key.</span></td></tr>
+          <tr><td><code>hostname</code>, <code>description</code></td><td><span class="lang-es">Nombre del equipo y descripción libre.</span><span class="lang-en">Device name and free-form description.</span></td></tr>
+          <tr><td><code>client_name</code>, <code>site_name</code></td><td><span class="lang-es">Cliente y sitio al que pertenece.</span><span class="lang-en">Client and site it belongs to.</span></td></tr>
+          <tr><td><code>serial_number</code>, <code>make_model</code></td><td><span class="lang-es">Número de serie, fabricante y modelo.</span><span class="lang-en">Serial number, manufacturer and model.</span></td></tr>
+          <tr><td><code>cpu_model</code>, <code>graphics</code>, <code>physical_disks</code></td><td><span class="lang-es">Procesador, tarjeta de video y discos físicos.</span><span class="lang-en">Processor, graphics card and physical disks.</span></td></tr>
+          <tr><td><code>operating_system</code>, <code>plat</code>, <code>goarch</code></td><td><span class="lang-es">Sistema operativo con su build, plataforma (<code>windows</code>, <code>linux</code>, <code>darwin</code>) y arquitectura.</span><span class="lang-en">Operating system with its build, platform (<code>windows</code>, <code>linux</code>, <code>darwin</code>) and architecture.</span></td></tr>
+          <tr><td><code>local_ips</code>, <code>public_ip</code></td><td><span class="lang-es">IP locales y la IP pública vista por el servidor.</span><span class="lang-en">Local IPs and the public IP seen by the server.</span></td></tr>
+          <tr><td><code>status</code>, <code>last_seen</code>, <code>boot_time</code></td><td><span class="lang-es">Estado (<code>online</code>, <code>offline</code>, <code>overdue</code>), último contacto y último arranque (epoch).</span><span class="lang-en">Status (<code>online</code>, <code>offline</code>, <code>overdue</code>), last contact and last boot (epoch).</span></td></tr>
+          <tr><td><code>logged_username</code></td><td><span class="lang-es">Usuario con sesión iniciada (o el último que la tuvo).</span><span class="lang-en">Signed-in user (or the last one who was).</span></td></tr>
+          <tr><td><code>monitoring_type</code>, <code>version</code></td><td><span class="lang-es">Servidor o estación de trabajo, y versión del agente.</span><span class="lang-en">Server or workstation, and agent version.</span></td></tr>
+          <tr><td><code>needs_reboot</code>, <code>has_patches_pending</code></td><td><span class="lang-es">Reinicio pendiente y parches aprobados sin instalar.</span><span class="lang-en">Pending reboot and approved patches not yet installed.</span></td></tr>
+          <tr><td><code>checks</code>, <code>maintenance_mode</code></td><td><span class="lang-es">Resumen del estado de los chequeos y si el equipo está en mantenimiento.</span><span class="lang-en">Check status summary and whether the device is in maintenance.</span></td></tr>
+          <tr><td><code>custom_fields</code></td><td><span class="lang-es">Campos personalizados del equipo (p. ej. número de activo).</span><span class="lang-en">The device's custom fields (e.g. asset tag).</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">Con <code>?detail=false</code> la respuesta es liviana (identificación, sitio, tipo y configuración de alertas) y sirve para detectar altas y bajas sin traer el inventario completo.</p>
+      <p class="lang-en">With <code>?detail=false</code> the response is lightweight (identity, site, type and alert settings), useful for detecting additions and removals without pulling the full inventory.</p>
+
+      <!-- ============================================================ ejemplos -->
+      <h2 id="ejemplos"><span class="lang-es">Ejemplos: curl, PowerShell y Python</span><span class="lang-en">Examples: curl, PowerShell and Python</span></h2>
+      <h3 id="ejemplo-curl">curl</h3>
+<pre><code># Equipos de un cliente / Devices of one client
+curl -s "https://api.su-dominio.cl/agents/?client=3" -H "X-API-KEY: $OBSERVER_API_KEY"
+
+# Ficha de un equipo / One device's record
+curl -s "https://api.su-dominio.cl/agents/{agent_id}/" -H "X-API-KEY: $OBSERVER_API_KEY"</code></pre>
+      <h3 id="ejemplo-powershell">PowerShell</h3>
+<pre><code>$h = @{ "X-API-KEY" = $env:OBSERVER_API_KEY }
+$agents = Invoke-RestMethod -Uri "https://api.su-dominio.cl/agents/" -Headers $h
+$agents | Select-Object hostname, serial_number, operating_system, client_name, site_name, status |
+  Export-Csv inventario.csv -NoTypeInformation -Encoding UTF8</code></pre>
+      <h3 id="ejemplo-python">Python</h3>
+<pre><code>import os, requests
+
+API = "https://api.su-dominio.cl"
+s = requests.Session()
+s.headers.update({"X-API-KEY": os.environ["OBSERVER_API_KEY"]})
+
+for a in s.get(f"{API}/agents/", timeout=60).json():
+    sw = s.get(f"{API}/software/{a['agent_id']}/", timeout=60).json()
+    print(a["hostname"], a["serial_number"], a["status"], len(sw.get("software", []) if sw else []))</code></pre>
+
+      <!-- ============================================================ seguridad -->
+      <h2 id="seguridad"><span class="lang-es">Buenas prácticas de seguridad</span><span class="lang-en">Security best practices</span></h2>
+      <ul class="lang-es">
+        <li><strong>Mínimo privilegio:</strong> una integración de inventario no necesita permisos de comandos, scripts, reinicios, registro ni borrado. Si nunca los tiene, una clave filtrada no puede operar la flota.</li>
+        <li><strong>Nunca asocie la clave a un superusuario:</strong> un superusuario tiene todos los permisos y la clave también.</li>
+        <li><strong>Una clave por integración</strong>, con nombre que la identifique, para poder revocarla sin afectar a las demás.</li>
+        <li><strong>Expiración y rotación:</strong> fije una expiración y rote la clave periódicamente; guárdela en un gestor de secretos, nunca en el código.</li>
+        <li><strong>Restrinja el origen:</strong> si el ITSM tiene IP fija, pídale a su administrador que limite el acceso a la API a esa IP en el proxy o firewall.</li>
+        <li><strong>Operaciones destructivas</strong> (borrado remoto, desinstalación de agentes, modo perdido) exigen permisos propios, que ningún rol de integración debería tener.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Least privilege:</strong> an inventory integration needs no command, script, reboot, registry or wipe permissions. If it never has them, a leaked key cannot operate the fleet.</li>
+        <li><strong>Never tie the key to a superuser:</strong> a superuser has every permission, and so does its key.</li>
+        <li><strong>One key per integration</strong>, with a name that identifies it, so it can be revoked without affecting the others.</li>
+        <li><strong>Expiration and rotation:</strong> set an expiration and rotate the key periodically; keep it in a secrets manager, never in code.</li>
+        <li><strong>Restrict the source:</strong> if the ITSM has a fixed IP, ask your administrator to limit API access to that IP at the proxy or firewall.</li>
+        <li><strong>Destructive operations</strong> (remote wipe, agent uninstall, lost mode) require their own permissions, which no integration role should have.</li>
+      </ul>
+
+      <!-- ============================================================ referencia -->
+      <h2 id="referencia"><span class="lang-es">Referencia de endpoints</span><span class="lang-en">Endpoint reference</span></h2>
+      <p class="lang-es">Todas las rutas son relativas al nombre de host de la API. Las marcadas «uso de la consola» existen para la interfaz web y no son útiles para integraciones.</p>
+      <p class="lang-en">All paths are relative to the API hostname. Those marked “console use” exist for the web interface and are not useful for integrations.</p>
+      <ul class="toc lang-es">
+<li><a href="#ref-agents">Agentes (equipos)</a></li>
+<li><a href="#ref-clients">Clientes y sitios</a></li>
+<li><a href="#ref-software">Software instalado</a></li>
+<li><a href="#ref-winupdate">Windows Update</a></li>
+<li><a href="#ref-services">Servicios de Windows</a></li>
+<li><a href="#ref-checks">Chequeos</a></li>
+<li><a href="#ref-tasks">Tareas automatizadas</a></li>
+<li><a href="#ref-automation">Políticas de automatización</a></li>
+<li><a href="#ref-alerts">Alertas</a></li>
+<li><a href="#ref-scripts">Scripts</a></li>
+<li><a href="#ref-logs">Registros y acciones pendientes</a></li>
+<li><a href="#ref-core">Configuración y utilidades</a></li>
+<li><a href="#ref-accounts">Usuarios, roles y claves de API</a></li>
+<li><a href="#ref-erase">Borrado seguro y recuperación de archivos</a></li>
+<li><a href="#ref-reporting">Reportería</a></li>
+      </ul>
+      <ul class="toc lang-en">
+<li><a href="#ref-agents">Agents (devices)</a></li>
+<li><a href="#ref-clients">Clients and sites</a></li>
+<li><a href="#ref-software">Installed software</a></li>
+<li><a href="#ref-winupdate">Windows Update</a></li>
+<li><a href="#ref-services">Windows services</a></li>
+<li><a href="#ref-checks">Checks</a></li>
+<li><a href="#ref-tasks">Automated tasks</a></li>
+<li><a href="#ref-automation">Automation policies</a></li>
+<li><a href="#ref-alerts">Alerts</a></li>
+<li><a href="#ref-scripts">Scripts</a></li>
+<li><a href="#ref-logs">Logs and pending actions</a></li>
+<li><a href="#ref-core">Settings and utilities</a></li>
+<li><a href="#ref-accounts">Users, roles and API keys</a></li>
+<li><a href="#ref-erase">Secure erase and file retrieval</a></li>
+<li><a href="#ref-reporting">Reporting</a></li>
+      </ul>
+
+<h3 id="ref-agents"><span class="lang-es">Agentes (equipos)</span><span class="lang-en">Agents (devices)</span></h3>
+<p class="lang-es">Inventario y acciones sobre cada equipo administrado. El identificador de ruta es el <code>agent_id</code> (cadena larga), no el <code>id</code> numérico.</p><p class="lang-en">Inventory and actions on each managed device. The path identifier is the <code>agent_id</code> (long string), not the numeric <code>id</code>.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/</code></td><td><span class="lang-es">Listar equipos. Filtros: <code>?client={id}</code>, <code>?site={id}</code>, <code>?monitoring_type=server|workstation</code>, <code>?detail=false</code> (respuesta liviana).</span><span class="lang-en">List devices. Filters: <code>?client={id}</code>, <code>?site={id}</code>, <code>?monitoring_type=server|workstation</code>, <code>?detail=false</code> (lightweight response).</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/</code></td><td><span class="lang-es">Detalle completo de un equipo, incluido el inventario de hardware (<code>wmi_detail</code>).</span><span class="lang-en">Full device detail, including hardware inventory (<code>wmi_detail</code>).</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/agents/{agent_id}/</code></td><td><span class="lang-es">Editar un equipo (descripción, sitio, tipo de monitoreo, alertas, campos personalizados).</span><span class="lang-en">Edit a device (description, site, monitoring type, alerts, custom fields).</span></td><td class="perm"><span class="lang-es">Editar agentes</span><span class="lang-en">Edit Agents</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/</code></td><td><span class="lang-es">Desinstalar el agente y eliminar el equipo.</span><span class="lang-en">Uninstall the agent and delete the device.</span></td><td class="perm"><span class="lang-es">Desinstalar agentes</span><span class="lang-en">Uninstall Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/cmd/</code></td><td><span class="lang-es">Ejecutar un comando (cmd, PowerShell o shell) en el equipo.</span><span class="lang-en">Run a command (cmd, PowerShell or shell) on the device.</span></td><td class="perm"><span class="lang-es">Enviar comando</span><span class="lang-en">Send Command</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/runscript/</code></td><td><span class="lang-es">Ejecutar un script de la biblioteca en el equipo.</span><span class="lang-en">Run a library script on the device.</span></td><td class="perm"><span class="lang-es">Ejecutar script</span><span class="lang-en">Run Script</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/wmi/</code></td><td><span class="lang-es">Solicitar al agente que refresque su inventario de hardware.</span><span class="lang-en">Ask the agent to refresh its hardware inventory.</span></td><td class="perm"><span class="lang-es">Editar agentes</span><span class="lang-en">Edit Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/recover/</code></td><td><span class="lang-es">Recuperar el agente o su conexión de control remoto.</span><span class="lang-en">Recover the agent or its remote-control connection.</span></td><td class="perm"><span class="lang-es">Recuperar agentes</span><span class="lang-en">Recover Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/reboot/</code></td><td><span class="lang-es">Reiniciar el equipo ahora.</span><span class="lang-en">Reboot the device now.</span></td><td class="perm"><span class="lang-es">Apagar / reiniciar agentes</span><span class="lang-en">Shutdown / Reboot Agents</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/agents/{agent_id}/reboot/</code></td><td><span class="lang-es">Programar un reinicio.</span><span class="lang-en">Schedule a reboot.</span></td><td class="perm"><span class="lang-es">Apagar / reiniciar agentes</span><span class="lang-en">Shutdown / Reboot Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/shutdown/</code></td><td><span class="lang-es">Apagar el equipo.</span><span class="lang-en">Shut down the device.</span></td><td class="perm"><span class="lang-es">Apagar / reiniciar agentes</span><span class="lang-en">Shutdown / Reboot Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/ping/</code></td><td><span class="lang-es">Comprobar si el agente responde en este momento.</span><span class="lang-en">Check whether the agent responds right now.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/checks/</code></td><td><span class="lang-es">Listar los chequeos del equipo.</span><span class="lang-en">List the device's checks.</span></td><td class="perm"><span class="lang-es">Listar chequeos</span><span class="lang-en">List Checks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/checks/</code></td><td><span class="lang-es">Crear un chequeo en el equipo.</span><span class="lang-en">Create a check on the device.</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/tasks/</code></td><td><span class="lang-es">Listar las tareas automatizadas del equipo.</span><span class="lang-en">List the device's automated tasks.</span></td><td class="perm"><span class="lang-es">Listar tareas</span><span class="lang-en">List Tasks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/tasks/</code></td><td><span class="lang-es">Crear una tarea automatizada en el equipo.</span><span class="lang-en">Create an automated task on the device.</span></td><td class="perm"><span class="lang-es">Gestionar tareas</span><span class="lang-en">Manage Tasks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/pendingactions/</code></td><td><span class="lang-es">Listar las acciones pendientes del equipo.</span><span class="lang-en">List the device's pending actions.</span></td><td class="perm"><span class="lang-es">Listar acciones pendientes</span><span class="lang-en">List Pending Actions</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/meshcentral/</code></td><td><span class="lang-es">Obtener los enlaces de control remoto, terminal y archivos.</span><span class="lang-en">Get the remote control, terminal and file links.</span></td><td class="perm"><span class="lang-es">Usar MeshCentral</span><span class="lang-en">Use MeshCentral</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/meshcentral/</code></td><td><span class="lang-es">Reinstalar o recuperar el componente de control remoto.</span><span class="lang-en">Reinstall or recover the remote-control component.</span></td><td class="perm"><span class="lang-es">Usar MeshCentral</span><span class="lang-en">Use MeshCentral</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/{port}/webvnc/</code></td><td><span class="lang-es">Obtener el enlace de VNC web del equipo.</span><span class="lang-en">Get the device's web VNC link.</span></td><td class="perm"><span class="lang-es">Usar MeshCentral</span><span class="lang-en">Use MeshCentral</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/meshcentral/recover/</code></td><td><span class="lang-es">Estado de recuperación del control remoto.</span><span class="lang-en">Remote-control recovery status.</span></td><td class="perm"><span class="lang-es">Usar MeshCentral</span><span class="lang-en">Use MeshCentral</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/meshcentral/recover/</code></td><td><span class="lang-es">Forzar la recuperación del control remoto.</span><span class="lang-en">Force remote-control recovery.</span></td><td class="perm"><span class="lang-es">Usar MeshCentral</span><span class="lang-en">Use MeshCentral</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/processes/</code></td><td><span class="lang-es">Listar los procesos en ejecución.</span><span class="lang-en">List running processes.</span></td><td class="perm"><span class="lang-es">Gestionar procesos</span><span class="lang-en">Manage Processes</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/processes/{pid}/</code></td><td><span class="lang-es">Terminar un proceso.</span><span class="lang-en">Kill a process.</span></td><td class="perm"><span class="lang-es">Gestionar procesos</span><span class="lang-en">Manage Processes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/eventlog/{logtype}/{days}/</code></td><td><span class="lang-es">Leer el registro de eventos de Windows (<code>Application</code>, <code>System</code>, <code>Security</code>) de los últimos N días.</span><span class="lang-en">Read the Windows event log (<code>Application</code>, <code>System</code>, <code>Security</code>) for the last N days.</span></td><td class="perm"><span class="lang-es">Ver registros de eventos</span><span class="lang-en">View Event Logs</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/history/</code></td><td><span class="lang-es">Historial de acciones sobre todos los equipos.</span><span class="lang-en">Action history across all devices.</span></td><td class="perm"><span class="lang-es">Listar historial de agentes</span><span class="lang-en">List Agent History</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/history/</code></td><td><span class="lang-es">Historial de acciones del equipo (comandos, scripts, reinicios).</span><span class="lang-en">Device action history (commands, scripts, reboots).</span></td><td class="perm"><span class="lang-es">Listar historial de agentes</span><span class="lang-en">List Agent History</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/lock/</code></td><td><span class="lang-es">Bloquear la sesión del equipo.</span><span class="lang-en">Lock the device session.</span></td><td class="perm"><span class="lang-es">Bloquear pantalla</span><span class="lang-en">Lock screen</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/alert/</code></td><td><span class="lang-es">Mostrar un mensaje emergente al usuario del equipo.</span><span class="lang-en">Show a pop-up message to the device user.</span></td><td class="perm"><span class="lang-es">Enviar mensajes en pantalla</span><span class="lang-en">Send on-screen messages</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/alarm/</code></td><td><span class="lang-es">Activar la alarma sonora.</span><span class="lang-en">Sound the audible alarm.</span></td><td class="perm"><span class="lang-es">Hacer sonar la alarma</span><span class="lang-en">Sound the alarm</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/alarm/</code></td><td><span class="lang-es">Detener la alarma sonora.</span><span class="lang-en">Stop the audible alarm.</span></td><td class="perm"><span class="lang-es">Hacer sonar la alarma</span><span class="lang-en">Sound the alarm</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/lostmode/</code></td><td><span class="lang-es">Activar el modo perdido (antirrobo).</span><span class="lang-en">Enable lost mode (anti-theft).</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/lostmode/</code></td><td><span class="lang-es">Desactivar el modo perdido.</span><span class="lang-en">Disable lost mode.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/lostmode/policy/</code></td><td><span class="lang-es">Ver la política de modo perdido del equipo.</span><span class="lang-en">View the device's lost-mode policy.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/agents/{agent_id}/lostmode/policy/</code></td><td><span class="lang-es">Editar la política de modo perdido.</span><span class="lang-en">Edit the lost-mode policy.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/lostmode/</code></td><td><span class="lang-es">Listar los equipos en modo perdido.</span><span class="lang-en">List devices in lost mode.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/lostmode/evidence/</code></td><td><span class="lang-es">Listar la evidencia capturada (fotos, pantallas, ubicación).</span><span class="lang-en">List captured evidence (photos, screenshots, location).</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/lostmode/evidence/{id}/file/</code></td><td><span class="lang-es">Descargar un archivo de evidencia.</span><span class="lang-en">Download an evidence file.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos, Ver evidencia de equipos perdidos</span><span class="lang-en">Mark devices as lost, View lost device evidence</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/lostmode/export/</code></td><td><span class="lang-es">Exportar el expediente de modo perdido.</span><span class="lang-en">Export the lost-mode case file.</span></td><td class="perm"><span class="lang-es">Marcar equipos como perdidos</span><span class="lang-en">Mark devices as lost</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/diskencryption/</code></td><td><span class="lang-es">Estado de cifrado de disco de toda la flota.</span><span class="lang-en">Disk-encryption status across the fleet.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/diskencryption/</code></td><td><span class="lang-es">Estado de cifrado de disco del equipo.</span><span class="lang-en">Device disk-encryption status.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/location/</code></td><td><span class="lang-es">Última ubicación conocida del equipo.</span><span class="lang-en">Last known device location.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/location/history/</code></td><td><span class="lang-es">Historial de ubicaciones del equipo.</span><span class="lang-en">Device location history.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/notes/</code></td><td><span class="lang-es">Listar notas de todos los equipos.</span><span class="lang-en">List notes across all devices.</span></td><td class="perm"><span class="lang-es">Listar notas</span><span class="lang-en">List Notes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/notes/</code></td><td><span class="lang-es">Crear una nota.</span><span class="lang-en">Create a note.</span></td><td class="perm"><span class="lang-es">Gestionar notas</span><span class="lang-en">Manage Notes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/notes/{id}/</code></td><td><span class="lang-es">Ver una nota.</span><span class="lang-en">View a note.</span></td><td class="perm"><span class="lang-es">Listar notas</span><span class="lang-en">List Notes</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/agents/notes/{id}/</code></td><td><span class="lang-es">Editar una nota.</span><span class="lang-en">Edit a note.</span></td><td class="perm"><span class="lang-es">Gestionar notas</span><span class="lang-en">Manage Notes</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/notes/{id}/</code></td><td><span class="lang-es">Eliminar una nota.</span><span class="lang-en">Delete a note.</span></td><td class="perm"><span class="lang-es">Gestionar notas</span><span class="lang-en">Manage Notes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/notes/</code></td><td><span class="lang-es">Listar las notas del equipo.</span><span class="lang-en">List the device's notes.</span></td><td class="perm"><span class="lang-es">Listar notas</span><span class="lang-en">List Notes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/notes/</code></td><td><span class="lang-es">Agregar una nota al equipo.</span><span class="lang-en">Add a note to the device.</span></td><td class="perm"><span class="lang-es">Gestionar notas</span><span class="lang-en">Manage Notes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/maintenance/bulk/</code></td><td><span class="lang-es">Activar o desactivar el modo mantenimiento por cliente, sitio o lista de equipos.</span><span class="lang-en">Enable or disable maintenance mode by client, site or device list.</span></td><td class="perm"><span class="lang-es">Editar agentes</span><span class="lang-en">Edit Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/actions/bulk/</code></td><td><span class="lang-es">Acción masiva: comando, script o parches sobre varios equipos.</span><span class="lang-en">Bulk action: command, script or patching on several devices.</span></td><td class="perm"><span class="lang-es">Acciones masivas</span><span class="lang-en">Bulk Actions</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/versions/</code></td><td><span class="lang-es">Versiones de agente presentes en la flota.</span><span class="lang-en">Agent versions present in the fleet.</span></td><td class="perm"><span class="lang-es">Listar agentes</span><span class="lang-en">List Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/update/</code></td><td><span class="lang-es">Actualizar el agente en los equipos indicados.</span><span class="lang-en">Update the agent on the given devices.</span></td><td class="perm"><span class="lang-es">Actualizar agentes</span><span class="lang-en">Update Agents</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/installer/</code></td><td><span class="lang-es">Generar un instalador del agente.</span><span class="lang-en">Generate an agent installer.</span></td><td class="perm"><span class="lang-es">Instalar agentes</span><span class="lang-en">Install Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/bulkrecovery/</code></td><td><span class="lang-es">Descargar el script de recuperación masiva de agentes.</span><span class="lang-en">Download the bulk agent-recovery script.</span></td><td class="perm"><span class="lang-es">Recuperar agentes</span><span class="lang-en">Recover Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/scripthistory/</code></td><td><span class="lang-es">Historial de ejecución de scripts (filtrable).</span><span class="lang-en">Script run history (filterable).</span></td><td class="perm"><span class="lang-es">Listar historial de agentes</span><span class="lang-en">List Agent History</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/wol/</code></td><td><span class="lang-es">Enviar un paquete Wake-on-LAN.</span><span class="lang-en">Send a Wake-on-LAN packet.</span></td><td class="perm"><span class="lang-es">Encender agentes (WoL)</span><span class="lang-en">Wake-Up (WoL) Agents</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/agents/{agent_id}/registry/</code></td><td><span class="lang-es">Explorar el registro de Windows.</span><span class="lang-en">Browse the Windows registry.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/registry/create-key/</code></td><td><span class="lang-es">Crear una clave de registro.</span><span class="lang-en">Create a registry key.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/registry/delete-key/</code></td><td><span class="lang-es">Eliminar una clave de registro.</span><span class="lang-en">Delete a registry key.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/registry/rename-key/</code></td><td><span class="lang-es">Renombrar una clave de registro.</span><span class="lang-en">Rename a registry key.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/registry/create-value/</code></td><td><span class="lang-es">Crear un valor de registro.</span><span class="lang-en">Create a registry value.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/agents/{agent_id}/registry/delete-value/</code></td><td><span class="lang-es">Eliminar un valor de registro.</span><span class="lang-en">Delete a registry value.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/registry/rename-value/</code></td><td><span class="lang-es">Renombrar un valor de registro.</span><span class="lang-en">Rename a registry value.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/agents/{agent_id}/registry/modify-value/</code></td><td><span class="lang-es">Modificar un valor de registro.</span><span class="lang-en">Modify a registry value.</span></td><td class="perm"><span class="lang-es">Usar registro</span><span class="lang-en">Use Registry</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-clients"><span class="lang-es">Clientes y sitios</span><span class="lang-en">Clients and sites</span></h3>
+<p class="lang-es">La jerarquía organizacional: cada equipo pertenece a un sitio y cada sitio a un cliente.</p><p class="lang-en">The organizational hierarchy: every device belongs to a site and every site to a client.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/clients/</code></td><td><span class="lang-es">Listar clientes con sus sitios y cantidad de equipos.</span><span class="lang-en">List clients with their sites and device count.</span></td><td class="perm"><span class="lang-es">Listar clientes</span><span class="lang-en">List Clients</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/clients/</code></td><td><span class="lang-es">Crear un cliente (con su primer sitio).</span><span class="lang-en">Create a client (with its first site).</span></td><td class="perm"><span class="lang-es">Gestionar clientes</span><span class="lang-en">Manage Clients</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/clients/{id}/</code></td><td><span class="lang-es">Ver un cliente.</span><span class="lang-en">View a client.</span></td><td class="perm"><span class="lang-es">Listar clientes</span><span class="lang-en">List Clients</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/clients/{id}/</code></td><td><span class="lang-es">Editar un cliente.</span><span class="lang-en">Edit a client.</span></td><td class="perm"><span class="lang-es">Gestionar clientes</span><span class="lang-en">Manage Clients</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/clients/{id}/</code></td><td><span class="lang-es">Eliminar un cliente (moviendo sus equipos a otro sitio).</span><span class="lang-en">Delete a client (moving its devices to another site).</span></td><td class="perm"><span class="lang-es">Gestionar clientes</span><span class="lang-en">Manage Clients</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/clients/sites/</code></td><td><span class="lang-es">Listar sitios.</span><span class="lang-en">List sites.</span></td><td class="perm"><span class="lang-es">Listar sitios</span><span class="lang-en">List Sites</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/clients/sites/</code></td><td><span class="lang-es">Crear un sitio.</span><span class="lang-en">Create a site.</span></td><td class="perm"><span class="lang-es">Gestionar sitios</span><span class="lang-en">Manage Sites</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/clients/sites/{id}/</code></td><td><span class="lang-es">Ver un sitio.</span><span class="lang-en">View a site.</span></td><td class="perm"><span class="lang-es">Listar sitios</span><span class="lang-en">List Sites</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/clients/sites/{id}/</code></td><td><span class="lang-es">Editar un sitio.</span><span class="lang-en">Edit a site.</span></td><td class="perm"><span class="lang-es">Gestionar sitios</span><span class="lang-en">Manage Sites</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/clients/sites/{id}/</code></td><td><span class="lang-es">Eliminar un sitio (moviendo sus equipos a otro).</span><span class="lang-en">Delete a site (moving its devices to another).</span></td><td class="perm"><span class="lang-es">Gestionar sitios</span><span class="lang-en">Manage Sites</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/clients/deployments/</code></td><td><span class="lang-es">Listar enlaces de despliegue del instalador.</span><span class="lang-en">List installer deployment links.</span></td><td class="perm"><span class="lang-es">Listar despliegues</span><span class="lang-en">List Deployments</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/clients/deployments/</code></td><td><span class="lang-es">Crear un enlace de despliegue.</span><span class="lang-en">Create a deployment link.</span></td><td class="perm"><span class="lang-es">Gestionar despliegues</span><span class="lang-en">Manage Deployments</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/clients/deployments/{id}/</code></td><td><span class="lang-es">Eliminar un enlace de despliegue.</span><span class="lang-en">Delete a deployment link.</span></td><td class="perm"><span class="lang-es">Gestionar despliegues</span><span class="lang-en">Manage Deployments</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-software"><span class="lang-es">Software instalado</span><span class="lang-en">Installed software</span></h3>
+<p class="lang-es">Inventario de software por equipo y acciones de instalación o desinstalación.</p><p class="lang-en">Per-device software inventory and install/uninstall actions.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/software/chocos/</code></td><td><span class="lang-es">Catálogo de paquetes instalables (Chocolatey).</span><span class="lang-en">Catalog of installable packages (Chocolatey).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/software/</code></td><td><span class="lang-es">Software instalado en todos los equipos visibles para el usuario.</span><span class="lang-en">Installed software on every device visible to the user.</span></td><td class="perm"><span class="lang-es">Listar software</span><span class="lang-en">List Software</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/software/{agent_id}/</code></td><td><span class="lang-es">Software instalado en el equipo.</span><span class="lang-en">Software installed on the device.</span></td><td class="perm"><span class="lang-es">Listar software</span><span class="lang-en">List Software</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/software/{agent_id}/</code></td><td><span class="lang-es">Instalar un paquete en el equipo.</span><span class="lang-en">Install a package on the device.</span></td><td class="perm"><span class="lang-es">Gestionar software</span><span class="lang-en">Manage Software</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/software/{agent_id}/</code></td><td><span class="lang-es">Refrescar el inventario de software del equipo.</span><span class="lang-en">Refresh the device's software inventory.</span></td><td class="perm"><span class="lang-es">Gestionar software</span><span class="lang-en">Manage Software</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/software/{agent_id}/uninstall/</code></td><td><span class="lang-es">Desinstalar un programa del equipo.</span><span class="lang-en">Uninstall a program from the device.</span></td><td class="perm"><span class="lang-es">Gestionar software, Enviar comando</span><span class="lang-en">Manage Software, Send Command</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-winupdate"><span class="lang-es">Windows Update</span><span class="lang-en">Windows Update</span></h3>
+<p class="lang-es">Parches de Windows detectados por equipo, su aprobación e instalación.</p><p class="lang-en">Windows patches detected per device, their approval and installation.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/winupdate/{agent_id}/</code></td><td><span class="lang-es">Parches de Windows del equipo (instalados y pendientes).</span><span class="lang-en">Device Windows patches (installed and pending).</span></td><td class="perm"><span class="lang-es">Gestionar actualizaciones de Windows</span><span class="lang-en">Manage Windows Updates</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/winupdate/{agent_id}/scan/</code></td><td><span class="lang-es">Buscar actualizaciones ahora.</span><span class="lang-en">Scan for updates now.</span></td><td class="perm"><span class="lang-es">Gestionar actualizaciones de Windows</span><span class="lang-en">Manage Windows Updates</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/winupdate/{agent_id}/install/</code></td><td><span class="lang-es">Instalar los parches aprobados.</span><span class="lang-en">Install approved patches.</span></td><td class="perm"><span class="lang-es">Gestionar actualizaciones de Windows</span><span class="lang-en">Manage Windows Updates</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/winupdate/{id}/</code></td><td><span class="lang-es">Aprobar o ignorar un parche.</span><span class="lang-en">Approve or ignore a patch.</span></td><td class="perm"><span class="lang-es">Gestionar actualizaciones de Windows</span><span class="lang-en">Manage Windows Updates</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-services"><span class="lang-es">Servicios de Windows</span><span class="lang-en">Windows services</span></h3>
+<p class="lang-es">Consulta y control de servicios de Windows de un equipo.</p><p class="lang-en">Query and control Windows services on a device.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/services/{agent_id}/</code></td><td><span class="lang-es">Listar los servicios de Windows del equipo.</span><span class="lang-en">List the device's Windows services.</span></td><td class="perm"><span class="lang-es">Gestionar servicios de Windows</span><span class="lang-en">Manage Windows Services</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/services/{agent_id}/{svcname}/</code></td><td><span class="lang-es">Detalle de un servicio.</span><span class="lang-en">Service detail.</span></td><td class="perm"><span class="lang-es">Gestionar servicios de Windows</span><span class="lang-en">Manage Windows Services</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/services/{agent_id}/{svcname}/</code></td><td><span class="lang-es">Iniciar, detener o reiniciar un servicio.</span><span class="lang-en">Start, stop or restart a service.</span></td><td class="perm"><span class="lang-es">Gestionar servicios de Windows</span><span class="lang-en">Manage Windows Services</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/services/{agent_id}/{svcname}/</code></td><td><span class="lang-es">Cambiar el tipo de inicio de un servicio.</span><span class="lang-en">Change a service's start type.</span></td><td class="perm"><span class="lang-es">Gestionar servicios de Windows</span><span class="lang-en">Manage Windows Services</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-checks"><span class="lang-es">Chequeos</span><span class="lang-en">Checks</span></h3>
+<p class="lang-es">Chequeos de monitoreo (disco, CPU, memoria, servicios, scripts, ping, eventos) y su historial.</p><p class="lang-en">Monitoring checks (disk, CPU, memory, services, scripts, ping, events) and their history.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-post">POST</span></td><td><code>/checks/</code></td><td><span class="lang-es">Crear un chequeo (en un equipo o una política).</span><span class="lang-en">Create a check (on a device or a policy).</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/checks/{id}/</code></td><td><span class="lang-es">Ver un chequeo.</span><span class="lang-en">View a check.</span></td><td class="perm"><span class="lang-es">Listar chequeos</span><span class="lang-en">List Checks</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/checks/{id}/</code></td><td><span class="lang-es">Editar un chequeo.</span><span class="lang-en">Edit a check.</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/checks/{id}/</code></td><td><span class="lang-es">Eliminar un chequeo.</span><span class="lang-en">Delete a check.</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/checks/{id}/reset/</code></td><td><span class="lang-es">Restablecer el estado de un chequeo fallido.</span><span class="lang-en">Reset a failing check's status.</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/checks/{agent_id}/resetall/</code></td><td><span class="lang-es">Restablecer todos los chequeos del equipo.</span><span class="lang-en">Reset all of the device's checks.</span></td><td class="perm"><span class="lang-es">Gestionar chequeos</span><span class="lang-en">Manage Checks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/checks/{agent_id}/run/</code></td><td><span class="lang-es">Ejecutar ahora los chequeos del equipo.</span><span class="lang-en">Run the device's checks now.</span></td><td class="perm"><span class="lang-es">Ejecutar chequeos</span><span class="lang-en">Run Checks</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/checks/{id}/history/</code></td><td><span class="lang-es">Historial de resultados del chequeo (rango de fechas en el cuerpo).</span><span class="lang-en">Check result history (date range in the body).</span></td><td class="perm"><span class="lang-es">Listar chequeos</span><span class="lang-en">List Checks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/checks/{target}/{id}/csbulkrun/</code></td><td><span class="lang-es">Ejecutar un chequeo en todos los equipos de un cliente o sitio.</span><span class="lang-en">Run a check on every device of a client or site.</span></td><td class="perm"><span class="lang-es">Ejecutar chequeos</span><span class="lang-en">Run Checks</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-tasks"><span class="lang-es">Tareas automatizadas</span><span class="lang-en">Automated tasks</span></h3>
+<p class="lang-es">Tareas programadas que ejecutan scripts u otras acciones en los equipos.</p><p class="lang-en">Scheduled tasks that run scripts or other actions on devices.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-post">POST</span></td><td><code>/tasks/</code></td><td><span class="lang-es">Crear una tarea automatizada.</span><span class="lang-en">Create an automated task.</span></td><td class="perm"><span class="lang-es">Gestionar tareas</span><span class="lang-en">Manage Tasks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/tasks/{id}/</code></td><td><span class="lang-es">Ver una tarea.</span><span class="lang-en">View a task.</span></td><td class="perm"><span class="lang-es">Listar tareas</span><span class="lang-en">List Tasks</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/tasks/{id}/</code></td><td><span class="lang-es">Editar una tarea.</span><span class="lang-en">Edit a task.</span></td><td class="perm"><span class="lang-es">Gestionar tareas</span><span class="lang-en">Manage Tasks</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/tasks/{id}/</code></td><td><span class="lang-es">Eliminar una tarea.</span><span class="lang-en">Delete a task.</span></td><td class="perm"><span class="lang-es">Gestionar tareas</span><span class="lang-en">Manage Tasks</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/tasks/{id}/run/</code></td><td><span class="lang-es">Ejecutar la tarea ahora.</span><span class="lang-en">Run the task now.</span></td><td class="perm"><span class="lang-es">Ejecutar tareas</span><span class="lang-en">Run Tasks</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-automation"><span class="lang-es">Políticas de automatización</span><span class="lang-en">Automation policies</span></h3>
+<p class="lang-es">Políticas que agrupan chequeos, tareas y parches y se aplican a clientes, sitios o equipos.</p><p class="lang-en">Policies that bundle checks, tasks and patching and apply to clients, sites or devices.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/</code></td><td><span class="lang-es">Listar políticas.</span><span class="lang-en">List policies.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/automation/policies/</code></td><td><span class="lang-es">Crear una política.</span><span class="lang-en">Create a policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/{id}/related/</code></td><td><span class="lang-es">Clientes, sitios y equipos a los que se aplica la política.</span><span class="lang-en">Clients, sites and devices the policy applies to.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/overview/</code></td><td><span class="lang-es">Vista general de políticas por cliente y sitio.</span><span class="lang-en">Policy overview by client and site.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/{id}/</code></td><td><span class="lang-es">Ver una política.</span><span class="lang-en">View a policy.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/automation/policies/{id}/</code></td><td><span class="lang-es">Editar una política.</span><span class="lang-en">Edit a policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/automation/policies/{id}/</code></td><td><span class="lang-es">Eliminar una política.</span><span class="lang-en">Delete a policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/{policy}/checks/</code></td><td><span class="lang-es">Listar los chequeos de la política.</span><span class="lang-en">List the policy's checks.</span></td><td class="perm"><span class="lang-es">Listar chequeos</span><span class="lang-en">List Checks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/policies/{policy}/tasks/</code></td><td><span class="lang-es">Listar las tareas de la política.</span><span class="lang-en">List the policy's tasks.</span></td><td class="perm"><span class="lang-es">Listar tareas</span><span class="lang-en">List Tasks</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/checks/{check}/status/</code></td><td><span class="lang-es">Estado de un chequeo de política en cada equipo.</span><span class="lang-en">Status of a policy check on each device.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/automation/tasks/{task}/status/</code></td><td><span class="lang-es">Estado de una tarea de política en cada equipo.</span><span class="lang-en">Status of a policy task on each device.</span></td><td class="perm"><span class="lang-es">Listar políticas de automatización</span><span class="lang-en">List Automation Policies</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/automation/tasks/{task}/run/</code></td><td><span class="lang-es">Ejecutar la tarea de política en todos sus equipos.</span><span class="lang-en">Run the policy task on all its devices.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/automation/patchpolicy/</code></td><td><span class="lang-es">Crear la política de parches de una política.</span><span class="lang-en">Create a policy's patch policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/automation/patchpolicy/{id}/</code></td><td><span class="lang-es">Editar una política de parches.</span><span class="lang-en">Edit a patch policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/automation/patchpolicy/{id}/</code></td><td><span class="lang-es">Eliminar una política de parches.</span><span class="lang-en">Delete a patch policy.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/automation/patchpolicy/reset/</code></td><td><span class="lang-es">Restablecer la configuración de parches heredada por clientes, sitios o equipos.</span><span class="lang-en">Reset patch settings inherited by clients, sites or devices.</span></td><td class="perm"><span class="lang-es">Gestionar políticas de automatización</span><span class="lang-en">Manage Automation Policies</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-alerts"><span class="lang-es">Alertas</span><span class="lang-en">Alerts</span></h3>
+<p class="lang-es">Alertas generadas por chequeos, tareas y disponibilidad, y sus plantillas.</p><p class="lang-en">Alerts raised by checks, tasks and availability, and their templates.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/alerts/</code></td><td><span class="lang-es">Listar alertas con filtros (fechas, severidad, estado, cliente) en el cuerpo.</span><span class="lang-en">List alerts with filters (dates, severity, status, client) in the body.</span></td><td class="perm"><span class="lang-es">Listar alertas</span><span class="lang-en">List Alerts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/alerts/{id}/</code></td><td><span class="lang-es">Ver una alerta.</span><span class="lang-en">View an alert.</span></td><td class="perm"><span class="lang-es">Listar alertas</span><span class="lang-en">List Alerts</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/alerts/{id}/</code></td><td><span class="lang-es">Reconocer, resolver o posponer una alerta.</span><span class="lang-en">Acknowledge, resolve or snooze an alert.</span></td><td class="perm"><span class="lang-es">Gestionar alertas</span><span class="lang-en">Manage Alerts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/alerts/{id}/</code></td><td><span class="lang-es">Eliminar una alerta.</span><span class="lang-en">Delete an alert.</span></td><td class="perm"><span class="lang-es">Gestionar alertas</span><span class="lang-en">Manage Alerts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/alerts/bulk/</code></td><td><span class="lang-es">Reconocer o resolver alertas en lote.</span><span class="lang-en">Acknowledge or resolve alerts in bulk.</span></td><td class="perm"><span class="lang-es">Gestionar alertas</span><span class="lang-en">Manage Alerts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/alerts/templates/</code></td><td><span class="lang-es">Listar plantillas de alerta.</span><span class="lang-en">List alert templates.</span></td><td class="perm"><span class="lang-es">Listar plantillas de alerta</span><span class="lang-en">List Alert Templates</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/alerts/templates/</code></td><td><span class="lang-es">Crear una plantilla de alerta.</span><span class="lang-en">Create an alert template.</span></td><td class="perm"><span class="lang-es">Gestionar plantillas de alerta</span><span class="lang-en">Manage Alert Templates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/alerts/templates/{id}/</code></td><td><span class="lang-es">Ver una plantilla de alerta.</span><span class="lang-en">View an alert template.</span></td><td class="perm"><span class="lang-es">Listar plantillas de alerta</span><span class="lang-en">List Alert Templates</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/alerts/templates/{id}/</code></td><td><span class="lang-es">Editar una plantilla de alerta.</span><span class="lang-en">Edit an alert template.</span></td><td class="perm"><span class="lang-es">Gestionar plantillas de alerta</span><span class="lang-en">Manage Alert Templates</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/alerts/templates/{id}/</code></td><td><span class="lang-es">Eliminar una plantilla de alerta.</span><span class="lang-en">Delete an alert template.</span></td><td class="perm"><span class="lang-es">Gestionar plantillas de alerta</span><span class="lang-en">Manage Alert Templates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/alerts/templates/{id}/related/</code></td><td><span class="lang-es">Clientes, sitios y políticas que usan la plantilla.</span><span class="lang-en">Clients, sites and policies using the template.</span></td><td class="perm"><span class="lang-es">Listar plantillas de alerta</span><span class="lang-en">List Alert Templates</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-scripts"><span class="lang-es">Scripts</span><span class="lang-en">Scripts</span></h3>
+<p class="lang-es">Biblioteca de scripts y fragmentos reutilizables.</p><p class="lang-en">Library of scripts and reusable snippets.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/scripts/</code></td><td><span class="lang-es">Listar scripts de la biblioteca.</span><span class="lang-en">List library scripts.</span></td><td class="perm"><span class="lang-es">Listar scripts</span><span class="lang-en">List Scripts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/scripts/</code></td><td><span class="lang-es">Crear un script.</span><span class="lang-en">Create a script.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/scripts/{id}/</code></td><td><span class="lang-es">Ver un script (con su código).</span><span class="lang-en">View a script (with its code).</span></td><td class="perm"><span class="lang-es">Listar scripts</span><span class="lang-en">List Scripts</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/scripts/{id}/</code></td><td><span class="lang-es">Editar un script.</span><span class="lang-en">Edit a script.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/scripts/{id}/</code></td><td><span class="lang-es">Eliminar un script.</span><span class="lang-en">Delete a script.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/scripts/snippets/</code></td><td><span class="lang-es">Listar fragmentos reutilizables.</span><span class="lang-en">List reusable snippets.</span></td><td class="perm"><span class="lang-es">Listar scripts</span><span class="lang-en">List Scripts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/scripts/snippets/</code></td><td><span class="lang-es">Crear un fragmento.</span><span class="lang-en">Create a snippet.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/scripts/snippets/{id}/</code></td><td><span class="lang-es">Ver un fragmento.</span><span class="lang-en">View a snippet.</span></td><td class="perm"><span class="lang-es">Listar scripts</span><span class="lang-en">List Scripts</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/scripts/snippets/{id}/</code></td><td><span class="lang-es">Editar un fragmento.</span><span class="lang-en">Edit a snippet.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/scripts/snippets/{id}/</code></td><td><span class="lang-es">Eliminar un fragmento.</span><span class="lang-en">Delete a snippet.</span></td><td class="perm"><span class="lang-es">Gestionar scripts</span><span class="lang-en">Manage Scripts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/scripts/{agent_id}/test/</code></td><td><span class="lang-es">Probar un script en un equipo sin guardarlo.</span><span class="lang-en">Test a script on a device without saving it.</span></td><td class="perm"><span class="lang-es">Ejecutar script</span><span class="lang-en">Run Script</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/scripts/{id}/download/</code></td><td><span class="lang-es">Descargar el código de un script.</span><span class="lang-en">Download a script's code.</span></td><td class="perm"><span class="lang-es">Listar scripts</span><span class="lang-en">List Scripts</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-logs"><span class="lang-es">Registros y acciones pendientes</span><span class="lang-en">Logs and pending actions</span></h3>
+<p class="lang-es">Auditoría, registro de depuración y acciones en cola hacia los agentes.</p><p class="lang-en">Audit trail, debug log and actions queued for agents.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/logs/pendingactions/</code></td><td><span class="lang-es">Listar acciones pendientes de toda la flota.</span><span class="lang-en">List pending actions across the fleet.</span></td><td class="perm"><span class="lang-es">Listar acciones pendientes</span><span class="lang-en">List Pending Actions</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/logs/pendingactions/{id}/</code></td><td><span class="lang-es">Cancelar una acción pendiente.</span><span class="lang-en">Cancel a pending action.</span></td><td class="perm"><span class="lang-es">Gestionar acciones pendientes</span><span class="lang-en">Manage Pending Actions</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/logs/audit/</code></td><td><span class="lang-es">Consultar la auditoría con filtros (fechas, usuario, equipo, acción) en el cuerpo.</span><span class="lang-en">Query the audit log with filters (dates, user, device, action) in the body.</span></td><td class="perm"><span class="lang-es">Ver registros de auditoría</span><span class="lang-en">View Audit Logs</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/logs/debug/</code></td><td><span class="lang-es">Consultar el registro de depuración con filtros en el cuerpo.</span><span class="lang-en">Query the debug log with filters in the body.</span></td><td class="perm"><span class="lang-es">Ver registros de depuración</span><span class="lang-en">View Debug Logs</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-core"><span class="lang-es">Configuración y utilidades</span><span class="lang-en">Settings and utilities</span></h3>
+<p class="lang-es">Configuración global, campos personalizados, almacén de claves, acciones URL y utilidades del servidor.</p><p class="lang-en">Global settings, custom fields, key store, URL actions and server utilities.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/settings/</code></td><td><span class="lang-es">Ver la configuración global.</span><span class="lang-en">View global settings.</span></td><td class="perm"><span class="lang-es">Ver configuración global</span><span class="lang-en">View Global Settings</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/core/settings/</code></td><td><span class="lang-es">Editar la configuración global.</span><span class="lang-en">Edit global settings.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/version/</code></td><td><span class="lang-es">Versión del servidor.</span><span class="lang-en">Server version.</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/emailtest/</code></td><td><span class="lang-es">Enviar un correo de prueba.</span><span class="lang-en">Send a test email.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/dashinfo/</code></td><td><span class="lang-es">Datos de sesión de la consola (preferencias del usuario).</span><span class="lang-en">Console session data (user preferences).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/servermaintenance/</code></td><td><span class="lang-es">Tareas de mantenimiento del servidor (limpiezas, reinicio de servicios).</span><span class="lang-en">Server maintenance jobs (cleanups, service restarts).</span></td><td class="perm"><span class="lang-es">Realizar mantenimiento del servidor</span><span class="lang-en">Do Server Maintenance</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/customfields/</code></td><td><span class="lang-es">Listar campos personalizados.</span><span class="lang-en">List custom fields.</span></td><td class="perm"><span class="lang-es">Ver campos personalizados</span><span class="lang-en">View Custom Fields</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/core/customfields/</code></td><td><span class="lang-es">Listar campos personalizados de un modelo (cliente, sitio o equipo).</span><span class="lang-en">List custom fields for a model (client, site or device).</span></td><td class="perm"><span class="lang-es">Ver campos personalizados</span><span class="lang-en">View Custom Fields</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/customfields/</code></td><td><span class="lang-es">Crear un campo personalizado.</span><span class="lang-en">Create a custom field.</span></td><td class="perm"><span class="lang-es">Editar campos personalizados</span><span class="lang-en">Edit Custom Fields</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/customfields/{id}/</code></td><td><span class="lang-es">Ver un campo personalizado.</span><span class="lang-en">View a custom field.</span></td><td class="perm"><span class="lang-es">Ver campos personalizados</span><span class="lang-en">View Custom Fields</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/core/customfields/{id}/</code></td><td><span class="lang-es">Editar un campo personalizado.</span><span class="lang-en">Edit a custom field.</span></td><td class="perm"><span class="lang-es">Editar campos personalizados</span><span class="lang-en">Edit Custom Fields</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/core/customfields/{id}/</code></td><td><span class="lang-es">Eliminar un campo personalizado.</span><span class="lang-en">Delete a custom field.</span></td><td class="perm"><span class="lang-es">Editar campos personalizados</span><span class="lang-en">Edit Custom Fields</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/codesign/</code></td><td><span class="lang-es">Ver el token de firma de código.</span><span class="lang-en">View the code-signing token.</span></td><td class="perm"><span class="lang-es">Gestionar firma de código</span><span class="lang-en">Manage Code Signing</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/core/codesign/</code></td><td><span class="lang-es">Aplicar la firma a los agentes.</span><span class="lang-en">Apply signing to agents.</span></td><td class="perm"><span class="lang-es">Gestionar firma de código</span><span class="lang-en">Manage Code Signing</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/codesign/</code></td><td><span class="lang-es">Guardar el token de firma de código.</span><span class="lang-en">Save the code-signing token.</span></td><td class="perm"><span class="lang-es">Gestionar firma de código</span><span class="lang-en">Manage Code Signing</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/core/codesign/</code></td><td><span class="lang-es">Eliminar el token de firma.</span><span class="lang-en">Delete the signing token.</span></td><td class="perm"><span class="lang-es">Gestionar firma de código</span><span class="lang-en">Manage Code Signing</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/keystore/</code></td><td><span class="lang-es">Listar el almacén global de claves.</span><span class="lang-en">List the global key store.</span></td><td class="perm"><span class="lang-es">Ver almacén de claves global</span><span class="lang-en">View Global Key Store</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/keystore/</code></td><td><span class="lang-es">Agregar una clave al almacén.</span><span class="lang-en">Add a key to the store.</span></td><td class="perm"><span class="lang-es">Editar almacén de claves global</span><span class="lang-en">Edit Global Key Store</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/core/keystore/{id}/</code></td><td><span class="lang-es">Editar una clave del almacén.</span><span class="lang-en">Edit a stored key.</span></td><td class="perm"><span class="lang-es">Editar almacén de claves global</span><span class="lang-en">Edit Global Key Store</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/core/keystore/{id}/</code></td><td><span class="lang-es">Eliminar una clave del almacén.</span><span class="lang-en">Delete a stored key.</span></td><td class="perm"><span class="lang-es">Editar almacén de claves global</span><span class="lang-en">Edit Global Key Store</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/urlaction/</code></td><td><span class="lang-es">Listar acciones URL y webhooks.</span><span class="lang-en">List URL actions and webhooks.</span></td><td class="perm"><span class="lang-es">Ejecutar acciones de URL</span><span class="lang-en">Run URL Actions</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/urlaction/</code></td><td><span class="lang-es">Crear una acción URL o webhook.</span><span class="lang-en">Create a URL action or webhook.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/core/urlaction/{id}/</code></td><td><span class="lang-es">Editar una acción URL.</span><span class="lang-en">Edit a URL action.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/core/urlaction/{id}/</code></td><td><span class="lang-es">Eliminar una acción URL.</span><span class="lang-en">Delete a URL action.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/schedules/</code></td><td><span class="lang-es">Listar horarios reutilizables.</span><span class="lang-en">List reusable schedules.</span></td><td class="perm"><span class="lang-es">Listar programaciones</span><span class="lang-en">List Schedules</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/schedules/</code></td><td><span class="lang-es">Crear un horario.</span><span class="lang-en">Create a schedule.</span></td><td class="perm"><span class="lang-es">Gestionar programaciones</span><span class="lang-en">Manage Schedules</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/core/schedules/{id}/</code></td><td><span class="lang-es">Editar un horario.</span><span class="lang-en">Edit a schedule.</span></td><td class="perm"><span class="lang-es">Gestionar programaciones</span><span class="lang-en">Manage Schedules</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/core/schedules/{id}/</code></td><td><span class="lang-es">Eliminar un horario.</span><span class="lang-en">Delete a schedule.</span></td><td class="perm"><span class="lang-es">Gestionar programaciones</span><span class="lang-en">Manage Schedules</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/core/urlaction/run/</code></td><td><span class="lang-es">Resolver una acción URL para un equipo, cliente o sitio.</span><span class="lang-en">Resolve a URL action for a device, client or site.</span></td><td class="perm"><span class="lang-es">Ejecutar acciones de URL</span><span class="lang-en">Run URL Actions</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/urlaction/run/test/</code></td><td><span class="lang-es">Probar un webhook.</span><span class="lang-en">Test a webhook.</span></td><td class="perm"><span class="lang-es">Ejecutar acciones de URL</span><span class="lang-en">Run URL Actions</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/smstest/</code></td><td><span class="lang-es">Enviar un SMS de prueba.</span><span class="lang-en">Send a test SMS.</span></td><td class="perm"><span class="lang-es">Editar configuración global</span><span class="lang-en">Edit Global Settings</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/core/clearcache/</code></td><td><span class="lang-es">Limpiar la caché del servidor.</span><span class="lang-en">Clear the server cache.</span></td><td class="perm"><span class="lang-es">Realizar mantenimiento del servidor</span><span class="lang-en">Do Server Maintenance</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/openai/generate/</code></td><td><span class="lang-es">Borrador de script con IA (uso de la consola).</span><span class="lang-en">AI script draft (console use).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/webtermperms/</code></td><td><span class="lang-es">Validar el acceso a la terminal web (uso de la consola).</span><span class="lang-en">Validate web-terminal access (console use).</span></td><td class="perm"><span class="lang-es">Usar terminal web del servidor Observer</span><span class="lang-en">Use Observer Server Web Terminal</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/core/serverscript/test/</code></td><td><span class="lang-es">Probar un script de servidor.</span><span class="lang-en">Test a server script.</span></td><td class="perm"><span class="lang-es">Ejecutar scripts en el servidor Observer</span><span class="lang-en">Run Scripts on Observer Server</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-accounts"><span class="lang-es">Usuarios, roles y claves de API</span><span class="lang-en">Users, roles and API keys</span></h3>
+<p class="lang-es">Administración de usuarios, roles de permisos, sesiones y claves de API.</p><p class="lang-en">Administration of users, permission roles, sessions and API keys.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/users/</code></td><td><span class="lang-es">Listar usuarios.</span><span class="lang-en">List users.</span></td><td class="perm"><span class="lang-es">Listar cuentas de usuario</span><span class="lang-en">List User Accounts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/accounts/users/</code></td><td><span class="lang-es">Crear un usuario.</span><span class="lang-en">Create a user.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/{id}/users/</code></td><td><span class="lang-es">Ver un usuario.</span><span class="lang-en">View a user.</span></td><td class="perm"><span class="lang-es">Listar cuentas de usuario</span><span class="lang-en">List User Accounts</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/{id}/users/</code></td><td><span class="lang-es">Editar un usuario.</span><span class="lang-en">Edit a user.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/accounts/{id}/users/</code></td><td><span class="lang-es">Eliminar un usuario.</span><span class="lang-en">Delete a user.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/accounts/sessions/{pk}/</code></td><td><span class="lang-es">Cerrar una sesión activa.</span><span class="lang-en">Close an active session.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/users/{id}/sessions/</code></td><td><span class="lang-es">Listar las sesiones activas de un usuario.</span><span class="lang-en">List a user's active sessions.</span></td><td class="perm"><span class="lang-es">Listar cuentas de usuario</span><span class="lang-en">List User Accounts</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/accounts/users/{id}/sessions/</code></td><td><span class="lang-es">Cerrar todas las sesiones de un usuario.</span><span class="lang-en">Close all of a user's sessions.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/accounts/users/reset/</code></td><td><span class="lang-es">Restablecer la contraseña de un usuario.</span><span class="lang-en">Reset a user's password.</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/users/reset_totp/</code></td><td><span class="lang-es">Restablecer el segundo factor (TOTP) de un usuario.</span><span class="lang-en">Reset a user's second factor (TOTP).</span></td><td class="perm"><span class="lang-es">Gestionar cuentas de usuario</span><span class="lang-en">Manage User Accounts</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/accounts/users/setup_totp/</code></td><td><span class="lang-es">Configurar el propio segundo factor (uso de la consola).</span><span class="lang-en">Set up one's own second factor (console use).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-patch">PATCH</span></td><td><code>/accounts/users/ui/</code></td><td><span class="lang-es">Guardar preferencias de interfaz del usuario (uso de la consola).</span><span class="lang-en">Save the user's interface preferences (console use).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/roles/</code></td><td><span class="lang-es">Listar roles.</span><span class="lang-en">List roles.</span></td><td class="perm"><span class="lang-es">Listar roles</span><span class="lang-en">List Roles</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/accounts/roles/</code></td><td><span class="lang-es">Crear un rol.</span><span class="lang-en">Create a role.</span></td><td class="perm"><span class="lang-es">Gestionar roles</span><span class="lang-en">Manage Roles</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/roles/{id}/</code></td><td><span class="lang-es">Ver un rol y sus permisos.</span><span class="lang-en">View a role and its permissions.</span></td><td class="perm"><span class="lang-es">Listar roles</span><span class="lang-en">List Roles</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/roles/{id}/</code></td><td><span class="lang-es">Editar un rol.</span><span class="lang-en">Edit a role.</span></td><td class="perm"><span class="lang-es">Gestionar roles</span><span class="lang-en">Manage Roles</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/accounts/roles/{id}/</code></td><td><span class="lang-es">Eliminar un rol.</span><span class="lang-en">Delete a role.</span></td><td class="perm"><span class="lang-es">Gestionar roles</span><span class="lang-en">Manage Roles</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/accounts/apikeys/</code></td><td><span class="lang-es">Listar claves de API.</span><span class="lang-en">List API keys.</span></td><td class="perm"><span class="lang-es">Listar claves de API</span><span class="lang-en">List API Keys</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/accounts/apikeys/</code></td><td><span class="lang-es">Crear una clave de API (la clave la genera el servidor).</span><span class="lang-en">Create an API key (the key is generated by the server).</span></td><td class="perm"><span class="lang-es">Gestionar claves de API</span><span class="lang-en">Manage API Keys</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/apikeys/{id}/</code></td><td><span class="lang-es">Editar nombre, usuario o expiración de una clave.</span><span class="lang-en">Edit a key's name, user or expiration.</span></td><td class="perm"><span class="lang-es">Gestionar claves de API</span><span class="lang-en">Manage API Keys</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/accounts/apikeys/{id}/</code></td><td><span class="lang-es">Revocar una clave de API.</span><span class="lang-en">Revoke an API key.</span></td><td class="perm"><span class="lang-es">Gestionar claves de API</span><span class="lang-en">Manage API Keys</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/resetpw/</code></td><td><span class="lang-es">Cambiar la propia contraseña (uso de la consola).</span><span class="lang-en">Change one's own password (console use).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/accounts/reset2fa/</code></td><td><span class="lang-es">Restablecer el propio segundo factor (uso de la consola).</span><span class="lang-en">Reset one's own second factor (console use).</span></td><td class="perm"><span class="lang-es">Ninguno (basta la clave)</span><span class="lang-en">None (a valid key suffices)</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-erase"><span class="lang-es">Borrado seguro y recuperación de archivos</span><span class="lang-en">Secure erase and file retrieval</span></h3>
+<p class="lang-es">Órdenes de borrado remoto, certificados de borrado, recepción de activos y recuperación de archivos. Acciones destructivas: requieren permisos específicos y confirmación.</p><p class="lang-en">Remote wipe orders, erase certificates, asset intake and file retrieval. Destructive actions: they require specific permissions and confirmation.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/orders/</code></td><td><span class="lang-es">Listar órdenes de borrado.</span><span class="lang-en">List wipe orders.</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/agents/{agent_id}/orders/</code></td><td><span class="lang-es">Crear una orden de borrado para un equipo (queda pendiente de confirmación).</span><span class="lang-en">Create a wipe order for a device (pending confirmation).</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/orders/{id}/</code></td><td><span class="lang-es">Ver una orden de borrado.</span><span class="lang-en">View a wipe order.</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/orders/{id}/confirm/</code></td><td><span class="lang-es">Confirmar una orden de borrado.</span><span class="lang-en">Confirm a wipe order.</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/orders/{id}/cancel/</code></td><td><span class="lang-es">Cancelar una orden de borrado.</span><span class="lang-en">Cancel a wipe order.</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/wipe-templates/</code></td><td><span class="lang-es">Plantillas de rutas a borrar.</span><span class="lang-en">Path templates to wipe.</span></td><td class="perm"><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/fileretrieval/</code></td><td><span class="lang-es">Listar órdenes de recuperación de archivos.</span><span class="lang-en">List file-retrieval orders.</span></td><td class="perm"><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/agents/{agent_id}/fileretrieval/</code></td><td><span class="lang-es">Solicitar la recuperación de archivos de un equipo.</span><span class="lang-en">Request file retrieval from a device.</span></td><td class="perm"><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/fileretrieval/{uuid}/</code></td><td><span class="lang-es">Ver una orden de recuperación.</span><span class="lang-en">View a retrieval order.</span></td><td class="perm"><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/fileretrieval/{uuid}/cancel/</code></td><td><span class="lang-es">Cancelar una orden de recuperación.</span><span class="lang-en">Cancel a retrieval order.</span></td><td class="perm"><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/fileretrieval/{uuid}/files/{file_id}/download/</code></td><td><span class="lang-es">Descargar un archivo recuperado.</span><span class="lang-en">Download a retrieved file.</span></td><td class="perm"><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/certificates/</code></td><td><span class="lang-es">Listar certificados de borrado.</span><span class="lang-en">List erase certificates.</span></td><td class="perm"><span class="lang-es">Ver certificados de borrado</span><span class="lang-en">View erase certificates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/certificates/{id}/</code></td><td><span class="lang-es">Ver un certificado de borrado.</span><span class="lang-en">View an erase certificate.</span></td><td class="perm"><span class="lang-es">Ver certificados de borrado</span><span class="lang-en">View erase certificates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/certificates/{id}/pdf/</code></td><td><span class="lang-es">Descargar el certificado en PDF.</span><span class="lang-en">Download the certificate as PDF.</span></td><td class="perm"><span class="lang-es">Ver certificados de borrado</span><span class="lang-en">View erase certificates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/certificates/{id}/json/</code></td><td><span class="lang-es">Descargar el certificado en JSON firmado.</span><span class="lang-en">Download the certificate as signed JSON.</span></td><td class="perm"><span class="lang-es">Ver certificados de borrado</span><span class="lang-en">View erase certificates</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/erase/intake/</code></td><td><span class="lang-es">Listar la recepción de activos.</span><span class="lang-en">List asset intake.</span></td><td class="perm"><span class="lang-es">Gestionar ingreso de activos</span><span class="lang-en">Manage asset intake</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/intake/</code></td><td><span class="lang-es">Registrar la recepción de un activo.</span><span class="lang-en">Register an asset intake.</span></td><td class="perm"><span class="lang-es">Gestionar ingreso de activos</span><span class="lang-en">Manage asset intake</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/erase/intake/{id}/certify-destruction/</code></td><td><span class="lang-es">Certificar la destrucción física de un activo.</span><span class="lang-en">Certify an asset's physical destruction.</span></td><td class="perm"><span class="lang-es">Gestionar ingreso de activos</span><span class="lang-en">Manage asset intake</span></td></tr>
+</tbody></table></div>
+
+<h3 id="ref-reporting"><span class="lang-es">Reportería</span><span class="lang-en">Reporting</span></h3>
+<p class="lang-es">Plantillas de reporte, consultas de datos, programaciones, historial y recursos.</p><p class="lang-en">Report templates, data queries, schedules, history and assets.</p>
+<div class="tbl"><table class="api"><thead><tr><th><span class="lang-es">Método</span><span class="lang-en">Method</span></th><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Acción</span><span class="lang-en">Action</span></th><th><span class="lang-es">Permiso del rol</span><span class="lang-en">Role permission</span></th></tr></thead><tbody>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/templates/</code></td><td><span class="lang-es">Listar plantillas de reporte.</span><span class="lang-en">List report templates.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/</code></td><td><span class="lang-es">Crear una plantilla de reporte.</span><span class="lang-en">Create a report template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/templates/{id}/</code></td><td><span class="lang-es">Ver una plantilla de reporte.</span><span class="lang-en">View a report template.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/reporting/templates/{id}/</code></td><td><span class="lang-es">Editar una plantilla.</span><span class="lang-en">Edit a template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/reporting/templates/{id}/</code></td><td><span class="lang-es">Eliminar una plantilla.</span><span class="lang-en">Delete a template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/{id}/run/</code></td><td><span class="lang-es">Generar el reporte (HTML o PDF).</span><span class="lang-en">Generate the report (HTML or PDF).</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/{id}/export/</code></td><td><span class="lang-es">Exportar la plantilla.</span><span class="lang-en">Export the template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/{id}/email/</code></td><td><span class="lang-es">Enviar el reporte por correo.</span><span class="lang-en">Email the report.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/preview/</code></td><td><span class="lang-es">Vista previa de un reporte.</span><span class="lang-en">Preview a report.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/preview/analysis/</code></td><td><span class="lang-es">Valores permitidos para las variables del reporte.</span><span class="lang-en">Allowed values for report variables.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/templates/import/</code></td><td><span class="lang-es">Importar una plantilla.</span><span class="lang-en">Import a template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/assets/</code></td><td><span class="lang-es">Explorar los recursos (imágenes, archivos) de reportes.</span><span class="lang-en">Browse report assets (images, files).</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/assets/all/</code></td><td><span class="lang-es">Listar todos los recursos.</span><span class="lang-en">List all assets.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/reporting/assets/rename/</code></td><td><span class="lang-es">Renombrar un recurso.</span><span class="lang-en">Rename an asset.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/assets/newfolder/</code></td><td><span class="lang-es">Crear una carpeta de recursos.</span><span class="lang-en">Create an asset folder.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/assets/delete/</code></td><td><span class="lang-es">Eliminar recursos.</span><span class="lang-en">Delete assets.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/assets/upload/</code></td><td><span class="lang-es">Subir recursos.</span><span class="lang-en">Upload assets.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/assets/download/</code></td><td><span class="lang-es">Descargar un recurso.</span><span class="lang-en">Download an asset.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/htmltemplates/</code></td><td><span class="lang-es">Listar plantillas HTML base.</span><span class="lang-en">List base HTML templates.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/htmltemplates/</code></td><td><span class="lang-es">Crear una plantilla HTML base.</span><span class="lang-en">Create a base HTML template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/htmltemplates/{id}/</code></td><td><span class="lang-es">Ver una plantilla HTML.</span><span class="lang-en">View an HTML template.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/reporting/htmltemplates/{id}/</code></td><td><span class="lang-es">Editar una plantilla HTML.</span><span class="lang-en">Edit an HTML template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/reporting/htmltemplates/{id}/</code></td><td><span class="lang-es">Eliminar una plantilla HTML.</span><span class="lang-en">Delete an HTML template.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/dataqueries/</code></td><td><span class="lang-es">Listar consultas de datos.</span><span class="lang-en">List data queries.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/dataqueries/</code></td><td><span class="lang-es">Crear una consulta de datos.</span><span class="lang-en">Create a data query.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/dataqueries/{id}/</code></td><td><span class="lang-es">Ver una consulta de datos.</span><span class="lang-en">View a data query.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/reporting/dataqueries/{id}/</code></td><td><span class="lang-es">Editar una consulta.</span><span class="lang-en">Edit a query.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/reporting/dataqueries/{id}/</code></td><td><span class="lang-es">Eliminar una consulta.</span><span class="lang-en">Delete a query.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/queryschema/</code></td><td><span class="lang-es">Esquema de datos disponible para consultas.</span><span class="lang-en">Data schema available to queries.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/schedules/</code></td><td><span class="lang-es">Listar reportes programados.</span><span class="lang-en">List scheduled reports.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/schedules/</code></td><td><span class="lang-es">Programar un reporte.</span><span class="lang-en">Schedule a report.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/schedules/{id}/</code></td><td><span class="lang-es">Ver una programación.</span><span class="lang-en">View a schedule.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-put">PUT</span></td><td><code>/reporting/schedules/{id}/</code></td><td><span class="lang-es">Editar una programación.</span><span class="lang-en">Edit a schedule.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/reporting/schedules/{id}/</code></td><td><span class="lang-es">Eliminar una programación.</span><span class="lang-en">Delete a schedule.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/schedules/{id}/run/</code></td><td><span class="lang-es">Ejecutar ahora una programación.</span><span class="lang-en">Run a schedule now.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-get">GET</span></td><td><code>/reporting/history/</code></td><td><span class="lang-es">Historial de reportes generados.</span><span class="lang-en">History of generated reports.</span></td><td class="perm"><span class="lang-es">Visor de informes</span><span class="lang-en">Reporting Viewer</span></td></tr>
+<tr><td><span class="m m-delete">DELETE</span></td><td><code>/reporting/history/{id}/</code></td><td><span class="lang-es">Eliminar una entrada del historial.</span><span class="lang-en">Delete a history entry.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+<tr><td><span class="m m-post">POST</span></td><td><code>/reporting/history/{id}/run/</code></td><td><span class="lang-es">Volver a generar un reporte del historial.</span><span class="lang-en">Re-generate a report from history.</span></td><td class="perm"><span class="lang-es">Gestor de informes</span><span class="lang-en">Reporting Manager</span></td></tr>
+</tbody></table></div>
+
+      <!-- ============================================================ fuera de alcance -->
+      <h2 id="fuera-de-alcance"><span class="lang-es">Rutas fuera del alcance de una API key</span><span class="lang-en">Routes outside the scope of an API key</span></h2>
+      <p class="lang-es">El inicio de sesión de la consola (<code>/v2/login/</code>, <code>/logout/</code>), el canal de los agentes (<code>/api/v3/</code>, <code>/api/v4/</code>) y los WebSockets son protocolos internos del producto y no se usan con API key. Además:</p>
+      <p class="lang-en">Console sign-in (<code>/v2/login/</code>, <code>/logout/</code>), the agent channel (<code>/api/v3/</code>, <code>/api/v4/</code>) and WebSockets are internal product protocols and are not used with an API key. Also:</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Motivo</span><span class="lang-en">Reason</span></th></tr></thead>
+        <tbody>
+<tr><td><code>/clients/{uid}/deploy/</code></td><td><span class="lang-es">Enlace público de descarga del instalador (sin autenticación, token propio en la URL).</span><span class="lang-en">Public installer download link (no authentication, its own token in the URL).</span></td></tr>
+<tr><td><code>/reporting/assets/{path}</code></td><td><span class="lang-es">Redirección interna al servidor web para servir recursos de reportes.</span><span class="lang-en">Internal redirect to the web server to serve report assets.</span></td></tr>
+<tr><td><code>/core/status/</code></td><td><span class="lang-es">Monitoreo del servidor, versión antigua (obsoleta). Use <code>/core/v2/status/</code>.</span><span class="lang-en">Server monitoring, legacy version (deprecated). Use <code>/core/v2/status/</code>.</span></td></tr>
+<tr><td><code>/core/v2/status/</code></td><td><span class="lang-es">Monitoreo de salud del servidor. Se autentica con el encabezado <code>X-Mon-Token</code>, no con API key.</span><span class="lang-en">Server health monitoring. Authenticated with the <code>X-Mon-Token</code> header, not an API key.</span></td></tr>
+        </tbody>
+      </table></div>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>

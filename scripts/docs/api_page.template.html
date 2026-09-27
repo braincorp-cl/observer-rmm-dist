@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!-- GENERADO por scripts/docs/build_api_page.py a partir del código (urls.py + vistas) y de
+     scripts/docs/api_catalog.py. No editar a mano: editar la plantilla o el catálogo y regenerar. -->
+<html lang="es" data-title-es="API REST · Observer RMM" data-title-en="REST API · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API REST de Observer RMM: referencia y API key</title>
+<meta name="description" content="Referencia de la API REST de Observer RMM: cómo generar una API key y todos los endpoints de inventario de equipos, parches, alertas y automatización.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/api/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/api/">
+<meta property="og:title" content="API REST de Observer RMM: referencia y API key">
+<meta property="og:description" content="Integre su ITSM, CMDB o mesa de ayuda con Observer RMM: autenticación por API key y referencia de todos los endpoints REST.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "TechArticle",
+   "@id": "https://docs.observer.cl/api/#article",
+   "headline": "API REST de Observer RMM: referencia y API key",
+   "description": "Cómo autenticarse con una API key y referencia de los endpoints REST de Observer RMM para integraciones de terceros (ITSM, CMDB, mesa de ayuda).",
+   "inLanguage": ["es-CL", "en"],
+   "dateModified": "{{DATE}}",
+   "proficiencyLevel": "Expert",
+   "about": {"@type": "SoftwareApplication", "name": "Observer RMM", "applicationCategory": "BusinessApplication"},
+   "author": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "publisher": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "mainEntityOfPage": "https://docs.observer.cl/api/"
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Observer RMM Docs", "item": "https://docs.observer.cl/"},
+    {"@type": "ListItem", "position": 2, "name": "API REST", "item": "https://docs.observer.cl/api/"}
+   ]
+  }
+ ]
+}
+</script>
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .content ol, .content ul { line-height: 1.6; padding-left: 1.3em; }
+  .content ol li, .content ul li { margin: 5px 0; }
+  .toc { columns: 2; column-gap: 28px; padding-left: 1.2em; }
+  .toc li { break-inside: avoid; }
+  .tbl { overflow-x: auto; margin: 12px 0 26px; border: 1px solid var(--border); border-radius: 10px; }
+  table.api, table.plain { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  table.api th, table.api td, table.plain th, table.plain td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  table.api th, table.plain th { background: var(--surface); font-weight: 600; white-space: nowrap; }
+  table.api tr:last-child td, table.plain tr:last-child td { border-bottom: 0; }
+  table.api td:nth-child(2) { white-space: nowrap; }
+  table.api td.perm { color: var(--muted); font-size: .85rem; min-width: 160px; }
+  table.api code, table.plain code { font-size: .85em; }
+  .m { display: inline-block; min-width: 58px; text-align: center; font: 600 .74rem/1.9 ui-monospace, SFMono-Regular, Menlo, monospace; border-radius: 6px; color: #fff; letter-spacing: .02em; }
+  .m-get { background: #0E8FA8; } .m-post { background: #2E7D32; } .m-put { background: #B26A00; }
+  .m-patch { background: #6A4FB3; } .m-delete { background: #C62828; }
+  .steps li { margin: 8px 0; }
+  .kbd { font: 600 .85em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
+  @media (max-width: 760px) { .toc { columns: 1; } }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/api/" class="active"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Integraciones</p>
+      <p class="eyebrow lang-en">Integrations</p>
+      <h1><span class="lang-es">API REST</span><span class="lang-en">REST API</span></h1>
+      <p class="lead lang-es">Observer RMM expone una API REST en JSON para que otros sistemas —un ITSM, una CMDB, una mesa de ayuda o su propio tablero— lean el inventario de equipos y, si se les autoriza, operen sobre la flota. Todo lo que hace la consola web pasa por esta misma API: aquí se documentan sus <strong>{{N_ROUTES}} rutas</strong> y <strong>{{N_OPS}} operaciones</strong>, y cómo autenticarse con una <strong>API key</strong>.</p>
+      <p class="lead lang-en">Observer RMM exposes a JSON REST API so other systems —an ITSM, a CMDB, a help desk or your own dashboard— can read the device inventory and, if authorized, act on the fleet. Everything the web console does goes through this same API: this page documents its <strong>{{N_ROUTES}} routes</strong> and <strong>{{N_OPS}} operations</strong>, and how to authenticate with an <strong>API key</strong>.</p>
+
+      <h2 id="contenido"><span class="lang-es">Contenido</span><span class="lang-en">Contents</span></h2>
+      <ul class="toc lang-es">
+        <li><a href="#inicio-rapido">Inicio rápido</a></li>
+        <li><a href="#obtener-api-key">Cómo obtener una API key</a></li>
+        <li><a href="#autenticacion">Autenticación y permisos</a></li>
+        <li><a href="#convenciones">Convenciones</a></li>
+        <li><a href="#inventario">Leer el inventario (ITSM / CMDB)</a></li>
+        <li><a href="#ejemplos">Ejemplos: curl, PowerShell y Python</a></li>
+        <li><a href="#seguridad">Buenas prácticas de seguridad</a></li>
+        <li><a href="#referencia">Referencia de endpoints</a></li>
+        <li><a href="#fuera-de-alcance">Rutas fuera del alcance de una API key</a></li>
+      </ul>
+      <ul class="toc lang-en">
+        <li><a href="#inicio-rapido">Quick start</a></li>
+        <li><a href="#obtener-api-key">How to get an API key</a></li>
+        <li><a href="#autenticacion">Authentication and permissions</a></li>
+        <li><a href="#convenciones">Conventions</a></li>
+        <li><a href="#inventario">Reading the inventory (ITSM / CMDB)</a></li>
+        <li><a href="#ejemplos">Examples: curl, PowerShell and Python</a></li>
+        <li><a href="#seguridad">Security best practices</a></li>
+        <li><a href="#referencia">Endpoint reference</a></li>
+        <li><a href="#fuera-de-alcance">Routes outside the scope of an API key</a></li>
+      </ul>
+
+      <!-- ============================================================ inicio rápido -->
+      <h2 id="inicio-rapido"><span class="lang-es">Inicio rápido</span><span class="lang-en">Quick start</span></h2>
+      <p class="lang-es">La API vive en el nombre de host <strong>API</strong> de su servidor Observer RMM —el mismo que usa la consola, normalmente <code>https://api.su-dominio.cl</code>— y se consume sólo por HTTPS. Cada solicitud lleva la clave en el encabezado <code>X-API-KEY</code>:</p>
+      <p class="lang-en">The API lives on the <strong>API</strong> hostname of your Observer RMM server —the same one the console uses, typically <code>https://api.your-domain.com</code>— and is served over HTTPS only. Every request carries the key in the <code>X-API-KEY</code> header:</p>
+<pre><code>curl -s https://api.su-dominio.cl/agents/?detail=false \
+  -H "X-API-KEY: ABCDEFGHIJKLMNOPQRSTUVWXYZ012345" \
+  -H "Accept: application/json"</code></pre>
+      <p class="lang-es">La respuesta es un arreglo JSON con los equipos que el usuario dueño de la clave puede ver. El nombre de host de la API es el mismo al que se conecta el navegador al iniciar sesión en la consola.</p>
+      <p class="lang-en">The response is a JSON array with the devices the key's owner can see. The API hostname is the same one the browser connects to when you sign in to the console.</p>
+
+      <!-- ============================================================ obtener api key -->
+      <h2 id="obtener-api-key"><span class="lang-es">Cómo obtener una API key</span><span class="lang-en">How to get an API key</span></h2>
+      <p class="lang-es">Una API key <strong>actúa en nombre de un usuario</strong> de Observer RMM y hereda exactamente sus permisos. Por eso la práctica recomendada es crear un <strong>usuario de servicio</strong> dedicado a la integración, con un rol de sólo lectura, y generarle la clave. Lo hace un administrador desde la consola web del servidor RMM:</p>
+      <p class="lang-en">An API key <strong>acts on behalf of an Observer RMM user</strong> and inherits exactly that user's permissions. The recommended practice is therefore to create a dedicated <strong>service user</strong> for the integration, with a read-only role, and issue the key to it. An administrator does this from the RMM server's web console:</p>
+      <ol class="steps lang-es">
+        <li><strong>Cree un rol para la integración.</strong> <span class="kbd">Configuración → Gestor de permisos</span> → nuevo rol (p. ej. «Integración ITSM»). Marque sólo lo que la integración necesita leer, por ejemplo <em>Listar agentes</em>, <em>Listar clientes</em>, <em>Listar sitios</em> y <em>Listar software</em>. En <em>Clientes permitidos</em> / <em>Sitios permitidos</em> puede acotar la visibilidad (vacío = todos).</li>
+        <li><strong>Cree el usuario de servicio.</strong> <span class="kbd">Configuración → Administración de usuarios</span> → nuevo usuario con ese rol. Active <em>Denegar inicios de sesión al panel</em>: el usuario existirá sólo para la API y nadie podrá entrar a la consola con él.</li>
+        <li><strong>Genere la clave.</strong> <span class="kbd">Configuración → Configuración global → Claves de API → Agregar clave</span>. Indique un <em>Nombre</em> descriptivo, elija el <em>Usuario</em> de servicio y, opcionalmente, una <em>Expiración de la clave</em>. El servidor genera una clave aleatoria de 32 caracteres, visible en la tabla de claves.</li>
+        <li><strong>Entregue la clave por un canal seguro</strong> (gestor de contraseñas, no correo en claro) al equipo que opera la integración.</li>
+      </ol>
+      <ol class="steps lang-en">
+        <li><strong>Create a role for the integration.</strong> <span class="kbd">Settings → Permissions Manager</span> → new role (e.g. “ITSM integration”). Tick only what the integration needs to read, for example <em>List Agents</em>, <em>List Clients</em>, <em>List Sites</em> and <em>List Software</em>. Use <em>Allowed Clients</em> / <em>Allowed Sites</em> to narrow visibility (empty = all).</li>
+        <li><strong>Create the service user.</strong> <span class="kbd">Settings → User Administration</span> → new user with that role. Enable <em>Deny Dashboard Logins</em>: the user exists only for the API and nobody can sign in to the console with it.</li>
+        <li><strong>Generate the key.</strong> <span class="kbd">Settings → Global Settings → API Keys → Add key</span>. Enter a descriptive <em>Name</em>, pick the service <em>User</em> and, optionally, a <em>Key Expiration</em>. The server generates a random 32-character key, shown in the keys table.</li>
+        <li><strong>Hand the key over through a secure channel</strong> (a password manager, not plain email) to the team running the integration.</li>
+      </ol>
+      <div class="callout note">
+        <p class="lang-es"><span class="tag">Permisos</span> Para ver y crear claves, el administrador necesita en su propio rol <em>Listar claves de API</em> y <em>Gestionar claves de API</em>. Una clave se revoca eliminándola de la misma tabla, con efecto inmediato.</p>
+        <p class="lang-en"><span class="tag">Permissions</span> To view and create keys, the administrator's own role needs <em>List API Keys</em> and <em>Manage API Keys</em>. A key is revoked by deleting it from the same table, effective immediately.</p>
+      </div>
+
+      <!-- ============================================================ autenticación -->
+      <h2 id="autenticacion"><span class="lang-es">Autenticación y permisos</span><span class="lang-en">Authentication and permissions</span></h2>
+      <ul class="lang-es">
+        <li><strong>Encabezado:</strong> <code>X-API-KEY: &lt;clave&gt;</code> en cada solicitud. No hay sesión, cookies ni renovación de tokens.</li>
+        <li><strong>Permisos:</strong> cada operación exige un permiso del rol del usuario dueño de la clave; la columna <em>Permiso del rol</em> de la <a href="#referencia">referencia</a> lo indica con el mismo nombre que muestra la consola.</li>
+        <li><strong>Visibilidad:</strong> los listados se recortan a los <em>Clientes permitidos</em> y <em>Sitios permitidos</em> del rol; un equipo fuera de ese alcance responde como si no existiera.</li>
+        <li><strong>Respuestas de error:</strong> <code>401</code> clave inválida, expirada o de un usuario inactivo · <code>403</code> el rol no tiene el permiso · <code>404</code> el recurso no existe o no es visible · <code>400</code> datos inválidos (el cuerpo trae el motivo en texto).</li>
+        <li><strong>Auditoría:</strong> las acciones hechas con la clave quedan en la auditoría a nombre del usuario de servicio.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Header:</strong> <code>X-API-KEY: &lt;key&gt;</code> on every request. There are no sessions, cookies or token refreshes.</li>
+        <li><strong>Permissions:</strong> every operation requires a permission on the key owner's role; the <em>Role permission</em> column of the <a href="#referencia">reference</a> names it exactly as the console shows it.</li>
+        <li><strong>Visibility:</strong> listings are trimmed to the role's <em>Allowed Clients</em> and <em>Allowed Sites</em>; a device outside that scope behaves as if it did not exist.</li>
+        <li><strong>Error responses:</strong> <code>401</code> invalid or expired key, or inactive user · <code>403</code> the role lacks the permission · <code>404</code> the resource does not exist or is not visible · <code>400</code> invalid data (the body explains why, as text).</li>
+        <li><strong>Audit:</strong> actions performed with the key are recorded in the audit log under the service user.</li>
+      </ul>
+
+      <!-- ============================================================ convenciones -->
+      <h2 id="convenciones"><span class="lang-es">Convenciones</span><span class="lang-en">Conventions</span></h2>
+      <ul class="lang-es">
+        <li><strong>JSON</strong> de entrada y salida (<code>Content-Type: application/json</code>). Fechas en ISO 8601 y <strong>UTC</strong>.</li>
+        <li><strong>La barra final es obligatoria:</strong> <code>/agents/</code>, no <code>/agents</code>.</li>
+        <li><strong>Equipos:</strong> las rutas usan el <code>agent_id</code> (cadena larga única por equipo), no el <code>id</code> numérico. Obténgalo del listado <code>GET /agents/</code>.</li>
+        <li><strong>Consultas con filtros:</strong> algunos listados grandes (alertas, auditoría, historial de chequeos) se consultan con <code>PATCH</code> y los filtros en el cuerpo JSON; son lecturas, no modifican nada.</li>
+        <li><strong>Acciones sobre equipos</strong> (comandos, scripts, reinicios) se entregan al agente en línea; si el equipo está apagado la operación falla o queda como acción pendiente.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>JSON</strong> in and out (<code>Content-Type: application/json</code>). Dates in ISO 8601 and <strong>UTC</strong>.</li>
+        <li><strong>The trailing slash is required:</strong> <code>/agents/</code>, not <code>/agents</code>.</li>
+        <li><strong>Devices:</strong> routes use the <code>agent_id</code> (a long string unique per device), not the numeric <code>id</code>. Get it from the <code>GET /agents/</code> listing.</li>
+        <li><strong>Filtered queries:</strong> some large listings (alerts, audit log, check history) are queried with <code>PATCH</code> and the filters in the JSON body; they are reads and change nothing.</li>
+        <li><strong>Device actions</strong> (commands, scripts, reboots) are delivered to the online agent; if the device is off the operation fails or is queued as a pending action.</li>
+      </ul>
+
+      <!-- ============================================================ inventario -->
+      <h2 id="inventario"><span class="lang-es">Leer el inventario (ITSM / CMDB)</span><span class="lang-en">Reading the inventory (ITSM / CMDB)</span></h2>
+      <p class="lang-es">Una integración de inventario típica sólo necesita cuatro lecturas. Todas funcionan con el rol de sólo lectura descrito arriba.</p>
+      <p class="lang-en">A typical inventory integration needs only four reads. All of them work with the read-only role described above.</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Paso</span><span class="lang-en">Step</span></th><th><span class="lang-es">Solicitud</span><span class="lang-en">Request</span></th><th><span class="lang-es">Para qué</span><span class="lang-en">What for</span></th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>GET /clients/</code></td><td><span class="lang-es">Clientes con sus sitios: la jerarquía para ubicar cada equipo.</span><span class="lang-en">Clients with their sites: the hierarchy to place each device.</span></td></tr>
+          <tr><td>2</td><td><code>GET /agents/</code></td><td><span class="lang-es">Todos los equipos visibles con los campos de la tabla de abajo. Filtre con <code>?client=</code> o <code>?site=</code> para sincronizar por partes.</span><span class="lang-en">Every visible device with the fields in the table below. Filter with <code>?client=</code> or <code>?site=</code> to sync in batches.</span></td></tr>
+          <tr><td>3</td><td><code>GET /agents/{agent_id}/</code></td><td><span class="lang-es">Ficha completa de un equipo, con el inventario de hardware detallado en <code>wmi_detail</code>.</span><span class="lang-en">A device's full record, with detailed hardware inventory in <code>wmi_detail</code>.</span></td></tr>
+          <tr><td>4</td><td><code>GET /software/{agent_id}/</code></td><td><span class="lang-es">Software instalado en el equipo (nombre, versión, editor, fecha).</span><span class="lang-en">Software installed on the device (name, version, publisher, date).</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">Campos de cada equipo en <code>GET /agents/</code>:</p>
+      <p class="lang-en">Fields of each device in <code>GET /agents/</code>:</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Campo</span><span class="lang-en">Field</span></th><th><span class="lang-es">Contenido</span><span class="lang-en">Content</span></th></tr></thead>
+        <tbody>
+          <tr><td><code>agent_id</code></td><td><span class="lang-es">Identificador único del equipo; úselo como clave de sincronización.</span><span class="lang-en">Unique device identifier; use it as your sync key.</span></td></tr>
+          <tr><td><code>hostname</code>, <code>description</code></td><td><span class="lang-es">Nombre del equipo y descripción libre.</span><span class="lang-en">Device name and free-form description.</span></td></tr>
+          <tr><td><code>client_name</code>, <code>site_name</code></td><td><span class="lang-es">Cliente y sitio al que pertenece.</span><span class="lang-en">Client and site it belongs to.</span></td></tr>
+          <tr><td><code>serial_number</code>, <code>make_model</code></td><td><span class="lang-es">Número de serie, fabricante y modelo.</span><span class="lang-en">Serial number, manufacturer and model.</span></td></tr>
+          <tr><td><code>cpu_model</code>, <code>graphics</code>, <code>physical_disks</code></td><td><span class="lang-es">Procesador, tarjeta de video y discos físicos.</span><span class="lang-en">Processor, graphics card and physical disks.</span></td></tr>
+          <tr><td><code>operating_system</code>, <code>plat</code>, <code>goarch</code></td><td><span class="lang-es">Sistema operativo con su build, plataforma (<code>windows</code>, <code>linux</code>, <code>darwin</code>) y arquitectura.</span><span class="lang-en">Operating system with its build, platform (<code>windows</code>, <code>linux</code>, <code>darwin</code>) and architecture.</span></td></tr>
+          <tr><td><code>local_ips</code>, <code>public_ip</code></td><td><span class="lang-es">IP locales y la IP pública vista por el servidor.</span><span class="lang-en">Local IPs and the public IP seen by the server.</span></td></tr>
+          <tr><td><code>status</code>, <code>last_seen</code>, <code>boot_time</code></td><td><span class="lang-es">Estado (<code>online</code>, <code>offline</code>, <code>overdue</code>), último contacto y último arranque (epoch).</span><span class="lang-en">Status (<code>online</code>, <code>offline</code>, <code>overdue</code>), last contact and last boot (epoch).</span></td></tr>
+          <tr><td><code>logged_username</code></td><td><span class="lang-es">Usuario con sesión iniciada (o el último que la tuvo).</span><span class="lang-en">Signed-in user (or the last one who was).</span></td></tr>
+          <tr><td><code>monitoring_type</code>, <code>version</code></td><td><span class="lang-es">Servidor o estación de trabajo, y versión del agente.</span><span class="lang-en">Server or workstation, and agent version.</span></td></tr>
+          <tr><td><code>needs_reboot</code>, <code>has_patches_pending</code></td><td><span class="lang-es">Reinicio pendiente y parches aprobados sin instalar.</span><span class="lang-en">Pending reboot and approved patches not yet installed.</span></td></tr>
+          <tr><td><code>checks</code>, <code>maintenance_mode</code></td><td><span class="lang-es">Resumen del estado de los chequeos y si el equipo está en mantenimiento.</span><span class="lang-en">Check status summary and whether the device is in maintenance.</span></td></tr>
+          <tr><td><code>custom_fields</code></td><td><span class="lang-es">Campos personalizados del equipo (p. ej. número de activo).</span><span class="lang-en">The device's custom fields (e.g. asset tag).</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">Con <code>?detail=false</code> la respuesta es liviana (identificación, sitio, tipo y configuración de alertas) y sirve para detectar altas y bajas sin traer el inventario completo.</p>
+      <p class="lang-en">With <code>?detail=false</code> the response is lightweight (identity, site, type and alert settings), useful for detecting additions and removals without pulling the full inventory.</p>
+
+      <!-- ============================================================ ejemplos -->
+      <h2 id="ejemplos"><span class="lang-es">Ejemplos: curl, PowerShell y Python</span><span class="lang-en">Examples: curl, PowerShell and Python</span></h2>
+      <h3 id="ejemplo-curl">curl</h3>
+<pre><code># Equipos de un cliente / Devices of one client
+curl -s "https://api.su-dominio.cl/agents/?client=3" -H "X-API-KEY: $OBSERVER_API_KEY"
+
+# Ficha de un equipo / One device's record
+curl -s "https://api.su-dominio.cl/agents/{agent_id}/" -H "X-API-KEY: $OBSERVER_API_KEY"</code></pre>
+      <h3 id="ejemplo-powershell">PowerShell</h3>
+<pre><code>$h = @{ "X-API-KEY" = $env:OBSERVER_API_KEY }
+$agents = Invoke-RestMethod -Uri "https://api.su-dominio.cl/agents/" -Headers $h
+$agents | Select-Object hostname, serial_number, operating_system, client_name, site_name, status |
+  Export-Csv inventario.csv -NoTypeInformation -Encoding UTF8</code></pre>
+      <h3 id="ejemplo-python">Python</h3>
+<pre><code>import os, requests
+
+API = "https://api.su-dominio.cl"
+s = requests.Session()
+s.headers.update({"X-API-KEY": os.environ["OBSERVER_API_KEY"]})
+
+for a in s.get(f"{API}/agents/", timeout=60).json():
+    sw = s.get(f"{API}/software/{a['agent_id']}/", timeout=60).json()
+    print(a["hostname"], a["serial_number"], a["status"], len(sw.get("software", []) if sw else []))</code></pre>
+
+      <!-- ============================================================ seguridad -->
+      <h2 id="seguridad"><span class="lang-es">Buenas prácticas de seguridad</span><span class="lang-en">Security best practices</span></h2>
+      <ul class="lang-es">
+        <li><strong>Mínimo privilegio:</strong> una integración de inventario no necesita permisos de comandos, scripts, reinicios, registro ni borrado. Si nunca los tiene, una clave filtrada no puede operar la flota.</li>
+        <li><strong>Nunca asocie la clave a un superusuario:</strong> un superusuario tiene todos los permisos y la clave también.</li>
+        <li><strong>Una clave por integración</strong>, con nombre que la identifique, para poder revocarla sin afectar a las demás.</li>
+        <li><strong>Expiración y rotación:</strong> fije una expiración y rote la clave periódicamente; guárdela en un gestor de secretos, nunca en el código.</li>
+        <li><strong>Restrinja el origen:</strong> si el ITSM tiene IP fija, pídale a su administrador que limite el acceso a la API a esa IP en el proxy o firewall.</li>
+        <li><strong>Operaciones destructivas</strong> (borrado remoto, desinstalación de agentes, modo perdido) exigen permisos propios, que ningún rol de integración debería tener.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Least privilege:</strong> an inventory integration needs no command, script, reboot, registry or wipe permissions. If it never has them, a leaked key cannot operate the fleet.</li>
+        <li><strong>Never tie the key to a superuser:</strong> a superuser has every permission, and so does its key.</li>
+        <li><strong>One key per integration</strong>, with a name that identifies it, so it can be revoked without affecting the others.</li>
+        <li><strong>Expiration and rotation:</strong> set an expiration and rotate the key periodically; keep it in a secrets manager, never in code.</li>
+        <li><strong>Restrict the source:</strong> if the ITSM has a fixed IP, ask your administrator to limit API access to that IP at the proxy or firewall.</li>
+        <li><strong>Destructive operations</strong> (remote wipe, agent uninstall, lost mode) require their own permissions, which no integration role should have.</li>
+      </ul>
+
+      <!-- ============================================================ referencia -->
+      <h2 id="referencia"><span class="lang-es">Referencia de endpoints</span><span class="lang-en">Endpoint reference</span></h2>
+      <p class="lang-es">Todas las rutas son relativas al nombre de host de la API. Las marcadas «uso de la consola» existen para la interfaz web y no son útiles para integraciones.</p>
+      <p class="lang-en">All paths are relative to the API hostname. Those marked “console use” exist for the web interface and are not useful for integrations.</p>
+      <ul class="toc lang-es">
+{{TOC_ES}}
+      </ul>
+      <ul class="toc lang-en">
+{{TOC_EN}}
+      </ul>
+
+{{REFERENCE}}
+
+      <!-- ============================================================ fuera de alcance -->
+      <h2 id="fuera-de-alcance"><span class="lang-es">Rutas fuera del alcance de una API key</span><span class="lang-en">Routes outside the scope of an API key</span></h2>
+      <p class="lang-es">El inicio de sesión de la consola (<code>/v2/login/</code>, <code>/logout/</code>), el canal de los agentes (<code>/api/v3/</code>, <code>/api/v4/</code>) y los WebSockets son protocolos internos del producto y no se usan con API key. Además:</p>
+      <p class="lang-en">Console sign-in (<code>/v2/login/</code>, <code>/logout/</code>), the agent channel (<code>/api/v3/</code>, <code>/api/v4/</code>) and WebSockets are internal product protocols and are not used with an API key. Also:</p>
+      <div class="tbl"><table class="plain">
+        <thead><tr><th><span class="lang-es">Ruta</span><span class="lang-en">Path</span></th><th><span class="lang-es">Motivo</span><span class="lang-en">Reason</span></th></tr></thead>
+        <tbody>
+{{EXCLUDED}}
+        </tbody>
+      </table></div>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>
