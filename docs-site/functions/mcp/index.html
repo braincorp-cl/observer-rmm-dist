@@ -152,6 +152,39 @@
       <p class="lang-es">Compruebe con <code>claude mcp list</code> y pídale, por ejemplo: <em>«Busca el equipo PC-CONTA-01 y dime su estado y sus parches pendientes»</em>.</p>
       <p class="lang-en">Check with <code>claude mcp list</code> and ask, for example: <em>"Find the machine PC-ACCT-01 and tell me its status and pending patches"</em>.</p>
 
+      <h3 id="claude-code-desktop"><span class="lang-es">Claude Code en Claude Desktop (Windows)</span><span class="lang-en">Claude Code in Claude Desktop (Windows)</span></h3>
+      <p class="lang-es">La pestaña <strong>Code</strong> de Claude Desktop usa el mismo motor que Claude Code y se conecta directo, sin puente. La configuración MCP pertenece al usuario de Windows, no a la cuenta de Claude: funciona igual con cualquier cuenta con la que inicie sesión.</p>
+      <p class="lang-en">The <strong>Code</strong> tab in Claude Desktop runs the same engine as Claude Code and connects directly, with no bridge. The MCP configuration belongs to the Windows user, not to the Claude account: it works the same with whichever account you sign in with.</p>
+      <ol class="lang-es">
+        <li><strong>Compruebe que el equipo llega a la API.</strong> En PowerShell, <code>curl.exe -s -o NUL -w "%{http_code}" -X POST https://api.su-dominio.cl/mcp</code> debe devolver <code>401</code> (responde, pero falta la clave). Si se queda esperando, un firewall está bloqueando la salida.</li>
+        <li><strong>Guarde su clave en una variable de entorno</strong> para que no quede escrita en ningún archivo: <code>setx OBSERVER_KEY "&lt;SU-CLAVE&gt;"</code>.</li>
+        <li><strong>Cierre Claude Desktop por completo</strong>, también desde el ícono de la bandeja del sistema, para que tome la variable nueva al abrirlo.</li>
+        <li><strong>Cree una carpeta de trabajo</strong>, por ejemplo <code>C:\observer-ia</code>, con un archivo <code>.mcp.json</code> guardado en UTF-8 (el Bloc de notas lo hace por defecto):</li>
+      </ol>
+      <ol class="lang-en">
+        <li><strong>Check that the machine reaches the API.</strong> In PowerShell, <code>curl.exe -s -o NUL -w "%{http_code}" -X POST https://api.your-domain.com/mcp</code> should return <code>401</code> (it answers, but the key is missing). If it hangs, a firewall is blocking outbound traffic.</li>
+        <li><strong>Store your key in an environment variable</strong> so it isn't written in any file: <code>setx OBSERVER_KEY "&lt;YOUR-KEY&gt;"</code>.</li>
+        <li><strong>Quit Claude Desktop completely</strong>, including from the system tray icon, so it picks up the new variable when reopened.</li>
+        <li><strong>Create a working folder</strong>, for example <code>C:\observer-ia</code>, with a <code>.mcp.json</code> file saved as UTF-8 (Notepad does this by default):</li>
+      </ol>
+<pre><code>{
+  "mcpServers": {
+    "observer": {
+      "type": "http",
+      "url": "https://api.su-dominio.cl/mcp",
+      "headers": { "Authorization": "Bearer ${OBSERVER_KEY}" }
+    }
+  }
+}</code></pre>
+      <ol class="lang-es" start="5">
+        <li><strong>Abra la pestaña Code</strong>, elija la carpeta <code>C:\observer-ia</code> y apruebe el servidor <code>observer</code> cuando se lo pregunte (los servidores de proyecto piden aprobación la primera vez).</li>
+        <li><strong>Verifique</strong> con <code>/mcp</code>: <code>observer</code> debe aparecer conectado. Haga una consulta de prueba y confirme en <em>Auditoría</em> que la columna <em>Origen</em> indica MCP.</li>
+      </ol>
+      <ol class="lang-en" start="5">
+        <li><strong>Open the Code tab</strong>, pick the <code>C:\observer-ia</code> folder, and approve the <code>observer</code> server when asked (project servers ask for approval the first time).</li>
+        <li><strong>Verify</strong> with <code>/mcp</code>: <code>observer</code> should show as connected. Run a test query and confirm in <em>Audit</em> that the <em>Origin</em> column shows MCP.</li>
+      </ol>
+
       <h3 id="vscode"><span class="lang-es">VS Code (GitHub Copilot, modo agente)</span><span class="lang-en">VS Code (GitHub Copilot, agent mode)</span></h3>
       <p class="lang-es">Cree <code>.vscode/mcp.json</code> en su espacio de trabajo (o agréguelo a su configuración de usuario). Con <code>inputs</code>, VS Code le pide la clave una vez y la guarda cifrada, en vez de dejarla escrita en el archivo:</p>
       <p class="lang-en">Create <code>.vscode/mcp.json</code> in your workspace (or add it to your user settings). With <code>inputs</code>, VS Code asks for the key once and stores it encrypted instead of leaving it in the file:</p>
@@ -180,9 +213,9 @@
   }
 }</code></pre>
 
-      <h3 id="claude-desktop"><span class="lang-es">Claude Desktop</span><span class="lang-en">Claude Desktop</span></h3>
-      <p class="lang-es">Claude Desktop no permite hoy agregar un servidor remoto con encabezado propio, así que se conecta a través de un puente local (<code>mcp-remote</code>, requiere Node.js). En <em>Configuración → Desarrollador → Editar configuración</em> (<code>claude_desktop_config.json</code>):</p>
-      <p class="lang-en">Claude Desktop does not currently let you add a remote server with a custom header, so it connects through a local bridge (<code>mcp-remote</code>, requires Node.js). In <em>Settings → Developer → Edit config</em> (<code>claude_desktop_config.json</code>):</p>
+      <h3 id="claude-desktop"><span class="lang-es">Claude Desktop (chat)</span><span class="lang-en">Claude Desktop (chat)</span></h3>
+      <p class="lang-es">El chat de Claude Desktop no permite hoy agregar un servidor remoto con encabezado propio, así que se conecta a través de un puente local (<code>mcp-remote</code>, requiere Node.js). En <em>Configuración → Desarrollador → Editar configuración</em> (<code>claude_desktop_config.json</code>):</p>
+      <p class="lang-en">The Claude Desktop chat does not currently let you add a remote server with a custom header, so it connects through a local bridge (<code>mcp-remote</code>, requires Node.js). In <em>Settings → Developer → Edit config</em> (<code>claude_desktop_config.json</code>):</p>
 <pre><code>{
   "mcpServers": {
     "observer": {
