@@ -66,6 +66,14 @@
   },
   {
    "@type": "Question",
+   "name": "El instalador PowerShell falla con «No se puede establecer una relación de confianza para el canal seguro SSL/TLS»",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Al equipo le falta la raíz ISRG Root X1 de Let's Encrypt en el almacén de Windows, normalmente porque la red bloquea la actualización automática de raíces o una directiva la desactiva. El navegador del mismo equipo puede abrir la descarga sin problema porque usa su propio almacén. Desde la versión 1.4.23 el instalador PowerShell agrega esa raíz si falta: genera el script de nuevo desde la consola y vuelve a ejecutarlo como administrador."
+   }
+  },
+  {
+   "@type": "Question",
    "name": "Instalé el agente pero no puedo tomar control remoto",
    "acceptedAnswer": {
     "@type": "Answer",
@@ -185,6 +193,18 @@
       <div class="callout note lang-en">
         <span class="tag">Recommendation</span>
         <p>Use the <strong>standard EXE installer</strong> or the <strong>PowerShell</strong> installer. Besides avoiding these warnings, they reduce the risk of unexpected agents appearing.</p>
+      </div>
+
+      <h2 id="instalador-tls"><span class="lang-es">El instalador PowerShell falla con «No se puede establecer una relación de confianza para el canal seguro SSL/TLS»</span><span class="lang-en">The PowerShell installer fails with "Could not establish trust relationship for the SSL/TLS secure channel"</span></h2>
+      <p class="lang-es">Al equipo le falta la raíz <strong>ISRG Root X1</strong> de Let's Encrypt en el almacén de certificados de Windows. Windows la obtiene bajo demanda mediante la actualización automática de raíces; si la red bloquea ese servicio o una directiva de grupo lo desactiva, la raíz nunca llega. El navegador del mismo equipo puede abrir la descarga sin problema porque usa su propio almacén, por eso el error solo aparece en PowerShell.</p>
+      <p class="lang-en">The machine is missing Let's Encrypt's <strong>ISRG Root X1</strong> root in the Windows certificate store. Windows fetches it on demand through automatic root updates; if the network blocks that service or a group policy disables it, the root never arrives. The browser on the same machine can open the download without trouble because it uses its own store, which is why the error only shows up in PowerShell.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Solución</span>
+        <p>Desde la versión <strong>1.4.23</strong> el instalador PowerShell agrega esa raíz si falta. <strong>Genera el script de nuevo</strong> desde <em>Agentes → Instalar agente</em> (los scripts descargados antes no traen la corrección) y ejecútalo como administrador. Si el error persiste, revisa que la hora del equipo sea correcta y que ningún filtro TLS esté interceptando la conexión.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Fix</span>
+        <p>Since version <strong>1.4.23</strong> the PowerShell installer adds that root when it is missing. <strong>Generate the script again</strong> from <em>Agents → Install agent</em> (scripts downloaded earlier do not include the fix) and run it as administrator. If the error persists, check that the machine's clock is correct and that no TLS filter is intercepting the connection.</p>
       </div>
 
       <h2 id="control-remoto"><span class="lang-es">Instalé el agente pero no puedo tomar control remoto</span><span class="lang-en">I installed the agent but can't take remote control</span></h2>

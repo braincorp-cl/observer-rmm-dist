@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.23 — 2026-09-28
+
+- **Instalador PowerShell: raíz de Let's Encrypt incluida.** Si el equipo no tiene la raíz **ISRG Root X1**, el instalador la agrega antes de descargar el agente (verificada por huella). Corrige el error «No se puede establecer una relación de confianza para el canal seguro SSL/TLS» en redes donde Windows no puede actualizar sus raíces, aunque el navegador del mismo equipo abra la descarga sin problema. Los scripts ya descargados antes de esta versión no la incluyen: hay que generarlos de nuevo desde la consola.
+- **Preguntas frecuentes:** nueva entrada para ese error, con la corrección para equipos que usen un script antiguo.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.22 — 2026-09-28
 
 - **Reportes: número de serie en Inventario de Agentes y Fecha de Instalación del Agente.** Ambos suman la columna **Nº Serie** junto al nombre del equipo; las columnas que ya mostraban no cambian.
