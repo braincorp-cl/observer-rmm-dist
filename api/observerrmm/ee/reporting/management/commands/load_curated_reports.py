@@ -115,13 +115,14 @@ INV_AGENTES = (
     _header("Inventario de Agentes", "Equipos: {{ data_sources.agents | length }}")
     + """
 <table class="report-table">
-  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Usuario</th>
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>N&ordm; Serie</th><th>Usuario</th>
     <th>Sistema Operativo</th><th>RAM (GB)</th><th>IP p&uacute;blica</th><th>&Uacute;ltima conexi&oacute;n</th></tr></thead>
   <tbody>
   {% for a in data_sources.agents | sort(attribute='hostname') %}
     <tr>
       <td>{{ a.site__client__name }}</td><td>{{ a.site__name }}</td>
-      <td><b>{{ a.hostname }}</b></td><td>{{ a.last_logged_in_user or '—' }}</td>
+      <td><b>{{ a.hostname }}</b></td><td>{{ a.serial_number or '—' }}</td>
+      <td>{{ a.last_logged_in_user or '—' }}</td>
       <td>{{ a.operating_system }}</td><td class="num">{{ a.total_ram or '—' }}</td>
       <td>{{ a.public_ip or '—' }}</td>
       {% if a.last_seen %}<td {% if (now - a.last_seen.astimezone(ZoneInfo('America/Santiago'))).days > 7 %}class="stale"{% endif %}>{{ a.last_seen.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y %H:%M') }}</td>{% else %}<td class="muted">—</td>{% endif %}
@@ -143,6 +144,8 @@ INV_AGENTES_VARS = """data_sources:
     - last_seen
     - site__name
     - site__client__name
+    properties:
+    - serial_number
 """
 
 # 2) Especificaciones de Equipos
@@ -152,12 +155,13 @@ SPECS = (
     )
     + """
 <table class="report-table">
-  <thead><tr><th>Cliente</th><th>Equipo</th><th>Marca / Modelo</th><th>CPU</th>
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Marca / Modelo</th><th>CPU</th>
     <th>Arq.</th><th>RAM (GB)</th><th>N&ordm; Serie</th><th>Sistema Operativo</th></tr></thead>
   <tbody>
   {% for a in data_sources.agents | sort(attribute='hostname') %}
     <tr>
-      <td>{{ a.site__client__name }}</td><td><b>{{ a.hostname }}</b></td>
+      <td>{{ a.site__client__name }}</td><td>{{ a.site__name }}</td>
+      <td><b>{{ a.hostname }}</b></td>
       <td>{{ a.make_model or '—' }}</td>
       <td>{{ (a.cpu_model | join(', ')) if a.cpu_model else '—' }}</td>
       <td>{{ a.arch or '—' }}</td><td class="num">{{ a.total_ram or '—' }}</td>
@@ -294,11 +298,12 @@ INSTALL_DATE = (
     )
     + """
 <table class="report-table">
-  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>Sistema Operativo</th><th>Instalado</th></tr></thead>
+  <thead><tr><th>Cliente</th><th>Sitio</th><th>Equipo</th><th>N&ordm; Serie</th><th>Sistema Operativo</th><th>Instalado</th></tr></thead>
   <tbody>
   {% for a in data_sources.agents | sort(attribute='created_time') %}
     <tr><td>{{ a.site__client__name }}</td><td>{{ a.site__name }}</td>
-      <td><b>{{ a.hostname }}</b></td><td>{{ a.operating_system }}</td>
+      <td><b>{{ a.hostname }}</b></td><td>{{ a.serial_number or '—' }}</td>
+      <td>{{ a.operating_system }}</td>
       {% if a.created_time %}<td>{{ a.created_time.astimezone(ZoneInfo('America/Santiago')).strftime('%d-%m-%Y') }}</td>{% else %}<td class="muted">—</td>{% endif %}</tr>
   {% endfor %}
   </tbody>
@@ -314,6 +319,8 @@ INSTALL_DATE_VARS = """data_sources:
     - created_time
     - site__name
     - site__client__name
+    properties:
+    - serial_number
 """
 
 # 7) Reporte de Sistemas Operativos (resumen)
