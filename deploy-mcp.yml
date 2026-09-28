@@ -11,6 +11,8 @@
 #
 # Por qué un playbook aparte: deploy-api.yml no renderiza nginx ni unidades
 # systemd, y correr el rol observer_proxy completo tocaría también certificados.
+# El play de nginx también converge el límite de descriptores del master y
+# nginx.conf (worker_shutdown_timeout) en cada deploy, no solo al instalar.
 
 - name: Servidor MCP (observer-mcp)
   hosts: observer_api
@@ -18,13 +20,18 @@
   roles:
     - observer_mcp
 
-- name: Location /mcp en el nginx del API
+- name: Nginx del API (límite de descriptores, nginx.conf y location /mcp)
   hosts: observer_proxy
   become: true
   tasks:
+    - name: Límite de descriptores del master nginx (drop-in + en caliente)
+      ansible.builtin.include_role:
+        name: observer_proxy
+        tasks_from: limits.yml
+
     # tasks_from del rol: hereda sus defaults (observer_cert_path, puertos...) con
     # la precedencia de rol, sin pisar lo que defina el inventario.
-    - name: Renderizar rmm.conf, validar y recargar nginx
+    - name: Renderizar nginx.conf y rmm.conf, validar y recargar nginx
       ansible.builtin.include_role:
         name: observer_proxy
         tasks_from: rmm_site.yml

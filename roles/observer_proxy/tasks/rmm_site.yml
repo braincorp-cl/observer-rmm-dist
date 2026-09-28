@@ -1,10 +1,21 @@
 ---
-# Solo el server block del API (rmm.conf): render, nginx -t con rollback, reload
-# y verificación de workers nuevos. Lo usa deploy-mcp.yml (feature 045) para no
-# correr el rol completo, que también toca certificados.
+# nginx.conf global y el server block del API (rmm.conf): render, nginx -t con
+# rollback, reload y verificación de workers nuevos. Lo usa deploy-mcp.yml (que
+# importa deploy-api.yml) para no correr el rol completo, que también toca certificados.
+# nginx.conf lleva worker_shutdown_timeout: tope a los workers viejos tras un reload.
 
-- name: Desplegar rmm.conf y validarlo (revierte si algo falla)
+- name: Desplegar nginx.conf y rmm.conf y validarlos (revierte si algo falla)
   block:
+    - name: Desplegar nginx.conf
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+      register: _nginx_conf
+
     - name: Desplegar rmm.conf
       ansible.builtin.template:
         src: rmm.conf.j2
@@ -16,10 +27,18 @@
       register: _rmm_conf
 
     - name: Validar la configuración completa de nginx
-      when: _rmm_conf is changed
+      when: _nginx_conf is changed or _rmm_conf is changed
       ansible.builtin.command: nginx -t
       changed_when: false
   rescue:
+    - name: Restaurar el nginx.conf anterior
+      when: _nginx_conf.backup_file is defined
+      ansible.builtin.copy:
+        src: "{{ _nginx_conf.backup_file }}"
+        dest: /etc/nginx/nginx.conf
+        remote_src: true
+        mode: "0644"
+
     - name: Restaurar el rmm.conf anterior
       when: _rmm_conf.backup_file is defined
       ansible.builtin.copy:
@@ -31,23 +50,23 @@
     - name: Abortar sin recargar nginx
       ansible.builtin.fail:
         msg: >-
-          Falló el render o la validación de rmm.conf ({{ ansible_failed_result.msg | default('ver tarea anterior') }}).
-          Si alcanzó a escribirse, se restauró el anterior; nginx no se recargó.
+          Falló el render o la validación de nginx.conf/rmm.conf ({{ ansible_failed_result.msg | default('ver tarea anterior') }}).
+          Si alcanzó a escribirse, se restauraron los anteriores; nginx no se recargó.
 
 - name: PID del master nginx antes del reload
-  when: _rmm_conf is changed
+  when: _nginx_conf is changed or _rmm_conf is changed
   ansible.builtin.command: cat /run/nginx.pid
   register: _nginx_pid
   changed_when: false
 
 - name: Workers nginx antes del reload
-  when: _rmm_conf is changed
+  when: _nginx_conf is changed or _rmm_conf is changed
   ansible.builtin.command: "pgrep -P {{ _nginx_pid.stdout }}"
   register: _workers_before
   changed_when: false
 
 - name: Recargar nginx
-  when: _rmm_conf is changed
+  when: _nginx_conf is changed or _rmm_conf is changed
   ansible.builtin.systemd:
     name: nginx
     state: reloaded
@@ -55,7 +74,7 @@
 # Un reload puede fallar en silencio (systemctl rc=0 sin workers nuevos): se
 # verifica que el master haya levantado al menos un worker nuevo.
 - name: Verificar workers nuevos tras el reload
-  when: _rmm_conf is changed
+  when: _nginx_conf is changed or _rmm_conf is changed
   ansible.builtin.command: "pgrep -P {{ _nginx_pid.stdout }}"
   register: _workers_after
   changed_when: false

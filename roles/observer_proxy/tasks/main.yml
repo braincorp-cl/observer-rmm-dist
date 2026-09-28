@@ -27,31 +27,9 @@
     state: present
     update_cache: true
 
-- name: Crear drop-in systemd de nginx
-  ansible.builtin.file:
-    path: /etc/systemd/system/nginx.service.d
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-# Límite de descriptores del master (soft = hard). Rige desde el próximo arranque de nginx: el rol no
-# reinicia el servicio por esto (cortaría las conexiones de los agentes); en un host ya en marcha se
-# puede aplicar en caliente con `prlimit --pid $(cat /run/nginx.pid) --nofile=N:N` antes del reload.
-- name: Fijar LimitNOFILE del servicio nginx
-  ansible.builtin.copy:
-    dest: /etc/systemd/system/nginx.service.d/limits.conf
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      # Generado por Ansible (observer_proxy). Ver observer_proxy_nofile en defaults/main.yml.
-      [Service]
-      LimitNOFILE={{ observer_proxy_nofile }}
-  notify: daemon-reload nginx
-
-- name: Aplicar daemon-reload pendiente antes de tocar nginx
-  ansible.builtin.meta: flush_handlers
+# Descriptores del master nginx (drop-in + en caliente). Mismo archivo que usa cada deploy del API.
+- name: Límite de descriptores del master nginx
+  ansible.builtin.include_tasks: limits.yml
 
 # El paquete nginx.org no trae sites-available/sites-enabled ni los incluye en
 # nginx.conf (solo conf.d/*.conf). Sin esto, los vhosts del rol (rmm/frontend/mesh,

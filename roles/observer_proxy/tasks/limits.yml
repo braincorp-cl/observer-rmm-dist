@@ -1,0 +1,50 @@
+---
+# Límite de descriptores del master de nginx: drop-in systemd (rige en cada arranque) y, si nginx ya
+# corre, el mismo límite en caliente con prlimit (sin reiniciar: no corta las conexiones de los
+# agentes ni del Mesh). Lo usan la instalación (main.yml) y cada deploy del API (deploy-mcp.yml).
+# Sin esto el soft del master queda en 1024 y los reload fallan en silencio al acumular workers.
+
+- name: Crear drop-in systemd de nginx
+  ansible.builtin.file:
+    path: /etc/systemd/system/nginx.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Fijar LimitNOFILE del servicio nginx
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/nginx.service.d/limits.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Generado por Ansible (observer_proxy). Ver observer_proxy_nofile en defaults/main.yml.
+      [Service]
+      LimitNOFILE={{ observer_proxy_nofile }}
+  notify: daemon-reload nginx
+
+- name: Aplicar daemon-reload pendiente antes de tocar nginx
+  ansible.builtin.meta: flush_handlers
+
+- name: Leer el límite de descriptores del master nginx en marcha
+  ansible.builtin.shell: |
+    set -o pipefail
+    pid=$(cat /run/nginx.pid 2>/dev/null) || exit 0
+    [ -d "/proc/$pid" ] || exit 0
+    echo "$pid $(prlimit --pid "$pid" --nofile --noheadings --output SOFT,HARD)"
+  args:
+    executable: /bin/bash
+  register: _nginx_nofile
+  changed_when: false
+  check_mode: false  # solo lee; así el dry-run también muestra si falta aplicarlo
+
+- name: Aplicar el límite en caliente al master nginx
+  when:
+    - _nginx_nofile.stdout | length > 0
+    - (_nginx_nofile.stdout.split()[1] | int) < (observer_proxy_nofile | int)
+      or (_nginx_nofile.stdout.split()[2] | int) < (observer_proxy_nofile | int)
+  ansible.builtin.command: >-
+    prlimit --pid {{ _nginx_nofile.stdout.split()[0] }}
+    --nofile={{ observer_proxy_nofile }}:{{ observer_proxy_nofile }}
+  changed_when: true
