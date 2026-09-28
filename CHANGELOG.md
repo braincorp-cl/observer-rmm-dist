@@ -8,6 +8,13 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.22 — 2026-09-28
+
+- **Reportes: número de serie en Inventario de Agentes y Fecha de Instalación del Agente.** Ambos suman la columna **Nº Serie** junto al nombre del equipo; las columnas que ya mostraban no cambian.
+- **Reportes: sitio en Especificaciones de Equipos.** Suma la columna **Sitio** (el establecimiento) junto al cliente.
+- **Límite de conexiones del proxy en cada despliegue.** `deploy-api.yml` aplica el límite de descriptores de nginx (y lo sube en caliente si ya corre), sin esperar a una reinstalación. Evita que un recargo del proxy falle en silencio en plataformas con muchas conexiones.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.21 — 2026-09-28
 
 - **Asistentes de IA: interruptor en la consola.** *Configuración global → Asistente IA* suma **«Permitir asistentes de IA (MCP) en esta plataforma»**. Viene encendido; al apagarlo, toda llamada por MCP recibe 403 al instante, sin redeploy y también para superusuarios. Las claves de API siguen sirviendo para la API REST directa.
