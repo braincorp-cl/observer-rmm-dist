@@ -46,6 +46,21 @@ class AuditLog(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.pk:
+            # Feature 045: la mayoría de los audit_* reciben un debug_info propio
+            # (p. ej. {"ip": ...}) y no pasan por get_debug_info(), así que el
+            # cliente de origen se agrega acá, en el único punto común. Solo si el
+            # registro es del mismo usuario del request en curso (request_local no
+            # se limpia al terminar cada request).
+            # get_debug_info() vale None tras la limpieza del middleware.
+            client = (get_debug_info() or {}).get("client")
+            if (
+                client
+                and self.username == get_username()
+                and (self.debug_info is None or isinstance(self.debug_info, dict))
+                and "client" not in (self.debug_info or {})
+            ):
+                self.debug_info = {**(self.debug_info or {}), "client": client}
+
             # truncate message field if longer than 255 characters
             if self.message:
                 self.message = (

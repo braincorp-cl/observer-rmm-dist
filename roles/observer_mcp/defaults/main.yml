@@ -1,0 +1,24 @@
+---
+# Servidor MCP (feature 045). APAGADO por defecto: con mcp_enabled sin definir o
+# false el rol no instala nada (y si estaba instalado, lo detiene).
+mcp_enabled: false
+
+observer_mcp_root: "{{ observer_root }}/mcp"
+observer_mcp_source_path: "{{ playbook_dir }}/mcp/"
+observer_mcp_port: 8765
+
+# La REST se consume por loopback a través del mismo nginx del API. El cert del
+# dominio no calza con 127.0.0.1, por eso no se verifica TLS en ese salto local;
+# el Host lleva el dominio para que nginx elija el server block del API.
+observer_mcp_rest_url: "https://127.0.0.1:{{ observer_proxy_https_port | default(443) }}"
+observer_mcp_host_header: "{{ observer_domain }}"
+observer_mcp_verify_tls: false
+
+# Host/Origin aceptados por la protección DNS-rebinding del SDK.
+observer_mcp_allowed_hosts: "{{ observer_domain }}"
+observer_mcp_allowed_origins: ""
+
+observer_mcp_max_agents: 10
+observer_mcp_rate_per_min: 60
+observer_mcp_max_response_chars: 100000
+observer_mcp_disabled_tools: ""

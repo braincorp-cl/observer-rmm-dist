@@ -1,0 +1,20 @@
+[Unit]
+Description=Observer RMM MCP server
+After=network.target nginx.service
+
+[Service]
+User={{ observer_user }}
+Group={{ observer_group }}
+WorkingDirectory={{ observer_mcp_root }}/src
+EnvironmentFile={{ observer_mcp_root }}/observer-mcp.env
+ExecStart={{ observer_mcp_root }}/env/bin/python -m observer_mcp --http
+Restart=always
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths={{ observer_mcp_root }}
+
+[Install]
+WantedBy=multi-user.target

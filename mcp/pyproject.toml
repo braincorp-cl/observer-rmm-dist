@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "observer-mcp"
+dynamic = ["version"]
+description = "Servidor MCP de Observer RMM: expone la API REST a LLMs y agentes remotos."
+requires-python = ">=3.11"
+license = { file = "../LICENSE.md" }
+dependencies = [
+    # SDK oficial, primera línea estable con la spec MCP 2026-07-28 (stateless).
+    "mcp==2.2.0",
+    "httpx>=0.27,<1",
+    "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+observer-mcp = "observer_mcp.__main__:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "observer_mcp.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["observer_mcp*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]

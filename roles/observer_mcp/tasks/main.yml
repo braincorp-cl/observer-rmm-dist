@@ -1,0 +1,102 @@
+---
+# Servidor MCP (feature 045). Todo el rol depende de mcp_enabled: apagado por
+# defecto, un deploy sin la variable no cambia nada.
+
+- name: Apagar observer-mcp si quedó instalado y el flag está en false
+  when: not (mcp_enabled | bool)
+  block:
+    - name: Ver si existe la unidad observer-mcp
+      ansible.builtin.stat:
+        path: /etc/systemd/system/observer-mcp.service
+      register: _mcp_unit
+
+    - name: Detener y deshabilitar observer-mcp
+      when: _mcp_unit.stat.exists
+      ansible.builtin.systemd:
+        name: observer-mcp
+        state: stopped
+        enabled: false
+
+- name: Instalar y arrancar observer-mcp
+  when: mcp_enabled | bool
+  block:
+    - name: Crear directorio del servicio MCP
+      ansible.builtin.file:
+        path: "{{ observer_mcp_root }}"
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0750"
+
+    # Mismo patrón que la sincronización del backend (deploy-api.yml): como el
+    # usuario de la app y con --omit-dir-times --no-perms para no disparar
+    # reinicios espurios.
+    - name: Copiar el código del servidor MCP
+      ansible.posix.synchronize:
+        src: "{{ observer_mcp_source_path }}"
+        dest: "{{ observer_mcp_root }}/src/"
+        delete: true
+        checksum: true
+        rsync_opts:
+          - "--exclude=tests/"
+          - "--exclude=__pycache__"
+          - "--exclude=*.pyc"
+          - "--exclude=.pytest_cache"
+          - "--omit-dir-times"
+          - "--no-perms"
+      become: true
+      become_user: "{{ observer_user }}"
+      notify: restart observer-mcp
+
+    - name: Crear virtualenv del MCP (Python {{ observer_python_version }})
+      ansible.builtin.command:
+        cmd: "python{{ observer_python_version }} -m venv {{ observer_mcp_root }}/env"
+        creates: "{{ observer_mcp_root }}/env/bin/activate"
+      become: true
+      become_user: "{{ observer_user }}"
+
+    - name: Instalar dependencias fijadas del MCP
+      ansible.builtin.pip:
+        requirements: "{{ observer_mcp_root }}/src/requirements.txt"
+        virtualenv: "{{ observer_mcp_root }}/env"
+      become: true
+      become_user: "{{ observer_user }}"
+      notify: restart observer-mcp
+
+    - name: Configuración del servicio MCP
+      ansible.builtin.template:
+        src: observer-mcp.env.j2
+        dest: "{{ observer_mcp_root }}/observer-mcp.env"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0640"
+      notify: restart observer-mcp
+
+    - name: Unidad systemd observer-mcp
+      ansible.builtin.template:
+        src: observer-mcp.service.j2
+        dest: /etc/systemd/system/observer-mcp.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart observer-mcp
+
+    - name: Habilitar y arrancar observer-mcp
+      ansible.builtin.systemd:
+        name: observer-mcp
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Aplicar reinicio pendiente antes de verificar
+      ansible.builtin.meta: flush_handlers
+
+    # exit 0 del systemd no prueba que el servicio atienda: se consulta el health.
+    - name: Verificar health del MCP
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ observer_mcp_port }}/mcp/health"
+        return_content: true
+      register: _mcp_health
+      retries: 10
+      delay: 2
+      until: _mcp_health.status == 200 and (_mcp_health.json.status | default('')) == 'ok'

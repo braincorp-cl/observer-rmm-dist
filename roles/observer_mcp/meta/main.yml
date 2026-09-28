@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: BrainCorp
+  description: Servidor MCP de Observer RMM (feature 045), opcional y apagado por defecto
+  license: Propietaria BrainCorp
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+    - name: Debian
+      versions: [bookworm]
+dependencies: []

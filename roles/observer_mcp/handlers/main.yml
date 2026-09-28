@@ -1,0 +1,7 @@
+---
+- name: restart observer-mcp
+  ansible.builtin.systemd:
+    name: observer-mcp
+    state: restarted
+    daemon_reload: true
+  listen: restart observer-mcp

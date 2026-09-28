@@ -1,3 +1,4 @@
+import re
 import threading
 from contextlib import suppress
 from typing import Any, Dict, Optional
@@ -18,6 +19,19 @@ def get_username() -> Optional[str]:
 
 def get_debug_info() -> Dict[str, Any]:
     return getattr(request_local, "debug_info", {})
+
+
+# Feature 045: cliente que originó el request (p. ej. "mcp/0.1.0 tool=add_note").
+# Informativo, NO es control de seguridad: cualquier cliente puede enviarlo.
+CLIENT_HEADER_MAX_LEN = 128
+_CLIENT_HEADER_ALLOWED = re.compile(r"[^A-Za-z0-9 ._/=:-]")
+
+
+def sanitize_client_header(raw: Optional[str]) -> Optional[str]:
+    if not raw:
+        return None
+    clean = _CLIENT_HEADER_ALLOWED.sub("", str(raw))[:CLIENT_HEADER_MAX_LEN].strip()
+    return clean or None
 
 
 EXCLUDE_PATHS = (
@@ -83,6 +97,11 @@ class AuditMiddleware:
                     debug_info["view_args"] = view_args
                     debug_info["view_kwargs"] = view_kwargs
                     debug_info["ip"] = request._client_ip
+                    client = sanitize_client_header(
+                        request.META.get("HTTP_X_OBSERVER_CLIENT")
+                    )
+                    if client:
+                        debug_info["client"] = client
 
                     request_local.debug_info = debug_info
 

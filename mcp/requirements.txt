@@ -1,0 +1,4 @@
+# Dependencias fijadas del servicio observer-mcp (las instala el rol Ansible observer_mcp).
+mcp==2.2.0
+httpx==0.28.1
+uvicorn==0.54.0

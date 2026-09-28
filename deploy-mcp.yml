@@ -1,0 +1,29 @@
+---
+# Deploy del servidor MCP (feature 045) sobre un sistema ya instalado.
+#
+# Uso:
+#   ansible-playbook -i inventory/staging.yml deploy-mcp.yml
+#
+# Con mcp_enabled sin definir o false: no instala nada (si estaba instalado lo
+# detiene) y rmm.conf queda idéntico. Con mcp_enabled: true instala el servicio
+# observer-mcp y agrega la location /mcp al server block del API.
+#
+# Por qué un playbook aparte: deploy-api.yml no renderiza nginx ni unidades
+# systemd, y correr el rol observer_proxy completo tocaría también certificados.
+
+- name: Servidor MCP (observer-mcp)
+  hosts: observer_api
+  become: true
+  roles:
+    - observer_mcp
+
+- name: Location /mcp en el nginx del API
+  hosts: observer_proxy
+  become: true
+  tasks:
+    # tasks_from del rol: hereda sus defaults (observer_cert_path, puertos...) con
+    # la precedencia de rol, sin pisar lo que defina el inventario.
+    - name: Renderizar rmm.conf, validar y recargar nginx
+      ansible.builtin.include_role:
+        name: observer_proxy
+        tasks_from: rmm_site.yml

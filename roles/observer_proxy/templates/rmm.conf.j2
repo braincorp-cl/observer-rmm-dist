@@ -67,6 +67,27 @@ server {
         proxy_set_header Connection "upgrade";
     }
 
+{% if mcp_enabled | default(false) | bool %}
+    # Servidor MCP (feature 045). Solo se renderiza con mcp_enabled; co-localizado
+    # con el API como el websocket de NATS (bindea loopback).
+    location = /mcp {
+        proxy_pass http://127.0.0.1:{{ observer_mcp_port | default(8765) }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $http_x_real_ip;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+        client_max_body_size 1M;
+    }
+
+    location = /mcp/health {
+        proxy_pass http://127.0.0.1:{{ observer_mcp_port | default(8765) }};
+        proxy_set_header Host $host;
+    }
+
+{% endif %}
     location / {
         uwsgi_pass rmm-backend;
         include /etc/nginx/uwsgi_params;
