@@ -22,6 +22,19 @@ class PermissionDenied(RESTError):
     pass
 
 
+class ChannelClosed(PermissionDenied):
+    """El canal MCP está cerrado: plataforma apagada o rol sin can_use_mcp."""
+
+
+# Motivos del 403 con que la REST corta el canal MCP (observerrmm/auth.py).
+_CHANNEL_CLOSED = {
+    "mcp_disabled": "AI assistants (MCP) are disabled on this Observer RMM platform. "
+    "An administrator can turn them on in Settings > Global Settings > AI Assistant tab.",
+    "mcp_not_permitted": "Your Observer RMM role is not allowed to use AI assistants (MCP). "
+    "Ask an administrator to enable 'Use AI assistants (MCP)' on your role in Settings > Permissions Manager.",
+}
+
+
 class NotFound(RESTError):
     pass
 
@@ -103,6 +116,12 @@ class ObserverREST:
         if code == 401:
             raise AuthError("authentication failed: invalid or expired API key")
         if code == 403:
+            try:
+                reason = (resp.json() or {}).get("code")
+            except (ValueError, AttributeError):
+                reason = None
+            if reason in _CHANNEL_CLOSED:
+                raise ChannelClosed(_CHANNEL_CLOSED[reason])
             raise PermissionDenied("permission denied for this operation")
         if code == 404:
             raise NotFound("not found")

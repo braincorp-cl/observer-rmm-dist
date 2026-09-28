@@ -104,3 +104,18 @@ async def test_host_no_permitido_rechazado(http_app):
                 headers={"Authorization": f"Bearer {VALID_KEY}", "Accept": "application/json, text/event-stream"},
             )
     assert r.status_code in (400, 421)
+
+
+@pytest.mark.parametrize(
+    "code,texto",
+    [("mcp_disabled", "disabled on this Observer RMM platform"), ("mcp_not_permitted", "role is not allowed")],
+)
+async def test_canal_cerrado_403_con_motivo(http_app, fake_rest, code, texto):
+    fake_rest.on(
+        "GET", "/core/version/", lambda r: httpx.Response(403, json={"detail": "x", "code": code})
+    )
+    app, _ = http_app
+    async with _raw(app) as c:
+        r = await c.post("/mcp", json={}, headers={"Authorization": f"Bearer {VALID_KEY}"})
+    assert r.status_code == 403
+    assert texto in r.json()["error"]

@@ -224,6 +224,8 @@
         <li><strong>«permission denied» en una herramienta:</strong> el rol del usuario dueño de la clave no permite esa acción o no ve ese cliente o equipo.</li>
         <li><strong>429 Too Many Requests:</strong> se superó el límite de llamadas por minuto de esa clave; espere los segundos que indica <code>Retry-After</code>.</li>
         <li><strong>400 al conectar:</strong> la clave se envió en la URL. Debe ir en el encabezado.</li>
+        <li><strong>403 «disabled on this platform»:</strong> un administrador apagó los asistentes de IA en <em>Configuración global → Asistente IA</em>.</li>
+        <li><strong>403 «role is not allowed»:</strong> su rol no tiene el permiso <em>Usar asistentes de IA (MCP)</em>. Pídaselo a un administrador.</li>
         <li><strong>404 en /mcp:</strong> el servidor MCP fue deshabilitado en su plataforma. Contacte a su administrador.</li>
         <li>Para comprobar que el servicio responde: <code>https://api.su-dominio.cl/mcp/health</code> devuelve <code>{"status": "ok"}</code>.</li>
       </ul>
@@ -232,13 +234,27 @@
         <li><strong>"permission denied" on a tool:</strong> the role of the key's owner doesn't allow that action or can't see that client or machine.</li>
         <li><strong>429 Too Many Requests:</strong> the key's per-minute call limit was exceeded; wait the seconds indicated by <code>Retry-After</code>.</li>
         <li><strong>400 when connecting:</strong> the key was sent in the URL. It must go in the header.</li>
+        <li><strong>403 "disabled on this platform":</strong> an administrator turned AI assistants off in <em>Global Settings → AI Assistant</em>.</li>
+        <li><strong>403 "role is not allowed":</strong> your role lacks the <em>Use AI assistants (MCP)</em> permission. Ask an administrator.</li>
         <li><strong>404 on /mcp:</strong> the MCP server isn't enabled on your platform. Contact your administrator.</li>
         <li>To check the service is up: <code>https://api.your-domain.com/mcp/health</code> returns <code>{"status": "ok"}</code>.</li>
       </ul>
 
       <h2 id="admin"><span class="lang-es">Para administradores</span><span class="lang-en">For administrators</span></h2>
-      <p class="lang-es">Viene encendido por omisión: toda instalación y todo deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>) lo instala o actualiza. Para excluir una plataforma, defina <code>mcp_enabled: false</code> en su inventario. Se puede ajustar el tope de equipos por llamada, el límite de llamadas por minuto y deshabilitar herramientas individuales. Vea la <a href="/api/">referencia de la API REST</a> para integraciones que no usan IA.</p>
-      <p class="lang-en">It is on by default: every installation and every deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>) installs or updates it. To exclude a platform, set <code>mcp_enabled: false</code> in its inventory. You can tune the per-call machine cap and the per-minute call limit, and disable individual tools. See the <a href="/api/">REST API reference</a> for integrations that don't use AI.</p>
+      <p class="lang-es">Los asistentes de IA se controlan en tres niveles:</p>
+      <ul class="lang-es">
+        <li><strong>Plataforma, desde la consola:</strong> <em>Configuración global → Asistente IA → Permitir asistentes de IA (MCP) en esta plataforma</em>. Viene encendido. Al apagarlo, toda llamada por MCP recibe 403 de inmediato, sin redeploy y también para superusuarios. Las claves de API siguen sirviendo para la API REST directa.</li>
+        <li><strong>Rol:</strong> el permiso <em>Usar asistentes de IA (MCP)</em>, en <em>Configuración → Gestor de permisos</em> (editar el rol). Viene marcado en los roles existentes y en los nuevos. Desmárquelo en los roles que no deban usar asistentes. Lo que cada técnico ve por cliente y sitio lo sigue decidiendo el alcance de su rol.</li>
+        <li><strong>Instalación:</strong> el servicio se instala en toda plataforma con cada instalación y deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>). Para no instalarlo, defina <code>mcp_enabled: false</code> en el inventario.</li>
+      </ul>
+      <p class="lang-es">En el inventario también se puede ajustar el tope de equipos por llamada, el límite de llamadas por minuto y deshabilitar herramientas individuales. Vea la <a href="/api/">referencia de la API REST</a> para integraciones que no usan IA.</p>
+      <p class="lang-en">AI assistants are controlled at three levels:</p>
+      <ul class="lang-en">
+        <li><strong>Platform, from the console:</strong> <em>Global Settings → AI Assistant → Allow AI assistants (MCP) on this platform</em>. It is on by default. Turning it off makes every MCP call get a 403 right away, with no redeploy and for superusers too. API keys keep working for the direct REST API.</li>
+        <li><strong>Role:</strong> the <em>Use AI assistants (MCP)</em> permission, under <em>Settings → Permissions Manager</em> (edit the role). It is checked on existing and new roles. Uncheck it on roles that shouldn't use assistants. What each technician sees per client and site is still set by their role's scope.</li>
+        <li><strong>Installation:</strong> the service is installed on every platform by each installation and deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>). To skip it, set <code>mcp_enabled: false</code> in the inventory.</li>
+      </ul>
+      <p class="lang-en">In the inventory you can also tune the per-call machine cap and the per-minute call limit, and disable individual tools. See the <a href="/api/">REST API reference</a> for integrations that don't use AI.</p>
 
 
       <footer>

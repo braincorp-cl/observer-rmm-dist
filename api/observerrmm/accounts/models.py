@@ -251,6 +251,10 @@ class Role(BaseAuditModel):
     # authentication
     can_list_api_keys = models.BooleanField(default=False)
     can_manage_api_keys = models.BooleanField(default=False)
+    # Feature 045: usar Observer RMM desde un asistente de IA (servidor MCP) con
+    # la clave de API propia. Encendido por omisión, como el servidor MCP: quitarlo
+    # a un rol corta el canal MCP sin tocar sus claves ni la API REST directa.
+    can_use_mcp = models.BooleanField(default=True)
 
     # reporting
     can_view_reports = models.BooleanField(default=False)

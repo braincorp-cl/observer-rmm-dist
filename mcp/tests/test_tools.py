@@ -139,3 +139,14 @@ async def test_resource_de_agente(make_server):
     async with Client(make_server()) as c:
         r = await c.read_resource("observer://agent/aaa")
     assert "PC-CONTA-01" in r.contents[0].text and "recovery" not in r.contents[0].text
+
+
+async def test_canal_cerrado_a_mitad_de_sesion_explica_el_motivo(make_server, fake_rest):
+    # El admin apaga el MCP con la caché de auth aún vigente: la tool igual lo dice.
+    fake_rest.on(
+        "GET", "/agents/zzz/", lambda r: httpx.Response(403, json={"detail": "x", "code": "mcp_disabled"})
+    )
+    async with Client(make_server()) as c:
+        r = await c.call_tool("get_agent", {"agent_id": "zzz"})
+    assert r.is_error
+    assert "disabled on this Observer RMM platform" in r.content[0].text

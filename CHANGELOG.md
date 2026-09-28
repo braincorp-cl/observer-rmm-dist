@@ -8,6 +8,14 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.21 — 2026-09-28
+
+- **Asistentes de IA: interruptor en la consola.** *Configuración global → Asistente IA* suma **«Permitir asistentes de IA (MCP) en esta plataforma»**. Viene encendido; al apagarlo, toda llamada por MCP recibe 403 al instante, sin redeploy y también para superusuarios. Las claves de API siguen sirviendo para la API REST directa.
+- **Permiso por rol «Usar asistentes de IA (MCP)».** Nuevo permiso en el *Gestor de permisos*, marcado por omisión en los roles existentes y en los nuevos. Quitárselo a un rol corta el canal MCP de sus usuarios sin tocar sus claves. Qué ve cada técnico por cliente y sitio lo sigue decidiendo el alcance de su rol.
+- **Mensajes claros para el técnico.** Cuando el canal está cerrado, el asistente explica el motivo (plataforma apagada o rol sin permiso) y dónde se habilita, en vez de un error genérico.
+- **El servidor MCP se instala en toda plataforma.** `install.yml`, `upgrade.yml` y `deploy-api.yml` lo instalan o actualizan; `mcp_enabled: false` en el inventario lo excluye.
+- **Dos migraciones aditivas** (`accounts` 0046, `core` 0070), sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.20 — 2026-09-27
 
 - **Asistentes de IA conectados a la flota (servidor MCP).** Observer RMM incluye un servidor **MCP** (Model Context Protocol, el estándar abierto para conectar asistentes de IA con herramientas). Cada técnico puede consultar y operar la flota en lenguaje natural desde **Claude Code, VS Code (Copilot), Cursor, Claude Desktop o n8n**. El modelo corre en el asistente del técnico, con **sus propios créditos**: el servidor no consume tokens de ningún proveedor. Guía de conexión por cliente en `docs.observer.cl/functions/mcp/`.

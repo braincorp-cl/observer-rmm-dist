@@ -237,6 +237,14 @@
                 v-model="localRole.can_manage_api_keys"
                 :label="$t('rolesForm.manageApiKeys')"
               />
+              <!-- Feature 045: canal de asistentes de IA (MCP) con la clave
+                   propia. Encendido por omisión, igual que el servidor MCP. -->
+              <q-checkbox
+                v-model="localRole.can_use_mcp"
+                :label="$t('rolesForm.useMcp')"
+              >
+                <q-tooltip>{{ $t("rolesForm.useMcpTooltip") }}</q-tooltip>
+              </q-checkbox>
               <q-checkbox
                 v-model="localRole.can_run_urlactions"
                 :label="$t('rolesForm.runUrlActions')"
@@ -569,6 +577,7 @@ export default {
           // api key perms
           can_list_api_keys: false,
           can_manage_api_keys: false,
+          can_use_mcp: true,
           // check perms
           can_list_checks: false,
           can_manage_checks: false,

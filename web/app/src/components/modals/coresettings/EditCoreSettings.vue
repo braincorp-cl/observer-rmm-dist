@@ -1080,6 +1080,26 @@
                     :hint="$t('editCoreSettings.aiTemperatureHint')"
                   />
                 </q-card-section>
+
+                <!--
+                  Feature 045: interruptor global del servidor MCP. Es otro canal:
+                  el asistente del técnico usa SU modelo y SUS créditos, no el
+                  token de arriba. Apagarlo corta /mcp en toda la plataforma sin
+                  redeploy; quién lo usa se decide por rol (can_use_mcp).
+                -->
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.mcpTitle") }}
+                </div>
+                <q-separator />
+                <q-card-section>
+                  <q-checkbox
+                    v-model="settings.mcp_enabled"
+                    :label="$t('editCoreSettings.mcpEnabled')"
+                  />
+                  <div class="text-caption text-grey q-pl-sm">
+                    {{ $t("editCoreSettings.mcpEnabledHint") }}
+                  </div>
+                </q-card-section>
               </q-tab-panel>
             </q-tab-panels>
           </q-scroll-area>

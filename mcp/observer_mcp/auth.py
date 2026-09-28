@@ -14,7 +14,7 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from .config import Settings
-from .rest_client import AuthError, ObserverREST, RESTError
+from .rest_client import AuthError, ChannelClosed, ObserverREST, RESTError
 from .safety import RateLimiter
 
 REALM = 'Bearer realm="observer-mcp"'
@@ -132,6 +132,12 @@ class AuthGate:
                     {"error": "invalid or expired API key"},
                     {"www-authenticate": REALM + ', error="invalid_token"'},
                 )
+                return
+            except ChannelClosed as exc:
+                # Clave válida pero canal cerrado (interruptor global o rol): 403
+                # con el motivo, para que el cliente MCP se lo muestre al técnico.
+                self._valid_until.pop(fp, None)
+                await _respond(send, 403, {"error": str(exc)})
                 return
             except RESTError:
                 await _respond(send, 502, {"error": "upstream unavailable"})

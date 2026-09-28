@@ -5,6 +5,44 @@ from rest_framework.authentication import HTTP_HEADER_ENCODING, BaseAuthenticati
 
 from accounts.models import APIKey
 
+# Feature 045: prefijo con que observer-mcp marca sus requests (X-Observer-Client).
+MCP_CLIENT_PREFIX = "mcp/"
+
+
+def is_mcp_request(request) -> bool:
+    raw = request.META.get("HTTP_X_OBSERVER_CLIENT", "")
+    if isinstance(raw, bytes):
+        raw = raw.decode(HTTP_HEADER_ENCODING, errors="replace")
+    return str(raw).strip().lower().startswith(MCP_CLIENT_PREFIX)
+
+
+def check_mcp_access(user) -> None:
+    """Corta el canal MCP si está apagado en la plataforma o el rol no lo permite.
+
+    Gobierna el canal del asistente, no la clave: la misma clave sigue sirviendo
+    para la API REST directa. 403 con `code` para que observer-mcp explique el
+    motivo al técnico en vez de un error genérico.
+    """
+    from core.utils import get_core_settings
+
+    if not get_core_settings().mcp_enabled:
+        raise exceptions.PermissionDenied(
+            {
+                "detail": "AI assistants (MCP) are disabled on this platform.",
+                "code": "mcp_disabled",
+            }
+        )
+    role = getattr(user, "role", None)
+    if user.is_superuser or (role and role.is_superuser):
+        return
+    if not role or not role.can_use_mcp:
+        raise exceptions.PermissionDenied(
+            {
+                "detail": "Your role is not allowed to use AI assistants (MCP).",
+                "code": "mcp_not_permitted",
+            }
+        )
+
 
 def get_authorization_header(request) -> str:
     """
@@ -46,7 +84,10 @@ class APIAuthentication(BaseAuthentication):
             )
             raise exceptions.AuthenticationFailed(msg)
 
-        return self.authenticate_credentials(apikey)
+        user, key = self.authenticate_credentials(apikey)
+        if is_mcp_request(request):
+            check_mcp_access(user)
+        return user, key
 
     def authenticate_credentials(self, key):
         try:

@@ -243,6 +243,10 @@ class CoreSettings(BaseAuditModel):
     # Días en mantenimiento antes de avisar. 3 por defecto: cubre el fin de semana
     # largo sin alcanzar a ser una semana de alertas suprimidas en silencio.
     maintenance_alert_days = models.PositiveIntegerField(default=3)
+    # Feature 045: interruptor global del servidor MCP (asistentes de IA). Apagarlo
+    # corta el canal MCP de toda la plataforma sin redeploy; el servicio sigue
+    # instalado (mcp_enabled del inventario) y responde 403 con el motivo.
+    mcp_enabled = models.BooleanField(default=True)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
         related_name="default_workstation_policy",

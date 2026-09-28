@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from django.conf import settings
 from python_ipware import IpWare
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 
 from observerrmm.constants import DEMO_NOT_ALLOWED
 from observerrmm.helpers import notify_error
@@ -79,8 +79,9 @@ class AuditMiddleware:
                 # Can't initialize the request from this view. Fallback to using default permission classes
                 request = APIView().initialize_request(request)
 
-            # check if user is authenticated
-            with suppress(AuthenticationFailed):
+            # check if user is authenticated. PermissionDenied: el canal MCP cerrado
+            # (feature 045) se rechaza en la autenticación; la vista lo responde 403.
+            with suppress(AuthenticationFailed, PermissionDenied):
                 if hasattr(request, "user") and request.user.is_authenticated:
                     try:
                         view_Name = view_func.__dict__["view_class"].__name__
