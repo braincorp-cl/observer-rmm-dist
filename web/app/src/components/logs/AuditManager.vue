@@ -267,6 +267,15 @@ export default {
         align: "left",
         sortable: true,
       },
+      {
+        // Feature 045: cliente de origen (p. ej. "mcp/0.1.0 tool=add_note").
+        // Vacío para las acciones hechas desde la consola.
+        name: "origin",
+        label: t("auditManager.colOrigin"),
+        field: (row) => (row.debug_info && row.debug_info.client) || "",
+        align: "left",
+        sortable: true,
+      },
     ]);
 
     const agentActionOptions = computed(() => [

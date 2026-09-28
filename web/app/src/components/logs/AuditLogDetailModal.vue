@@ -7,6 +7,12 @@
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
       <q-card-section class="scroll" style="max-height: 65vh">
+        <div v-if="log.debug_info && log.debug_info.client" class="q-mb-sm">
+          <span class="text-weight-medium">{{
+            $t("auditLogDetail.origin")
+          }}</span>
+          <code class="q-ml-sm">{{ log.debug_info.client }}</code>
+        </div>
         <q-splitter v-model="splitterModel">
           <template v-slot:before>
             <div class="text-h6">{{ $t("auditLogDetail.before") }}</div>
