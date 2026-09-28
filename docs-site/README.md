@@ -14,6 +14,7 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 | `/features/` | Página de resumen de características (no enlazada desde la UI): catálogo completo de features + plataformas soportadas |
 | `/guide_gettingstarted/` | `InitialSetup.vue` — botón "Primeros pasos" |
 | `/functions/email_alerts/` | Guía independiente (no enlazada desde la UI): configuración de correos de alerta |
+| `/functions/mcp/` | Guía independiente (no enlazada desde la UI): conectar asistentes de IA (Claude Code, VS Code, Cursor, Claude Desktop, n8n) al servidor MCP (feature 045) |
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
 | `/api/` | Referencia pública de la API REST para integraciones de terceros (ITSM/CMDB) con API key. **Generada**: `python3 scripts/docs/build_api_page.py` (rutas y métodos extraídos de `urls.py` + vistas; descripciones en `scripts/docs/api_catalog.py`; falla si una ruta nueva no está descrita) |
@@ -29,7 +30,7 @@ que debe aparecer en búsquedas de **software RMM** y de **antirrobo /
 geolocalización de equipos**. Lo que hay implementado:
 
 - **`robots.txt`**: `Allow: /` + referencia al `sitemap.xml`.
-- **`sitemap.xml`**: las 7 páginas con `lastmod` tomado del **último commit** que
+- **`sitemap.xml`**: las páginas con `lastmod` tomado del **último commit** que
   tocó cada archivo (no del `mtime`, que cambia al copiar al servidor). Al agregar
   o renombrar una página hay que actualizarlo a mano — no hay build.
 - **Por página**: `<title>` y `description` orientados a búsqueda (título ≤ 62

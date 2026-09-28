@@ -67,6 +67,7 @@
     <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
     <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
@@ -81,12 +82,12 @@
       <p class="lead lang-en">Observer RMM brings together, in a single console, everything you need to remotely monitor and manage a fleet of Windows, Linux, and macOS machines: remote control, script execution, monitoring with alerting, patch management, inventory, asset location, and immediate response on the machine itself.</p>
 
       <div class="callout note lang-es">
-        <span class="tag">Novedades en 1.4.19</span>
-        <p>Lo más reciente es una versión de <strong>mantenimiento, rendimiento y seguridad</strong>: el servidor <strong>usa menos memoria al aplicar políticas</strong> en flotas grandes con muchas exclusiones; correr un <strong>script en el servidor</strong> —o dejarlo configurado en una plantilla de alerta— exige ahora un <strong>permiso dedicado</strong>; las <strong>alertas ocultas ya no aparecen</strong> en el Resumen de alertas; las plantillas de reportes corren en un <strong>entorno más acotado</strong>; y el <strong>inventario de Windows Update se limpia solo</strong> de parches que Windows dejó de listar. Sin cambios en el agente ni en la base de datos. <a href="/release-notes/">Historial completo de versiones →</a></p>
+        <span class="tag">Novedades en 1.4.20</span>
+        <p>Lo más reciente: <strong>asistentes de IA conectados a la flota</strong>. Un servidor <strong>MCP</strong> integrado permite que cada técnico consulte y opere Observer RMM en lenguaje natural desde Claude, VS Code, Cursor o n8n, con <strong>sus propios créditos</strong> y <strong>sus mismos permisos</strong>. Viene apagado y se habilita por plataforma. Además, la <strong>auditoría muestra el origen</strong> de cada acción. <a href="/functions/mcp/">Cómo conectarlo →</a> · <a href="/release-notes/">Historial completo de versiones →</a></p>
       </div>
       <div class="callout note lang-en">
-        <span class="tag">New in 1.4.19</span>
-        <p>The latest is a <strong>maintenance, performance, and security</strong> release: the server <strong>uses less memory when applying policies</strong> on large fleets with many exclusions; running a <strong>script on the server</strong> —or configuring one in an alert template— now requires a <strong>dedicated permission</strong>; <strong>hidden alerts no longer appear</strong> in the Alerts overview; report templates run in a <strong>tighter sandbox</strong>; and the <strong>Windows Update inventory cleans itself</strong> of patches Windows stopped listing. No agent or database changes. <a href="/release-notes/">Full version history →</a></p>
+        <span class="tag">New in 1.4.20</span>
+        <p>The latest: <strong>AI assistants connected to your fleet</strong>. A built-in <strong>MCP</strong> server lets each technician query and operate Observer RMM in natural language from Claude, VS Code, Cursor, or n8n, with <strong>their own credits</strong> and <strong>the same permissions</strong>. It ships disabled and is enabled per platform. Also, the <strong>audit log now shows the origin</strong> of each action. <a href="/functions/mcp/">How to connect it →</a> · <a href="/release-notes/">Full version history →</a></p>
       </div>
 
       <figure class="doc-shot">
@@ -668,6 +669,18 @@
         <div class="feature">
           <h3><span class="lang-es">Zona horaria y formato de fecha</span><span class="lang-en">Time zone &amp; date format</span></h3>
           <p><span class="lang-es">Zona horaria del servidor y formato de fecha por defecto para toda la consola, con la opción de que cada usuario los ajuste.</span><span class="lang-en">Server time zone and default date format for the whole console, with the option for each user to adjust them.</span></p>
+        </div>
+      </div>
+
+      <h2 id="ia-integraciones"><span class="lang-es">Asistentes de IA e integraciones</span><span class="lang-en">AI assistants &amp; integrations</span></h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3><span class="lang-es">Asistentes de IA conectados (servidor MCP)</span><span class="lang-en">Connected AI assistants (MCP server)</span></h3>
+          <p><span class="lang-es">Un servidor <strong>MCP</strong> (el estándar abierto para conectar asistentes de IA con herramientas) deja que cada técnico pregunte y actúe en lenguaje natural —«¿por qué está lento este equipo?», «posponé las alertas de este sitio»— desde <strong>Claude, VS Code, Cursor o n8n</strong>. El modelo corre en el asistente del técnico, con <strong>sus propios créditos</strong>, y cada llamada usa <strong>su clave y su rol</strong>: ve lo mismo que en la consola y queda <strong>auditado con su origen</strong>. Incluye consultas y acciones reversibles con un tope de equipos por llamada; scripts, reinicios, borrado y modo perdido quedan fuera. Viene apagado y se habilita por plataforma. Ver <a href="/functions/mcp/">cómo conectarlo</a>.</span><span class="lang-en">An <strong>MCP</strong> server (the open standard for connecting AI assistants to tools) lets each technician ask and act in natural language —"why is this machine slow?", "snooze this site's alerts"— from <strong>Claude, VS Code, Cursor, or n8n</strong>. The model runs in the technician's assistant, on <strong>their own credits</strong>, and every call uses <strong>their key and role</strong>: it sees the same as the console and is <strong>audited with its origin</strong>. It covers queries and reversible actions with a per-call machine cap; scripts, reboots, wiping, and lost mode are left out. It ships disabled and is enabled per platform. See <a href="/functions/mcp/">how to connect it</a>.</span></p>
+        </div>
+        <div class="feature">
+          <h3><span class="lang-es">API REST con clave de API</span><span class="lang-en">REST API with API keys</span></h3>
+          <p><span class="lang-es">Integra Observer RMM con su ITSM, CMDB o automatizaciones mediante la API REST autenticada con clave de API, con los mismos permisos del usuario dueño de la clave. Ver la <a href="/api/">referencia de la API</a>.</span><span class="lang-en">Integrate Observer RMM with your ITSM, CMDB, or automations through the REST API authenticated with API keys, with the same permissions as the key's owner. See the <a href="/api/">API reference</a>.</span></p>
         </div>
       </div>
 

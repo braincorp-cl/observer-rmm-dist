@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Asistentes de IA (MCP) · Observer RMM" data-title-en="AI assistants (MCP) · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asistentes de IA (MCP) · Observer RMM</title>
+<meta name="description" content="Cómo conectar Claude, VS Code, Cursor y n8n al servidor MCP de Observer RMM para consultar y operar la flota con IA, con los permisos y créditos de cada técnico.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/mcp/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/mcp/">
+<meta property="og:title" content="Asistentes de IA (MCP) · Observer RMM">
+<meta property="og:description" content="Cómo conectar Claude, VS Code, Cursor y n8n al servidor MCP de Observer RMM para consultar y operar la flota con IA, con los permisos y créditos de cada técnico.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/mcp/" class="active"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+  
+    <div class="content">
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Conectar asistentes de IA (servidor MCP)</span><span class="lang-en">Connect AI assistants (MCP server)</span></h1>
+      <p class="lead lang-es">Observer RMM incluye un servidor <strong>MCP</strong> (Model Context Protocol, el estándar abierto para conectar asistentes de IA con herramientas). Con él, cada técnico puede consultar y operar la flota en lenguaje natural desde el asistente que ya usa —Claude, VS Code con Copilot, Cursor o n8n—, con <strong>sus propios créditos</strong> y con <strong>sus mismos permisos</strong> de la consola.</p>
+      <p class="lead lang-en">Observer RMM includes an <strong>MCP</strong> server (Model Context Protocol, the open standard for connecting AI assistants to tools). With it, each technician can query and operate the fleet in natural language from the assistant they already use —Claude, VS Code with Copilot, Cursor, or n8n—, with <strong>their own credits</strong> and <strong>the same permissions</strong> they have in the console.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Antes de empezar</span>
+        <p>El servidor MCP viene <strong>apagado</strong> y lo habilita el administrador de su plataforma. Una vez habilitado, queda en <code>https://api.su-dominio.cl/mcp</code>: el mismo nombre de host de la API. Cada técnico necesita una <strong>clave de API propia</strong>, que crea un administrador desde <em>Configuración → Claves de API</em>. Conviene darle una fecha de expiración.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Before you begin</span>
+        <p>The MCP server ships <strong>disabled</strong> and your platform administrator enables it. Once enabled, it lives at <code>https://api.your-domain.com/mcp</code>: the same hostname as the API. Each technician needs <strong>their own API key</strong>, created by an administrator from <em>Settings → API Keys</em>. Giving it an expiration date is recommended.</p>
+      </div>
+
+      <h2 id="como-funciona"><span class="lang-es">Cómo funciona</span><span class="lang-en">How it works</span></h2>
+      <ul class="lang-es">
+        <li><strong>El modelo de IA corre en el asistente del técnico</strong>, no en Observer RMM. Los tokens los paga la cuenta de quien lo usa; el servidor MCP no consume créditos de ningún proveedor.</li>
+        <li><strong>Mismos permisos que en la consola:</strong> la clave pertenece a un usuario y hereda su rol. El asistente ve los mismos clientes, sitios y equipos, y puede hacer lo mismo que ese usuario en la consola.</li>
+        <li><strong>Todo queda auditado:</strong> las acciones aparecen en <em>Auditoría</em> con el usuario del técnico y la columna <strong>Origen</strong> indica que vinieron por MCP y con qué herramienta.</li>
+        <li><strong>Revocar es inmediato:</strong> al borrar o expirar la clave, el asistente pierde el acceso en la siguiente llamada.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>The AI model runs in the technician's assistant</strong>, not in Observer RMM. Tokens are paid by the account that uses it; the MCP server consumes no credits from any provider.</li>
+        <li><strong>Same permissions as the console:</strong> the key belongs to a user and inherits that user's role. The assistant sees the same clients, sites, and machines, and can do the same things that user can do in the console.</li>
+        <li><strong>Everything is audited:</strong> actions show up in <em>Audit</em> under the technician's user, and the <strong>Origin</strong> column shows they came through MCP and which tool was used.</li>
+        <li><strong>Revoking is immediate:</strong> once the key is deleted or expires, the assistant loses access on its next call.</li>
+      </ul>
+
+      <h2 id="herramientas"><span class="lang-es">Qué puede hacer el asistente</span><span class="lang-en">What the assistant can do</span></h2>
+      <p class="lang-es"><strong>Consultar</strong> (sin efecto en los equipos): clientes y sitios, buscar equipos por nombre, ficha de un equipo (estado, sistema operativo, hardware, discos, usuario), chequeos y su último resultado, parches de Windows pendientes, software instalado, historial de comandos, alertas y registro de auditoría.</p>
+      <p class="lang-en"><strong>Query</strong> (no effect on machines): clients and sites, search machines by name, a machine's details (status, OS, hardware, disks, user), checks and their latest result, pending Windows patches, installed software, command history, alerts, and the audit log.</p>
+      <p class="lang-es"><strong>Acciones reversibles:</strong> agregar una nota a un equipo, pedir que corra sus chequeos, activar o desactivar el modo mantenimiento, posponer, reanudar o resolver una alerta, y mostrar un mensaje emergente al usuario del equipo. Las acciones sobre varios equipos admiten como <strong>máximo 10 por llamada</strong>.</p>
+      <p class="lang-en"><strong>Reversible actions:</strong> add a note to a machine, ask it to run its checks, turn maintenance mode on or off, snooze, unsnooze, or resolve an alert, and show a pop-up message to the machine's user. Actions on several machines accept <strong>at most 10 per call</strong>.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Fuera del alcance a propósito</span>
+        <p>El asistente <strong>no puede</strong> ejecutar scripts ni comandos, reiniciar o apagar, instalar actualizaciones, borrar equipos, gestionar usuarios o claves, ni operar el modo perdido u Observer Erase. Esas acciones se hacen desde la consola.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Deliberately out of scope</span>
+        <p>The assistant <strong>cannot</strong> run scripts or commands, reboot or shut down, install updates, delete machines, manage users or keys, or operate lost mode or Observer Erase. Those actions are done from the console.</p>
+      </div>
+
+      <h2 id="clientes"><span class="lang-es">Conectar su asistente</span><span class="lang-en">Connect your assistant</span></h2>
+      <p class="lang-es">En todos los ejemplos, reemplace <code>api.su-dominio.cl</code> por el host de su API y <code>&lt;SU-CLAVE&gt;</code> por su clave. La clave viaja en el encabezado <code>Authorization: Bearer</code>, <strong>nunca en la URL</strong>.</p>
+      <p class="lang-en">In every example, replace <code>api.your-domain.com</code> with your API host and <code>&lt;YOUR-KEY&gt;</code> with your key. The key travels in the <code>Authorization: Bearer</code> header, <strong>never in the URL</strong>.</p>
+
+      <h3 id="claude-code"><span class="lang-es">Claude Code (terminal)</span><span class="lang-en">Claude Code (terminal)</span></h3>
+<pre><code>claude mcp add --transport http observer https://api.su-dominio.cl/mcp \
+  --header "Authorization: Bearer &lt;SU-CLAVE&gt;"</code></pre>
+      <p class="lang-es">Compruebe con <code>claude mcp list</code> y pídale, por ejemplo: <em>«Busca el equipo PC-CONTA-01 y dime su estado y sus parches pendientes»</em>.</p>
+      <p class="lang-en">Check with <code>claude mcp list</code> and ask, for example: <em>"Find the machine PC-ACCT-01 and tell me its status and pending patches"</em>.</p>
+
+      <h3 id="vscode"><span class="lang-es">VS Code (GitHub Copilot, modo agente)</span><span class="lang-en">VS Code (GitHub Copilot, agent mode)</span></h3>
+      <p class="lang-es">Cree <code>.vscode/mcp.json</code> en su espacio de trabajo (o agréguelo a su configuración de usuario). Con <code>inputs</code>, VS Code le pide la clave una vez y la guarda cifrada, en vez de dejarla escrita en el archivo:</p>
+      <p class="lang-en">Create <code>.vscode/mcp.json</code> in your workspace (or add it to your user settings). With <code>inputs</code>, VS Code asks for the key once and stores it encrypted instead of leaving it in the file:</p>
+<pre><code>{
+  "inputs": [
+    { "id": "observer-key", "type": "promptString", "description": "Observer RMM API key", "password": true }
+  ],
+  "servers": {
+    "observer": {
+      "type": "http",
+      "url": "https://api.su-dominio.cl/mcp",
+      "headers": { "Authorization": "Bearer ${input:observer-key}" }
+    }
+  }
+}</code></pre>
+
+      <h3 id="cursor"><span class="lang-es">Cursor</span><span class="lang-en">Cursor</span></h3>
+      <p class="lang-es">En <code>~/.cursor/mcp.json</code> (global) o <code>.cursor/mcp.json</code> (proyecto):</p>
+      <p class="lang-en">In <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):</p>
+<pre><code>{
+  "mcpServers": {
+    "observer": {
+      "url": "https://api.su-dominio.cl/mcp",
+      "headers": { "Authorization": "Bearer &lt;SU-CLAVE&gt;" }
+    }
+  }
+}</code></pre>
+
+      <h3 id="claude-desktop"><span class="lang-es">Claude Desktop</span><span class="lang-en">Claude Desktop</span></h3>
+      <p class="lang-es">Claude Desktop no permite hoy agregar un servidor remoto con encabezado propio, así que se conecta a través de un puente local (<code>mcp-remote</code>, requiere Node.js). En <em>Configuración → Desarrollador → Editar configuración</em> (<code>claude_desktop_config.json</code>):</p>
+      <p class="lang-en">Claude Desktop does not currently let you add a remote server with a custom header, so it connects through a local bridge (<code>mcp-remote</code>, requires Node.js). In <em>Settings → Developer → Edit config</em> (<code>claude_desktop_config.json</code>):</p>
+<pre><code>{
+  "mcpServers": {
+    "observer": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://api.su-dominio.cl/mcp",
+               "--header", "Authorization:Bearer ${OBSERVER_KEY}"],
+      "env": { "OBSERVER_KEY": "&lt;SU-CLAVE&gt;" }
+    }
+  }
+}</code></pre>
+      <p class="lang-es">Reinicie Claude Desktop después de guardar.</p>
+      <p class="lang-en">Restart Claude Desktop after saving.</p>
+
+      <h3 id="n8n"><span class="lang-es">n8n (automatizaciones)</span><span class="lang-en">n8n (automations)</span></h3>
+      <p class="lang-es">Use el nodo <strong>MCP Client Tool</strong> dentro de un agente de IA: <em>Endpoint</em> <code>https://api.su-dominio.cl/mcp</code>, transporte <em>HTTP Streamable</em> y autenticación por <em>Header Auth</em> con nombre <code>Authorization</code> y valor <code>Bearer &lt;SU-CLAVE&gt;</code>. Para automatizaciones, cree un <strong>usuario de servicio</strong> con un rol acotado y una clave solo para ese flujo.</p>
+      <p class="lang-en">Use the <strong>MCP Client Tool</strong> node inside an AI agent: <em>Endpoint</em> <code>https://api.your-domain.com/mcp</code>, <em>HTTP Streamable</em> transport, and <em>Header Auth</em> authentication with name <code>Authorization</code> and value <code>Bearer &lt;YOUR-KEY&gt;</code>. For automations, create a <strong>service user</strong> with a narrow role and a key used only by that flow.</p>
+
+      <h3 id="web"><span class="lang-es">claude.ai y ChatGPT (web)</span><span class="lang-en">claude.ai and ChatGPT (web)</span></h3>
+      <p class="lang-es">Los conectores de las versiones web exigen inicio de sesión OAuth y no aceptan una clave fija. Todavía <strong>no son compatibles</strong>; el acceso con el login de su organización está planificado. Mientras tanto, use una de las opciones anteriores.</p>
+      <p class="lang-en">Connectors in the web versions require OAuth sign-in and don't accept a fixed key. They are <strong>not supported yet</strong>; sign-in with your organization's login is planned. In the meantime, use one of the options above.</p>
+
+      <h2 id="buenas-practicas"><span class="lang-es">Seguridad y privacidad</span><span class="lang-en">Security and privacy</span></h2>
+      <ul class="lang-es">
+        <li><strong>Una clave por técnico y por herramienta</strong>, con fecha de expiración. Nunca comparta claves; revóquela cuando el técnico deje el equipo o cambie de equipo de trabajo.</li>
+        <li><strong>Dónde van sus datos:</strong> lo que el asistente consulta (nombres de equipo, usuarios, alertas) se envía al proveedor de IA de esa cuenta. Para datos de clientes use planes de empresa, o planes con la opción de <strong>no usar sus datos para entrenar</strong> activada, y siga la <a href="/uso_aceptable/">política de uso aceptable</a>.</li>
+        <li><strong>Revise antes de confirmar:</strong> pida al asistente que le proponga las acciones antes de ejecutarlas. Trate el texto que viene de los equipos (nombres, notas, salidas) como dato, nunca como instrucción.</li>
+        <li><strong>Mínimo privilegio:</strong> si el asistente solo va a consultar, use un rol sin permisos de edición.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>One key per technician and per tool</strong>, with an expiration date. Never share keys; revoke the key when a technician leaves or changes teams.</li>
+        <li><strong>Where your data goes:</strong> whatever the assistant queries (machine names, users, alerts) is sent to that account's AI provider. For customer data, use business plans, or plans with the <strong>don't train on my data</strong> option enabled, and follow the <a href="/uso_aceptable/">acceptable use policy</a>.</li>
+        <li><strong>Review before confirming:</strong> ask the assistant to propose actions before running them. Treat text coming from machines (names, notes, outputs) as data, never as instructions.</li>
+        <li><strong>Least privilege:</strong> if the assistant only needs to read, use a role without edit permissions.</li>
+      </ul>
+
+      <h2 id="problemas"><span class="lang-es">Si algo no funciona</span><span class="lang-en">Troubleshooting</span></h2>
+      <ul class="lang-es">
+        <li><strong>401 Unauthorized:</strong> falta el encabezado, la clave está mal escrita o ya expiró. Verifíquela en <em>Configuración → Claves de API</em>.</li>
+        <li><strong>«permission denied» en una herramienta:</strong> el rol del usuario dueño de la clave no permite esa acción o no ve ese cliente o equipo.</li>
+        <li><strong>429 Too Many Requests:</strong> se superó el límite de llamadas por minuto de esa clave; espere los segundos que indica <code>Retry-After</code>.</li>
+        <li><strong>400 al conectar:</strong> la clave se envió en la URL. Debe ir en el encabezado.</li>
+        <li><strong>404 en /mcp:</strong> el servidor MCP no está habilitado en su plataforma. Contacte a su administrador.</li>
+        <li>Para comprobar que el servicio responde: <code>https://api.su-dominio.cl/mcp/health</code> devuelve <code>{"status": "ok"}</code>.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>401 Unauthorized:</strong> the header is missing, the key is mistyped, or it has expired. Check it in <em>Settings → API Keys</em>.</li>
+        <li><strong>"permission denied" on a tool:</strong> the role of the key's owner doesn't allow that action or can't see that client or machine.</li>
+        <li><strong>429 Too Many Requests:</strong> the key's per-minute call limit was exceeded; wait the seconds indicated by <code>Retry-After</code>.</li>
+        <li><strong>400 when connecting:</strong> the key was sent in the URL. It must go in the header.</li>
+        <li><strong>404 on /mcp:</strong> the MCP server isn't enabled on your platform. Contact your administrator.</li>
+        <li>To check the service is up: <code>https://api.your-domain.com/mcp/health</code> returns <code>{"status": "ok"}</code>.</li>
+      </ul>
+
+      <h2 id="admin"><span class="lang-es">Para administradores</span><span class="lang-en">For administrators</span></h2>
+      <p class="lang-es">Se habilita por plataforma con <code>mcp_enabled: true</code> en el inventario y el playbook <code>deploy-mcp.yml</code>. Se puede ajustar el tope de equipos por llamada, el límite de llamadas por minuto y deshabilitar herramientas individuales. Vea la <a href="/api/">referencia de la API REST</a> para integraciones que no usan IA.</p>
+      <p class="lang-en">It is enabled per platform with <code>mcp_enabled: true</code> in the inventory and the <code>deploy-mcp.yml</code> playbook. You can tune the per-call machine cap and the per-minute call limit, and disable individual tools. See the <a href="/api/">REST API reference</a> for integrations that don't use AI.</p>
+
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>

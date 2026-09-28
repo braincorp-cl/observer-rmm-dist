@@ -37,7 +37,7 @@ class FakeREST:
         self.calls: list[httpx.Request] = []
         self.routes: dict[tuple[str, str], Callable[[httpx.Request], httpx.Response]] = {}
         self.valid_keys = {VALID_KEY}
-        self.on("GET", "/core/version/", lambda r: httpx.Response(200, json="1.4.19"))
+        self.on("GET", "/core/version/", lambda r: httpx.Response(200, json="1.4.20"))
         self.on("GET", "/agents/", lambda r: httpx.Response(200, json=AGENTS))
         self.on("GET", "/agents/aaa/", lambda r: httpx.Response(200, json=AGENT_DETAIL))
 

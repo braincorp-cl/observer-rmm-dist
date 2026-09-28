@@ -8,6 +8,15 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.20 — 2026-09-27
+
+- **Asistentes de IA conectados a la flota (servidor MCP).** Observer RMM incluye un servidor **MCP** (Model Context Protocol, el estándar abierto para conectar asistentes de IA con herramientas). Cada técnico puede consultar y operar la flota en lenguaje natural desde **Claude Code, VS Code (Copilot), Cursor, Claude Desktop o n8n**. El modelo corre en el asistente del técnico, con **sus propios créditos**: el servidor no consume tokens de ningún proveedor. Guía de conexión por cliente en `docs.observer.cl/functions/mcp/`.
+- **Mismos permisos y auditoría que en la consola.** Cada llamada usa la **clave de API del técnico** y hereda su rol: el asistente ve y hace lo mismo que ese usuario en la consola. Revocar o expirar la clave corta el acceso en la siguiente llamada.
+- **Alcance acotado a propósito.** El asistente puede **consultar** (clientes, sitios, equipos, chequeos, parches pendientes, software, historial, alertas y auditoría) y hacer **acciones reversibles** (notas, correr chequeos, modo mantenimiento, posponer/reanudar/resolver alertas, aviso al usuario), con un **máximo de 10 equipos por llamada** y límite de llamadas por minuto. Scripts, comandos, reinicios, instalación de parches, borrado de equipos, usuarios y claves, modo perdido y Observer Erase **quedan fuera**.
+- **Apagado por defecto.** El servidor MCP se habilita por plataforma (`mcp_enabled` + `deploy-mcp.yml`). Sin el flag, el despliegue no cambia nada. Los conectores web de claude.ai y ChatGPT, que exigen inicio de sesión OAuth, quedan para una versión posterior.
+- **La auditoría muestra el origen de cada acción.** Nueva columna **«Origen»** en *Auditoría* y en el detalle de cada entrada: las acciones hechas por un asistente se marcan con el cliente MCP y la herramienta usada (p. ej. `mcp/0.1.0 tool=set_maintenance_mode`). Las hechas desde la consola quedan en blanco.
+- **Sin migraciones y sin release de agente.** Esta versión no altera el esquema de la base de datos; la flota sigue en su versión vigente del agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.19 — 2026-08-31
 
 - **Menos memoria del servidor al aplicar políticas.** Con políticas que excluyen muchos equipos, sitios o clientes, la consola cacheaba mucho más de lo necesario (el detalle completo de cada equipo excluido) e inflaba la memoria del servidor. Ahora sólo cachea lo indispensable —las claves de caché bajan de megabytes a kilobytes— sin cambiar el comportamiento de las políticas. Se nota en flotas grandes.
