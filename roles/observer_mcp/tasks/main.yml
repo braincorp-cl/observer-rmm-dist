@@ -1,6 +1,6 @@
 ---
-# Servidor MCP (feature 045). Todo el rol depende de mcp_enabled: apagado por
-# defecto, un deploy sin la variable no cambia nada.
+# Servidor MCP (feature 045). Todo el rol depende de mcp_enabled: encendido por
+# defecto; con mcp_enabled: false el rol solo detiene el servicio si existía.
 
 - name: Apagar observer-mcp si quedó instalado y el flag está en false
   when: not (mcp_enabled | bool)

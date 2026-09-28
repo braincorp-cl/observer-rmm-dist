@@ -67,8 +67,8 @@ server {
         proxy_set_header Connection "upgrade";
     }
 
-{% if mcp_enabled | default(false) | bool %}
-    # Servidor MCP (feature 045). Solo se renderiza con mcp_enabled; co-localizado
+{% if mcp_enabled | default(true) | bool %}
+    # Servidor MCP (feature 045). Encendido salvo mcp_enabled: false; co-localizado
     # con el API como el websocket de NATS (bindea loopback).
     location = /mcp {
         proxy_pass http://127.0.0.1:{{ observer_mcp_port | default(8765) }};

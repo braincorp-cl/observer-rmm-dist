@@ -336,7 +336,7 @@
   roles:
     - observer_api
 
-- name: Servidor MCP (feature 045; apagado salvo mcp_enabled)
+- name: Servidor MCP (feature 045; encendido salvo mcp_enabled false)
   hosts: observer_api
   roles:
     - observer_mcp

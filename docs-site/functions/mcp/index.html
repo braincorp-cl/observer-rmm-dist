@@ -65,9 +65,9 @@
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/functions/mcp/" class="active"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
-    <a href="/functions/mcp/" class="active"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
     <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
@@ -84,11 +84,11 @@
 
       <div class="callout note lang-es">
         <span class="tag">Antes de empezar</span>
-        <p>El servidor MCP viene <strong>apagado</strong> y lo habilita el administrador de su plataforma. Una vez habilitado, queda en <code>https://api.su-dominio.cl/mcp</code>: el mismo nombre de host de la API. Cada técnico necesita una <strong>clave de API propia</strong>, que crea un administrador desde <em>Configuración → Claves de API</em>. Conviene darle una fecha de expiración.</p>
+        <p>El servidor MCP viene <strong>encendido</strong> en toda plataforma Observer RMM y queda en <code>https://api.su-dominio.cl/mcp</code>: el mismo nombre de host de la API. Cada técnico necesita una <strong>clave de API propia</strong>, que crea un administrador desde <em>Configuración → Claves de API</em>. Conviene darle una fecha de expiración.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">Before you begin</span>
-        <p>The MCP server ships <strong>disabled</strong> and your platform administrator enables it. Once enabled, it lives at <code>https://api.your-domain.com/mcp</code>: the same hostname as the API. Each technician needs <strong>their own API key</strong>, created by an administrator from <em>Settings → API Keys</em>. Giving it an expiration date is recommended.</p>
+        <p>The MCP server ships <strong>enabled</strong> on every Observer RMM platform and lives at <code>https://api.your-domain.com/mcp</code>: the same hostname as the API. Each technician needs <strong>their own API key</strong>, created by an administrator from <em>Settings → API Keys</em>. Giving it an expiration date is recommended.</p>
       </div>
 
       <h2 id="como-funciona"><span class="lang-es">Cómo funciona</span><span class="lang-en">How it works</span></h2>
@@ -104,6 +104,18 @@
         <li><strong>Everything is audited:</strong> actions show up in <em>Audit</em> under the technician's user, and the <strong>Origin</strong> column shows they came through MCP and which tool was used.</li>
         <li><strong>Revoking is immediate:</strong> once the key is deleted or expires, the assistant loses access on its next call.</li>
       </ul>
+
+      <h2 id="proceso"><span class="lang-es">El sistema MCP completo, de un vistazo</span><span class="lang-en">The full MCP system at a glance</span></h2>
+      <p class="lang-es">La respuesta que recibe el técnico recorre tres etapas: <strong>recolectar</strong> (el <strong>agente Observer</strong> de cada equipo reporta chequeos, inventario, software, parches e historial por el <strong>bus NATS</strong>, y el backend lo guarda en la base de datos <code>observerrmm</code>), <strong>consultar</strong> (el técnico le pregunta a <strong>su agente de IA</strong> —Claude, VS Code, Cursor o n8n—, que razona con <strong>su propio LLM</strong> y llama a <code>/mcp</code> con su <strong>clave de API personal</strong>; el servicio <code>observer-mcp</code> la valida y consulta la <strong>API REST</strong>, donde el <strong>RBAC</strong> aplica el rol y los clientes de ese técnico) y <strong>responder y auditar</strong> (la salida vuelve al asistente como dato, redactada y truncada; las acciones reversibles viajan por el bus al agente, con un máximo de 10 equipos por llamada, y cada una queda en <em>Auditoría</em> con su <strong>Origen</strong>, visible en la consola). El servidor MCP nunca habla directo con los equipos ni con la base de datos: todo pasa por la API. El diagrama muestra el recorrido completo entre el agente, el backend, el frontend y el agente de IA del técnico.</p>
+      <p class="lang-en">The answer a technician gets goes through three stages: <strong>collect</strong> (the <strong>Observer agent</strong> on each machine reports checks, inventory, software, patches, and history over the <strong>NATS bus</strong>, and the backend stores it in the <code>observerrmm</code> database), <strong>query</strong> (the technician asks <strong>their AI agent</strong> —Claude, VS Code, Cursor, or n8n—, which reasons with <strong>their own LLM</strong> and calls <code>/mcp</code> with their <strong>personal API key</strong>; the <code>observer-mcp</code> service validates it and queries the <strong>REST API</strong>, where <strong>RBAC</strong> applies that technician's role and clients), and <strong>answer and audit</strong> (the output returns to the assistant as data, redacted and truncated; reversible actions travel over the bus to the agent, capped at 10 machines per call, and each one lands in <em>Audit</em> with its <strong>Origin</strong>, visible in the console). The MCP server never talks directly to machines or to the database: everything goes through the API. The diagram shows the full path across the agent, the backend, the frontend, and the technician's AI agent.</p>
+
+      <figure class="diagram-bleed">
+        <iframe class="diagram-frame" src="/functions/mcp/observer-mcp.html" title="Diagrama del sistema MCP de Observer RMM" loading="lazy"></iframe>
+        <figcaption>
+          <span class="lang-es">Diagrama interactivo del sistema MCP — usa los controles del visor y el zoom dentro del recuadro. ¿Se ve apretado? <a href="/functions/mcp/observer-mcp.html" target="_blank" rel="noopener">Ábrelo en pantalla completa</a>.</span>
+          <span class="lang-en">Interactive diagram of the MCP system — use the viewer controls and zoom inside the frame. Feels cramped? <a href="/functions/mcp/observer-mcp.html" target="_blank" rel="noopener">Open it full screen</a>.</span>
+        </figcaption>
+      </figure>
 
       <h2 id="herramientas"><span class="lang-es">Qué puede hacer el asistente</span><span class="lang-en">What the assistant can do</span></h2>
       <p class="lang-es"><strong>Consultar</strong> (sin efecto en los equipos): clientes y sitios, buscar equipos por nombre, ficha de un equipo (estado, sistema operativo, hardware, discos, usuario), chequeos y su último resultado, parches de Windows pendientes, software instalado, historial de comandos, alertas y registro de auditoría.</p>
@@ -201,7 +213,7 @@
         <li><strong>«permission denied» en una herramienta:</strong> el rol del usuario dueño de la clave no permite esa acción o no ve ese cliente o equipo.</li>
         <li><strong>429 Too Many Requests:</strong> se superó el límite de llamadas por minuto de esa clave; espere los segundos que indica <code>Retry-After</code>.</li>
         <li><strong>400 al conectar:</strong> la clave se envió en la URL. Debe ir en el encabezado.</li>
-        <li><strong>404 en /mcp:</strong> el servidor MCP no está habilitado en su plataforma. Contacte a su administrador.</li>
+        <li><strong>404 en /mcp:</strong> el servidor MCP fue deshabilitado en su plataforma. Contacte a su administrador.</li>
         <li>Para comprobar que el servicio responde: <code>https://api.su-dominio.cl/mcp/health</code> devuelve <code>{"status": "ok"}</code>.</li>
       </ul>
       <ul class="lang-en">
@@ -214,8 +226,8 @@
       </ul>
 
       <h2 id="admin"><span class="lang-es">Para administradores</span><span class="lang-en">For administrators</span></h2>
-      <p class="lang-es">Se habilita por plataforma con <code>mcp_enabled: true</code> en el inventario y el playbook <code>deploy-mcp.yml</code>. Se puede ajustar el tope de equipos por llamada, el límite de llamadas por minuto y deshabilitar herramientas individuales. Vea la <a href="/api/">referencia de la API REST</a> para integraciones que no usan IA.</p>
-      <p class="lang-en">It is enabled per platform with <code>mcp_enabled: true</code> in the inventory and the <code>deploy-mcp.yml</code> playbook. You can tune the per-call machine cap and the per-minute call limit, and disable individual tools. See the <a href="/api/">REST API reference</a> for integrations that don't use AI.</p>
+      <p class="lang-es">Viene encendido por omisión: toda instalación y todo deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>) lo instala o actualiza. Para excluir una plataforma, defina <code>mcp_enabled: false</code> en su inventario. Se puede ajustar el tope de equipos por llamada, el límite de llamadas por minuto y deshabilitar herramientas individuales. Vea la <a href="/api/">referencia de la API REST</a> para integraciones que no usan IA.</p>
+      <p class="lang-en">It is on by default: every installation and every deploy (<code>install.yml</code>, <code>upgrade.yml</code>, <code>deploy-api.yml</code>) installs or updates it. To exclude a platform, set <code>mcp_enabled: false</code> in its inventory. You can tune the per-call machine cap and the per-minute call limit, and disable individual tools. See the <a href="/api/">REST API reference</a> for integrations that don't use AI.</p>
 
 
       <footer>

@@ -1,7 +1,8 @@
 ---
-# Servidor MCP (feature 045). APAGADO por defecto: con mcp_enabled sin definir o
-# false el rol no instala nada (y si estaba instalado, lo detiene).
-mcp_enabled: false
+# Servidor MCP (feature 045). ENCENDIDO por defecto en toda plataforma, actual y
+# futura. Para excluir un tenant: mcp_enabled: false en su inventario (el rol
+# detiene el servicio y rmm.conf deja de publicar /mcp).
+mcp_enabled: true
 
 observer_mcp_root: "{{ observer_root }}/mcp"
 observer_mcp_source_path: "{{ playbook_dir }}/mcp/"

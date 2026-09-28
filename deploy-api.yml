@@ -422,3 +422,8 @@
       ansible.builtin.systemd:
         name: nats-api
         state: restarted
+
+# Feature 045: el servidor MCP viene encendido por defecto, así que cada deploy
+# del backend lo converge (código + servicio + location /mcp en nginx).
+- name: Servidor MCP
+  ansible.builtin.import_playbook: deploy-mcp.yml

@@ -4,9 +4,10 @@
 # Uso:
 #   ansible-playbook -i inventory/staging.yml deploy-mcp.yml
 #
-# Con mcp_enabled sin definir o false: no instala nada (si estaba instalado lo
-# detiene) y rmm.conf queda idéntico. Con mcp_enabled: true instala el servicio
-# observer-mcp y agrega la location /mcp al server block del API.
+# Encendido por defecto: instala el servicio observer-mcp y agrega la location
+# /mcp al server block del API. Con mcp_enabled: false en el inventario lo
+# detiene (si estaba instalado) y rmm.conf queda sin /mcp.
+# deploy-api.yml y upgrade.yml lo importan al final: todo deploy converge el MCP.
 #
 # Por qué un playbook aparte: deploy-api.yml no renderiza nginx ni unidades
 # systemd, y correr el rol observer_proxy completo tocaría también certificados.

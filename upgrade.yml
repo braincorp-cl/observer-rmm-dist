@@ -32,6 +32,11 @@
   roles:
     - observer_api
 
+- name: Upgrade — Servidor MCP (encendido salvo mcp_enabled false)
+  hosts: observer_api
+  roles:
+    - observer_mcp
+
 - name: Upgrade — Proxy nginx
   hosts: observer_proxy
   roles:
