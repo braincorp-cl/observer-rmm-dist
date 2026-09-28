@@ -257,7 +257,7 @@ HEAD = """<!DOCTYPE html>
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=2">
+<link rel="stylesheet" href="/assets/style.css?v=4">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <style>
   .rn-tracks{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:1.2rem 0}
@@ -287,6 +287,7 @@ __JSONLD__
   var d = document.documentElement;
   var t = localStorage.getItem('observer-docs-theme');
   if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
   var l = localStorage.getItem('observer-docs-lang') || 'es';
   d.setAttribute('data-lang', l);
   d.setAttribute('lang', l);
@@ -297,6 +298,7 @@ __JSONLD__
 </head>
 <body>
 <header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
   <span class="signal" aria-hidden="true"></span>
   <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
   <span class="spacer"></span>
@@ -318,6 +320,7 @@ __JSONLD__
     <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
     <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
@@ -364,6 +367,14 @@ FOOT = """
     var next = isDark ? 'light' : 'dark';
     d.setAttribute('data-theme', next);
     localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
   });
 })();
 </script>
