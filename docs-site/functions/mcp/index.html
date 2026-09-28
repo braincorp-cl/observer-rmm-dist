@@ -95,11 +95,11 @@
 
       <div class="callout note lang-es">
         <span class="tag">Antes de empezar</span>
-        <p>El servidor MCP viene <strong>encendido</strong> en toda plataforma Observer RMM y queda en <code>https://api.su-dominio.cl/mcp</code>: el mismo nombre de host de la API. Cada técnico necesita una <strong>clave de API propia</strong>, que crea un administrador desde <em>Configuración → Claves de API</em>. Conviene darle una fecha de expiración.</p>
+        <p>El servidor MCP viene <strong>encendido</strong> en toda plataforma Observer RMM y queda en <code>https://api.su-dominio.cl/mcp</code>: el mismo nombre de host de la API. Cada técnico necesita una <strong>clave de API propia</strong>, que crea un administrador (ver <a href="#clave-api">Crear la clave de API</a>).</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">Before you begin</span>
-        <p>The MCP server ships <strong>enabled</strong> on every Observer RMM platform and lives at <code>https://api.your-domain.com/mcp</code>: the same hostname as the API. Each technician needs <strong>their own API key</strong>, created by an administrator from <em>Settings → API Keys</em>. Giving it an expiration date is recommended.</p>
+        <p>The MCP server ships <strong>enabled</strong> on every Observer RMM platform and lives at <code>https://api.your-domain.com/mcp</code>: the same hostname as the API. Each technician needs <strong>their own API key</strong>, created by an administrator (see <a href="#clave-api">Create the API key</a>).</p>
       </div>
 
       <h2 id="como-funciona"><span class="lang-es">Cómo funciona</span><span class="lang-en">How it works</span></h2>
@@ -141,6 +141,38 @@
         <span class="tag">Deliberately out of scope</span>
         <p>The assistant <strong>cannot</strong> run scripts or commands, reboot or shut down, install updates, delete machines, manage users or keys, or operate lost mode or Observer Erase. Those actions are done from the console.</p>
       </div>
+
+      <h2 id="clave-api"><span class="lang-es">Crear la clave de API</span><span class="lang-en">Create the API key</span></h2>
+      <p class="lang-es">La crea un administrador, o cualquier usuario cuyo rol tenga el permiso <em>Gestionar claves de API</em>. La clave queda asociada a un usuario y el asistente actúa con el rol de ese usuario.</p>
+      <p class="lang-en">An administrator creates it, or any user whose role has the <em>Manage API Keys</em> permission. The key is tied to a user, and the assistant acts with that user's role.</p>
+      <ol class="lang-es">
+        <li>En la consola, abra <em>Configuración → Configuración global</em> y vaya a la pestaña <strong>Claves de API</strong>.</li>
+        <li>Pulse <strong>Agregar clave</strong>.</li>
+        <li>Complete el formulario:
+          <ul>
+            <li><strong>Nombre:</strong> algo que identifique al técnico y a la herramienta, por ejemplo <code>jperez-claude-code</code>.</li>
+            <li><strong>Usuario:</strong> el técnico que usará el asistente. Su rol debe tener el permiso <em>Usar asistentes de IA (MCP)</em> (<em>Configuración → Gestor de permisos</em>, sección Núcleo).</li>
+            <li><strong>Expiración de la clave:</strong> opcional, pero recomendada. Al vencer, el asistente pierde el acceso.</li>
+          </ul>
+        </li>
+        <li>Pulse <strong>Enviar</strong>. La clave se genera al guardar.</li>
+        <li>En la fila nueva de la tabla, use el ícono <strong>Copiar clave de API al portapapeles</strong> y entréguesela al técnico por un canal seguro (un gestor de contraseñas, nunca correo ni chat).</li>
+      </ol>
+      <ol class="lang-en">
+        <li>In the console, open <em>Settings → Global Settings</em> and go to the <strong>API Keys</strong> tab.</li>
+        <li>Click <strong>Add key</strong>.</li>
+        <li>Fill in the form:
+          <ul>
+            <li><strong>Name:</strong> something that identifies the technician and the tool, for example <code>jdoe-claude-code</code>.</li>
+            <li><strong>User:</strong> the technician who will use the assistant. Their role must have the <em>Use AI assistants (MCP)</em> permission (<em>Settings → Permissions Manager</em>, Core section).</li>
+            <li><strong>Key Expiration:</strong> optional but recommended. Once it expires, the assistant loses access.</li>
+          </ul>
+        </li>
+        <li>Click <strong>Submit</strong>. The key is generated on save.</li>
+        <li>In the new row of the table, use the <strong>Copy API Key to clipboard</strong> icon and hand it to the technician over a secure channel (a password manager, never email or chat).</li>
+      </ol>
+      <p class="lang-es">Para revocarla, abra el menú de la fila (clic derecho) y elija <strong>Eliminar</strong>: el asistente pierde el acceso en su siguiente llamada.</p>
+      <p class="lang-en">To revoke it, open the row menu (right-click) and choose <strong>Delete</strong>: the assistant loses access on its next call.</p>
 
       <h2 id="clientes"><span class="lang-es">Conectar su asistente</span><span class="lang-en">Connect your assistant</span></h2>
       <p class="lang-es">En todos los ejemplos, reemplace <code>api.su-dominio.cl</code> por el host de su API y <code>&lt;SU-CLAVE&gt;</code> por su clave. La clave viaja en el encabezado <code>Authorization: Bearer</code>, <strong>nunca en la URL</strong>.</p>
