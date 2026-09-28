@@ -11,6 +11,9 @@
 # vía grub); solo cambia el sizing, dimensionado a una VM chica.
 all:
   vars:
+    # Changelog publico (agents.observer.cl): si se define, deploy-api.yml lo publica
+    # desde el control-plane en ese appserver (solo plataformas BrainCorp).
+    # observer_changelog_publish_host: 10.20.0.52
     ansible_user: observer
     ansible_python_interpreter: /usr/bin/python3
     # TLS: wildcard *.<base_domain> emitido por acme.sh vía API DNS de GoDaddy (dns_gd),

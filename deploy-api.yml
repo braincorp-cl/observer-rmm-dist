@@ -427,3 +427,62 @@
 # del backend lo converge (código + servicio + location /mcp en nginx).
 - name: Servidor MCP
   ansible.builtin.import_playbook: deploy-mcp.yml
+
+# Changelog público (agents.observer.cl/changelog). Se publica desde el control-plane
+# y no desde GitHub Actions: el firewall del appserver solo admite GitHub por FQDN y los
+# runners salen de rangos Azure dinámicos, así que el WebDAV no les es alcanzable.
+# Solo corre si el inventario define observer_changelog_publish_host (appserver de
+# BrainCorp); un tenant sin esa variable no publica nada. Idempotente: el mismo
+# CHANGELOG.md da el mismo HTML, y copy no marca cambio.
+- name: Changelog público — generar en el control-plane
+  hosts: localhost
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Registrar el appserver del changelog
+      ansible.builtin.add_host:
+        name: changelog_appserver
+        ansible_host: "{{ observer_changelog_publish_host }}"
+        ansible_user: "{{ observer_changelog_publish_user | default('observer') }}"
+      when: observer_changelog_publish_host | default('') | length > 0
+
+    - name: Generar changelog.html desde CHANGELOG.md
+      ansible.builtin.command:
+        argv:
+          - python3
+          - "{{ playbook_dir }}/scripts/build_changelog.py"
+          - "{{ playbook_dir }}/CHANGELOG.md"
+          - "{{ playbook_dir }}/.changelog.html"
+      changed_when: false
+      when: observer_changelog_publish_host | default('') | length > 0
+
+- name: Changelog público — publicar en el appserver
+  hosts: changelog_appserver
+  gather_facts: false
+  become: true
+  vars:
+    changelog_docroot: /var/www/html/observer-agents/changelog
+    changelog_url: https://agents.observer.cl/changelog/
+  tasks:
+    - name: Instalar changelog/index.html
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/.changelog.html"
+        dest: "{{ changelog_docroot }}/index.html"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+
+    - name: Leer la versión vigente del producto
+      ansible.builtin.set_fact:
+        changelog_version: >-
+          {{ lookup('ansible.builtin.file', playbook_dir ~ '/api/observerrmm/observerrmm/settings.py')
+             | regex_search('ORMM_VERSION = "([^"]+)"', '\1') | first }}
+
+    - name: Verificar que el sitio público sirve la versión vigente
+      ansible.builtin.uri:
+        url: "{{ changelog_url }}"
+        return_content: true
+      register: changelog_page
+      delegate_to: localhost
+      become: false
+      failed_when: ('id="v' ~ changelog_version ~ '"') not in changelog_page.content

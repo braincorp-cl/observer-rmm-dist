@@ -79,3 +79,4 @@ smoke-results/
 venv/
 env/
 ENV/
+.changelog.html
