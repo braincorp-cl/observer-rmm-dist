@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Videos · Observer RMM</title>
-<meta name="description" content="Videos de Observer RMM: cómo detecta un notebook robado con geocerca, lo ubica en el mapa y lo bloquea a distancia con alarma. Antirrobo para equipos.">
+<meta name="description" content="Videos de Observer RMM: cómo detecta un notebook robado con geocerca y lo bloquea a distancia, y cómo el modo perdido lo ubica y lo recupera. Antirrobo para equipos.">
 <!-- seo:start -->
 <link rel="canonical" href="https://docs.observer.cl/videos/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-video-preview:-1">
@@ -15,7 +15,7 @@
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:url" content="https://docs.observer.cl/videos/">
 <meta property="og:title" content="Antirrobo con Observer RMM: geocerca, mapa y bloqueo remoto">
-<meta property="og:description" content="Videos de Observer RMM: cómo detecta un notebook robado con geocerca, lo ubica en el mapa y lo bloquea a distancia con alarma. Antirrobo para equipos.">
+<meta property="og:description" content="Videos de Observer RMM: cómo detecta un notebook robado con geocerca y lo bloquea a distancia, y cómo el modo perdido lo ubica y lo recupera. Antirrobo para equipos.">
 <meta property="og:image" content="https://docs.observer.cl/assets/videos/antirrobo-observer-rmm-poster.jpg">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
@@ -41,16 +41,35 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": "Antirrobo con Observer RMM: geocerca, mapa y bloqueo remoto",
-  "description": "Un notebook sale del hospital con información sensible. Observer RMM detecta que cruzó su geocerca, muestra su ubicación en el mapa y el equipo de TI lo bloquea a distancia y hace sonar su alarma.",
-  "thumbnailUrl": ["https://docs.observer.cl/assets/videos/antirrobo-observer-rmm-poster.jpg", "https://docs.observer.cl/assets/videos/antirrobo-observer-rmm-poster.webp"],
-  "uploadDate": "2026-09-29T00:00:00-03:00",
-  "duration": "PT25S",
-  "contentUrl": "https://docs.observer.cl/assets/videos/antirrobo-observer-rmm.mp4",
-  "inLanguage": "es",
-  "isFamilyFriendly": true,
-  "publisher": { "@type": "Organization", "name": "Observer RMM", "url": "https://docs.observer.cl/", "logo": { "@type": "ImageObject", "url": "https://docs.observer.cl/assets/favicon.png" } }
+  "@graph": [
+    {
+      "@type": "VideoObject",
+      "name": "Antirrobo con Observer RMM: geocerca, mapa y bloqueo remoto",
+      "description": "Un notebook sale del hospital con información sensible. Observer RMM detecta que cruzó su geocerca, muestra su ubicación en el mapa y el equipo de TI lo bloquea a distancia y hace sonar su alarma.",
+      "thumbnailUrl": ["https://docs.observer.cl/assets/videos/antirrobo-observer-rmm-poster.jpg", "https://docs.observer.cl/assets/videos/antirrobo-observer-rmm-poster.webp"],
+      "uploadDate": "2026-09-29T00:00:00-03:00",
+      "duration": "PT25S",
+      "contentUrl": "https://docs.observer.cl/assets/videos/antirrobo-observer-rmm.mp4",
+      "embedUrl": "https://docs.observer.cl/videos/#antirrobo",
+      "inLanguage": "es",
+      "isFamilyFriendly": true,
+      "publisher": { "@id": "https://docs.observer.cl/#org" }
+    },
+    {
+      "@type": "VideoObject",
+      "name": "Equipo perdido o robado: Observer RMM lo ubica y lo recupera",
+      "description": "Tres días después del robo, TI marca el notebook como perdido. Cuando alguien lo enciende en un café, se conecta a la red, reporta su ubicación en el mapa y una foto de quien lo tiene, suena su alarma y un mensaje en pantalla pide avisar. Vuelve a manos de TI y un clic lo marca como recuperado.",
+      "thumbnailUrl": ["https://docs.observer.cl/assets/videos/modo-perdido-observer-rmm-poster.jpg", "https://docs.observer.cl/assets/videos/modo-perdido-observer-rmm-poster.webp"],
+      "uploadDate": "2026-09-30T00:00:00-03:00",
+      "duration": "PT31S",
+      "contentUrl": "https://docs.observer.cl/assets/videos/modo-perdido-observer-rmm.mp4",
+      "embedUrl": "https://docs.observer.cl/videos/#modo-perdido",
+      "inLanguage": "es",
+      "isFamilyFriendly": true,
+      "publisher": { "@id": "https://docs.observer.cl/#org" }
+    },
+    { "@type": "Organization", "@id": "https://docs.observer.cl/#org", "name": "Observer RMM", "url": "https://docs.observer.cl/", "logo": { "@type": "ImageObject", "url": "https://docs.observer.cl/assets/favicon.png" } }
+  ]
 }
 </script>
 
@@ -121,6 +140,22 @@
       <p class="lang-en">A laptop leaves the hospital with sensitive information on it. Observer RMM detects that it <strong>crossed its geofence</strong>, the alert arrives instantly with <strong>its location on the map</strong>, and with one click the IT team <strong>locks it and sounds its alarm</strong>.</p>
       <p class="lang-es">La pantalla de la sala de operaciones muestra la consola real de Observer RMM. Detalle de cada función: <a href="/features/#ubicacion">ubicación de la flota y geocerca</a> y <a href="/features/#respuesta-endpoint">respuesta rápida y antirrobo</a>.</p>
       <p class="lang-en">The operations room screen shows the real Observer RMM console. Details of each feature: <a href="/features/#ubicacion">fleet location and geofence</a> and <a href="/features/#respuesta-endpoint">quick response &amp; anti-theft</a>.</p>
+
+
+      <h2 id="modo-perdido"><span class="lang-es">Equipo perdido o robado: ubicarlo y recuperarlo</span><span class="lang-en">Lost or stolen device: locate it and get it back</span></h2>
+      <figure class="video-frame">
+        <video controls playsinline preload="metadata" width="1920" height="1080" poster="/assets/videos/modo-perdido-observer-rmm-poster.webp" aria-label="Video: equipo perdido o robado con Observer RMM">
+          <source src="/assets/videos/modo-perdido-observer-rmm.webm" type="video/webm">
+          <source src="/assets/videos/modo-perdido-observer-rmm.mp4" type="video/mp4">
+          <track kind="subtitles" src="/assets/videos/modo-perdido-observer-rmm.es.vtt" srclang="es" label="Español">
+          <track kind="subtitles" src="/assets/videos/modo-perdido-observer-rmm.en.vtt" srclang="en" label="English">
+        </video>
+        <figcaption><span class="lang-es">31 segundos · continuación del video anterior · con subtítulos en español e inglés (menú del reproductor).</span><span class="lang-en">31 seconds · continues the previous video · with Spanish and English subtitles (player menu). Narration in Spanish.</span></figcaption>
+      </figure>
+      <p class="lang-es">Tres días después, el notebook sigue sin aparecer y TI lo <strong>marca como perdido</strong>, con un motivo y una cadencia de ubicación. Cuando alguien lo enciende en un café, <strong>se conecta a la red del local y vuelve a reportar</strong>: su ubicación en el mapa, lo que muestra su pantalla y una foto de quien lo tiene. Suena su alarma, un <strong>mensaje en pantalla</strong> pide avisar y, cuando vuelve a manos de TI, un clic lo marca como <strong>recuperado</strong>.</p>
+      <p class="lang-en">Three days later, the laptop is still missing, so IT <strong>marks it as lost</strong>, with a reason and a location interval. When someone turns it on at a café, <strong>it joins the café's network and reports back</strong>: its location on the map, what its screen shows, and a photo of whoever has it. Its alarm goes off, an <strong>on-screen message</strong> asks for help, and once it's back with IT, one click marks it as <strong>recovered</strong>.</p>
+      <p class="lang-es">Las pantallas de consola son de Observer RMM, sobre un caso de demostración. Detalle de cada función: <a href="/features/#modo-perdido">equipo perdido o robado</a>, <a href="/features/#respuesta-endpoint">mensaje en pantalla y alarma</a> y <a href="/uso_aceptable/">uso aceptable y privacidad</a>.</p>
+      <p class="lang-en">The console screens are from Observer RMM, on a demo case. Details of each feature: <a href="/features/#modo-perdido">lost or stolen device</a>, <a href="/features/#respuesta-endpoint">on-screen message and alarm</a>, and <a href="/uso_aceptable/">acceptable use &amp; privacy</a>.</p>
 
       <footer>
         <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>

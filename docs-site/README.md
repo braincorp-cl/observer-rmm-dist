@@ -12,7 +12,7 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 |---|---|
 | `/` | `FileBar.vue` — botón "Docs" |
 | `/features/` | Página de resumen de características (no enlazada desde la UI): catálogo completo de features + plataformas soportadas |
-| `/videos/` | Página independiente (no enlazada desde la UI): videos del producto. Hoy el spot antirrobo (25 s, 1080p) con MP4 + WebM, póster WebP/JPG, subtítulos VTT ES/EN y JSON-LD `VideoObject`; archivos en `assets/videos/`. Enlazada desde `/features/#respuesta-endpoint` |
+| `/videos/` | Página independiente (no enlazada desde la UI): videos del producto. Hoy el spot antirrobo (25 s, `#antirrobo`) y su continuación «Equipo perdido o robado» (31 s, `#modo-perdido`), ambos 1080p, con MP4 + WebM, póster WebP/JPG, subtítulos VTT ES/EN y JSON-LD `VideoObject`; archivos en `assets/videos/`. Enlazada desde `/features/#respuesta-endpoint` y `/features/#modo-perdido` |
 | `/guide_gettingstarted/` | `InitialSetup.vue` — botón "Primeros pasos" |
 | `/functions/email_alerts/` | Guía independiente (no enlazada desde la UI): configuración de correos de alerta |
 | `/functions/mcp/` | Guía independiente (no enlazada desde la UI): conectar asistentes de IA (Claude Code, VS Code, Cursor, Claude Desktop, n8n) al servidor MCP (feature 045) |
