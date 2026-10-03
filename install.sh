@@ -782,6 +782,9 @@ EOF
 }
 
 prune_releases() {  # conserva la release nueva y la anterior; borra las demas
+  # --force sobre la MISMA release: no hay "anterior" nueva que conservar, asi que no se
+  # poda (si no, se borraria la release previa, que es la del rollback).
+  [ "$(readlink -f "$REL")" = "$(readlink -f "$FROM_REL")" ] && return 0
   local d keep_new keep_old
   keep_new="$(readlink -f "$REL")"; keep_old="$(readlink -f "$FROM_REL")"
   for d in "$BASE_DIR"/releases/*/; do
