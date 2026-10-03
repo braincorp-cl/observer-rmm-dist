@@ -98,3 +98,9 @@ observer_open_ai_max_tokens: 4000
 # determinismo (ni con 0.0) ni calidad, y mandarla es lo que rompió a kimi-k3 con
 # HTTP 400. Vacío es la opción portable entre proveedores.
 observer_open_ai_temperature: ""
+
+# Zona horaria por defecto de la consola (CoreSettings.default_time_zone). Se aplica SOLO
+# en la primera instalación (initial_db_setup --time-zone, al crear la fila): un deploy
+# posterior no pisa el valor que el cliente cambie en Ajustes. Vacío = default del modelo
+# (America/Santiago). La fija install.sh con la zona confirmada del cliente.
+observer_default_time_zone: ""

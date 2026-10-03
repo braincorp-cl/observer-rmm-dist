@@ -38,6 +38,47 @@ independientes que soportan dos modos:
 
 ---
 
+# Instalación interactiva (`install.sh`) — método recomendado
+
+Para un cliente nuevo, el camino recomendado es el **instalador interactivo**: corre **en el
+propio servidor**, sin clon de GitHub ni nodo de control. Pregunta los datos del cliente, deriva
+lo derivable (la base del wildcard, el tamaño de PostgreSQL por RAM), valida (credenciales de
+GoDaddy, IP del proxy, zona horaria), arma el inventario y ejecuta **los mismos playbooks** de
+esta guía en modo local. Al final muestra las cuentas de la consola y de MeshCentral.
+
+Prerrequisito: el **Paso 1** de abajo (Ubuntu 22.04/24.04 y un usuario con sudo sin password) y
+los 3 FQDN creados en el DNS (Paso 4). Luego, en el servidor:
+
+```bash
+curl -fsSL -u installer:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
+bash install.sh                 # pide el token otra vez solo si no lo pasa con --token
+```
+
+| Pregunta | Default | Qué valida / deriva |
+|---|---|---|
+| Nombre corto del cliente | — | define los FQDN sugeridos `api\|rmm\|mesh.<cliente>.observer.cl` |
+| FQDN de API, consola y Mesh | los sugeridos | `observer_base_domain` se **deriva** (base común, un nivel) |
+| Email Let's Encrypt, API key/secret de GoDaddy | — | prueba las credenciales contra la API de GoDaddy |
+| IP **LAN** del proxy reverso (`-` = sin proxy) | `10.20.0.254` | rechaza IPs públicas (con ellas `real_ip` nunca coincide) |
+| Zona horaria del cliente | la del servidor | se aplica al SO, a PostgreSQL y a la consola |
+| Versión del agente ofrecida | la del producto | `X.Y.Z` |
+| HugePages + reinicio final | sí | — |
+
+- Deja todo en `/opt/observer-installer/<versión>/`: inventario, vaults cifrados y
+  **`.vault_pass` (única copia: guárdelo en su gestor de contraseñas)**. Las respuestas, sin
+  secretos, quedan en `/opt/observer-installer/answers.env`, y el log, que incluye las
+  credenciales, en `/var/log/observer-install.log` (0600).
+- Modo no interactivo: `bash install.sh --answers respuestas.env --yes`, con las claves descritas
+  en `bash install.sh --help`. Los secretos de GoDaddy van por variables de entorno.
+- Tras el reinicio: `bash /opt/observer-installer/current/install.sh --verify` (healthcheck y resumen).
+- Publicar un bundle nuevo (BrainCorp, desde el control-plane):
+  `bash scripts/installer/build-bundle.sh && ansible-playbook publish-installer.yml`.
+
+La guía que sigue (clon dedicado y nodo de control) es el **método avanzado**: multi-host,
+depuración, o ambientes BrainCorp que ya se despliegan así.
+
+---
+
 # Guía de instalación en producción — modo All-in-One
 
 Instala **todos** los servicios (PostgreSQL 15, Redis, MeshCentral, API Django +
@@ -58,7 +99,7 @@ nodo de control y se conecta por SSH al servidor.
 
 2. **Tras el primer boot**, fije la zona horaria:
    ```bash
-   sudo timedatectl set-timezone America/Santiago   # ajuste a su zona
+   sudo timedatectl set-timezone America/Santiago   # la zona DEL CLIENTE (no todos están en Chile)
    ```
 
 3. Actualice repositorios e instale los paquetes base del administrador:
@@ -179,7 +220,9 @@ all:
     observer_domain: api.ejemplo.cl        # backend / API
     observer_app_domain: rmm.ejemplo.cl    # consola web (frontend SPA)
     observer_mesh_domain: mesh.ejemplo.cl  # MeshCentral (control remoto)
-    observer_base_domain: ejemplo.cl       # dominio raíz (para el wildcard TLS)
+    observer_base_domain: ejemplo.cl       # BASE del wildcard *.<base>: el sufijo común de los 3 FQDN
+                                           # (api.cliente.observer.cl -> cliente.observer.cl, NO observer.cl:
+                                           #  el wildcard cubre un solo nivel)
 
     # --- TLS ---
     observer_cert_mode: acme               # 'acme' (wildcard vía DNS GoDaddy) o 'byo'
@@ -200,8 +243,9 @@ all:
     # --- Proxy reverso corporativo delante de nginx (OPCIONAL) ---
     # Descomente SOLO si publica detrás de un proxy reverso (ej. Nginx Proxy Manager).
     # Activa el módulo real_ip para que los logs/auditoría registren la IP real del
-    # cliente (no la del proxy) e ignora X-Forwarded-For spoofeado. Ponga la IP LAN del
-    # proxy. Acepta un valor o una lista. Ver sección "Publicación tras NPM" más abajo.
+    # cliente (no la del proxy) e ignora X-Forwarded-For spoofeado. Ponga la IP LAN/PRIVADA
+    # desde la que el proxy CONECTA al servidor — NO su IP pública (con la pública real_ip
+    # nunca coincide y los logs muestran solo la IP del proxy). Acepta un valor o una lista. Ver sección "Publicación tras NPM" más abajo.
     # Definirla TAMBIÉN relaja el pin de hash del agente de MeshCentral (el agente ve el
     # cert del proxy, no el del servidor); sin eso "Tomar control" no conecta.
     # observer_trusted_proxy_ip: "10.20.0.254"

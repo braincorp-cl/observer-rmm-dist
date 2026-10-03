@@ -89,9 +89,13 @@
 # get_core_settings() lanza CoreSettingsNotFound y CUALQUIER login da HTTP 500 en DB
 # fresca (LoginViewV2.post la lee antes de autenticar). Idempotente: CoreSettings.save()
 # lanza ValidationError si ya existe y el comando lo envuelve en suppress() -> no-op.
+# --time-zone fija la zona por defecto de la consola SOLO al crear la fila (primera
+# instalación): un deploy posterior no pisa lo que el cliente cambie en Ajustes.
 - name: Sembrar CoreSettings singleton (initial_db_setup)
   ansible.builtin.command:
-    cmd: "{{ observer_root }}/api/env/bin/python manage.py initial_db_setup"
+    cmd: >-
+      {{ observer_root }}/api/env/bin/python manage.py initial_db_setup
+      {% if observer_default_time_zone | default('') | length > 0 %}--time-zone {{ observer_default_time_zone | quote }}{% endif %}
     chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
   become: true
   become_user: "{{ observer_user }}"

@@ -84,16 +84,24 @@
     line: "manage_etc_hosts: false"
   when: observer_cloud_cfg.stat.exists
 
+# El hostname va primero en la línea (como la deja el instalador de Ubuntu): sin él la
+# línea 127.0.1.1 deja de resolver el nombre del host y `sudo` puede avisar "unable to
+# resolve host". El regexp sigue anclado al FQDN del API para reemplazar la línea vieja.
 - name: Registrar FQDN del sistema en /etc/hosts (auto-resolución, install.sh L203-219)
   ansible.builtin.lineinfile:
     path: /etc/hosts
     regexp: "^127\\.0\\.1\\.1 .*{{ observer_domain | regex_escape }}"
-    line: "127.0.1.1 {{ observer_domain }} {{ observer_app_domain }} {{ observer_mesh_domain }}"
+    line: "127.0.1.1 {{ ansible_facts['hostname'] }} {{ observer_domain }} {{ observer_app_domain }} {{ observer_mesh_domain }}"
     state: present
   when:
     - observer_domain is defined
     - observer_app_domain is defined
     - observer_mesh_domain is defined
+
+- name: Fijar la zona horaria del sistema (solo si se definió observer_timezone)
+  community.general.timezone:
+    name: "{{ observer_timezone }}"
+  when: observer_timezone | default('') | length > 0
 
 - name: Configurar UFW — política por defecto
   community.general.ufw:

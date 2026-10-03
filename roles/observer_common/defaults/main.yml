@@ -25,3 +25,8 @@ observer_ufw_rules: []
 # Cada rol agrega sus propias reglas via la variable observer_ufw_rules.
 observer_ufw_base_rules:
   - { rule: allow, port: 22, proto: tcp, comment: "SSH" }
+
+# Zona horaria del sistema operativo (timedatectl). Vacío = NO se toca la del servidor
+# (comportamiento previo de los inventarios existentes). install.sh la fija con la zona
+# confirmada por el técnico: no todos los clientes están en Chile.
+observer_timezone: ""

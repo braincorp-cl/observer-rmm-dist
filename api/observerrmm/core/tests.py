@@ -655,6 +655,34 @@ class TestCoreMgmtCommands(ObserverTestCase):
         for cmd in CONFIG_MGMT_CMDS:
             call_command("get_config", cmd)
 
+    def test_initial_db_setup_time_zone_only_on_create(self):
+        CoreSettings.objects.all().delete()
+        call_command("initial_db_setup", time_zone="America/Mexico_City")
+        self.assertEqual(
+            CoreSettings.objects.first().default_time_zone, "America/Mexico_City"
+        )
+
+        # Re-ejecutar (otro deploy) no pisa la zona elegida después en la UI.
+        CoreSettings.objects.update(default_time_zone="America/Bogota")
+        call_command("initial_db_setup", time_zone="America/Mexico_City")
+        self.assertEqual(CoreSettings.objects.count(), 1)
+        self.assertEqual(
+            CoreSettings.objects.first().default_time_zone, "America/Bogota"
+        )
+
+    def test_initial_db_setup_without_time_zone_keeps_model_default(self):
+        CoreSettings.objects.all().delete()
+        call_command("initial_db_setup")
+        self.assertEqual(
+            CoreSettings.objects.first().default_time_zone, "America/Santiago"
+        )
+
+    def test_initial_db_setup_rejects_unknown_time_zone(self):
+        from django.core.management.base import CommandError
+
+        with self.assertRaises(CommandError):
+            call_command("initial_db_setup", time_zone="Mars/Olympus")
+
 
 class TestNatsUrls(ObserverTestCase):
     def setUp(self):

@@ -80,3 +80,6 @@ venv/
 env/
 ENV/
 .changelog.html
+
+# Bundles del instalador interactivo (scripts/installer/build-bundle.sh): se publican, no se versionan.
+installer-dist/

@@ -1,0 +1,81 @@
+---
+# Publica el instalador interactivo (install.sh + bundle) en el CDN agents.observer.cl.
+# Corre desde el control-plane, por SSH al appserver (como el changelog en deploy-api.yml:
+# el firewall del appserver no admite a los runners de GitHub Actions).
+#
+#   bash scripts/installer/build-bundle.sh            # deja installer-dist/
+#   ansible-playbook publish-installer.yml             # publica y marca LATEST
+#   ansible-playbook publish-installer.yml -e observer_installer_set_latest=false   # sin LATEST
+#
+# Requisito unico en el appserver (una vez): el bloque /installer/ del vhost
+# (scripts/appserver/agents.observer.cl.conf) y el htpasswd con al menos un token:
+#   sudo htpasswd -B -c /etc/apache2/observer-installer.htpasswd installer
+- name: Instalador interactivo — publicar en el appserver
+  hosts: localhost
+  gather_facts: false
+  become: false
+  vars:
+    observer_installer_publish_host: 10.20.0.52
+    observer_installer_publish_user: observer
+    observer_installer_dist: "{{ playbook_dir }}/installer-dist"
+  tasks:
+    - name: Leer la version armada (installer-dist/LATEST)
+      ansible.builtin.set_fact:
+        _installer_ver: "{{ lookup('ansible.builtin.file', observer_installer_dist ~ '/LATEST') | trim }}"
+
+    - name: Verificar el sha256 del bundle antes de publicarlo
+      ansible.builtin.command:
+        cmd: "sha256sum -c observer-installer-{{ _installer_ver }}.tar.gz.sha256"
+        chdir: "{{ observer_installer_dist }}"
+      changed_when: false
+
+    - name: Registrar el appserver
+      ansible.builtin.add_host:
+        name: installer_appserver
+        ansible_host: "{{ observer_installer_publish_host }}"
+        ansible_user: "{{ observer_installer_publish_user }}"
+        _installer_ver: "{{ _installer_ver }}"
+        _installer_dist: "{{ observer_installer_dist }}"
+
+- name: Instalador interactivo — copiar al docroot
+  hosts: installer_appserver
+  gather_facts: false
+  become: true
+  vars:
+    installer_docroot: /var/www/html/observer-installer
+    observer_installer_set_latest: true
+  tasks:
+    - name: Directorio del instalador
+      ansible.builtin.file:
+        path: "{{ installer_docroot }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    # El bundle va PRIMERO y LATEST al final: un install.sh que consulte LATEST a mitad de
+    # la publicacion nunca apunta a un bundle que todavia no existe.
+    - name: Copiar bundle, sha256 e install.sh
+      ansible.builtin.copy:
+        src: "{{ _installer_dist }}/{{ item }}"
+        dest: "{{ installer_docroot }}/{{ item }}"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      loop:
+        - "observer-installer-{{ _installer_ver }}.tar.gz"
+        - "observer-installer-{{ _installer_ver }}.tar.gz.sha256"
+        - install.sh
+
+    - name: Marcar LATEST
+      ansible.builtin.copy:
+        src: "{{ _installer_dist }}/LATEST"
+        dest: "{{ installer_docroot }}/LATEST"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      when: observer_installer_set_latest | bool
+
+    - name: Resultado
+      ansible.builtin.debug:
+        msg: "Publicado {{ _installer_ver }} en https://agents.observer.cl/installer/ (LATEST={{ observer_installer_set_latest }})"
