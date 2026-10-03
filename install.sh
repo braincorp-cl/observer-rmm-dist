@@ -53,7 +53,9 @@ PY_BUILD_VERSION="3.12.15"     # solo si el python3 del sistema es < 3.12 (Ubunt
 MIN_RAM_KB=7500000             # ~8 GB
 MIN_DISK_GB=40
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# pwd -P: la ruta REAL de la release. Invocado como .../current/install.sh, con 'pwd' a secas
+# REL seria el symlink 'current' y 'ln -sfn $REL current' lo dejaria apuntando a si mismo.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 TOKEN="${OBS_INSTALLER_TOKEN:-}"
 WANT_VERSION=""
 LOCAL_BUNDLE=""

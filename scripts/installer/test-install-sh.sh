@@ -66,5 +66,13 @@ printf '%s\n' '---' 'all:' '  vars:' '    x: 2' >"$b"
 nok '[ -z "$(diff <(inv_body "$a") <(inv_body "$b"))" ]'
 rm -f "$a" "$b"
 
+# Invocado via el symlink 'current', REL debe ser la ruta REAL de la release (si no,
+# 'ln -sfn $REL current' deja current apuntando a si mismo: visto en el E2E de --reapply).
+t="$(mktemp -d)"; mkdir -p "$t/releases/1.0.0"; cp "$ROOT/install.sh" "$t/releases/1.0.0/"
+ln -s "$t/releases/1.0.0" "$t/current"
+rel_seen="$(T="$t" OBS_INSTALLER_LIB_ONLY=1 bash -c '. "$T/current/install.sh"; printf %s "$REL"')"
+ok  '[ "$rel_seen" = "$(cd "$t/releases/1.0.0" && pwd -P)" ]'
+rm -rf "$t"
+
 echo "$((n-fails))/$n pruebas OK"
 [ "$fails" -eq 0 ]
