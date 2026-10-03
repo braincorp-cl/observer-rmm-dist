@@ -3,7 +3,7 @@
 # Pruebas de las derivaciones y validaciones de install.sh (sin instalar nada).
 # Uso: bash scripts/installer/test-install-sh.sh
 set -uo pipefail
-export LC_ALL=C
+export LC_ALL=C.UTF-8 LANG=C.UTF-8   # mismo locale que install.sh
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OBS_INSTALLER_LIB_ONLY=1
 # shellcheck source=../../install.sh

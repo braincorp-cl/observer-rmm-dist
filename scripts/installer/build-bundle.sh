@@ -17,7 +17,7 @@
 # Se arma desde HEAD (git archive), no desde el arbol de trabajo: lo publicado es exactamente
 # lo commiteado. Con cambios sin commitear avisa.
 set -Eeuo pipefail
-export LC_ALL=C
+export LC_ALL=C.UTF-8 LANG=C.UTF-8   # ansible-galaxy exige locale UTF-8
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$ROOT/installer-dist"

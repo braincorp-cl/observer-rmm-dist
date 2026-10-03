@@ -33,10 +33,10 @@
 #     aplica en las 3 capas: sistema operativo, PostgreSQL y default de la consola.
 #   - el pin de hash del Mesh tras el proxy lo deriva el rol de observer_trusted_proxy_ip.
 #
-# Este archivo es ASCII a proposito (sin tildes): corre en servidores con locale C.
+# Este archivo es ASCII a proposito (sin tildes): corre en servidores minimizados (C.UTF-8).
 # =============================================================================
 set -Eeuo pipefail
-export LC_ALL=C LANG=C
+export LC_ALL=C.UTF-8 LANG=C.UTF-8   # Ansible exige locale UTF-8; C.UTF-8 viene en glibc (sin paquete locales)
 
 CDN_BASE="${OBS_CDN_BASE:-https://agents.observer.cl/installer}"
 BASE_DIR="${OBS_BASE_DIR:-/opt/observer-installer}"
