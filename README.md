@@ -62,8 +62,12 @@ los 3 FQDN creados en el DNS (Paso 4). Luego, en el servidor:
 
 ```bash
 curl -fsSL -u installer:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
-bash install.sh                 # pide el token otra vez solo si no lo pasa con --token
+bash install.sh --token <TOKEN> # sin --token lo pregunta
 ```
+
+El token queda guardado en el servidor (`/opt/observer-installer/token`, 0600) para que
+`update.sh` no lo vuelva a pedir. Revocarlo en el CDN corta el acceso igual (ver
+[Tokens del CDN](#tokens-del-cdn-del-instalador)).
 
 | Pregunta | Default | Qué valida / deriva |
 |---|---|---|
@@ -488,7 +492,7 @@ ansible-playbook install.yml -i inventory/produccion.yml
 ## Paso 8 — Anotar las credenciales de acceso
 
 Al terminar, el playbook imprime un **Resumen de acceso** con las URLs y las
-credenciales iniciales en claro (replica el cierre del `install.sh` original):
+credenciales iniciales en claro:
 
 ```
 ============================================================
