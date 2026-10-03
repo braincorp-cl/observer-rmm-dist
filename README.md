@@ -61,11 +61,11 @@ Prerrequisito: el **Paso 1** de abajo (Ubuntu 22.04/24.04 y un usuario con sudo 
 los 3 FQDN creados en el DNS (Paso 4). Luego, en el servidor:
 
 ```bash
-curl -fsSL -u installer:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
-bash install.sh --token <TOKEN> # sin --token lo pregunta
+curl -fsSL -u <CLIENTE>:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
+bash install.sh --user <CLIENTE> --token <TOKEN>   # usuario y token del cliente; sin --token lo pregunta
 ```
 
-El token queda guardado en el servidor (`/opt/observer-installer/token`, 0600) para que
+El usuario y el token quedan guardados en el servidor (`/opt/observer-installer/token`, 0600) para que
 `update.sh` no lo vuelva a pedir. Revocarlo en el CDN corta el acceso igual (ver
 [Tokens del CDN](#tokens-del-cdn-del-instalador)).
 
@@ -112,7 +112,7 @@ bash /opt/observer-installer/update.sh --version 1.4.24 --yes
    borra las más viejas.
 
 Un servidor instalado con un `install.sh` anterior a `update.sh` se actualiza con el
-`install.sh` vigente del CDN: `bash install.sh --update --token <TOKEN>`.
+`install.sh` vigente del CDN: `bash install.sh --update --user <CLIENTE> --token <TOKEN>`.
 
 **Volver atrás.** Si el update falla, `current` sigue en la release anterior y el script imprime
 los pasos:
@@ -162,8 +162,9 @@ openssl rand -hex 24 | tee /dev/stderr | sudo htpasswd -iB /etc/apache2/observer
 sudo htpasswd -D /etc/apache2/observer-installer.htpasswd <usuario>
 ```
 
-El técnico lo usa como `curl -u <usuario>:<token> …` o `bash install.sh --token <token>` (con el
-usuario `installer`). Sin token, el CDN responde 401; el listado y la escritura, 403.
+El técnico lo usa como `curl -u <usuario>:<token> …` y `bash install.sh --user <usuario> --token <token>`
+(sin `--user` se asume `installer`). `install.sh` guarda `usuario:token` en el servidor para
+`update.sh`. Sin token, el CDN responde 401; el listado y la escritura, 403.
 
 ---
 

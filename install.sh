@@ -9,11 +9,13 @@
 # No requiere un clon de GitHub ni un control-plane: el bundle se descarga del CDN.
 #
 # Uso tipico (como usuario con sudo, NO hace falta ser root):
-#   curl -fsSL -u installer:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
-#   bash install.sh
+#   curl -fsSL -u <USUARIO>:<TOKEN> https://agents.observer.cl/installer/install.sh -o install.sh
+#   bash install.sh --user <USUARIO> --token <TOKEN>     (usuario y token los entrega BrainCorp)
 #
 # Opciones:
 #   --token TOKEN        token del CDN (o variable OBS_INSTALLER_TOKEN; si falta, se pregunta)
+#   --user USUARIO       usuario del token en el CDN (o OBS_INSTALLER_USER; default: installer).
+#                        BrainCorp da un usuario+token por cliente (htpasswd), revocable por separado
 #   --version X.Y.Z      version del bundle (default: la publicada como LATEST)
 #   --bundle ARCHIVO     usar un bundle local (.tar.gz) en vez de descargarlo
 #   --answers ARCHIVO    respuestas en formato KEY=valor (modo no interactivo, ver abajo)
@@ -57,6 +59,7 @@ MIN_DISK_GB=40
 # REL seria el symlink 'current' y 'ln -sfn $REL current' lo dejaria apuntando a si mismo.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 TOKEN="${OBS_INSTALLER_TOKEN:-}"
+TOKEN_USER="${OBS_INSTALLER_USER:-}"
 WANT_VERSION=""
 LOCAL_BUNDLE=""
 ANSWERS_FILE=""
@@ -108,6 +111,7 @@ run_root() { if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo -n "$@"; fi; }
 while [ $# -gt 0 ]; do
   case "$1" in
     --token)   TOKEN="${2:-}"; shift 2 ;;
+    --user)    TOKEN_USER="${2:-}"; shift 2 ;;
     --version) WANT_VERSION="${2:-}"; shift 2 ;;
     --bundle)  LOCAL_BUNDLE="${2:-}"; shift 2 ;;
     --answers) ANSWERS_FILE="${2:-}"; shift 2 ;;
@@ -143,19 +147,32 @@ require_sudo() {
 ver_lt() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]; }
 
 resolve_token() {
-  # Orden: --token / OBS_INSTALLER_TOKEN, el guardado por una instalacion previa, o preguntar.
-  if [ -z "$TOKEN" ] && [ -r "$BASE_DIR/token" ]; then TOKEN="$(tr -d '[:space:]' <"$BASE_DIR/token")"; fi
-  [ -n "$TOKEN" ] || tty_read TOKEN "Token de descarga del instalador (lo entrega BrainCorp)" "" 1
+  # Orden: --token/--user (o variables), el guardado por una instalacion previa
+  # ("usuario:token"; un archivo sin ':' es de antes de --user => usuario installer), o preguntar.
+  if [ -z "$TOKEN" ] && [ -r "$BASE_DIR/token" ]; then
+    local saved
+    saved="$(tr -d '[:space:]' <"$BASE_DIR/token")"
+    if [[ "$saved" == *:* ]]; then
+      [ -n "$TOKEN_USER" ] || TOKEN_USER="${saved%%:*}"
+      TOKEN="${saved#*:}"
+    else
+      TOKEN="$saved"
+    fi
+  fi
+  [ -n "$TOKEN_USER" ] || TOKEN_USER="installer"
+  [[ "$TOKEN_USER" =~ ^[A-Za-z0-9._-]+$ ]] || die "usuario de token invalido: '$TOKEN_USER'"
+  [ -n "$TOKEN" ] || tty_read TOKEN "Token de descarga del instalador para '$TOKEN_USER' (lo entrega BrainCorp)" "" 1
   [ -n "$TOKEN" ] || die "se requiere el token de descarga"
 }
 
-save_token() {  # guarda el token que funciono, para update.sh (0600, revocable en el CDN)
+save_token() {  # guarda usuario:token que funciono, para update.sh (0600, revocable en el CDN)
   [ -n "$TOKEN" ] && [ -d "$BASE_DIR" ] || return 0
-  (umask 077; printf '%s\n' "$TOKEN" >"$BASE_DIR/token")
+  (umask 077; printf '%s:%s\n' "${TOKEN_USER:-installer}" "$TOKEN" >"$BASE_DIR/token")
+  chmod 0600 "$BASE_DIR/token"   # umask no corrige el modo de un archivo que ya existia
 }
 
 remote_latest() {
-  curl -fsS -u "installer:$TOKEN" "$CDN_BASE/LATEST" | tr -d '[:space:]' \
+  curl -fsS -u "$TOKEN_USER:$TOKEN" "$CDN_BASE/LATEST" | tr -d '[:space:]' \
     || die "no se pudo consultar $CDN_BASE/LATEST (token invalido o sin salida a agents.observer.cl)"
 }
 
@@ -176,7 +193,7 @@ fetch_bundle() {  # fetch_bundle [version] -> deja BUNDLE_FILE (verificado) y WO
   local ver="${1:-}"
   [ -n "$ver" ] || ver="$(remote_latest)"
   [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$ ]] || die "version invalida: '$ver'"
-  local auth=(-u "installer:$TOKEN")
+  local auth=(-u "$TOKEN_USER:$TOKEN")
   BUNDLE_FILE="$WORKDIR/observer-installer-$ver.tar.gz"
   info "descargando el bundle $ver desde $CDN_BASE"
   curl -fS --progress-bar "${auth[@]}" -o "$BUNDLE_FILE" "$CDN_BASE/observer-installer-$ver.tar.gz" \

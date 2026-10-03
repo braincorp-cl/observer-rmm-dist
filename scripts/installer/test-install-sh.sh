@@ -74,5 +74,18 @@ rel_seen="$(T="$t" OBS_INSTALLER_LIB_ONLY=1 bash -c '. "$T/current/install.sh"; 
 ok  '[ "$rel_seen" = "$(cd "$t/releases/1.0.0" && pwd -P)" ]'
 rm -rf "$t"
 
+# Token por cliente: archivo "usuario:token"; uno sin ':' (anterior a --user) => installer
+tb="$(mktemp -d)"
+printf 'fluitek:abc123\n' >"$tb/token"
+out="$(OBS_BASE_DIR="$tb" OBS_INSTALLER_LIB_ONLY=1 bash -c '. "$0"; resolve_token; printf %s "$TOKEN_USER|$TOKEN"' "$ROOT/install.sh")"
+ok  '[ "$out" = "fluitek|abc123" ]'
+printf 'legacytoken\n' >"$tb/token"
+out="$(OBS_BASE_DIR="$tb" OBS_INSTALLER_LIB_ONLY=1 bash -c '. "$0"; resolve_token; printf %s "$TOKEN_USER|$TOKEN"' "$ROOT/install.sh")"
+ok  '[ "$out" = "installer|legacytoken" ]'
+out="$(OBS_BASE_DIR="$tb" OBS_INSTALLER_LIB_ONLY=1 OBS_INSTALLER_USER=neogenesys OBS_INSTALLER_TOKEN=t9 bash -c '. "$0"; resolve_token; save_token; cat "$OBS_BASE_DIR/token"' "$ROOT/install.sh")"
+ok  '[ "$out" = "neogenesys:t9" ]'
+ok  '[ "$(stat -c %a "$tb/token")" = 600 ]'
+rm -rf "$tb"
+
 echo "$((n-fails))/$n pruebas OK"
 [ "$fails" -eq 0 ]
