@@ -219,7 +219,7 @@ preflight() {
   if ss -ltnH 2>/dev/null | awk '{print $4}' | grep -Eq '(^|:)(80|443)$'; then
     die "los puertos 80/443 ya estan en uso: este servidor debe estar limpio"
   fi
-  info "SO ${PRETTY_NAME}, $(nproc) CPU, $((mem_kb/1024/1024)) GB RAM, ${disk_gb} GB libres: OK"
+  info "SO ${PRETTY_NAME}, $(nproc) CPU, $(( (mem_kb + 524288) / 1048576 )) GB RAM, ${disk_gb} GB libres: OK"
 }
 
 check_egress() {
@@ -431,8 +431,13 @@ python_for_ansible() {
   local src
   src="$(mktemp -d)"
   tar -xzf "$REL/vendor/Python-$PY_BUILD_VERSION.tgz" -C "$src"
-  (cd "$src/Python-$PY_BUILD_VERSION" && ./configure --prefix="$BASE_DIR/python" >/dev/null \
-    && make -j "$(nproc)" >/dev/null && make altinstall >/dev/null)
+  # La salida del compilador (miles de lineas de avisos) va a un log aparte; solo se
+  # muestra su cola si el build falla.
+  local blog="$BASE_DIR/python-build.log"
+  if ! (cd "$src/Python-$PY_BUILD_VERSION" && ./configure --prefix="$BASE_DIR/python" \
+        && make -j "$(nproc)" && make altinstall) >"$blog" 2>&1; then
+    tail -40 "$blog"; die "fallo la compilacion de Python $PY_BUILD_VERSION (log: $blog)"
+  fi
   rm -rf "$src"
   [ -x "$PYBIN" ] || die "no se pudo compilar Python $PY_BUILD_VERSION"
 }
