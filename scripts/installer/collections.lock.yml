@@ -1,0 +1,12 @@
+---
+# Versiones EXACTAS de las colecciones que viajan en el bundle del instalador: las mismas
+# con las que se validaron los greenfields desde el control-plane (2026-10-02). requirements.yml
+# admite rangos (>=); el bundle no, para que un salto mayor (p.ej. community.postgresql 5.x)
+# no entre a produccion sin probarlo. Subirlas = probar un greenfield con las nuevas.
+collections:
+  - name: community.general
+    version: "13.0.1"
+  - name: community.postgresql
+    version: "4.2.0"
+  - name: ansible.posix
+    version: "2.2.0"

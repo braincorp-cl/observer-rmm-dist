@@ -11,7 +11,7 @@
 #
 # El bundle trae, ademas del arbol del dist en HEAD (sin .git ni lo que no se instala):
 #   web/dist/                 frontend YA compilado: el servidor no necesita Node
-#   vendor/collections/       colecciones Ansible (tar.gz): sin Galaxy en el cliente
+#   vendor/collections/       colecciones Ansible pineadas (collections.lock.yml): sin Galaxy en el cliente
 #   vendor/Python-X.tgz       fuente oficial de python.org para Ansible en Ubuntu 22.04
 #   VERSION, MANIFEST.sha256
 # Se arma desde HEAD (git archive), no desde el arbol de trabajo: lo publicado es exactamente
@@ -69,7 +69,7 @@ rm -rf "$SRC/.github" "$SRC/molecule" "$SRC/docs-site" "$SRC/installer-dist"
 
 echo "==> colecciones Ansible"
 mkdir -p "$SRC/vendor/collections"
-ansible-galaxy collection download -r "$ROOT/requirements.yml" -p "$SRC/vendor/collections" >/dev/null
+ansible-galaxy collection download -r "$SRC/scripts/installer/collections.lock.yml" -p "$SRC/vendor/collections" >/dev/null
 ls "$SRC"/vendor/collections/*.tar.gz >/dev/null 2>&1 || die "no se descargaron colecciones"
 
 echo "==> Python $PY_VERSION (fuente oficial python.org)"
