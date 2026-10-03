@@ -4,24 +4,34 @@ Plataforma Observer RMM — repo consolidado de BrainCorp: código de producto
 (backend Django en `api/observerrmm/`, capa Go NATS, frontend Vue/Quasar en
 `web/`) + despliegue con Ansible.
 
-**Versión actual: 1.4.18** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (el producto ofrece la v2.17.3)
+**Versión actual: 1.4.23** · [Releases](https://github.com/braincorp-cl/observer-rmm-dist/releases) · [Changelog](https://agents.observer.cl/changelog/) · [Agente](https://github.com/braincorp-cl/observer-agent-dist/releases) (el producto ofrece la v2.17.3)
 
 > **Al cortar una versión** hay que subir `ORMM_VERSION`, agregar la entrada al
 > [`CHANGELOG.md`](CHANGELOG.md), escribir `release-notes/vX.Y.Z.md` y pushear el tag.
 > El detalle está en [`release-notes/README.md`](release-notes/README.md); el CI exige las tres cosas.
 
-El despliegue reemplaza el script monolítico `install.sh` con 6 roles Ansible
-independientes que soportan dos modos:
+## Dos métodos de instalación
 
-- **all-in-one**: todos los componentes en un único host. **Modo soportado y
-  documentado hoy** (esta guía).
-- **multi-host**: cada componente en su propio host. **Por hacer** — la topología
-  está prevista en el playbook (`inventory/production.yml` es una plantilla), pero
-  aún no está validada de punta a punta. No usar en producción todavía.
+Los dos instalan **lo mismo**: los mismos 6 roles Ansible y el mismo `install.yml`. Cambia
+**desde dónde** se ejecuta y **quién** arma la configuración.
+
+| | **A — `install.sh` interactivo** | **B — Ansible desde un nodo de control** |
+|---|---|---|
+| **Pensado para** | **Clientes finales**: instalar un servidor nuevo de producción | **Desarrollo, staging y deploys** de BrainCorp: upgrades, cambios de configuración, depuración |
+| **Dónde corre** | En el **propio servidor** (Ansible en modo local) | En un nodo de control, por SSH al servidor |
+| **Qué necesita** | Ubuntu limpio, sudo y un **token** de descarga del CDN | Clon de este repo, venv con ansible-core, Node.js 22 y llave SSH |
+| **Inventario y secretos** | Los **genera** a partir de preguntas, derivando y validando los datos | Se editan a mano (`inventory/produccion.yml`, `.vault_pass`) |
+| **Dónde quedan los secretos** | En el servidor: `/opt/observer-installer/` | En el clon del nodo de control |
+| **Alcance** | Instalación nueva (greenfield) all-in-one | Instalación nueva, **upgrades** (`deploy-api.yml`, `deploy-frontend.yml`), aplicar roles sueltos, multi-host (por hacer) |
+| **Guía** | [Método A](#método-a--installsh-interactivo-clientes-finales) | [Método B](#método-b--ansible-desde-un-nodo-de-control-desarrollo-staging-y-deploys) |
+
+Los dos montan la topología **all-in-one** (todo en un host), que es el modo soportado. El modo
+**multi-host** está previsto en el playbook (`inventory/production.yml` es una plantilla), pero no
+está validado de punta a punta: no usarlo en producción todavía.
 
 ## Requisitos
 
-- **Nodo de control** (la máquina desde donde ejecuta Ansible; puede ser su laptop):
+- **Nodo de control** (solo método B; la máquina desde donde ejecuta Ansible, puede ser su laptop):
   - ansible-core **>= 2.18** (lo exige la colección `community.general` incluida)
   - Python 3.11+ — en Kali/Debian/Ubuntu recientes instale dentro de un **venv**
     (PEP 668; ver Paso 2)
@@ -30,18 +40,19 @@ independientes que soportan dos modos:
 - **Servidor target**:
   - Ubuntu 22.04 LTS o 24.04 LTS, limpio (greenfield)
   - 2+ vCPU, 4+ GB RAM (8+ GB recomendado), 40+ GB disco
-  - Acceso SSH con un usuario con `sudo`
+  - Un usuario con `sudo` sin password (método A: local; método B: por SSH)
   - Puertos 80 y 443 accesibles desde donde vivan los agentes/operadores
+- **Token de descarga** (solo método A): lo entrega BrainCorp (ver [Tokens del CDN](#tokens-del-cdn-del-instalador)).
 - **DNS**: registros de los 3 FQDN apuntando al servidor (§4). Puede ser DNS **interno**
   (split-horizon); en modo `acme` solo el **dominio raíz** debe estar en GoDaddy, y
   únicamente para el desafío DNS-01 (§5).
 
 ---
 
-# Instalación interactiva (`install.sh`) — método recomendado
+# Método A — `install.sh` interactivo (clientes finales)
 
-Para un cliente nuevo, el camino recomendado es el **instalador interactivo**: corre **en el
-propio servidor**, sin clon de GitHub ni nodo de control. Pregunta los datos del cliente, deriva
+Es el camino para instalar el servidor de un **cliente final**: corre **en el propio servidor**,
+sin clon de GitHub ni nodo de control. Pregunta los datos del cliente, deriva
 lo derivable (la base del wildcard, el tamaño de PostgreSQL por RAM), valida (credenciales de
 GoDaddy, IP del proxy, zona horaria), arma el inventario y ejecuta **los mismos playbooks** de
 esta guía en modo local. Al final muestra las cuentas de la consola y de MeshCentral.
@@ -71,15 +82,50 @@ bash install.sh                 # pide el token otra vez solo si no lo pasa con 
 - Modo no interactivo: `bash install.sh --answers respuestas.env --yes`, con las claves descritas
   en `bash install.sh --help`. Los secretos de GoDaddy van por variables de entorno.
 - Tras el reinicio: `bash /opt/observer-installer/current/install.sh --verify` (healthcheck y resumen).
-- Publicar un bundle nuevo (BrainCorp, desde el control-plane):
-  `bash scripts/installer/build-bundle.sh && ansible-playbook publish-installer.yml`.
+- Los upgrades posteriores de un servidor instalado así se hacen todavía con el método B
+  (`deploy-api.yml` / `deploy-frontend.yml`); `update.sh` está previsto.
 
-La guía que sigue (clon dedicado y nodo de control) es el **método avanzado**: multi-host,
-depuración, o ambientes BrainCorp que ya se despliegan así.
+### Publicar el instalador (BrainCorp)
+
+El bundle (`observer-installer-<versión>.tar.gz`, unos 46 MB) se arma desde el commit `HEAD` con
+el frontend ya compilado, las colecciones de Ansible en versiones exactas
+(`scripts/installer/collections.lock.yml`) y el fuente oficial de Python 3.12. Ansible 2.21 exige
+Python ≥ 3.12, y Ubuntu 22.04 trae 3.10: en ese caso `install.sh` lo compila en
+`/opt/observer-installer/python`, sin tocar el Python del sistema.
+
+```bash
+# desde un clon de este repo en el control-plane (venv con ansible-core activo)
+bash scripts/installer/build-bundle.sh       # deja installer-dist/
+ansible-playbook publish-installer.yml       # copia al appserver y marca LATEST
+```
+
+Un `HEAD` que no coincide con el tag de la versión se publica como `<versión>-g<commit>`, así que
+nunca se pisa un bundle ya publicado. Pruebas de las derivaciones de `install.sh`:
+`bash scripts/installer/test-install-sh.sh`.
+
+### Tokens del CDN del instalador
+
+`https://agents.observer.cl/installer/` exige Basic auth: el bundle trae el código del producto. Los
+tokens viven en `/etc/apache2/observer-installer.htpasswd` del appserver (`10.20.0.52`, vhost
+`scripts/appserver/agents.observer.cl.conf`, bloque `/installer/`):
+
+```bash
+# alta (un usuario por cliente, o el genérico 'installer'); el token se lee de stdin
+openssl rand -hex 24 | tee /dev/stderr | sudo htpasswd -iB /etc/apache2/observer-installer.htpasswd <usuario>
+# baja
+sudo htpasswd -D /etc/apache2/observer-installer.htpasswd <usuario>
+```
+
+El técnico lo usa como `curl -u <usuario>:<token> …` o `bash install.sh --token <token>` (con el
+usuario `installer`). Sin token, el CDN responde 401; el listado y la escritura, 403.
 
 ---
 
-# Guía de instalación en producción — modo All-in-One
+# Método B — Ansible desde un nodo de control (desarrollo, staging y deploys)
+
+El método versátil: es el que se usa en desarrollo, para staging y para los deploys y upgrades de
+los ambientes BrainCorp. También sirve para una instalación nueva cuando se quiere controlar cada
+variable del inventario. Los pasos siguientes describen una instalación nueva **all-in-one**.
 
 Instala **todos** los servicios (PostgreSQL 15, Redis, MeshCentral, API Django +
 NATS + Celery, y nginx + TLS) en **un solo servidor**. Ansible se ejecuta desde su
