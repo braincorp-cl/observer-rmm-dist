@@ -240,6 +240,7 @@ bootstrap_update() {
   else
     resolve_token
     ver="${WANT_VERSION:-$(remote_latest)}"
+    save_token   # el CDN ya lo acepto (o lo valida la descarga): queda para la proxima vez
   fi
   info "version instalada: $old_ver  ->  disponible: $ver"
   if [ "$ver" = "$old_ver" ] && [ "$FORCE" != 1 ]; then
