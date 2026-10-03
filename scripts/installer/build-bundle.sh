@@ -7,6 +7,7 @@
 # Salida en DIR (default: ./installer-dist/):
 #   observer-installer-<ver>.tar.gz(.sha256)  el bundle que descarga install.sh
 #   install.sh                                el bootstrap publico (mismo archivo del repo)
+#   update.sh                                 el wrapper de actualizacion (tambien va en el bundle)
 #   LATEST                                    la version, para el "latest" de install.sh
 #
 # El bundle trae, ademas del arbol del dist en HEAD (sin .git ni lo que no se instala):
@@ -91,6 +92,7 @@ BUNDLE="observer-installer-$VER.tar.gz"
 tar -C "$SRC" --owner=0 --group=0 -czf "$OUT/$BUNDLE" .
 (cd "$OUT" && sha256sum "$BUNDLE" >"$BUNDLE.sha256")
 cp "$ROOT/install.sh" "$OUT/install.sh"
+cp "$ROOT/update.sh" "$OUT/update.sh"
 echo "$VER" >"$OUT/LATEST"
 
 echo "==> listo: $OUT/$BUNDLE ($(du -h "$OUT/$BUNDLE" | cut -f1))"

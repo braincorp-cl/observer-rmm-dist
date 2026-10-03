@@ -46,5 +46,25 @@ pg_sizing_for_gb 8;  ok '[ "$PG_SB" = 1GB ] && [ "$PG_ECS" = 4GB ]'
 pg_sizing_for_gb 16; ok '[ "$PG_SB" = 2GB ] && [ "$PG_ECS" = 6GB ] && [ "$PG_MAXWAL" = 2GB ]'
 pg_sizing_for_gb 32; ok '[ "$PG_SB" = 4GB ] && [ "$PG_ECS" = 12GB ]'
 
+# Versiones (update): sin downgrade; sort -V entiende el sufijo -g<commit> de los bundles
+ok  'ver_lt 1.4.22 1.4.23'; ok 'ver_lt 1.4.9 1.4.23'; ok 'ver_lt 2.17.2 2.17.3'
+nok 'ver_lt 1.4.23 1.4.23'; nok 'ver_lt 1.4.23 1.4.22'; nok 'ver_lt 2.17.10 2.17.9'
+ok  'ver_lt 1.4.23 1.4.23-gabc1234'
+
+# Pin del agente: adopta la del bundle, NUNCA baja la flota
+ok  '[ "$(pick_agent_version 2.17.3 2.17.4)" = 2.17.4 ]'
+ok  '[ "$(pick_agent_version 2.17.3 2.17.3)" = 2.17.3 ]'
+ok  '[ "$(pick_agent_version 2.17.3 2.17.2)" = 2.17.3 ]'
+ok  '[ "$(pick_agent_version "" 2.17.2)" = 2.17.2 ]'
+
+# Diff de inventario: el encabezado con fecha no cuenta como cambio
+a="$(mktemp)"; b="$(mktemp)"
+printf '%s\n' '---' '# GENERADO 2026-10-02' 'all:' '  vars:' '    x: 1' >"$a"
+printf '%s\n' '---' '# GENERADO 2026-10-03' '' 'all:' '  vars:' '    x: 1' >"$b"
+ok  '[ -z "$(diff <(inv_body "$a") <(inv_body "$b"))" ]'
+printf '%s\n' '---' 'all:' '  vars:' '    x: 2' >"$b"
+nok '[ -z "$(diff <(inv_body "$a") <(inv_body "$b"))" ]'
+rm -f "$a" "$b"
+
 echo "$((n-fails))/$n pruebas OK"
 [ "$fails" -eq 0 ]

@@ -55,7 +55,7 @@
 
     # El bundle va PRIMERO y LATEST al final: un install.sh que consulte LATEST a mitad de
     # la publicacion nunca apunta a un bundle que todavia no existe.
-    - name: Copiar bundle, sha256 e install.sh
+    - name: Copiar bundle, sha256, install.sh y update.sh
       ansible.builtin.copy:
         src: "{{ _installer_dist }}/{{ item }}"
         dest: "{{ installer_docroot }}/{{ item }}"
@@ -66,6 +66,7 @@
         - "observer-installer-{{ _installer_ver }}.tar.gz"
         - "observer-installer-{{ _installer_ver }}.tar.gz.sha256"
         - install.sh
+        - update.sh
 
     - name: Marcar LATEST
       ansible.builtin.copy:

@@ -82,8 +82,50 @@ bash install.sh                 # pide el token otra vez solo si no lo pasa con 
 - Modo no interactivo: `bash install.sh --answers respuestas.env --yes`, con las claves descritas
   en `bash install.sh --help`. Los secretos de GoDaddy van por variables de entorno.
 - Tras el reinicio: `bash /opt/observer-installer/current/install.sh --verify` (healthcheck y resumen).
-- Los upgrades posteriores de un servidor instalado así se hacen todavía con el método B
-  (`deploy-api.yml` / `deploy-frontend.yml`); `update.sh` está previsto.
+
+### Actualizar (`update.sh`)
+
+En el servidor, con el mismo usuario que instaló:
+
+```bash
+bash /opt/observer-installer/update.sh            # a la versión publicada (LATEST)
+bash /opt/observer-installer/update.sh --version 1.4.24 --yes
+```
+
+1. Usa el token guardado al instalar (`/opt/observer-installer/token`, 0600). Si ya está en la
+   versión publicada, termina sin tocar nada; `--force` re-aplica igual.
+2. Baja y verifica el bundle nuevo y le pasa el control a **su** `install.sh`. La lógica de
+   migración es siempre la de la versión nueva.
+3. **No baja de versión** (las migraciones de la BD no se revierten) salvo `--allow-downgrade`.
+4. Copia el `.vault_pass` y los vaults a la release nueva y **regenera el inventario** desde
+   `answers.env` con la plantilla nueva. Si cambia algo, muestra el diff y pide confirmar.
+5. Fija el **agente** que se ofrece a la flota en la versión del bundle, salvo que sea menor que
+   el pin actual: nunca baja la flota.
+6. Corre el healthcheck **previo** y un **respaldo** (`/opt/observer/scripts/backup.sh`). Verifica
+   que el dump de la BD sea válido antes de migrar.
+7. Re-aplica `install.yml` completo (también los cambios de nginx, Mesh y PostgreSQL), corre el
+   healthcheck y recién entonces mueve `current` a la release nueva. Conserva la anterior y
+   borra las más viejas.
+
+Un servidor instalado con un `install.sh` anterior a `update.sh` se actualiza con el
+`install.sh` vigente del CDN: `bash install.sh --update --token <TOKEN>`.
+
+**Volver atrás.** Si el update falla, `current` sigue en la release anterior y el script imprime
+los pasos:
+- **Si no llegó a migrar:** `bash /opt/observer-installer/releases/<anterior>/install.sh --reapply`.
+- **Si ya migró**, hay que restaurar la BD del respaldo previo (`/opt/observer/backups/observer-backup-<fecha>.tar`)
+  y después hacer `--reapply` con la anterior:
+
+  ```bash
+  mkdir /tmp/rb && tar -xf /opt/observer/backups/observer-backup-<fecha>.tar -C /tmp/rb
+  sudo systemctl stop rmm daphne celery celerybeat nats-api
+  sudo -u postgres dropdb observerrmm && sudo -u postgres createdb -O observerrmm observerrmm   # BD y dueño: manage.py get_config dbname / dbuser
+  gunzip -c /tmp/rb/postgres/db-*.psql.gz | sudo -u postgres psql -q observerrmm
+  bash /opt/observer-installer/releases/<anterior>/install.sh --reapply
+  ```
+
+`--reapply` también sirve para reparar una configuración tocada a mano: re-aplica `install.yml`
+con la release actual y su estado.
 
 ### Publicar el instalador (BrainCorp)
 

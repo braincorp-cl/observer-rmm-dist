@@ -20,6 +20,14 @@
 #   --yes                no pedir confirmacion final (para --answers)
 #   --verify             solo re-ejecutar el healthcheck y mostrar el resumen (post-reboot)
 #
+# Actualizar un servidor ya instalado con este script (o: bash /opt/observer-installer/update.sh):
+#   --update             baja la version publicada (o --version), respalda, migra el estado
+#                        (vault, respuestas) y re-aplica install.yml con el codigo nuevo
+#   --force              con --update: re-aplica aunque ya este en esa version
+#   --allow-downgrade    con --update: permite bajar de version (las migraciones NO se revierten)
+#   --reapply            re-aplica install.yml + healthcheck con la release ACTUAL (reparar o
+#                        volver atras: bash /opt/observer-installer/releases/<ver>/install.sh --reapply)
+#
 # Claves de --answers (los secretos NUNCA van en el archivo: se leen de variables de
 # entorno OBS_GODADDY_KEY / OBS_GODADDY_SECRET o se preguntan):
 #   OBS_SLUG, OBS_API_FQDN, OBS_RMM_FQDN, OBS_MESH_FQDN, OBS_ACME_EMAIL,
@@ -52,6 +60,11 @@ LOCAL_BUNDLE=""
 ANSWERS_FILE=""
 ASSUME_YES=0
 VERIFY_ONLY=0
+UPDATE_MODE=0
+FROM_REL=""
+FORCE=0
+ALLOW_DOWNGRADE=0
+REAPPLY=0
 ORIG_ARGS=("$@")
 
 # ----------------------------------------------------------------------------- utilidades
@@ -98,7 +111,12 @@ while [ $# -gt 0 ]; do
     --answers) ANSWERS_FILE="${2:-}"; shift 2 ;;
     --yes)     ASSUME_YES=1; shift ;;
     --verify)  VERIFY_ONLY=1; shift ;;
-    -h|--help) sed -n '2,40p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    --update)  UPDATE_MODE=1; shift ;;
+    --from)    FROM_REL="${2:-}"; shift 2 ;;
+    --force)   FORCE=1; shift ;;
+    --allow-downgrade) ALLOW_DOWNGRADE=1; shift ;;
+    --reapply) REAPPLY=1; shift ;;
+    -h|--help) sed -n '2,48p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) die "opcion desconocida: $1 (use --help)" ;;
   esac
 done
@@ -119,64 +137,121 @@ require_sudo() {
 # =============================================================================
 # MODO BOOTSTRAP: el script corre suelto (no esta dentro de un bundle extraido)
 # =============================================================================
-bootstrap() {
-  require_sudo
-  command -v curl >/dev/null || run_root apt-get install -y -qq curl ca-certificates >/dev/null
-  local workdir bundle ver
-  workdir="$(mktemp -d)"
+# Comparacion de versiones (sort -V): ver_lt A B -> rc 0 si A < B estricto.
+ver_lt() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" = "$1" ]; }
 
+resolve_token() {
+  # Orden: --token / OBS_INSTALLER_TOKEN, el guardado por una instalacion previa, o preguntar.
+  if [ -z "$TOKEN" ] && [ -r "$BASE_DIR/token" ]; then TOKEN="$(tr -d '[:space:]' <"$BASE_DIR/token")"; fi
+  [ -n "$TOKEN" ] || tty_read TOKEN "Token de descarga del instalador (lo entrega BrainCorp)" "" 1
+  [ -n "$TOKEN" ] || die "se requiere el token de descarga"
+}
+
+save_token() {  # guarda el token que funciono, para update.sh (0600, revocable en el CDN)
+  [ -n "$TOKEN" ] && [ -d "$BASE_DIR" ] || return 0
+  (umask 077; printf '%s\n' "$TOKEN" >"$BASE_DIR/token")
+}
+
+remote_latest() {
+  curl -fsS -u "installer:$TOKEN" "$CDN_BASE/LATEST" | tr -d '[:space:]' \
+    || die "no se pudo consultar $CDN_BASE/LATEST (token invalido o sin salida a agents.observer.cl)"
+}
+
+fetch_bundle() {  # fetch_bundle [version] -> deja BUNDLE_FILE (verificado) y WORKDIR
+  WORKDIR="$(mktemp -d)"
   if [ -n "$LOCAL_BUNDLE" ]; then
     [ -r "$LOCAL_BUNDLE" ] || die "no se puede leer el bundle $LOCAL_BUNDLE"
-    bundle="$LOCAL_BUNDLE"
+    BUNDLE_FILE="$LOCAL_BUNDLE"
     if [ -r "$LOCAL_BUNDLE.sha256" ]; then
-      (cd "$(dirname "$bundle")" && sha256sum -c "$(basename "$bundle").sha256" >/dev/null) \
+      (cd "$(dirname "$BUNDLE_FILE")" && sha256sum -c "$(basename "$BUNDLE_FILE").sha256" >/dev/null) \
         || die "el sha256 del bundle no coincide"
       info "bundle local verificado (sha256)"
     else
       warn "no hay $LOCAL_BUNDLE.sha256: el bundle local NO se verifico"
     fi
-  else
-    [ -n "$TOKEN" ] || tty_read TOKEN "Token de descarga del instalador (lo entrega BrainCorp)" "" 1
-    [ -n "$TOKEN" ] || die "se requiere el token de descarga"
-    local auth=(-u "installer:$TOKEN")
-    ver="$WANT_VERSION"
-    if [ -z "$ver" ]; then
-      ver="$(curl -fsS "${auth[@]}" "$CDN_BASE/LATEST" | tr -d '[:space:]')" \
-        || die "no se pudo consultar $CDN_BASE/LATEST (token invalido o sin salida a agents.observer.cl)"
-    fi
-    [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$ ]] || die "version invalida: '$ver'"
-    bundle="$workdir/observer-installer-$ver.tar.gz"
-    info "descargando el bundle $ver desde $CDN_BASE"
-    curl -fS --progress-bar "${auth[@]}" -o "$bundle" "$CDN_BASE/observer-installer-$ver.tar.gz" \
-      || die "no se pudo descargar el bundle $ver"
-    curl -fsS "${auth[@]}" -o "$bundle.sha256" "$CDN_BASE/observer-installer-$ver.tar.gz.sha256" \
-      || die "no se pudo descargar el sha256 del bundle"
-    (cd "$workdir" && sha256sum -c "$(basename "$bundle").sha256" >/dev/null) \
-      || die "el sha256 del bundle descargado NO coincide: descarga corrupta o alterada"
-    info "bundle verificado (sha256)"
+    return
   fi
+  local ver="${1:-}"
+  [ -n "$ver" ] || ver="$(remote_latest)"
+  [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$ ]] || die "version invalida: '$ver'"
+  local auth=(-u "installer:$TOKEN")
+  BUNDLE_FILE="$WORKDIR/observer-installer-$ver.tar.gz"
+  info "descargando el bundle $ver desde $CDN_BASE"
+  curl -fS --progress-bar "${auth[@]}" -o "$BUNDLE_FILE" "$CDN_BASE/observer-installer-$ver.tar.gz" \
+    || die "no se pudo descargar el bundle $ver"
+  curl -fsS "${auth[@]}" -o "$BUNDLE_FILE.sha256" "$CDN_BASE/observer-installer-$ver.tar.gz.sha256" \
+    || die "no se pudo descargar el sha256 del bundle"
+  (cd "$WORKDIR" && sha256sum -c "$(basename "$BUNDLE_FILE").sha256" >/dev/null) \
+    || die "el sha256 del bundle descargado NO coincide: descarga corrupta o alterada"
+  info "bundle verificado (sha256)"
+}
 
-  ver="$(tar -xzOf "$bundle" ./VERSION 2>/dev/null | tr -d '[:space:]')" || true
+bundle_version() { tar -xzOf "$1" ./VERSION 2>/dev/null | tr -d '[:space:]'; }
+
+extract_bundle() {  # extrae BUNDLE_FILE en releases/<ver> -> deja NEW_REL
+  local ver
+  ver="$(bundle_version "$BUNDLE_FILE")" || true
   [ -n "$ver" ] || die "el bundle no trae VERSION (bundle invalido)"
-  local rel="$BASE_DIR/releases/$ver"
-  if [ -e "$rel/install.yml" ]; then
-    info "la version $ver ya esta extraida en $rel"
+  NEW_REL="$BASE_DIR/releases/$ver"
+  if [ -e "$NEW_REL/install.yml" ]; then
+    info "la version $ver ya esta extraida en $NEW_REL"
   else
-    run_root mkdir -p "$rel"
-    run_root tar -xzf "$bundle" -C "$rel"
+    run_root mkdir -p "$NEW_REL"
+    run_root tar -xzf "$BUNDLE_FILE" -C "$NEW_REL"
   fi
   # El arbol del bundle (y los vault que generara) es del usuario que instala, 0700.
   run_root chown -R "$(id -u):$(id -g)" "$BASE_DIR"
   chmod 0700 "$BASE_DIR"
-  ln -sfn "$rel" "$BASE_DIR/current"
-  rm -rf "$workdir"
-  info "bundle $ver listo en $rel"
+  rm -rf "$WORKDIR"
+  info "bundle $ver listo en $NEW_REL"
+}
+
+bootstrap() {
+  require_sudo
+  command -v curl >/dev/null || run_root apt-get install -y -qq curl ca-certificates >/dev/null
+  [ -n "$LOCAL_BUNDLE" ] || resolve_token
+  fetch_bundle "$WANT_VERSION"
+  extract_bundle
+  ln -sfn "$NEW_REL" "$BASE_DIR/current"
+  save_token
   # Continua el mismo script, ya dentro del bundle (sin --bundle/--token: ya no hacen falta).
   local pass=()
   [ -n "$ANSWERS_FILE" ] && pass+=(--answers "$ANSWERS_FILE")
   [ "$ASSUME_YES" = 1 ] && pass+=(--yes)
   [ "$VERIFY_ONLY" = 1 ] && pass+=(--verify)
-  exec bash "$rel/install.sh" "${pass[@]}"
+  exec bash "$NEW_REL/install.sh" "${pass[@]}"
+}
+
+# Update, fase 1 (con el install.sh que sea: el de la release actual, o uno suelto bajado
+# del CDN): baja la version nueva SIN tocar 'current' y le pasa el control al install.sh
+# NUEVO, que es el que sabe migrar el estado a su version.
+bootstrap_update() {
+  require_sudo
+  local cur old_ver ver
+  cur="$(readlink -f "$BASE_DIR/current" 2>/dev/null || true)"
+  [ -n "$cur" ] && [ -f "$cur/VERSION" ] && [ -s "$BASE_DIR/answers.env" ] \
+    || die "no hay una instalacion hecha con install.sh en $BASE_DIR (falta current o answers.env)"
+  old_ver="$(tr -d '[:space:]' <"$cur/VERSION")"
+  command -v curl >/dev/null || run_root apt-get install -y -qq curl ca-certificates >/dev/null
+  if [ -n "$LOCAL_BUNDLE" ]; then
+    ver="$(bundle_version "$LOCAL_BUNDLE")"
+  else
+    resolve_token
+    ver="${WANT_VERSION:-$(remote_latest)}"
+  fi
+  info "version instalada: $old_ver  ->  disponible: $ver"
+  if [ "$ver" = "$old_ver" ] && [ "$FORCE" != 1 ]; then
+    info "ya esta al dia (use --force para re-aplicar igual)"
+    exit 0
+  fi
+  fetch_bundle "$ver"
+  extract_bundle
+  save_token
+  local pass=(--update --from "$cur")
+  [ "$ASSUME_YES" = 1 ] && pass+=(--yes)
+  [ "$FORCE" = 1 ] && pass+=(--force)
+  [ "$ALLOW_DOWNGRADE" = 1 ] && pass+=(--allow-downgrade)
+  exec bash "$NEW_REL/install.sh" "${pass[@]}"
 }
 
 # =============================================================================
@@ -266,7 +341,7 @@ load_answers() {
     val="${val%\"}"; val="${val#\"}"
     case "$key" in
       OBS_SLUG|OBS_API_FQDN|OBS_RMM_FQDN|OBS_MESH_FQDN|OBS_ACME_EMAIL|OBS_PROXY_IP|\
-      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT) printf -v "$key" '%s' "$val" ;;
+      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE) printf -v "$key" '%s' "$val" ;;
       OBS_GODADDY_KEY|OBS_GODADDY_SECRET) die "$key no puede ir en el archivo de respuestas (use variable de entorno)" ;;
       *) warn "clave desconocida en respuestas: $key (ignorada)" ;;
     esac
@@ -477,11 +552,17 @@ vault_godaddy_key: "$OBS_GODADDY_KEY"
 vault_godaddy_secret: "$OBS_GODADDY_SECRET"
 EOF
   chmod 0600 "$REL/group_vars/observer_proxy/vault.yml"
+  umask 022
+  render_inventory "$INV"
+  save_answers
+}
 
-  local proxy_line="" huge="off"
+render_inventory() {  # render_inventory destino
+  local dest="$1" proxy_line="" huge="off"
+  umask 077
   [ -n "$OBS_PROXY_IP" ] && proxy_line="    observer_trusted_proxy_ip: \"$OBS_PROXY_IP\""
   is_yes "$OBS_HUGEPAGES" && huge="try"
-  cat >"$INV" <<EOF
+  cat >"$dest" <<EOF
 ---
 # inventory/produccion.yml - GENERADO por install.sh $(date -Is). Cliente: $OBS_SLUG
 # All-in-One LOCAL: Ansible corre en este mismo servidor (ansible_connection: local).
@@ -539,11 +620,13 @@ $proxy_line
     observer_proxy:
       hosts: { localhost: { ansible_connection: local } }
 EOF
-  chmod 0600 "$INV"
+  chmod 0600 "$dest"
   umask 022
+}
 
-  # Respuestas (SIN secretos) para un futuro update.sh y para auditoria.
-  cat >"$ANSWERS_SAVED" <<EOF
+save_answers() {
+  # Respuestas (SIN secretos) para update.sh y para auditoria.
+  (umask 077; cat >"$ANSWERS_SAVED" <<EOF
 # Respuestas de install.sh $(date -Is) - sin secretos (GoDaddy queda cifrado en el vault).
 OBS_SLUG=$OBS_SLUG
 OBS_API_FQDN=$OBS_API_FQDN
@@ -557,6 +640,7 @@ OBS_HUGEPAGES=$OBS_HUGEPAGES
 OBS_REBOOT=$OBS_REBOOT
 OBS_BUNDLE=$(cat "$REL/VERSION")
 EOF
+  )
   chmod 0600 "$ANSWERS_SAVED"
 }
 
@@ -617,6 +701,188 @@ do_verify() {
   final_report
 }
 
+# =============================================================================
+# UPDATE (fase 2) y REAPPLY: corren con el install.sh de la release NUEVA / ACTUAL
+# =============================================================================
+settings_value() {  # settings_value archivo CLAVE -> valor de CLAVE = "..." en settings.py
+  grep -oE "^$2 = \"[^\"]+\"" "$1" 2>/dev/null | cut -d'"' -f2
+}
+installed_ormm() { settings_value /opt/observer/api/observerrmm/observerrmm/settings.py ORMM_VERSION; }
+bundle_ormm()    { settings_value "$REL/api/observerrmm/observerrmm/settings.py" ORMM_VERSION; }
+bundle_agent()   { settings_value "$REL/api/observerrmm/observerrmm/settings.py" LATEST_AGENT_VER; }
+
+# El pin del agente adopta la version del bundle, pero NUNCA baja la flota de version.
+pick_agent_version() {  # pick_agent_version pin_actual version_bundle -> imprime la que queda
+  if [ -z "$1" ] || ver_lt "$1" "$2"; then printf '%s' "$2"; else printf '%s' "$1"; fi
+}
+
+# Cuerpo del inventario sin comentarios ni lineas vacias (el encabezado lleva la fecha).
+inv_body() { grep -vE '^[[:space:]]*#' "$1" | sed '/^[[:space:]]*$/d'; }
+
+preflight_update() {
+  info "preflight del update"
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?}"
+  require_sudo
+  [ -d /opt/observer ] || die "no hay Observer RMM instalado en este servidor (/opt/observer)"
+  [ -s "$FROM_REL/.vault_pass" ] && [ -s "$FROM_REL/inventory/produccion.yml" ] \
+    || die "la release anterior $FROM_REL no tiene su estado (.vault_pass / inventario)"
+  local disk_gb
+  disk_gb="$(df -BG --output=avail / | tail -1 | tr -dc '0-9')"
+  [ "$disk_gb" -ge 10 ] || die "disco libre insuficiente en /: ${disk_gb} GB (minimo 10 GB para el update)"
+  ss -ltnH 2>/dev/null | awk '{print $4}' | grep -Eq '(^|:)443$' \
+    || warn "nada escucha en 443: los servicios parecen detenidos (lo confirmara el healthcheck)"
+}
+
+migrate_state() {
+  # Secretos de la release anterior (unica copia: .vault_pass + vaults cifrados).
+  [ "$FROM_REL" = "$REL" ] && return 0
+  info "migrando el estado desde $(basename "$FROM_REL")"
+  cp -p "$FROM_REL/.vault_pass" "$REL/.vault_pass"
+  local f n=0
+  for f in "$FROM_REL"/group_vars/*/vault*.yml; do
+    [ -e "$f" ] || continue
+    [ "$(head -c 14 "$f")" = "\$ANSIBLE_VAULT" ] || die "$f no esta cifrado: estado inconsistente"
+    cp -p "$f" "$REL/group_vars/$(basename "$(dirname "$f")")/"
+    n=$((n+1))
+  done
+  [ "$n" -ge 4 ] || die "la release anterior tiene solo $n vaults (se esperaban 5)"
+}
+
+pre_backup() {
+  info "respaldo previo al update (backup.sh)"
+  local out file member hdr
+  out="$(run_root /opt/observer/scripts/backup.sh 2>&1)" || die "backup.sh fallo:
+$out"
+  printf '%s\n' "$out"
+  file="$(printf '%s\n' "$out" | sed -n 's/^Backup guardado en //p' | tail -1)"
+  if [ -z "$file" ] || ! run_root test -s "$file"; then die "backup.sh no dejo el archivo de respaldo"; fi
+  # backup.sh hace pg_dump | gzip sin pipefail: un dump fallido deja un .gz VACIO y solo
+  # avisa. Se verifica el contenido real antes de dejar que migrate toque la BD.
+  member="$(run_root tar -tf "$file" | grep -E '/postgres/db-.*\.psql\.gz$' | head -1)"
+  [ -n "$member" ] || die "el respaldo no trae el dump de la BD principal: no se actualiza"
+  hdr="$( (run_root tar -xOf "$file" "$member" | gunzip -c | head -c 4096) 2>/dev/null || true)"
+  [[ "$hdr" == *"PostgreSQL database dump"* ]] || die "el dump de la BD del respaldo esta vacio o es invalido: no se actualiza"
+  BACKUP_FILE="$file"
+  info "respaldo verificado: $BACKUP_FILE"
+}
+
+rollback_help() {
+  hr
+  cat <<EOF
+  VOLVER ATRAS ('current' sigue apuntando a $(basename "$FROM_REL")):
+   - Si el log NO llego a la tarea "Ejecutar Django migrate":
+       bash $FROM_REL/install.sh --reapply
+   - Si ya migro: restaurar la BD desde ${BACKUP_FILE:-el respaldo previo} (README, seccion
+     "Actualizar") y luego:  bash $FROM_REL/install.sh --reapply
+  Log: $LOG_FILE
+EOF
+  hr
+}
+
+prune_releases() {  # conserva la release nueva y la anterior; borra las demas
+  local d keep_new keep_old
+  keep_new="$(readlink -f "$REL")"; keep_old="$(readlink -f "$FROM_REL")"
+  for d in "$BASE_DIR"/releases/*/; do
+    d="$(readlink -f "${d%/}")"
+    if [ "$d" = "$keep_new" ] || [ "$d" = "$keep_old" ]; then continue; fi
+    info "borrando release antigua $(basename "$d")"
+    rm -rf "$d"
+  done
+}
+
+install_update_wrapper() {
+  [ -f "$REL/update.sh" ] && install -m 0700 "$REL/update.sh" "$BASE_DIR/update.sh"
+  return 0
+}
+
+update_main() {
+  [ -f "$REL/install.yml" ] && [ -f "$REL/VERSION" ] || die "bundle incompleto en $REL"
+  setup_log
+  FROM_REL="$(readlink -f "$FROM_REL")"
+  local new_ver old_ver inst new_ormm bnd picked d
+  new_ver="$(tr -d '[:space:]' <"$REL/VERSION")"
+  old_ver="$(tr -d '[:space:]' <"$FROM_REL/VERSION" 2>/dev/null || echo '?')"
+  info "update de Observer RMM: $old_ver -> $new_ver"
+  preflight_update
+
+  inst="$(installed_ormm)"; new_ormm="$(bundle_ormm)"
+  [ -n "$inst" ] && [ -n "$new_ormm" ] || die "no se pudo leer la version instalada o la del bundle"
+  if ver_lt "$new_ormm" "$inst" && [ "$ALLOW_DOWNGRADE" != 1 ]; then
+    die "el bundle ($new_ormm) es MENOR que lo instalado ($inst): las migraciones de la BD no se
+  revierten. Si de verdad quiere bajar de version use --allow-downgrade (bajo su responsabilidad)."
+  fi
+
+  # Respuestas de la instalacion (sin secretos) -> mismas variables que install.
+  local saved_answers="$ANSWERS_FILE"
+  ANSWERS_FILE="$ANSWERS_SAVED"; load_answers; ANSWERS_FILE="$saved_answers"
+  OBS_BASE_DOMAIN="$(base_of "$OBS_API_FQDN")"
+  bnd="$(bundle_agent)"
+  picked="$(pick_agent_version "${OBS_AGENT_VER:-}" "$bnd")"
+  if [ "$picked" != "${OBS_AGENT_VER:-}" ]; then
+    info "agente ofrecido a la flota: ${OBS_AGENT_VER:-?} -> $picked (version del bundle)"
+  elif ver_lt "$bnd" "$picked"; then
+    warn "el bundle trae el agente $bnd, MENOR que el pin $picked: se conserva $picked"
+  fi
+  OBS_AGENT_VER="$picked"
+  derive_pg_sizing
+
+  migrate_state
+  render_inventory "$INV"
+  if [ "$FROM_REL" != "$REL" ]; then
+    d="$(diff <(inv_body "$FROM_REL/inventory/produccion.yml") <(inv_body "$INV") || true)"
+    if [ -n "$d" ]; then
+      hr; echo "Cambios del inventario (plantilla nueva, agente o ediciones manuales previas):"
+      printf '%s\n' "$d"; hr
+      [ "$ASSUME_YES" = 1 ] || yes_no "Aplicar el inventario regenerado" "s" || die "update cancelado"
+    fi
+  fi
+  if [ "$ASSUME_YES" != 1 ]; then
+    yes_no "Actualizar $old_ver -> $new_ver ahora (reinicia servicios unos minutos)" "n" \
+      || die "update cancelado por el usuario"
+  fi
+
+  setup_ansible
+  info "healthcheck previo"
+  if ! run_playbook healthcheck.yml; then
+    [ "$ASSUME_YES" = 1 ] && die "el healthcheck previo fallo: no se actualiza un servidor con problemas
+  (sin --yes puede confirmarlo a mano)"
+    yes_no "El healthcheck previo FALLO. Actualizar igual" "n" || die "update cancelado"
+  fi
+  pre_backup
+
+  info "ejecutando install.yml con $new_ver (8-15 min)"
+  if ! run_playbook install.yml -e observer_frontend_build=false; then
+    rollback_help; die "install.yml fallo durante el update"
+  fi
+  info "healthcheck"
+  if ! run_playbook healthcheck.yml; then rollback_help; die "el healthcheck fallo tras el update"; fi
+  [ "$(installed_ormm)" = "$new_ormm" ] || { rollback_help; die "la version instalada no quedo en $new_ormm"; }
+
+  ln -sfn "$REL" "$BASE_DIR/current"
+  save_answers
+  install_update_wrapper
+  prune_releases
+  final_report
+  info "update completo: $old_ver -> $new_ver (respaldo previo: $BACKUP_FILE)"
+}
+
+reapply_main() {
+  [ -f "$REL/install.yml" ] || die "bundle incompleto en $REL"
+  [ -s "$INV" ] && [ -s "$REL/.vault_pass" ] \
+    || die "esta release no tiene estado (inventario/.vault_pass): no fue instalada ni actualizada"
+  setup_log
+  require_sudo
+  setup_ansible
+  info "re-aplicando install.yml con $(cat "$REL/VERSION")"
+  run_playbook install.yml -e observer_frontend_build=false || die "install.yml fallo (ver $LOG_FILE)"
+  run_playbook healthcheck.yml || warn "el healthcheck reporto fallas (ver arriba)"
+  ln -sfn "$REL" "$BASE_DIR/current"
+  install_update_wrapper
+  final_report
+}
+
 main_bundle() {
   [ -f "$REL/install.yml" ] && [ -f "$REL/VERSION" ] || die "bundle incompleto en $REL"
   setup_log
@@ -644,6 +910,7 @@ main_bundle() {
 
   info "healthcheck"
   run_playbook healthcheck.yml || warn "el healthcheck reporto fallas (ver arriba)"
+  install_update_wrapper
   final_report
 
   if is_yes "$OBS_REBOOT"; then
@@ -661,7 +928,17 @@ main_bundle() {
 # Modo libreria para las pruebas (scripts/installer/test-install-sh.sh): solo define funciones.
 # shellcheck disable=SC2317  # el exit es el fallback cuando no se ejecuta via source
 if [ "${OBS_INSTALLER_LIB_ONLY:-0}" = 1 ]; then return 0 2>/dev/null || exit 0; fi
-if [ -f "$SCRIPT_DIR/install.yml" ] && [ -f "$SCRIPT_DIR/VERSION" ] && [ -z "$LOCAL_BUNDLE" ]; then
+IN_BUNDLE=0
+[ -f "$SCRIPT_DIR/install.yml" ] && [ -f "$SCRIPT_DIR/VERSION" ] && IN_BUNDLE=1
+if [ "$UPDATE_MODE" = 1 ] && [ -z "$FROM_REL" ]; then
+  bootstrap_update                       # baja la version nueva y le pasa el control
+elif [ "$UPDATE_MODE" = 1 ]; then
+  [ "$IN_BUNDLE" = 1 ] || die "--from solo se usa dentro de una release extraida"
+  update_main
+elif [ "$REAPPLY" = 1 ]; then
+  [ "$IN_BUNDLE" = 1 ] || die "--reapply se ejecuta con el install.sh de una release: $BASE_DIR/releases/<ver>/install.sh"
+  reapply_main
+elif [ "$IN_BUNDLE" = 1 ] && [ -z "$LOCAL_BUNDLE" ]; then
   main_bundle
 else
   bootstrap
