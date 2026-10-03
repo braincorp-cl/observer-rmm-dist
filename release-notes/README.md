@@ -6,7 +6,10 @@ recordatorio: es un requisito.
 
 ## Cómo cortar una versión
 
-1. Subir `ORMM_VERSION` en `api/observerrmm/observerrmm/settings.py`.
+1. Subir `ORMM_VERSION` en `api/observerrmm/observerrmm/settings.py`, y dejar `LATEST_AGENT_VER` en la
+   **última release del agente** ([observer-agent-dist](https://github.com/braincorp-cl/observer-agent-dist/releases)).
+   No se actualiza solo: es lo que `install.sh`/`update.sh` ofrecen a la flota, y
+   `scripts/installer/build-bundle.sh` se niega a armar un bundle con el agente atrasado.
 2. Agregar la entrada `## vX.Y.Z — YYYY-MM-DD` en [`CHANGELOG.md`](../CHANGELOG.md) — **el CI lo exige
    en cada push**: si `ORMM_VERSION` no tiene su entrada, falla. Ese archivo alimenta el changelog
    público (`agents.observer.cl/changelog/`) y el ancla `#vX.Y.Z` que enlaza la consola.

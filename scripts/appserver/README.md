@@ -36,7 +36,8 @@ No hay control-plane intermedio (sin SPOF) ni PAT de GitHub en el appserver: sol
 1. Secrets del repo `observer-agent-dist`: `CDN_UPLOAD_USER` y `CDN_UPLOAD_PASSWORD`
    (valor de `htpasswd` en `/etc/apache2/observer-agents-cdn.htpasswd` del appserver).
 2. `agents.observer.cl` publicado por el NPM (ver "Pendiente del usuario").
-3. Tras cada release, fijar `LATEST_AGENT_VER` en `settings.py` a la versión servida.
+3. Tras cada release, fijar `LATEST_AGENT_VER` en `settings.py` a la versión servida (no es automático;
+   `scripts/installer/build-bundle.sh` lo verifica contra la última release del agente).
 
 El paso es `continue-on-error`: si el CDN falla, el release de GitHub igual se crea (fuente
 de verdad) y se re-publica con el fallback.

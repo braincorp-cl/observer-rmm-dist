@@ -22,12 +22,14 @@ export LC_ALL=C.UTF-8 LANG=C.UTF-8   # ansible-galaxy exige locale UTF-8
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$ROOT/installer-dist"
+ALLOW_OLD_AGENT=0
 PY_VERSION="$(grep -oE '^PY_BUILD_VERSION="[^"]+"' "$ROOT/install.sh" | cut -d'"' -f2)"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/observer-installer"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --out) OUT="$2"; shift 2 ;;
+    --allow-old-agent) ALLOW_OLD_AGENT=1; shift ;;
     *) echo "opcion desconocida: $1" >&2; exit 2 ;;
   esac
 done
@@ -52,6 +54,22 @@ else
   VER="$ORMM-g$(git rev-parse --short HEAD)"
 fi
 echo "==> bundle $VER (HEAD $(git rev-parse --short HEAD))"
+
+# El agente que el bundle ofrece a la flota (install.sh/update.sh lo toman de settings.py)
+# debe ser la ULTIMA release publicada del agente. Subirlo es un paso manual del release
+# del agente que se olvido con la 2.17.3 (settings.py quedo en 2.17.2): aqui se frena.
+AGENT_SETTINGS="$(git show HEAD:api/observerrmm/observerrmm/settings.py | grep -oE '^LATEST_AGENT_VER = "[^"]+"' | cut -d'"' -f2)"
+if AGENT_LATEST="$(gh release view -R braincorp-cl/observer-agent-dist --json tagName -q .tagName 2>/dev/null)"; then
+  AGENT_LATEST="${AGENT_LATEST#v}"
+  if [ "$AGENT_SETTINGS" != "$AGENT_LATEST" ] && [ "$(printf '%s\n%s\n' "$AGENT_SETTINGS" "$AGENT_LATEST" | sort -V | head -1)" = "$AGENT_SETTINGS" ]; then
+    [ "$ALLOW_OLD_AGENT" = 1 ] || die "settings.py ofrece el agente $AGENT_SETTINGS pero la ultima release es $AGENT_LATEST.
+  Suba LATEST_AGENT_VER en api/observerrmm/observerrmm/settings.py (o --allow-old-agent si es a proposito)."
+    echo "AVISO: bundle con agente $AGENT_SETTINGS (ultima release: $AGENT_LATEST), por --allow-old-agent" >&2
+  fi
+  echo "==> agente ofrecido: $AGENT_SETTINGS (ultima release: $AGENT_LATEST)"
+else
+  echo "AVISO: no se pudo consultar la ultima release del agente con gh; no se verifico LATEST_AGENT_VER ($AGENT_SETTINGS)" >&2
+fi
 
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
 SRC="$WORK/src"; mkdir -p "$SRC"
