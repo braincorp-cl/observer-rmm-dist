@@ -1,9 +1,17 @@
+{#
+  Reutilizable: install.yml lo renderiza para el frontend principal (sin variables
+  extra) y deploy-frontend-preview.yml lo renderiza otra vez por cada dominio de
+  observer_app_preview_domains, con _frontend_domain/_frontend_root/_frontend_log.
+#}
+{% set _fd = _frontend_domain | default(observer_app_domain) %}
+{% set _fr = _frontend_root | default('/var/www/observer/dist') %}
+{% set _fl = _frontend_log | default('frontend') %}
 server {
-    server_name {{ observer_app_domain }};
+    server_name {{ _fd }};
     charset utf-8;
 
-    error_log /var/log/nginx/frontend-error.log;
-    access_log /var/log/nginx/frontend-access.log;
+    error_log /var/log/nginx/{{ _fl }}-error.log;
+    access_log /var/log/nginx/{{ _fl }}-access.log;
 
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -15,7 +23,7 @@ server {
 
     # index.html — sin cache (SPA routing, siempre fresco)
     location = /index.html {
-        root /var/www/observer/dist;
+        root {{ _fr }};
         add_header Cache-Control "no-store, no-cache, must-revalidate";
         add_header Pragma "no-cache";
     }
@@ -24,9 +32,9 @@ server {
     # pero cae a index.html para la ruta SPA /agents/:agent_id (history mode). Sin este
     # fallback, un deep-link/ventana-nueva a /agents/<id> da 404 (GAP-053): el `alias`
     # previo aliaseaba un dir inexistente y sombreaba la ruta de cliente. `root` (no `alias`)
-    # mapea /agents/foo -> /var/www/observer/dist/agents/foo igual que antes.
+    # mapea /agents/foo -> <root>/agents/foo igual que antes.
     location /agents/ {
-        root /var/www/observer/dist;
+        root {{ _fr }};
         try_files $uri $uri/ /index.html;
         expires 1d;
         add_header Cache-Control "public";
@@ -35,7 +43,7 @@ server {
     # JS/CSS/fonts con hash en nombre — inmutables, cache agresivo 30 días
     # Vue/Quasar genera nuevos hashes en cada build → seguro cachear
     location ~* \.(js|css|woff2?|ttf|eot|otf)$ {
-        root /var/www/observer/dist;
+        root {{ _fr }};
         expires 30d;
         add_header Cache-Control "public, immutable";
         try_files $uri =404;
@@ -43,7 +51,7 @@ server {
 
     # Imágenes e iconos
     location ~* \.(png|ico|svg|gif|jpg|jpeg|webp)$ {
-        root /var/www/observer/dist;
+        root {{ _fr }};
         expires 7d;
         add_header Cache-Control "public";
         try_files $uri =404;
@@ -51,7 +59,7 @@ server {
 
     # SPA fallback — todas las rutas no coincidentes sirven index.html
     location / {
-        root /var/www/observer/dist;
+        root {{ _fr }};
         try_files $uri $uri/ /index.html;
         add_header Cache-Control "no-store, no-cache, must-revalidate";
         add_header Pragma "no-cache";
@@ -59,11 +67,11 @@ server {
 }
 
 server {
-    if ($host = {{ observer_app_domain }}) {
+    if ($host = {{ _fd }}) {
         return 301 https://$host$request_uri;
     }
     listen 80;
     listen [::]:80;
-    server_name {{ observer_app_domain }};
+    server_name {{ _fd }};
     return 404;
 }

@@ -18,7 +18,9 @@
     "cookieEncoding": "base64",
     "agentsInRam": true,
     "allowedFramingOrigins": [
-      "https://{{ observer_app_domain }}"
+      "https://{{ observer_app_domain }}"{% for _d in observer_app_preview_domains | default([]) %},
+      "https://{{ _d }}"{% endfor %}
+
     ],
 {#
   ignoreAgentHashCheck: variable observer_mesh_ignore_agent_hash_check (default: true si hay observer_trusted_proxy_ip).

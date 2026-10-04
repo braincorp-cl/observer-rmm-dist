@@ -24,6 +24,10 @@ all:
     # Dominios (install.sh: rmmdomain / frontenddomain / meshdomain / rootdomain):
     observer_domain: api.example.cl             # backend/API — ALLOWED_HOSTS, rmm.conf
     observer_app_domain: rmm.example.cl         # frontend/web UI — frontend.conf, CORS
+    # Frontends de PREVISUALIZACION en el mismo host (deploy-frontend-preview.yml), p. ej.
+    # la rama release/v2 del rediseno de la UI. Cada uno entra a CORS y a los origenes
+    # que Mesh deja enmarcar. El wildcard del host tiene que cubrirlos.
+    observer_app_preview_domains: [rmm-v2.example.cl]
     observer_mesh_domain: mesh.example.cl       # mesh — meshcentral.conf
     observer_base_domain: example.cl            # dominio raíz para el wildcard *.example.cl
     # URL ofuscada del admin Django (random ~70 chars, como install.sh). Estable por

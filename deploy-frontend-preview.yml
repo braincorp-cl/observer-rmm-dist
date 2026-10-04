@@ -1,0 +1,84 @@
+---
+# Deploy de un frontend de PREVISUALIZACION junto al principal, en el mismo host.
+#
+# Para que sirve: la rama release/v2 (rediseno de la UI, ADR-027) se mira en
+# staging sin quitarle la UI v1 a nadie. Cada dominio de
+# `observer_app_preview_domains` (inventario) es un vhost propio que sirve el SPA
+# compilado DESDE EL DIRECTORIO DE ESTE PLAYBOOK contra el mismo API.
+#
+# Uso (desde el worktree de la rama a previsualizar, despues de compilar web/dist):
+#   ansible-playbook -i <inventario> deploy-frontend-preview.yml -e preview_domain=rmm-v2.observer.cl
+#
+# Lo que NO hace: CORS y allowedFramingOrigins de Mesh salen de la misma variable
+# pero los aplica install.yml (local_settings.j2 y mesh.cfg.j2); el dominio debe
+# estar en la lista antes de correr esto. El wildcard del host tiene que cubrirlo.
+- name: Deploy de frontend de previsualizacion
+  hosts: observer_proxy
+  become: true
+  vars:
+    _frontend_domain: "{{ preview_domain }}"
+    _frontend_root: "/var/www/observer-preview/{{ preview_domain }}/dist"
+    _frontend_log: "frontend-{{ preview_domain }}"
+  pre_tasks:
+    - name: El dominio pedido esta declarado en observer_app_preview_domains
+      ansible.builtin.assert:
+        that:
+          - preview_domain is defined
+          - preview_domain in (observer_app_preview_domains | default([]))
+        fail_msg: "preview_domain={{ preview_domain | default('') }} no esta en observer_app_preview_domains del inventario."
+  tasks:
+    - name: Crear directorio de activos del preview
+      ansible.builtin.file:
+        path: "{{ _frontend_root }}"
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0755"
+
+    - name: Sincronizar activos compilados del preview
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/web/dist/"
+        dest: "{{ _frontend_root }}/"
+        delete: true
+        recursive: true
+        rsync_opts:
+          - "--no-owner"
+          - "--no-group"
+          - "--exclude=env-config.js"
+      become: true
+      become_user: "{{ observer_user }}"
+      notify: reload nginx
+
+    - name: Generar env-config.js del preview (mismo API que el principal)
+      ansible.builtin.copy:
+        dest: "{{ _frontend_root }}/env-config.js"
+        content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\", DEFAULT_LANG: \"{{ observer_default_language | default('es') }}\"}\n"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0644"
+
+    - name: Desplegar el vhost del preview
+      ansible.builtin.template:
+        src: roles/observer_proxy/templates/frontend.conf.j2
+        dest: "/etc/nginx/sites-available/frontend-{{ preview_domain }}.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload nginx
+
+    - name: Activar el vhost del preview
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/frontend-{{ preview_domain }}.conf"
+        dest: "/etc/nginx/sites-enabled/frontend-{{ preview_domain }}.conf"
+        state: link
+      notify: reload nginx
+
+    - name: nginx -t antes de recargar
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+  handlers:
+    - name: reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded

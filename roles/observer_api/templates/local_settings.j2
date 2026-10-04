@@ -105,6 +105,9 @@ ALLOWED_HOSTS = ['{{ observer_domain | default("*") }}']
 
 CORS_ORIGIN_WHITELIST = [
     'https://{{ observer_app_domain | default(observer_domain | default("localhost")) }}',
+{% for _d in observer_app_preview_domains | default([]) %}
+    'https://{{ _d }}',
+{% endfor %}
 {% if observer_debug | default(false) %}
     'http://localhost:9000',
 {% endif %}
