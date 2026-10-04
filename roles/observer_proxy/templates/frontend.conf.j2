@@ -15,8 +15,8 @@ server {
 
     listen 443 ssl;
     listen [::]:443 ssl;
-    ssl_certificate {{ observer_cert_path }};
-    ssl_certificate_key {{ observer_cert_key_path }};
+    ssl_certificate {{ observer_cert_path | default('/etc/ssl/observer/fullchain.pem') }};
+    ssl_certificate_key {{ observer_cert_key_path | default('/etc/ssl/observer/privkey.pem') }};
     ssl_session_cache shared:FRONTSSL:10m;
 
     add_header X-Content-Type-Options nosniff;
