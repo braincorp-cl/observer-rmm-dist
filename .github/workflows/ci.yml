@@ -1,11 +1,13 @@
 ---
 name: CI
 
+# release/v2 es la rama del rediseno de la UI (ADR-027): vive aparte de main
+# hasta el corte y necesita los mismos gates. Es la UNICA rama larga del repo.
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, release/v2]
   pull_request:
-    branches: [main]
+    branches: [main, release/v2]
 
 jobs:
   # La version del producto tiene que tener SIEMPRE su entrada en el CHANGELOG.
@@ -241,6 +243,44 @@ jobs:
           GHACTIONS: "yes"
         working-directory: api/observerrmm
         run: pytest
+
+  # Build del SPA. Hasta el 2026-10-04 NINGUN job compilaba el frontend: el
+  # unico build era el de install.yml en el control node al desplegar, asi que
+  # un .vue roto se descubria recien en el deploy. Con release/v2 (rediseno de
+  # la UI, todo el trabajo es frontend) eso deja de ser tolerable.
+  # Mismo camino que install.yml: `npm ci` desde el lockfile + `npm run build`,
+  # con la Node de referencia de web/BUILD.md. Va tambien lint:i18n, el gate
+  # no-raw-text de los .vue ya migrados.
+  frontend:
+    name: Frontend (npm ci + lint:i18n + quasar build)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web/app
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.22.2"
+          cache: npm
+          cache-dependency-path: web/app/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: lint:i18n
+        run: npm run lint:i18n
+
+      - name: quasar build
+        run: npm run build
+
+      - name: El build dejo un index.html
+        run: |
+          OUT=dist; [ -f dist/spa/index.html ] && OUT=dist/spa
+          test -s "$OUT/index.html"
+          echo "OK: $OUT/index.html ($(du -sh "$OUT" | cut -f1))"
 
   # NOTA: el job `molecule` se removió (2026-06-28). Estaba mal configurado para
   # el driver docker — el inventario all-in-one fija localhost+connection:local,

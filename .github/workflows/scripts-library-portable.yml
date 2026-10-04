@@ -35,9 +35,9 @@ name: Scripts library portable
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/v2]
   pull_request:
-    branches: [main]
+    branches: [main, release/v2]
 
 jobs:
   portable:

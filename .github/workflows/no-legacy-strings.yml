@@ -48,9 +48,9 @@ name: No legacy upstream strings
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/v2]
   pull_request:
-    branches: [main]
+    branches: [main, release/v2]
 
 jobs:
   no-legacy:
