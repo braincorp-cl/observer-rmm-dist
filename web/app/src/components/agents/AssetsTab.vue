@@ -7,70 +7,35 @@
   </div>
   <div v-else>
     <!--
-      046 (dirección 1c): selector segmentado en vez de q-tabs, para que la vista
-      de agente no tenga pestañas (UI-E04). Mismas subsecciones, mismo contenido.
+      046 (dirección 1c): las subsecciones de Activos van apiladas como bloques
+      desplegables (q-expansion-item), no como pestañas ni como un selector que
+      conmuta paneles: la vista de agente no tiene pestañas (UI-E04). Mismo
+      contenido por subsección; Sistema operativo abierto de entrada.
     -->
-    <q-btn-toggle
-      v-model="tab"
-      dense
-      no-caps
-      flat
-      spread
-      toggle-color="primary"
-      class="obs-assets-toggle"
-      :options="assetOptions"
-    />
-
-    <q-separator />
-
-    <q-tab-panels v-model="tab" :animated="false">
-      <q-tab-panel name="os">
-        <WmiDetail :info="assets.os" />
-      </q-tab-panel>
-      <q-tab-panel name="cpu">
-        <WmiDetail :info="assets.cpu" />
-      </q-tab-panel>
-      <q-tab-panel name="mem">
-        <WmiDetail :info="assets.mem" />
-      </q-tab-panel>
-      <q-tab-panel name="usb">
-        <WmiDetail :info="assets.usb" />
-      </q-tab-panel>
-      <q-tab-panel name="bios">
-        <WmiDetail :info="assets.bios" />
-      </q-tab-panel>
-      <q-tab-panel name="disk">
-        <WmiDetail :info="assets.disk" />
-      </q-tab-panel>
-      <q-tab-panel name="comp_sys">
-        <WmiDetail :info="assets.comp_sys" />
-      </q-tab-panel>
-      <q-tab-panel name="base_board">
-        <WmiDetail :info="assets.base_board" />
-      </q-tab-panel>
-      <q-tab-panel name="comp_sys_prod">
-        <WmiDetail :info="assets.comp_sys_prod" />
-      </q-tab-panel>
-      <q-tab-panel name="network_config">
-        <WmiDetail :info="assets.network_config" />
-      </q-tab-panel>
-      <q-tab-panel name="desktop_monitor">
-        <WmiDetail :info="assets.desktop_monitor" />
-      </q-tab-panel>
-      <q-tab-panel name="graphics">
-        <WmiDetail :info="assets.graphics" />
-      </q-tab-panel>
-      <q-tab-panel name="network_adapter">
-        <WmiDetail :info="assets.network_adapter" />
-      </q-tab-panel>
-      <q-tab-panel name="encryption">
-        <DiskEncryptionDetail
-          v-if="selectedAgent"
-          :agent-id="selectedAgent"
-          :status="agentStatus"
-        />
-      </q-tab-panel>
-    </q-tab-panels>
+    <q-list separator class="obs-assets">
+      <q-expansion-item
+        v-for="opt in assetOptions"
+        :key="opt.value"
+        dense
+        dense-toggle
+        :default-opened="opt.value === 'os'"
+        :label="opt.label"
+        :data-asset="opt.value"
+        header-class="obs-assets__hdr"
+      >
+        <div class="q-px-md q-pb-sm">
+          <DiskEncryptionDetail
+            v-if="opt.value === 'encryption' && selectedAgent"
+            :agent-id="selectedAgent"
+            :status="agentStatus"
+          />
+          <WmiDetail
+            v-else-if="opt.value !== 'encryption'"
+            :info="assets[opt.value]"
+          />
+        </div>
+      </q-expansion-item>
+    </q-list>
   </div>
 </template>
 
@@ -97,7 +62,6 @@ export default {
 
     // assets tab logic
     const assets = ref({});
-    const tab = ref("os");
     const { t } = useI18n();
     // Mismas subsecciones y rótulos que las pestañas v1, ahora en el selector.
     const assetOptions = computed(() =>
@@ -144,7 +108,6 @@ export default {
     return {
       // reactive data
       assets,
-      tab,
       assetOptions,
       selectedAgent,
       agentPlatform,
@@ -153,3 +116,10 @@ export default {
   },
 };
 </script>
+
+<style lang="sass" scoped>
+.obs-assets
+  :deep(.obs-assets__hdr)
+    color: var(--obs-text-2)
+    font-weight: 500
+</style>
