@@ -244,235 +244,208 @@
       </template>
 
       <template v-slot:after>
-        <q-splitter
-          v-model="innerModel"
-          reverse
-          unit="px"
-          horizontal
-          @update:model-value="$store.commit('SET_SPLITTER', innerModel)"
-          after-class="hide-scrollbar"
-          before-class="hide-scrollbar"
-          emit-immediately
-        >
-          <template v-slot:before>
-            <div class="row">
-              <q-tabs
-                v-model="tab"
-                dense
-                no-caps
-                inline-label
-                class="text-grey"
-                active-color="primary"
-                indicator-color="primary"
-                align="left"
-                narrow-indicator
-              >
-                <q-tab
-                  name="server"
-                  icon="fas fa-server"
-                  :label="$t('dashboard.tabServers')"
-                />
-                <q-tab
-                  name="workstation"
-                  icon="computer"
-                  :label="$t('dashboard.tabWorkstations')"
-                />
-                <q-tab name="mixed" :label="$t('dashboard.tabMixed')" />
-              </q-tabs>
-              <q-space />
-              <q-input
-                v-model="search"
-                style="width: 450px"
-                :label="$t('dashboard.search')"
-                dense
-                outlined
-                clearable
-                @clear="clearFilter"
-                class="q-pr-md q-pb-xs"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="search" color="primary" />
-                </template>
-                <template v-slot:after>
-                  <q-btn
-                    round
-                    dense
-                    flat
-                    icon="filter_alt"
-                    :color="isFilteringTable ? 'green' : ''"
-                  >
-                    <q-menu>
-                      <q-list dense>
-                        <q-item-label header>{{
-                          $t("dashboard.filterAgentTable")
-                        }}</q-item-label>
+        <!--
+          046 F4 (RN-03): sin panel partido. Elegir un equipo en la tabla navega al
+          espacio de trabajo 1c (/agents/:id); el detalle ya no vive debajo.
+        -->
+        <div class="column no-wrap">
+          <div class="row">
+            <q-tabs
+              v-model="tab"
+              dense
+              no-caps
+              inline-label
+              class="text-grey"
+              active-color="primary"
+              indicator-color="primary"
+              align="left"
+              narrow-indicator
+            >
+              <q-tab
+                name="server"
+                icon="fas fa-server"
+                :label="$t('dashboard.tabServers')"
+              />
+              <q-tab
+                name="workstation"
+                icon="computer"
+                :label="$t('dashboard.tabWorkstations')"
+              />
+              <q-tab name="mixed" :label="$t('dashboard.tabMixed')" />
+            </q-tabs>
+            <q-space />
+            <q-input
+              v-model="search"
+              style="width: 450px"
+              :label="$t('dashboard.search')"
+              dense
+              outlined
+              clearable
+              @clear="clearFilter"
+              class="q-pr-md q-pb-xs"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" color="primary" />
+              </template>
+              <template v-slot:after>
+                <q-btn
+                  round
+                  dense
+                  flat
+                  icon="filter_alt"
+                  :color="isFilteringTable ? 'green' : ''"
+                >
+                  <q-menu>
+                    <q-list dense>
+                      <q-item-label header>{{
+                        $t("dashboard.filterAgentTable")
+                      }}</q-item-label>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-checkbox v-model="filterChecksFailing" />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-checkbox v-model="filterChecksFailing" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.checksFailing")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.checksFailing")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-checkbox v-model="filterPatchesPending" />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-checkbox v-model="filterPatchesPending" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.patchesPending")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.patchesPending")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-checkbox v-model="filterActionsPending" />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-checkbox v-model="filterActionsPending" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.actionsPending")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.actionsPending")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-checkbox v-model="filterRebootNeeded" />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-checkbox v-model="filterRebootNeeded" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.rebootNeeded")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.rebootNeeded")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item-label header>{{
-                          $t("dashboard.availability")
-                        }}</q-item-label>
+                      <q-item-label header>{{
+                        $t("dashboard.availability")
+                      }}</q-item-label>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-radio val="all" v-model="filterAvailability" />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-radio val="all" v-model="filterAvailability" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.showAllAgents")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.showAllAgents")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-radio
-                              val="online"
-                              v-model="filterAvailability"
-                            />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-radio val="online" v-model="filterAvailability" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.showOnlineOnly")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.showOnlineOnly")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-radio
-                              val="offline"
-                              v-model="filterAvailability"
-                            />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-radio val="offline" v-model="filterAvailability" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.showOfflineOnly")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.showOfflineOnly")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-radio
-                              val="overdue"
-                              v-model="filterAvailability"
-                            />
-                          </q-item-section>
+                      <q-item>
+                        <q-item-section side>
+                          <q-radio val="overdue" v-model="filterAvailability" />
+                        </q-item-section>
 
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.showOverdueOnly")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.showOverdueOnly")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                        <q-item>
-                          <q-item-section side>
-                            <q-radio
-                              val="offline_30days"
-                              v-model="filterAvailability"
-                            />
-                          </q-item-section>
-
-                          <q-item-section>
-                            <q-item-label>{{
-                              $t("dashboard.showOffline30days")
-                            }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                      </q-list>
-
-                      <div class="row no-wrap q-pa-md">
-                        <div class="column">
-                          <q-btn
-                            v-close-popup
-                            :label="$t('dashboard.apply')"
-                            color="primary"
-                            @click="applyFilter"
+                      <q-item>
+                        <q-item-section side>
+                          <q-radio
+                            val="offline_30days"
+                            v-model="filterAvailability"
                           />
-                        </div>
-                        <q-space />
-                        <div class="column">
-                          <q-btn
-                            :label="$t('dashboard.clear')"
-                            @click="clearFilter"
-                          />
-                        </div>
+                        </q-item-section>
+
+                        <q-item-section>
+                          <q-item-label>{{
+                            $t("dashboard.showOffline30days")
+                          }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+
+                    <div class="row no-wrap q-pa-md">
+                      <div class="column">
+                        <q-btn
+                          v-close-popup
+                          :label="$t('dashboard.apply')"
+                          color="primary"
+                          @click="applyFilter"
+                        />
                       </div>
-                    </q-menu>
-                  </q-btn>
-                </template>
-              </q-input>
-            </div>
-            <AgentTable
-              :agents="filteredAgents"
-              :columns="columns"
-              :search="search"
-              :visibleColumns="visibleColumns"
-            />
-          </template>
-          <template v-slot:separator>
-            <q-avatar
-              color="primary"
-              text-color="white"
-              size="20px"
-              icon="drag_indicator"
-            />
-          </template>
-          <template v-slot:after>
-            <SubTableTabs />
-          </template>
-        </q-splitter>
+                      <q-space />
+                      <div class="column">
+                        <q-btn
+                          :label="$t('dashboard.clear')"
+                          @click="clearFilter"
+                        />
+                      </div>
+                    </div>
+                  </q-menu>
+                </q-btn>
+              </template>
+            </q-input>
+          </div>
+          <AgentTable
+            :agents="filteredAgents"
+            :columns="columns"
+            :search="search"
+            :visibleColumns="visibleColumns"
+          />
+        </div>
       </template>
     </q-splitter>
 
@@ -488,7 +461,6 @@ import mixins from "@/mixins/mixins";
 import { openURL } from "quasar";
 import { mapState } from "vuex";
 import AgentTable from "@/components/AgentTable.vue";
-import SubTableTabs from "@/components/SubTableTabs.vue";
 import PolicyAdd from "@/components/automation/modals/PolicyAdd.vue";
 import ClientsForm from "@/components/clients/ClientsForm.vue";
 import SitesForm from "@/components/clients/SitesForm.vue";
@@ -503,7 +475,6 @@ export default {
   name: "DashboardView",
   components: {
     AgentTable,
-    SubTableTabs,
     InstallAgent,
     IntegrationsContextMenu,
   },
@@ -958,10 +929,11 @@ export default {
     // En la PRIMERA carga la pestaña (defaultAgentTblTab) aún es null y la carga la
     // hace el watcher de `tab` cuando llegan las preferencias; cargar acá con null
     // pedía ?monitoring_type=null (400, lo encontró el gauntlet en UI-N03).
-    if (this.$store.state.defaultAgentTblTab) this.$store.dispatch("loadAgents");
+    if (this.$store.state.defaultAgentTblTab)
+      this.$store.dispatch("loadAgents");
 
-    // set initial value for agent table and agent tabs
-    this.$store.commit("SET_SPLITTER", this.innerModel);
+    // 046 F4: sin panel inferior, la tabla usa todo el alto (SET_SPLITTER(0)).
+    this.$store.commit("SET_SPLITTER", 0);
   },
 };
 </script>

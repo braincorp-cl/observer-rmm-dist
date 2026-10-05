@@ -121,6 +121,7 @@ module.exports = {
         "src/components/agents/workspace/AgentHeader.vue",
         "src/components/agents/workspace/SectionNav.vue",
         "src/components/agents/workspace/ActionBar.vue",
+        "src/components/agents/workspace/ContextColumn.vue",
         "src/views/InitialSetup.vue",
         "src/views/TOTPSetup.vue",
         "src/views/SessionExpired.vue",

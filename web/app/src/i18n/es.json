@@ -3435,7 +3435,10 @@
       "shownOf": "{shown} de {total}",
       "empty": "Ningún equipo coincide con el filtro",
       "expand": "Mostrar lista de equipos",
-      "collapse": "Ocultar lista de equipos"
+      "collapse": "Ocultar lista de equipos",
+      "label": "Equipos del sitio",
+      "siteLine": "{site} · {count}",
+      "filterFailingN": "Chequeos fallando · {n}"
     },
     "navLabel": "Secciones del equipo",
     "units": {

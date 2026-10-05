@@ -8,6 +8,7 @@
     cambiar de sección usa replace y cambiar de equipo usa push (UI-E02).
   -->
   <q-page :style-fn="pageStyle" class="obs-ws row no-wrap">
+    <ContextColumn v-if="agent" :agent="agent" />
     <div class="col column no-wrap obs-ws__main" style="min-width: 0">
       <div v-if="!agent" class="flex flex-center col">
         <q-circular-progress indeterminate size="44px" color="primary" />
@@ -55,6 +56,7 @@ import { useAgentUrgency } from "@/composables/useAgentUrgency";
 import AgentHeader from "@/components/agents/workspace/AgentHeader.vue";
 import SectionNav from "@/components/agents/workspace/SectionNav.vue";
 import ActionBar from "@/components/agents/workspace/ActionBar.vue";
+import ContextColumn from "@/components/agents/workspace/ContextColumn.vue";
 import SummaryTab from "@/components/agents/SummaryTab.vue";
 import ChecksTab from "@/components/agents/ChecksTab.vue";
 import AutomatedTasksTab from "@/components/agents/AutomatedTasksTab.vue";
@@ -87,7 +89,7 @@ const CHROME = 150 + 58;
 
 export default {
   name: "AgentWorkspace",
-  components: { AgentHeader, SectionNav, ActionBar },
+  components: { AgentHeader, SectionNav, ActionBar, ContextColumn },
   setup() {
     const store = useStore();
     const route = useRoute();
@@ -197,10 +199,7 @@ export default {
     watch(
       () => route.params.agent_id,
       (n, o) => {
-        if (n && n !== o) {
-          agent.value = null;
-          load();
-        }
+        if (n && n !== o) load();
       },
       { immediate: true },
     );

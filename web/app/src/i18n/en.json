@@ -3435,7 +3435,10 @@
       "shownOf": "{shown} of {total}",
       "empty": "No device matches the filter",
       "expand": "Show device list",
-      "collapse": "Hide device list"
+      "collapse": "Hide device list",
+      "label": "Site devices",
+      "siteLine": "{site} · {count}",
+      "filterFailingN": "Failing checks · {n}"
     },
     "navLabel": "Device sections",
     "units": {

@@ -90,7 +90,7 @@
           @contextmenu="agentRowSelected(props.row.agent_id, props.row.plat)"
           :props="props"
           :class="rowSelectedClass(props.row.agent_id)"
-          @click="agentRowSelected(props.row.agent_id, props.row.plat)"
+          @click="openAgentWorkspace(props.row.agent_id, props.row.plat)"
           @dblclick="rowDoubleClicked(props.row.agent_id, props.row.plat)"
         >
           <q-menu context-menu>
@@ -514,6 +514,7 @@ export default {
       });
     },
     rowDoubleClicked(agent_id, agentPlatform) {
+      clearTimeout(this._openTimer);
       this.$store.commit("setActiveRow", agent_id);
       this.$q.loading.show();
       // give time for store to change active row
@@ -542,6 +543,16 @@ export default {
           agent: agent,
         },
       });
+    },
+    // 046 F4 (RN-03): un clic navega al espacio de trabajo 1c. Espera 250 ms para
+    // no comerse el doble clic de la v1 (editar / tomar control / segundo plano /
+    // acción URL, según preferencia del usuario): si llega el doble clic, se cancela.
+    openAgentWorkspace(agent_id, agentPlatform) {
+      this.agentRowSelected(agent_id, agentPlatform);
+      clearTimeout(this._openTimer);
+      this._openTimer = setTimeout(() => {
+        this.$router.push({ name: "Agent", params: { agent_id } });
+      }, 250);
     },
     agentRowSelected(agent_id, agentPlatform) {
       this.$store.commit("setActiveRow", agent_id);
