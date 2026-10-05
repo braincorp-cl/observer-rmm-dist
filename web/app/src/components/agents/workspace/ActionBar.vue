@@ -57,6 +57,7 @@
           anchor="top right"
           self="bottom right"
           class="obs-moremenu"
+          max-height="88vh"
           @before-show="$emit('refresh-lists')"
         >
           <div class="row no-wrap q-pa-xs">
@@ -231,6 +232,6 @@ const response = computed(() =>
 .obs-moremenu__hdr
   display: flex
   align-items: center
-  padding: 8px 12px 2px
+  padding: 6px 12px 0
   color: var(--obs-muted)
 </style>
