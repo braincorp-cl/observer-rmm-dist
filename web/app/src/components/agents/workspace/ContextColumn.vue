@@ -18,9 +18,7 @@
         {{
           $t("agentWorkspace.context.siteLine", {
             site: siteName,
-            count: $t("agentWorkspace.context.equipmentCount", {
-              n: agents.length,
-            }),
+            count: $t("agentWorkspace.context.equipmentCount", agents.length),
           })
         }}
       </div>

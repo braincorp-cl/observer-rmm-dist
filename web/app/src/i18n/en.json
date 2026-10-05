@@ -3429,7 +3429,7 @@
       "more": "More actions"
     },
     "context": {
-      "equipmentCount": "{n} devices",
+      "equipmentCount": "No devices | {n} device | {n} devices",
       "filterFailing": "Failing checks",
       "filterOnline": "Online only",
       "shownOf": "{shown} of {total}",

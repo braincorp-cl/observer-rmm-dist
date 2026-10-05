@@ -3429,7 +3429,7 @@
       "more": "Más acciones"
     },
     "context": {
-      "equipmentCount": "{n} equipos",
+      "equipmentCount": "Sin equipos | {n} equipo | {n} equipos",
       "filterFailing": "Chequeos fallando",
       "filterOnline": "Sólo en línea",
       "shownOf": "{shown} de {total}",
