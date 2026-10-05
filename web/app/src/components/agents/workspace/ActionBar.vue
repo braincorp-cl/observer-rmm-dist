@@ -84,7 +84,15 @@
                     g.label
                   }}
                 </q-item-label>
-                <q-item v-if="!g.children.length" disable :data-action="g.key">
+                <!-- clickable + disable + aria-disabled: igual que el ítem padre
+                     deshabilitado del menú v1 (UI-F04). -->
+                <q-item
+                  v-if="!g.children.length"
+                  clickable
+                  disable
+                  aria-disabled="true"
+                  :data-action="g.key"
+                >
                   <q-item-section class="q-pl-md">{{ g.label }}</q-item-section>
                 </q-item>
                 <q-item
