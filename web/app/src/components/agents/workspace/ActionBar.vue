@@ -172,6 +172,8 @@ const response = computed(() =>
 .obs-actionbar__btn
   color: var(--obs-text-2)
   white-space: nowrap
+  :deep(.q-btn__content)
+    flex-wrap: nowrap
 .obs-actionbar__btn.bg-primary
   color: var(--obs-on-brand)
 </style>

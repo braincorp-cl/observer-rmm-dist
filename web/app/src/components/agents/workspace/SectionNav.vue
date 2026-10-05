@@ -93,11 +93,11 @@ const groups = [
   letter-spacing: .08em
   text-transform: uppercase
   color: var(--obs-faint)
-  padding: 12px 10px 6px
+  padding: 10px 10px 4px
 .obs-secnav__item
   border-radius: 8px
   color: var(--obs-text-2)
-  min-height: 34px
+  min-height: 30px
 .obs-secnav__item--active
   background: var(--obs-selected)
   color: var(--q-primary)
