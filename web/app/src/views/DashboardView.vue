@@ -953,6 +953,9 @@ export default {
   },
   mounted() {
     this.getTree();
+    // 046 F1: al volver al dashboard desde /agents/:id (botón de inicio del riel)
+    // la tabla quedaba vacía hasta otro refresco: mounted solo cargaba el árbol.
+    this.$store.dispatch("loadAgents");
 
     // set initial value for agent table and agent tabs
     this.$store.commit("SET_SPLITTER", this.innerModel);
