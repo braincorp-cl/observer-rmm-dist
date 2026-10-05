@@ -115,6 +115,8 @@ module.exports = {
       files: [
         "src/views/LoginView.vue",
         "src/components/FileBar.vue",
+        "src/components/shell/NavMenu.vue",
+        "src/components/shell/NavRail.vue",
         "src/views/InitialSetup.vue",
         "src/views/TOTPSetup.vue",
         "src/views/SessionExpired.vue",

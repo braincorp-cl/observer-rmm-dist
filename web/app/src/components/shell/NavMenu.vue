@@ -1,0 +1,525 @@
+<template>
+  <!--
+    Menús de la barra v1 (FileBar.vue) pasados al riel de iconos (046, dirección 1c):
+    mismos ítems, mismos handlers y mismos diálogos; solo cambia el disparador
+    (un ícono vertical con tooltip en vez de un botón con texto en la barra).
+  -->
+  <div class="column items-center no-wrap obs-rail-menus">
+    <q-btn
+      flat
+      round
+      dense
+      icon="folder"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.file')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.file")
+      }}</q-tooltip>
+      <q-menu anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <q-item clickable>
+            <q-item-section>{{ $t("nav.add") }}</q-item-section>
+            <q-item-section side>
+              <q-icon name="keyboard_arrow_right" />
+            </q-item-section>
+            <q-menu anchor="top right" self="top left">
+              <q-list dense style="min-width: 100px">
+                <q-item clickable v-close-popup @click="showAddClientModal">
+                  <q-item-section>{{ $t("nav.client") }}</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="showAddSiteModal">
+                  <q-item-section>{{ $t("nav.site") }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
+
+          <q-item clickable v-close-popup @click="showAuditManager">
+            <q-item-section>{{ $t("nav.auditLog") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showDebugLog">
+            <q-item-section>{{ $t("nav.debugLog") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- view -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="visibility"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.view')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.view")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <q-item clickable v-close-popup @click="showPendingActions">
+            <q-item-section>{{ $t("nav.pendingActions") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- agents -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="dns"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.agents')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.agents")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <q-item clickable v-close-popup @click="showInstallAgent = true">
+            <q-item-section>{{ $t("nav.installAgent") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showDeployments">
+            <q-item-section>{{ $t("nav.manageDeployments") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showUpdateAgentsModal = true">
+            <q-item-section>{{ $t("nav.updateAgents") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+
+    <!-- settings -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="settings"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.settings')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.settings")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <!-- clients manager -->
+          <q-item clickable v-close-popup @click="showClientsManager">
+            <q-item-section>{{ $t("nav.clientsManager") }}</q-item-section>
+          </q-item>
+          <!-- script manager -->
+          <q-item clickable v-close-popup @click="showScriptManager">
+            <q-item-section>{{ $t("nav.scriptManager") }}</q-item-section>
+          </q-item>
+          <!-- automation manager -->
+          <q-item clickable v-close-popup @click="showAutomationManager">
+            <q-item-section>{{ $t("nav.automationManager") }}</q-item-section>
+          </q-item>
+          <!-- alerts manager -->
+          <q-item clickable v-close-popup @click="showAlertsManager">
+            <q-item-section>{{ $t("nav.alertsManager") }}</q-item-section>
+          </q-item>
+          <!-- permissions manager -->
+          <q-item clickable v-close-popup @click="showPermissionsManager">
+            <q-item-section>{{ $t("nav.permissionsManager") }}</q-item-section>
+          </q-item>
+          <!-- admin manager -->
+          <q-item clickable v-close-popup @click="showAdminManager = true">
+            <q-item-section>{{ $t("nav.userAdministration") }}</q-item-section>
+          </q-item>
+          <!-- core settings -->
+          <q-item
+            clickable
+            v-close-popup
+            @click="showEditCoreSettingsModal = true"
+          >
+            <q-item-section>{{ $t("nav.globalSettings") }}</q-item-section>
+          </q-item>
+          <!-- code sign -->
+          <q-item
+            v-if="false"
+            clickable
+            v-close-popup
+            @click="showCodeSign = true"
+          >
+            <q-item-section>{{ $t("nav.codeSigning") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- tools -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="build"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.tools')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.tools")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <!-- bulk command -->
+          <q-item clickable v-close-popup @click="showBulkAction('command')">
+            <q-item-section>{{ $t("nav.bulkCommand") }}</q-item-section>
+          </q-item>
+          <!-- bulk script -->
+          <q-item clickable v-close-popup @click="showBulkAction('script')">
+            <q-item-section>{{ $t("nav.bulkScript") }}</q-item-section>
+          </q-item>
+          <!-- bulk patch management -->
+          <q-item clickable v-close-popup @click="showBulkAction('patch')">
+            <q-item-section>{{ $t("nav.bulkPatchManagement") }}</q-item-section>
+          </q-item>
+          <!-- respuesta rápida de endpoint en masa (feature 028) -->
+          <q-separator />
+          <q-item clickable v-close-popup @click="showBulkAction('alert')">
+            <q-item-section>{{ $t("nav.bulkSendAlert") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showBulkAction('lock')">
+            <q-item-section>{{ $t("nav.bulkLock") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showBulkAction('alarm')">
+            <q-item-section>{{ $t("nav.bulkAlarm") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="showBulkAction('stopalarm')">
+            <q-item-section>{{ $t("nav.bulkStopAlarm") }}</q-item-section>
+          </q-item>
+          <!-- módulo de equipos perdidos (feature 030) -->
+          <q-item clickable v-close-popup :to="{ name: 'LostEquipment' }">
+            <q-item-section>{{ $t("nav.lostEquipment") }}</q-item-section>
+          </q-item>
+          <!-- panel de cifrado de disco (feature 037) -->
+          <q-item clickable v-close-popup :to="{ name: 'DiskEncryption' }">
+            <q-item-section>{{ $t("nav.diskEncryption") }}</q-item-section>
+          </q-item>
+          <!-- Observer Erase (feature 039): certificados de borrado + órdenes
+                   gobernadas. Ninguna acción destructiva vive acá. -->
+          <q-item clickable v-close-popup :to="{ name: 'EraseCertificates' }">
+            <q-item-section>{{ $t("nav.eraseCertificates") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup :to="{ name: 'EraseOrders' }">
+            <q-item-section>{{ $t("nav.eraseOrders") }}</q-item-section>
+          </q-item>
+          <q-separator />
+          <!-- server maintenance -->
+          <q-item clickable v-close-popup @click="showServerMaintenance = true">
+            <q-item-section>{{ $t("nav.serverMaintenance") }}</q-item-section>
+          </q-item>
+          <!-- clear cache -->
+          <q-item clickable v-close-popup @click="clearCache">
+            <q-item-section>{{ $t("nav.clearCache") }}</q-item-section>
+          </q-item>
+          <!-- bulk recover agents -->
+          <q-item clickable v-close-popup @click="bulkRecoverAgents">
+            <q-item-section>{{ $t("nav.recoverAllAgents") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- integrations -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="summarize"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.reporting')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.reporting")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list
+          v-if="
+            $integrations &&
+            $integrations.fileBarIntegrations &&
+            $integrations.fileBarIntegrations.length > 0
+          "
+          dense
+          style="min-width: 100px"
+        >
+          <q-item
+            v-for="integration in $integrations.fileBarIntegrations"
+            :key="integration.name"
+            @click="
+              integration.type === 'dialog'
+                ? $q.dialog({ component: integration.component })
+                : undefined
+            "
+            :to="integration.type === 'route' ? integration.uri : undefined"
+            clickable
+            v-close-popup
+          >
+            <q-item-section>{{ integration.name }}</q-item-section>
+          </q-item>
+        </q-list>
+        <q-list v-else dense style="min-width: 100px">
+          <q-item clickable v-close-popup @click="showReportsManager">
+            <q-item-section>{{ $t("nav.reportingManager") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- help — solo "Documentación" → docs.observer.cl. Los submenús GitHub /
+             Bug Report / Feature Request quedan OCULTOS a propósito (openHelp mantiene
+             sus URLs listas por si se re-habilitan); Discord ya fue eliminado. -->
+    <q-btn
+      flat
+      round
+      dense
+      icon="help_outline"
+      class="obs-rail-btn"
+      :aria-label="$t('nav.help')"
+    >
+      <q-tooltip anchor="center right" self="center left">{{
+        $t("nav.help")
+      }}</q-tooltip>
+      <q-menu auto-close anchor="top right" self="top left">
+        <q-list dense style="min-width: 100px">
+          <q-item clickable v-close-popup @click="openHelp('docs')">
+            <q-item-section>{{ $t("nav.documentation") }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+
+    <!-- edit core settings modal -->
+    <q-dialog v-model="showEditCoreSettingsModal">
+      <EditCoreSettings @close="showEditCoreSettingsModal = false" />
+    </q-dialog>
+    <!-- Install Agents -->
+    <q-dialog v-model="showInstallAgent">
+      <InstallAgent @close="showInstallAgent = false" />
+    </q-dialog>
+    <!-- Update Agents Modal -->
+    <q-dialog
+      v-model="showUpdateAgentsModal"
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <UpdateAgents @close="showUpdateAgentsModal = false" />
+    </q-dialog>
+    <!-- Admin Manager -->
+    <q-dialog v-model="showAdminManager">
+      <AdminManager @close="showAdminManager = false" />
+    </q-dialog>
+    <!-- Server Maintenance -->
+    <q-dialog v-model="showServerMaintenance">
+      <ServerMaintenance @close="showMaintenance = false" />
+    </q-dialog>
+    <!-- Code Sign -->
+    <q-dialog v-model="showCodeSign">
+      <CodeSign @close="showCodeSign = false" />
+    </q-dialog>
+  </div>
+</template>
+
+<script>
+import mixins from "@/mixins/mixins";
+import DialogWrapper from "@/components/ui/DialogWrapper.vue";
+import DebugLog from "@/components/logs/DebugLog.vue";
+import PendingActions from "@/components/logs/PendingActions.vue";
+import ClientsManager from "@/components/clients/ClientsManager.vue";
+import ClientsForm from "@/components/clients/ClientsForm.vue";
+import SitesForm from "@/components/clients/SitesForm.vue";
+import UpdateAgents from "@/components/modals/agents/UpdateAgents.vue";
+import ScriptManager from "@/components/scripts/ScriptManager.vue";
+import EditCoreSettings from "@/components/modals/coresettings/EditCoreSettings.vue";
+import AlertsManager from "@/components/AlertsManager.vue";
+import AutomationManager from "@/components/automation/AutomationManager.vue";
+import AdminManager from "@/components/AdminManager.vue";
+import InstallAgent from "@/components/modals/agents/InstallAgent.vue";
+import AuditManager from "@/components/logs/AuditManager.vue";
+import BulkAction from "@/components/modals/agents/BulkAction.vue";
+import DeploymentTable from "@/components/clients/DeploymentTable.vue";
+import ServerMaintenance from "@/components/modals/core/ServerMaintenance.vue";
+import CodeSign from "@/components/modals/coresettings/CodeSign.vue";
+import PermissionsManager from "@/components/accounts/PermissionsManager.vue";
+import ReportsManager from "@/ee/reporting/components/ReportsManager.vue";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { notifyWarning } from "@/utils/notify";
+
+export default {
+  name: "NavMenu",
+  mixins: [mixins],
+  components: {
+    UpdateAgents,
+    EditCoreSettings,
+    InstallAgent,
+    AdminManager,
+    ServerMaintenance,
+    CodeSign,
+  },
+  data() {
+    return {
+      showServerMaintenance: false,
+      showUpdateAgentsModal: false,
+      showEditCoreSettingsModal: false,
+      showAdminManager: false,
+      showInstallAgent: false,
+      showCodeSign: false,
+    };
+  },
+  computed: {
+    hosted() {
+      return this.$store.state.hosted;
+    },
+  },
+  methods: {
+    clearCache() {
+      this.$axios
+        .get("/core/clearcache/")
+        .then((r) => this.notifySuccess(r.data));
+    },
+    bulkRecoverAgents() {
+      this.$q
+        .dialog({
+          title: this.$t("nav.bulkRecoverTitle"),
+          message: this.$t("nav.bulkRecoverMessage"),
+          cancel: true,
+        })
+        .onOk(() => {
+          this.$axios
+            .get("/agents/bulkrecovery/")
+            .then((r) => this.notifySuccess(r.data));
+        });
+    },
+    openHelp(mode) {
+      let url;
+      switch (mode) {
+        case "github":
+          url = "https://github.com/braincorp-cl/observer-rmm-dist/";
+          break;
+        case "docs":
+          url = "https://docs.observer.cl";
+          break;
+        case "bug":
+          url =
+            "https://github.com/braincorp-cl/observer-rmm-dist/issues/new?template=bug_report.md";
+          break;
+        case "feature":
+          url =
+            "https://github.com/braincorp-cl/observer-rmm-dist/issues/new?template=feature_request.md";
+          break;
+      }
+      window.open(url, "_blank");
+    },
+    showAutomationManager() {
+      this.$q.dialog({
+        component: AutomationManager,
+      });
+    },
+    showAlertsManager() {
+      this.$q.dialog({
+        component: AlertsManager,
+      });
+    },
+    showClientsManager() {
+      this.$q
+        .dialog({
+          component: ClientsManager,
+        })
+        .onDismiss(() => this.$store.dispatch("refreshDashboard", true));
+    },
+    showAddClientModal() {
+      this.$q
+        .dialog({
+          component: ClientsForm,
+        })
+        .onOk(() => this.$store.dispatch("loadTree"));
+    },
+    showAddSiteModal() {
+      this.$q
+        .dialog({
+          component: SitesForm,
+        })
+        .onOk(() => this.$store.dispatch("loadTree"));
+    },
+    showPermissionsManager() {
+      this.$q.dialog({
+        component: PermissionsManager,
+      });
+    },
+    showAuditManager() {
+      this.$q.dialog({
+        component: DialogWrapper,
+        componentProps: {
+          vuecomponent: AuditManager,
+          noCard: true,
+          componentProps: {
+            modal: true,
+          },
+          dialogProps: {
+            maximized: true,
+            ["transition-show"]: "slide-up",
+            ["transition-hide"]: "slide-down",
+          },
+        },
+      });
+    },
+    showScriptManager() {
+      this.$q.dialog({
+        component: ScriptManager,
+      });
+    },
+    showBulkAction(mode) {
+      this.$q.dialog({
+        component: BulkAction,
+        componentProps: {
+          mode: mode,
+        },
+      });
+    },
+    showDebugLog() {
+      this.$q.dialog({
+        component: DialogWrapper,
+        componentProps: {
+          vuecomponent: DebugLog,
+          noCard: true,
+          componentProps: {
+            modal: true,
+          },
+          dialogProps: {
+            maximized: true,
+            ["transition-show"]: "slide-up",
+            ["transition-hide"]: "slide-down",
+          },
+        },
+      });
+    },
+    showPendingActions() {
+      this.$q.dialog({
+        component: PendingActions,
+      });
+    },
+    showDeployments() {
+      this.$q.dialog({
+        component: DeploymentTable,
+      });
+    },
+    // Reporting re-adoptado (feature 022, 2026-07-15): módulo ee/reporting
+    // recuperado desde f6a1e5a^ (rebrandeado) y re-cableado al FileBar.
+    showReportsManager() {
+      this.$q.dialog({
+        component: ReportsManager,
+      });
+    },
+  },
+};
+</script>
+
+<style lang="sass" scoped>
+.obs-rail-menus
+  gap: 6px
+.obs-rail-btn
+  color: var(--obs-muted)
+  &:hover
+    color: var(--obs-text)
+</style>

@@ -1,9 +1,8 @@
 <template>
   <q-page>
-    <FileBar />
     <q-splitter
       v-model="clientTreeSplitter"
-      :style="{ height: `${$q.screen.height - 50 - 40}px` }"
+      :style="{ height: `${$q.screen.height - 50}px` }"
     >
       <template v-slot:before>
         <div
@@ -488,7 +487,6 @@
 import mixins from "@/mixins/mixins";
 import { openURL } from "quasar";
 import { mapState } from "vuex";
-import FileBar from "@/components/FileBar.vue";
 import AgentTable from "@/components/AgentTable.vue";
 import SubTableTabs from "@/components/SubTableTabs.vue";
 import PolicyAdd from "@/components/automation/modals/PolicyAdd.vue";
@@ -504,7 +502,6 @@ import { removeClient, removeSite } from "@/api/clients";
 export default {
   name: "DashboardView",
   components: {
-    FileBar,
     AgentTable,
     SubTableTabs,
     InstallAgent,
@@ -797,7 +794,13 @@ export default {
         { name: "smsalert", align: "left" },
         { name: "emailalert", align: "left" },
         { name: "dashboardalert", align: "left" },
-        { name: "plat", label: "", field: "plat", sortable: true, align: "left" },
+        {
+          name: "plat",
+          label: "",
+          field: "plat",
+          sortable: true,
+          align: "left",
+        },
         {
           name: "mon-type",
           label: "",

@@ -265,6 +265,7 @@
         </q-btn-dropdown>
       </q-toolbar>
     </q-header>
+    <NavRail />
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -290,6 +291,7 @@ import { checkWebTermPerms, openWebTerminal } from "@/api/core";
 
 // ui imports
 import AlertsIcon from "@/components/AlertsIcon.vue";
+import NavRail from "@/components/shell/NavRail.vue";
 import UserPreferences from "@/components/modals/coresettings/UserPreferences.vue";
 import ResetPass from "@/components/accounts/ResetPass.vue";
 
