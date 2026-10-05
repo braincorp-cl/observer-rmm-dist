@@ -98,7 +98,8 @@ export default function () {
       },
       SET_SPLITTER(state, val) {
         // top toolbar is 50px. Filebar is 40px and agent filter tabs are 44px
-        state.tableHeight = `${Screen.height - 50 - 40 - 78 - val}px`;
+        // 046 F1: sin la barra de menús (FileBar, 40 px) la tabla recupera ese alto.
+        state.tableHeight = `${Screen.height - 50 - 78 - val}px`;
 
         // q-tabs are 37px
         state.tabHeight = `${val - 37}px`;
