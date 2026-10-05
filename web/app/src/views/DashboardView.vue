@@ -955,7 +955,10 @@ export default {
     this.getTree();
     // 046 F1: al volver al dashboard desde /agents/:id (botón de inicio del riel)
     // la tabla quedaba vacía hasta otro refresco: mounted solo cargaba el árbol.
-    this.$store.dispatch("loadAgents");
+    // En la PRIMERA carga la pestaña (defaultAgentTblTab) aún es null y la carga la
+    // hace el watcher de `tab` cuando llegan las preferencias; cargar acá con null
+    // pedía ?monitoring_type=null (400, lo encontró el gauntlet en UI-N03).
+    if (this.$store.state.defaultAgentTblTab) this.$store.dispatch("loadAgents");
 
     // set initial value for agent table and agent tabs
     this.$store.commit("SET_SPLITTER", this.innerModel);
