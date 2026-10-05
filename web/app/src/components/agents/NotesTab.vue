@@ -13,7 +13,7 @@
       row-key="id"
       :rows-per-page-options="[0]"
       :loading="loading"
-      hide-bottom
+      :hide-bottom="notes.length > 0"
       virtual-scroll
       :no-data-label="$t('agentTabs.notes.noNotes')"
     >
