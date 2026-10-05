@@ -3416,7 +3416,9 @@
       "onlineAgo": "En línea · hace {ago}",
       "offlineAgo": "Fuera de línea · hace {ago}",
       "overdueAgo": "Sin respuesta · hace {ago}",
-      "bootedAgo": "arranque hace {ago}"
+      "bootedAgo": "arranque hace {ago}",
+      "refresh": "Actualizar inventario",
+      "ram": "{gb} GB RAM"
     },
     "shortcuts": {
       "webTerminal": "Terminal web",
@@ -3434,6 +3436,13 @@
       "empty": "Ningún equipo coincide con el filtro",
       "expand": "Mostrar lista de equipos",
       "collapse": "Ocultar lista de equipos"
+    },
+    "navLabel": "Secciones del equipo",
+    "units": {
+      "s": "{n} s",
+      "min": "{n} min",
+      "h": "{n} h",
+      "d": "{n} d"
     }
   }
 }

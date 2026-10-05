@@ -6,45 +6,24 @@
     {{ $t("agentTabs.common.windowsOnly") }}
   </div>
   <div v-else>
-    <q-tabs
+    <!--
+      046 (dirección 1c): selector segmentado en vez de q-tabs, para que la vista
+      de agente no tenga pestañas (UI-E04). Mismas subsecciones, mismo contenido.
+    -->
+    <q-btn-toggle
       v-model="tab"
       dense
-      class="text-grey"
-      active-color="primary"
-      indicator-color="primary"
-      align="justify"
-      narrow-indicator
       no-caps
-    >
-      <q-tab name="os" :label="$t('agentTabs.assets.os')" />
-      <q-tab name="cpu" :label="$t('agentTabs.assets.cpu')" />
-      <q-tab name="mem" :label="$t('agentTabs.assets.mem')" />
-      <q-tab name="usb" :label="$t('agentTabs.assets.usb')" />
-      <q-tab name="bios" :label="$t('agentTabs.assets.bios')" />
-      <q-tab name="disk" :label="$t('agentTabs.assets.disk')" />
-      <q-tab name="comp_sys" :label="$t('agentTabs.assets.compSys')" />
-      <q-tab name="base_board" :label="$t('agentTabs.assets.baseBoard')" />
-      <q-tab name="comp_sys_prod" :label="$t('agentTabs.assets.compSysProd')" />
-      <q-tab
-        name="network_config"
-        :label="$t('agentTabs.assets.networkConfig')"
-      />
-      <q-tab name="graphics" :label="$t('agentTabs.assets.graphics')" />
-      <q-tab
-        name="desktop_monitor"
-        :label="$t('agentTabs.assets.desktopMonitor')"
-      />
-      <q-tab
-        name="network_adapter"
-        :label="$t('agentTabs.assets.networkAdapter')"
-      />
-      <!-- Feature 037 · el cifrado es un activo del equipo, junto al resto. -->
-      <q-tab name="encryption" :label="$t('agentTabs.assets.encryption')" />
-    </q-tabs>
+      flat
+      spread
+      toggle-color="primary"
+      class="obs-assets-toggle"
+      :options="assetOptions"
+    />
 
     <q-separator />
 
-    <q-tab-panels v-model="tab">
+    <q-tab-panels v-model="tab" :animated="false">
       <q-tab-panel name="os">
         <WmiDetail :info="assets.os" />
       </q-tab-panel>
@@ -99,6 +78,7 @@
 // composition imports
 import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
 import { fetchAgent } from "@/api/agents";
 
 // ui imports
@@ -118,6 +98,26 @@ export default {
     // assets tab logic
     const assets = ref({});
     const tab = ref("os");
+    const { t } = useI18n();
+    // Mismas subsecciones y rótulos que las pestañas v1, ahora en el selector.
+    const assetOptions = computed(() =>
+      [
+        ["os", "os"],
+        ["cpu", "cpu"],
+        ["mem", "mem"],
+        ["usb", "usb"],
+        ["bios", "bios"],
+        ["disk", "disk"],
+        ["comp_sys", "compSys"],
+        ["base_board", "baseBoard"],
+        ["comp_sys_prod", "compSysProd"],
+        ["network_config", "networkConfig"],
+        ["graphics", "graphics"],
+        ["desktop_monitor", "desktopMonitor"],
+        ["network_adapter", "networkAdapter"],
+        ["encryption", "encryption"],
+      ].map(([value, key]) => ({ value, label: t(`agentTabs.assets.${key}`) })),
+    );
     // Feature 037: el estado de última señal del agente lo lee el detalle de
     // cifrado para no mandar el refresco a un equipo fuera de línea. Sale del
     // mismo `fetchAgent` que ya trae los activos, sin una segunda llamada.
@@ -145,6 +145,7 @@ export default {
       // reactive data
       assets,
       tab,
+      assetOptions,
       selectedAgent,
       agentPlatform,
       agentStatus,

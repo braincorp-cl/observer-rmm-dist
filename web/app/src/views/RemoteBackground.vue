@@ -137,7 +137,26 @@ export default {
     // meshcentral tabs
     const terminal = ref("");
     const file = ref("");
-    const tab = ref("terminal");
+    // 046: los atajos de la barra de acción abren esta ventana ya en una pestaña
+    // (?tab=terminal|filebrowser|services|...). Solo se acepta una pestaña que
+    // exista para la plataforma; si no, la de siempre.
+    const route = useRoute();
+    const tabsPorPlataforma =
+      route.query.agentPlatform === "windows"
+        ? [
+            "terminal",
+            "filebrowser",
+            "services",
+            "processes",
+            "eventlog",
+            "registry",
+          ]
+        : ["terminal", "filebrowser", "processes"];
+    const tab = ref(
+      tabsPorPlataforma.includes(route.query.tab)
+        ? route.query.tab
+        : "terminal",
+    );
 
     const agent_id = computed(() => params.agent_id);
 

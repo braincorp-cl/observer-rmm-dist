@@ -3416,7 +3416,9 @@
       "onlineAgo": "Online · {ago} ago",
       "offlineAgo": "Offline · {ago} ago",
       "overdueAgo": "Overdue · {ago} ago",
-      "bootedAgo": "booted {ago} ago"
+      "bootedAgo": "booted {ago} ago",
+      "refresh": "Refresh inventory",
+      "ram": "{gb} GB RAM"
     },
     "shortcuts": {
       "webTerminal": "Web terminal",
@@ -3434,6 +3436,13 @@
       "empty": "No device matches the filter",
       "expand": "Show device list",
       "collapse": "Hide device list"
+    },
+    "navLabel": "Device sections",
+    "units": {
+      "s": "{n}s",
+      "min": "{n} min",
+      "h": "{n} h",
+      "d": "{n} d"
     }
   }
 }

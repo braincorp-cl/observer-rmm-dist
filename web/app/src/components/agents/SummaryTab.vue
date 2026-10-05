@@ -11,7 +11,8 @@
     />
   </div>
   <div v-else-if="summary" class="q-pa-sm">
-    <q-bar dense style="background-color: transparent">
+    <!-- 046: en el espacio 1c esta barra vive en AgentHeader (prop embedded). -->
+    <q-bar v-if="!embedded" dense style="background-color: transparent">
       <q-btn
         dense
         flat
@@ -121,7 +122,7 @@
         <AgentActionMenu :agent="summary" />
       </q-btn-dropdown>
     </q-bar>
-    <q-separator class="q-mt-sm" />
+    <q-separator v-if="!embedded" class="q-mt-sm" />
     <div class="row">
       <div class="col-4">
         <!-- left -->
@@ -348,6 +349,10 @@ export default {
   components: {
     AgentActionMenu,
     AgentLocationDialog,
+  },
+  props: {
+    // 046: true dentro de AgentWorkspace (la cabecera ya muestra estado y botones).
+    embedded: { type: Boolean, default: false },
   },
   setup() {
     // vuex setup

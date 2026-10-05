@@ -7,9 +7,10 @@ const routes = [
     component: () => import("@/layouts/MainLayout.vue"),
     children: [
       {
-        path: "agents/:agent_id",
+        // 046 (dirección 1c): la sección del espacio de trabajo va en la URL.
+        path: "agents/:agent_id/:section?",
         name: "Agent",
-        component: () => import("@/views/AgentView.vue"),
+        component: () => import("@/views/AgentWorkspace.vue"),
         meta: {
           requireAuth: true,
         },
