@@ -45,6 +45,7 @@
           - "--no-owner"
           - "--no-group"
           - "--exclude=env-config.js"
+          - "--exclude=build-info.json"
       become: true
       become_user: "{{ observer_user }}"
       notify: reload nginx
@@ -53,6 +54,17 @@
       ansible.builtin.copy:
         dest: "{{ _frontend_root }}/env-config.js"
         content: "window._env_ = {PROD_URL: \"https://{{ observer_domain }}\", DEFAULT_LANG: \"{{ observer_default_language | default('es') }}\"}\n"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0644"
+
+    # Procedencia: lo servido se ata al commit del directorio desde el que se corrio
+    # el playbook. Sin esto, el gauntlet no puede probar que mide el commit que dice
+    # (web/dist no esta versionado). dirty=true si habia cambios sin commitear.
+    - name: Estampar build-info.json (sha del checkout que se desplego)
+      ansible.builtin.copy:
+        dest: "{{ _frontend_root }}/build-info.json"
+        content: "{{ {'sha': lookup('ansible.builtin.pipe', 'git -C ' ~ playbook_dir ~ ' rev-parse HEAD'), 'dirty': (lookup('ansible.builtin.pipe', 'git -C ' ~ playbook_dir ~ ' status --porcelain -- web/app') | length > 0), 'branch': lookup('ansible.builtin.pipe', 'git -C ' ~ playbook_dir ~ ' rev-parse --abbrev-ref HEAD'), 'deployed_at': now(utc=true).isoformat()} | to_json }}\n"
         owner: "{{ observer_user }}"
         group: "{{ observer_group }}"
         mode: "0644"
