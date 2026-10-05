@@ -33,7 +33,11 @@
             <component :is="sectionComponent" v-bind="sectionProps" />
           </div>
         </div>
-        <ActionBar :agent="agent" :actions="descriptors" />
+        <ActionBar
+          :agent="agent"
+          :actions="descriptors"
+          @refresh-lists="refreshLists"
+        />
       </template>
     </div>
   </q-page>
@@ -124,7 +128,13 @@ export default {
     });
 
     // useAgentActions usa inject("refreshDashboard"): va después del provide.
-    const { actionDescriptors } = useAgentActions();
+    const { actionDescriptors, getURLActions, getFavoriteScripts } =
+      useAgentActions();
+    // Como el menú v1, que las pide al montarse: se recargan al abrir "Más".
+    function refreshLists() {
+      getURLActions();
+      getFavoriteScripts();
+    }
     const descriptors = computed(() =>
       agent.value ? actionDescriptors(agent.value) : [],
     );
@@ -188,6 +198,7 @@ export default {
       contentEl,
       selectSection,
       refreshWMI,
+      refreshLists,
       pageStyle,
     };
   },

@@ -24,18 +24,21 @@
       />
     </div>
     <q-space />
-    <div class="row no-wrap items-center q-gutter-x-sm">
+    <div class="row no-wrap items-center q-gutter-x-sm obs-actionbar__right">
+      <!-- Respuesta rápida: solo ícono + tooltip, para que "Más acciones" quepa
+           siempre en pantalla a 1280/1440 (UI-F03, corrida 2026-10-05). -->
       <q-btn
         v-for="b in response"
         :key="b.key"
-        no-caps
         outline
         :icon="b.icon"
-        :label="b.label"
+        :aria-label="b.label"
         :data-action="b.key"
         class="obs-actionbar__btn"
         @click="b.run()"
-      />
+      >
+        <q-tooltip>{{ b.label }}</q-tooltip>
+      </q-btn>
       <q-btn
         no-caps
         outline
@@ -44,11 +47,23 @@
         data-action="more"
         class="obs-actionbar__btn"
       >
-        <q-menu anchor="top right" self="bottom right">
-          <q-list dense style="min-width: 240px">
-            <template v-for="a in actions" :key="a.key">
+        <!--
+          Menú PLANO en dos columnas: toda acción hoja a 2 interacciones (abrir +
+          elegir), sin submenús anidados (UI-F03). Las listas dinámicas (URL
+          actions, favoritos) se recargan al abrir, como el menú v1, que las pide
+          cada vez que se monta.
+        -->
+        <q-menu
+          anchor="top right"
+          self="bottom right"
+          class="obs-moremenu"
+          @before-show="$emit('refresh-lists')"
+        >
+          <div class="row no-wrap q-pa-xs">
+            <q-list dense class="obs-moremenu__col">
               <q-item
-                v-if="!a.children"
+                v-for="a in simple"
+                :key="a.key"
                 clickable
                 v-close-popup
                 :data-action="a.key"
@@ -59,39 +74,63 @@
                 </q-item-section>
                 <q-item-section>{{ a.label }}</q-item-section>
               </q-item>
-              <q-item
-                v-else
-                clickable
-                :disable="a.disabled"
-                :data-action="a.key"
-              >
-                <q-item-section side>
-                  <q-icon size="xs" :name="a.icon" />
-                </q-item-section>
-                <q-item-section>{{ a.label }}</q-item-section>
-                <q-item-section side>
-                  <q-icon name="keyboard_arrow_right" />
-                </q-item-section>
-                <q-menu auto-close anchor="top end" self="top start">
-                  <q-list dense>
-                    <q-item
-                      v-for="c in a.children"
-                      :key="c.key"
-                      clickable
-                      v-close-popup
-                      :data-action="c.key"
-                      @click="c.run()"
-                    >
-                      <q-item-section v-if="c.icon" side>
-                        <q-icon size="xs" :name="c.icon" />
-                      </q-item-section>
-                      <q-item-section>{{ c.label }}</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-item>
-            </template>
-          </q-list>
+            </q-list>
+            <q-separator vertical />
+            <q-list dense class="obs-moremenu__col">
+              <template v-for="g in groups" :key="g.key">
+                <q-item-label header class="obs-moremenu__hdr">
+                  <q-icon size="xs" :name="g.icon" class="q-mr-xs" />{{
+                    g.label
+                  }}
+                </q-item-label>
+                <q-item v-if="!g.children.length" disable :data-action="g.key">
+                  <q-item-section class="q-pl-md">{{ g.label }}</q-item-section>
+                </q-item>
+                <q-item
+                  v-for="c in g.children"
+                  :key="c.key"
+                  clickable
+                  v-close-popup
+                  :disable="g.disabled"
+                  :data-action="c.key"
+                  @click="c.run()"
+                >
+                  <q-item-section class="q-pl-md">{{ c.label }}</q-item-section>
+                </q-item>
+              </template>
+              <template v-if="agentIntegrations.length">
+                <q-item-label header class="obs-moremenu__hdr">
+                  <q-icon size="xs" name="analytics" class="q-mr-xs" />{{
+                    $t("agentActions.reporting")
+                  }}
+                </q-item-label>
+                <q-item
+                  v-for="integration in agentIntegrations"
+                  :key="integration.name"
+                  clickable
+                  v-close-popup
+                  data-action="reporting"
+                  :to="
+                    integration.type === 'route' ? integration.uri : undefined
+                  "
+                  @click="
+                    integration.type === 'dialog'
+                      ? $q.dialog({
+                          component: integration.component,
+                          componentProps: integration.props
+                            ? integration.props(agent.agent_id, 'agent')
+                            : undefined,
+                        })
+                      : undefined
+                  "
+                >
+                  <q-item-section class="q-pl-md">{{
+                    integration.name
+                  }}</q-item-section>
+                </q-item>
+              </template>
+            </q-list>
+          </div>
         </q-menu>
       </q-btn>
     </div>
@@ -99,7 +138,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, getCurrentInstance } from "vue";
 import { useI18n } from "vue-i18n";
 import { openURL } from "quasar";
 import { router } from "@/router";
@@ -109,7 +148,13 @@ const props = defineProps({
   agent: { type: Object, required: true },
   actions: { type: Array, required: true },
 });
+defineEmits(["refresh-lists"]);
 const { t } = useI18n();
+const instance = getCurrentInstance();
+// Misma condición que el menú v1 (AgentActionMenu): integraciones de agente.
+const agentIntegrations = computed(
+  () => instance?.proxy?.$integrations?.agentMenuIntegrations ?? [],
+);
 
 function find(key) {
   for (const a of props.actions) {
@@ -156,6 +201,9 @@ const primary = computed(() => {
   return out;
 });
 
+const simple = computed(() => props.actions.filter((a) => !a.children));
+const groups = computed(() => props.actions.filter((a) => a.children));
+
 const response = computed(() =>
   ["lock", "sendAlert", "alarm"].map((k) => find(k)).filter(Boolean),
 );
@@ -168,7 +216,7 @@ const response = computed(() =>
   padding: 10px 16px
   border-top: 1px solid var(--obs-border)
   background: var(--obs-surface)
-  overflow-x: auto
+  overflow: hidden
 .obs-actionbar__btn
   color: var(--obs-text-2)
   white-space: nowrap
@@ -176,4 +224,13 @@ const response = computed(() =>
     flex-wrap: nowrap
 .obs-actionbar__btn.bg-primary
   color: var(--obs-on-brand)
+.obs-actionbar__right
+  flex: none
+.obs-moremenu__col
+  min-width: 250px
+.obs-moremenu__hdr
+  display: flex
+  align-items: center
+  padding: 8px 12px 2px
+  color: var(--obs-muted)
 </style>
