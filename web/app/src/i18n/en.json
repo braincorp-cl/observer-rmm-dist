@@ -3385,5 +3385,55 @@
       "colDryRun": "Dry run",
       "colActions": "Actions"
     }
+  },
+  "navRail": {
+    "home": "Home",
+    "fleet": "Fleet",
+    "sitesMap": "Sites map",
+    "automation": "Automation",
+    "reports": "Reports",
+    "diagnostics": "Diagnostics",
+    "administration": "Administration",
+    "help": "Help",
+    "alerts": "Alerts",
+    "language": "Language",
+    "theme": "Light or dark theme",
+    "user": "My account"
+  },
+  "agentWorkspace": {
+    "groups": {
+      "operation": "Operation",
+      "inventory": "Inventory",
+      "record": "Record"
+    },
+    "badges": {
+      "failingChecks": "No failing checks | {n} failing check | {n} failing checks",
+      "pendingPatches": "No pending patches | {n} pending patch | {n} pending patches",
+      "pendingActions": "No pending actions | {n} pending action | {n} pending actions",
+      "rebootRequired": "Reboot required"
+    },
+    "header": {
+      "onlineAgo": "Online · {ago} ago",
+      "offlineAgo": "Offline · {ago} ago",
+      "overdueAgo": "Overdue · {ago} ago",
+      "bootedAgo": "booted {ago} ago"
+    },
+    "shortcuts": {
+      "webTerminal": "Web terminal",
+      "services": "Services",
+      "files": "Files"
+    },
+    "actionBar": {
+      "more": "More actions"
+    },
+    "context": {
+      "equipmentCount": "{n} devices",
+      "filterFailing": "Failing checks",
+      "filterOnline": "Online only",
+      "shownOf": "{shown} of {total}",
+      "empty": "No device matches the filter",
+      "expand": "Show device list",
+      "collapse": "Hide device list"
+    }
   }
 }

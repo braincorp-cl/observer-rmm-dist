@@ -3385,5 +3385,55 @@
       "colDryRun": "Simulacro",
       "colActions": "Acciones"
     }
+  },
+  "navRail": {
+    "home": "Inicio",
+    "fleet": "Flota",
+    "sitesMap": "Mapa de sitios",
+    "automation": "Automatización",
+    "reports": "Reportes",
+    "diagnostics": "Diagnóstico",
+    "administration": "Administración",
+    "help": "Ayuda",
+    "alerts": "Alertas",
+    "language": "Idioma",
+    "theme": "Tema claro u oscuro",
+    "user": "Mi cuenta"
+  },
+  "agentWorkspace": {
+    "groups": {
+      "operation": "Operación",
+      "inventory": "Inventario",
+      "record": "Registro"
+    },
+    "badges": {
+      "failingChecks": "Sin chequeos fallando | {n} chequeo fallando | {n} chequeos fallando",
+      "pendingPatches": "Sin parches pendientes | {n} parche pendiente | {n} parches pendientes",
+      "pendingActions": "Sin acciones pendientes | {n} acción pendiente | {n} acciones pendientes",
+      "rebootRequired": "Reinicio requerido"
+    },
+    "header": {
+      "onlineAgo": "En línea · hace {ago}",
+      "offlineAgo": "Fuera de línea · hace {ago}",
+      "overdueAgo": "Sin respuesta · hace {ago}",
+      "bootedAgo": "arranque hace {ago}"
+    },
+    "shortcuts": {
+      "webTerminal": "Terminal web",
+      "services": "Servicios",
+      "files": "Archivos"
+    },
+    "actionBar": {
+      "more": "Más acciones"
+    },
+    "context": {
+      "equipmentCount": "{n} equipos",
+      "filterFailing": "Chequeos fallando",
+      "filterOnline": "Sólo en línea",
+      "shownOf": "{shown} de {total}",
+      "empty": "Ningún equipo coincide con el filtro",
+      "expand": "Mostrar lista de equipos",
+      "collapse": "Ocultar lista de equipos"
+    }
   }
 }

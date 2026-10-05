@@ -1,22 +1,72 @@
-// app global css in Sass form
-// Tema "Observation Deck" — ajustes globales de ambos modos.
-// Los colores de marca viven en quasar.variables.sass; aquí van los
-// neutros de página y la firma tipográfica.
+// app global css in Sass form — tema 1c (046) sobre la base "Observation Deck".
+// Fuentes de la dirección 1c, empaquetadas con el build (ver quasar.variables.sass).
+@import '@fontsource/archivo/400.css'
+@import '@fontsource/archivo/500.css'
+@import '@fontsource/archivo/600.css'
+@import '@fontsource/archivo/700.css'
+@import '@fontsource/jetbrains-mono/400.css'
+@import '@fontsource/jetbrains-mono/500.css'
 
-// Firma tipográfica: cifras alineadas en columnas, como telemetría
-// (tablas de agentes, contadores, timestamps). Roboto se conserva.
 body
   font-variant-numeric: tabular-nums
 
-// --- Modo día ---
-// Fondo neutro-frío elegido (sesgo azul), no gris muerto; tarjetas blancas.
-body.body--light
-  background: #EEF2F7
-  color: #16202E
-  .q-page
-    background: #EEF2F7
+// Datos (IP, MAC, versiones, conteos, rutas): monoespaciada.
+.mono
+  font-family: $obs-font-mono
 
-// --- Modo noche ---
-// El page/surface navy los define $dark-page/$dark en quasar.variables.sass.
+// Tokens 1c por tema. Los componentes nuevos usan var(--obs-*); nunca hex sueltos
+// (UI-D02). Las marcas de Quasar (--q-*) se ajustan por tema para que el texto y
+// el texto sobre fondo de marca pasen AA (UI-D04): en oscuro los colores de marca
+// se aclaran y el texto sobre ellos va oscuro, como en la maqueta; en claro se
+// oscurecen y el texto va blanco.
 body.body--dark
-  color: #E6EDF5
+  color: $obs-d-text
+  --obs-page: #{$obs-d-page}
+  --obs-surface: #{$obs-d-surface}
+  --obs-raised: #{$obs-d-raised}
+  --obs-rail: #{$obs-d-rail}
+  --obs-deep: #{$obs-d-deep}
+  --obs-border: #{$obs-d-border}
+  --obs-selected: #{$obs-d-selected}
+  --obs-text: #{$obs-d-text}
+  --obs-text-2: #{$obs-d-text-2}
+  --obs-muted: #{$obs-d-muted}
+  --obs-faint: #{$obs-d-faint}
+  --obs-on-brand: #04222A
+  --q-primary: #14A5C0
+  --q-negative: #F25A5F
+  --q-positive: #3ED184
+  --q-warning: #FFC15E
+  --q-info: #{$info}
+  --q-accent: #{$accent}
+
+body.body--light
+  background: $obs-l-page
+  color: $obs-l-text
+  --obs-page: #{$obs-l-page}
+  --obs-surface: #{$obs-l-surface}
+  --obs-raised: #{$obs-l-raised}
+  --obs-rail: #{$obs-l-rail}
+  --obs-deep: #{$obs-l-deep}
+  --obs-border: #{$obs-l-border}
+  --obs-selected: #{$obs-l-selected}
+  --obs-text: #{$obs-l-text}
+  --obs-text-2: #{$obs-l-text-2}
+  --obs-muted: #{$obs-l-muted}
+  --obs-faint: #{$obs-l-faint}
+  --obs-on-brand: #FFFFFF
+  --q-primary: #0B7A90
+  --q-negative: #C5282D
+  --q-positive: #157A43
+  --q-warning: #8A5A00
+  --q-info: #3F5FD1
+  --q-accent: #0B7287
+  .q-page
+    background: $obs-l-page
+
+// Texto sobre fondo de marca: Quasar pone text-white; en oscuro las marcas son
+// claras y el blanco no llega a AA.
+body.body--dark
+  .bg-primary.text-white, .bg-negative.text-white, .bg-positive.text-white,
+  .bg-warning.text-white, .bg-info.text-white, .bg-accent.text-white
+    color: var(--obs-on-brand) !important
