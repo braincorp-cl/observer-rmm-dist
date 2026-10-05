@@ -172,7 +172,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { runTakeControl, openAgentWindow } from "@/api/agents";
@@ -189,6 +189,15 @@ defineEmits(["refresh-wmi"]);
 const store = useStore();
 const { t } = useI18n();
 const showLocation = ref(false);
+
+// Reloj reactivo: "hace N s" se recalcula cada segundo. Date.now() dentro de un
+// computed no es reactivo y la antigüedad quedaba congelada al montar (UI-E06).
+const now = ref(Date.now());
+let tick = null;
+onMounted(() => {
+  tick = setInterval(() => (now.value = Date.now()), 1000);
+});
+onBeforeUnmount(() => clearInterval(tick));
 
 function run(key) {
   const a = props.actions.find((x) => x.key === key);
@@ -210,7 +219,7 @@ const crumbs = computed(() =>
 
 const statusText = computed(() => {
   const since = props.agent.last_seen
-    ? (Date.now() - new Date(props.agent.last_seen).getTime()) / 1000
+    ? (now.value - new Date(props.agent.last_seen).getTime()) / 1000
     : 0;
   const key =
     props.agent.status === "online"
@@ -229,7 +238,7 @@ const sysLine = computed(() => {
   if (a.boot_time)
     parts.push(
       t("agentWorkspace.header.bootedAgo", {
-        ago: ago(Date.now() / 1000 - a.boot_time),
+        ago: ago(now.value / 1000 - a.boot_time),
       }),
     );
   return parts.filter(Boolean).join(" · ");

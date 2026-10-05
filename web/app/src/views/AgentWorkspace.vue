@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { computed, provide, ref, watch, reactive } from "vue";
+import { computed, provide, ref, watch, reactive, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { fetchAgent, refreshAgentWMI } from "@/api/agents";
@@ -175,6 +175,24 @@ export default {
       store.state.tabHeight = `${Math.max(240, height - offset - CHROME)}px`;
       return { height: `${height - offset}px` };
     }
+
+    // Estado y última respuesta frescos sin recargar todo: el agente hace check-in
+    // cada pocos segundos y la cabecera muestra "hace N s" (UI-E06). Solo la misma
+    // GET del detalle, sin tocar badges ni secciones.
+    const poll = setInterval(async () => {
+      const id = route.params.agent_id;
+      if (!agent.value || !id || document.hidden) return;
+      try {
+        const data = await fetchAgent(id);
+        if (data && agent.value && route.params.agent_id === id) {
+          agent.value.last_seen = data.last_seen;
+          agent.value.status = data.status;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }, 15000);
+    onBeforeUnmount(() => clearInterval(poll));
 
     watch(
       () => route.params.agent_id,
