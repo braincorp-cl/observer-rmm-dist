@@ -115,7 +115,7 @@ export default {
       if (!id) return;
       store.commit("setActiveRow", id);
       const data = await fetchAgent(id);
-      if (route.params.agent_id !== id) return; // se cambió de equipo mientras cargaba
+      if (!data || route.params.agent_id !== id) return; // falló o se cambió de equipo
       agent.value = data;
       store.commit("setAgentPlatform", data.plat);
       loadUrgency(data);
