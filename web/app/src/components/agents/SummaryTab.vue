@@ -178,7 +178,7 @@
               <q-icon name="fas fa-globe-americas" />
             </q-item-section>
             <q-item-section
-              ><i18n-t keypath="agentTabs.summary.publicIp" tag="span"
+              ><i18n-t keypath="agentTabs.summary.publicIp" class="obs-ui-text" tag="span"
                 ><template #ip
                   ><span class="mono">{{ summary.public_ip }}</span></template
                 ></i18n-t
@@ -190,7 +190,7 @@
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
             <q-item-section
-              ><i18n-t keypath="agentTabs.summary.lanIp" tag="span"
+              ><i18n-t keypath="agentTabs.summary.lanIp" class="obs-ui-text" tag="span"
                 ><template #ips
                   ><span class="mono">{{ summary.local_ips }}</span></template
                 ></i18n-t
