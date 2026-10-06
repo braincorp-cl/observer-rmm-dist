@@ -282,6 +282,7 @@ export default {
         name: "device_id",
         label: t("diskEncryption.histColDevice"),
         field: "device_id",
+        classes: "mono",
         align: "left",
       },
       {

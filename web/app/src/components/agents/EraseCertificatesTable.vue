@@ -176,7 +176,7 @@ export default {
     // física manual (C7). El color las separa; nunca se fusionan.
     function kindColor(kind) {
       // 046 (UI-D05): la clase de certificado es una categoría, no estado ni acción ⇒ neutro
-      return kind === "physical_destruction" ? "warning" : "secondary";
+      return "secondary";
     }
 
     function kindLabel(kind) {
