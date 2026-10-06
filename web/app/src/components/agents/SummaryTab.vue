@@ -196,7 +196,7 @@
         }}</span>
         <br />
         <div v-if="summary.checks.total !== 0">
-          <q-chip v-if="summary.checks.passing" square size="lg">
+          <q-chip class="mono" v-if="summary.checks.passing" square size="lg">
             <q-avatar
               size="lg"
               square
@@ -210,7 +210,7 @@
               })
             }}</small>
           </q-chip>
-          <q-chip v-if="summary.checks.failing" square size="lg">
+          <q-chip class="mono" v-if="summary.checks.failing" square size="lg">
             <q-avatar
               size="lg"
               square
@@ -224,7 +224,7 @@
               })
             }}</small>
           </q-chip>
-          <q-chip v-if="summary.checks.warning" square size="lg">
+          <q-chip class="mono" v-if="summary.checks.warning" square size="lg">
             <q-avatar
               size="lg"
               square
@@ -238,7 +238,7 @@
               })
             }}</small>
           </q-chip>
-          <q-chip v-if="summary.checks.info" square size="lg">
+          <q-chip class="mono" v-if="summary.checks.info" square size="lg">
             <q-avatar
               size="lg"
               square
