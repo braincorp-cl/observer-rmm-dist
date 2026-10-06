@@ -8,7 +8,6 @@
         flat
         no-caps
         icon="refresh"
-        color="primary"
         :loading="loading"
         :label="$t('erase.tab.refresh')"
         @click="load"

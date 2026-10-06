@@ -271,9 +271,10 @@ const statusText = computed(() => {
 
 const sysParts = computed(() => {
   const a = props.agent;
-  const parts = [a.operating_system, a.make_model]
-    .filter(Boolean)
-    .map((t) => ({ t, mono: false }));
+  // SO = nombre con versión (Archivo); modelo de hardware = especificación (mono).
+  const parts = [];
+  if (a.operating_system) parts.push({ t: a.operating_system, mono: false });
+  if (a.make_model) parts.push({ t: a.make_model, mono: true });
   if (a.total_ram)
     parts.push({
       t: t("agentWorkspace.header.ram", { gb: a.total_ram }),

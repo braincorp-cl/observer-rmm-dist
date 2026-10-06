@@ -4,7 +4,9 @@
       <div class="text-subtitle2">{{ $t("diskEncryption.detailTitle") }}</div>
       <q-space />
       <span v-if="measuredAt" class="text-caption text-grey q-mr-sm">
-        {{ $t("diskEncryption.lastMeasured", { when: formatDate(measuredAt) }) }}
+        {{
+          $t("diskEncryption.lastMeasured", { when: formatDate(measuredAt) })
+        }}
       </span>
       <q-btn
         dense
@@ -34,7 +36,11 @@
       {{ $t("diskEncryption.notSupported") }}
     </q-banner>
 
-    <q-banner v-else-if="queryError" dense class="bg-orange-1 text-orange-9 q-mb-sm">
+    <q-banner
+      v-else-if="queryError"
+      dense
+      class="bg-orange-1 text-orange-9 q-mb-sm"
+    >
       <template v-slot:avatar>
         <q-icon name="warning" color="warning" />
       </template>
@@ -89,7 +95,9 @@
       </template>
 
       <template v-slot:body-cell-encryption_method="props">
-        <q-td :props="props">{{ methodLabel(props.row.encryption_method) }}</q-td>
+        <q-td :props="props">{{
+          methodLabel(props.row.encryption_method)
+        }}</q-td>
       </template>
 
       <template v-slot:body-cell-encryption_percentage="props">
@@ -137,7 +145,9 @@
           </q-td>
         </template>
         <template v-slot:body-cell-new_status="props">
-          <q-td :props="props">{{ protectionLabel(props.row.new_status) }}</q-td>
+          <q-td :props="props">{{
+            protectionLabel(props.row.new_status)
+          }}</q-td>
         </template>
         <template v-slot:body-cell-changed_at="props">
           <q-td :props="props">{{ formatDate(props.row.changed_at) }}</q-td>
@@ -208,6 +218,7 @@ export default {
         name: "drive_letter",
         label: t("diskEncryption.volDrive"),
         field: "drive_letter",
+        classes: "mono",
         align: "left",
       },
       {
