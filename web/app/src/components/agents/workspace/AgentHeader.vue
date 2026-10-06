@@ -53,28 +53,32 @@
         </div>
       </div>
       <div class="row no-wrap items-center q-gutter-x-sm obs-agenthdr__btns">
+        <!-- 046 (UI-E02): mantenimiento y política como íconos con tooltip; el
+             hostname tiene prioridad de ancho (con la columna de contexto, los
+             botones con texto lo truncaban a 1440 px). -->
         <q-btn
-          outline
-          no-caps
+          flat
+          round
           dense
           icon="construction"
-          class="obs-agenthdr__btn"
-          :label="
-            agent.maintenance_mode
-              ? $t('agentActions.disableMaintenance')
-              : $t('agentActions.enableMaintenance')
-          "
+          :color="agent.maintenance_mode ? 'warning' : undefined"
+          data-action="maintenance"
+          :aria-label="maintenanceLabel"
           @click="run('maintenance')"
-        />
+        >
+          <q-tooltip>{{ maintenanceLabel }}</q-tooltip>
+        </q-btn>
         <q-btn
-          outline
-          no-caps
+          flat
+          round
           dense
           icon="policy"
-          class="obs-agenthdr__btn"
-          :label="$t('agentActions.assignPolicy')"
+          data-action="assignPolicy"
+          :aria-label="$t('agentActions.assignPolicy')"
           @click="run('assignPolicy')"
-        />
+        >
+          <q-tooltip>{{ $t("agentActions.assignPolicy") }}</q-tooltip>
+        </q-btn>
         <q-btn
           flat
           round
@@ -199,6 +203,12 @@ onMounted(() => {
 });
 onBeforeUnmount(() => clearInterval(tick));
 
+const maintenanceLabel = computed(() =>
+  props.agent.maintenance_mode
+    ? t("agentActions.disableMaintenance")
+    : t("agentActions.enableMaintenance"),
+);
+
 function run(key) {
   const a = props.actions.find((x) => x.key === key);
   if (a && a.run) a.run();
@@ -255,6 +265,8 @@ const sysLine = computed(() => {
   color: var(--obs-muted)
 .obs-agenthdr__host
   font-size: 26px
+  flex: 0 1 auto
+  min-width: 120px
   line-height: 1.2
   font-weight: 600
   margin: 2px 0
@@ -286,7 +298,8 @@ const sysLine = computed(() => {
 .obs-agenthdr__sys
   font-size: 13px
   color: var(--obs-text-2)
-.obs-agenthdr__btn
+.obs-agenthdr__btns
+  flex: none
   color: var(--obs-text-2)
 .obs-badge
   display: inline-flex
