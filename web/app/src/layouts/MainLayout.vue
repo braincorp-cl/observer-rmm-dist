@@ -146,12 +146,12 @@
           style="font-size: 16px"
         />
         <!-- Devices Chip -->
-        <q-chip class="cursor-pointer">
+        <q-chip class="cursor-pointer obs-hdr-chip">
           <q-avatar size="md" icon="devices" color="primary" />
           <q-tooltip :delay="600" anchor="top middle" self="top middle">{{
             $t("layout.agentCount")
           }}</q-tooltip>
-          {{ serverCount + workstationCount }}
+          <span class="mono">{{ serverCount + workstationCount }}</span>
           <q-menu>
             <q-list dense>
               <q-item-label header>{{ $t("layout.servers") }}</q-item-label>

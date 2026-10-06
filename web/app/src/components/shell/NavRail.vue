@@ -60,5 +60,6 @@ function goHome() {
 .obs-rail__sep
   width: 28px
   background: var(--obs-border)
+  color: var(--obs-border)
   margin: 4px 0
 </style>

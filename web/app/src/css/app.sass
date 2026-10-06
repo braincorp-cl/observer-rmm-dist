@@ -159,3 +159,20 @@ body.body--dark
     color: var(--obs-on-dark)
   .q-checkbox__svg
     color: var(--obs-surface)
+
+// 046 (UI-D01/D02, alcance de pantalla completa): fuera del espacio 1c también.
+// Paginación de tablas = conteos ⇒ mono. El input oculto de q-select no pinta.
+.q-table__bottom .q-table__control, .q-table__bottom-item
+  font-family: $obs-font-mono
+.q-select__focus-target
+  color: transparent !important
+  background: transparent !important
+// Encabezado: siempre navy (bg-dark) en ambos temas ⇒ tokens oscuros fijos.
+.q-header
+  .obs-hdr-chip
+    background: $obs-d-raised
+    color: $obs-d-text
+  .q-field__prepend, .q-field__append, .q-field__marginal
+    color: $obs-d-text
+  .q-icon.text-null, .q-btn .q-icon:not([class*="text-"])
+    color: $obs-d-text

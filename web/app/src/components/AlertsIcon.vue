@@ -1,6 +1,7 @@
 <template>
   <q-btn dense flat icon="notifications">
-    <q-badge v-if="alertsCount > 0" :color="badgeColor" floating transparent>{{
+    <!-- 046 (UI-D04): sin transparent; el rojo translúcido dejaba el conteo a 3,36:1 -->
+    <q-badge v-if="alertsCount > 0" :color="badgeColor" floating class="mono">{{
       alertsCountText()
     }}</q-badge>
     <q-menu :style="{ 'max-height': `${$q.screen.height - 100}px` }">

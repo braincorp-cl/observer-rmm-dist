@@ -14,7 +14,7 @@
       <div class="obs-ctx__client ellipsis" :title="clientName">
         {{ clientName }}
       </div>
-      <div class="obs-ctx__site ellipsis">
+      <div class="obs-ctx__site ellipsis mono">
         {{
           $t("agentWorkspace.context.siteLine", {
             site: siteName,
@@ -27,7 +27,7 @@
           clickable
           dense
           :outline="!onlyFailing"
-          class="obs-ctx__chip"
+          class="obs-ctx__chip mono"
           :class="{ 'obs-ctx__chip--on-neg': onlyFailing }"
           data-filter="failing"
           :aria-pressed="onlyFailing ? 'true' : 'false'"
