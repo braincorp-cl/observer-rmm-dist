@@ -33,6 +33,7 @@ body.body--dark
   --obs-muted: #{$obs-d-muted}
   --obs-faint: #{$obs-d-faint}
   --obs-on-brand: #04222A
+  --obs-on-dark: #{$obs-d-text}
   --q-primary: #14A5C0
   --q-negative: #F25A5F
   --q-positive: #3ED184
@@ -55,6 +56,7 @@ body.body--light
   --obs-muted: #{$obs-l-muted}
   --obs-faint: #{$obs-l-faint}
   --obs-on-brand: #FFFFFF
+  --obs-on-dark: #{$obs-d-text}
   --q-primary: #0B7A90
   --q-negative: #C5282D
   --q-positive: #157A43
@@ -101,3 +103,25 @@ body.body--dark
     color: var(--obs-text-2)
   .q-item__label--caption
     color: var(--obs-muted)
+
+// Banda de advertencia del encabezado (modo mantenimiento): el texto sigue al
+// tema; en claro el ámbar es oscuro y el negro no llegaba a AA (UI-D04).
+.obs-banner-warn
+  color: var(--obs-on-brand)
+
+// Controles de Quasar dentro del espacio 1c: grises internos a tokens (UI-D02).
+.obs-ws
+  .q-field__marginal, .q-field__label, .q-field__bottom
+    color: var(--obs-muted)
+  .q-field--filled .q-field__control
+    background: var(--obs-raised)
+  .q-field--outlined .q-field__control:before, .q-field--standard .q-field__control:before
+    border-color: var(--obs-border)
+  .q-checkbox__bg
+    border-color: var(--obs-muted)
+  .q-table__bottom, .q-table__bottom .q-btn, .q-table__bottom .q-select
+    color: var(--obs-muted)
+  .q-table__card .q-table__top .q-btn:not([class*="bg-"]):not([class*="text-"])
+    color: var(--obs-text-2)
+  .q-icon:not([class*="text-"])
+    color: inherit

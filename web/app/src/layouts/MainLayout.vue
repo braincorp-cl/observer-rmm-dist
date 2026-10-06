@@ -51,7 +51,7 @@
       <q-banner
         v-if="maintenanceCount > 0"
         inline-actions
-        class="bg-warning text-black text-center"
+        class="bg-warning text-center obs-banner-warn"
       >
         <q-icon size="sm" name="construction" />
         {{ $t("layout.maintenanceCount", { count: maintenanceCount }) }}
@@ -84,7 +84,7 @@
           <q-tooltip>{{ $t("layout.backToDashboard") }}</q-tooltip>
         </q-btn>
         <q-toolbar-title>
-          Observer RMM<span class="text-overline q-ml-sm">{{
+          Observer RMM<span class="text-overline q-ml-sm mono">{{
             $t("layout.version", { version: currentVersion })
           }}</span>
           <!-- update check -->
@@ -456,7 +456,7 @@ onBeforeUnmount(() => {
   border-radius: 7px
   padding: 0 8px
   transition: background 0.15s ease, border-color 0.15s ease
-  color: #fff
+  color: var(--obs-on-dark)
   &:hover
     background: rgba(255, 255, 255, 0.12)
     border-color: rgba(255, 255, 255, 0.28)
@@ -464,5 +464,5 @@ onBeforeUnmount(() => {
   // deben ser siempre blancos. En modo día Quasar los pintaría oscuros por
   // defecto (ignora el text-white del header en su lógica interna de q-field).
   :deep(.q-field__native), :deep(.q-field__native span), :deep(.q-icon)
-    color: #fff !important
+    color: var(--obs-on-dark) !important
 </style>

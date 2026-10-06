@@ -264,6 +264,7 @@ export default {
         name: "client_ip",
         label: t("auditManager.colClientIp"),
         field: "ip_address",
+        classes: "mono",
         align: "left",
         sortable: true,
       },

@@ -139,6 +139,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colSize"),
         field: "size",
+        classes: "mono",
         sortable: false,
       },
       {

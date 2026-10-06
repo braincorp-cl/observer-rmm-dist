@@ -146,7 +146,7 @@
             <q-item-section avatar>
               <q-icon name="fas fa-memory" />
             </q-item-section>
-            <q-item-section>{{
+            <q-item-section class="mono">{{
               $t("agentTabs.summary.ram", { ram: summary.total_ram })
             }}</q-item-section>
           </q-item>
@@ -156,7 +156,7 @@
             <q-item-section avatar>
               <q-icon name="far fa-hdd" />
             </q-item-section>
-            <q-item-section>{{ disk }}</q-item-section>
+            <q-item-section class="mono">{{ disk }}</q-item-section>
           </q-item>
           <!-- graphics -->
           <q-item>
@@ -293,7 +293,7 @@
           $t("agentTabs.summary.disks")
         }}</span>
         <div v-for="disk in disks" :key="disk.device">
-          <span>{{
+          <span class="mono">{{
             $t("agentTabs.summary.diskDevice", {
               device: disk.device,
               fstype: disk.fstype,

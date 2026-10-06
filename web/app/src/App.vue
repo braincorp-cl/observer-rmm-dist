@@ -13,7 +13,7 @@ body
   overflow-y: hidden
 
 a
-  color: #1976D2
+  color: var(--q-primary)
 
 .tbl-sticky
   thead tr th
@@ -80,13 +80,13 @@ a
   background-color: --q-page-dark
 
 .bg-light
-  background-color: #ffffff
+  background-color: var(--obs-surface)
 
 .highlight
-  background-color: #c9e6ff
+  background-color: var(--obs-selected)
 
 .highlight-dark
-  background-color: #404040
+  background-color: var(--obs-selected)
 
 .action-completed
   background-color: $positive

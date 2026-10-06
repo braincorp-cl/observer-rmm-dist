@@ -48,7 +48,7 @@
             </q-tooltip>
           </q-badge>
         </div>
-        <div class="obs-agenthdr__sys ellipsis" :title="sysLine">
+        <div class="obs-agenthdr__sys ellipsis mono" :title="sysLine">
           {{ sysLine }}
         </div>
       </div>
