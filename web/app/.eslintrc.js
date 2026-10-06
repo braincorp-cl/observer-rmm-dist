@@ -144,6 +144,7 @@ module.exports = {
         "src/components/agents/AutomatedTasksTab.vue",
         "src/components/agents/WinUpdateTab.vue",
         "src/components/agents/AgentActionMenu.vue",
+        "src/components/agents/AgentLocationDialog.vue",
         "src/components/agents/ConfirmYesDialog.vue",
         "src/components/accounts/ResetPass.vue",
         "src/components/accounts/UserSessionsTable.vue",
