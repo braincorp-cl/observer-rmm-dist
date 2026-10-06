@@ -34,6 +34,8 @@ body.body--dark
   --obs-faint: #{$obs-d-faint}
   --obs-on-brand: #04222A
   --obs-on-dark: #{$obs-d-text}
+  --obs-hdr-border: #{$obs-d-border}
+  --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #14A5C0
   --q-negative: #F25A5F
   --q-positive: #3ED184
@@ -57,6 +59,8 @@ body.body--light
   --obs-faint: #{$obs-l-faint}
   --obs-on-brand: #FFFFFF
   --obs-on-dark: #{$obs-d-text}
+  --obs-hdr-border: #{$obs-d-border}
+  --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #0A7186
   --q-negative: #C5282D
   --q-positive: #157A43
@@ -170,26 +174,26 @@ body.body--dark
 // Encabezado: siempre navy (bg-dark) en ambos temas ⇒ tokens oscuros fijos.
 .q-header
   .obs-hdr-chip
-    background: $obs-d-raised
-    color: $obs-d-text
+    background: var(--obs-hdr-raised)
+    color: var(--obs-on-dark)
   .q-field__prepend, .q-field__append, .q-field__marginal
-    color: $obs-d-text
+    color: var(--obs-on-dark)
   .q-icon.text-null, .q-btn .q-icon:not([class*="text-"])
-    color: $obs-d-text
+    color: var(--obs-on-dark)
 // Badges con color de marca: texto --obs-on-brand en ambos temas (q-badge no
 // lleva text-white y Quasar le fija #fff).
 .q-badge[class*="bg-"]:not(.bg-secondary):not(.obs-chip-neutral)
   color: var(--obs-on-brand)
 // Shell: cabecera navy y riel; nada de #fff puro de Quasar.
-.q-header.text-white
-  color: $obs-d-text !important
+.q-header.text-white, .bg-dark.text-white
+  color: var(--obs-on-dark) !important
 .q-header
   .q-field__control
     background: transparent !important
   .q-field__control:before, .q-field__control:after
-    border-color: $obs-d-border !important
+    border-color: var(--obs-hdr-border) !important
 .q-drawer.obs-rail, .obs-rail .q-drawer, aside.q-drawer
   color: var(--obs-text) !important
 .q-header .q-field, .q-header label.q-field
   background: transparent !important
-  border-color: $obs-d-border !important
+  border-color: var(--obs-hdr-border) !important
