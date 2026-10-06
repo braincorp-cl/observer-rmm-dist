@@ -57,7 +57,7 @@ body.body--light
   --obs-faint: #{$obs-l-faint}
   --obs-on-brand: #FFFFFF
   --obs-on-dark: #{$obs-d-text}
-  --q-primary: #0B7A90
+  --q-primary: #0A7186
   --q-negative: #C5282D
   --q-positive: #157A43
   --q-warning: #8A5A00
@@ -144,3 +144,14 @@ body.body--dark
     color: var(--obs-border)
   .text-overline
     color: var(--obs-text-2)
+  .q-item__section--side
+    color: var(--obs-muted) !important
+  .q-checkbox__inner:not(.q-checkbox__inner--truthy), .q-radio__inner:not(.q-radio__inner--truthy)
+    color: var(--obs-muted) !important
+  .q-checkbox__truthy
+    color: var(--obs-surface)
+  .q-select__focus-target
+    color: transparent
+    background: transparent
+  .bg-secondary.text-white
+    color: var(--obs-text) !important
