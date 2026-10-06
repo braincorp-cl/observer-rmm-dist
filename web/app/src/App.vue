@@ -68,13 +68,13 @@ a
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    background-color: #f5f4f2
+    background-color: var(--obs-raised)
 
 .table-bgcolor-dark
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th
-    background-color: #1d1d1d
+    background-color: var(--obs-raised)
 
 .bg-dark
   background-color: --q-page-dark

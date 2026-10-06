@@ -58,7 +58,7 @@
           class="q-pr-sm"
         >
           <template v-slot:prepend>
-            <q-icon name="search" color="primary" />
+            <q-icon name="search" />
           </template>
         </q-input>
         <export-table-btn :data="software" :columns="columns" />
@@ -146,6 +146,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colVersion"),
         field: "version",
+        classes: "mono",
         sortable: false,
       },
       {

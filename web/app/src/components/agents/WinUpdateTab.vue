@@ -63,7 +63,7 @@
           class="q-pr-sm"
         >
           <template v-slot:prepend>
-            <q-icon name="search" color="primary" />
+            <q-icon name="search" />
           </template>
         </q-input>
         <export-table-btn :data="updates" :columns="columns" />
@@ -131,7 +131,7 @@
             <q-icon
               v-else-if="props.row.action === 'approve'"
               name="fas fa-check"
-              color="primary"
+              color="info"
             >
               <q-tooltip>{{ $t("agentTabs.patches.approve") }}</q-tooltip>
             </q-icon>
@@ -161,7 +161,7 @@
             <q-icon
               v-else-if="props.row.action == 'approve'"
               name="fas fa-tasks"
-              color="primary"
+              color="info"
             >
               <q-tooltip>{{ $t("agentTabs.patches.pending") }}</q-tooltip>
             </q-icon>

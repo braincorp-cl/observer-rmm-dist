@@ -170,13 +170,13 @@
             <q-item-section avatar>
               <q-icon name="fa-solid fa-barcode" />
             </q-item-section>
-            <q-item-section>{{ serial_number }}</q-item-section>
+            <q-item-section class="mono">{{ serial_number }}</q-item-section>
           </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-globe-americas" />
             </q-item-section>
-            <q-item-section>{{
+            <q-item-section class="mono">{{
               $t("agentTabs.summary.publicIp", { ip: summary.public_ip })
             }}</q-item-section>
           </q-item>
@@ -184,7 +184,7 @@
             <q-item-section avatar>
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section>{{
+            <q-item-section class="mono">{{
               $t("agentTabs.summary.lanIp", { ips: summary.local_ips })
             }}</q-item-section>
           </q-item>
@@ -306,7 +306,7 @@
             :color="diskBarColor(disk.percent)"
             class="q-mt-sm"
           />
-          <span>{{
+          <span class="mono">{{
             $t("agentTabs.summary.diskFree", {
               free: disk.free,
               total: disk.total,

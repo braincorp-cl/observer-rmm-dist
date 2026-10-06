@@ -6,7 +6,8 @@
           <span class="text-overline">{{
             $t("wmiDetail.keyLabel", { k })
           }}</span>
-          <q-badge color="primary" class="q-ml-sm text-caption">{{
+          <!-- 046 (UI-D05): el valor de inventario es un dato, no una acción: chip neutro y monoespaciado -->
+          <q-badge class="q-ml-sm text-caption mono obs-chip-neutral">{{
             v
           }}</q-badge>
           <q-btn

@@ -70,3 +70,34 @@ body.body--dark
   .bg-primary.text-white, .bg-negative.text-white, .bg-positive.text-white,
   .bg-warning.text-white, .bg-info.text-white, .bg-accent.text-white
     color: var(--obs-on-brand) !important
+
+// Chip neutro para datos (valores de inventario, etiquetas sin estado): UI-D05.
+.obs-chip-neutral
+  background: var(--obs-raised) !important
+  color: var(--obs-text-2) !important
+  border: 1px solid var(--obs-border)
+
+// 046 T037 — dentro del espacio de trabajo 1c, los grises por defecto de Quasar
+// (chips #e0e0e0, separadores y bordes con alfa sobre negro, texto gris de
+// tablas) pasan a tokens: los componentes reutilizados de la v1 no los fijan.
+.obs-ws
+  color: var(--obs-text)
+  .q-separator
+    background: var(--obs-border)
+  .q-table__card, .q-table__container
+    background: var(--obs-surface)
+    color: var(--obs-text)
+  .q-table th, .q-table td, .q-table__bottom, .q-table thead tr, .q-table tbody td
+    border-color: var(--obs-border)
+  .q-table thead th
+    color: var(--obs-muted)
+    background: var(--obs-raised)
+  .q-chip:not([class*="bg-"])
+    background: var(--obs-raised)
+    color: var(--obs-text-2)
+  .text-grey, .text-grey-7, .text-grey-8
+    color: var(--obs-muted) !important
+  .q-field__native, .q-field__input, .q-field__label
+    color: var(--obs-text-2)
+  .q-item__label--caption
+    color: var(--obs-muted)

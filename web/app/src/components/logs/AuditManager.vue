@@ -426,7 +426,9 @@ export default {
         case "failed_login":
           return dash_negative_color.value;
         default:
-          return "primary";
+          // 046 (UI-D05): el teal es acción/navegación; una acción registrada
+          // sin estado especial va neutra.
+          return "secondary";
       }
     }
 

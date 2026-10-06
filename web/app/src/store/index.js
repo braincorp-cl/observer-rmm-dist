@@ -247,7 +247,14 @@ export default function () {
         commit("setDashNegativeColor", data.dash_negative_color);
         commit("setDashWarningColor", data.dash_warning_color);
         if (edited) {
-          LoadingBar.setDefaults({ color: data.loading_bar_color });
+          // 046: el rojo por defecto de la v1 es color de estado (UI-D05);
+          // la barra de carga usa el primario. Otra preferencia se respeta.
+          LoadingBar.setDefaults({
+            color:
+              data.loading_bar_color === "red"
+                ? "primary"
+                : data.loading_bar_color,
+          });
           commit(
             "setClearSearchWhenSwitching",
             data.clear_search_when_switching,
