@@ -125,3 +125,22 @@ body.body--dark
     color: var(--obs-text-2)
   .q-icon:not([class*="text-"])
     color: inherit
+
+// Componentes "--dark" de Quasar fijan color #fff y grises con alfa; dentro del
+// espacio 1c salen de los tokens (barrido propio + gauntlet UI-D02, 2026-10-06).
+.obs-ws
+  .q-dark, .q-list--dark, .q-item--dark, .q-expansion-item
+    color: var(--obs-text)
+  .q-item__section--side
+    color: var(--obs-muted)
+  .q-field__label, .q-field--dark .q-field__label
+    color: var(--obs-muted) !important
+  .q-btn:not([class*="bg-"]):not([class*="text-"])
+    color: var(--obs-text-2)
+  .q-linear-progress__track
+    background: var(--obs-border)
+    opacity: 1
+  .q-separator
+    color: var(--obs-border)
+  .text-overline
+    color: var(--obs-text-2)
