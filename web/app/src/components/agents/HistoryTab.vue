@@ -119,7 +119,8 @@ export default {
       },
       {
         name: "command",
-        classes: "mono",
+        // 046 (UI-D01): un comando es dato (mono); el nombre de un script, no.
+        classes: (row) => (row.type === "script_run" ? "" : "mono"),
         label: t("agentTabs.history.colCommand"),
         field: (row) =>
           row.type === "script_run" ? row.script_name : row.command,

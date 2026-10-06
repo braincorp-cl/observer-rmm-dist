@@ -177,17 +177,25 @@
             <q-item-section avatar>
               <q-icon name="fas fa-globe-americas" />
             </q-item-section>
-            <q-item-section class="mono">{{
-              $t("agentTabs.summary.publicIp", { ip: summary.public_ip })
-            }}</q-item-section>
+            <q-item-section
+              ><i18n-t keypath="agentTabs.summary.publicIp" tag="span"
+                ><template #ip
+                  ><span class="mono">{{ summary.public_ip }}</span></template
+                ></i18n-t
+              ></q-item-section
+            >
           </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section class="mono">{{
-              $t("agentTabs.summary.lanIp", { ips: summary.local_ips })
-            }}</q-item-section>
+            <q-item-section
+              ><i18n-t keypath="agentTabs.summary.lanIp" tag="span"
+                ><template #ips
+                  ><span class="mono">{{ summary.local_ips }}</span></template
+                ></i18n-t
+              ></q-item-section
+            >
           </q-item>
         </q-list>
       </div>

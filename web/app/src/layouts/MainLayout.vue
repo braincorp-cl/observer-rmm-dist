@@ -84,7 +84,7 @@
           <q-tooltip>{{ $t("layout.backToDashboard") }}</q-tooltip>
         </q-btn>
         <q-toolbar-title>
-          Observer RMM<span class="text-overline q-ml-sm mono">{{
+          Observer RMM<span class="text-overline q-ml-sm">{{
             $t("layout.version", { version: currentVersion })
           }}</span>
           <!-- update check -->

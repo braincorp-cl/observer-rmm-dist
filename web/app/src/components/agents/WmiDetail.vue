@@ -7,9 +7,11 @@
             $t("wmiDetail.keyLabel", { k })
           }}</span>
           <!-- 046 (UI-D05): el valor de inventario es un dato, no una acción: chip neutro y monoespaciado -->
-          <q-badge class="q-ml-sm text-caption mono obs-chip-neutral">{{
-            v
-          }}</q-badge>
+          <q-badge
+            class="q-ml-sm text-caption obs-chip-neutral"
+            :class="{ mono: !esFecha(v) }"
+            >{{ v }}</q-badge
+          >
           <q-btn
             v-if="!!v"
             size="sm"
@@ -52,7 +54,16 @@ export default {
       });
     }
 
+    // 046 (UI-D01): las fechas quedan en Archivo; el resto de valores es dato (mono).
+    function esFecha(v) {
+      return (
+        typeof v === "string" &&
+        /^\d{4}-\d{2}-\d{2}([T ][\d:.]+)?(Z|[+-]\d{2}:?\d{2})?$/.test(v)
+      );
+    }
+
     return {
+      esFecha,
       tabHeight,
       uid,
       copyValueToClip,
