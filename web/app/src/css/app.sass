@@ -176,3 +176,17 @@ body.body--dark
     color: $obs-d-text
   .q-icon.text-null, .q-btn .q-icon:not([class*="text-"])
     color: $obs-d-text
+// Badges con color de marca: texto --obs-on-brand en ambos temas (q-badge no
+// lleva text-white y Quasar le fija #fff).
+.q-badge[class*="bg-"]:not(.bg-secondary):not(.obs-chip-neutral)
+  color: var(--obs-on-brand)
+// Shell: cabecera navy y riel; nada de #fff puro de Quasar.
+.q-header.text-white
+  color: $obs-d-text !important
+.q-header
+  .q-field__control
+    background: transparent !important
+  .q-field__control:before, .q-field__control:after
+    border-color: $obs-d-border !important
+.q-drawer.obs-rail
+  color: var(--obs-text)
