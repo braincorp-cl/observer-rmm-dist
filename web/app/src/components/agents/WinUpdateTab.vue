@@ -70,7 +70,7 @@
       </template>
 
       <template v-slot:loading>
-        <q-inner-loading showing color="primary" />
+        <q-inner-loading showing color="secondary" />
       </template>
 
       <template v-slot:body="props">

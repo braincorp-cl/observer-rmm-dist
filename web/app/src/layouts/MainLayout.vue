@@ -128,8 +128,10 @@
           </template>
         </q-select>
         <!-- temp dark mode toggle -->
+        <!-- 046 (UI-D05): el interruptor de tema no usa el teal para su estado -->
         <q-toggle
           v-model="darkMode"
+          color="secondary"
           class="q-mr-sm"
           checked-icon="nights_stay"
           unchecked-icon="wb_sunny"
@@ -146,7 +148,7 @@
         />
         <!-- Devices Chip -->
         <q-chip class="cursor-pointer obs-hdr-chip">
-          <q-avatar size="md" icon="devices" color="primary" />
+          <q-avatar size="md" icon="devices" color="secondary" />
           <q-tooltip :delay="600" anchor="top middle" self="top middle">{{
             $t("layout.agentCount")
           }}</q-tooltip>
@@ -156,7 +158,7 @@
               <q-item-label header>{{ $t("layout.servers") }}</q-item-label>
               <q-item>
                 <q-item-section avatar>
-                  <q-icon name="dns" size="sm" color="primary" />
+                  <q-icon name="dns" size="sm" />
                 </q-item-section>
 
                 <q-item-section no-wrap>
@@ -185,7 +187,7 @@
               }}</q-item-label>
               <q-item>
                 <q-item-section avatar>
-                  <q-icon name="computer" size="sm" color="primary" />
+                  <q-icon name="computer" size="sm" />
                 </q-item-section>
 
                 <q-item-section no-wrap>

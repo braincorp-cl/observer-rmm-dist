@@ -6,7 +6,7 @@
     <q-circular-progress
       indeterminate
       size="50px"
-      color="primary"
+      color="secondary"
       class="q-ma-md"
     />
   </div>
@@ -129,7 +129,8 @@
         <span class="text-subtitle2 text-bold">{{
           $t("agentTabs.summary.hardwareDetails")
         }}</span>
-        <q-list dense>
+        <!-- 046 (UI-D01): especificaciones de hardware = datos ⇒ mono -->
+        <q-list dense class="mono">
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-desktop" />
@@ -308,7 +309,7 @@
       </div>
       <div class="col-2"></div>
     </div>
-    <q-inner-loading :showing="loading" color="primary" />
+    <q-inner-loading :showing="loading" color="secondary" />
 
     <AgentLocationDialog
       v-model="showLocation"

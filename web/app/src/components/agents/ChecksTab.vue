@@ -22,7 +22,7 @@
       :no-data-label="$t('agentTabs.checks.noChecks')"
     >
       <template v-slot:loading>
-        <q-inner-loading showing color="primary" />
+        <q-inner-loading showing color="secondary" />
       </template>
 
       <!-- table top slot -->

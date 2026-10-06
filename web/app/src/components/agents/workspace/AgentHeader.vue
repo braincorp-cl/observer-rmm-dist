@@ -133,7 +133,7 @@
         </q-btn>
       </div>
     </div>
-    <div class="row q-gutter-sm q-mt-sm obs-agenthdr__badges">
+    <div class="row q-gutter-sm q-mt-sm obs-agenthdr__badges mono">
       <span
         v-if="urgency.failingChecks > 0"
         class="obs-badge obs-badge--neg"

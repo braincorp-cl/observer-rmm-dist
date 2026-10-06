@@ -248,7 +248,7 @@ export default function () {
         commit("setDashWarningColor", data.dash_warning_color);
         if (edited) {
           // 046: el rojo por defecto de la v1 es color de estado (UI-D05);
-          // la barra de carga usa el primario. Otra preferencia se respeta.
+          // la barra de carga usa secondary (neutro: actividad, no estado ni acción).
           LoadingBar.setDefaults({
             color:
               data.loading_bar_color === "red"
