@@ -391,8 +391,7 @@
             </span></q-td
           >
           <!-- more info -->
-          <!-- 046 (UI-D01): salida del chequeo = dato ⇒ mono -->
-          <q-td class="mono">
+          <q-td>
             <span
               v-if="props.row.check_result.id"
               style="cursor: pointer; text-decoration: underline"
@@ -434,6 +433,8 @@
               @click="showEventInfo(props.row)"
               >{{ $t("agentTabs.checks.lastOutput") }}</span
             >
+            <!-- 046 (UI-D01): solo la salida del chequeo (dato) va en mono; los
+                 enlaces son interfaz y quedan en Archivo. -->
             <span
               v-else-if="
                 ['diskspace', 'cpuload', 'memory'].includes(
@@ -441,6 +442,7 @@
                 ) ||
                 (props.row.check_type === 'winsvc' && props.row.check_result.id)
               "
+              class="mono"
               >{{ props.row.check_result.more_info }}</span
             >
           </q-td>

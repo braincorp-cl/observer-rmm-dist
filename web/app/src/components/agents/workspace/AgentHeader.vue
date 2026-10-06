@@ -7,6 +7,22 @@
   -->
   <header class="obs-agenthdr">
     <div class="row no-wrap items-start">
+      <!-- 046 T029 (UI-R01): con la columna de contexto plegada (< 1200 px),
+           este botón la abre superpuesta. -->
+      <q-btn
+        v-if="contextToggle"
+        flat
+        round
+        dense
+        icon="view_list"
+        class="q-mr-sm"
+        data-action="toggle-context"
+        :aria-label="$t('agentWorkspace.header.showList')"
+        :aria-expanded="contextOpen ? 'true' : 'false'"
+        @click="$emit('toggle-context')"
+      >
+        <q-tooltip>{{ $t("agentWorkspace.header.showList") }}</q-tooltip>
+      </q-btn>
       <div class="col" style="min-width: 0">
         <div class="obs-agenthdr__crumbs ellipsis" :title="crumbs">
           {{ crumbs }}
@@ -216,8 +232,10 @@ const props = defineProps({
   agent: { type: Object, required: true },
   urgency: { type: Object, required: true },
   actions: { type: Array, required: true },
+  contextToggle: { type: Boolean, default: false },
+  contextOpen: { type: Boolean, default: false },
 });
-defineEmits(["refresh-wmi"]);
+defineEmits(["refresh-wmi", "toggle-context"]);
 
 const store = useStore();
 const { t } = useI18n();

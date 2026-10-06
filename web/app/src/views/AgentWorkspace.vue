@@ -8,7 +8,18 @@
     cambiar de sección usa replace y cambiar de equipo usa push (UI-E02).
   -->
   <q-page :style-fn="pageStyle" class="obs-ws row no-wrap">
-    <ContextColumn v-if="agent" :agent="agent" />
+    <!-- 046 T029 (UI-R01): bajo 1200 px la columna de contexto se pliega y se abre
+         superpuesta desde el botón de lista de la cabecera. -->
+    <ContextColumn
+      v-if="agent && (!narrow || ctxOpen)"
+      :agent="agent"
+      :class="{ 'obs-ws__ctx--overlay': narrow }"
+    />
+    <div
+      v-if="narrow && ctxOpen"
+      class="obs-ws__scrim"
+      @click="ctxOpen = false"
+    />
     <div class="col column no-wrap obs-ws__main" style="min-width: 0">
       <div v-if="!agent" class="flex flex-center col">
         <q-circular-progress indeterminate size="44px" color="secondary" />
@@ -18,7 +29,10 @@
           :agent="agent"
           :urgency="urgency"
           :actions="descriptors"
+          :context-toggle="narrow"
+          :context-open="ctxOpen"
           @refresh-wmi="refreshWMI"
+          @toggle-context="ctxOpen = !ctxOpen"
         />
         <div class="col row no-wrap" style="min-height: 0">
           <SectionNav
@@ -47,6 +61,7 @@
 <script>
 import { computed, provide, ref, watch, reactive, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
+import { useQuasar } from "quasar";
 import { useRoute, useRouter } from "vue-router";
 import { fetchAgent, refreshAgentWMI } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
@@ -97,6 +112,9 @@ export default {
     const agent = ref(null);
     const contentEl = ref(null);
     const pageHeight = ref(0);
+    const $q = useQuasar();
+    const narrow = computed(() => $q.screen.width < 1200);
+    const ctxOpen = ref(false);
 
     const {
       failingChecks,
@@ -196,6 +214,15 @@ export default {
     }, 15000);
     onBeforeUnmount(() => clearInterval(poll));
 
+    // Elegir otro equipo en la columna superpuesta la cierra.
+    watch(
+      () => route.params.agent_id,
+      () => (ctxOpen.value = false),
+    );
+    watch(narrow, (n) => {
+      if (!n) ctxOpen.value = false;
+    });
+
     watch(
       () => route.params.agent_id,
       (n, o) => {
@@ -206,6 +233,8 @@ export default {
 
     return {
       agent,
+      narrow,
+      ctxOpen,
       urgency,
       descriptors,
       section,
@@ -224,7 +253,19 @@ export default {
 
 <style lang="sass" scoped>
 .obs-ws
+  position: relative
   background: var(--obs-page)
+.obs-ws__ctx--overlay
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  z-index: 5
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35)
+.obs-ws__scrim
+  position: absolute
+  inset: 0
+  z-index: 4
 .obs-ws__content
   overflow: auto
   background: var(--obs-page)

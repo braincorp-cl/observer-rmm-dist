@@ -8,7 +8,14 @@
     ya posicionada en esa pestaña (UI-F09): ninguna llamada nueva a la API.
   -->
   <footer class="obs-actionbar row no-wrap items-center">
-    <div class="row no-wrap items-center q-gutter-x-sm obs-actionbar__main">
+    <!-- 046 T029 (UI-R01/F03): si los botones con texto no caben (1280 px con la
+         columna de contexto), los atajos pasan a solo ícono + tooltip y
+         "Más acciones" sigue siempre a la vista. -->
+    <q-resize-observer @resize="fit" />
+    <div
+      ref="mainEl"
+      class="row no-wrap items-center q-gutter-x-sm obs-actionbar__main"
+    >
       <q-btn
         v-for="b in primary"
         :key="b.key"
@@ -17,13 +24,17 @@
         :outline="b.key !== 'takeControl'"
         :color="b.key === 'takeControl' ? 'primary' : undefined"
         :icon="b.icon"
-        :label="b.label"
+        :label="compact && b.key !== 'takeControl' ? undefined : b.label"
+        :aria-label="b.label"
         :data-action="b.key"
         class="obs-actionbar__btn"
         @click="b.run()"
-      />
+      >
+        <q-tooltip v-if="compact && b.key !== 'takeControl'">{{
+          b.label
+        }}</q-tooltip>
+      </q-btn>
     </div>
-    <q-space />
     <div class="row no-wrap items-center q-gutter-x-sm obs-actionbar__right">
       <!-- Respuesta rápida: solo ícono + tooltip, para que "Más acciones" quepa
            siempre en pantalla a 1280/1440 (UI-F03, corrida 2026-10-05). -->
@@ -147,7 +158,7 @@
 </template>
 
 <script setup>
-import { computed, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { openURL } from "quasar";
 import { router } from "@/router";
@@ -213,6 +224,34 @@ const primary = computed(() => {
 const simple = computed(() => props.actions.filter((a) => !a.children));
 const groups = computed(() => props.actions.filter((a) => a.children));
 
+// Ancho que piden los atajos con texto; se mide la primera vez que no caben.
+const mainEl = ref(null);
+const compact = ref(false);
+let fullWidth = 0;
+async function fit() {
+  const el = mainEl.value;
+  if (!el) return;
+  if (!compact.value) {
+    if (el.scrollWidth > el.clientWidth + 1) {
+      fullWidth = el.scrollWidth;
+      compact.value = true;
+    }
+  } else if (el.clientWidth >= fullWidth) {
+    compact.value = false;
+    await nextTick();
+    fit();
+  }
+}
+// Cambiar de equipo puede cambiar los atajos (Servicios solo en Windows).
+watch(
+  () => primary.value.length,
+  async () => {
+    compact.value = false;
+    await nextTick();
+    fit();
+  },
+);
+
 const response = computed(() =>
   ["lock", "sendAlert", "alarm"].map((k) => find(k)).filter(Boolean),
 );
@@ -233,6 +272,10 @@ const response = computed(() =>
     flex-wrap: nowrap
 .obs-actionbar__btn.bg-primary
   color: var(--obs-on-brand)
+.obs-actionbar__main
+  flex: 1 1 auto
+  min-width: 0
+  overflow: hidden
 .obs-actionbar__right
   flex: none
 .obs-moremenu__col

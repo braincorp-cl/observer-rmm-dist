@@ -14,7 +14,7 @@
       <div class="obs-ctx__client ellipsis" :title="clientName">
         {{ clientName }}
       </div>
-      <div class="obs-ctx__site ellipsis">
+      <div class="obs-ctx__site ellipsis" :title="siteName">
         <i18n-t keypath="agentWorkspace.context.siteLine" tag="span">
           <template #site>{{ siteName }}</template>
           <template #count>

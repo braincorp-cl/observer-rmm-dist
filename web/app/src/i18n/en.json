@@ -3418,7 +3418,8 @@
       "overdueAgo": "Overdue · {ago} ago",
       "bootedAgo": "booted {ago} ago",
       "refresh": "Refresh inventory",
-      "ram": "{gb} GB RAM"
+      "ram": "{gb} GB RAM",
+      "showList": "Site device list"
     },
     "shortcuts": {
       "webTerminal": "Web terminal",

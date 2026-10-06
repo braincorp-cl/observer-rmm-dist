@@ -3418,7 +3418,8 @@
       "overdueAgo": "Sin respuesta · hace {ago}",
       "bootedAgo": "arranque hace {ago}",
       "refresh": "Actualizar inventario",
-      "ram": "{gb} GB RAM"
+      "ram": "{gb} GB RAM",
+      "showList": "Lista de equipos del sitio"
     },
     "shortcuts": {
       "webTerminal": "Terminal web",
