@@ -120,6 +120,12 @@ body.body--dark
   // en una tabla de ancho automático; una URL o GUID ya no fija la columna.
   .q-table td
     overflow-wrap: anywhere
+  // Una cabecera de una sola palabra larga («Programación») fija su columna.
+  .q-table th
+    padding-left: 6px
+    padding-right: 6px
+  .q-table th:last-child, .q-table td:last-child
+    padding-right: 8px
   .q-table th.q-table--col-auto-width, .q-table td.q-table--col-auto-width
     padding-left: 4px
     padding-right: 4px
