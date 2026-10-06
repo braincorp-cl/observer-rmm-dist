@@ -17,7 +17,7 @@
         class="flex flex-center"
         style="height: 420px"
       >
-        <q-circular-progress indeterminate size="50px" color="primary" />
+        <q-circular-progress indeterminate size="50px" color="secondary" />
       </q-card-section>
 
       <!-- interruptor global apagado -->

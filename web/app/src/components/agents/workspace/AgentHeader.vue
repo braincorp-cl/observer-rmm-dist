@@ -48,8 +48,16 @@
             </q-tooltip>
           </q-badge>
         </div>
-        <div class="obs-agenthdr__sys ellipsis mono" :title="sysLine">
-          {{ sysLine }}
+        <!-- 046 (UI-D01): solo el valor de especificación (RAM) va en mono; nombres
+             con versión y frases quedan en Archivo. El separador lo pone el CSS. -->
+        <div class="obs-agenthdr__sys ellipsis" :title="sysLine">
+          <span
+            v-for="(part, i) in sysParts"
+            :key="i"
+            class="obs-sys-part"
+            :class="{ mono: part.mono }"
+            >{{ part.t }}</span
+          >
         </div>
       </div>
       <div class="row no-wrap items-center q-gutter-x-sm obs-agenthdr__btns">
@@ -133,14 +141,21 @@
         </q-btn>
       </div>
     </div>
-    <div class="row q-gutter-sm q-mt-sm obs-agenthdr__badges mono">
+    <div class="row q-gutter-sm q-mt-sm obs-agenthdr__badges">
       <span
         v-if="urgency.failingChecks > 0"
         class="obs-badge obs-badge--neg"
         data-badge="failingChecks"
       >
         <q-icon name="error_outline" size="16px" />
-        {{ $t("agentWorkspace.badges.failingChecks", urgency.failingChecks) }}
+        <i18n-t
+          keypath="agentWorkspace.badges.failingChecks"
+          :plural="urgency.failingChecks"
+          tag="span"
+          ><template #n
+            ><span class="mono">{{ urgency.failingChecks }}</span></template
+          ></i18n-t
+        >
       </span>
       <span
         v-if="urgency.pendingPatches > 0"
@@ -148,7 +163,14 @@
         data-badge="pendingPatches"
       >
         <q-icon name="download" size="16px" />
-        {{ $t("agentWorkspace.badges.pendingPatches", urgency.pendingPatches) }}
+        <i18n-t
+          keypath="agentWorkspace.badges.pendingPatches"
+          :plural="urgency.pendingPatches"
+          tag="span"
+          ><template #n
+            ><span class="mono">{{ urgency.pendingPatches }}</span></template
+          ></i18n-t
+        >
       </span>
       <span
         v-if="urgency.pendingActions > 0"
@@ -156,7 +178,14 @@
         data-badge="pendingActions"
       >
         <q-icon name="pending_actions" size="16px" />
-        {{ $t("agentWorkspace.badges.pendingActions", urgency.pendingActions) }}
+        <i18n-t
+          keypath="agentWorkspace.badges.pendingActions"
+          :plural="urgency.pendingActions"
+          tag="span"
+          ><template #n
+            ><span class="mono">{{ urgency.pendingActions }}</span></template
+          ></i18n-t
+        >
       </span>
       <span
         v-if="urgency.rebootRequired"
@@ -240,6 +269,26 @@ const statusText = computed(() => {
   return t(`agentWorkspace.header.${key}`, { ago: ago(since) });
 });
 
+const sysParts = computed(() => {
+  const a = props.agent;
+  const parts = [a.operating_system, a.make_model]
+    .filter(Boolean)
+    .map((t) => ({ t, mono: false }));
+  if (a.total_ram)
+    parts.push({
+      t: t("agentWorkspace.header.ram", { gb: a.total_ram }),
+      mono: true,
+    });
+  if (a.boot_time)
+    parts.push({
+      t: t("agentWorkspace.header.bootedAgo", {
+        ago: ago(now.value / 1000 - a.boot_time),
+      }),
+      mono: false,
+    });
+  return parts;
+});
+
 const sysLine = computed(() => {
   const a = props.agent;
   const parts = [a.operating_system, a.make_model];
@@ -295,6 +344,8 @@ const sysLine = computed(() => {
 .obs-agenthdr__maint
   background: var(--obs-raised)
   color: var(--obs-text-2)
+.obs-sys-part + .obs-sys-part::before
+  content: " · "
 .obs-agenthdr__sys
   font-size: 13px
   color: var(--obs-text-2)

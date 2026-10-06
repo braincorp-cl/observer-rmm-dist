@@ -166,7 +166,7 @@ body.body--dark
 
 // 046 (UI-D01/D02, alcance de pantalla completa): fuera del espacio 1c también.
 // Paginación de tablas = conteos ⇒ mono. El input oculto de q-select no pinta.
-.q-table__bottom .q-table__control, .q-table__bottom-item
+.q-table__control:not(:has(.q-select)) > .q-table__bottom-item
   font-family: $obs-font-mono
 .q-select__focus-target
   color: transparent !important

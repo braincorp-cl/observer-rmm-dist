@@ -252,7 +252,7 @@ export default function () {
           LoadingBar.setDefaults({
             color:
               data.loading_bar_color === "red"
-                ? "primary"
+                ? "secondary"
                 : data.loading_bar_color,
           });
           commit(

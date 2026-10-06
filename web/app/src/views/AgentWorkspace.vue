@@ -11,7 +11,7 @@
     <ContextColumn v-if="agent" :agent="agent" />
     <div class="col column no-wrap obs-ws__main" style="min-width: 0">
       <div v-if="!agent" class="flex flex-center col">
-        <q-circular-progress indeterminate size="44px" color="primary" />
+        <q-circular-progress indeterminate size="44px" color="secondary" />
       </div>
       <template v-else>
         <AgentHeader

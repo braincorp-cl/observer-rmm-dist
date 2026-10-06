@@ -111,6 +111,8 @@ module.exports = configure(function (/* ctx */) {
     framework: {
       config: {
         loadingBar: {
+          // 046 (UI-D05): actividad, no estado ni acción ⇒ neutro (el default de Quasar es rojo).
+          color: "secondary",
           size: "4px",
         },
         notify: {

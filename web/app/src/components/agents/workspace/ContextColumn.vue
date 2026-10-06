@@ -14,26 +14,37 @@
       <div class="obs-ctx__client ellipsis" :title="clientName">
         {{ clientName }}
       </div>
-      <div class="obs-ctx__site ellipsis mono">
-        {{
-          $t("agentWorkspace.context.siteLine", {
-            site: siteName,
-            count: $t("agentWorkspace.context.equipmentCount", agents.length),
-          })
-        }}
+      <div class="obs-ctx__site ellipsis">
+        <i18n-t keypath="agentWorkspace.context.siteLine" tag="span">
+          <template #site>{{ siteName }}</template>
+          <template #count>
+            <i18n-t
+              keypath="agentWorkspace.context.equipmentCount"
+              :plural="agents.length"
+              tag="span"
+              ><template #n
+                ><span class="mono">{{ agents.length }}</span></template
+              ></i18n-t
+            >
+          </template>
+        </i18n-t>
       </div>
       <div class="row q-gutter-xs q-mt-sm">
         <q-chip
           clickable
           dense
           :outline="!onlyFailing"
-          class="obs-ctx__chip mono"
+          class="obs-ctx__chip"
           :class="{ 'obs-ctx__chip--on-neg': onlyFailing }"
           data-filter="failing"
           :aria-pressed="onlyFailing ? 'true' : 'false'"
           @click="onlyFailing = !onlyFailing"
         >
-          {{ $t("agentWorkspace.context.filterFailingN", { n: failingCount }) }}
+          <i18n-t keypath="agentWorkspace.context.filterFailingN" tag="span"
+            ><template #n
+              ><span class="mono">{{ failingCount }}</span></template
+            ></i18n-t
+          >
         </q-chip>
         <q-chip
           clickable
@@ -88,22 +99,29 @@
             <q-item-label
               v-if="item.checks && item.checks.failing > 0"
               caption
-              class="mono obs-ctx__fail"
-              >{{
-                $t("agentWorkspace.badges.failingChecks", item.checks.failing)
-              }}</q-item-label
+              class="obs-ctx__fail"
+              ><i18n-t
+                keypath="agentWorkspace.badges.failingChecks"
+                :plural="item.checks.failing"
+                tag="span"
+                ><template #n
+                  ><span class="mono">{{ item.checks.failing }}</span></template
+                ></i18n-t
+              ></q-item-label
             >
           </q-item-section>
         </q-item>
       </q-virtual-scroll>
     </div>
-    <div class="obs-ctx__foot mono">
-      {{
-        $t("agentWorkspace.context.shownOf", {
-          shown: shown.length,
-          total: agents.length,
-        })
-      }}
+    <div class="obs-ctx__foot">
+      <i18n-t keypath="agentWorkspace.context.shownOf" tag="span">
+        <template #shown
+          ><span class="mono">{{ shown.length }}</span></template
+        >
+        <template #total
+          ><span class="mono">{{ agents.length }}</span></template
+        >
+      </i18n-t>
     </div>
   </aside>
 </template>

@@ -57,7 +57,7 @@
         class="flex flex-center"
         style="height: 420px"
       >
-        <q-circular-progress indeterminate size="50px" color="primary" />
+        <q-circular-progress indeterminate size="50px" color="secondary" />
       </q-card-section>
 
       <template v-else>
@@ -376,7 +376,9 @@ export default {
     const motivosPropiosDeLaCamara = ["permiso_denegado", "so_no_soportado"];
 
     function reasonWebcamKey(note) {
-      const sufijo = motivosPropiosDeLaCamara.includes(note) ? `${note}_camara` : note;
+      const sufijo = motivosPropiosDeLaCamara.includes(note)
+        ? `${note}_camara`
+        : note;
       return `lostEquipment.timeline.reason_${sufijo}`;
     }
 

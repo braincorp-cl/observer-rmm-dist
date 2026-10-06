@@ -197,50 +197,66 @@
         }}</span>
         <br />
         <div v-if="summary.checks.total !== 0">
-          <q-chip class="mono" v-if="summary.checks.passing" square size="lg">
+          <q-chip v-if="summary.checks.passing" square size="lg">
             <q-avatar
               size="lg"
               square
               icon="done"
               :color="dash_positive_color"
             />
-            <small>{{
-              $t("agentTabs.summary.checksPassing", {
-                n: summary.checks.passing,
-              })
-            }}</small>
+            <small
+              ><i18n-t keypath="agentTabs.summary.checksPassing" tag="span"
+                ><template #n
+                  ><span class="mono">{{
+                    summary.checks.passing
+                  }}</span></template
+                ></i18n-t
+              ></small
+            >
           </q-chip>
-          <q-chip class="mono" v-if="summary.checks.failing" square size="lg">
+          <q-chip v-if="summary.checks.failing" square size="lg">
             <q-avatar
               size="lg"
               square
               icon="cancel"
               :color="dash_negative_color"
             />
-            <small>{{
-              $t("agentTabs.summary.checksFailing", {
-                n: summary.checks.failing,
-              })
-            }}</small>
+            <small
+              ><i18n-t keypath="agentTabs.summary.checksFailing" tag="span"
+                ><template #n
+                  ><span class="mono">{{
+                    summary.checks.failing
+                  }}</span></template
+                ></i18n-t
+              ></small
+            >
           </q-chip>
-          <q-chip class="mono" v-if="summary.checks.warning" square size="lg">
+          <q-chip v-if="summary.checks.warning" square size="lg">
             <q-avatar
               size="lg"
               square
               icon="warning"
               :color="dash_warning_color"
             />
-            <small>{{
-              $t("agentTabs.summary.checksWarning", {
-                n: summary.checks.warning,
-              })
-            }}</small>
+            <small
+              ><i18n-t keypath="agentTabs.summary.checksWarning" tag="span"
+                ><template #n
+                  ><span class="mono">{{
+                    summary.checks.warning
+                  }}</span></template
+                ></i18n-t
+              ></small
+            >
           </q-chip>
-          <q-chip class="mono" v-if="summary.checks.info" square size="lg">
+          <q-chip v-if="summary.checks.info" square size="lg">
             <q-avatar size="lg" square icon="info" :color="dash_info_color" />
-            <small>{{
-              $t("agentTabs.summary.checksInfo", { n: summary.checks.info })
-            }}</small>
+            <small
+              ><i18n-t keypath="agentTabs.summary.checksInfo" tag="span"
+                ><template #n
+                  ><span class="mono">{{ summary.checks.info }}</span></template
+                ></i18n-t
+              ></small
+            >
           </q-chip>
           <span
             v-if="

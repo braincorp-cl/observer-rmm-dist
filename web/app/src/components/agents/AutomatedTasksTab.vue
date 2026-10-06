@@ -42,7 +42,7 @@
       </template>
 
       <template v-slot:loading>
-        <q-inner-loading showing color="primary" />
+        <q-inner-loading showing color="secondary" />
       </template>
 
       <!-- header slots -->

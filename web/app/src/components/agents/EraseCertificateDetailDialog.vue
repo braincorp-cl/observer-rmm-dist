@@ -10,7 +10,7 @@
       </q-bar>
 
       <q-card-section v-if="loading" class="row justify-center q-pa-lg">
-        <q-spinner size="2em" color="primary" />
+        <q-spinner size="2em" color="secondary" />
       </q-card-section>
 
       <template v-else-if="cert">
@@ -33,17 +33,21 @@
                   : $t("erase.detail.invalid")
               }}
             </q-badge>
-            <q-chip dense :color="chipColor(verification.document_intact)" text-color="white">
+            <q-chip
+              dense
+              :color="chipColor(verification.document_intact)"
+              text-color="white"
+            >
               {{ $t("erase.detail.documentIntact") }}
+            </q-chip>
+            <q-chip dense :color="signatureChipColor" text-color="white">
+              {{ signatureChipLabel }}
             </q-chip>
             <q-chip
               dense
-              :color="signatureChipColor"
+              :color="chipColor(verification.chain_intact)"
               text-color="white"
             >
-              {{ signatureChipLabel }}
-            </q-chip>
-            <q-chip dense :color="chipColor(verification.chain_intact)" text-color="white">
               {{ $t("erase.detail.chainIntact") }}
             </q-chip>
           </div>
@@ -166,21 +170,81 @@ export default {
       const c = cert.value;
       if (!c) return [];
       return [
-        { key: "certificate_id", label: t("erase.detail.certificateId"), value: c.certificate_id || dash },
-        { key: "kind", label: t("erase.detail.kind"), value: c.kind ? t(`erase.kind.${c.kind}`) : dash },
-        { key: "tenant", label: t("erase.detail.tenant"), value: c.tenant || dash },
-        { key: "asset_tag", label: t("erase.detail.assetTag"), value: c.asset_tag || dash },
-        { key: "method_applied", label: t("erase.detail.method"), value: c.method_applied || dash },
-        { key: "standard_ref", label: t("erase.detail.standard"), value: c.standard_ref || dash },
-        { key: "verification_result", label: t("erase.detail.result"), value: c.verification_result || dash },
-        { key: "operator", label: t("erase.detail.operator"), value: c.operator || dash },
-        { key: "started_at", label: t("erase.detail.startedAt"), value: c.started_at ? formatDate(c.started_at) : dash },
-        { key: "finished_at", label: t("erase.detail.finishedAt"), value: c.finished_at ? formatDate(c.finished_at) : dash },
-        { key: "software_version", label: t("erase.detail.softwareVersion"), value: c.software_version || dash },
-        { key: "created_at", label: t("erase.detail.createdAt"), value: c.created_at ? formatDate(c.created_at) : dash },
-        { key: "document_hash", label: t("erase.detail.documentHash"), value: c.document_hash || dash },
-        { key: "signature_alg", label: t("erase.detail.signatureAlg"), value: c.signature_alg || dash },
-        { key: "signing_key_id", label: t("erase.detail.signingKeyId"), value: c.signing_key_id || dash },
+        {
+          key: "certificate_id",
+          label: t("erase.detail.certificateId"),
+          value: c.certificate_id || dash,
+        },
+        {
+          key: "kind",
+          label: t("erase.detail.kind"),
+          value: c.kind ? t(`erase.kind.${c.kind}`) : dash,
+        },
+        {
+          key: "tenant",
+          label: t("erase.detail.tenant"),
+          value: c.tenant || dash,
+        },
+        {
+          key: "asset_tag",
+          label: t("erase.detail.assetTag"),
+          value: c.asset_tag || dash,
+        },
+        {
+          key: "method_applied",
+          label: t("erase.detail.method"),
+          value: c.method_applied || dash,
+        },
+        {
+          key: "standard_ref",
+          label: t("erase.detail.standard"),
+          value: c.standard_ref || dash,
+        },
+        {
+          key: "verification_result",
+          label: t("erase.detail.result"),
+          value: c.verification_result || dash,
+        },
+        {
+          key: "operator",
+          label: t("erase.detail.operator"),
+          value: c.operator || dash,
+        },
+        {
+          key: "started_at",
+          label: t("erase.detail.startedAt"),
+          value: c.started_at ? formatDate(c.started_at) : dash,
+        },
+        {
+          key: "finished_at",
+          label: t("erase.detail.finishedAt"),
+          value: c.finished_at ? formatDate(c.finished_at) : dash,
+        },
+        {
+          key: "software_version",
+          label: t("erase.detail.softwareVersion"),
+          value: c.software_version || dash,
+        },
+        {
+          key: "created_at",
+          label: t("erase.detail.createdAt"),
+          value: c.created_at ? formatDate(c.created_at) : dash,
+        },
+        {
+          key: "document_hash",
+          label: t("erase.detail.documentHash"),
+          value: c.document_hash || dash,
+        },
+        {
+          key: "signature_alg",
+          label: t("erase.detail.signatureAlg"),
+          value: c.signature_alg || dash,
+        },
+        {
+          key: "signing_key_id",
+          label: t("erase.detail.signingKeyId"),
+          value: c.signing_key_id || dash,
+        },
       ];
     });
 
@@ -192,7 +256,7 @@ export default {
       if (!pr || typeof pr !== "object") return [];
       return Object.entries(pr).map(([path, v]) => ({
         path,
-        status: v && typeof v === "object" ? v.status ?? dash : String(v),
+        status: v && typeof v === "object" ? (v.status ?? dash) : String(v),
         bytes: v && typeof v === "object" && v.bytes != null ? v.bytes : dash,
       }));
     });
