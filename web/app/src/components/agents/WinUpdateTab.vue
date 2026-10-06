@@ -124,7 +124,6 @@
             <q-icon
               v-if="props.row.action === 'nothing'"
               name="fiber_manual_record"
-              color="grey"
             >
               <q-tooltip>{{ $t("agentTabs.patches.doNothing") }}</q-tooltip>
             </q-icon>

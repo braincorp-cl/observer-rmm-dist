@@ -54,7 +54,7 @@
                 <div class="text-caption">{{ props.row.username }}</div>
               </div>
               <div class="col-auto">
-                <q-btn color="grey-7" round flat icon="more_vert">
+                <q-btn round flat icon="more_vert">
                   <q-menu cover auto-close>
                     <q-list dense>
                       <q-item

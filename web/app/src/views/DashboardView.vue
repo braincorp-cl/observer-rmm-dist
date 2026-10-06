@@ -940,7 +940,7 @@ export default {
 
 <style>
 .my-menu-link {
-  color: white;
-  background: lightgray;
+  color: var(--obs-text);
+  background: var(--obs-selected);
 }
 </style>

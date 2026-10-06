@@ -55,7 +55,7 @@
           el tooltip dice desde cuándo y quién lo activó. `since` nulo se muestra
           como "desconocido", nunca como una fecha inventada.
         -->
-        <q-badge color="green">
+        <q-badge color="positive">
           {{ $t("agentTabs.summary.maintenanceMode") }}
           <q-tooltip>
             {{
@@ -202,7 +202,6 @@
               square
               icon="done"
               :color="dash_positive_color"
-              text-color="white"
             />
             <small>{{
               $t("agentTabs.summary.checksPassing", {
@@ -216,7 +215,6 @@
               square
               icon="cancel"
               :color="dash_negative_color"
-              text-color="white"
             />
             <small>{{
               $t("agentTabs.summary.checksFailing", {
@@ -230,7 +228,6 @@
               square
               icon="warning"
               :color="dash_warning_color"
-              text-color="white"
             />
             <small>{{
               $t("agentTabs.summary.checksWarning", {
@@ -239,13 +236,7 @@
             }}</small>
           </q-chip>
           <q-chip class="mono" v-if="summary.checks.info" square size="lg">
-            <q-avatar
-              size="lg"
-              square
-              icon="info"
-              :color="dash_info_color"
-              text-color="white"
-            />
+            <q-avatar size="lg" square icon="info" :color="dash_info_color" />
             <small>{{
               $t("agentTabs.summary.checksInfo", { n: summary.checks.info })
             }}</small>

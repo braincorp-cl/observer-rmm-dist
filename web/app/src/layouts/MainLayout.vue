@@ -4,7 +4,7 @@
       <q-banner
         v-if="needRefresh"
         inline-actions
-        class="bg-red text-white text-center"
+        class="bg-negative text-white text-center"
       >
         {{ $t("layout.outdatedVersion") }}
         <q-btn
@@ -17,7 +17,7 @@
       <q-banner
         v-if="!hosted && tokenExpired"
         inline-actions
-        class="bg-yellow text-black text-center"
+        class="bg-warning text-center obs-banner-warn"
       >
         <q-icon size="xl" name="warning" />
         <span
@@ -103,7 +103,6 @@
             v-if="daysUntilCertExpires <= 15"
             dense
             :color="dash_negative_color"
-            text-color="black"
             icon="warning"
             >{{
               $t("layout.certExpires", { days: daysUntilCertExpires })
@@ -451,15 +450,15 @@ onBeforeUnmount(() => {
 // Le damos afordancia de control (pill translúcido) para que no se
 // confunda con texto plano — el problema que se notaba en modo día.
 .lang-select
-  background: rgba(255, 255, 255, 0.06)
-  border: 1px solid rgba(255, 255, 255, 0.16)
+  background: var(--obs-hdr-raised)
+  border: 1px solid var(--obs-hdr-border)
   border-radius: 7px
   padding: 0 8px
   transition: background 0.15s ease, border-color 0.15s ease
   color: var(--obs-on-dark)
   &:hover
-    background: rgba(255, 255, 255, 0.12)
-    border-color: rgba(255, 255, 255, 0.28)
+    background: var(--obs-hdr-raised)
+    border-color: var(--obs-on-dark)
   // El header es navy en día y noche → el texto y los íconos del selector
   // deben ser siempre blancos. En modo día Quasar los pintaría oscuros por
   // defecto (ignora el text-white del header en su lógica interna de q-field).

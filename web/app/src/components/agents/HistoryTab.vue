@@ -119,6 +119,7 @@ export default {
       },
       {
         name: "command",
+        classes: "mono",
         label: t("agentTabs.history.colCommand"),
         field: (row) =>
           row.type === "script_run" ? row.script_name : row.command,

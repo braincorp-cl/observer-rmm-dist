@@ -32,14 +32,14 @@ body.body--dark
   --obs-text-2: #{$obs-d-text-2}
   --obs-muted: #{$obs-d-muted}
   --obs-faint: #{$obs-d-faint}
-  --obs-on-brand: #04222A
+  --obs-on-brand: #{$obs-d-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-raised: #{$obs-d-raised}
-  --q-primary: #14A5C0
-  --q-negative: #F25A5F
-  --q-positive: #3ED184
-  --q-warning: #FFC15E
+  --q-primary: #{$obs-d-primary}
+  --q-negative: #{$obs-d-negative}
+  --q-positive: #{$obs-d-positive}
+  --q-warning: #{$obs-d-warning}
   --q-info: #{$info}
   --q-accent: #{$accent}
 
@@ -57,16 +57,16 @@ body.body--light
   --obs-text-2: #{$obs-l-text-2}
   --obs-muted: #{$obs-l-muted}
   --obs-faint: #{$obs-l-faint}
-  --obs-on-brand: #FFFFFF
+  --obs-on-brand: #{$obs-l-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-raised: #{$obs-d-raised}
-  --q-primary: #0A7186
-  --q-negative: #C5282D
-  --q-positive: #157A43
-  --q-warning: #8A5A00
-  --q-info: #3F5FD1
-  --q-accent: #0B7287
+  --q-primary: #{$obs-l-primary}
+  --q-negative: #{$obs-l-negative}
+  --q-positive: #{$obs-l-positive}
+  --q-warning: #{$obs-l-warning}
+  --q-info: #{$obs-l-info}
+  --q-accent: #{$obs-l-accent}
   .q-page
     background: $obs-l-page
 
@@ -84,7 +84,7 @@ body.body--dark
   border: 1px solid var(--obs-border)
 
 // 046 T037 — dentro del espacio de trabajo 1c, los grises por defecto de Quasar
-// (chips #e0e0e0, separadores y bordes con alfa sobre negro, texto gris de
+// (chips grises por defecto, separadores y bordes con alfa sobre negro, texto gris de
 // tablas) pasan a tokens: los componentes reutilizados de la v1 no los fijan.
 .obs-ws
   color: var(--obs-text)
@@ -130,7 +130,7 @@ body.body--dark
   .q-icon:not([class*="text-"])
     color: inherit
 
-// Componentes "--dark" de Quasar fijan color #fff y grises con alfa; dentro del
+// Componentes "--dark" de Quasar fijan color blanco puro y grises con alfa; dentro del
 // espacio 1c salen de los tokens (barrido propio + gauntlet UI-D02, 2026-10-06).
 .obs-ws
   .q-dark, .q-list--dark, .q-item--dark, .q-expansion-item
@@ -181,10 +181,10 @@ body.body--dark
   .q-icon.text-null, .q-btn .q-icon:not([class*="text-"])
     color: var(--obs-on-dark)
 // Badges con color de marca: texto --obs-on-brand en ambos temas (q-badge no
-// lleva text-white y Quasar le fija #fff).
+// lleva text-white y Quasar le fija blanco).
 .q-badge[class*="bg-"]:not(.bg-secondary):not(.obs-chip-neutral)
   color: var(--obs-on-brand)
-// Shell: cabecera navy y riel; nada de #fff puro de Quasar.
+// Shell: cabecera navy y riel; nada de blanco puro de Quasar.
 .q-header.text-white, .bg-dark.text-white
   color: var(--obs-on-dark) !important
 .q-header
@@ -199,3 +199,13 @@ body.body--dark
   border-color: var(--obs-hdr-border) !important
 .bg-dark.text-white .q-icon
   color: inherit !important
+
+// Paleta de Quasar fuera de tokens en componentes heredados (UI-D02):
+.text-grey
+  color: var(--obs-muted) !important
+.q-tooltip
+  background: var(--obs-raised)
+  color: var(--obs-text)
+  border: 1px solid var(--obs-border)
+.q-chip[class*="bg-"]:not(.bg-secondary):not(.obs-chip-neutral):not(.obs-hdr-chip)
+  color: var(--obs-on-brand)
