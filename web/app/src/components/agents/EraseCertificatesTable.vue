@@ -174,7 +174,7 @@ export default {
 
     // Dos clases de certificado: destrucción remota (Bloque A) y destrucción
     // física manual (C7). El color las separa; nunca se fusionan.
-    function kindColor(kind) {
+    function kindColor() {
       // 046 (UI-D05): la clase de certificado es una categoría, no estado ni acción ⇒ neutro
       return "secondary";
     }
