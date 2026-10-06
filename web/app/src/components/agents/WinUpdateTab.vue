@@ -184,13 +184,23 @@
               ? $t("agentTabs.patches.other")
               : props.row.severity
           }}</q-td>
-          <q-td>{{ truncateText(props.row.title, 50) }}</q-td>
+          <!-- 046 (UI-I03): el texto recortado se lee completo en el tooltip,
+               como en Tareas y Chequeos. -->
+          <q-td
+            >{{ truncateText(props.row.title, 50) }}
+            <q-tooltip v-if="(props.row.title || '').length > 50">{{
+              props.row.title
+            }}</q-tooltip>
+          </q-td>
           <q-td @click="showUpdateDetails(props.row)">
             <span
               style="cursor: pointer; text-decoration: underline"
               class="text-primary"
               >{{ truncateText(props.row.description, 50) }}</span
             >
+            <q-tooltip v-if="(props.row.description || '').length > 50">{{
+              props.row.description
+            }}</q-tooltip>
           </q-td>
           <q-td>{{ formatDate(props.row.date_installed) }}</q-td>
         </q-tr>

@@ -56,6 +56,17 @@
         </q-td>
       </template>
 
+      <!-- 046 (UI-I03): comando o script recortado a 30 ⇒ tooltip con el texto completo. -->
+      <template v-slot:body-cell-command="props">
+        <q-td :props="props"
+          >{{ props.value }}
+          <q-tooltip
+            v-if="String(props.col.field(props.row) || '').length > 30"
+            >{{ props.col.field(props.row) }}</q-tooltip
+          >
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-time="props">
         <q-td :props="props">
           {{ formatDate(props.row.time) }}
