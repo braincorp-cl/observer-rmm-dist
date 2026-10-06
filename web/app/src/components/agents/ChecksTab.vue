@@ -391,7 +391,8 @@
             </span></q-td
           >
           <!-- more info -->
-          <q-td>
+          <!-- 046 (UI-D01): salida del chequeo = dato ⇒ mono -->
+          <q-td class="mono">
             <span
               v-if="props.row.check_result.id"
               style="cursor: pointer; text-decoration: underline"

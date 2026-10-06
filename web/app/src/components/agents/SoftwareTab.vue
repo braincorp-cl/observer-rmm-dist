@@ -122,6 +122,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colPublisher"),
         field: "publisher",
+        classes: "mono",
         sortable: true,
       },
       {
