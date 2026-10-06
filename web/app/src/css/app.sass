@@ -110,15 +110,15 @@ body.body--dark
 
 // 046 T029 (UI-R01): la sección del espacio 1c tiene ~550 px menos que la pestaña
 // v1 a lo ancho (columna de contexto + nav). Las celdas parten línea en vez de
-// forzar scroll horizontal de la tabla; los valores mono (rutas, GUID) pueden
-// partirse en cualquier carácter.
+// forzar scroll horizontal de la tabla.
 .obs-ws__content
   .q-table td, .q-table th
     white-space: normal
-    overflow-wrap: break-word
     padding-left: 10px
     padding-right: 10px
-  .q-table td.mono, .q-table td .mono
+  // anywhere (no break-word): solo anywhere reduce el ancho mínimo de la columna
+  // en una tabla de ancho automático; una URL o GUID ya no fija la columna.
+  .q-table td
     overflow-wrap: anywhere
 
 // Banda de advertencia del encabezado (modo mantenimiento): el texto sigue al
