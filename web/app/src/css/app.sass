@@ -340,8 +340,15 @@ body.body--dark .text-white
   color: var(--obs-on-dark) !important
 body.body--dark .bg-grey.text-white
   color: var(--obs-on-brand) !important
-.q-bar--dark
+.q-bar, .q-bar--dark
   background: var(--obs-raised)
+// Literales de Quasar que solo coincidían por valor con un token (corrida
+// 2026-10-07): sombra de botón estándar y pulgar del interruptor.
+.q-btn--standard:before
+  box-shadow: 0 1px 5px var(--obs-shadow-1), 0 2px 2px var(--obs-shadow-2), 0 3px 1px -2px var(--obs-shadow-3)
+.q-toggle__thumb:after
+  background: var(--obs-on-dark)
+  box-shadow: 0 3px 1px -2px var(--obs-shadow-1), 0 2px 2px 0 var(--obs-shadow-2), 0 1px 5px 0 var(--obs-shadow-3)
 .q-table tbody td:before, .q-table--dark tbody td:before
   background: var(--obs-hover)
 .q-table--dark tbody td:after
