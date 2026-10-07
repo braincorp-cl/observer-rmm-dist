@@ -35,7 +35,7 @@ body.body--dark
   --obs-on-brand: #{$obs-d-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
-  --obs-hdr-ctl-border: #{$obs-d-faint}
+  --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-d-primary}
   --q-negative: #{$obs-d-negative}
@@ -61,7 +61,7 @@ body.body--light
   --obs-on-brand: #{$obs-l-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
-  --obs-hdr-ctl-border: #{$obs-d-faint}
+  --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-l-primary}
   --q-negative: #{$obs-l-negative}
@@ -223,10 +223,16 @@ body.body--dark
 .q-header .q-field:not(.lang-select), .q-header label.q-field:not(.lang-select)
   background: transparent !important
   border-color: var(--obs-hdr-border) !important
-// El ícono del pulgar del interruptor de tema lo colorea Quasar (UI-N03: con
-// inherit quedaba del color del pulgar, invisible).
+// Ícono del pulgar del interruptor de tema: oscuro sobre el pulgar blanco (sol) y
+// sobre el teal (luna), en ambos temas; con inherit quedaba invisible (UI-N03).
 .bg-dark.text-white .q-icon:not(.q-toggle__thumb .q-icon)
   color: inherit !important
+.q-header .q-toggle__thumb .q-icon
+  color: #{$obs-d-on-brand} !important
+  opacity: 1
+// Avatar del chip de equipos (bg-primary): texto on-brand del tema (UI-N03).
+.q-header .obs-hdr-chip .q-avatar
+  color: var(--obs-on-brand) !important
 
 // Paleta de Quasar fuera de tokens en componentes heredados (UI-D02):
 .text-grey
