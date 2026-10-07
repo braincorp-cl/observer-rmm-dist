@@ -66,27 +66,28 @@
           outlined
           clearable
         />
+        <!-- 046 (UI-D05): el radio encendido es un control ⇒ teal (enmienda 2026-10-06). -->
         <q-radio
           v-model="logLevelFilter"
-          :color="dash_info_color"
+          color="primary"
           val="info"
           :label="$t('debugLog.levelInfo')"
         />
         <q-radio
           v-model="logLevelFilter"
-          :color="dash_negative_color"
+          color="primary"
           val="critical"
           :label="$t('debugLog.levelCritical')"
         />
         <q-radio
           v-model="logLevelFilter"
-          :color="dash_negative_color"
+          color="primary"
           val="error"
           :label="$t('debugLog.levelError')"
         />
         <q-radio
           v-model="logLevelFilter"
-          :color="dash_warning_color"
+          color="primary"
           val="warning"
           :label="$t('debugLog.levelWarning')"
         />

@@ -189,9 +189,6 @@ export default {
     const store = useStore();
     const { t } = useI18n();
     const formatDate = computed(() => store.getters.formatDate);
-    const dash_positive_color = computed(() => store.state.dash_positive_color);
-    const dash_negative_color = computed(() => store.state.dash_negative_color);
-    const dash_warning_color = computed(() => store.state.dash_warning_color);
 
     // setup dropdowns
     const { clientOptions, getClientOptions } = useClientDropdown();
@@ -414,21 +411,11 @@ export default {
       });
     }
 
-    function formatActionColor(action) {
-      switch (action.toLowerCase()) {
-        case "modify":
-          return dash_warning_color.value;
-        case "add":
-        case "agent_install":
-          return dash_positive_color.value;
-        case "delete":
-        case "failed_login":
-          return dash_negative_color.value;
-        default:
-          // 046 (UI-D05): el teal es acción/navegación; una acción registrada
-          // sin estado especial va neutra.
-          return "secondary";
-      }
+    // 046 (UI-D05, corrida 2026-10-07): el tipo de una acción registrada (modify,
+    // add, delete…) es una categoría, no un estado del equipo: todas neutras. El
+    // rojo/ámbar/verde queda solo para estado; el teal, para acción/navegación.
+    function formatActionColor() {
+      return "secondary";
     }
 
     // watchers
