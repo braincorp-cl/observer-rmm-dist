@@ -196,9 +196,9 @@ export default {
       return { height: `${height - offset}px` };
     }
 
-    // Estado y última respuesta frescos sin recargar todo: el agente hace check-in
-    // cada pocos segundos y la cabecera muestra "hace N s" (UI-E06). Solo la misma
-    // GET del detalle, sin tocar badges ni secciones.
+    // Estado y última respuesta frescos sin recargar todo: la cabecera muestra
+    // "hace N s" (UI-E06) y el agente hace check-in cada ~50 s; cada 5 s la cabecera
+    // se pone al día. Solo la misma GET del detalle, sin tocar badges ni secciones.
     const poll = setInterval(async () => {
       const id = route.params.agent_id;
       if (!agent.value || !id || document.hidden) return;
@@ -211,7 +211,7 @@ export default {
       } catch (e) {
         console.error(e);
       }
-    }, 15000);
+    }, 5000);
     onBeforeUnmount(() => clearInterval(poll));
 
     // Elegir otro equipo en la columna superpuesta la cierra.
@@ -261,7 +261,7 @@ export default {
   bottom: 0
   left: 0
   z-index: 5
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35)
+  box-shadow: 0 8px 24px var(--obs-shadow)
 .obs-ws__scrim
   position: absolute
   inset: 0

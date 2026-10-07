@@ -353,7 +353,7 @@ export default {
 .oe-detail-table td {
   text-align: left;
   padding: 5px 8px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid var(--obs-border);
   vertical-align: top;
   font-size: 13px;
 }

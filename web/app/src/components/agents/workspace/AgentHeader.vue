@@ -399,6 +399,9 @@ const sysLine = computed(() => {
     flex-wrap: wrap
   .obs-agenthdr .row.no-wrap
     flex-wrap: wrap
+  .obs-agenthdr__sys
+    -webkit-line-clamp: unset
+    display: block
 .obs-badge
   display: inline-flex
   align-items: center
