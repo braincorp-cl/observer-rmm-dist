@@ -258,6 +258,26 @@ body.body--dark
 .q-header .obs-hdr-chip .q-avatar
   color: var(--obs-on-brand) !important
 
+// 046 (UI-D02, corrida 2026-10-07): clases de paleta de Quasar que usan los .vue
+// heredados del diff (aviso de cifrado en Activos, diálogos de mapa y de caso
+// perdido). Se remapean a tokens en toda la app: los diálogos viven fuera de .obs-ws.
+.bg-grey-3
+  background: var(--obs-raised) !important
+.bg-grey-6, .bg-grey-7
+  background: var(--obs-muted) !important
+.text-black, .text-grey-9
+  color: var(--obs-text) !important
+.text-grey-6, .text-grey-7
+  color: var(--obs-muted) !important
+.bg-orange-1
+  background: var(--obs-raised) !important
+.text-orange-9
+  color: var(--q-warning) !important
+.bg-deep-orange
+  background: var(--q-negative) !important
+.text-deep-orange
+  color: var(--q-negative) !important
+
 // Paleta de Quasar fuera de tokens en componentes heredados (UI-D02):
 .text-grey
   color: var(--obs-muted) !important
