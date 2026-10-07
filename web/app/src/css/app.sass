@@ -310,6 +310,16 @@ body.body--dark
   border-color: var(--obs-border)
 .q-dialog__backdrop
   background: var(--obs-backdrop)
+// Tablas fuera de .obs-ws (diálogos: detalle de certificado, etc.).
+.q-table__card, .q-table__card--dark, .q-markup-table
+  color: var(--obs-text)
+  background-color: var(--obs-surface)
+.q-table--dark, .q-table__card--dark
+  box-shadow: 0 1px 5px var(--obs-shadow-1), 0 2px 2px var(--obs-shadow-2), 0 3px 1px -2px var(--obs-shadow-3)
+.q-table--dark, .q-table--dark .q-table__bottom, .q-table--dark td, .q-table--dark th, .q-table--dark thead, .q-table--dark tr, .q-table__card--dark, .q-markup-table td, .q-markup-table th
+  border-color: var(--obs-border)
+.q-separator
+  color: var(--obs-border)
 .q-bar--dark
   background: var(--obs-raised)
 .q-table tbody td:before, .q-table--dark tbody td:before
