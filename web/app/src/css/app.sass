@@ -20,7 +20,7 @@ body
 // se aclaran y el texto sobre ellos va oscuro, como en la maqueta; en claro se
 // oscurecen y el texto va blanco.
 body.body--dark
-  color: $obs-d-text
+  color: var(--obs-text)
   --obs-page: #{$obs-d-page}
   --obs-surface: #{$obs-d-surface}
   --obs-raised: #{$obs-d-raised}
@@ -53,8 +53,8 @@ body.body--dark
   --q-accent: #{$accent}
 
 body.body--light
-  background: $obs-l-page
-  color: $obs-l-text
+  background: var(--obs-page)
+  color: var(--obs-text)
   --obs-page: #{$obs-l-page}
   --obs-surface: #{$obs-l-surface}
   --obs-raised: #{$obs-l-raised}
@@ -86,7 +86,7 @@ body.body--light
   --q-info: #{$obs-l-info}
   --q-accent: #{$obs-l-accent}
   .q-page
-    background: $obs-l-page
+    background: var(--obs-page)
 
 // Texto sobre fondo de marca: Quasar pone text-white; en oscuro las marcas son
 // claras y el blanco no llega a AA.
@@ -342,6 +342,17 @@ body.body--dark .bg-grey.text-white
   color: var(--obs-on-brand) !important
 .q-bar, .q-bar--dark
   background: var(--obs-raised)
+// Fondos blancos literales de Quasar (tema claro) y separadores compilados desde
+// Sass: con var(--obs-*) la procedencia del token queda visible en la regla.
+body.body--light
+  .q-card, .q-menu, .q-drawer
+    background: var(--obs-surface)
+.q-list--separator > .q-item-type + .q-item-type, .q-list--separator > .q-virtual-scroll__content > .q-item-type + .q-item-type, .q-list--dark.q-list--separator > .q-item-type + .q-item-type
+  border-top-color: var(--obs-border)
+.q-table--bordered
+  border-color: var(--obs-border)
+body.body--light .text-white
+  color: var(--obs-on-brand) !important
 // Literales de Quasar que solo coincidían por valor con un token (corrida
 // 2026-10-07): sombra de botón estándar y pulgar del interruptor.
 .q-btn--standard:before
