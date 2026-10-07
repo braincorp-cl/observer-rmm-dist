@@ -351,6 +351,9 @@ body .leaflet-container .leaflet-control-attribution
   color: var(--obs-muted)
 body .leaflet-attribution-flag
   display: none !important
+// Grupos SVG de Leaflet: no pintan (cada trazo trae su color); sin el negro heredado.
+body .leaflet-container svg g
+  fill: none
 body .leaflet-container .leaflet-control-scale-line
   background: var(--obs-surface)
   color: var(--obs-text)
