@@ -35,6 +35,7 @@ body.body--dark
   --obs-on-brand: #{$obs-d-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
+  --obs-hdr-ctl-border: #{$obs-d-faint}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-d-primary}
   --q-negative: #{$obs-d-negative}
@@ -60,6 +61,7 @@ body.body--light
   --obs-on-brand: #{$obs-l-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
+  --obs-hdr-ctl-border: #{$obs-d-faint}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-l-primary}
   --q-negative: #{$obs-l-negative}
@@ -217,10 +219,13 @@ body.body--dark
     border-color: var(--obs-hdr-border) !important
 .q-drawer.obs-rail, .obs-rail .q-drawer, aside.q-drawer
   color: var(--obs-text) !important
-.q-header .q-field, .q-header label.q-field
+// El selector de idioma conserva su píldora de v1 (UI-N03): fondo y borde propios.
+.q-header .q-field:not(.lang-select), .q-header label.q-field:not(.lang-select)
   background: transparent !important
   border-color: var(--obs-hdr-border) !important
-.bg-dark.text-white .q-icon
+// El ícono del pulgar del interruptor de tema lo colorea Quasar (UI-N03: con
+// inherit quedaba del color del pulgar, invisible).
+.bg-dark.text-white .q-icon:not(.q-toggle__thumb .q-icon)
   color: inherit !important
 
 // Paleta de Quasar fuera de tokens en componentes heredados (UI-D02):

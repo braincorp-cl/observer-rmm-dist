@@ -128,10 +128,11 @@
           </template>
         </q-select>
         <!-- temp dark mode toggle -->
-        <!-- 046 (UI-D05): el interruptor de tema no usa el teal para su estado -->
+        <!-- 046 (decisión del usuario 2026-10-06, UI-N03/D05): el interruptor
+             conserva el teal de v1; un control encendido cuenta como acción. -->
         <q-toggle
           v-model="darkMode"
-          color="secondary"
+          color="primary"
           class="q-mr-sm"
           checked-icon="nights_stay"
           unchecked-icon="wb_sunny"
@@ -148,7 +149,7 @@
         />
         <!-- Devices Chip -->
         <q-chip class="cursor-pointer obs-hdr-chip">
-          <q-avatar size="md" icon="devices" color="secondary" />
+          <q-avatar size="md" icon="devices" color="primary" />
           <q-tooltip :delay="600" anchor="top middle" self="top middle">{{
             $t("layout.agentCount")
           }}</q-tooltip>
@@ -453,7 +454,7 @@ onBeforeUnmount(() => {
 // confunda con texto plano — el problema que se notaba en modo día.
 .lang-select
   background: var(--obs-hdr-raised)
-  border: 1px solid var(--obs-hdr-border)
+  border: 1px solid var(--obs-hdr-ctl-border)
   border-radius: 7px
   padding: 0 8px
   transition: background 0.15s ease, border-color 0.15s ease
