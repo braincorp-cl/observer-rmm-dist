@@ -3419,7 +3419,8 @@
       "bootedAgo": "arranque hace {ago}",
       "refresh": "Actualizar inventario",
       "ram": "{gb} GB RAM",
-      "showList": "Lista de equipos del sitio"
+      "showList": "Lista de equipos del sitio",
+      "agentLabel": "Agente"
     },
     "shortcuts": {
       "webTerminal": "Terminal web",

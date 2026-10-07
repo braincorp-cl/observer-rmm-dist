@@ -71,8 +71,10 @@
             v-for="(part, i) in sysParts"
             :key="i"
             class="obs-sys-part"
-            :class="{ mono: part.mono }"
-            >{{ part.t }}</span
+            :class="{ mono: part.mono && !part.label }"
+            ><template v-if="part.label"
+              >{{ part.label }} <span class="mono">{{ part.t }}</span></template
+            ><template v-else>{{ part.t }}</template></span
           >
         </div>
       </div>
@@ -298,6 +300,13 @@ const sysParts = computed(() => {
       t: t("agentWorkspace.header.ram", { gb: a.total_ram }),
       mono: true,
     });
+  // Versión del agente: la v1 la muestra en la barra del Resumen (UI-F06).
+  if (a.version)
+    parts.push({
+      label: t("agentWorkspace.header.agentLabel"),
+      t: `v${a.version}`,
+      mono: true,
+    });
   if (a.boot_time)
     parts.push({
       t: t("agentWorkspace.header.bootedAgo", {
@@ -313,6 +322,8 @@ const sysLine = computed(() => {
   const parts = [a.operating_system, a.make_model];
   if (a.total_ram)
     parts.push(t("agentWorkspace.header.ram", { gb: a.total_ram }));
+  if (a.version)
+    parts.push(`${t("agentWorkspace.header.agentLabel")} v${a.version}`);
   if (a.boot_time)
     parts.push(
       t("agentWorkspace.header.bootedAgo", {

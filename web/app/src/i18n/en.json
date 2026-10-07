@@ -3419,7 +3419,8 @@
       "bootedAgo": "booted {ago} ago",
       "refresh": "Refresh inventory",
       "ram": "{gb} GB RAM",
-      "showList": "Site device list"
+      "showList": "Site device list",
+      "agentLabel": "Agent"
     },
     "shortcuts": {
       "webTerminal": "Web terminal",
