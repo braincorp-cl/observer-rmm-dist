@@ -320,6 +320,12 @@ body.body--dark
   border-color: var(--obs-border)
 .q-separator
   color: var(--obs-border)
+// Texto blanco puro de Quasar (text-color="white") en oscuro: on-dark; sobre gris
+// medio (bg-grey) el blanco no contrasta ⇒ on-brand.
+body.body--dark .text-white
+  color: var(--obs-on-dark) !important
+body.body--dark .bg-grey.text-white
+  color: var(--obs-on-brand) !important
 .q-bar--dark
   background: var(--obs-raised)
 .q-table tbody td:before, .q-table--dark tbody td:before
@@ -362,7 +368,7 @@ body .leaflet-container .leaflet-control-attribution
 body .leaflet-attribution-flag
   display: none !important
 // Grupos SVG de Leaflet: no pintan (cada trazo trae su color); sin el negro heredado.
-body .leaflet-container svg g
+body .leaflet-container svg, body .leaflet-container svg g
   fill: none
 body .leaflet-container .leaflet-control-scale-line
   background: var(--obs-surface)
