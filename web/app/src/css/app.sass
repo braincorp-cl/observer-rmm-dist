@@ -36,6 +36,7 @@ body.body--dark
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
+  --obs-hdr-thumb-icon: #{$obs-d-on-brand}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-d-primary}
   --q-negative: #{$obs-d-negative}
@@ -62,6 +63,7 @@ body.body--light
   --obs-on-dark: #{$obs-d-text}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
+  --obs-hdr-thumb-icon: #{$obs-d-on-brand}
   --obs-hdr-raised: #{$obs-d-raised}
   --q-primary: #{$obs-l-primary}
   --q-negative: #{$obs-l-negative}
@@ -228,7 +230,7 @@ body.body--dark
 .bg-dark.text-white .q-icon:not(.q-toggle__thumb .q-icon)
   color: inherit !important
 .q-header .q-toggle__thumb .q-icon
-  color: #{$obs-d-on-brand} !important
+  color: var(--obs-hdr-thumb-icon) !important
   opacity: 1
 // Avatar del chip de equipos (bg-primary): texto on-brand del tema (UI-N03).
 .q-header .obs-hdr-chip .q-avatar
