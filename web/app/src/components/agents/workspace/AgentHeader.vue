@@ -66,7 +66,7 @@
         </div>
         <!-- 046 (UI-D01): solo el valor de especificación (RAM) va en mono; nombres
              con versión y frases quedan en Archivo. El separador lo pone el CSS. -->
-        <div class="obs-agenthdr__sys ellipsis" :title="sysLine">
+        <div class="obs-agenthdr__sys" :title="sysLine">
           <span
             v-for="(part, i) in sysParts"
             :key="i"
@@ -376,9 +376,15 @@ const sysLine = computed(() => {
   color: var(--obs-text-2)
 .obs-sys-part + .obs-sys-part::before
   content: " · "
+// Hasta 2 líneas: con la versión del agente la línea no cabía a 1440 px y el
+// tiempo encendido quedaba oculto tras la elipsis (UI-E06).
 .obs-agenthdr__sys
   font-size: 13px
   color: var(--obs-text-2)
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
 .obs-agenthdr__btns
   flex: none
   color: var(--obs-text-2)
