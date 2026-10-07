@@ -328,12 +328,14 @@ body.body--dark
   color: var(--obs-on-brand)
 .q-checkbox__svg, .q-radio__bg
   fill: none
-// Mapa (Leaflet) en los diálogos de ubicación.
-.leaflet-container
+// Mapa (Leaflet) en los diálogos de ubicación. Prefijo body: leaflet.css se carga
+// después (chunk del diálogo) y con igual especificidad ganaba.
+body .leaflet-container
   background: var(--obs-raised)
+  color: var(--obs-text)
   a
     color: var(--q-primary)
-.leaflet-bar
+body .leaflet-bar
   box-shadow: 0 1px 5px var(--obs-shadow-1)
   a, a:hover, a:focus
     background-color: var(--obs-surface)
@@ -342,17 +344,33 @@ body.body--dark
   a.leaflet-disabled
     background-color: var(--obs-raised)
     color: var(--obs-muted)
-.leaflet-touch .leaflet-bar, .leaflet-touch .leaflet-control-layers
+body .leaflet-touch .leaflet-bar, body .leaflet-touch .leaflet-control-layers
   border-color: var(--obs-border)
-.leaflet-container .leaflet-control-attribution
+body .leaflet-container .leaflet-control-attribution
   background: var(--obs-surface)
   color: var(--obs-muted)
-.leaflet-attribution-flag
+body .leaflet-attribution-flag
   display: none !important
-.leaflet-container .leaflet-control-scale-line
+body .leaflet-container .leaflet-control-scale-line
   background: var(--obs-surface)
   color: var(--obs-text)
   border-color: var(--obs-muted)
+// Sombra de la cabecera, ayudante de foco y blancos puros de los componentes
+// --dark de Quasar.
+.q-layout__shadow:after, body.body--dark .q-layout__shadow:after
+  box-shadow: 0 0 10px 2px var(--obs-shadow-1), 0 0 10px var(--obs-shadow-2)
+body.desktop .q-focus-helper:before, body.desktop .q-focus-helper:after
+  background: var(--obs-text)
+body.body--dark
+  color: var(--obs-text)
+.q-item--dark, .q-list--dark, .q-timeline--dark, .q-tree--dark .q-tree__node-header-content
+  color: var(--obs-text)
+.q-field--dark .q-field__control:hover:before
+  border-color: var(--obs-text)
+.q-field--dark .q-field__prefix, .q-field--dark .q-field__suffix
+  color: var(--obs-text)
+.q-toggle--dark .q-toggle__inner
+  color: var(--obs-on-dark)
 .text-deep-orange
   color: var(--q-negative) !important
 
