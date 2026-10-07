@@ -35,6 +35,11 @@ body.body--dark
   --obs-on-brand: #{$obs-d-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-shadow: #{$obs-shadow}
+  --obs-shadow-1: #{$obs-shadow-1}
+  --obs-shadow-2: #{$obs-shadow-2}
+  --obs-shadow-3: #{$obs-shadow-3}
+  --obs-backdrop: #{$obs-backdrop}
+  --obs-hover: #{$obs-d-hover}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -63,6 +68,11 @@ body.body--light
   --obs-on-brand: #{$obs-l-on-brand}
   --obs-on-dark: #{$obs-d-text}
   --obs-shadow: #{$obs-shadow}
+  --obs-shadow-1: #{$obs-shadow-1}
+  --obs-shadow-2: #{$obs-shadow-2}
+  --obs-shadow-3: #{$obs-shadow-3}
+  --obs-backdrop: #{$obs-backdrop}
+  --obs-hover: #{$obs-l-hover}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -289,6 +299,60 @@ body.body--dark
 // Relleno del scroll virtual: el degradado gris de Quasar pasa a la superficie.
 .q-virtual-scroll__padding
   background: transparent
+
+// 046 (UI-D02, decisión del usuario 2026-10-07 «tokenizar todo»): efectos que
+// Quasar y Leaflet pintan con colores propios pasan a tokens.
+.q-card, .q-menu, .q-table__card, .q-card--dark, .q-menu--dark
+  box-shadow: 0 1px 5px var(--obs-shadow-1), 0 2px 2px var(--obs-shadow-2), 0 3px 1px -2px var(--obs-shadow-3)
+.q-expansion-item__content > .q-card
+  box-shadow: none
+.q-card--dark
+  border-color: var(--obs-border)
+.q-dialog__backdrop
+  background: var(--obs-backdrop)
+.q-bar--dark
+  background: var(--obs-raised)
+.q-table tbody td:before, .q-table--dark tbody td:before
+  background: var(--obs-hover)
+.q-table--dark tbody td:after
+  background: var(--obs-selected)
+.q-menu, .q-list--dark, .q-dialog .q-card
+  color: var(--obs-text)
+.q-list--dark
+  border-color: var(--obs-border)
+.q-item__section--side:not(.q-item__section--avatar), .q-list--dark .q-item__section--side:not(.q-item__section--avatar), .q-list--dark .q-item__label--header
+  color: var(--obs-muted)
+.q-list--dark .q-item__label--caption, .q-list--dark .q-item__label--overline
+  color: var(--obs-text-2)
+.q-checkbox__svg
+  color: var(--obs-on-brand)
+.q-checkbox__svg, .q-radio__bg
+  fill: none
+// Mapa (Leaflet) en los diálogos de ubicación.
+.leaflet-container
+  background: var(--obs-raised)
+  a
+    color: var(--q-primary)
+.leaflet-bar
+  box-shadow: 0 1px 5px var(--obs-shadow-1)
+  a, a:hover, a:focus
+    background-color: var(--obs-surface)
+    color: var(--obs-text)
+    border-bottom-color: var(--obs-border)
+  a.leaflet-disabled
+    background-color: var(--obs-raised)
+    color: var(--obs-muted)
+.leaflet-touch .leaflet-bar, .leaflet-touch .leaflet-control-layers
+  border-color: var(--obs-border)
+.leaflet-container .leaflet-control-attribution
+  background: var(--obs-surface)
+  color: var(--obs-muted)
+.leaflet-attribution-flag
+  display: none !important
+.leaflet-container .leaflet-control-scale-line
+  background: var(--obs-surface)
+  color: var(--obs-text)
+  border-color: var(--obs-muted)
 .text-deep-orange
   color: var(--q-negative) !important
 
