@@ -40,6 +40,7 @@ body.body--dark
   --obs-shadow-3: #{$obs-shadow-3}
   --obs-backdrop: #{$obs-backdrop}
   --obs-hover: #{$obs-d-hover}
+  --obs-veil: #{$obs-d-veil}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -73,6 +74,7 @@ body.body--light
   --obs-shadow-3: #{$obs-shadow-3}
   --obs-backdrop: #{$obs-backdrop}
   --obs-hover: #{$obs-l-hover}
+  --obs-veil: #{$obs-l-veil}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -320,6 +322,18 @@ body.body--dark
   border-color: var(--obs-border)
 .q-separator
   color: var(--obs-border)
+// Campos rellenos/standout de Quasar (fondo y línea de hover) y velo de carga.
+.q-field--filled .q-field__control, .q-field--standout .q-field__control, .q-field--filled.q-field--dark .q-field__control, .q-field--standout.q-field--dark .q-field__control
+  background: var(--obs-raised)
+.q-field--filled .q-field__control:before, .q-field--standout .q-field__control:before, .q-field--filled.q-field--dark .q-field__control:before, .q-field--standout.q-field--dark .q-field__control:before
+  background: var(--obs-hover)
+  border-color: var(--obs-border)
+.q-field--dark .q-field__control:before
+  border-color: var(--obs-muted)
+.q-inner-loading, .q-inner-loading--dark
+  background: var(--obs-veil)
+.q-linear-progress__track--dark
+  background: var(--obs-muted)
 // Texto blanco puro de Quasar (text-color="white") en oscuro: on-dark; sobre gris
 // medio (bg-grey) el blanco no contrasta ⇒ on-brand.
 body.body--dark .text-white
