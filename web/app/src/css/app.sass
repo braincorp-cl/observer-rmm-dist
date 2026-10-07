@@ -134,6 +134,26 @@ body.body--dark
     padding-left: 4px
     padding-right: 4px
 
+// 046 (UI-F06): Resumen embebido en el espacio 1c.
+.obs-summary-grid
+  display: grid
+  grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 4fr)
+  column-gap: 20px
+  > [class*="col-"]
+    width: auto
+    min-width: 0
+  > .obs-summary-spacer
+    display: none
+  .q-item__label, .q-item__section, span
+    overflow-wrap: anywhere
+  .q-chip
+    height: auto
+    max-width: 100%
+    white-space: normal
+  .q-chip__content
+    white-space: normal
+    overflow-wrap: anywhere
+
 // Banda de advertencia del encabezado (modo mantenimiento): el texto sigue al
 // tema; en claro el ámbar es oscuro y el negro no llegaba a AA (UI-D04).
 .obs-banner-warn

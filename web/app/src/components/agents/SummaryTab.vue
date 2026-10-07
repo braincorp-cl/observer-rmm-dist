@@ -123,7 +123,9 @@
       </q-btn-dropdown>
     </q-bar>
     <q-separator v-if="!embedded" class="q-mt-sm" />
-    <div class="row">
+    <!-- 046 (UI-F06): en el espacio 1c la sección tiene ~550 px menos que la
+         pestaña v1; grilla de 3 columnas sin separadores y texto que parte línea. -->
+    <div class="row" :class="{ 'obs-summary-grid': embedded }">
       <div class="col-4">
         <!-- left -->
         <span class="text-subtitle2 text-bold">{{
@@ -178,7 +180,10 @@
               <q-icon name="fas fa-globe-americas" />
             </q-item-section>
             <q-item-section
-              ><i18n-t keypath="agentTabs.summary.publicIp" class="obs-ui-text" tag="span"
+              ><i18n-t
+                keypath="agentTabs.summary.publicIp"
+                class="obs-ui-text"
+                tag="span"
                 ><template #ip
                   ><span class="mono">{{ summary.public_ip }}</span></template
                 ></i18n-t
@@ -190,7 +195,10 @@
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
             <q-item-section
-              ><i18n-t keypath="agentTabs.summary.lanIp" class="obs-ui-text" tag="span"
+              ><i18n-t
+                keypath="agentTabs.summary.lanIp"
+                class="obs-ui-text"
+                tag="span"
                 ><template #ips
                   ><span class="mono">{{ summary.local_ips }}</span></template
                 ></i18n-t
@@ -302,7 +310,7 @@
           </q-item>
         </q-list>
       </div>
-      <div class="col-1"></div>
+      <div class="col-1 obs-summary-spacer"></div>
       <!-- right -->
       <div class="col-3">
         <span class="text-subtitle2 text-bold">{{
@@ -331,7 +339,7 @@
           <q-separator />
         </div>
       </div>
-      <div class="col-2"></div>
+      <div class="col-2 obs-summary-spacer"></div>
     </div>
     <q-inner-loading :showing="loading" color="secondary" />
 
