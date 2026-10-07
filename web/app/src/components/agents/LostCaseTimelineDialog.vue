@@ -281,6 +281,7 @@
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getCssVar } from "quasar";
 
 import { fetchLostEvidence, fetchLostEvidenceFile } from "@/api/lostmode";
 import { formatDate } from "@/utils/format";
@@ -434,12 +435,23 @@ export default {
       }
     }
 
+    // 046 (UI-D02): colores del mapa desde los tokens del tema, no hex literales.
+    function coloresMapa() {
+      return {
+        primario: getCssVar("primary"),
+        relleno: getComputedStyle(document.body)
+          .getPropertyValue("--obs-on-dark")
+          .trim(),
+      };
+    }
+
     function renderMap() {
       cleanupMap();
       if (!mapEl.value || !points.value.length) return;
 
       const ultimo = points.value[0];
       map = L.map(mapEl.value).setView([ultimo.lat, ultimo.lng], 14);
+      const { primario: cPrimario, relleno: cRelleno } = coloresMapa();
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
@@ -450,7 +462,7 @@ export default {
       if (enOrden.length > 1) {
         L.polyline(
           enOrden.map((p) => [p.lat, p.lng]),
-          { color: "#0E8FA8", weight: 3, opacity: 0.6, dashArray: "4 6" },
+          { color: cPrimario, weight: 3, opacity: 0.6, dashArray: "4 6" },
         ).addTo(map);
       }
 
@@ -459,15 +471,15 @@ export default {
         if (p.accuracy_m) {
           L.circle([p.lat, p.lng], {
             radius: p.accuracy_m,
-            color: "#0E8FA8",
+            color: cPrimario,
             fillOpacity: esUltimo ? 0.12 : 0.05,
             weight: 1,
           }).addTo(map);
         }
         L.circleMarker([p.lat, p.lng], {
           radius: esUltimo ? 8 : 5,
-          color: "#0E8FA8",
-          fillColor: esUltimo ? "#0E8FA8" : "#ffffff",
+          color: cPrimario,
+          fillColor: esUltimo ? cPrimario : cRelleno,
           fillOpacity: 0.9,
           weight: 2,
         }).addTo(map);

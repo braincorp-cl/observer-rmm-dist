@@ -388,6 +388,17 @@ const sysLine = computed(() => {
 .obs-agenthdr__btns
   flex: none
   color: var(--obs-text-2)
+// Pantallas angostas (móvil): los botones bajan a su propia fila para que migas,
+// estado y línea de sistema conserven el ancho (UI-E06 a 390 px).
+@media (max-width: 700px)
+  .obs-agenthdr > .row
+    flex-wrap: wrap
+  .obs-agenthdr__btns
+    width: 100%
+    order: 2
+    flex-wrap: wrap
+  .obs-agenthdr .row.no-wrap
+    flex-wrap: wrap
 .obs-badge
   display: inline-flex
   align-items: center

@@ -101,6 +101,7 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useStore } from "vuex";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getCssVar } from "quasar";
 import { fetchAgentLocation, fetchAgentLocationHistory } from "@/api/agents";
 
 export default {
@@ -171,6 +172,16 @@ export default {
       }
     }
 
+    // 046 (UI-D02): colores del mapa desde los tokens del tema, no hex literales.
+    function coloresMapa() {
+      return {
+        primario: getCssVar("primary"),
+        relleno: getComputedStyle(document.body)
+          .getPropertyValue("--obs-on-dark")
+          .trim(),
+      };
+    }
+
     function renderMap() {
       cleanup();
       if (!mapEl.value || !location.value || location.value.lat == null) return;
@@ -178,6 +189,7 @@ export default {
       const lat = location.value.lat;
       const long = location.value.long;
       map = L.map(mapEl.value).setView([lat, long], 14);
+      const { primario: cPrimario } = coloresMapa();
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
@@ -187,7 +199,7 @@ export default {
       if (location.value.accuracy_m) {
         L.circle([lat, long], {
           radius: location.value.accuracy_m,
-          color: "#0E8FA8",
+          color: cPrimario,
           fillOpacity: 0.1,
         }).addTo(map);
       }
@@ -195,8 +207,8 @@ export default {
       // posición actual (último fix). Siempre visible por sí sola.
       L.circleMarker([lat, long], {
         radius: 8,
-        color: "#0E8FA8",
-        fillColor: "#0E8FA8",
+        color: cPrimario,
+        fillColor: cPrimario,
         fillOpacity: 0.9,
       }).addTo(map);
 
@@ -210,6 +222,7 @@ export default {
     // Dibuja trayectoria + marcadores de los puntos anteriores y ajusta el
     // encuadre para abarcarlos. No toca la posición actual (ya renderizada).
     function drawHistory() {
+      const { primario: cPrimario, relleno: cRelleno } = coloresMapa();
       if (!map || location.value?.lat == null) return;
       clearHistory();
       if (!historyPoints.value.length) return;
@@ -221,7 +234,7 @@ export default {
       if (points.value.length > 1) {
         const latlngs = points.value.map((p) => [p.lat, p.long]);
         L.polyline(latlngs, {
-          color: "#0E8FA8",
+          color: cPrimario,
           weight: 3,
           opacity: 0.6,
           dashArray: "4 6",
@@ -232,8 +245,8 @@ export default {
       for (const p of historyPoints.value) {
         L.circleMarker([p.lat, p.long], {
           radius: 5,
-          color: "#0E8FA8",
-          fillColor: "#ffffff",
+          color: cPrimario,
+          fillColor: cRelleno,
           fillOpacity: 0.9,
           weight: 2,
         }).addTo(historyLayer);
