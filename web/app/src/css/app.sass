@@ -277,6 +277,18 @@ body.body--dark
   background: var(--q-negative) !important
 .bg-green-2, .bg-orange-2
   background: var(--obs-raised) !important
+.bg-grey
+  background: var(--obs-muted) !important
+// Menús y diálogos se montan fuera de .obs-ws (teleport): sus grises de Quasar
+// también salen de tokens (UI-D02, corrida 2026-10-07).
+.q-menu, .q-dialog
+  .q-item__section--side, .q-item__label--header
+    color: var(--obs-muted)
+  .q-separator
+    background: var(--obs-border)
+// Relleno del scroll virtual: el degradado gris de Quasar pasa a la superficie.
+.q-virtual-scroll__padding
+  background: transparent
 .text-deep-orange
   color: var(--q-negative) !important
 
