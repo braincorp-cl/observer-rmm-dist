@@ -41,6 +41,7 @@ body.body--dark
   --obs-backdrop: #{$obs-backdrop}
   --obs-hover: #{$obs-d-hover}
   --obs-veil: #{$obs-d-veil}
+  --obs-field: #{$obs-d-field}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -75,6 +76,7 @@ body.body--light
   --obs-backdrop: #{$obs-backdrop}
   --obs-hover: #{$obs-l-hover}
   --obs-veil: #{$obs-l-veil}
+  --obs-field: #{$obs-l-field}
   --obs-hdr-border: #{$obs-d-border}
   --obs-hdr-ctl-border: #{$secondary}
   --obs-hdr-thumb-icon: #{$obs-d-on-brand}
@@ -182,7 +184,7 @@ body.body--dark
   .q-field__marginal, .q-field__label, .q-field__bottom
     color: var(--obs-muted)
   .q-field--filled .q-field__control
-    background: var(--obs-raised)
+    background: var(--obs-field)
   .q-field--outlined .q-field__control:before, .q-field--standard .q-field__control:before
     border-color: var(--obs-border)
   .q-checkbox__bg
@@ -328,7 +330,7 @@ body.body--dark
   color: var(--obs-border)
 // Campos rellenos/standout de Quasar (fondo y línea de hover) y velo de carga.
 .q-field--filled .q-field__control, .q-field--standout .q-field__control, .q-field--filled.q-field--dark .q-field__control, .q-field--standout.q-field--dark .q-field__control
-  background: var(--obs-raised)
+  background: var(--obs-field)
 .q-field--filled .q-field__control:before, .q-field--standout .q-field__control:before, .q-field--filled.q-field--dark .q-field__control:before, .q-field--standout.q-field--dark .q-field__control:before
   background: var(--obs-hover)
   border-color: var(--obs-border)

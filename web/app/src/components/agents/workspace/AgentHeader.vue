@@ -82,12 +82,14 @@
         <!-- 046 (UI-E02): mantenimiento y política como íconos con tooltip; el
              hostname tiene prioridad de ancho (con la columna de contexto, los
              botones con texto lo truncaban a 1440 px). -->
+        <!-- 046 (UI-D05): control encendido (mantenimiento activo) en teal, no en
+             ámbar de estado (enmienda 2026-10-06). El estado lo muestra el badge. -->
         <q-btn
           flat
           round
           dense
           icon="construction"
-          :color="agent.maintenance_mode ? 'warning' : undefined"
+          :color="agent.maintenance_mode ? 'primary' : undefined"
           data-action="maintenance"
           :aria-label="maintenanceLabel"
           @click="run('maintenance')"
