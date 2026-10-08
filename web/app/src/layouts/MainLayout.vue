@@ -148,7 +148,12 @@
           style="font-size: 16px"
         />
         <!-- Devices Chip -->
-        <q-chip class="cursor-pointer obs-hdr-chip">
+        <!-- 046 (UI-D05): el chip abre el menú de equipos ⇒ clickable explícito (acción). -->
+        <q-chip
+          clickable
+          class="cursor-pointer obs-hdr-chip"
+          :aria-label="$t('layout.agentCount')"
+        >
           <q-avatar size="md" icon="devices" color="primary" />
           <q-tooltip :delay="600" anchor="top middle" self="top middle">{{
             $t("layout.agentCount")

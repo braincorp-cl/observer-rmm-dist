@@ -158,6 +158,10 @@ body.body--dark
     min-width: 0
   > .obs-summary-spacer
     display: none
+  // Móvil (observación UI-R02): una sola columna.
+  @media (max-width: 700px)
+    grid-template-columns: minmax(0, 1fr)
+    row-gap: 16px
   .q-item__label, .q-item__section, span
     overflow-wrap: anywhere
   .q-chip
@@ -351,7 +355,8 @@ body .q-list--separator > .q-item-type + .q-item-type, body .q-list--separator >
   border-top-color: var(--obs-border)
 .q-table--bordered
   border-color: var(--obs-border)
-body.body--light .text-white
+// La cabecera (bg-dark) usa on-dark en ambos temas: queda fuera de esta regla.
+body.body--light .text-white:not(.q-header):not(.bg-dark)
   color: var(--obs-on-brand) !important
 // Literales de Quasar que solo coincidían por valor con un token (corrida
 // 2026-10-07): sombra de botón estándar y pulgar del interruptor.

@@ -31,6 +31,7 @@
           :actions="descriptors"
           :context-toggle="narrow"
           :context-open="ctxOpen"
+          :refreshing="refreshing"
           @refresh-wmi="refreshWMI"
           @toggle-context="ctxOpen = !ctxOpen"
         />
@@ -179,12 +180,18 @@ export default {
       });
     }
 
+    // Indicador de carga en el botón: con el equipo fuera de línea la respuesta
+    // tarda ~20 s (v1 mostraba el inner-loading del Resumen).
+    const refreshing = ref(false);
     async function refreshWMI() {
+      refreshing.value = true;
       try {
         const result = await refreshAgentWMI(route.params.agent_id);
         notifySuccess(result);
       } catch (e) {
         console.error(e);
+      } finally {
+        refreshing.value = false;
       }
       store.commit("setRefreshSummaryTab", true);
       load();
@@ -244,6 +251,7 @@ export default {
       contentEl,
       selectSection,
       refreshWMI,
+      refreshing,
       refreshLists,
       pageStyle,
     };

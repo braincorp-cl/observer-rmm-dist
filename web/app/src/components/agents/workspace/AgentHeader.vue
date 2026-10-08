@@ -110,6 +110,7 @@
           round
           dense
           icon="refresh"
+          :loading="refreshing"
           :aria-label="$t('agentWorkspace.header.refresh')"
           @click="$emit('refresh-wmi')"
         >
@@ -236,6 +237,7 @@ const props = defineProps({
   actions: { type: Array, required: true },
   contextToggle: { type: Boolean, default: false },
   contextOpen: { type: Boolean, default: false },
+  refreshing: { type: Boolean, default: false },
 });
 defineEmits(["refresh-wmi", "toggle-context"]);
 
