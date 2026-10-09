@@ -274,6 +274,7 @@
     - { src: celery.service.j2, dest: celery.service }
     - { src: celerybeat.service.j2, dest: celerybeat.service }
   notify: systemd daemon-reload
+  tags: [systemd_units]
 
 - name: Habilitar y arrancar servicios del API
   ansible.builtin.systemd:
