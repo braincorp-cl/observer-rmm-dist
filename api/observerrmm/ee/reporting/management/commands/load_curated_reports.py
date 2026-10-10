@@ -1071,8 +1071,10 @@ muestreador") y una tarea programada con ese nombre exacto que ejecute "Activida
 ACTIVIDAD_DIA = (
     _header(
         "Actividad de Usuarios &mdash; Diario",
-        "{% set r = data_sources.corridas | actividad_dia(fecha | default(''), data_sources.categorias) %}"
-        "Fecha: {{ r.fecha or '—' }}<br>Usuarios: {{ r.totales.usuarios }}",
+        "{% set r = data_sources.corridas | actividad_dia(fecha | default(''), data_sources.categorias, _equipo | default(''), _usuario | default('')) %}"
+        "Fecha: {{ r.fecha or '—' }}<br>Usuarios: {{ r.totales.usuarios }}"
+        "{% if _equipo %}<br>Equipo: {{ _equipo }}{% endif %}"
+        "{% if _usuario %}<br>Usuario: {{ _usuario }}{% endif %}",
     )
     + _ACTIVIDAD_MACROS
     + """
@@ -1158,8 +1160,10 @@ ACTIVIDAD_VARS = (
 ACTIVIDAD_SEMANA = (
     _header(
         "Actividad de Usuarios &mdash; Resumen Semanal",
-        "{% set r = data_sources.corridas | actividad_rango(desde | default(''), 7, data_sources.categorias) %}"
-        "Per&iacute;odo: {{ r.desde or '—' }} a {{ r.hasta or '—' }}<br>Usuarios: {{ r.filas | length }}",
+        "{% set r = data_sources.corridas | actividad_rango(desde | default(''), 7, data_sources.categorias, _equipo | default(''), _usuario | default('')) %}"
+        "Per&iacute;odo: {{ r.desde or '—' }} a {{ r.hasta or '—' }}<br>Usuarios: {{ r.filas | length }}"
+        "{% if _equipo %}<br>Equipo: {{ _equipo }}{% endif %}"
+        "{% if _usuario %}<br>Usuario: {{ _usuario }}{% endif %}",
     )
     + _ACTIVIDAD_MACROS
     + """
@@ -1313,14 +1317,14 @@ CURATED = [
         "type": "html",
         "template_md": ACTIVIDAD_DIA,
         "template_variables": ACTIVIDAD_VARS,
-        "depends_on": ["client", "fecha"],
+        "depends_on": ["client", "fecha", "_equipo", "_usuario"],
     },
     {
         "name": "Actividad - resumen semanal",
         "type": "html",
         "template_md": ACTIVIDAD_SEMANA,
         "template_variables": ACTIVIDAD_VARS,
-        "depends_on": ["client", "desde"],
+        "depends_on": ["client", "desde", "_equipo", "_usuario"],
     },
 ]
 

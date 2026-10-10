@@ -2829,7 +2829,8 @@
     "dependencyPrompt": {
       "title": "Select Report Dependencies",
       "submit": "Submit",
-      "errorAllFields": "All fields must have a value."
+      "errorAllFields": "All fields must have a value.",
+      "optional": "Optional"
     },
     "scheduleForm": {
       "editTitle": "Edit Report Schedule",

@@ -41,13 +41,13 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.24"
+ORMM_VERSION = "1.4.25"
 
-WEB_VERSION = "0.2.11"
+WEB_VERSION = "0.2.12"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.1.12"
+APP_VER = "0.1.13"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
 LATEST_AGENT_VER = "2.17.3"

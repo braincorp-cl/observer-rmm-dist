@@ -129,3 +129,36 @@ class TestOrdenYKeyStore:
         kv = [{"value": CATS}]
         f = actividad_dia([_fila(_doc("2026-10-10"))], "", kv)["filas"][0]
         assert f["productivo_min"] == 90
+
+
+class TestFiltrosEquipoUsuario:
+    def _rows(self):
+        a = _fila(_doc("2026-10-10", usuario="DOM\\ana", activo=120), host="PC-A")
+        b = _fila(_doc("2026-10-10", usuario="DOM\\bruno", activo=60), host="PC-B")
+        return [a, b]
+
+    def test_sin_filtro_trae_todos(self):
+        res = actividad_dia(self._rows(), "2026-10-10")
+        assert {f["usuario"] for f in res["filas"]} == {"DOM\\ana", "DOM\\bruno"}
+
+    def test_filtra_por_equipo_exacto_sin_mayusculas(self):
+        res = actividad_dia(self._rows(), "2026-10-10", equipo="pc-a")
+        assert [f["equipo"] for f in res["filas"]] == ["PC-A"]
+        assert res["filas"][0]["usuario"] == "DOM\\ana"
+
+    def test_filtra_por_usuario_coincidencia_parcial(self):
+        res = actividad_dia(self._rows(), "2026-10-10", usuario="bruno")
+        assert [f["usuario"] for f in res["filas"]] == ["DOM\\bruno"]
+
+    def test_equipo_que_no_existe_da_vacio(self):
+        res = actividad_dia(self._rows(), "2026-10-10", equipo="PC-Z")
+        assert res["filas"] == []
+
+    def test_rango_filtra_equipo_y_usuario(self):
+        rows = [
+            _fila(_doc("2026-10-07", usuario="DOM\\ana", activo=100), host="PC-A"),
+            _fila(_doc("2026-10-07", usuario="DOM\\bruno", activo=50), host="PC-B"),
+        ]
+        res = actividad_rango(rows, "2026-10-05", 7, equipo="PC-A", usuario="ana")
+        assert len(res["filas"]) == 1
+        assert res["filas"][0]["usuario"] == "DOM\\ana"

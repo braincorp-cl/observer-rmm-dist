@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.25 — 2026-10-10
+
+- **Reportes de actividad: filtros por equipo y por usuario, y selector de fecha.** Al generar «Actividad de usuarios - diario» o «Actividad - resumen semanal», la fecha se elige con un **calendario** (antes era un campo de texto sin formato claro) y se puede **acotar a un equipo** (desplegable) o **buscar por usuario** (coincidencia de texto). Ambos son **opcionales**: vacíos, el informe sigue cubriendo todo el cliente. El informe muestra en la cabecera el equipo o usuario filtrado.
+- **Diálogo de dependencias de reportes, en general:** los campos de fecha de cualquier reporte ahora usan selector de calendario, y una dependencia puede declararse opcional (prefijo `_` en su nombre), lo que permite filtros que no obligan a rellenarlos.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.24 — 2026-10-10
 
 - **Observer Actividad: medición del uso del equipo por usuario (módulo opcional).** Cuatro scripts nuevos en la biblioteca (*Actividad - …*, Windows y Linux/macOS) instalan un muestreador que corre en la sesión de cada usuario y registra qué aplicación está en primer plano y el tiempo activo e inactivo. Si se activan, registra además el título de la ventana y capturas de pantalla periódicas. Las capturas **se quedan en el equipo** (7 días por omisión) y se traen a la consola solo con la recuperación de archivos. La primera vez, el usuario ve un aviso en pantalla que debe aceptar. No registra teclas, audio ni video.

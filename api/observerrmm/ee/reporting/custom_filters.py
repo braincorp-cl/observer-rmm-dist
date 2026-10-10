@@ -77,37 +77,49 @@ def _actividad_categorias(categorias):
     return categoria
 
 
-def _actividad_usuarios(rows):
+def _actividad_usuarios(rows, equipo="", usuario=""):
     """Recorre las filas de AgentHistory y produce (equipo, sitio, cliente, dia, usuario).
 
     Si un mismo dia de un mismo usuario aparece en dos corridas (recolector
     re-ejecutado, o -Hoy y despues la corrida final), gana la mas reciente.
+
+    `equipo` y `usuario` son filtros OPCIONALES (vienen del prompt de dependencias
+    como texto, pueden llegar vacios = sin filtrar): equipo compara el hostname
+    exacto sin distinguir mayusculas; usuario es una coincidencia parcial sobre el
+    nombre registrado en la actividad, tambien sin distinguir mayusculas.
     """
+    equipo = str(equipo or "").strip().lower()
+    usuario = str(usuario or "").strip().lower()
     filas = [r for r in (rows or []) if isinstance(r, dict)]
     filas.sort(key=lambda r: str(r.get("time", "")))
     vistos = {}
     for row in filas:
+        host = row.get("agent__hostname", "") or ""
+        if equipo and host.lower() != equipo:
+            continue
         resultados = from_json(row.get("script_results"))
         if not isinstance(resultados, dict):
             continue
         doc = from_json(resultados.get("stdout"))
         if not isinstance(doc, dict):
             continue
-        equipo = row.get("agent__hostname", "")
         for dia in doc.get("dias", []) or []:
             if not isinstance(dia, dict):
                 continue
-            for usuario in dia.get("usuarios", []) or []:
-                if not isinstance(usuario, dict):
+            for u in dia.get("usuarios", []) or []:
+                if not isinstance(u, dict):
                     continue
-                clave = (equipo, dia.get("fecha", ""), usuario.get("usuario", ""))
+                nombre = u.get("usuario", "") or ""
+                if usuario and usuario not in nombre.lower():
+                    continue
+                clave = (host, dia.get("fecha", ""), nombre)
                 vistos[clave] = {
-                    "equipo": equipo,
+                    "equipo": host,
                     "sitio": row.get("agent__site__name", ""),
                     "cliente": row.get("agent__site__client__name", ""),
                     "so": doc.get("so", ""),
                     "fecha": dia.get("fecha", ""),
-                    "u": usuario,
+                    "u": u,
                 }
     return list(vistos.values())
 
@@ -119,10 +131,13 @@ def _minutos(valor):
         return 0
 
 
-def actividad_dia(rows, fecha="", categorias=None, top=8):
-    """Resumen de un dia por usuario. Sin fecha (o con una que no esta) usa el ultimo dia con datos."""
+def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8):
+    """Resumen de un dia por usuario. Sin fecha (o con una que no esta) usa el ultimo dia con datos.
+
+    `equipo` y `usuario` son filtros opcionales (ver _actividad_usuarios).
+    """
     categoria = _actividad_categorias(categorias)
-    registros = _actividad_usuarios(rows)
+    registros = _actividad_usuarios(rows, equipo, usuario)
     fechas = sorted({r["fecha"] for r in registros if r["fecha"]})
     fecha = str(fecha or "").strip()
     if fecha not in fechas:
@@ -204,10 +219,15 @@ def actividad_dia(rows, fecha="", categorias=None, top=8):
     return {"fecha": fecha, "fechas": fechas, "filas": filas, "totales": totales}
 
 
-def actividad_rango(rows, desde="", dias=7, categorias=None, top=10):
-    """Agrega por usuario los dias en [desde, desde+dias). Sin desde: los ultimos `dias` con datos."""
+def actividad_rango(
+    rows, desde="", dias=7, categorias=None, equipo="", usuario="", top=10
+):
+    """Agrega por usuario los dias en [desde, desde+dias). Sin desde: los ultimos `dias` con datos.
+
+    `equipo` y `usuario` son filtros opcionales (ver _actividad_usuarios).
+    """
     categoria = _actividad_categorias(categorias)
-    registros = _actividad_usuarios(rows)
+    registros = _actividad_usuarios(rows, equipo, usuario)
     fechas = sorted({r["fecha"] for r in registros if r["fecha"]})
     dias = _minutos(dias) or 7
     desde = str(desde or "").strip()

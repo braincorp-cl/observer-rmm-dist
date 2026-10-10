@@ -2829,7 +2829,8 @@
     "dependencyPrompt": {
       "title": "Seleccionar dependencias del reporte",
       "submit": "Enviar",
-      "errorAllFields": "Todos los campos deben tener un valor."
+      "errorAllFields": "Todos los campos deben tener un valor.",
+      "optional": "Opcional"
     },
     "scheduleForm": {
       "editTitle": "Editar programación de reporte",
