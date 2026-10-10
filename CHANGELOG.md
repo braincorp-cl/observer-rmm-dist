@@ -8,6 +8,13 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.24 — 2026-10-10
+
+- **Observer Actividad: medición del uso del equipo por usuario (módulo opcional).** Cuatro scripts nuevos en la biblioteca (*Actividad - …*, Windows y Linux/macOS) instalan un muestreador que corre en la sesión de cada usuario y registra qué aplicación está en primer plano y el tiempo activo e inactivo. Si se activan, registra además el título de la ventana y capturas de pantalla periódicas. Las capturas **se quedan en el equipo** (7 días por omisión) y se traen a la consola solo con la recuperación de archivos. La primera vez, el usuario ve un aviso en pantalla que debe aceptar. No registra teclas, audio ni video.
+- **Dos reportes nuevos: «Actividad de usuarios - diario» y «Actividad - resumen semanal».** Por cliente: mapa de calor de 24 horas por persona, tiempo por aplicación, porcentaje productivo e intervalos con el muestreador detenido. Los alimenta una tarea programada llamada exactamente **«Observer Actividad - Recolector»**. Qué aplicaciones cuentan como productivas o improductivas se define en el *Key Store* (`actividad_categorias`), sin tocar código.
+- **Uso aceptable y privacidad:** la página pública declara el módulo, lo que registra, la retención y un texto modelo de consentimiento (§6). Las capturas y la medición de productividad ocurren solo si la organización instala el módulo.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.23 — 2026-09-28
 
 - **Instalador PowerShell: raíz de Let's Encrypt incluida.** Si el equipo no tiene la raíz **ISRG Root X1**, el instalador la agrega antes de descargar el agente (verificada por huella). Corrige el error «No se puede establecer una relación de confianza para el canal seguro SSL/TLS» en redes donde Windows no puede actualizar sus raíces, aunque el navegador del mismo equipo abra la descarga sin problema. Los scripts ya descargados antes de esta versión no la incluyen: hay que generarlos de nuevo desde la consola.

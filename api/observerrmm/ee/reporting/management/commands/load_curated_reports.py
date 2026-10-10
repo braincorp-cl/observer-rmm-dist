@@ -78,6 +78,11 @@ BASE_HTML = """<html>
   .chart-card { border: 1px solid #dbe6ea; border-radius: 6px; padding: 6px; background: #fff; }
   .chart-card svg { display: block; max-width: 100%; height: auto; }
   .section-title { color: #0b6b7f; border-bottom: 2px solid #0E8FA8; margin: 18px 0 4px; font-size: 14px; }
+  /* --- Mapa de calor de Actividad (feature 048) — aditivo --- */
+  .heat { border-collapse: separate; border-spacing: 2px; width: 100%; margin: 6px 0; table-layout: fixed; }
+  .heat th { font-size: 8px; color: #7a929b; font-weight: normal; padding: 0; }
+  .heat td { height: 18px; font-size: 8px; text-align: center; color: #243b44; border: 1px solid #dbe6ea;
+    border-radius: 2px; padding: 0; }
   .ok { color: #2e9e6b; }
   .sev-error, .sev-failing, .st-offline { background: #c0392b; }
   .sev-warning, .sev-pending, .st-overdue { background: #e08e0b; }
@@ -1033,6 +1038,159 @@ ANTIVIRUS_VARS = """data_sources:
 """
 
 
+# ===========================================================================
+# ACTIVIDAD DE USUARIOS (feature 048 · Observer Actividad)
+# ---------------------------------------------------------------------------
+# Fuente: la tarea programada "Observer Actividad - Recolector" (scripts de la
+# biblioteca actividad-recolector*.{ps1,py}). Cada corrida queda en AgentHistory
+# (type=task_run, command=<nombre de la tarea>) con el JSON en el stdout; los
+# filtros actividad_dia / actividad_rango (custom_filters.py) lo normalizan.
+# La categoria productivo/improductivo sale del Key Store "actividad_categorias"
+# (JSON {"productivo":[...],"improductivo":[...],"por_defecto":"neutral"}).
+# Mapa de calor en tabla HTML: no requiere chromium.
+# ===========================================================================
+
+ACTIVIDAD_TAREA = "Observer Actividad - Recolector"
+
+_ACTIVIDAD_MACROS = """
+{% macro hm(m) %}{{ '%d:%02d' | format((m or 0) // 60, (m or 0) % 60) }}{% endmacro %}
+{% set _rgb = {'productivo': '46,158,107', 'improductivo': '192,57,43', 'neutral': '14,143,168', '': '14,143,168'} %}
+{% set _cat_lbl = {'productivo': 'Productivo', 'improductivo': 'Improductivo', 'neutral': 'Neutral'} %}
+"""
+
+_ACTIVIDAD_SIN_DATOS = (
+    """
+<p class="muted">No hay corridas de la tarea <b>"""
+    + ACTIVIDAD_TAREA
+    + """</b> para este cliente y fecha.
+Revise que los equipos tengan instalado el muestreador (script "Actividad - Instalar o quitar el
+muestreador") y una tarea programada con ese nombre exacto que ejecute "Actividad - Recolector diario".</p>
+"""
+)
+
+ACTIVIDAD_DIA = (
+    _header(
+        "Actividad de Usuarios &mdash; Diario",
+        "{% set r = data_sources.corridas | actividad_dia(fecha | default(''), data_sources.categorias) %}"
+        "Fecha: {{ r.fecha or '—' }}<br>Usuarios: {{ r.totales.usuarios }}",
+    )
+    + _ACTIVIDAD_MACROS
+    + """
+{% if r.filas | length == 0 %}"""
+    + _ACTIVIDAD_SIN_DATOS
+    + """{% else %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ r.totales.usuarios }}</div><div class="kpi-lbl">Usuarios con actividad</div></div>
+  <div class="kpi"><div class="kpi-num">{{ hm(r.totales.activo_min) }}</div><div class="kpi-lbl">Horas activas (total)</div></div>
+  <div class="kpi kpi-ok"><div class="kpi-num">{{ r.totales.pct_productivo }}%</div><div class="kpi-lbl">Del tiempo activo en apps productivas</div></div>
+  <div class="kpi {% if r.totales.huecos_min > 0 %}kpi-warn{% endif %}"><div class="kpi-num">{{ hm(r.totales.huecos_min) }}</div><div class="kpi-lbl">Muestreador detenido (huecos)</div></div>
+</div>
+<p class="muted">Leyenda del mapa: intensidad = minutos activos en la hora; color = categor&iacute;a del proceso principal
+(<span style="color:rgb(46,158,107)">&#9632;</span> productivo,
+<span style="color:rgb(192,57,43)">&#9632;</span> improductivo,
+<span style="color:rgb(14,143,168)">&#9632;</span> neutral). {% if r.fechas | length > 1 %}Otras fechas con datos: {{ r.fechas[-8:] | join(', ') }}.{% endif %}</p>
+
+{% for cliente, porcli in r.filas | groupby('cliente') %}
+<div class="client-title">{{ cliente }}</div>
+{% for f in porcli %}
+<div class="agent-title">{{ f.usuario }} <span class="muted">&mdash; {{ f.equipo }} ({{ f.sitio }}) &middot; {{ f.primero }}&ndash;{{ f.ultimo }}</span></div>
+{% if f.nota %}<p class="stale">{{ f.nota }}</p>{% endif %}
+<table class="report-table">
+  <thead><tr><th>Activo</th><th>Inactivo</th><th>Productivo</th><th>Improductivo</th><th>% productivo</th><th>Huecos</th><th>Capturas en el equipo</th></tr></thead>
+  <tbody><tr>
+    <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.inactivo_min) }}</td>
+    <td class="num">{{ hm(f.productivo_min) }}</td><td class="num">{{ hm(f.improductivo_min) }}</td>
+    <td class="num">{{ f.pct_productivo }}%</td>
+    <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td>
+    <td class="num">{{ f.capturas }}</td>
+  </tr></tbody>
+</table>
+<table class="heat">
+  <tr>{% for h in f.horas %}<th>{{ h.h }}</th>{% endfor %}</tr>
+  <tr>{% for h in f.horas %}<td style="background: rgba({{ _rgb[h.cat] }}, {{ '%.2f' | format(0.08 + 0.92 * h.a / 60 if h.a else 0) }})" title="{{ h.h }}:00 &middot; {{ h.a }} min activo, {{ h.i }} inactivo &middot; {{ h.principal }}">{% if h.a %}{{ h.a }}{% endif %}</td>{% endfor %}</tr>
+</table>
+<table class="report-table">
+  <thead><tr><th>Proceso</th><th>Categor&iacute;a</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for p in f.procs %}<tr><td>{{ p.proceso }}</td><td>{{ _cat_lbl[p.cat] }}</td><td class="num">{{ hm(p.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if f.titulos %}
+<table class="report-table">
+  <thead><tr><th>Ventana (t&iacute;tulo)</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for t in f.titulos %}<tr><td>{{ t.titulo }}</td><td class="num">{{ hm(t.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}"""
+    + END
+)
+ACTIVIDAD_VARS = (
+    """data_sources:
+  corridas:
+    model: agenthistory
+    filter:
+      type: task_run
+      command: \""""
+    + ACTIVIDAD_TAREA
+    + """\"
+      agent__site__client__id: {{client.id}}
+    order_by: -time
+    limit: 1500
+    only:
+    - time
+    - agent__hostname
+    - agent__site__name
+    - agent__site__client__name
+    - script_results
+  categorias:
+    model: globalkvstore
+    filter:
+      name: actividad_categorias
+    only:
+    - value
+"""
+)
+
+ACTIVIDAD_SEMANA = (
+    _header(
+        "Actividad de Usuarios &mdash; Resumen Semanal",
+        "{% set r = data_sources.corridas | actividad_rango(desde | default(''), 7, data_sources.categorias) %}"
+        "Per&iacute;odo: {{ r.desde or '—' }} a {{ r.hasta or '—' }}<br>Usuarios: {{ r.filas | length }}",
+    )
+    + _ACTIVIDAD_MACROS
+    + """
+{% if r.filas | length == 0 %}"""
+    + _ACTIVIDAD_SIN_DATOS
+    + """{% else %}
+<div class="section-title">Usuarios por tiempo activo</div>
+<table class="report-table">
+  <thead><tr><th>Sitio</th><th>Equipo</th><th>Usuario</th><th class="num">D&iacute;as</th><th class="num">Activo total</th>
+    <th class="num">Promedio diario</th><th class="num">% productivo</th><th class="num">Improductivo</th><th class="num">Huecos</th></tr></thead>
+  <tbody>
+  {% for f in r.filas %}
+    <tr><td>{{ f.sitio }}</td><td>{{ f.equipo }}</td><td>{{ f.usuario }}</td><td class="num">{{ f.dias }}</td>
+      <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.activo_prom_min) }}</td>
+      <td class="num">{{ f.pct_productivo }}%</td><td class="num">{{ hm(f.improductivo_min) }}</td>
+      <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="section-title">Procesos m&aacute;s usados</div>
+<table class="report-table">
+  <thead><tr><th>Proceso</th><th>Categor&iacute;a</th><th class="num">Tiempo activo (todos los usuarios)</th></tr></thead>
+  <tbody>
+  {% for p in r.procesos %}<tr><td>{{ p.proceso }}</td><td>{{ _cat_lbl[p.cat] }}</td><td class="num">{{ hm(p.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}"""
+    + END
+)
+
+
 CURATED = [
     {
         "name": "Inventario de Agentes",
@@ -1148,6 +1306,21 @@ CURATED = [
         "type": "html",
         "template_md": PARCHES,
         "template_variables": PARCHES_VARS,
+    },
+    # --- Actividad de usuarios (feature 048) — piden cliente y fecha al abrir ---
+    {
+        "name": "Actividad de usuarios - diario",
+        "type": "html",
+        "template_md": ACTIVIDAD_DIA,
+        "template_variables": ACTIVIDAD_VARS,
+        "depends_on": ["client", "fecha"],
+    },
+    {
+        "name": "Actividad - resumen semanal",
+        "type": "html",
+        "template_md": ACTIVIDAD_SEMANA,
+        "template_variables": ACTIVIDAD_VARS,
+        "depends_on": ["client", "desde"],
     },
 ]
 

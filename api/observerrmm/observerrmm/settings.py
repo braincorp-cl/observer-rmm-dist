@@ -41,7 +41,7 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.23"
+ORMM_VERSION = "1.4.24"
 
 WEB_VERSION = "0.2.11"
 

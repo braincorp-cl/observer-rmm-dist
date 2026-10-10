@@ -1,0 +1,131 @@
+import json
+
+from ee.reporting.custom_filters import actividad_dia, actividad_rango, from_json
+
+
+def _fila(stdout, host="PC-01", sitio="Casa Matriz", cliente="ACME"):
+    if not isinstance(stdout, str):
+        stdout = json.dumps(stdout)
+    return {
+        "agent__hostname": host,
+        "agent__site__name": sitio,
+        "agent__site__client__name": cliente,
+        "script_results": {"stdout": stdout, "stderr": "", "retcode": 0},
+    }
+
+
+def _doc(fecha, usuario="DOM\\jperez", activo=120, procs=None, horas=None):
+    return {
+        "v": 1,
+        "so": "windows",
+        "dias": [
+            {
+                "fecha": fecha,
+                "usuarios": [
+                    {
+                        "usuario": usuario,
+                        "primero": "08:00",
+                        "ultimo": "18:00",
+                        "activo_min": activo,
+                        "inactivo_min": 30,
+                        "huecos_min": 5,
+                        "capturas": 12,
+                        "procs": procs or {"excel.exe": 90, "chrome.exe": 30},
+                        "horas": horas
+                        or {"08": {"a": 50, "i": 10, "p": {"excel.exe": 50}}},
+                        "titulos_top": [["Informe.xlsx", 60]],
+                    }
+                ],
+            }
+        ],
+    }
+
+
+CATS = json.dumps({"productivo": ["EXCEL.EXE"], "improductivo": ["chrome.exe"]})
+
+
+class TestFromJson:
+    def test_parsea_string(self):
+        assert from_json('{"a": 1}') == {"a": 1}
+
+    def test_basura_devuelve_dict_vacio(self):
+        assert from_json("no es json") == {}
+        assert from_json(None) == {}
+
+    def test_dict_pasa_tal_cual(self):
+        assert from_json({"a": 1}) == {"a": 1}
+
+
+class TestActividadDia:
+    def test_categoriza_sin_distinguir_mayusculas(self):
+        res = actividad_dia([_fila(_doc("2026-10-10"))], "2026-10-10", CATS)
+        f = res["filas"][0]
+        assert f["productivo_min"] == 90
+        assert f["improductivo_min"] == 30
+        assert f["pct_productivo"] == 75
+        assert f["procs"][0] == {"proceso": "excel.exe", "min": 90, "cat": "productivo"}
+
+    def test_mapa_de_24_horas(self):
+        f = actividad_dia([_fila(_doc("2026-10-10"))], "2026-10-10")["filas"][0]
+        assert len(f["horas"]) == 24
+        assert f["horas"][8]["a"] == 50
+        assert f["horas"][8]["principal"] == "excel.exe"
+        assert f["horas"][9]["a"] == 0
+
+    def test_sin_fecha_usa_el_ultimo_dia(self):
+        rows = [_fila(_doc("2026-10-09")), _fila(_doc("2026-10-10", activo=200))]
+        res = actividad_dia(rows)
+        assert res["fecha"] == "2026-10-10"
+        assert res["filas"][0]["activo_min"] == 200
+
+    def test_dia_repetido_gana_la_ultima_corrida(self):
+        rows = [
+            _fila(_doc("2026-10-10", activo=10)),
+            _fila(_doc("2026-10-10", activo=99)),
+        ]
+        res = actividad_dia(rows, "2026-10-10")
+        assert len(res["filas"]) == 1
+        assert res["filas"][0]["activo_min"] == 99
+
+    def test_stdout_ilegible_no_rompe(self):
+        rows = [_fila("ERROR: algo"), {"script_results": None}, "basura"]
+        res = actividad_dia(rows, "2026-10-10")
+        assert res["filas"] == []
+        assert res["totales"]["usuarios"] == 0
+
+    def test_categoria_por_defecto(self):
+        cats = json.dumps({"por_defecto": "improductivo"})
+        f = actividad_dia([_fila(_doc("2026-10-10"))], "", cats)["filas"][0]
+        assert f["improductivo_min"] == 120
+
+
+class TestActividadRango:
+    def test_agrega_dias_por_usuario(self):
+        rows = [
+            _fila(_doc("2026-10-06", activo=100)),
+            _fila(_doc("2026-10-07", activo=200)),
+            _fila(_doc("2026-10-20", activo=999)),
+        ]
+        res = actividad_rango(rows, "2026-10-05", 7, CATS)
+        assert res["fechas"] == ["2026-10-06", "2026-10-07"]
+        f = res["filas"][0]
+        assert f["dias"] == 2
+        assert f["activo_min"] == 300
+        assert f["activo_prom_min"] == 150
+        assert res["procesos"][0]["proceso"] == "excel.exe"
+        assert res["procesos"][0]["min"] == 180
+
+
+class TestOrdenYKeyStore:
+    def test_gana_la_corrida_mas_reciente_aunque_lleguen_desordenadas(self):
+        nueva = _fila(_doc("2026-10-10", activo=99))
+        nueva["time"] = "2026-10-11 02:55:00+00:00"
+        vieja = _fila(_doc("2026-10-10", activo=10))
+        vieja["time"] = "2026-10-10 18:00:00+00:00"
+        res = actividad_dia([nueva, vieja], "2026-10-10")
+        assert res["filas"][0]["activo_min"] == 99
+
+    def test_categorias_desde_la_fuente_del_key_store(self):
+        kv = [{"value": CATS}]
+        f = actividad_dia([_fila(_doc("2026-10-10"))], "", kv)["filas"][0]
+        assert f["productivo_min"] == 90

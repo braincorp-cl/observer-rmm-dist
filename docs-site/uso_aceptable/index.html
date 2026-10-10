@@ -168,9 +168,9 @@
       <p class="lang-es">Esta lista es tan parte del diseño como la anterior. Sin ella, la declaración de capacidades se lee como una amenaza en vez de como un contrato:</p>
       <p class="lang-en">This list is as much a part of the design as the previous one. Without it, the statement of capabilities reads as a threat rather than as a contract:</p>
       <ul class="lang-es">
-        <li><strong>No</strong> activa la cámara ni la captura de pantalla de un equipo que no esté declarado como perdido o robado.</li>
+        <li><strong>No</strong> activa la cámara de un equipo que no esté declarado como perdido o robado, y <strong>no</strong> captura su pantalla salvo que la organización haya instalado el módulo opcional de medición de actividad con las capturas encendidas (ver <a href="#medicion-actividad">§6</a>).</li>
         <li><strong>No</strong> registra pulsaciones de teclado, ni graba audio, ni graba video continuo.</li>
-        <li><strong>No</strong> es una herramienta de medición de productividad ni de control de horario, y no está diseñada para revisar la actividad cotidiana de nadie.</li>
+        <li><strong>No</strong> mide la productividad ni la actividad cotidiana de nadie <strong>por omisión</strong>: eso sólo ocurre si la organización instala el módulo opcional descrito en <a href="#medicion-actividad">§6</a>, y aun entonces no controla horario ni registra teclas.</li>
         <li><strong>No</strong> abre una sesión de control remoto sin que se anuncie en la pantalla del equipo.</li>
         <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
         <li><strong>No</strong> se conecta a redes WiFi protegidas por contraseña ni supera portales cautivos: la reconexión de un equipo perdido usa únicamente redes abiertas.</li>
@@ -178,9 +178,9 @@
         <li><strong>No</strong> borra archivos de un equipo que no esté declarado como perdido o robado, ni sin el permiso dedicado, ni con una sola persona, ni fuera de un caso abierto; y no borra el disco completo ni restablece el equipo de fábrica.</li>
       </ul>
       <ul class="lang-en">
-        <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
+        <li><strong>It does not</strong> turn on the camera of a device that is not declared lost or stolen, and it does <strong>not</strong> capture its screen unless the organization has installed the optional activity measurement module with screenshots enabled (see <a href="#medicion-actividad">§6</a>).</li>
         <li><strong>It does not</strong> log keystrokes, record audio, or record continuous video.</li>
-        <li><strong>It does not</strong> serve as a productivity or time-tracking tool, and it is not designed to review anyone's day-to-day activity.</li>
+        <li><strong>It does not</strong> measure anyone's productivity or day-to-day activity <strong>by default</strong>: that only happens if the organization installs the optional module described in <a href="#medicion-actividad">§6</a>, and even then it does not track working hours or log keystrokes.</li>
         <li><strong>It does not</strong> open a remote control session without announcing it on the device's screen.</li>
         <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
         <li><strong>It does not</strong> connect to password-protected WiFi networks or get past captive portals: a lost device's reconnection uses open networks only.</li>
@@ -302,6 +302,50 @@ enabled.
 I acknowledge and accept the above.
 
 Name: ______________________  Signature: ____________  Date: __________</code></pre>
+
+      <h2 id="medicion-actividad"><span class="lang-es">6. Medición de actividad (módulo opcional)</span><span class="lang-en">6. Activity measurement (optional module)</span></h2>
+      <p class="lang-es">Observer Actividad es un módulo <strong>opcional</strong> que la organización instala por su cuenta, equipo por equipo o por política. Sin esa instalación, nada de lo que sigue ocurre. Cuando está instalado, registra en el equipo, mientras la persona tiene la sesión abierta:</p>
+      <p class="lang-en">Observer Actividad is an <strong>optional</strong> module that the organization installs on its own initiative, device by device or by policy. Without that installation, none of the following happens. When installed, it records on the device, while the person is signed in:</p>
+      <ul class="lang-es">
+        <li>Qué <strong>aplicación</strong> está en primer plano, una muestra por minuto (configurable).</li>
+        <li>Si la persona está <strong>activa o inactiva</strong> según el tiempo desde la última vez que usó el teclado o el mouse. No se registra <em>qué</em> se escribió.</li>
+        <li>Opcionalmente, el <strong>título de la ventana</strong> activa (puede revelar el nombre de un documento o de un sitio web).</li>
+        <li>Opcionalmente, <strong>capturas de pantalla</strong> periódicas (por omisión, una cada 10 minutos y sólo mientras la persona está activa).</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Which <strong>application</strong> is in the foreground, one sample per minute (configurable).</li>
+        <li>Whether the person is <strong>active or idle</strong>, based on the time since the keyboard or mouse was last used. <em>What</em> was typed is not recorded.</li>
+        <li>Optionally, the active <strong>window title</strong> (which may reveal the name of a document or a website).</li>
+        <li>Optionally, periodic <strong>screenshots</strong> (by default, one every 10 minutes and only while the person is active).</li>
+      </ul>
+      <p class="lang-es">A la consola sólo sube un <strong>resumen diario</strong> por persona: minutos activos e inactivos por hora y tiempo por aplicación. Ese resumen se conserva lo que dure el historial de los equipos (60 días por omisión). Las capturas <strong>no se suben</strong>: quedan en el propio equipo y se borran solas a los 7 días (configurable). Sólo se traen a la consola con la recuperación de archivos, una acción que exige un permiso propio y queda en el registro de auditoría.</p>
+      <p class="lang-en">Only a <strong>daily summary</strong> per person is uploaded to the console: active and idle minutes per hour and time per application. The summary is kept as long as the device history (60 days by default). Screenshots are <strong>not uploaded</strong>: they stay on the device itself and are deleted automatically after 7 days (configurable). They only reach the console through file retrieval, an action that requires its own permission and is recorded in the audit log.</p>
+      <p class="lang-es">La primera vez que el módulo corre en un perfil, la persona ve un <strong>aviso en pantalla</strong> que describe qué se registra y que debe aceptar. Ese aviso no reemplaza al aviso previo y por escrito: si su organización adopta el módulo, <strong>reemplace en el texto modelo de §5</strong> el párrafo que dice que la organización no captura la pantalla ni mide el desempeño por uno como el siguiente.</p>
+      <p class="lang-en">The first time the module runs in a profile, the person sees an <strong>on-screen notice</strong> describing what is recorded, which they must accept. That notice does not replace the prior written notice: if your organization adopts the module, <strong>replace in the §5 model text</strong> the paragraph stating that the organization does not capture the screen or measure performance with one like the following.</p>
+
+      <pre class="lang-es"><code>La organización mide el uso de este equipo con el módulo Observer
+Actividad: qué aplicación está en primer plano y el tiempo activo e
+inactivo de cada sesión[, el título de la ventana activa][ y capturas
+de pantalla periódicas, que se conservan en el equipo por 7 días]. No
+se registra lo que usted escribe ni se graba audio o video. La
+información se usa para medir la productividad según esta política y
+sólo la consultan [cargos autorizados].</code></pre>
+      <pre class="lang-en"><code>The organization measures the use of this device with the Observer
+Actividad module: which application is in the foreground and the active
+and idle time of each session[, the active window title][ and periodic
+screenshots, kept on the device for 7 days]. What you type is not
+recorded, and no audio or video is captured. The information is used to
+measure productivity under this policy and is only accessed by
+[authorized roles].</code></pre>
+
+      <div class="callout danger lang-es">
+        <span class="tag">Antes de instalarlo</span>
+        <p>En Chile, la Dirección del Trabajo ha objetado los sistemas que permiten una vigilancia constante de las personas y exige su consentimiento escrito cuando se tratan datos personales; la Ley 21.719 de protección de datos rige desde el 1 de diciembre de 2026. Incorpore la medida al reglamento interno, obtenga el consentimiento y use sólo lo necesario: los títulos de ventana y las capturas se pueden dejar apagados. <strong>Esto no es asesoría legal.</strong></p>
+      </div>
+      <div class="callout danger lang-en">
+        <span class="tag">Before installing it</span>
+        <p>In Chile, the Labor Directorate has objected to systems that allow constant monitoring of people and requires their written consent when personal data is processed; Data Protection Law 21.719 takes effect on December 1, 2026. Include the measure in the internal regulations, obtain consent and use only what is necessary: window titles and screenshots can be left off. <strong>This is not legal advice.</strong></p>
+      </div>
 
       <footer>
         <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>

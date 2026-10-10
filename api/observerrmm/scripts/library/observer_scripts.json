@@ -905,5 +905,76 @@
       "linux",
       "darwin"
     ]
+  },
+  {
+    "guid": "6d206db3-e9e8-58e5-a8fb-78511ded0dea",
+    "filename": "actividad-instalar.ps1",
+    "name": "Actividad - Instalar o quitar el muestreador (Windows)",
+    "description": "Feature 048 · Observer Actividad. Instala, actualiza, consulta o desinstala el muestreador de uso del equipo: proceso en primer plano, tiempo activo/inactivo y, si se activan, título de la ventana y capturas de pantalla periódicas (se quedan en el equipo; se recuperan bajo demanda con la recuperación de archivos). Corre en la sesión de cada usuario mediante una tarea programada del grupo Usuarios (por SID) con watchdog cada 15 min. Muestra un aviso al usuario la primera vez. El resumen diario lo sube 'Observer Actividad - Recolector'.",
+    "shell": "powershell",
+    "category": "ObserverRMM:Actividad",
+    "default_timeout": 180,
+    "args": [
+      "-Modo",
+      "instalar"
+    ],
+    "env": [],
+    "syntax": "-Modo estado|instalar|desinstalar [-Intervalo 60] [-InactivoSeg 120] [-Titulos on|off] [-Capturas on|off] [-CadaCaptura 10] [-RetencionCapturas 7] [-RetencionDatos 35] [-Aviso \"texto\"] [-SinAviso] [-BorrarDatos]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "6a339c48-416f-554e-b0ae-72ad6c282ccf",
+    "filename": "actividad-recolector.ps1",
+    "name": "Actividad - Recolector diario (Windows)",
+    "description": "Feature 048 · Observer Actividad. Resume por usuario y por día lo registrado por el muestreador y lo imprime como JSON. Usar como TAREA PROGRAMADA con el nombre exacto 'Observer Actividad - Recolector' (diaria 23:55, ejecutar si se perdió): las plantillas 'Actividad de usuarios - diario' y 'Actividad - resumen semanal' leen el historial de esa tarea. Emite los días cerrados pendientes (marca local), así los equipos apagados entregan al encender sin duplicar.",
+    "shell": "powershell",
+    "category": "ObserverRMM:Actividad",
+    "default_timeout": 300,
+    "args": [],
+    "env": [],
+    "syntax": "[-Hoy] [-MaxDias 7] [-Reiniciar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "windows"
+    ]
+  },
+  {
+    "guid": "3e330877-c31b-5dc0-84b4-8b620a1efab4",
+    "filename": "actividad-instalar-nix.sh",
+    "name": "Actividad - Instalar o quitar el muestreador (Linux/macOS)",
+    "description": "Feature 048 · Observer Actividad para macOS y Linux. macOS: LaunchAgent con KeepAlive; título y captura requieren permisos TCC (Accesibilidad y Grabación de pantalla) por perfil PPPC. Linux: autostart XDG, solo sesiones X11 (xdotool, xprintidle, ImageMagick; --deps los instala); Wayland queda anotado como no soportado.",
+    "shell": "shell",
+    "category": "ObserverRMM (Linux/macOS):Actividad",
+    "default_timeout": 300,
+    "args": [
+      "instalar"
+    ],
+    "env": [],
+    "syntax": "estado | instalar [--intervalo 60] [--inactivo-seg 120] [--titulos on|off] [--capturas on|off] [--cada-captura 10] [--retencion-capturas 7] [--retencion-datos 35] [--aviso \"texto\"] [--sin-aviso] [--deps] | desinstalar [--borrar-datos]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "guid": "59be27b4-fc58-59fa-b82e-c1266595fc40",
+    "filename": "actividad-recolector-nix.py",
+    "name": "Actividad - Recolector diario (Linux/macOS)",
+    "description": "Feature 048 · Equivalente de 'Actividad - Recolector diario (Windows)' para macOS y Linux, con la misma salida JSON. Usar como tarea programada con el nombre exacto 'Observer Actividad - Recolector'.",
+    "shell": "python",
+    "category": "ObserverRMM (Linux/macOS):Actividad",
+    "default_timeout": 300,
+    "args": [],
+    "env": [],
+    "syntax": "[--hoy] [--max-dias 7] [--reiniciar]",
+    "run_as_user": false,
+    "supported_platforms": [
+      "linux",
+      "darwin"
+    ]
   }
 ]
