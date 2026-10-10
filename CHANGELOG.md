@@ -8,6 +8,11 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.26 — 2026-10-10
+
+- **Observer Actividad en Linux: la inactividad se mide sin instalar paquetes.** El muestreador ahora obtiene el tiempo de inactividad por tres vías (xprintidle, xssstate o un medidor propio en Python vía libXss) y usa la primera disponible. El medidor Python no instala nada, así que funciona también en equipos donde el cortafuegos bloquea la descarga de paquetes. Si ninguna vía está disponible, la actividad se reporta como **inactiva** (antes podía contarse como activa sin poder medirla) y el equipo deja constancia en el informe.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.25 — 2026-10-10
 
 - **Reportes de actividad: filtros por equipo y por usuario, y selector de fecha.** Al generar «Actividad de usuarios - diario» o «Actividad - resumen semanal», la fecha se elige con un **calendario** (antes era un campo de texto sin formato claro) y se puede **acotar a un equipo** (desplegable) o **buscar por usuario** (coincidencia de texto). Ambos son **opcionales**: vacíos, el informe sigue cubriendo todo el cliente. El informe muestra en la cabecera el equipo o usuario filtrado.

@@ -12,7 +12,8 @@
 #          El TITULO de ventana pide Accesibilidad y la CAPTURA pide Grabacion de
 #          pantalla (TCC): sin un perfil PPPC por MDM el usuario ve el dialogo de
 #          permiso o la captura sale solo con el fondo de pantalla.
-#   Linux: solo sesiones X11 (xdotool, xprintidle, ImageMagick `import`). En Wayland
+#   Linux: solo sesiones X11 (xdotool, inactividad por xprintidle o xssstate,
+#          ImageMagick `import` para capturas). En Wayland
 #          no hay API generica para la ventana activa: el muestreador lo anota y el
 #          reporte lo muestra como "no soportado".
 #
@@ -28,7 +29,10 @@
 #       [--sin-aviso] [--deps]
 #   actividad-instalar-nix.sh desinstalar [--borrar-datos]
 #
-# --deps (Linux): instala xdotool, xprintidle e ImageMagick con apt o dnf.
+# --deps (Linux): instala xdotool, xprintidle, x11-xserver-utils (xssstate) e
+#                 ImageMagick con apt o dnf. Si el egress bloquea los repos, el
+#                 muestreo de proceso sigue; sin xprintidle/xssstate la actividad
+#                 se reporta como inactiva.
 
 set -u
 export LC_ALL=C
@@ -104,6 +108,38 @@ aviso_defecto() {
     [ "$TITULOS" = on ] && detalle=", el t\303\255tulo de la ventana activa"
     [ "$CAPTURAS" = on ] && detalle="$detalle y capturas de pantalla peri\303\263dicas"
     printf "Este equipo es de propiedad de su empleador y registra su uso: qu\303\251 aplicaci\303\263n est\303\241 en primer plano, el tiempo activo e inactivo${detalle}. La informaci\303\263n se usa para medir la productividad seg\303\272n la pol\303\255tica de uso aceptable de su organizaci\303\263n. Si tiene dudas, consulte con su jefatura o con el \303\241rea de TI."
+}
+
+escribir_idle_py() {
+    # Medidor de inactividad en X11 sin binarios externos: ctypes contra libXss
+    # (extension XScreenSaver). Imprime el idle en milisegundos, o -1 si no puede.
+    # libX11/libXss y python3 vienen con cualquier escritorio Linux, asi que sirve
+    # aun donde el egress bloquea la instalacion de xprintidle por apt.
+    cat > "$BASE/idle.py" <<'IDLEPY'
+import ctypes, os, sys
+try:
+    class _Info(ctypes.Structure):
+        _fields_ = [("window", ctypes.c_ulong), ("state", ctypes.c_int),
+                    ("kind", ctypes.c_int), ("since", ctypes.c_ulong),
+                    ("idle", ctypes.c_ulong), ("event_mask", ctypes.c_ulong)]
+    x11 = ctypes.CDLL("libX11.so.6")
+    xss = ctypes.CDLL("libXss.so.1")
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+    x11.XDefaultRootWindow.restype = ctypes.c_ulong
+    x11.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+    xss.XScreenSaverAllocInfo.restype = ctypes.c_void_p
+    xss.XScreenSaverQueryInfo.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_void_p]
+    disp = x11.XOpenDisplay(os.environ.get("DISPLAY", ":0").encode())
+    if not disp:
+        print(-1); sys.exit(0)
+    info = xss.XScreenSaverAllocInfo()
+    xss.XScreenSaverQueryInfo(disp, x11.XDefaultRootWindow(disp), info)
+    print(ctypes.cast(info, ctypes.POINTER(_Info)).contents.idle)
+except Exception:
+    print(-1)
+IDLEPY
+    chmod 0644 "$BASE/idle.py"
 }
 
 escribir_muestreador() {
@@ -192,6 +228,13 @@ fi
 if [ "$SO" = Linux ] && ! command -v xdotool >/dev/null 2>&1; then
     while true; do linea "#nota" 0 0 "falta xdotool (instalar con --deps)"; sleep 3600; done
 fi
+# Sin forma de medir la inactividad en X11 (ni xprintidle ni xssstate) no se puede
+# afirmar que el usuario este activo. Se deja constancia una vez y, mas abajo, las
+# muestras se marcan INACTIVAS en vez de inflar el tiempo activo.
+if [ "$SO" = Linux ] && ! command -v xprintidle >/dev/null 2>&1 && ! command -v xssstate >/dev/null 2>&1 \
+   && ! { command -v python3 >/dev/null 2>&1 && [ -r "$BASE/idle.py" ] && [ "$(python3 "$BASE/idle.py" 2>/dev/null)" -ge 0 ] 2>/dev/null; }; then
+    linea "#nota" 0 0 "idle no medible: falta xprintidle/xssstate y el medidor Python no funciona; la actividad se reporta como inactiva"
+fi
 
 VUELTA=0
 ULTIMA_CAPTURA=0
@@ -201,7 +244,7 @@ while true; do
     [ $((VUELTA % 10)) -eq 0 ] && leer_config
     VUELTA=$((VUELTA + 1))
 
-    PROC="(escritorio)"; TITULO=""; IDLE=0; BLOQ=0
+    PROC="(escritorio)"; TITULO=""; IDLE=0; IDLE_OK=0; BLOQ=0
     if [ "$SO" = Darwin ]; then
         ASN="$(lsappinfo front 2>/dev/null)"
         if [ -n "$ASN" ] && [ "$ASN" != "[ NULL ]" ]; then
@@ -209,6 +252,7 @@ while true; do
             [ -n "$RUTA" ] && PROC="$(basename "$RUTA" | tr 'A-Z' 'a-z')"
         fi
         IDLE="$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF / 1000000000); exit}')"
+        IDLE_OK=1
         if [ "$TITULOS" = 1 ]; then
             TITULO="$(osascript -e 'tell application "System Events" to tell (first process whose frontmost is true) to get name of front window' 2>/dev/null | limpio)"
         fi
@@ -219,15 +263,26 @@ while true; do
             [ -n "$PID_V" ] && [ -r "/proc/$PID_V/comm" ] && PROC="$(tr 'A-Z' 'a-z' < "/proc/$PID_V/comm")"
             [ "$TITULOS" = 1 ] && TITULO="$(xdotool getwindowname "$WID" 2>/dev/null | limpio)"
         fi
+        # Inactividad por tres vias, en orden: xprintidle (paquete propio), xssstate
+        # (-i), o un medidor en Python via ctypes contra libXss (la extension
+        # XScreenSaver). El de Python no instala nada: libX11/libXss ya estan en todo
+        # escritorio Linux, asi que funciona aun donde el egress bloquea los repos apt.
         if command -v xprintidle >/dev/null 2>&1; then
-            IDLE=$(( $(xprintidle 2>/dev/null || echo 0) / 1000 ))
+            IDLE=$(( $(xprintidle 2>/dev/null || echo 0) / 1000 )); IDLE_OK=1
+        elif command -v xssstate >/dev/null 2>&1; then
+            _xs="$(xssstate -i 2>/dev/null)"
+            case "$_xs" in ''|*[!0-9]*) : ;; *) IDLE=$((_xs / 1000)); IDLE_OK=1 ;; esac
+        elif command -v python3 >/dev/null 2>&1 && [ -r "$BASE/idle.py" ]; then
+            _xs="$(python3 "$BASE/idle.py" 2>/dev/null)"
+            case "$_xs" in ''|-*|*[!0-9]*) : ;; *) IDLE=$((_xs / 1000)); IDLE_OK=1 ;; esac
         fi
         if [ -n "${XDG_SESSION_ID:-}" ] && [ "$(loginctl show-session "$XDG_SESSION_ID" -p LockedHint --value 2>/dev/null)" = yes ]; then
             BLOQ=1
         fi
     fi
+    # Sin idle medible NO se infla la actividad: la muestra queda inactiva.
     ACTIVO=0
-    [ "${IDLE:-0}" -lt "$INACTIVO_SEG" ] && [ "$BLOQ" = 0 ] && [ "$PROC" != "(escritorio)" ] && ACTIVO=1
+    [ "$IDLE_OK" = 1 ] && [ "$IDLE" -lt "$INACTIVO_SEG" ] && [ "$BLOQ" = 0 ] && [ "$PROC" != "(escritorio)" ] && ACTIVO=1
     linea "$PROC" "$ACTIVO" "$INTERVALO" "$TITULO"
 
     if [ "$CAPTURAS" = 1 ] && [ "$ACTIVO" = 1 ] && [ $((T0 - ULTIMA_CAPTURA)) -ge $((CADA_CAPTURA_MIN * 60)) ]; then
@@ -278,9 +333,18 @@ estado() {
         echo "Permisos TCC: titulo=Accesibilidad, captura=Grabacion de pantalla (perfil PPPC por MDM)."
     else
         [ -f "$AUTOSTART" ] && echo "Autostart: presente" || echo "Autostart: NO EXISTE"
-        for b in xdotool xprintidle import; do
+        for b in xdotool import; do
             command -v "$b" >/dev/null 2>&1 && echo "  $b: ok" || echo "  $b: FALTA"
         done
+        if command -v xprintidle >/dev/null 2>&1; then
+            echo "  idle: xprintidle ok"
+        elif command -v xssstate >/dev/null 2>&1; then
+            echo "  idle: xssstate ok"
+        elif command -v python3 >/dev/null 2>&1 && [ -r "$BASE/idle.py" ] && [ "$(python3 "$BASE/idle.py" 2>/dev/null)" -ge 0 ] 2>/dev/null; then
+            echo "  idle: medidor Python (libXss) ok"
+        else
+            echo "  idle: FALTA (xprintidle/xssstate/medidor Python; sin alguno la actividad se reporta inactiva)"
+        fi
     fi
     echo "Muestreadores en ejecucion: $(pgrep -f "$BASE/muestreo.sh" | wc -l | tr -d ' ')"
     homes | while read -r h; do
@@ -296,12 +360,19 @@ estado() {
 }
 
 instalar_deps() {
+    # x11-xserver-utils trae xssstate, alternativa a xprintidle para medir inactividad.
+    # xdotool (ventana activa) e imagemagick (capturas) si se instalan por apt.
+    # La inactividad NO depende de apt: la cubre el medidor Python/libXss. xprintidle
+    # se intenta igual por si el egress lo permite (es mas directo).
     if command -v apt-get >/dev/null 2>&1; then
-        DEBIAN_FRONTEND=noninteractive apt-get install -y xdotool xprintidle imagemagick
+        apt-get update >/dev/null 2>&1 || echo "AVISO: 'apt-get update' fallo (repos inalcanzables?)." >&2
+        DEBIAN_FRONTEND=noninteractive apt-get install -y xdotool xprintidle imagemagick \
+            || echo "AVISO: apt no instalo todas las dependencias (el muestreo de proceso y el idle por Python siguen funcionando)." >&2
     elif command -v dnf >/dev/null 2>&1; then
-        dnf install -y xdotool xprintidle ImageMagick
+        dnf install -y xdotool xprintidle ImageMagick \
+            || echo "AVISO: dnf no instalo todas las dependencias." >&2
     else
-        echo "AVISO: sin apt ni dnf; instalar a mano xdotool, xprintidle e ImageMagick." >&2
+        echo "AVISO: sin apt ni dnf; instalar a mano xdotool e ImageMagick (el idle lo mide Python)." >&2
     fi
 }
 
@@ -313,6 +384,7 @@ case "$MODO" in
         mkdir -p "$BASE" || exit 1
         chown root "$BASE"; chmod 0755 "$BASE"
         escribir_muestreador
+        escribir_idle_py
         {
             echo "# Observer Actividad - configuracion (la regenera actividad-instalar-nix.sh)"
             echo "INTERVALO=$INTERVALO"
