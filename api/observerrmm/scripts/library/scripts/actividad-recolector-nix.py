@@ -26,6 +26,11 @@ import socket
 import sys
 import time
 
+# Contrato de la biblioteca (scripts/tests.py): stdout en UTF-8 aunque el interprete
+# arranque con otra codificacion.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 TOP_HORA = 5
 TOP_PROCS = 25
 TOP_TITULOS = 10
