@@ -8,6 +8,13 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.27 — 2026-10-11
+
+- **Monitoreo de actividad nativo del agente, con datos y reportes en la consola.** Los equipos con agente 2.17.4 o superior pueden medir la aplicación en primer plano y el tiempo activo/inactivo de cada usuario sin scripts ni paquetes del sistema. La consola guarda un resumen por equipo y día, lo muestra en la nueva pestaña **«Actividad»** del equipo y alimenta los reportes «Actividad de usuarios - diario» y «Actividad - resumen semanal». Los datos se purgan a los **90 días** por omisión (ajustable en Retención).
+- **Encendido controlado, apagado de fábrica.** Un **interruptor global** (Configuración global > General) viene apagado: con él apagado nadie registra actividad. Encendido, el monitoreo se activa **solo donde se pide explícitamente**, por cliente o sitio (menú contextual del árbol, «Monitoreo de actividad…») o por equipo (pestaña Actividad > Configurar); gana el valor más específico. El cambio llega al equipo al instante y, si estaba apagado, en cuanto vuelve a conectarse.
+- **Permisos de rol nuevos:** «Ver monitoreo de actividad» y «Encender/apagar monitoreo de actividad», ambos apagados por omisión.
+- Migraciones: `agents` 0069–0071, `clients` 0026, `core` 0071–0072, `accounts` 0047–0048. Agente recomendado **2.17.5** (aplica el estado también desde su configuración periódica). El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.26 — 2026-10-10
 
 - **Observer Actividad en Linux: la inactividad se mide sin instalar paquetes.** El muestreador ahora obtiene el tiempo de inactividad por tres vías (xprintidle, xssstate o un medidor propio en Python vía libXss) y usa la primera disponible. El medidor Python no instala nada, así que funciona también en equipos donde el cortafuegos bloquea la descarga de paquetes. Si ninguna vía está disponible, la actividad se reporta como **inactiva** (antes podía contarse como activa sin poder medirla) y el equipo deja constancia en el informe.
