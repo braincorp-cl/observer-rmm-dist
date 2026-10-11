@@ -149,6 +149,10 @@ class Agent(BaseAuditModel):
     # Feature 049-B2: monitoreo de actividad del equipo. Tri-estado: None = hereda
     # del sitio/cliente; True/False pisa. Ver agents/activity.py.
     activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
+    # Hay un cambio de monitoreo que este equipo puede no haber recibido (estaba
+    # apagado durante el push). Se reenvía y se limpia en su próxima consulta de
+    # config (apiv3.AgentConfig), lo que cubre también a agentes sin polling.
+    activity_sync_pending = models.BooleanField(default=False)
     alert_template = models.ForeignKey(
         "alerts.AlertTemplate",
         related_name="agents",

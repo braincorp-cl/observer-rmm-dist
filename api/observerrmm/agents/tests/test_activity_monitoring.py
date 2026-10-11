@@ -164,3 +164,41 @@ class TestEndpoint(ObserverTestCase):
             format="json",
         )
         self.assertEqual(r.status_code, 403)
+
+
+class TestReentrega(ObserverTestCase):
+    """Pendiente 2 de la 049-B2: el equipo apagado durante el cambio se entera
+    al volver, aunque su agente no tenga polling de `actividad_*`."""
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.agent = baker.make_recipe("agents.online_agent")
+
+    @patch("agents.views.push_activity_monitoring_task.delay")
+    def test_cambio_marca_pendiente(self, push):
+        self.client.put(
+            "/agents/activity-monitoring/",
+            {"level": "site", "id": self.agent.site.pk, "value": True},
+            format="json",
+        )
+        self.agent.refresh_from_db()
+        self.assertTrue(self.agent.activity_sync_pending)
+
+    @patch("agents.tasks.push_activity_monitoring_task.delay")
+    def test_config_reenvia_y_limpia(self, push):
+        from apiv3.views import _reenviar_actividad_pendiente
+
+        _reenviar_actividad_pendiente(self.agent.agent_id)
+        push.assert_not_called()
+
+        self.agent.activity_sync_pending = True
+        self.agent.save()
+        _reenviar_actividad_pendiente(self.agent.agent_id)
+        push.assert_called_once_with(agent_pks=[self.agent.pk])
+        self.agent.refresh_from_db()
+        self.assertFalse(self.agent.activity_sync_pending)
+
+        push.reset_mock()
+        _reenviar_actividad_pendiente(self.agent.agent_id)
+        push.assert_not_called()

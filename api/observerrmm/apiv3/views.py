@@ -774,6 +774,30 @@ class AgentHistoryResult(APIView):
         return Response("ok")
 
 
+def _reenviar_actividad_pendiente(agentid: str) -> None:
+    """Feature 049-B2: reentrega el monitoreo a un equipo que no recibió el push.
+
+    El equipo que consulta su config está en línea, así que es el momento de
+    reenviarle el estado resuelto por NATS. Cubre a los agentes sin polling de
+    `actividad_*` (<= 2.17.4) y, para los nuevos, adelanta el polling. Un solo
+    UPDATE indexado por agente cuando no hay nada pendiente.
+    """
+    try:
+        from agents.tasks import push_activity_monitoring_task
+
+        pk = (
+            Agent.objects.filter(agent_id=agentid, activity_sync_pending=True)
+            .values_list("pk", flat=True)
+            .first()
+        )
+        if pk is None:
+            return
+        Agent.objects.filter(pk=pk).update(activity_sync_pending=False)
+        push_activity_monitoring_task.delay(agent_pks=[pk])
+    except Exception:
+        pass
+
+
 class AgentConfig(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -783,6 +807,7 @@ class AgentConfig(APIView):
         # ya llegaba en la ruta y se ignoraba; ahora resuelve el modo perdido de
         # ESE equipo.
         ret = get_agent_config(agentid)
+        _reenviar_actividad_pendiente(agentid)
         return Response(ret._to_dict())
 
 

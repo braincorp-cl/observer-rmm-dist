@@ -2766,6 +2766,7 @@ class ActivityMonitoringSetting(APIView):
             obj.activity_monitoring = value
             # BaseAuditModel.save() ya deja la entrada de auditoría (antes/después).
             obj.save(update_fields=["activity_monitoring"])
+            scope.update(activity_sync_pending=True)
             push_activity_monitoring_task.delay(
                 agent_pks=list(scope.values_list("pk", flat=True))
             )

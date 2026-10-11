@@ -111,8 +111,10 @@ class GetEditCoreSettings(APIView):
             from agents.activity import agents_possibly_on
             from agents.tasks import push_activity_monitoring_task
 
+            afectados = agents_possibly_on()
+            afectados.update(activity_sync_pending=True)
             push_activity_monitoring_task.delay(
-                agent_pks=list(agents_possibly_on().values_list("pk", flat=True))
+                agent_pks=list(afectados.values_list("pk", flat=True))
             )
 
         # El serializer ignora sync_mesh_with_ormm (MESH_READ_ONLY_FIELDS), así que
