@@ -37,7 +37,6 @@ from logs.models import AuditLog, DebugLog, PendingAction
 from scripts.models import Script
 from scripts.tasks import bulk_command_task, bulk_script_task
 from observerrmm.constants import (
-    AuditObjType,
     AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX,
     AGENT_CONSOLE_UNINSTALL_CACHE_TIMEOUT,
     AGENT_DEFER,
@@ -2704,6 +2703,7 @@ class AgentActivityMonitoringState(APIView):
                 "agent": agent.activity_monitoring,
                 "site": agent.site.activity_monitoring,
                 "client": agent.site.client.activity_monitoring,
+                "hostname": agent.hostname,
                 "can_manage": _has_perm(request, "can_manage_activity"),
             }
         )
@@ -2731,22 +2731,22 @@ class ActivityMonitoringSetting(APIView):
             obj = get_object_or_404(Client, pk=obj_id)
             if not _has_perm_on_client(request.user, obj.pk):
                 raise PermissionDenied()
-            return obj, Agent.objects.filter(site__client=obj), AuditObjType.CLIENT
+            return obj, Agent.objects.filter(site__client=obj)
         if level == "site":
             obj = get_object_or_404(Site, pk=obj_id)
             if not _has_perm_on_site(request.user, obj.pk):
                 raise PermissionDenied()
-            return obj, Agent.objects.filter(site=obj), AuditObjType.SITE
+            return obj, Agent.objects.filter(site=obj)
         obj = get_object_or_404(Agent, agent_id=obj_id)
         if not _has_perm_on_agent(request.user, obj.agent_id):
             raise PermissionDenied()
-        return obj, Agent.objects.filter(pk=obj.pk), AuditObjType.AGENT
+        return obj, Agent.objects.filter(pk=obj.pk)
 
     def get(self, request):
         level = request.query_params.get("level", "")
         if level not in ("client", "site", "agent"):
             return notify_error("level inválido")
-        obj, _, _ = self._target(request, level, request.query_params.get("id", ""))
+        obj, _ = self._target(request, level, request.query_params.get("id", ""))
         core = get_core_settings()
         return Response(
             {
@@ -2759,24 +2759,13 @@ class ActivityMonitoringSetting(APIView):
         s = self.InputSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         level, value = s.validated_data["level"], s.validated_data["value"]
-        obj, scope, obj_type = self._target(request, level, s.validated_data["id"])
+        obj, scope = self._target(request, level, s.validated_data["id"])
 
         before = obj.activity_monitoring
         if before != value:
             obj.activity_monitoring = value
+            # BaseAuditModel.save() ya deja la entrada de auditoría (antes/después).
             obj.save(update_fields=["activity_monitoring"])
-            name = obj.hostname if level == "agent" else obj.name
-            audit_before = {"activity_monitoring": before}
-            if level == "agent":
-                audit_before.update(hostname=obj.hostname, agent_id=obj.agent_id)
-            AuditLog.audit_object_changed(
-                username=request.user.username,
-                object_type=obj_type,
-                before=audit_before,
-                after={"activity_monitoring": value},
-                name=name,
-                debug_info={"ip": getattr(request, "_client_ip", None)},
-            )
             push_activity_monitoring_task.delay(
                 agent_pks=list(scope.values_list("pk", flat=True))
             )

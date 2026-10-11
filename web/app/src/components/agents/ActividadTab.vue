@@ -132,7 +132,11 @@ export default {
     function configurar() {
       $q.dialog({
         component: ActivityMonitoringDialog,
-        componentProps: { level: "agent", id: selectedAgent.value },
+        componentProps: {
+          level: "agent",
+          id: selectedAgent.value,
+          name: estado.value ? estado.value.hostname : "",
+        },
       }).onOk(cargarEstado);
     }
 
