@@ -1245,7 +1245,8 @@
                 tab === 'smsalerts' ||
                 tab === 'meshcentral' ||
                 tab === 'retention' ||
-                tab === 'ai'
+                tab === 'ai' ||
+                tab === 'monitoring'
               "
               :label="$t('editCoreSettings.save')"
               color="primary"
