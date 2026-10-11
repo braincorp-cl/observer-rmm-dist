@@ -1690,3 +1690,32 @@ class DiskEncryptionHistory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - {self.device_id}: {self.previous_status} -> {self.new_status}"
+
+
+class AgentActivityDaily(models.Model):
+    """Resumen diario de actividad del equipo por usuario (feature 049-B).
+
+    Lo sube el agente (v2.17.4+) al endpoint apiv3 `/<agent_id>/activity/`, una
+    fila por (agente, día). `data` guarda el documento en el MISMO formato que
+    consumen los reportes (ActividadResumen con un solo día). Es upsert: el agente
+    reenvía el día en curso de forma incremental y el cierre de día lo deja final.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        "agents.Agent",
+        related_name="activity_days",
+        on_delete=models.CASCADE,
+    )
+    date = models.DateField()
+    data = models.JSONField(default=dict)
+    partial = models.BooleanField(default=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (("agent", "date"),)
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - actividad {self.date}"

@@ -41,4 +41,9 @@ urlpatterns = [
         "<str:agentid>/wipe/<int:order_id>/report/",
         views.WipeReport.as_view(),
     ),
+    # Feature 049-B · el agente sube el resumen diario de actividad. Token de agente.
+    path(
+        "<str:agentid>/activity/",
+        views.ActivityUpload.as_view(),
+    ),
 ]

@@ -1058,15 +1058,12 @@ _ACTIVIDAD_MACROS = """
 {% set _cat_lbl = {'productivo': 'Productivo', 'improductivo': 'Improductivo', 'neutral': 'Neutral'} %}
 """
 
-_ACTIVIDAD_SIN_DATOS = (
-    """
-<p class="muted">No hay corridas de la tarea <b>"""
-    + ACTIVIDAD_TAREA
-    + """</b> para este cliente y fecha.
-Revise que los equipos tengan instalado el muestreador (script "Actividad - Instalar o quitar el
-muestreador") y una tarea programada con ese nombre exacto que ejecute "Actividad - Recolector diario".</p>
+_ACTIVIDAD_SIN_DATOS = """
+<p class="muted">No hay actividad registrada para este cliente y fecha. El monitoreo de actividad
+es un m&oacute;dulo opcional del agente: debe estar <b>encendido desde la consola</b> para los equipos
+del cliente, y estos deben haber reportado al menos un d&iacute;a. Verifique tambi&eacute;n que los
+equipos tengan el agente actualizado.</p>
 """
-)
 
 ACTIVIDAD_DIA = (
     _header(
@@ -1130,24 +1127,19 @@ ACTIVIDAD_DIA = (
 {% endif %}"""
     + END
 )
-ACTIVIDAD_VARS = (
-    """data_sources:
+ACTIVIDAD_VARS = """data_sources:
   corridas:
-    model: agenthistory
+    model: agentactivitydaily
     filter:
-      type: task_run
-      command: \""""
-    + ACTIVIDAD_TAREA
-    + """\"
       agent__site__client__id: {{client.id}}
-    order_by: -time
-    limit: 1500
+    order_by: -date
+    limit: 2000
     only:
-    - time
+    - date
     - agent__hostname
     - agent__site__name
     - agent__site__client__name
-    - script_results
+    - data
   categorias:
     model: globalkvstore
     filter:
@@ -1155,7 +1147,6 @@ ACTIVIDAD_VARS = (
     only:
     - value
 """
-)
 
 ACTIVIDAD_SEMANA = (
     _header(

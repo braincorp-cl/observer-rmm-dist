@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 from accounts.models import User
 from agents.models import (
     Agent,
+    AgentActivityDaily,
     AgentHistory,
     LostModeEvidence,
     LostModeState,
@@ -1375,3 +1376,43 @@ class WipeReport(APIView):
             error=request.data.get("error", ""),
         )
         return Response({"status": order.status})
+
+
+class ActivityUpload(APIView):
+    """Recibe el resumen diario de actividad que sube el agente (feature 049-B).
+
+    Lo llama el AGENTE con su token (no un operador). Upsert por (agente, día):
+    el agente reenvía el día en curso de forma incremental y el cierre de día lo
+    deja final. El cuerpo es un ActividadResumen: {v, so, equipo, dias:[...]}.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, agentid):
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint solo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        doc = request.data or {}
+        dias = doc.get("dias") or []
+        if not isinstance(dias, list):
+            return notify_error("Formato de actividad invalido")
+
+        base = {k: doc.get(k) for k in ("v", "so", "equipo")}
+        guardados = 0
+        for dia in dias:
+            if not isinstance(dia, dict) or not dia.get("fecha"):
+                continue
+            AgentActivityDaily.objects.update_or_create(
+                agent=agent,
+                date=dia["fecha"],
+                defaults={
+                    "data": {**base, "dias": [dia]},
+                    "partial": bool(dia.get("parcial", False)),
+                },
+            )
+            guardados += 1
+        return Response({"ok": True, "dias": guardados})

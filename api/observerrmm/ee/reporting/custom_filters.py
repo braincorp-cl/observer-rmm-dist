@@ -97,10 +97,15 @@ def _actividad_usuarios(rows, equipo="", usuario=""):
         host = row.get("agent__hostname", "") or ""
         if equipo and host.lower() != equipo:
             continue
-        resultados = from_json(row.get("script_results"))
-        if not isinstance(resultados, dict):
-            continue
-        doc = from_json(resultados.get("stdout"))
+        # Dos fuentes: el modelo nuevo AgentActivityDaily (campo `data`, dict directo,
+        # feature 049-B) o AgentHistory (script_results.stdout, Fase 1).
+        doc = row.get("data")
+        if not isinstance(doc, dict):
+            doc = from_json(doc)
+        if not doc.get("dias"):
+            resultados = from_json(row.get("script_results"))
+            if isinstance(resultados, dict):
+                doc = from_json(resultados.get("stdout"))
         if not isinstance(doc, dict):
             continue
         for dia in doc.get("dias", []) or []:
