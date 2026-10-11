@@ -414,3 +414,27 @@ export async function fetchAgentActivity(agent_id) {
   const { data } = await axios.get(`${baseUrl}/${agent_id}/activity/`);
   return data;
 }
+
+// Feature 049-B2: estado efectivo del monitoreo de un equipo y de dónde sale.
+export async function fetchActivityMonitoringState(agent_id) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/monitoring/`,
+  );
+  return data;
+}
+
+export async function fetchActivityMonitoring(level, id) {
+  const { data } = await axios.get(`${baseUrl}/activity-monitoring/`, {
+    params: { level, id },
+  });
+  return data;
+}
+
+export async function saveActivityMonitoring(level, id, value) {
+  const { data } = await axios.put(`${baseUrl}/activity-monitoring/`, {
+    level,
+    id,
+    value,
+  });
+  return data;
+}

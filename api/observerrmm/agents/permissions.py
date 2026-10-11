@@ -226,3 +226,14 @@ class ViewActivityPerms(permissions.BasePermission):
         if agent_id is None:
             return True
         return _has_perm_on_agent(r.user, agent_id)
+
+
+class ManageActivityPerms(permissions.BasePermission):
+    """Encender/apagar el monitoreo de actividad (feature 049-B2).
+
+    El alcance (cliente/sitio/equipo) se valida en la vista, que es donde se sabe
+    a qué objeto apunta el pedido.
+    """
+
+    def has_permission(self, r, view) -> bool:
+        return _has_perm(r, "can_manage_activity")

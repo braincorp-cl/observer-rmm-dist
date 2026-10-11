@@ -825,3 +825,39 @@ def bulk_endpoint_response_task(
             log_type=DebugLogType.AGENT_ISSUES,
             message=f"bulk_endpoint_response_task ({func}) failed: {e}",
         )
+
+
+# Feature 049-B2 · push del estado de monitoreo de actividad.
+@app.task
+def push_activity_monitoring_task(*, agent_pks: list[int]) -> None:
+    """Empuja a cada equipo su estado RESUELTO de monitoreo (`actividad_monitor`).
+
+    Fire and forget, igual que bulk_endpoint_response_task: un equipo apagado se
+    entera por el polling de config al reconectar. Cada equipo recibe su propio
+    payload porque la cascada (equipo > sitio > cliente) puede diferir entre ellos.
+    """
+    from agents.activity import resolve_activity
+
+    core = get_core_settings()
+    items = [
+        (
+            agent.agent_id,
+            {
+                "func": "actividad_monitor",
+                "payload": resolve_activity(agent, core).nats_payload(),
+            },
+        )
+        for agent in Agent.objects.defer(*AGENT_DEFER)
+        .select_related("site__client")
+        .filter(pk__in=agent_pks)
+    ]
+    if not items:
+        return
+
+    try:
+        asyncio.run(abulk_nats_command(items=items))
+    except Exception as e:
+        DebugLog.error(
+            log_type=DebugLogType.AGENT_ISSUES,
+            message=f"push_activity_monitoring_task failed: {e}",
+        )

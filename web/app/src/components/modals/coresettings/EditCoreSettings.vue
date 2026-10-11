@@ -195,6 +195,57 @@
                   </q-banner>
                 </q-card-section>
                 <!--
+                  Feature 049-B2: interruptor GLOBAL del monitoreo de actividad.
+                  APAGADO de fábrica. Encenderlo no hace muestrear a nadie: sólo
+                  habilita a los clientes/sitios/equipos que tengan un "sí"
+                  explícito (menú contextual del árbol o pestaña Actividad).
+                -->
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-checkbox
+                    v-model="settings.activity_monitoring_enabled"
+                    :label="$t('editCoreSettings.activityMonitoring')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.activityMonitoringTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
+                <q-card-section
+                  v-if="settings.activity_monitoring_enabled"
+                  class="row items-center q-pl-lg q-pt-none q-gutter-md"
+                >
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 14rem"
+                    v-model.number="settings.activity_interval_seg"
+                    :label="$t('editCoreSettings.activityInterval')"
+                    :rules="[
+                      (val) =>
+                        (val >= 15 && val <= 600) ||
+                        $t('editCoreSettings.activityIntervalRule'),
+                    ]"
+                  />
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 14rem"
+                    v-model.number="settings.activity_idle_seg"
+                    :label="$t('editCoreSettings.activityIdle')"
+                    :rules="[
+                      (val) =>
+                        (val >= 30 && val <= 3600) ||
+                        $t('editCoreSettings.activityIdleRule'),
+                    ]"
+                  />
+                  <q-checkbox
+                    v-model="settings.activity_window_titles"
+                    :label="$t('editCoreSettings.activityTitles')"
+                  />
+                </q-card-section>
+                <!--
                   Feature 038: defaults GLOBALES de la cascada al marcar un equipo
                   como perdido/robado. Son el nivel MÁS BAJO de precedencia: la
                   ficha del equipo y el propio caso pueden pisarlos. El bloqueo es

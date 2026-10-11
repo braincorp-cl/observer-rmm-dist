@@ -161,7 +161,8 @@
     "colDescription": "Description",
     "colUser": "User",
     "colLastResponse": "Last Response",
-    "colBootTime": "Boot Time"
+    "colBootTime": "Boot Time",
+    "activityMonitoring": "Activity monitoring…"
   },
   "agentTable": {
     "noAgents": "No Agents",
@@ -434,7 +435,14 @@
     "lostWebcamOverride": "Turn on webcam when lost",
     "lostWebcamOverrideTooltip": "In a lost-device case, take a camera photo even if the global webcam switch is off. Recorded in the mark audit entry.",
     "lostAlarm": "Full-volume alarm (opt-in)",
-    "lostAlarmTooltip": "Sound the device alarm when marked lost. Off by default; enable it only when you want to alert whoever is nearby."
+    "lostAlarmTooltip": "Sound the device alarm when marked lost. Off by default; enable it only when you want to alert whoever is nearby.",
+    "activityMonitoring": "User activity monitoring",
+    "activityMonitoringTooltip": "Global switch, off by default. Turning it on does not make anyone sample: it only enables the clients, sites or devices where it is explicitly turned on (tree context menu or Activity tab).",
+    "activityInterval": "Sampling interval (s)",
+    "activityIntervalRule": "Between 15 and 600 seconds",
+    "activityIdle": "Idle threshold (s)",
+    "activityIdleRule": "Between 30 and 3600 seconds",
+    "activityTitles": "Record window titles"
   },
   "bulkAction": {
     "close": "Close",
@@ -942,7 +950,9 @@
     "wipeDevice": "Order device wipes",
     "viewEraseCertificates": "View erase certificates",
     "manageAssetIntake": "Manage asset intake",
-    "retrieveFiles": "Retrieve files (before wiping)"
+    "retrieveFiles": "Retrieve files (before wiping)",
+    "viewActivity": "View activity monitoring",
+    "manageActivity": "Turn activity monitoring on/off"
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -3400,6 +3410,26 @@
     "activeTime": "Active",
     "idleTime": "Idle",
     "captures": "Screenshots",
-    "topProcesses": "Top processes"
+    "topProcesses": "Top processes",
+    "monitoringOn": "Monitoring on",
+    "monitoringOff": "Monitoring off",
+    "configure": "Configure",
+    "source_global": "The global switch is off (Settings > General).",
+    "source_agent": "Set on this device.",
+    "source_site": "Inherited from the site.",
+    "source_client": "Inherited from the client.",
+    "source_default": "Not decided on device, site or client."
+  },
+  "activityMonitoring": {
+    "title": "Activity monitoring — {name}",
+    "globalOff": "The global switch is off: nothing will be recorded until it is turned on in Settings > General.",
+    "inherit": "Inherit",
+    "notDecided": "Not decided (off)",
+    "on": "Turn on",
+    "off": "Turn off",
+    "hint": "The most specific value wins: device, then site, then client. With no value, monitoring stays off.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Activity monitoring updated"
   }
 }

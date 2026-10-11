@@ -130,6 +130,7 @@ module.exports = {
         "src/components/agents/DebugTab.vue",
         "src/components/agents/AssetsTab.vue",
         "src/components/agents/ActividadTab.vue",
+        "src/components/agents/ActivityMonitoringDialog.vue",
         "src/components/agents/HistoryTab.vue",
         "src/components/agents/NotesTab.vue",
         "src/components/agents/SoftwareTab.vue",

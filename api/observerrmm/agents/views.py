@@ -37,6 +37,7 @@ from logs.models import AuditLog, DebugLog, PendingAction
 from scripts.models import Script
 from scripts.tasks import bulk_command_task, bulk_script_task
 from observerrmm.constants import (
+    AuditObjType,
     AGENT_CONSOLE_UNINSTALL_CACHE_PREFIX,
     AGENT_CONSOLE_UNINSTALL_CACHE_TIMEOUT,
     AGENT_DEFER,
@@ -93,6 +94,7 @@ from .models import (
 from .permissions import (
     AgentHistoryPerms,
     ViewActivityPerms,
+    ManageActivityPerms,
     AgentNotesPerms,
     AgentPerms,
     AgentRegistryPerms,
@@ -130,6 +132,7 @@ from .serializers import (
 )
 from .tasks import (
     bulk_endpoint_response_task,
+    push_activity_monitoring_task,
     bulk_recover_agents_task,
     run_script_email_results_task,
     send_agent_update_task,
@@ -2676,3 +2679,105 @@ class AgentActivity(APIView):
         agent = get_object_or_404(Agent, agent_id=agent_id)
         qs = AgentActivityDaily.objects.filter(agent=agent).order_by("-date")[:60]
         return Response(AgentActivityDailySerializer(qs, many=True).data)
+
+
+class AgentActivityMonitoringState(APIView):
+    """Estado EFECTIVO del monitoreo de un equipo y de dónde sale (feature 049-B2).
+
+    Lo ve quien puede ver la actividad: la consola lo muestra arriba de la pestaña
+    para que "sin datos" no se confunda con "apagado".
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        from .activity import resolve_activity
+
+        agent = get_object_or_404(
+            Agent.objects.select_related("site__client"), agent_id=agent_id
+        )
+        res = resolve_activity(agent)
+        return Response(
+            {
+                "active": res.active,
+                "source": res.source,
+                "agent": agent.activity_monitoring,
+                "site": agent.site.activity_monitoring,
+                "client": agent.site.client.activity_monitoring,
+                "can_manage": _has_perm(request, "can_manage_activity"),
+            }
+        )
+
+
+class ActivityMonitoringSetting(APIView):
+    """Lee/fija el valor de monitoreo de un cliente, sitio o equipo (feature 049-B2).
+
+    `value`: true (encender), false (apagar explícito) o null (heredar). Al fijar,
+    se empuja el estado resuelto a los equipos del alcance; el polling de config
+    es el respaldo para los que estén apagados.
+    """
+
+    permission_classes = [IsAuthenticated, ManageActivityPerms]
+
+    class InputSerializer(serializers.Serializer):
+        level = serializers.ChoiceField(choices=["client", "site", "agent"])
+        id = serializers.CharField()
+        value = serializers.BooleanField(allow_null=True)
+
+    def _target(self, request, level: str, obj_id: str):
+        from clients.models import Client, Site
+
+        if level == "client":
+            obj = get_object_or_404(Client, pk=obj_id)
+            if not _has_perm_on_client(request.user, obj.pk):
+                raise PermissionDenied()
+            return obj, Agent.objects.filter(site__client=obj), AuditObjType.CLIENT
+        if level == "site":
+            obj = get_object_or_404(Site, pk=obj_id)
+            if not _has_perm_on_site(request.user, obj.pk):
+                raise PermissionDenied()
+            return obj, Agent.objects.filter(site=obj), AuditObjType.SITE
+        obj = get_object_or_404(Agent, agent_id=obj_id)
+        if not _has_perm_on_agent(request.user, obj.agent_id):
+            raise PermissionDenied()
+        return obj, Agent.objects.filter(pk=obj.pk), AuditObjType.AGENT
+
+    def get(self, request):
+        level = request.query_params.get("level", "")
+        if level not in ("client", "site", "agent"):
+            return notify_error("level inválido")
+        obj, _, _ = self._target(request, level, request.query_params.get("id", ""))
+        core = get_core_settings()
+        return Response(
+            {
+                "value": obj.activity_monitoring,
+                "global_enabled": core.activity_monitoring_enabled,
+            }
+        )
+
+    def put(self, request):
+        s = self.InputSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        level, value = s.validated_data["level"], s.validated_data["value"]
+        obj, scope, obj_type = self._target(request, level, s.validated_data["id"])
+
+        before = obj.activity_monitoring
+        if before != value:
+            obj.activity_monitoring = value
+            obj.save(update_fields=["activity_monitoring"])
+            name = obj.hostname if level == "agent" else obj.name
+            audit_before = {"activity_monitoring": before}
+            if level == "agent":
+                audit_before.update(hostname=obj.hostname, agent_id=obj.agent_id)
+            AuditLog.audit_object_changed(
+                username=request.user.username,
+                object_type=obj_type,
+                before=audit_before,
+                after={"activity_monitoring": value},
+                name=name,
+                debug_info={"ip": getattr(request, "_client_ip", None)},
+            )
+            push_activity_monitoring_task.delay(
+                agent_pks=list(scope.values_list("pk", flat=True))
+            )
+        return Response("ok")

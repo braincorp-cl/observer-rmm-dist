@@ -9,11 +9,16 @@ from . import views
 urlpatterns = [
     # agent views
     path("", views.GetAgents.as_view()),
+    path("activity-monitoring/", views.ActivityMonitoringSetting.as_view()),
     path("<agent:agent_id>/", views.GetUpdateDeleteAgent.as_view()),
     path("<agent:agent_id>/cmd/", views.send_raw_cmd),
     path("<agent:agent_id>/runscript/", views.run_script),
     path("<agent:agent_id>/wmi/", views.WMI.as_view()),
     path("<agent:agent_id>/activity/", views.AgentActivity.as_view()),
+    path(
+        "<agent:agent_id>/activity/monitoring/",
+        views.AgentActivityMonitoringState.as_view(),
+    ),
     path("<agent:agent_id>/recover/", views.recover),
     path("<agent:agent_id>/reboot/", views.Reboot.as_view()),
     path("<agent:agent_id>/shutdown/", views.Shutdown.as_view()),

@@ -3,6 +3,28 @@
     {{ $t("agentActivity.noAgent") }}
   </div>
   <div v-else class="q-pa-sm">
+    <!-- Feature 049-B2: estado efectivo del monitoreo, para que "sin datos" no
+         se confunda con "apagado", y acceso a encenderlo/apagarlo. -->
+    <div v-if="estado" class="row items-center q-gutter-sm q-mb-sm">
+      <q-chip
+        dense
+        :color="estado.active ? 'positive' : 'grey-7'"
+        text-color="white"
+        :icon="estado.active ? 'visibility' : 'visibility_off'"
+      >
+        {{ estado.active ? $t("agentActivity.monitoringOn") : $t("agentActivity.monitoringOff") }}
+      </q-chip>
+      <span class="text-caption text-grey">{{ $t(`agentActivity.source_${estado.source}`) }}</span>
+      <q-btn
+        v-if="estado.can_manage"
+        dense
+        flat
+        size="sm"
+        icon="settings"
+        :label="$t('agentActivity.configure')"
+        @click="configurar"
+      />
+    </div>
     <div v-if="sinPermiso" class="q-pa-sm text-grey">
       {{ $t("agentActivity.noPermission") }}
     </div>
@@ -44,13 +66,20 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
-import { fetchAgentActivity } from "@/api/agents";
+import { useQuasar } from "quasar";
+import {
+  fetchAgentActivity,
+  fetchActivityMonitoringState,
+} from "@/api/agents";
+import ActivityMonitoringDialog from "@/components/agents/ActivityMonitoringDialog.vue";
 
 export default {
   name: "ActividadTab",
   setup() {
     const store = useStore();
     const { t } = useI18n();
+    const $q = useQuasar();
+    const estado = ref(null);
     const selectedAgent = computed(() => store.state.selectedRow);
 
     const dias = ref([]);
@@ -90,9 +119,27 @@ export default {
       }));
     });
 
+    async function cargarEstado() {
+      estado.value = null;
+      if (!selectedAgent.value) return;
+      try {
+        estado.value = await fetchActivityMonitoringState(selectedAgent.value);
+      } catch (e) {
+        estado.value = null;
+      }
+    }
+
+    function configurar() {
+      $q.dialog({
+        component: ActivityMonitoringDialog,
+        componentProps: { level: "agent", id: selectedAgent.value },
+      }).onOk(cargarEstado);
+    }
+
     async function cargar() {
       sinPermiso.value = false;
       dias.value = [];
+      cargarEstado();
       if (!selectedAgent.value) return;
       try {
         const data = await fetchAgentActivity(selectedAgent.value);
@@ -106,7 +153,7 @@ export default {
     onMounted(cargar);
     watch(selectedAgent, cargar);
 
-    return { selectedAgent, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { selectedAgent, estado, configurar, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>

@@ -64,3 +64,10 @@ class AgentCheckInConfig(ORMMStruct):
     # Default True (ON): parte del módulo de perdidos/robados; el toggle es opt-out.
     # Un agente viejo lo ignora. Sigue siendo solo bool (NFR §6).
     open_wifi: bool = True
+    # Feature 049-B2: monitoreo de actividad RESUELTO para este equipo (global +
+    # cascada equipo > sitio > cliente). Canal de respaldo del push NATS
+    # `actividad_monitor`; un agente viejo lo ignora. Default apagado.
+    actividad_active: bool = False
+    actividad_interval_seg: int = 60
+    actividad_inactivo_seg: int = 300
+    actividad_con_titulo: bool = True

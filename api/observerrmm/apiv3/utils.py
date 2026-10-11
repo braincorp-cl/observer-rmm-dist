@@ -167,6 +167,45 @@ def _open_wifi_enabled() -> bool:
         return True
 
 
+def _actividad(agentid: str) -> dict:
+    """Feature 049-B2: estado resuelto del monitoreo de actividad de ESTE equipo.
+
+    Fail-safe APAGADO: muestrear la actividad de una persona por un error de
+    lectura sería registrar datos personales sin que nadie lo haya decidido.
+    """
+    off = {
+        "actividad_active": False,
+        "actividad_interval_seg": 60,
+        "actividad_inactivo_seg": 300,
+        "actividad_con_titulo": True,
+    }
+    try:
+        from agents.activity import resolve_activity
+        from agents.models import Agent
+
+        agent = (
+            Agent.objects.select_related("site__client")
+            .only(
+                "activity_monitoring",
+                "site__activity_monitoring",
+                "site__client__activity_monitoring",
+            )
+            .filter(agent_id=agentid)
+            .first()
+        )
+        if agent is None:
+            return off
+        res = resolve_activity(agent)
+        return {
+            "actividad_active": res.active,
+            "actividad_interval_seg": res.interval_seg,
+            "actividad_inactivo_seg": res.idle_seg,
+            "actividad_con_titulo": res.window_titles,
+        }
+    except Exception:
+        return off
+
+
 def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
     lost_mode, lost_mode_interval_min, lost_mode_cascade = _lost_mode(agentid)
 
@@ -227,4 +266,6 @@ def get_agent_config(agentid: str = "") -> AgentCheckInConfig:
         # T034: RF-05 viaja siempre (global), pero OFF por omisión; el agente no
         # intenta asociarse a WiFi abierta hasta que este flag esté en True.
         open_wifi=_open_wifi_enabled(),
+        # Feature 049-B2: por equipo, resuelto; apagado salvo "sí" explícito.
+        **_actividad(agentid),
     )

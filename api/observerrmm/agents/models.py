@@ -146,6 +146,9 @@ class Agent(BaseAuditModel):
     # en la MISMA transacción que la alerta GEOFENCE. get_agent_config lo lee
     # directo (sin join a alerts). Migración 0068; el default cubre las filas viejas.
     outside_geofence = models.BooleanField(default=False)
+    # Feature 049-B2: monitoreo de actividad del equipo. Tri-estado: None = hereda
+    # del sitio/cliente; True/False pisa. Ver agents/activity.py.
+    activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
     alert_template = models.ForeignKey(
         "alerts.AlertTemplate",
         related_name="agents",

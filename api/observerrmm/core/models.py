@@ -82,6 +82,14 @@ class CoreSettings(BaseAuditModel):
     # Feature 049: retención del monitoreo de actividad (datos personales). Plazo
     # acotado por omisión; 0 = no purgar.
     activity_prune_days = models.PositiveIntegerField(default=90)
+    # Feature 049-B2: interruptor GLOBAL del monitoreo de actividad. APAGADO de
+    # fábrica: con él apagado ningún equipo muestrea, aunque su cliente, sitio o
+    # ficha digan que sí. Encendido, sólo muestrean los equipos con un "sí"
+    # explícito en la cascada equipo > sitio > cliente (sin valor = no).
+    activity_monitoring_enabled = models.BooleanField(default=False)
+    activity_interval_seg = models.PositiveIntegerField(default=60)
+    activity_idle_seg = models.PositiveIntegerField(default=300)
+    activity_window_titles = models.BooleanField(default=True)
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)
