@@ -147,6 +147,16 @@ export default {
       { name: "red", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
 
+    // "Zoho Mail (persona@dominio)" -> "Zoho Mail" (mismo criterio que los reportes).
+    function sinCorreo(m) {
+      const out = {};
+      Object.entries(m || {}).forEach(([k, v]) => {
+        const n = k.replace(/\s*\([^()]*@[^()]*\)/g, "").trim();
+        if (n) out[n] = (out[n] || 0) + v;
+      });
+      return out;
+    }
+
     function topStr(m, n, fmt) {
       return Object.entries(m || {})
         .sort((a, b) => fmt.valor(b[1]) - fmt.valor(a[1]))
@@ -170,7 +180,7 @@ export default {
           .slice(0, 6)
           .map(([proceso, min]) => `${proceso} (${hm(min)})`)
           .join(", "),
-        sitiosStr: topStr(x.sitios, 5, {
+        sitiosStr: topStr(sinCorreo(x.sitios), 5, {
           valor: (v) => v,
           texto: (k, v) => `${k} (${hm(v)})`,
         }),

@@ -213,3 +213,13 @@ def test_categoria_ignora_exe():
     )
     procs = {p["proceso"]: p["cat"] for p in r["filas"][0]["procs"]}
     assert procs == {"chrome.exe": "improductivo", "excel": "productivo"}
+
+
+def test_sitio_sin_correo_y_sumado():
+    d = _doc("2026-10-11")
+    d["dias"][0]["usuarios"][0]["sitios"] = {
+        "Zoho Mail (ana@acme.cl)": 10,
+        "Zoho Mail": 5,
+    }
+    r = actividad_dia([_fila(d)], fecha="2026-10-11")
+    assert r["filas"][0]["sitios_web"] == [{"sitio": "Zoho Mail", "min": 15}]

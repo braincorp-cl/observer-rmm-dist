@@ -1,4 +1,5 @@
 import json
+import re
 from contextlib import suppress
 from datetime import date, timedelta
 from zoneinfo import ZoneInfo
@@ -53,12 +54,23 @@ def _sin_exe(proc) -> str:
     return nombre[:-4] if nombre.endswith(".exe") else nombre
 
 
+_RE_CORREO_ENTRE_PARENTESIS = re.compile(r"\s*\([^()]*@[^()]*\)")
+
+
+def _nombre_sitio(nombre) -> str:
+    # "Zoho Mail (persona@dominio)" -> "Zoho Mail": el sitio no necesita la cuenta.
+    return _RE_CORREO_ENTRE_PARENTESIS.sub("", str(nombre)).strip()
+
+
 def _top_sitios(sitios, top):
+    sumados = {}
+    for k, v in (sitios or {}).items():
+        n = _nombre_sitio(k)
+        if n:
+            sumados[n] = sumados.get(n, 0) + _minutos(v)
     return [
-        {"sitio": k, "min": _minutos(v)}
-        for k, v in sorted(
-            (sitios or {}).items(), key=lambda x: (-_minutos(x[1]), x[0])
-        )[:top]
+        {"sitio": k, "min": v}
+        for k, v in sorted(sumados.items(), key=lambda x: (-x[1], x[0]))[:top]
     ]
 
 
