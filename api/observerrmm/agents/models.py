@@ -20,6 +20,7 @@ from nats.errors import TimeoutError
 from packaging import version as pyver
 from packaging.version import Version as LooseVersion
 
+from agents.activity_storage import get_activity_screenshots_fs
 from agents.lostmode_storage import get_lost_mode_evidence_fs
 from agents.utils import (
     calculate_agent_checks,
@@ -1726,3 +1727,43 @@ class AgentActivityDaily(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - actividad {self.date}"
+
+
+def activity_screenshot_path(instance: "AgentActivityScreenshot", filename: str) -> str:
+    """Una carpeta por agente y por día: la purga por plazo borra días enteros."""
+    return f"{instance.agent.agent_id}/{instance.captured_at:%Y-%m-%d}/{filename}"
+
+
+class AgentActivityScreenshot(models.Model):
+    """Captura de pantalla del monitoreo de actividad (feature 049-C).
+
+    La sube el agente cada `activity_screenshots_min` minutos, sólo con el
+    usuario activo. El archivo va cifrado en disco (mismo storage que la
+    evidencia del modo perdido) y se sirve sólo por la vista autenticada con el
+    permiso `can_view_activity`. La purga `activity_prune_days` borra fila Y
+    archivo.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        "agents.Agent",
+        related_name="activity_screenshots",
+        on_delete=models.CASCADE,
+    )
+    captured_at = models.DateTimeField()
+    created = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=255, blank=True, default="")
+    process = models.CharField(max_length=255, blank=True, default="")
+    title = models.CharField(max_length=512, blank=True, default="")
+    image = models.FileField(
+        storage=get_activity_screenshots_fs,
+        upload_to=activity_screenshot_path,
+    )
+
+    class Meta:
+        indexes = [models.Index(fields=["agent", "captured_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - captura {self.captured_at:%Y-%m-%d %H:%M}"

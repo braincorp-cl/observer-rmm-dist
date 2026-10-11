@@ -207,6 +207,14 @@
         group: "{{ observer_group }}"
         mode: "0750"
 
+    - name: Crear directorio de capturas del monitoreo de actividad (049-C)
+      ansible.builtin.file:
+        path: "{{ observer_root }}/activity/screenshots"
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0750"
+
     - name: Ejecutar Django migrate
       ansible.builtin.command:
         cmd: "{{ observer_root }}/api/env/bin/python manage.py migrate --noinput"

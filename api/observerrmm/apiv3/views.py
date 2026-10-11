@@ -23,6 +23,7 @@ from accounts.models import User
 from agents.models import (
     Agent,
     AgentActivityDaily,
+    AgentActivityScreenshot,
     AgentHistory,
     LostModeEvidence,
     LostModeState,
@@ -1441,3 +1442,73 @@ class ActivityUpload(APIView):
             )
             guardados += 1
         return Response({"ok": True, "dias": guardados})
+
+
+ACTIVITY_MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024
+
+
+class ActivityScreenshotUpload(APIView):
+    """Recibe una captura del monitoreo de actividad (feature 049-C).
+
+    Token de agente y `agentid` del token = el de la URL (como el resto de la
+    ingesta). Si el monitoreo o las capturas ya no corresponden a este equipo
+    -se apagaron mientras estaba sin red- responde 409 y el agente apaga sus
+    capturas sin esperar al polling de config. Sólo PNG o JPEG, con tope.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, agentid):
+        from agents.activity import resolve_activity
+
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint solo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        res = resolve_activity(agent)
+        if not (res.active and res.screenshots_min > 0):
+            return Response(
+                {"status": "screenshots_off"},
+                status=rest_framework_status.HTTP_409_CONFLICT,
+            )
+
+        archivo = request.FILES.get("image")
+        if archivo is None:
+            return notify_error("Falta la imagen")
+        if archivo.size > ACTIVITY_MAX_SCREENSHOT_BYTES:
+            return notify_error("La captura supera el tamaño máximo")
+        cabecera = archivo.read(8)
+        archivo.seek(0)
+        if cabecera.startswith(b"\x89PNG"):
+            ext = "png"
+        elif cabecera.startswith(b"\xff\xd8"):
+            ext = "jpg"
+        else:
+            return notify_error("Formato de captura no soportado")
+
+        captured_at = djangotime.now()
+        valor = request.data.get("captured_at")
+        if valor:
+            try:
+                captured_at = datetime.fromisoformat(str(valor))
+                if captured_at.tzinfo is None:
+                    captured_at = djangotime.make_aware(captured_at)
+            except ValueError:
+                pass
+
+        shot = AgentActivityScreenshot(
+            agent=agent,
+            captured_at=captured_at,
+            username=(request.data.get("usuario") or "")[:255],
+            process=(request.data.get("proceso") or "")[:255],
+            title=(request.data.get("titulo") or "")[:512],
+        )
+        shot.image.save(
+            f"{captured_at:%H%M%S}-{os.urandom(4).hex()}.{ext}", archivo, save=False
+        )
+        shot.save()
+        return Response({"id": shot.pk})

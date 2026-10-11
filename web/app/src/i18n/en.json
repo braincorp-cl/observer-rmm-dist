@@ -442,7 +442,12 @@
     "activityIntervalRule": "Between 15 and 600 seconds",
     "activityIdle": "Idle threshold (s)",
     "activityIdleRule": "Between 30 and 3600 seconds",
-    "activityTitles": "Record window titles"
+    "activityTitles": "Record window titles",
+    "activityScreenshots": "Screenshots every (min)",
+    "activityScreenshotsHint": "0 = no screenshots. Only while the user is active; stored encrypted and purged with the activity retention.",
+    "activityScreenshotsRule": "0 (off) or between 1 and 240 minutes",
+    "activityNetwork": "Measure network usage per application",
+    "activityNetworkTooltip": "Records which applications keep network connections open, for how long and to how many destinations. It does not measure bytes or content."
   },
   "bulkAction": {
     "close": "Close",
@@ -3418,7 +3423,11 @@
     "source_agent": "Set on this device.",
     "source_site": "Inherited from the site.",
     "source_client": "Inherited from the client.",
-    "source_default": "Not decided on device, site or client."
+    "source_default": "Not decided on device, site or client.",
+    "topSites": "Websites",
+    "network": "Network per application",
+    "networkItem": "{app} ({tiempo}, {destinos} destinations)",
+    "screenshots": "Screenshots of the day ({n})"
   },
   "activityMonitoring": {
     "title": "Activity monitoring — {name}",

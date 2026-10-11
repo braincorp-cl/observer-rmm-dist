@@ -77,6 +77,8 @@ def _activity_settings(core) -> tuple:
         core.activity_interval_seg,
         core.activity_idle_seg,
         core.activity_window_titles,
+        core.activity_screenshots_min,
+        core.activity_network,
     )
 
 

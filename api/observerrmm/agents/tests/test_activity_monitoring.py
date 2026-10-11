@@ -202,3 +202,117 @@ class TestReentrega(ObserverTestCase):
         push.reset_mock()
         _reenviar_actividad_pendiente(self.agent.agent_id)
         push.assert_not_called()
+
+
+class TestCapturas049C(ObserverTestCase):
+    """049-C: ingesta, consulta, permiso y purga de capturas."""
+
+    def setUp(self):
+        import tempfile
+
+        self.authenticate()
+        self.setup_coresettings()
+        self.agent = baker.make_recipe("agents.online_agent")
+        self.tmp = tempfile.mkdtemp()
+        self.override = self.settings(ACTIVITY_SCREENSHOTS_BASE_PATH=self.tmp)
+        self.override.enable()
+        self.addCleanup(self.override.disable)
+
+    def _encender(self, capturas_min=5):
+        cs = get_core_settings()
+        cs.activity_monitoring_enabled = True
+        cs.activity_screenshots_min = capturas_min
+        cs.save()
+        self.agent.activity_monitoring = True
+        self.agent.save()
+
+    def _subir(self, contenido=b"\xff\xd8\xff\xe0jpegdata"):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from rest_framework.authtoken.models import Token
+        from rest_framework.test import APIClient
+
+        user = baker.make("accounts.User", agent=self.agent)
+        token = Token.objects.create(user=user)
+        c = APIClient()
+        c.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        return c.post(
+            f"/api/v3/{self.agent.agent_id}/activity/screenshot/",
+            {
+                "image": SimpleUploadedFile("x.jpg", contenido),
+                "captured_at": "2026-10-11T10:00:00-03:00",
+                "usuario": "ana",
+                "proceso": "chrome",
+                "titulo": "Gmail",
+            },
+            format="multipart",
+        )
+
+    def test_capturas_apagadas_responde_409(self):
+        self._encender(capturas_min=0)
+        self.assertEqual(self._subir().status_code, 409)
+
+    def test_ingesta_consulta_y_archivo(self):
+        from agents.models import AgentActivityScreenshot
+
+        self._encender()
+        r = self._subir()
+        self.assertEqual(r.status_code, 200, r.data)
+        shot = AgentActivityScreenshot.objects.get(pk=r.data["id"])
+        self.assertEqual((shot.username, shot.process), ("ana", "chrome"))
+
+        lista = self.client.get(
+            f"/agents/{self.agent.agent_id}/activity/screenshots/?date=2026-10-11"
+        )
+        self.assertEqual(lista.status_code, 200)
+        self.assertEqual([x["id"] for x in lista.data], [shot.pk])
+
+        f = self.client.get(
+            f"/agents/{self.agent.agent_id}/activity/screenshots/{shot.pk}/file/"
+        )
+        self.assertEqual(f.status_code, 200)
+        self.assertEqual(b"".join(f.streaming_content), b"\xff\xd8\xff\xe0jpegdata")
+
+    def test_formato_no_soportado(self):
+        self._encender()
+        self.assertEqual(self._subir(b"GIF89a....").status_code, 400)
+
+    def test_sin_permiso_no_ve_capturas(self):
+        user = self.create_user_with_roles([])
+        self.client.force_authenticate(user=user)
+        r = self.client.get(f"/agents/{self.agent.agent_id}/activity/screenshots/")
+        self.assertEqual(r.status_code, 403)
+
+    def test_purga_borra_fila_y_archivo(self):
+        import os
+
+        from django.utils import timezone
+
+        from agents.models import AgentActivityScreenshot
+        from agents.tasks import prune_agent_activity
+
+        self._encender()
+        shot = AgentActivityScreenshot.objects.get(pk=self._subir().data["id"])
+        ruta = shot.image.path
+        self.assertTrue(os.path.exists(ruta))
+        AgentActivityScreenshot.objects.filter(pk=shot.pk).update(
+            captured_at=timezone.now() - timezone.timedelta(days=120)
+        )
+        prune_agent_activity(90)
+        self.assertFalse(AgentActivityScreenshot.objects.filter(pk=shot.pk).exists())
+        self.assertFalse(os.path.exists(ruta))
+
+    def test_payload_y_config_llevan_extras_solo_si_activo(self):
+        self._encender(capturas_min=7)
+        cs = get_core_settings()
+        cs.activity_network = True
+        cs.save()
+        res = resolve_activity(self.agent)
+        self.assertEqual(res.nats_payload()["capturas_min"], "7")
+        self.assertEqual(res.nats_payload()["red"], "1")
+        conf = get_agent_config(self.agent.agent_id)
+        self.assertEqual((conf.actividad_capturas_min, conf.actividad_red), (7, True))
+
+        self.agent.activity_monitoring = False
+        self.agent.save()
+        conf = get_agent_config(self.agent.agent_id)
+        self.assertEqual((conf.actividad_capturas_min, conf.actividad_red), (0, False))

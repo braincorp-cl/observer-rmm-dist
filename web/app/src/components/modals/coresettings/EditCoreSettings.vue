@@ -245,6 +245,36 @@
                     :label="$t('editCoreSettings.activityTitles')"
                   />
                 </q-card-section>
+                <!-- 049-C: capturas y red, apagadas aunque el monitoreo esté
+                     encendido (un escalón más de intrusión). -->
+                <q-card-section
+                  v-if="settings.activity_monitoring_enabled"
+                  class="row items-center q-pl-lg q-pt-none q-gutter-md"
+                >
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 18rem"
+                    v-model.number="settings.activity_screenshots_min"
+                    :label="$t('editCoreSettings.activityScreenshots')"
+                    :hint="$t('editCoreSettings.activityScreenshotsHint')"
+                    :rules="[
+                      (val) =>
+                        val === 0 ||
+                        (val >= 1 && val <= 240) ||
+                        $t('editCoreSettings.activityScreenshotsRule'),
+                    ]"
+                  />
+                  <q-checkbox
+                    v-model="settings.activity_network"
+                    :label="$t('editCoreSettings.activityNetwork')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.activityNetworkTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
                 <!--
                   Feature 038: defaults GLOBALES de la cascada al marcar un equipo
                   como perdido/robado. Son el nivel MÁS BAJO de precedencia: la

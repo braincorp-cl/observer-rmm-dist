@@ -29,6 +29,8 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 # la de los assets de reporting: distinto régimen de retención y de acceso. Se
 # puede pisar desde local_settings.py para montarla en otro volumen.
 LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
+# 049-C: capturas del monitoreo de actividad (cifradas como la evidencia).
+ACTIVITY_SCREENSHOTS_BASE_PATH = "/opt/observer/activity/screenshots"
 
 # Llave Fernet del cifrado en reposo de esa evidencia (030 · T020, ADR-025 punto
 # 5). Vacía = sin cifrar. NO se versiona ni se pone a mano acá: la genera

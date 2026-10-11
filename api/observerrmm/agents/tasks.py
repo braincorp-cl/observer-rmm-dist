@@ -412,6 +412,20 @@ def prune_agent_activity(older_than_days: int) -> str:
     cutoff = (djangotime.now() - djangotime.timedelta(days=older_than_days)).date()
     AgentActivityDaily.objects.filter(date__lt=cutoff).delete()
 
+    # 049-C: las capturas se van con su archivo (FileField no borra el disco).
+    from .models import AgentActivityScreenshot
+
+    corte = djangotime.now() - djangotime.timedelta(days=older_than_days)
+    vencidas = AgentActivityScreenshot.objects.filter(captured_at__lt=corte)
+    for shot in vencidas.only("id", "image").iterator():
+        try:
+            shot.image.delete(save=False)
+        except OSError as e:
+            DebugLog.error(
+                message=f"actividad: no se pudo borrar {shot.image.name} ({e})"
+            )
+    vencidas.delete()
+
     return "ok"
 
 

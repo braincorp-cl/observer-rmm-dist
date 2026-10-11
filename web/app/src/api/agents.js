@@ -430,6 +430,23 @@ export async function fetchActivityMonitoring(level, id) {
   return data;
 }
 
+// Feature 049-C: capturas del monitoreo (metadatos por día + imagen por id).
+export async function fetchActivityScreenshots(agent_id, date) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/screenshots/`,
+    { params: { date } },
+  );
+  return data;
+}
+
+export async function fetchActivityScreenshotBlob(agent_id, pk) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/screenshots/${pk}/file/`,
+    { responseType: "blob" },
+  );
+  return data;
+}
+
 export async function saveActivityMonitoring(level, id, value) {
   const { data } = await axios.put(`${baseUrl}/activity-monitoring/`, {
     level,

@@ -35,6 +35,9 @@ class ActivityResolution:
     interval_seg: int
     idle_seg: int
     window_titles: bool
+    # 049-C: capturas cada N minutos (0 = apagadas) y red por aplicación.
+    screenshots_min: int = 0
+    network: bool = False
 
     def nats_payload(self) -> dict:
         # Mismo contrato que el RPC `actividad_monitor` del agente (strings).
@@ -43,6 +46,8 @@ class ActivityResolution:
             "interval_seg": str(self.interval_seg),
             "inactivo_seg": str(self.idle_seg),
             "con_titulo": "1" if self.window_titles else "0",
+            "capturas_min": str(self.screenshots_min if self.active else 0),
+            "red": "1" if (self.network and self.active) else "0",
         }
 
 
@@ -67,6 +72,8 @@ def resolve_activity(
         interval_seg=interval,
         idle_seg=int(core.activity_idle_seg),
         window_titles=bool(core.activity_window_titles),
+        screenshots_min=int(core.activity_screenshots_min),
+        network=bool(core.activity_network),
     )
 
     if not (activity_feature_available() and core.activity_monitoring_enabled):

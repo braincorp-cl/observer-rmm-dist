@@ -178,6 +178,8 @@ def _actividad(agentid: str) -> dict:
         "actividad_interval_seg": 60,
         "actividad_inactivo_seg": 300,
         "actividad_con_titulo": True,
+        "actividad_capturas_min": 0,
+        "actividad_red": False,
     }
     try:
         from agents.activity import resolve_activity
@@ -201,6 +203,8 @@ def _actividad(agentid: str) -> dict:
             "actividad_interval_seg": res.interval_seg,
             "actividad_inactivo_seg": res.idle_seg,
             "actividad_con_titulo": res.window_titles,
+            "actividad_capturas_min": res.screenshots_min if res.active else 0,
+            "actividad_red": res.network and res.active,
         }
     except Exception:
         return off

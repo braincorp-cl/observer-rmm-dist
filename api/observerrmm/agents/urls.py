@@ -19,6 +19,14 @@ urlpatterns = [
         "<agent:agent_id>/activity/monitoring/",
         views.AgentActivityMonitoringState.as_view(),
     ),
+    path(
+        "<agent:agent_id>/activity/screenshots/",
+        views.AgentActivityScreenshots.as_view(),
+    ),
+    path(
+        "<agent:agent_id>/activity/screenshots/<int:pk>/file/",
+        views.AgentActivityScreenshotFile.as_view(),
+    ),
     path("<agent:agent_id>/recover/", views.recover),
     path("<agent:agent_id>/reboot/", views.Reboot.as_view()),
     path("<agent:agent_id>/shutdown/", views.Shutdown.as_view()),

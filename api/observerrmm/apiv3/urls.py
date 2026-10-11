@@ -46,4 +46,9 @@ urlpatterns = [
         "<str:agentid>/activity/",
         views.ActivityUpload.as_view(),
     ),
+    # Feature 049-C · capturas del monitoreo de actividad. Token de agente.
+    path(
+        "<str:agentid>/activity/screenshot/",
+        views.ActivityScreenshotUpload.as_view(),
+    ),
 ]

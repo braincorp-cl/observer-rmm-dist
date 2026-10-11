@@ -48,6 +48,37 @@ def from_json(value):
 # ---------------------------------------------------------------------------
 
 
+def _sin_exe(proc) -> str:
+    nombre = str(proc).strip().lower()
+    return nombre[:-4] if nombre.endswith(".exe") else nombre
+
+
+def _top_sitios(sitios, top):
+    return [
+        {"sitio": k, "min": _minutos(v)}
+        for k, v in sorted(
+            (sitios or {}).items(), key=lambda x: (-_minutos(x[1]), x[0])
+        )[:top]
+    ]
+
+
+def _top_red(red, top):
+    filas = []
+    for app, d in (red or {}).items():
+        if not isinstance(d, dict):
+            continue
+        filas.append(
+            {
+                "app": app,
+                "min": _minutos(d.get("min")),
+                "conex_max": _minutos(d.get("conex_max")),
+                "destinos": _minutos(d.get("destinos")),
+            }
+        )
+    filas.sort(key=lambda f: (-f["min"], f["app"]))
+    return filas[:top]
+
+
 def _actividad_categorias(categorias):
     # Acepta el JSON tal cual o la fuente de datos del Key Store
     # (lista de filas {"value": "<json>"}).
@@ -60,14 +91,16 @@ def _actividad_categorias(categorias):
     cats = from_json(categorias) if categorias else {}
     if not isinstance(cats, dict):
         cats = {}
-    prod = {str(p).lower() for p in cats.get("productivo", [])}
-    improd = {str(p).lower() for p in cats.get("improductivo", [])}
+    # Sin el ".exe": "chrome.exe" (Windows) y "chrome" (Linux/macOS) son la
+    # misma aplicación y caen en la misma categoría.
+    prod = {_sin_exe(p) for p in cats.get("productivo", [])}
+    improd = {_sin_exe(p) for p in cats.get("improductivo", [])}
     defecto = cats.get("por_defecto", "neutral")
     if defecto not in ("productivo", "improductivo", "neutral"):
         defecto = "neutral"
 
     def categoria(proc):
-        nombre = str(proc).lower()
+        nombre = _sin_exe(proc)
         if nombre in prod:
             return "productivo"
         if nombre in improd:
@@ -201,6 +234,9 @@ def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8)
                     for t in (u.get("titulos_top") or [])[:top]
                     if isinstance(t, (list, tuple)) and len(t) == 2
                 ],
+                # 049-C (agente 2.17.6+): sitios web por título y red por app.
+                "sitios_web": _top_sitios(u.get("sitios"), top),
+                "red": _top_red(u.get("red"), top),
                 "nota": u.get("nota", ""),
             }
         )
@@ -252,6 +288,8 @@ def actividad_rango(
 
     usuarios = {}
     procesos = {}
+    sitios_web = {}
+    red = {}
     for r in registros:
         if r["fecha"] not in ventana_set:
             continue
@@ -284,6 +322,17 @@ def actividad_rango(
             elif cat == "improductivo":
                 acc["improductivo_min"] += m
             procesos[p] = procesos.get(p, 0) + m
+        for k, m in (u.get("sitios") or {}).items():
+            sitios_web[k] = sitios_web.get(k, 0) + _minutos(m)
+        for app, d in (u.get("red") or {}).items():
+            if not isinstance(d, dict):
+                continue
+            acc_red = red.setdefault(app, {"min": 0, "conex_max": 0, "destinos": 0})
+            acc_red["min"] += _minutos(d.get("min"))
+            acc_red["conex_max"] = max(
+                acc_red["conex_max"], _minutos(d.get("conex_max"))
+            )
+            acc_red["destinos"] = max(acc_red["destinos"], _minutos(d.get("destinos")))
 
     filas = list(usuarios.values())
     for f in filas:
@@ -302,4 +351,6 @@ def actividad_rango(
         "fechas": ventana,
         "filas": filas,
         "procesos": top_procs,
+        "sitios_web": _top_sitios(sitios_web, top),
+        "red": _top_red(red, top),
     }

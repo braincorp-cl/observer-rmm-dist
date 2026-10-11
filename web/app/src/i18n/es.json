@@ -442,7 +442,12 @@
     "activityIntervalRule": "Entre 15 y 600 segundos",
     "activityIdle": "Umbral de inactividad (s)",
     "activityIdleRule": "Entre 30 y 3600 segundos",
-    "activityTitles": "Registrar títulos de ventana"
+    "activityTitles": "Registrar títulos de ventana",
+    "activityScreenshots": "Capturas de pantalla cada (min)",
+    "activityScreenshotsHint": "0 = sin capturas. Solo con el usuario activo; se guardan cifradas y se purgan con la retención de actividad.",
+    "activityScreenshotsRule": "0 (apagadas) o entre 1 y 240 minutos",
+    "activityNetwork": "Medir uso de red por aplicación",
+    "activityNetworkTooltip": "Registra qué aplicaciones mantienen conexiones de red, cuánto tiempo y hacia cuántos destinos. No mide bytes ni contenido."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -3418,7 +3423,11 @@
     "source_agent": "Definido en este equipo.",
     "source_site": "Heredado del sitio.",
     "source_client": "Heredado del cliente.",
-    "source_default": "Sin decidir en equipo, sitio ni cliente."
+    "source_default": "Sin decidir en equipo, sitio ni cliente.",
+    "topSites": "Sitios web",
+    "network": "Red por aplicación",
+    "networkItem": "{app} ({tiempo}, {destinos} destinos)",
+    "screenshots": "Capturas del día ({n})"
   },
   "activityMonitoring": {
     "title": "Monitoreo de actividad — {name}",

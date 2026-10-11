@@ -62,7 +62,7 @@ BASE_HTML = """<html>
   .sev-critical, .sev-important { background: #c0392b; }
   .sev-moderate { background: #e08e0b; }
   .sev-low, .sev-optional, .sev- { background: #5a7d8a; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .num, .report-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
   /* --- Dashboards con graficos (W005) — clases aditivas, no tocan lo anterior --- */
   .kpi-row { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
   .kpi { flex: 1; min-width: 130px; background: #f3f9fb; border: 1px solid #dbe6ea;
@@ -1095,7 +1095,7 @@ ACTIVIDAD_DIA = (
 <div class="agent-title">{{ f.usuario }} <span class="muted">&mdash; {{ f.equipo }} ({{ f.sitio }}) &middot; {{ f.primero }}&ndash;{{ f.ultimo }}</span></div>
 {% if f.nota %}<p class="stale">{{ f.nota }}</p>{% endif %}
 <table class="report-table">
-  <thead><tr><th>Activo</th><th>Inactivo</th><th>Productivo</th><th>Improductivo</th><th>% productivo</th><th>Huecos</th><th>Capturas en el equipo</th></tr></thead>
+  <thead><tr><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">Productivo</th><th class="num">Improductivo</th><th class="num">% productivo</th><th class="num">Huecos</th><th class="num">Capturas</th></tr></thead>
   <tbody><tr>
     <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.inactivo_min) }}</td>
     <td class="num">{{ hm(f.productivo_min) }}</td><td class="num">{{ hm(f.improductivo_min) }}</td>
@@ -1119,6 +1119,22 @@ ACTIVIDAD_DIA = (
   <thead><tr><th>Ventana (t&iacute;tulo)</th><th class="num">Tiempo activo</th></tr></thead>
   <tbody>
   {% for t in f.titulos %}<tr><td>{{ t.titulo }}</td><td class="num">{{ hm(t.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if f.sitios_web %}
+<table class="report-table">
+  <thead><tr><th>Sitio web (seg&uacute;n el t&iacute;tulo del navegador)</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for w in f.sitios_web %}<tr><td>{{ w.sitio }}</td><td class="num">{{ hm(w.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if f.red %}
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n con red</th><th class="num">Tiempo con conexiones</th><th class="num">Pico de conexiones</th><th class="num">Destinos distintos</th></tr></thead>
+  <tbody>
+  {% for n in f.red %}<tr><td>{{ n.app }}</td><td class="num">{{ hm(n.min) }}</td><td class="num">{{ n.conex_max }}</td><td class="num">{{ n.destinos }}</td></tr>{% endfor %}
   </tbody>
 </table>
 {% endif %}
@@ -1181,6 +1197,24 @@ ACTIVIDAD_SEMANA = (
   {% for p in r.procesos %}<tr><td>{{ p.proceso }}</td><td>{{ _cat_lbl[p.cat] }}</td><td class="num">{{ hm(p.min) }}</td></tr>{% endfor %}
   </tbody>
 </table>
+{% if r.sitios_web %}
+<div class="section-title">Sitios web m&aacute;s visitados</div>
+<table class="report-table">
+  <thead><tr><th>Sitio web (seg&uacute;n el t&iacute;tulo del navegador)</th><th class="num">Tiempo activo (todos los usuarios)</th></tr></thead>
+  <tbody>
+  {% for w in r.sitios_web %}<tr><td>{{ w.sitio }}</td><td class="num">{{ hm(w.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if r.red %}
+<div class="section-title">Uso de red por aplicaci&oacute;n</div>
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n</th><th class="num">Tiempo con conexiones</th><th class="num">Pico de conexiones</th><th class="num">Destinos distintos</th></tr></thead>
+  <tbody>
+  {% for n in r.red %}<tr><td>{{ n.app }}</td><td class="num">{{ hm(n.min) }}</td><td class="num">{{ n.conex_max }}</td><td class="num">{{ n.destinos }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endif %}"""
     + END
 )

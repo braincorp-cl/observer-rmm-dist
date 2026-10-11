@@ -58,18 +58,62 @@
         :pagination="{ rowsPerPage: 0 }"
         hide-bottom
       />
+
+      <!-- Feature 049-C: capturas del día (servidas por la vista autenticada) -->
+      <div v-if="capturas.length" class="q-mt-md">
+        <div class="text-subtitle2 q-mb-xs">
+          {{ $t("agentActivity.screenshots", { n: capturas.length }) }}
+        </div>
+        <div class="row q-gutter-sm">
+          <div
+            v-for="c in capturas"
+            :key="c.id"
+            class="cursor-pointer"
+            style="width: 180px"
+            @click="verCaptura(c)"
+          >
+            <q-img
+              v-if="c.url"
+              :src="c.url"
+              :ratio="16 / 9"
+              fit="cover"
+              style="border-radius: 4px"
+            />
+            <q-skeleton v-else type="rect" style="height: 101px" />
+            <div class="text-caption ellipsis">
+              {{ leyenda(c) }}
+            </div>
+            <q-tooltip v-if="c.title">{{ c.title }}</q-tooltip>
+          </div>
+        </div>
+      </div>
+      <q-dialog v-model="capturaAbierta">
+        <q-card v-if="capturaSel" style="max-width: 95vw; width: 1200px">
+          <q-bar>
+            {{ leyenda(capturaSel) }}
+            <q-space />
+            <q-btn dense flat icon="close" v-close-popup />
+          </q-bar>
+          <q-img :src="capturaSel.url" fit="contain" />
+          <q-card-section v-if="capturaSel.title" class="text-caption">
+            {{ capturaSel.title }}
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import {
   fetchAgentActivity,
   fetchActivityMonitoringState,
+  fetchActivityScreenshots,
+  fetchActivityScreenshotBlob,
 } from "@/api/agents";
 import ActivityMonitoringDialog from "@/components/agents/ActivityMonitoringDialog.vue";
 
@@ -99,7 +143,17 @@ export default {
       { name: "inactivo", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
       { name: "capturas", label: t("agentActivity.captures"), field: "capturas", align: "right" },
       { name: "procs", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
+      { name: "sitios", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
+      { name: "red", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
+
+    function topStr(m, n, fmt) {
+      return Object.entries(m || {})
+        .sort((a, b) => fmt.valor(b[1]) - fmt.valor(a[1]))
+        .slice(0, n)
+        .map(([k, v]) => fmt.texto(k, v))
+        .join(", ");
+    }
 
     const opcionesDia = computed(() =>
       dias.value.map((d) => ({ label: d.date, value: d.date }))
@@ -116,6 +170,19 @@ export default {
           .slice(0, 6)
           .map(([proceso, min]) => `${proceso} (${hm(min)})`)
           .join(", "),
+        sitiosStr: topStr(x.sitios, 5, {
+          valor: (v) => v,
+          texto: (k, v) => `${k} (${hm(v)})`,
+        }),
+        redStr: topStr(x.red, 4, {
+          valor: (v) => v.min || 0,
+          texto: (k, v) =>
+            t("agentActivity.networkItem", {
+              app: k,
+              tiempo: hm(v.min),
+              destinos: v.destinos,
+            }),
+        }),
       }));
     });
 
@@ -149,15 +216,74 @@ export default {
         const data = await fetchAgentActivity(selectedAgent.value);
         dias.value = Array.isArray(data) ? data : [];
         diaSel.value = dias.value.length ? dias.value[0].date : null;
+        // Al cambiar de equipo la fecha puede ser la misma y el watch no salta.
+        cargarCapturas();
       } catch (e) {
         if (e.response && e.response.status === 403) sinPermiso.value = true;
       }
     }
 
+    // --- 049-C: capturas del día ---
+    const capturas = ref([]);
+    const capturaSel = ref(null);
+    const capturaAbierta = ref(false);
+    let cargaCapturas = 0;
+
+    function liberarCapturas() {
+      capturas.value.forEach((c) => c.url && URL.revokeObjectURL(c.url));
+      capturas.value = [];
+    }
+
+    async function cargarCapturas() {
+      const turno = ++cargaCapturas;
+      liberarCapturas();
+      if (!selectedAgent.value || !diaSel.value || sinPermiso.value) return;
+      let lista = [];
+      try {
+        lista = await fetchActivityScreenshots(selectedAgent.value, diaSel.value);
+      } catch (e) {
+        return;
+      }
+      if (turno !== cargaCapturas) return;
+      capturas.value = lista.map((c) => ({ ...c, url: "" }));
+      // Miniaturas de a cuatro, para no abrir 100 descargas a la vez.
+      const cola = [...capturas.value];
+      const agente = selectedAgent.value;
+      async function trabajador() {
+        while (cola.length && turno === cargaCapturas) {
+          const c = cola.shift();
+          try {
+            const blob = await fetchActivityScreenshotBlob(agente, c.id);
+            if (turno === cargaCapturas) c.url = URL.createObjectURL(blob);
+          } catch (e) {
+            // una captura ilegible no corta la galería
+          }
+        }
+      }
+      await Promise.all([trabajador(), trabajador(), trabajador(), trabajador()]);
+    }
+
+    function verCaptura(c) {
+      if (!c.url) return;
+      capturaSel.value = c;
+      capturaAbierta.value = true;
+    }
+
+    function leyenda(c) {
+      return [hora(c.captured_at), c.username, c.process].filter(Boolean).join(" · ");
+    }
+
+    function hora(iso) {
+      const d = new Date(iso);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+
     onMounted(cargar);
     watch(selectedAgent, cargar);
+    watch(diaSel, cargarCapturas);
+    onBeforeUnmount(liberarCapturas);
 
-    return { selectedAgent, estado, configurar, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>

@@ -71,3 +71,7 @@ class AgentCheckInConfig(ORMMStruct):
     actividad_interval_seg: int = 60
     actividad_inactivo_seg: int = 300
     actividad_con_titulo: bool = True
+    # 049-C: capturas cada N min (0 = apagadas) y red por app; sólo con el
+    # monitoreo encendido.
+    actividad_capturas_min: int = 0
+    actividad_red: bool = False

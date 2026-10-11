@@ -162,3 +162,54 @@ class TestFiltrosEquipoUsuario:
         res = actividad_rango(rows, "2026-10-05", 7, equipo="PC-A", usuario="ana")
         assert len(res["filas"]) == 1
         assert res["filas"][0]["usuario"] == "DOM\\ana"
+
+
+# --- 049-C: sitios web, red por app y categoría sin ".exe" -------------------
+
+
+def _doc_049c(fecha):
+    d = _doc(fecha, procs={"chrome.exe": 60})
+    u = d["dias"][0]["usuarios"][0]
+    u["sitios"] = {"Gmail": 40, "YouTube": 20}
+    u["red"] = {"chrome.exe": {"min": 55, "conex_max": 9, "destinos": 14}}
+    return d
+
+
+def test_dia_incluye_sitios_y_red():
+    r = actividad_dia([_fila(_doc_049c("2026-10-11"))], fecha="2026-10-11")
+    f = r["filas"][0]
+    assert f["sitios_web"][0] == {"sitio": "Gmail", "min": 40}
+    assert f["red"][0] == {
+        "app": "chrome.exe",
+        "min": 55,
+        "conex_max": 9,
+        "destinos": 14,
+    }
+
+
+def test_rango_agrega_sitios_y_red():
+    filas = [
+        _fila(_doc_049c("2026-10-10")),
+        _fila(_doc_049c("2026-10-11")),
+    ]
+    r = actividad_rango(filas, desde="2026-10-10", dias=7)
+    assert r["sitios_web"][0] == {"sitio": "Gmail", "min": 80}
+    assert r["red"][0]["min"] == 110
+    assert r["red"][0]["conex_max"] == 9
+
+
+def test_doc_sin_049c_no_rompe():
+    r = actividad_dia([_fila(_doc("2026-10-11"))], fecha="2026-10-11")
+    assert r["filas"][0]["sitios_web"] == []
+    assert r["filas"][0]["red"] == []
+
+
+def test_categoria_ignora_exe():
+    cats = json.dumps({"improductivo": ["chrome"], "productivo": ["excel.exe"]})
+    r = actividad_dia(
+        [_fila(_doc("2026-10-11", procs={"chrome.exe": 30, "excel": 90}))],
+        fecha="2026-10-11",
+        categorias=cats,
+    )
+    procs = {p["proceso"]: p["cat"] for p in r["filas"][0]["procs"]}
+    assert procs == {"chrome.exe": "improductivo", "excel": "productivo"}

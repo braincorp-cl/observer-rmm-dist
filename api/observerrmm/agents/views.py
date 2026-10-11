@@ -80,6 +80,7 @@ from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_ta
 from .diskencryption import filtro_por_estado
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
+    AgentActivityScreenshot,
     Agent,
     AgentActivityDaily,
     AgentCustomField,
@@ -2771,3 +2772,58 @@ class ActivityMonitoringSetting(APIView):
                 agent_pks=list(scope.values_list("pk", flat=True))
             )
         return Response("ok")
+
+
+class AgentActivityScreenshots(APIView):
+    """Capturas de un equipo para un día (feature 049-C). Sólo metadatos; la
+    imagen se pide aparte por su id, siempre por la vista autenticada."""
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        qs = AgentActivityScreenshot.objects.filter(agent=agent)
+        dia = request.query_params.get("date")
+        if dia:
+            try:
+                fecha = dt.date.fromisoformat(dia)
+            except ValueError:
+                return notify_error("Fecha inválida")
+            tz = get_default_timezone()
+            inicio = djangotime.make_aware(dt.datetime.combine(fecha, dt.time.min), tz)
+            qs = qs.filter(
+                captured_at__gte=inicio, captured_at__lt=inicio + dt.timedelta(days=1)
+            )
+        qs = qs.order_by("captured_at")[:500]
+        return Response(
+            [
+                {
+                    "id": s.pk,
+                    "captured_at": s.captured_at,
+                    "username": s.username,
+                    "process": s.process,
+                    "title": s.title,
+                }
+                for s in qs
+            ]
+        )
+
+
+class AgentActivityScreenshotFile(APIView):
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id, pk):
+        shot = get_object_or_404(
+            AgentActivityScreenshot.objects.filter(agent__agent_id=agent_id), pk=pk
+        )
+        try:
+            contenido = shot.image.open("rb")
+        except EvidenceKeyMissing as e:
+            return notify_error(str(e))
+        except OSError:
+            return notify_error("El archivo de la captura no está disponible")
+        return FileResponse(
+            contenido,
+            as_attachment=False,
+            filename=os.path.basename(shot.image.name),
+        )

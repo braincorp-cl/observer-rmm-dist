@@ -68,6 +68,14 @@
     group: "{{ observer_group }}"
     mode: "0750"
 
+- name: Crear directorio de capturas del monitoreo de actividad (049-C)
+  ansible.builtin.file:
+    path: "{{ observer_root }}/activity/screenshots"
+    state: directory
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+
 # Virtualenv
 - name: Crear virtualenv Python {{ observer_python_version }}
   ansible.builtin.command:

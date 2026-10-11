@@ -90,6 +90,11 @@ class CoreSettings(BaseAuditModel):
     activity_interval_seg = models.PositiveIntegerField(default=60)
     activity_idle_seg = models.PositiveIntegerField(default=300)
     activity_window_titles = models.BooleanField(default=True)
+    # 049-C: capturas de pantalla periódicas (minutos; 0 = apagadas) y uso de
+    # red por aplicación. APAGADOS aunque el monitoreo esté encendido: son un
+    # escalón más de intrusión y se habilitan aparte.
+    activity_screenshots_min = models.PositiveIntegerField(default=0)
+    activity_network = models.BooleanField(default=False)
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)
