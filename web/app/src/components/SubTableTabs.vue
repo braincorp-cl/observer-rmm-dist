@@ -75,6 +75,13 @@
              superior (no dentro de Activos, que es Windows-only): un certificado
              de borrado aplica a cualquier plataforma. -->
         <q-tab
+          v-if="activeTabs.includes('actividad')"
+          content-class="min-width"
+          name="actividad"
+          icon="timeline"
+          :label="$t('agentTabs.labels.actividad')"
+        />
+        <q-tab
           v-if="activeTabs.includes('erase')"
           content-class="min-width"
           name="erase"
@@ -157,6 +164,13 @@
           <AssetsTab />
         </q-tab-panel>
         <q-tab-panel
+          v-if="activeTabs.includes('actividad')"
+          name="actividad"
+          class="q-pa-none"
+        >
+          <ActividadTab />
+        </q-tab-panel>
+        <q-tab-panel
           v-if="activeTabs.includes('erase')"
           name="erase"
           class="q-pa-none"
@@ -198,10 +212,12 @@ import DebugTab from "@/components/agents/DebugTab.vue";
 import AssetsTab from "@/components/agents/AssetsTab.vue";
 import NotesTab from "@/components/agents/NotesTab.vue";
 import EraseCertificatesTab from "@/components/agents/EraseCertificatesTab.vue";
+import ActividadTab from "@/components/agents/ActividadTab.vue";
 
 export default {
   name: "SubTableTabs",
   components: {
+    ActividadTab,
     SummaryTab,
     ChecksTab,
     AutomatedTasksTab,

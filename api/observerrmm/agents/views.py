@@ -81,6 +81,7 @@ from .diskencryption import filtro_por_estado
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
     Agent,
+    AgentActivityDaily,
     AgentCustomField,
     AgentHistory,
     DiskEncryptionVolume,
@@ -91,6 +92,7 @@ from .models import (
 )
 from .permissions import (
     AgentHistoryPerms,
+    ViewActivityPerms,
     AgentNotesPerms,
     AgentPerms,
     AgentRegistryPerms,
@@ -112,6 +114,7 @@ from .permissions import (
     ViewLostEvidencePerms,
 )
 from .serializers import (
+    AgentActivityDailySerializer,
     AgentCustomFieldSerializer,
     AgentHistorySerializer,
     AgentHostnameSerializer,
@@ -2658,3 +2661,18 @@ class DiskEncryptionDetail(APIView):
                 "history": DiskEncryptionHistorySerializer(historial, many=True).data,
             }
         )
+
+
+class AgentActivity(APIView):
+    """Días de actividad de un equipo para la consola (feature 049-B).
+
+    Sólo lectura, con el permiso de rol `can_view_activity`. Devuelve los días
+    más recientes; cada uno trae el documento (`data`) en el formato de reporte.
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        qs = AgentActivityDaily.objects.filter(agent=agent).order_by("-date")[:60]
+        return Response(AgentActivityDailySerializer(qs, many=True).data)

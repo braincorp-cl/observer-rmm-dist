@@ -12,6 +12,7 @@ from winupdate.serializers import WinUpdatePolicySerializer
 
 from .diskencryption import derivar_estado, volumen_de_sistema
 from .models import (
+    AgentActivityDaily,
     Agent,
     AgentCustomField,
     AgentHistory,
@@ -435,3 +436,9 @@ class DiskEncryptionFleetSerializer(serializers.ModelSerializer):
         if volumen is None:
             return None
         return DiskEncryptionVolumeSerializer(volumen).data
+
+
+class AgentActivityDailySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgentActivityDaily
+        fields = ["date", "data", "partial", "updated"]

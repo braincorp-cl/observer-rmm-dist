@@ -541,7 +541,8 @@
       "assets": "Assets",
       "debug": "Debug",
       "audit": "Audit",
-      "erase": "Erase"
+      "erase": "Erase",
+      "actividad": "Activity"
     },
     "summary": {
       "agentOverdue": "Agent overdue",
@@ -3386,5 +3387,19 @@
       "colDryRun": "Dry run",
       "colActions": "Actions"
     }
+  },
+  "agentActivity": {
+    "noAgent": "Select a machine to see its activity.",
+    "noPermission": "You do not have permission to view this machine's activity.",
+    "noData": "This machine has not reported activity yet.",
+    "day": "Day",
+    "partial": "Partial",
+    "user": "User",
+    "firstSeen": "First",
+    "lastSeen": "Last",
+    "activeTime": "Active",
+    "idleTime": "Idle",
+    "captures": "Screenshots",
+    "topProcesses": "Top processes"
   }
 }

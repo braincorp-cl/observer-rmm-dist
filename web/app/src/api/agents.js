@@ -409,3 +409,8 @@ export async function createRegistryValue(agentId, path, name, type, data) {
     throw e;
   }
 }
+
+export async function fetchAgentActivity(agent_id) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/activity/`);
+  return data;
+}

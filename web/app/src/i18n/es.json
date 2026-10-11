@@ -541,7 +541,8 @@
       "assets": "Activos",
       "debug": "Depuración",
       "audit": "Auditoría",
-      "erase": "Borrado"
+      "erase": "Borrado",
+      "actividad": "Actividad"
     },
     "summary": {
       "agentOverdue": "Agente atrasado",
@@ -3386,5 +3387,19 @@
       "colDryRun": "Simulacro",
       "colActions": "Acciones"
     }
+  },
+  "agentActivity": {
+    "noAgent": "Seleccione un equipo para ver su actividad.",
+    "noPermission": "No tiene permiso para ver la actividad de este equipo.",
+    "noData": "Este equipo no ha reportado actividad todavía.",
+    "day": "Día",
+    "partial": "Parcial",
+    "user": "Usuario",
+    "firstSeen": "Primero",
+    "lastSeen": "Último",
+    "activeTime": "Activo",
+    "idleTime": "Inactivo",
+    "captures": "Capturas",
+    "topProcesses": "Procesos más usados"
   }
 }

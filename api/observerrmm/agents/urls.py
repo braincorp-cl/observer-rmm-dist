@@ -13,6 +13,7 @@ urlpatterns = [
     path("<agent:agent_id>/cmd/", views.send_raw_cmd),
     path("<agent:agent_id>/runscript/", views.run_script),
     path("<agent:agent_id>/wmi/", views.WMI.as_view()),
+    path("<agent:agent_id>/activity/", views.AgentActivity.as_view()),
     path("<agent:agent_id>/recover/", views.recover),
     path("<agent:agent_id>/reboot/", views.Reboot.as_view()),
     path("<agent:agent_id>/shutdown/", views.Shutdown.as_view()),

@@ -214,3 +214,15 @@ class AgentRegistryPerms(permissions.BasePermission):
             )
 
         return _has_perm(r, "can_use_registry")
+
+
+class ViewActivityPerms(permissions.BasePermission):
+    """Ver el monitoreo de actividad de un equipo (feature 049)."""
+
+    def has_permission(self, r, view) -> bool:
+        if not _has_perm(r, "can_view_activity"):
+            return False
+        agent_id = view.kwargs.get("agent_id")
+        if agent_id is None:
+            return True
+        return _has_perm_on_agent(r.user, agent_id)
