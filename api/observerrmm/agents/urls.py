@@ -10,6 +10,10 @@ urlpatterns = [
     # agent views
     path("", views.GetAgents.as_view()),
     path("activity-monitoring/", views.ActivityMonitoringSetting.as_view()),
+    path(
+        "activity-monitoring/overview/",
+        views.ActivityMonitoringOverview.as_view(),
+    ),
     path("<agent:agent_id>/", views.GetUpdateDeleteAgent.as_view()),
     path("<agent:agent_id>/cmd/", views.send_raw_cmd),
     path("<agent:agent_id>/runscript/", views.run_script),

@@ -37,6 +37,11 @@
             :label="$t('editCoreSettings.tabSchedules')"
           />
           <q-tab name="ai" :label="$t('editCoreSettings.tabAiAssistant')" />
+          <!-- Feature 049: sección propia del monitoreo de actividad -->
+          <q-tab
+            name="monitoring"
+            :label="$t('editCoreSettings.tabEmployeeMonitoring')"
+          />
         </q-tabs>
       </template>
       <template v-slot:after>
@@ -193,87 +198,6 @@
                     </template>
                     {{ $t("editCoreSettings.lostWebcamWarning") }}
                   </q-banner>
-                </q-card-section>
-                <!--
-                  Feature 049-B2: interruptor GLOBAL del monitoreo de actividad.
-                  APAGADO de fábrica. Encenderlo no hace muestrear a nadie: sólo
-                  habilita a los clientes/sitios/equipos que tengan un "sí"
-                  explícito (menú contextual del árbol o pestaña Actividad).
-                -->
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-checkbox
-                    v-model="settings.activity_monitoring_enabled"
-                    :label="$t('editCoreSettings.activityMonitoring')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.activityMonitoringTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <q-card-section
-                  v-if="settings.activity_monitoring_enabled"
-                  class="row items-center q-pl-lg q-pt-none q-gutter-md"
-                >
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 14rem"
-                    v-model.number="settings.activity_interval_seg"
-                    :label="$t('editCoreSettings.activityInterval')"
-                    :rules="[
-                      (val) =>
-                        (val >= 15 && val <= 600) ||
-                        $t('editCoreSettings.activityIntervalRule'),
-                    ]"
-                  />
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 14rem"
-                    v-model.number="settings.activity_idle_seg"
-                    :label="$t('editCoreSettings.activityIdle')"
-                    :rules="[
-                      (val) =>
-                        (val >= 30 && val <= 3600) ||
-                        $t('editCoreSettings.activityIdleRule'),
-                    ]"
-                  />
-                  <q-checkbox
-                    v-model="settings.activity_window_titles"
-                    :label="$t('editCoreSettings.activityTitles')"
-                  />
-                </q-card-section>
-                <!-- 049-C: capturas y red, apagadas aunque el monitoreo esté
-                     encendido (un escalón más de intrusión). -->
-                <q-card-section
-                  v-if="settings.activity_monitoring_enabled"
-                  class="row items-center q-pl-lg q-pt-none q-gutter-md"
-                >
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 18rem"
-                    v-model.number="settings.activity_screenshots_min"
-                    :label="$t('editCoreSettings.activityScreenshots')"
-                    :hint="$t('editCoreSettings.activityScreenshotsHint')"
-                    :rules="[
-                      (val) =>
-                        val === 0 ||
-                        (val >= 1 && val <= 240) ||
-                        $t('editCoreSettings.activityScreenshotsRule'),
-                    ]"
-                  />
-                  <q-checkbox
-                    v-model="settings.activity_network"
-                    :label="$t('editCoreSettings.activityNetwork')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.activityNetworkTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
                 </q-card-section>
                 <!--
                   Feature 038: defaults GLOBALES de la cascada al marcar un equipo
@@ -1089,6 +1013,135 @@
               </q-tab-panel>
 
               <!-- AI Assistant (LLM OpenAI-compatible) -->
+              <!-- Feature 049: Employee Monitoring. Todo APAGADO de fábrica:
+                   el interruptor global no hace muestrear a nadie, solo habilita
+                   a los clientes/sitios/equipos del alcance; capturas y red son
+                   un escalón más y se encienden aparte. -->
+              <q-tab-panel name="monitoring">
+                <div class="text-subtitle2">
+                  {{ $t("editCoreSettings.tabEmployeeMonitoring") }}
+                </div>
+                <q-separator />
+                <q-card-section class="q-pb-none">
+                  <q-toggle
+                    v-model="settings.activity_monitoring_enabled"
+                    :label="$t('editCoreSettings.activityMonitoring')"
+                  />
+                  <div class="text-caption text-grey">
+                    {{ $t("editCoreSettings.activityMonitoringTooltip") }}
+                  </div>
+                </q-card-section>
+
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.emScope") }}
+                </div>
+                <q-separator />
+                <q-card-section>
+                  <activity-scope-table
+                    :global-enabled="settings.activity_monitoring_enabled"
+                  />
+                </q-card-section>
+
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.emSampling") }}
+                </div>
+                <q-separator />
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 14rem"
+                    v-model.number="settings.activity_interval_seg"
+                    :label="$t('editCoreSettings.activityInterval')"
+                    :rules="[
+                      (val) =>
+                        (val >= 15 && val <= 600) ||
+                        $t('editCoreSettings.activityIntervalRule'),
+                    ]"
+                  />
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 14rem"
+                    v-model.number="settings.activity_idle_seg"
+                    :label="$t('editCoreSettings.activityIdle')"
+                    :rules="[
+                      (val) =>
+                        (val >= 30 && val <= 3600) ||
+                        $t('editCoreSettings.activityIdleRule'),
+                    ]"
+                  />
+                  <q-checkbox
+                    v-model="settings.activity_window_titles"
+                    :label="$t('editCoreSettings.activityTitles')"
+                  >
+                    <q-tooltip>
+                      {{ $t("editCoreSettings.activityTitlesTooltip") }}
+                    </q-tooltip>
+                  </q-checkbox>
+                </q-card-section>
+
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.emVisual") }}
+                </div>
+                <q-separator />
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 18rem"
+                    v-model.number="settings.activity_screenshots_min"
+                    :label="$t('editCoreSettings.activityScreenshots')"
+                    :hint="$t('editCoreSettings.activityScreenshotsHint')"
+                    :rules="[
+                      (val) =>
+                        val === 0 ||
+                        (val >= 1 && val <= 240) ||
+                        $t('editCoreSettings.activityScreenshotsRule'),
+                    ]"
+                  />
+                </q-card-section>
+
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.emData") }}
+                </div>
+                <q-separator />
+                <q-card-section>
+                  <q-checkbox
+                    v-model="settings.activity_network"
+                    :label="$t('editCoreSettings.activityNetwork')"
+                  />
+                  <div class="text-caption text-grey">
+                    {{ $t("editCoreSettings.activityNetworkTooltip") }}
+                  </div>
+                </q-card-section>
+
+                <div class="text-subtitle2 q-mt-md">
+                  {{ $t("editCoreSettings.emRetention") }}
+                </div>
+                <q-separator />
+                <q-card-section class="row items-center q-gutter-md">
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    style="width: 18rem"
+                    v-model.number="settings.activity_prune_days"
+                    :label="$t('editCoreSettings.activityPruneDays')"
+                    :hint="$t('editCoreSettings.activityPruneDaysHint')"
+                    :rules="[
+                      (val) => val >= 0 || $t('editCoreSettings.activityPruneDaysRule'),
+                    ]"
+                  />
+                </q-card-section>
+                <q-card-section class="text-caption text-grey">
+                  {{ $t("editCoreSettings.emPermissionsNote") }}
+                </q-card-section>
+              </q-tab-panel>
+
               <q-tab-panel name="ai">
                 <div class="text-subtitle2">
                   {{ $t("editCoreSettings.tabAiAssistant") }}
@@ -1232,6 +1285,7 @@ import APIKeysTable from "@/components/core/APIKeysTable.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import SecretInput from "@/components/ui/SecretInput.vue";
 import ScheduleTable from "@/core/settings/components/ScheduleTable.vue";
+import ActivityScopeTable from "@/components/modals/coresettings/ActivityScopeTable.vue";
 
 // SSO descartado (ADR-010, 2026-06-17): el dynamic import de SSOProvidersTable
 // fue eliminado junto con el módulo ee/sso (vaciado, pendiente de reimplementación).
@@ -1240,6 +1294,7 @@ export default {
   name: "EditCoreSettings",
   emits: ["close"],
   components: {
+    ActivityScopeTable,
     CustomFields,
     KeyStoreTable,
     URLActionsTable,

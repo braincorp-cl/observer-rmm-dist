@@ -2827,3 +2827,96 @@ class AgentActivityScreenshotFile(APIView):
             as_attachment=False,
             filename=os.path.basename(shot.image.name),
         )
+
+
+class ActivityMonitoringOverview(APIView):
+    """Alcance del monitoreo para la sección «Employee Monitoring» (049-B2/C).
+
+    Lista los clientes, sitios y equipos con un valor EXPLÍCITO (encendido o
+    apagado), dentro del alcance del rol, y cuántos equipos quedan efectivamente
+    monitoreados. Los que heredan no se listan: son la mayoría y no deciden nada.
+    """
+
+    permission_classes = [IsAuthenticated, ManageActivityPerms]
+
+    def get(self, request):
+        from clients.models import Client, Site
+
+        from .activity import agents_possibly_on, resolve_activity
+
+        core = get_core_settings()
+        reglas = []
+        for c in (
+            Client.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .order_by("name")
+        ):
+            reglas.append(
+                {
+                    "level": "client",
+                    "id": c.pk,
+                    "name": c.name,
+                    "parent": "",
+                    "value": c.activity_monitoring,
+                }
+            )
+        for st in (
+            Site.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .select_related("client")
+            .order_by("client__name", "name")
+        ):
+            reglas.append(
+                {
+                    "level": "site",
+                    "id": st.pk,
+                    "name": st.name,
+                    "parent": st.client.name,
+                    "value": st.activity_monitoring,
+                }
+            )
+        for a in (
+            Agent.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .select_related("site__client")
+            .only(
+                "agent_id",
+                "hostname",
+                "activity_monitoring",
+                "site__name",
+                "site__client__name",
+            )
+            .order_by("hostname")
+        ):
+            reglas.append(
+                {
+                    "level": "agent",
+                    "id": a.agent_id,
+                    "name": a.hostname,
+                    "parent": f"{a.site.client.name} / {a.site.name}",
+                    "value": a.activity_monitoring,
+                }
+            )
+
+        monitoreados = 0
+        if core.activity_monitoring_enabled:
+            for a in (
+                agents_possibly_on()
+                .filter(pk__in=Agent.objects.filter_by_role(request.user).values("pk"))
+                .select_related("site__client")
+                .only(
+                    "activity_monitoring",
+                    "site__activity_monitoring",
+                    "site__client__activity_monitoring",
+                )
+            ):
+                if resolve_activity(a, core).active:
+                    monitoreados += 1
+
+        return Response(
+            {
+                "global_enabled": core.activity_monitoring_enabled,
+                "monitored_agents": monitoreados,
+                "rules": reglas,
+            }
+        )

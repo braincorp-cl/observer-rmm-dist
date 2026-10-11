@@ -437,7 +437,7 @@
     "lostAlarm": "Alarma a todo volumen (opt-in)",
     "lostAlarmTooltip": "Hacer sonar la alarma del equipo al marcarlo perdido. Apagada por omisión; enciéndela sólo cuando quieras alertar a quien esté cerca.",
     "activityMonitoring": "Monitoreo de actividad de usuarios",
-    "activityMonitoringTooltip": "Interruptor global, apagado de fábrica. Encenderlo no hace muestrear a nadie: sólo habilita a los clientes, sitios o equipos donde se encienda explícitamente (menú contextual del árbol o pestaña Actividad).",
+    "activityMonitoringTooltip": "Interruptor global, apagado de fábrica. Encenderlo no hace muestrear a nadie: solo habilita a los clientes, sitios o equipos del alcance (abajo, menú contextual del árbol o pestaña Actividad del equipo).",
     "activityInterval": "Cadencia de muestreo (s)",
     "activityIntervalRule": "Entre 15 y 600 segundos",
     "activityIdle": "Umbral de inactividad (s)",
@@ -447,7 +447,18 @@
     "activityScreenshotsHint": "0 = sin capturas. Solo con el usuario activo; se guardan cifradas y se purgan con la retención de actividad.",
     "activityScreenshotsRule": "0 (apagadas) o entre 1 y 240 minutos",
     "activityNetwork": "Medir uso de red por aplicación",
-    "activityNetworkTooltip": "Registra qué aplicaciones mantienen conexiones de red, cuánto tiempo y hacia cuántos destinos. No mide bytes ni contenido."
+    "activityNetworkTooltip": "Registra qué aplicaciones mantienen conexiones de red, cuánto tiempo y hacia cuántos destinos. No mide bytes ni contenido.",
+    "tabEmployeeMonitoring": "Employee Monitoring",
+    "emScope": "Alcance: dónde está encendido",
+    "emSampling": "Muestreo de actividad",
+    "emVisual": "Monitoreo visual (capturas de pantalla)",
+    "emData": "Uso de datos (red por aplicación)",
+    "emRetention": "Retención",
+    "activityTitlesTooltip": "Necesario para deducir los sitios web visitados a partir del título del navegador.",
+    "activityPruneDays": "Conservar actividad y capturas (días)",
+    "activityPruneDaysHint": "0 = no purgar. Se borran los resúmenes diarios y las capturas (con su archivo).",
+    "activityPruneDaysRule": "Debe ser 0 o mayor",
+    "emPermissionsNote": "Ver la actividad y encender/apagar el monitoreo son permisos de rol separados (Configuración > Roles). Los cambios de alcance se aplican al instante; los de esta página, al guardar."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -3419,7 +3430,7 @@
     "monitoringOn": "Monitoreo encendido",
     "monitoringOff": "Monitoreo apagado",
     "configure": "Configurar",
-    "source_global": "El interruptor global está apagado (Ajustes > General).",
+    "source_global": "El interruptor global está apagado (Configuración global > Employee Monitoring).",
     "source_agent": "Definido en este equipo.",
     "source_site": "Heredado del sitio.",
     "source_client": "Heredado del cliente.",
@@ -3431,7 +3442,7 @@
   },
   "activityMonitoring": {
     "title": "Monitoreo de actividad — {name}",
-    "globalOff": "El interruptor global está apagado: nada se registrará hasta encenderlo en Ajustes > General.",
+    "globalOff": "El interruptor global está apagado: nada se registrará hasta encenderlo en Configuración global > Employee Monitoring.",
     "inherit": "Heredar",
     "notDecided": "Sin decidir (apagado)",
     "on": "Encender",
@@ -3440,5 +3451,26 @@
     "cancel": "Cancelar",
     "save": "Guardar",
     "saved": "Monitoreo de actividad actualizado"
+  },
+  "activityScope": {
+    "noPermission": "No tiene permiso para encender o apagar el monitoreo (permiso de rol «Encender/apagar monitoreo de actividad»).",
+    "monitored": "{n} equipos monitoreados",
+    "globalOffHint": "El interruptor global está apagado: el alcance no tiene efecto hasta encenderlo y guardar.",
+    "empty": "Sin reglas: el monitoreo no está encendido en ningún cliente, sitio ni equipo.",
+    "level": "Nivel",
+    "name": "Nombre",
+    "parent": "Pertenece a",
+    "state": "Estado",
+    "level_client": "Cliente",
+    "level_site": "Sitio",
+    "level_agent": "Equipo",
+    "on": "Encendido",
+    "off": "Apagado",
+    "removeTooltip": "Quitar la regla (vuelve a heredar)",
+    "addTitle": "Agregar regla: elija un cliente y, si corresponde, un sitio o un equipo",
+    "client": "Cliente",
+    "siteOptional": "Sitio (opcional)",
+    "agentOptional": "Equipo (opcional)",
+    "add": "Agregar"
   }
 }

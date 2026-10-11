@@ -437,7 +437,7 @@
     "lostAlarm": "Full-volume alarm (opt-in)",
     "lostAlarmTooltip": "Sound the device alarm when marked lost. Off by default; enable it only when you want to alert whoever is nearby.",
     "activityMonitoring": "User activity monitoring",
-    "activityMonitoringTooltip": "Global switch, off by default. Turning it on does not make anyone sample: it only enables the clients, sites or devices where it is explicitly turned on (tree context menu or Activity tab).",
+    "activityMonitoringTooltip": "Global switch, off by default. Turning it on does not make anyone sample: it only enables the clients, sites or devices in the scope (below, tree context menu or the device's Activity tab).",
     "activityInterval": "Sampling interval (s)",
     "activityIntervalRule": "Between 15 and 600 seconds",
     "activityIdle": "Idle threshold (s)",
@@ -447,7 +447,18 @@
     "activityScreenshotsHint": "0 = no screenshots. Only while the user is active; stored encrypted and purged with the activity retention.",
     "activityScreenshotsRule": "0 (off) or between 1 and 240 minutes",
     "activityNetwork": "Measure network usage per application",
-    "activityNetworkTooltip": "Records which applications keep network connections open, for how long and to how many destinations. It does not measure bytes or content."
+    "activityNetworkTooltip": "Records which applications keep network connections open, for how long and to how many destinations. It does not measure bytes or content.",
+    "tabEmployeeMonitoring": "Employee Monitoring",
+    "emScope": "Scope: where it is on",
+    "emSampling": "Activity sampling",
+    "emVisual": "Visual monitoring (screenshots)",
+    "emData": "Data usage (network per application)",
+    "emRetention": "Retention",
+    "activityTitlesTooltip": "Required to infer the websites visited from the browser title.",
+    "activityPruneDays": "Keep activity and screenshots (days)",
+    "activityPruneDaysHint": "0 = never purge. Daily summaries and screenshots (with their file) are deleted.",
+    "activityPruneDaysRule": "Must be 0 or greater",
+    "emPermissionsNote": "Viewing activity and turning monitoring on/off are separate role permissions (Settings > Roles). Scope changes apply immediately; the settings on this page apply when saved."
   },
   "bulkAction": {
     "close": "Close",
@@ -3419,7 +3430,7 @@
     "monitoringOn": "Monitoring on",
     "monitoringOff": "Monitoring off",
     "configure": "Configure",
-    "source_global": "The global switch is off (Settings > General).",
+    "source_global": "The global switch is off (Global settings > Employee Monitoring).",
     "source_agent": "Set on this device.",
     "source_site": "Inherited from the site.",
     "source_client": "Inherited from the client.",
@@ -3431,7 +3442,7 @@
   },
   "activityMonitoring": {
     "title": "Activity monitoring — {name}",
-    "globalOff": "The global switch is off: nothing will be recorded until it is turned on in Settings > General.",
+    "globalOff": "The global switch is off: nothing will be recorded until it is turned on in Global settings > Employee Monitoring.",
     "inherit": "Inherit",
     "notDecided": "Not decided (off)",
     "on": "Turn on",
@@ -3440,5 +3451,26 @@
     "cancel": "Cancel",
     "save": "Save",
     "saved": "Activity monitoring updated"
+  },
+  "activityScope": {
+    "noPermission": "You are not allowed to turn monitoring on or off (role permission «Turn activity monitoring on/off»).",
+    "monitored": "{n} devices monitored",
+    "globalOffHint": "The global switch is off: the scope has no effect until it is turned on and saved.",
+    "empty": "No rules: monitoring is not on for any client, site or device.",
+    "level": "Level",
+    "name": "Name",
+    "parent": "Belongs to",
+    "state": "State",
+    "level_client": "Client",
+    "level_site": "Site",
+    "level_agent": "Device",
+    "on": "On",
+    "off": "Off",
+    "removeTooltip": "Remove the rule (inherit again)",
+    "addTitle": "Add a rule: choose a client and, optionally, a site or a device",
+    "client": "Client",
+    "siteOptional": "Site (optional)",
+    "agentOptional": "Device (optional)",
+    "add": "Add"
   }
 }

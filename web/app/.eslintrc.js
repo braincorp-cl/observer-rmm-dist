@@ -131,6 +131,7 @@ module.exports = {
         "src/components/agents/AssetsTab.vue",
         "src/components/agents/ActividadTab.vue",
         "src/components/agents/ActivityMonitoringDialog.vue",
+        "src/components/modals/coresettings/ActivityScopeTable.vue",
         "src/components/agents/HistoryTab.vue",
         "src/components/agents/NotesTab.vue",
         "src/components/agents/SoftwareTab.vue",

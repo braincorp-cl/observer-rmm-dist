@@ -316,3 +316,32 @@ class TestCapturas049C(ObserverTestCase):
         self.agent.save()
         conf = get_agent_config(self.agent.agent_id)
         self.assertEqual((conf.actividad_capturas_min, conf.actividad_red), (0, False))
+
+
+class TestOverview(ObserverTestCase):
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.agent = baker.make_recipe("agents.online_agent")
+        baker.make_recipe("agents.online_agent")
+
+    def test_lista_reglas_explicitas_y_cuenta_monitoreados(self):
+        cs = get_core_settings()
+        cs.activity_monitoring_enabled = True
+        cs.save()
+        self.agent.site.activity_monitoring = True
+        self.agent.site.save()
+        r = self.client.get("/agents/activity-monitoring/overview/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(
+            [(x["level"], x["id"], x["value"]) for x in r.data["rules"]],
+            [("site", self.agent.site.pk, True)],
+        )
+        self.assertEqual(r.data["monitored_agents"], 1)
+
+    def test_global_apagado_cero_monitoreados(self):
+        self.agent.activity_monitoring = True
+        self.agent.save()
+        r = self.client.get("/agents/activity-monitoring/overview/")
+        self.assertEqual(r.data["monitored_agents"], 0)
+        self.assertEqual(r.data["rules"][0]["level"], "agent")
