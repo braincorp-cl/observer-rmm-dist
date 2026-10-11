@@ -242,6 +242,7 @@ export default {
         "history",
         "notes",
         "assets",
+        "actividad",
         "debug",
         "audit",
       ],
