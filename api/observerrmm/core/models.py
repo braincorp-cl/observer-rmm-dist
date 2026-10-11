@@ -79,6 +79,9 @@ class CoreSettings(BaseAuditModel):
     check_history_prune_days = models.PositiveIntegerField(default=30)
     resolved_alerts_prune_days = models.PositiveIntegerField(default=0)
     agent_history_prune_days = models.PositiveIntegerField(default=60)
+    # Feature 049: retención del monitoreo de actividad (datos personales). Plazo
+    # acotado por omisión; 0 = no purgar.
+    activity_prune_days = models.PositiveIntegerField(default=90)
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)

@@ -20,6 +20,7 @@ from agents.models import Agent
 from agents.tasks import (
     clear_faults_task,
     prune_agent_history,
+    prune_agent_activity,
     prune_lost_mode_evidence,
 )
 from agents.utils import calculate_agent_checks
@@ -120,6 +121,9 @@ def core_maintenance_tasks() -> None:
     # remove old agent history
     if core.agent_history_prune_days > 0:
         prune_agent_history.delay(core.agent_history_prune_days)
+
+    if core.activity_prune_days > 0:
+        prune_agent_activity.delay(core.activity_prune_days)
 
     # remove old debug logs
     if core.debug_log_prune_days > 0:

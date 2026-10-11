@@ -406,6 +406,16 @@ def prune_agent_history(older_than_days: int) -> str:
 
 
 @app.task
+def prune_agent_activity(older_than_days: int) -> str:
+    from .models import AgentActivityDaily
+
+    cutoff = (djangotime.now() - djangotime.timedelta(days=older_than_days)).date()
+    AgentActivityDaily.objects.filter(date__lt=cutoff).delete()
+
+    return "ok"
+
+
+@app.task
 def prune_lost_mode_evidence(older_than_days: int, closed_case_days: int) -> str:
     """Retención de la evidencia del modo perdido (030 · T019, ADR-025 punto 4).
 
