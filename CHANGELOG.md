@@ -8,6 +8,10 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.31 — 2026-10-12
+
+- **Medición más exacta del monitoreo de actividad (049-D).** Jornada (primera y última entrada de teclado o mouse), pausas de 10 minutos o más, mapa por tramos de 10 minutos que distingue equipo apagado, suspendido y sin datos, y porcentaje de una jornada esperada configurable (8 h por omisión), en la pestaña Actividad y en los reportes diario y semanal. Las reuniones (Teams, Zoom, Webex y Google Meet por omisión; patrones editables en «Employee Monitoring») cuentan como actividad sin teclado ni mouse. «chrome.exe» y «chrome» se suman como una sola aplicación. Requiere el agente 2.17.8, que además descuenta el tiempo contado como activo antes de cruzar el umbral de inactividad. Incluye una migración (dos campos de configuración).
+
 ## v1.4.30 — 2026-10-11
 
 - **Permisos de escritorio remoto por grupo (047).** Los superusuarios y los roles con escritorio remoto sin restricción de cliente ni sitio reciben un único permiso sobre el grupo de dispositivos, en vez de uno por equipo. El servidor de escritorio remoto ya no reescribe la cuenta de cada operador al dar de alta o de baja un equipo, y un equipo recién enrolado queda controlable sin esperar la sincronización. Los roles restringidos siguen con permisos por equipo. La sincronización migra sola los permisos existentes. Sin migraciones de base.
