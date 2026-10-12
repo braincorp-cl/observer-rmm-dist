@@ -31,9 +31,11 @@ from checks.models import Check, CheckHistory, CheckResult
 from checks.tasks import prune_check_history
 from clients.models import Client, Site
 from core.mesh_utils import (
+    MESH_USER_ID_PATTERN,
     MeshSync,
     build_mesh_display_name,
     has_mesh_perms,
+    is_global_mesh_user,
     transform_mesh,
     transform_ormm,
 )
@@ -639,6 +641,15 @@ def sync_mesh_perms_task(self):
                 block_dashboard_login=False,
             )
 
+            # 047: los usuarios que ven todo van con un link al grupo, no por equipo.
+            # Sin un grupo único se mantiene el comportamiento por equipo.
+            group = ms.get_device_group(core.mesh_device_group)
+            global_ids = (
+                {u.mesh_user_id for u in users if is_global_mesh_user(user=u)}
+                if group
+                else set()
+            )
+
             ormm_agents_meshnodeids = [
                 f"node//{i.hex_mesh_node_id}"
                 for i in Agent.objects.only("mesh_node_id")
@@ -677,6 +688,9 @@ def sync_mesh_perms_task(self):
                 }
                 tmp: list[dict[str, str]] = []
                 for user in users:
+                    if user.mesh_user_id in global_ids:
+                        continue
+
                     if not has_mesh_perms(user=user):
                         logger.debug(f"No mesh perms for {user} on {agent.hostname}")
                         continue
@@ -696,10 +710,18 @@ def sync_mesh_perms_task(self):
             source_users_global = set()
             for item in final_ormm:
                 source_users_global.update(item["user_ids"])
+            source_users_global.update(global_ids)
 
             target_users_global = set()
             for item in final_mesh:
                 target_users_global.update(item["user_ids"])
+            group_ids = (
+                {k for k in group.get("links", {}) if MESH_USER_ID_PATTERN.match(k)}
+                if group
+                else set()
+            )
+            # Sin esto, un usuario que sólo tiene el link al grupo se borraría de Mesh.
+            target_users_global.update(group_ids)
 
             # identify and create new users
             new_users = list(source_users_global - target_users_global)
@@ -712,6 +734,21 @@ def sync_mesh_perms_task(self):
             for user_id in users_to_delete_globally:
                 logger.info(f"Deleting {user_id} from mesh")
                 ms.delete_user_from_mesh(mesh_user_id=user_id)
+
+            # Link al grupo ANTES de quitar los links por equipo: no se pierde acceso.
+            if group:
+                group_add = list(global_ids - group_ids)
+                group_remove = list(
+                    group_ids - global_ids - set(users_to_delete_globally)
+                )
+                if group_add:
+                    logger.info(f"Adding {group_add} to group {group['_id']}")
+                    ms.add_users_to_group(mesh_id=group["_id"], user_ids=group_add)
+                if group_remove:
+                    logger.info(f"Removing {group_remove} from group {group['_id']}")
+                    ms.remove_users_from_group(
+                        mesh_id=group["_id"], user_ids=group_remove
+                    )
 
             source_map = {item["node_id"]: set(item["user_ids"]) for item in final_ormm}
             target_map = {item["node_id"]: set(item["user_ids"]) for item in final_mesh}
@@ -763,7 +800,7 @@ def sync_mesh_perms_task(self):
             # after all done, see if need to update display name
             ms2 = MeshSync(uri)
             unique_ids = ms2.get_unique_mesh_users(new_ormm_agents)
-            for user in unique_ids:
+            for user in set(unique_ids) | global_ids:
                 try:
                     mesh_realname = ms2.mesh_users[user]["realname"]
                 except KeyError:

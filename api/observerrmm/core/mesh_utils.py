@@ -41,6 +41,31 @@ def has_mesh_perms(*, user: "User") -> bool:
     return user.role and getattr(user.role, "can_use_mesh")
 
 
+# Rights que reciben los operadores, por equipo o sobre el grupo de dispositivos.
+MESH_USER_RIGHTS = 4088024
+MESH_USER_ID_PATTERN = re.compile(r".*___\d+")
+
+
+def is_global_mesh_user(*, user: "User") -> bool:
+    """Usuario Mesh que ve TODOS los equipos (feature 047).
+
+    Superusuarios y roles con Mesh sin restricción de cliente ni sitio. Reciben
+    un único link al grupo de dispositivos en vez de uno por equipo: su
+    documento en Mesh no crece con el parque y dar de alta o de baja un nodo no
+    lo reescribe. Mesh une los rights del grupo y del nodo, así que el acceso
+    efectivo es el mismo.
+    """
+    if not has_mesh_perms(user=user):
+        return False
+
+    if user.is_superuser or is_superuser(user):
+        return True
+
+    # Misma fuente que `_has_perm_on_agent` (rol cacheado): ambos criterios coinciden.
+    role = user.get_and_set_role_cache()
+    return not role.can_view_clients.all() and not role.can_view_sites.all()
+
+
 def make_mesh_password() -> str:
     alpha = string.ascii_letters + string.digits
     nonalpha = "!@#$"
@@ -62,7 +87,7 @@ def transform_ormm(obj):
 
 
 def transform_mesh(obj):
-    pattern = re.compile(r".*___\d+")
+    pattern = MESH_USER_ID_PATTERN
     ret = []
     try:
         for _, nodes in obj.items():
@@ -137,7 +162,7 @@ class MeshSync:
             "action": "adddeviceuser",
             "nodeid": node_id,
             "usernames": [s.replace("user//", "") for s in user_ids],
-            "rights": 4088024,
+            "rights": MESH_USER_RIGHTS,
             "remove": False,
         }
         self.mesh_action(payload=payload, wait=False)
@@ -151,6 +176,34 @@ class MeshSync:
             "remove": True,
         }
         self.mesh_action(payload=payload, wait=False)
+
+    def get_device_group(self, name: str) -> dict[str, Any] | None:
+        r = self.mesh_action(payload={"action": "meshes"}, wait=True) or {}
+        groups = [m for m in r.get("meshes", []) if m.get("name") == name]
+        if len(groups) != 1:
+            # Sin grupo o con nombre repetido no hay a cuál dar el link.
+            logger.error(f"Mesh: {len(groups)} grupos llamados '{name}'")
+            return None
+        return groups[0]
+
+    def add_users_to_group(self, *, mesh_id: str, user_ids: list[str]) -> None:
+        payload = {
+            "action": "addmeshuser",
+            "meshid": mesh_id,
+            "userids": user_ids,
+            "meshadmin": MESH_USER_RIGHTS,
+        }
+        self.mesh_action(payload=payload, wait=True)
+
+    def remove_users_from_group(self, *, mesh_id: str, user_ids: list[str]) -> None:
+        payload = {
+            "action": "addmeshuser",
+            "meshid": mesh_id,
+            "userids": user_ids,
+            "meshadmin": 0,
+            "remove": True,
+        }
+        self.mesh_action(payload=payload, wait=True)
 
     def update_mesh_displayname(self, *, user_info: dict[str, Any]) -> None:
         payload = {
