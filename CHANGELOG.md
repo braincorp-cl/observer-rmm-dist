@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.29 — 2026-10-11
+
+- **Retiro de Observer Actividad por scripts (048).** El monitoreo nativo del agente lo reemplaza: los scripts `actividad-instalar*` y `actividad-recolector*` salen de la biblioteca y los reportes de actividad leen solo los datos del módulo nativo. El agente 2.17.7 desinstala solo el muestreador antiguo donde quede.
+- **Uso aceptable y privacidad** actualizado al módulo nativo: apagado de fábrica y encendido desde la consola, sitios web, uso de red, capturas cifradas en el servidor, retención y texto modelo de aviso.
+- La consola ofrece el agente **2.17.7** (antes 2.17.3 por omisión). Sin migraciones. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.28 — 2026-10-11
 
 - **Sección «Employee Monitoring» en Configuración global.** Todo el monitoreo de actividad en un solo lugar: interruptor global, **alcance** (tabla de clientes, sitios y equipos donde está encendido o apagado, con el número de equipos monitoreados, y para agregar, editar o quitar reglas), muestreo, monitoreo visual, uso de datos y retención.
