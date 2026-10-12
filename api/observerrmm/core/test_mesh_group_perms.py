@@ -62,7 +62,7 @@ class FakeMesh:
         return {"_id": GROUP_ID, "links": {u: {} for u in FakeMesh.group}}
 
     def get_unique_mesh_users(self, ormm_agents_list):
-        return list({l["_id"] for a in ormm_agents_list for l in a["links"]})
+        return list({lk["_id"] for a in ormm_agents_list for lk in a["links"]})
 
     def add_user_to_mesh(self, *, user_info):
         FakeMesh.calls.append(("adduser", user_info["_id"]))
