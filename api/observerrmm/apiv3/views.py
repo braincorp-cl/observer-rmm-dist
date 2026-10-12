@@ -29,6 +29,7 @@ from agents.models import (
     LostModeState,
     Note,
 )
+from agents.activity import canon_activity_day
 from agents.serializers import AgentHistorySerializer
 from agents.tasks import manual_uninstall_delete_task
 from agents.uninstall import grace_seconds, record_manual_uninstall
@@ -1432,6 +1433,8 @@ class ActivityUpload(APIView):
         for dia in dias:
             if not isinstance(dia, dict) or not dia.get("fecha"):
                 continue
+            # 049-D: "chrome.exe" (Windows) y "chrome" (Linux) quedan como uno.
+            canon_activity_day(dia)
             AgentActivityDaily.objects.update_or_create(
                 agent=agent,
                 date=dia["fecha"],

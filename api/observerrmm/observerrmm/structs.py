@@ -75,3 +75,5 @@ class AgentCheckInConfig(ORMMStruct):
     # monitoreo encendido.
     actividad_capturas_min: int = 0
     actividad_red: bool = False
+    # 049-D: patrones "siempre activo" (reuniones); un agente viejo los ignora.
+    actividad_siempre_activo: list[str] = dataclasses.field(default_factory=list)

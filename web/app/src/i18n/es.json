@@ -458,7 +458,12 @@
     "activityPruneDays": "Conservar actividad y capturas (días)",
     "activityPruneDaysHint": "0 = no purgar. Se borran los resúmenes diarios y las capturas (con su archivo).",
     "activityPruneDaysRule": "Debe ser 0 o mayor",
-    "emPermissionsNote": "Ver la actividad y encender/apagar el monitoreo son permisos de rol separados (Configuración > Roles). Los cambios de alcance se aplican al instante; los de esta página, al guardar."
+    "emPermissionsNote": "Ver la actividad y encender/apagar el monitoreo son permisos de rol separados (Configuración > Roles). Los cambios de alcance se aplican al instante; los de esta página, al guardar.",
+    "activityAlwaysActive": "Siempre activo (reuniones)",
+    "activityAlwaysActiveHint": "Un patrón por línea (expresión regular, sin distinguir mayúsculas) sobre el proceso o el título. Cuenta como actividad aunque no haya teclado ni mouse.",
+    "activityExpectedHours": "Jornada esperada (horas por día)",
+    "activityExpectedHoursHint": "Meta contra la que se mide el tiempo activo en la pestaña y los reportes.",
+    "activityExpectedHoursRule": "Entre 0,5 y 24 horas"
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -3438,7 +3443,17 @@
     "topSites": "Sitios web",
     "network": "Red por aplicación",
     "networkItem": "{app} ({tiempo}, {destinos} destinos)",
-    "screenshots": "Capturas del día ({n})"
+    "screenshots": "Capturas del día ({n})",
+    "workday": "jornada {desde}–{hasta}",
+    "workdayCol": "Jornada",
+    "breaks": "Pausas",
+    "goalPct": "% de la meta",
+    "legendActive": "% activo",
+    "legendIdle": "presente sin actividad",
+    "legendOff": "equipo apagado o agente detenido",
+    "legendSuspended": "equipo suspendido",
+    "legendNoData": "sin datos",
+    "slotActive": "{t} · {pct}% activo"
   },
   "activityMonitoring": {
     "title": "Monitoreo de actividad — {name}",

@@ -180,6 +180,7 @@ def _actividad(agentid: str) -> dict:
         "actividad_con_titulo": True,
         "actividad_capturas_min": 0,
         "actividad_red": False,
+        "actividad_siempre_activo": [],
     }
     try:
         from agents.activity import resolve_activity
@@ -205,6 +206,7 @@ def _actividad(agentid: str) -> dict:
             "actividad_con_titulo": res.window_titles,
             "actividad_capturas_min": res.screenshots_min if res.active else 0,
             "actividad_red": res.network and res.active,
+            "actividad_siempre_activo": list(res.always_active) if res.active else [],
         }
     except Exception:
         return off

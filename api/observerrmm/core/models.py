@@ -45,6 +45,10 @@ if TYPE_CHECKING:
 TZ_CHOICES = [(_, _) for _ in ALL_TIMEZONES]
 
 
+# 049-D: reuniones por proceso (Teams, Zoom, Webex) o por título (Google Meet).
+ACTIVITY_ALWAYS_ACTIVE_DEFAULT = "teams\nzoom\nwebex\n\\bmeet\\b"
+
+
 class CoreSettings(BaseAuditModel):
     email_alert_recipients = ArrayField(
         models.EmailField(null=True, blank=True),
@@ -95,6 +99,13 @@ class CoreSettings(BaseAuditModel):
     # escalón más de intrusión y se habilitan aparte.
     activity_screenshots_min = models.PositiveIntegerField(default=0)
     activity_network = models.BooleanField(default=False)
+    # 049-D: patrones (regex, uno por línea, sin distinguir mayúsculas) de proceso
+    # o título que cuentan como actividad sin teclado ni mouse (reuniones), y la
+    # jornada esperada por día (minutos) contra la que se mide el reporte.
+    activity_always_active_patterns = models.TextField(
+        blank=True, default=ACTIVITY_ALWAYS_ACTIVE_DEFAULT
+    )
+    activity_expected_min = models.PositiveIntegerField(default=480)
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)

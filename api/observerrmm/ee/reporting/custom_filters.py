@@ -49,8 +49,90 @@ def from_json(value):
 
 
 def _sin_exe(proc) -> str:
-    nombre = str(proc).strip().lower()
-    return nombre[:-4] if nombre.endswith(".exe") else nombre
+    # 049-D: nombre canónico (sin ".exe", sin ruta y con alias: msedge = edge).
+    from agents.activity import canon_process
+
+    return canon_process(proc)
+
+
+def _meta_min(meta_min=None) -> int:
+    """Jornada esperada por día (049-D). Sin valor explícito, la de CoreSettings."""
+    with suppress(TypeError, ValueError):
+        if meta_min not in (None, ""):
+            return max(int(meta_min), 0)
+    with suppress(Exception):
+        from core.utils import get_core_settings
+
+        return int(get_core_settings().activity_expected_min)
+    return 480
+
+
+def _hhmm_a_min(hhmm) -> int | None:
+    with suppress(AttributeError, ValueError, TypeError):
+        h, m = str(hhmm).split(":")
+        return int(h) * 60 + int(m)
+    return None
+
+
+def _min_a_hhmm(minutos) -> str:
+    if minutos is None:
+        return ""
+    minutos = int(round(minutos))
+    return f"{minutos // 60:02d}:{minutos % 60:02d}"
+
+
+def _pausas(u) -> list:
+    out = []
+    for p in u.get("pausas") or []:
+        if not isinstance(p, (list, tuple)) or len(p) != 2:
+            continue
+        a, b = _hhmm_a_min(p[0]), _hhmm_a_min(p[1])
+        if a is None or b is None or b < a:
+            continue
+        out.append({"desde": p[0], "hasta": p[1], "min": b - a})
+    return out
+
+
+def _huecos_min(huecos) -> int:
+    total = 0
+    for h in huecos or []:
+        if not isinstance(h, dict):
+            continue
+        a, b = _hhmm_a_min(h.get("desde")), _hhmm_a_min(h.get("hasta"))
+        if a is not None and b is not None and b > a:
+            total += b - a
+    return total
+
+
+def _tramos(u, huecos) -> list:
+    """144 tramos de 10 min con % activo y estado (049-D).
+
+    Estado: "medido" (hay muestras), "apagado"/"suspendido" (hueco del equipo)
+    o "sin_datos" (sin muestras ni hueco: sin sesión, monitoreo apagado o agente
+    anterior a la 049-D).
+    """
+    crudos = u.get("tramos") or {}
+    motivo = {}
+    for h in huecos or []:
+        if not isinstance(h, dict):
+            continue
+        a, b = _hhmm_a_min(h.get("desde")), _hhmm_a_min(h.get("hasta"))
+        if a is None or b is None:
+            continue
+        for i in range(a // 10, min((b + 9) // 10, 144)):
+            motivo.setdefault(i, h.get("motivo") or "apagado")
+    out = []
+    for i in range(144):
+        par = crudos.get(str(i))
+        total = act = 0
+        if isinstance(par, (list, tuple)) and len(par) == 2:
+            act, total = _minutos(par[0]), _minutos(par[1])
+        if total > 0:
+            estado, pct = "medido", min(round(100 * act / total), 100)
+        else:
+            estado, pct = motivo.get(i, "sin_datos"), None
+        out.append({"t": _min_a_hhmm(i * 10), "pct": pct, "estado": estado})
+    return out
 
 
 _RE_CORREO_ENTRE_PARENTESIS = re.compile(r"\s*\([^()]*@[^()]*\)")
@@ -121,6 +203,14 @@ def _actividad_categorias(categorias):
     return categoria
 
 
+def _canon_usuario(u) -> dict:
+    """Copia del usuario con los procesos unificados (chrome.exe = chrome)."""
+    from agents.activity import canon_activity_day
+
+    copia = json.loads(json.dumps(u))
+    return canon_activity_day({"usuarios": [copia]})["usuarios"][0]
+
+
 def _actividad_usuarios(rows, equipo="", usuario=""):
     """Recorre las filas de AgentActivityDaily y produce (equipo, sitio, cliente, dia, usuario).
 
@@ -157,12 +247,14 @@ def _actividad_usuarios(rows, equipo="", usuario=""):
                 if usuario and usuario not in nombre.lower():
                     continue
                 clave = (host, dia.get("fecha", ""), nombre)
+                u = _canon_usuario(u)
                 vistos[clave] = {
                     "equipo": host,
                     "sitio": row.get("agent__site__name", ""),
                     "cliente": row.get("agent__site__client__name", ""),
                     "so": doc.get("so", ""),
                     "fecha": dia.get("fecha", ""),
+                    "huecos": dia.get("huecos") or [],
                     "u": u,
                 }
     return list(vistos.values())
@@ -175,12 +267,16 @@ def _minutos(valor):
         return 0
 
 
-def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8):
+def actividad_dia(
+    rows, fecha="", categorias=None, equipo="", usuario="", top=8, meta_min=None
+):
     """Resumen de un dia por usuario. Sin fecha (o con una que no esta) usa el ultimo dia con datos.
 
     `equipo` y `usuario` son filtros opcionales (ver _actividad_usuarios).
+    `meta_min`: jornada esperada; sin valor, la de la configuración global.
     """
     categoria = _actividad_categorias(categorias)
+    meta = _meta_min(meta_min)
     registros = _actividad_usuarios(rows, equipo, usuario)
     fechas = sorted({r["fecha"] for r in registros if r["fecha"]})
     fecha = str(fecha or "").strip()
@@ -211,6 +307,7 @@ def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8)
                     "cat": categoria(principal) if principal else "",
                 }
             )
+        pausas = _pausas(u)
         filas.append(
             {
                 "equipo": r["equipo"],
@@ -220,9 +317,20 @@ def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8)
                 "usuario": u.get("usuario", ""),
                 "primero": u.get("primero", ""),
                 "ultimo": u.get("ultimo", ""),
+                # 049-D: jornada por entrada real, pausas, meta y tramos.
+                "jornada_inicio": u.get("primer_activo", ""),
+                "jornada_fin": u.get("ultimo_activo", ""),
+                "pausas": pausas,
+                "pausas_n": len(pausas),
+                "pausas_min": sum(p["min"] for p in pausas),
+                "meta_min": meta,
+                "pct_meta": round(100 * activo / meta) if meta else 0,
+                "tramos": _tramos(u, r["huecos"]),
+                "con_tramos": bool(u.get("tramos")),
+                "huecos": r["huecos"],
                 "activo_min": activo,
                 "inactivo_min": _minutos(u.get("inactivo_min")),
-                "huecos_min": _minutos(u.get("huecos_min")),
+                "huecos_min": _minutos(u.get("huecos_min")) or _huecos_min(r["huecos"]),
                 "capturas": _minutos(u.get("capturas")),
                 "productivo_min": por_cat["productivo"],
                 "improductivo_min": por_cat["improductivo"],
@@ -258,6 +366,12 @@ def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8)
         )
     }
     totales["usuarios"] = len(filas)
+    totales["meta_min"] = meta
+    totales["pct_meta"] = (
+        round(100 * totales["activo_min"] / (meta * len(filas)))
+        if meta and filas
+        else 0
+    )
     totales["pct_productivo"] = (
         round(100 * totales["productivo_min"] / totales["activo_min"])
         if totales["activo_min"]
@@ -267,13 +381,21 @@ def actividad_dia(rows, fecha="", categorias=None, equipo="", usuario="", top=8)
 
 
 def actividad_rango(
-    rows, desde="", dias=7, categorias=None, equipo="", usuario="", top=10
+    rows,
+    desde="",
+    dias=7,
+    categorias=None,
+    equipo="",
+    usuario="",
+    top=10,
+    meta_min=None,
 ):
     """Agrega por usuario los dias en [desde, desde+dias). Sin desde: los ultimos `dias` con datos.
 
     `equipo` y `usuario` son filtros opcionales (ver _actividad_usuarios).
     """
     categoria = _actividad_categorias(categorias)
+    meta = _meta_min(meta_min)
     registros = _actividad_usuarios(rows, equipo, usuario)
     fechas = sorted({r["fecha"] for r in registros if r["fecha"]})
     dias = _minutos(dias) or 7
@@ -314,12 +436,22 @@ def actividad_rango(
                 "huecos_min": 0,
                 "productivo_min": 0,
                 "improductivo_min": 0,
+                "pausas_min": 0,
+                "_inicios": [],
+                "_fines": [],
             },
         )
         acc["dias"] += 1
+        acc["pausas_min"] += sum(p["min"] for p in _pausas(u))
+        ini = _hhmm_a_min(u.get("primer_activo"))
+        fin = _hhmm_a_min(u.get("ultimo_activo"))
+        if ini is not None:
+            acc["_inicios"].append(ini)
+        if fin is not None:
+            acc["_fines"].append(fin)
         acc["activo_min"] += _minutos(u.get("activo_min"))
         acc["inactivo_min"] += _minutos(u.get("inactivo_min"))
-        acc["huecos_min"] += _minutos(u.get("huecos_min"))
+        acc["huecos_min"] += _minutos(u.get("huecos_min")) or _huecos_min(r["huecos"])
         for p, m in (u.get("procs") or {}).items():
             m = _minutos(m)
             cat = categoria(p)
@@ -346,6 +478,13 @@ def actividad_rango(
             round(100 * f["productivo_min"] / f["activo_min"]) if f["activo_min"] else 0
         )
         f["activo_prom_min"] = round(f["activo_min"] / f["dias"]) if f["dias"] else 0
+        # 049-D: contra la jornada esperada de los días con actividad, y hora
+        # promedio de inicio y fin.
+        f["meta_min"] = meta * f["dias"]
+        f["pct_meta"] = round(100 * f["activo_min"] / f["meta_min"]) if meta else 0
+        inicios, fines = f.pop("_inicios"), f.pop("_fines")
+        f["inicio_prom"] = _min_a_hhmm(sum(inicios) / len(inicios)) if inicios else ""
+        f["fin_prom"] = _min_a_hhmm(sum(fines) / len(fines)) if fines else ""
     filas.sort(key=lambda f: (-f["activo_min"], f["usuario"]))
     top_procs = [
         {"proceso": p, "min": m, "cat": categoria(p)}
@@ -356,6 +495,7 @@ def actividad_rango(
         "hasta": ventana[-1] if ventana else "",
         "fechas": ventana,
         "filas": filas,
+        "meta_min": meta,
         "procesos": top_procs,
         "sitios_web": _top_sitios(sitios_web, top),
         "red": _top_red(red, top),

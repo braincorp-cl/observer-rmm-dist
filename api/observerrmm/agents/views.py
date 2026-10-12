@@ -2706,6 +2706,8 @@ class AgentActivityMonitoringState(APIView):
                 "client": agent.site.client.activity_monitoring,
                 "hostname": agent.hostname,
                 "can_manage": _has_perm(request, "can_manage_activity"),
+                # 049-D: jornada esperada, para el % de la meta en la pestaña.
+                "expected_min": get_core_settings().activity_expected_min,
             }
         )
 

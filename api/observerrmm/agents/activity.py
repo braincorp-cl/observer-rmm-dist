@@ -12,6 +12,7 @@ la consola, para que los tres digan siempre lo mismo:
 licencia EE más adelante: hoy siempre disponible.
 """
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
@@ -38,6 +39,8 @@ class ActivityResolution:
     # 049-C: capturas cada N minutos (0 = apagadas) y red por aplicación.
     screenshots_min: int = 0
     network: bool = False
+    # 049-D: patrones "siempre activo" (reuniones).
+    always_active: tuple = ()
 
     def nats_payload(self) -> dict:
         # Mismo contrato que el RPC `actividad_monitor` del agente (strings).
@@ -48,7 +51,115 @@ class ActivityResolution:
             "con_titulo": "1" if self.window_titles else "0",
             "capturas_min": str(self.screenshots_min if self.active else 0),
             "red": "1" if (self.network and self.active) else "0",
+            # NATS lleva strings: un patrón por línea.
+            "siempre_activo": "\n".join(self.always_active) if self.active else "",
         }
+
+
+# Mismos topes que el agente (compilarSiempreActivo).
+ALWAYS_ACTIVE_MAX_PATTERNS = 30
+ALWAYS_ACTIVE_MAX_LEN = 200
+# Construcciones que RE2 (Go) no acepta: el agente descartaría el patrón.
+_RE2_INCOMPATIBLE = re.compile(r"\(\?(?:[=!]|<[=!])|\\[1-9]")
+
+
+def always_active_patterns(text) -> list[str]:
+    """Patrones limpios (uno por línea) en el orden en que se escribieron."""
+    out = []
+    for line in str(text or "").splitlines():
+        line = line.strip()
+        if line and line not in out:
+            out.append(line)
+    return out[:ALWAYS_ACTIVE_MAX_PATTERNS]
+
+
+def validate_always_active(text) -> list[str]:
+    """Errores legibles por patrón; lista vacía si todo sirve."""
+    errores = []
+    lineas = [x.strip() for x in str(text or "").splitlines() if x.strip()]
+    if len(lineas) > ALWAYS_ACTIVE_MAX_PATTERNS:
+        errores.append(f"Máximo {ALWAYS_ACTIVE_MAX_PATTERNS} patrones")
+    for p in lineas:
+        if len(p) > ALWAYS_ACTIVE_MAX_LEN:
+            errores.append(f"«{p[:30]}…»: más de {ALWAYS_ACTIVE_MAX_LEN} caracteres")
+            continue
+        if _RE2_INCOMPATIBLE.search(p):
+            errores.append(f"«{p}»: lookaround y referencias no están soportados")
+            continue
+        try:
+            re.compile(p)
+        except re.error as e:
+            errores.append(f"«{p}»: {e}")
+    return errores
+
+
+# 049-D: nombre canónico de un proceso, igual en los 3 SO: minúsculas, sin ruta
+# ni ".exe", y con alias para los que cambian de nombre según el SO o el paquete.
+PROCESS_ALIASES = {
+    "msedge": "edge",
+    "microsoft edge": "edge",
+    "google chrome": "chrome",
+    "google-chrome": "chrome",
+    "google-chrome-stable": "chrome",
+    "chromium-browser": "chromium",
+    "firefox-esr": "firefox",
+    "brave-browser": "brave",
+    "ms-teams": "teams",
+    "msteams": "teams",
+    "microsoft teams": "teams",
+    "zoom.us": "zoom",
+    "soffice.bin": "libreoffice",
+    "soffice": "libreoffice",
+    "code - oss": "code",
+    "winword": "word",
+    "microsoft word": "word",
+    "microsoft excel": "excel",
+    "powerpnt": "powerpoint",
+    "microsoft powerpoint": "powerpoint",
+    "microsoft outlook": "outlook",
+}
+
+
+def canon_process(name) -> str:
+    n = str(name or "").strip().lower().replace("\\", "/").rsplit("/", 1)[-1]
+    if n.endswith(".exe"):
+        n = n[:-4]
+    elif n.endswith(".app"):
+        n = n[:-4]
+    return PROCESS_ALIASES.get(n, n)
+
+
+def _merge_canon(d) -> dict:
+    out = {}
+    for k, v in (d or {}).items():
+        c = canon_process(k)
+        if isinstance(v, (int, float)):
+            out[c] = out.get(c, 0) + v
+        elif isinstance(v, dict) and isinstance(out.get(c), dict):
+            # red por app: minutos se suman, picos se toman al máximo
+            prev = out[c]
+            out[c] = {
+                kk: (prev.get(kk, 0) + vv if kk == "min" else max(prev.get(kk, 0), vv))
+                for kk, vv in v.items()
+                if isinstance(vv, (int, float))
+            }
+        else:
+            out[c] = v
+    return out
+
+
+def canon_activity_day(dia: dict) -> dict:
+    """Unifica los nombres de proceso de un día subido por el agente."""
+    for u in dia.get("usuarios") or []:
+        if not isinstance(u, dict):
+            continue
+        for k in ("procs", "red"):
+            if isinstance(u.get(k), dict):
+                u[k] = _merge_canon(u[k])
+        for h in (u.get("horas") or {}).values():
+            if isinstance(h, dict) and isinstance(h.get("p"), dict):
+                h["p"] = _merge_canon(h["p"])
+    return dia
 
 
 def activity_feature_available() -> bool:
@@ -74,6 +185,9 @@ def resolve_activity(
         window_titles=bool(core.activity_window_titles),
         screenshots_min=int(core.activity_screenshots_min),
         network=bool(core.activity_network),
+        always_active=tuple(
+            always_active_patterns(core.activity_always_active_patterns)
+        ),
     )
 
     if not (activity_feature_available() and core.activity_monitoring_enabled):

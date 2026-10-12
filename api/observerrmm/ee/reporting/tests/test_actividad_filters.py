@@ -61,13 +61,13 @@ class TestActividadDia:
         assert f["productivo_min"] == 90
         assert f["improductivo_min"] == 30
         assert f["pct_productivo"] == 75
-        assert f["procs"][0] == {"proceso": "excel.exe", "min": 90, "cat": "productivo"}
+        assert f["procs"][0] == {"proceso": "excel", "min": 90, "cat": "productivo"}
 
     def test_mapa_de_24_horas(self):
         f = actividad_dia([_fila(_doc("2026-10-10"))], "2026-10-10")["filas"][0]
         assert len(f["horas"]) == 24
         assert f["horas"][8]["a"] == 50
-        assert f["horas"][8]["principal"] == "excel.exe"
+        assert f["horas"][8]["principal"] == "excel"
         assert f["horas"][9]["a"] == 0
 
     def test_sin_fecha_usa_el_ultimo_dia(self):
@@ -110,7 +110,7 @@ class TestActividadRango:
         assert f["dias"] == 2
         assert f["activo_min"] == 300
         assert f["activo_prom_min"] == 150
-        assert res["procesos"][0]["proceso"] == "excel.exe"
+        assert res["procesos"][0]["proceso"] == "excel"
         assert res["procesos"][0]["min"] == 180
 
 
@@ -178,7 +178,7 @@ def test_dia_incluye_sitios_y_red():
     f = r["filas"][0]
     assert f["sitios_web"][0] == {"sitio": "Gmail", "min": 40}
     assert f["red"][0] == {
-        "app": "chrome.exe",
+        "app": "chrome",
         "min": 55,
         "conex_max": 9,
         "destinos": 14,
@@ -210,7 +210,8 @@ def test_categoria_ignora_exe():
         categorias=cats,
     )
     procs = {p["proceso"]: p["cat"] for p in r["filas"][0]["procs"]}
-    assert procs == {"chrome.exe": "improductivo", "excel": "productivo"}
+    # 049-D: los nombres se muestran unificados ("chrome.exe" = "chrome").
+    assert procs == {"chrome": "improductivo", "excel": "productivo"}
 
 
 def test_sitio_sin_correo_y_sumado():

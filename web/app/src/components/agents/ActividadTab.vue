@@ -59,6 +59,43 @@
         hide-bottom
       />
 
+      <!-- Feature 049-D: tramos de 10 min por usuario (% activo, apagado,
+           suspendido, sin datos) y pausas. -->
+      <div v-for="u in usuarios.filter((x) => x.tramosVista)" :key="`tr-${u.usuario}`" class="q-mt-md">
+        <div class="text-subtitle2">
+          {{ u.usuario }}
+          <span v-if="u.primer_activo" class="text-caption text-grey q-ml-sm">
+            {{ $t("agentActivity.workday", { desde: u.primer_activo, hasta: u.ultimo_activo }) }}
+          </span>
+        </div>
+        <div class="tramos-horas">
+          <div v-for="h in 24" :key="h" class="tramos-hora">
+            {{ h % 2 === 1 ? String(h - 1).padStart(2, "0") : "" }}
+          </div>
+        </div>
+        <div class="tramos">
+          <div
+            v-for="(tr, i) in u.tramosVista"
+            :key="i"
+            class="tramo"
+            :class="{ 'tramo-hora': i % 6 === 0 }"
+            :style="{ background: colorTramo(tr) }"
+          >
+            <q-tooltip>{{ textoTramo(tr) }}</q-tooltip>
+          </div>
+        </div>
+        <div v-if="(u.pausas || []).length" class="text-caption text-grey q-mt-xs">
+          {{ `${$t("agentActivity.breaks")}: ${u.pausas.map((p) => `${p[0]}–${p[1]}`).join(" · ")}` }}
+        </div>
+      </div>
+      <div v-if="usuarios.some((x) => x.tramosVista)" class="row items-center q-gutter-sm q-mt-xs text-caption text-grey">
+        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'medido', pct: 100 }) }" /> {{ $t("agentActivity.legendActive") }}</span>
+        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'medido', pct: 0 }) }" /> {{ $t("agentActivity.legendIdle") }}</span>
+        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'apagado' }) }" /> {{ $t("agentActivity.legendOff") }}</span>
+        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'suspendido' }) }" /> {{ $t("agentActivity.legendSuspended") }}</span>
+        <span><span class="leyenda leyenda-vacia" /> {{ $t("agentActivity.legendNoData") }}</span>
+      </div>
+
       <!-- Feature 049-C: capturas del día (servidas por la vista autenticada) -->
       <div v-if="capturas.length" class="q-mt-md">
         <div class="text-subtitle2 q-mb-xs">
@@ -141,6 +178,24 @@ export default {
       { name: "ultimo", label: t("agentActivity.lastSeen"), field: "ultimo", align: "left" },
       { name: "activo", label: t("agentActivity.activeTime"), field: (r) => hm(r.activo_min), align: "right" },
       { name: "inactivo", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
+      {
+        name: "jornada",
+        label: t("agentActivity.workdayCol"),
+        field: (r) => (r.primer_activo ? `${r.primer_activo}–${r.ultimo_activo}` : "—"),
+        align: "left",
+      },
+      {
+        name: "pausas",
+        label: t("agentActivity.breaks"),
+        field: (r) => (r.pausasMin ? `${(r.pausas || []).length} · ${hm(r.pausasMin)}` : "—"),
+        align: "right",
+      },
+      {
+        name: "meta",
+        label: t("agentActivity.goalPct"),
+        field: (r) => (metaMin.value ? `${Math.round((100 * (r.activo_min || 0)) / metaMin.value)}%` : "—"),
+        align: "right",
+      },
       { name: "capturas", label: t("agentActivity.captures"), field: "capturas", align: "right" },
       { name: "procs", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
       { name: "sitios", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
@@ -169,12 +224,63 @@ export default {
       dias.value.map((d) => ({ label: d.date, value: d.date }))
     );
     const diaActual = computed(() => dias.value.find((d) => d.date === diaSel.value) || null);
+    const metaMin = computed(() => (estado.value && estado.value.expected_min) || 0);
+
+    // --- 049-D: tramos de 10 min (mismo criterio que los reportes) ---
+    function aMin(hhmm) {
+      const [h, m] = String(hhmm || "").split(":").map(Number);
+      return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+    }
+
+    function tramosDe(u, huecos) {
+      if (!u.tramos || !Object.keys(u.tramos).length) return null;
+      const motivo = {};
+      (huecos || []).forEach((h) => {
+        const a = aMin(h.desde);
+        const b = aMin(h.hasta);
+        if (a === null || b === null) return;
+        for (let i = Math.floor(a / 10); i < Math.min(Math.floor((b + 9) / 10), 144); i++) {
+          if (!(i in motivo)) motivo[i] = h.motivo || "apagado";
+        }
+      });
+      return Array.from({ length: 144 }, (_, i) => {
+        const par = u.tramos[String(i)];
+        const t = `${String(Math.floor(i / 6)).padStart(2, "0")}:${(i % 6) * 10 || "00"}`;
+        if (par && par[1] > 0) {
+          return { t, estado: "medido", pct: Math.min(Math.round((100 * par[0]) / par[1]), 100) };
+        }
+        return { t, estado: motivo[i] || "sin_datos", pct: null };
+      });
+    }
+
+    function colorTramo(tr) {
+      if (tr.estado === "medido") {
+        return tr.pct === 0 ? "#f3d9d5" : `rgba(46, 158, 107, ${(0.15 + (0.85 * tr.pct) / 100).toFixed(2)})`;
+      }
+      if (tr.estado === "apagado") return "#9e9e9e";
+      if (tr.estado === "suspendido") return "#c5cae9";
+      return "transparent";
+    }
+
+    function textoTramo(tr) {
+      if (tr.estado === "medido") return t("agentActivity.slotActive", { t: tr.t, pct: tr.pct });
+      const clave = { apagado: "legendOff", suspendido: "legendSuspended" }[tr.estado] || "legendNoData";
+      return `${tr.t} · ${t(`agentActivity.${clave}`)}`;
+    }
+
     const usuarios = computed(() => {
       if (!diaActual.value) return [];
       const doc = diaActual.value.data || {};
-      const u = ((doc.dias || [])[0] || {}).usuarios || [];
+      const dia = (doc.dias || [])[0] || {};
+      const u = dia.usuarios || [];
       return u.map((x) => ({
         ...x,
+        tramosVista: tramosDe(x, dia.huecos),
+        pausasMin: (x.pausas || []).reduce((acc, p) => {
+          const a = aMin(p[0]);
+          const b = aMin(p[1]);
+          return a !== null && b !== null && b >= a ? acc + (b - a) : acc;
+        }, 0),
         procsStr: Object.entries(x.procs || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 6)
@@ -293,7 +399,42 @@ export default {
     watch(diaSel, cargarCapturas);
     onBeforeUnmount(liberarCapturas);
 
-    return { selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>
+
+<style scoped>
+.tramos-horas,
+.tramos {
+  display: flex;
+  width: 100%;
+}
+.tramos-hora {
+  flex: 6;
+  font-size: 10px;
+  color: #888;
+}
+.tramos {
+  height: 16px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tramo {
+  flex: 1;
+}
+.tramo-hora {
+  border-left: 1px solid rgba(128, 128, 128, 0.25);
+}
+.leyenda {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+.leyenda-vacia {
+  border: 1px solid rgba(128, 128, 128, 0.5);
+}
+</style>

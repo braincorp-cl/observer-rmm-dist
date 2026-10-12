@@ -1082,6 +1082,34 @@
                     </q-tooltip>
                   </q-checkbox>
                 </q-card-section>
+                <!-- 049-D: reuniones como actividad y jornada esperada -->
+                <q-card-section class="row items-start q-gutter-md">
+                  <q-input
+                    dense
+                    outlined
+                    autogrow
+                    type="textarea"
+                    style="width: 22rem"
+                    v-model="settings.activity_always_active_patterns"
+                    :label="$t('editCoreSettings.activityAlwaysActive')"
+                    :hint="$t('editCoreSettings.activityAlwaysActiveHint')"
+                  />
+                  <q-input
+                    dense
+                    outlined
+                    type="number"
+                    step="0.5"
+                    style="width: 14rem"
+                    v-model.number="activityExpectedHours"
+                    :label="$t('editCoreSettings.activityExpectedHours')"
+                    :hint="$t('editCoreSettings.activityExpectedHoursHint')"
+                    :rules="[
+                      (val) =>
+                        (val > 0 && val <= 24) ||
+                        $t('editCoreSettings.activityExpectedHoursRule'),
+                    ]"
+                  />
+                </q-card-section>
 
                 <div class="text-subtitle2 q-mt-md">
                   {{ $t("editCoreSettings.emVisual") }}
@@ -1328,6 +1356,16 @@ export default {
     };
   },
   computed: {
+    // 049-D: la jornada se guarda en minutos y se edita en horas.
+    activityExpectedHours: {
+      get() {
+        const m = this.settings.activity_expected_min;
+        return m ? Math.round((m / 60) * 100) / 100 : m;
+      },
+      set(v) {
+        this.settings.activity_expected_min = Math.round(Number(v) * 60);
+      },
+    },
     hosted() {
       return this.$store.state.hosted;
     },

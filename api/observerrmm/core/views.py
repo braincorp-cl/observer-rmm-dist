@@ -79,6 +79,7 @@ def _activity_settings(core) -> tuple:
         core.activity_window_titles,
         core.activity_screenshots_min,
         core.activity_network,
+        core.activity_always_active_patterns,
     )
 
 

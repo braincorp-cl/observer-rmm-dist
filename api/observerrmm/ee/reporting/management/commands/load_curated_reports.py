@@ -1053,6 +1053,8 @@ _ACTIVIDAD_MACROS = """
 {% macro hm(m) %}{{ '%d:%02d' | format((m or 0) // 60, (m or 0) % 60) }}{% endmacro %}
 {% set _rgb = {'productivo': '46,158,107', 'improductivo': '192,57,43', 'neutral': '14,143,168', '': '14,143,168'} %}
 {% set _cat_lbl = {'productivo': 'Productivo', 'improductivo': 'Improductivo', 'neutral': 'Neutral'} %}
+{% set _tramo_lbl = {'apagado': 'equipo apagado o agente detenido', 'suspendido': 'equipo suspendido', 'sin_datos': 'sin datos'} %}
+{% macro tramo_bg(t) %}{% if t.estado == 'medido' %}{% if t.pct == 0 %}#f3d9d5{% else %}rgba(46,158,107,{{ '%.2f' | format(0.15 + 0.85 * t.pct / 100) }}){% endif %}{% elif t.estado == 'apagado' %}#9e9e9e{% elif t.estado == 'suspendido' %}#c5cae9{% else %}#ffffff{% endif %}{% endmacro %}
 """
 
 _ACTIVIDAD_SIN_DATOS = """
@@ -1079,22 +1081,30 @@ ACTIVIDAD_DIA = (
   <div class="kpi"><div class="kpi-num">{{ r.totales.usuarios }}</div><div class="kpi-lbl">Usuarios con actividad</div></div>
   <div class="kpi"><div class="kpi-num">{{ hm(r.totales.activo_min) }}</div><div class="kpi-lbl">Horas activas (total)</div></div>
   <div class="kpi kpi-ok"><div class="kpi-num">{{ r.totales.pct_productivo }}%</div><div class="kpi-lbl">Del tiempo activo en apps productivas</div></div>
-  <div class="kpi {% if r.totales.huecos_min > 0 %}kpi-warn{% endif %}"><div class="kpi-num">{{ hm(r.totales.huecos_min) }}</div><div class="kpi-lbl">Muestreador detenido (huecos)</div></div>
+  <div class="kpi"><div class="kpi-num">{{ r.totales.pct_meta }}%</div><div class="kpi-lbl">De la jornada esperada ({{ hm(r.totales.meta_min) }} por usuario)</div></div>
+  <div class="kpi {% if r.totales.huecos_min > 0 %}kpi-warn{% endif %}"><div class="kpi-num">{{ hm(r.totales.huecos_min) }}</div><div class="kpi-lbl">Equipo apagado o suspendido</div></div>
 </div>
 <p class="muted">Leyenda del mapa: intensidad = minutos activos en la hora; color = categor&iacute;a del proceso principal
 (<span style="color:rgb(46,158,107)">&#9632;</span> productivo,
 <span style="color:rgb(192,57,43)">&#9632;</span> improductivo,
-<span style="color:rgb(14,143,168)">&#9632;</span> neutral). {% if r.fechas | length > 1 %}Otras fechas con datos: {{ r.fechas[-8:] | join(', ') }}.{% endif %}</p>
+<span style="color:rgb(14,143,168)">&#9632;</span> neutral).
+Tramos de 10 min: <span style="color:rgb(46,158,107)">&#9632;</span> % activo,
+<span style="color:#f3d9d5">&#9632;</span> presente sin actividad,
+<span style="color:#9e9e9e">&#9632;</span> apagado,
+<span style="color:#c5cae9">&#9632;</span> suspendido, &#9633; sin datos.
+Una pausa es un lapso de 10 min o m&aacute;s sin teclado ni mouse. {% if r.fechas | length > 1 %}Otras fechas con datos: {{ r.fechas[-8:] | join(', ') }}.{% endif %}</p>
 
 {% for cliente, porcli in r.filas | groupby('cliente') %}
 <div class="client-title">{{ cliente }}</div>
 {% for f in porcli %}
-<div class="agent-title">{{ f.usuario }} <span class="muted">&mdash; {{ f.equipo }} ({{ f.sitio }}) &middot; {{ f.primero }}&ndash;{{ f.ultimo }}</span></div>
+<div class="agent-title">{{ f.usuario }} <span class="muted">&mdash; {{ f.equipo }} ({{ f.sitio }}) &middot; {% if f.jornada_inicio %}jornada {{ f.jornada_inicio }}&ndash;{{ f.jornada_fin }}{% else %}{{ f.primero }}&ndash;{{ f.ultimo }}{% endif %}</span></div>
 {% if f.nota %}<p class="stale">{{ f.nota }}</p>{% endif %}
 <table class="report-table">
-  <thead><tr><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">Productivo</th><th class="num">Improductivo</th><th class="num">% productivo</th><th class="num">Huecos</th><th class="num">Capturas</th></tr></thead>
+  <thead><tr><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">% de la meta</th><th class="num">Pausas</th><th class="num">Productivo</th><th class="num">Improductivo</th><th class="num">% productivo</th><th class="num">Apagado / suspendido</th><th class="num">Capturas</th></tr></thead>
   <tbody><tr>
     <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.inactivo_min) }}</td>
+    <td class="num">{{ f.pct_meta }}%</td>
+    <td class="num">{% if f.pausas_n %}{{ f.pausas_n }} &middot; {{ hm(f.pausas_min) }}{% else %}&mdash;{% endif %}</td>
     <td class="num">{{ hm(f.productivo_min) }}</td><td class="num">{{ hm(f.improductivo_min) }}</td>
     <td class="num">{{ f.pct_productivo }}%</td>
     <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td>
@@ -1104,7 +1114,11 @@ ACTIVIDAD_DIA = (
 <table class="heat">
   <tr>{% for h in f.horas %}<th>{{ h.h }}</th>{% endfor %}</tr>
   <tr>{% for h in f.horas %}<td style="background: rgba({{ _rgb[h.cat] }}, {{ '%.2f' | format(0.08 + 0.92 * h.a / 60 if h.a else 0) }})" title="{{ h.h }}:00 &middot; {{ h.a }} min activo, {{ h.i }} inactivo &middot; {{ h.principal }}">{% if h.a %}{{ h.a }}{% endif %}</td>{% endfor %}</tr>
+{% if f.con_tramos %}
+  <tr>{% for h in f.horas %}<td style="padding:0"><div style="display:flex;height:12px">{% for t in f.tramos[loop.index0 * 6:loop.index0 * 6 + 6] %}<div style="flex:1;background:{{ tramo_bg(t) }};border-right:1px solid #eee" title="{{ t.t }} &middot; {% if t.estado == 'medido' %}{{ t.pct }}% activo{% else %}{{ _tramo_lbl[t.estado] }}{% endif %}"></div>{% endfor %}</div></td>{% endfor %}</tr>
+{% endif %}
 </table>
+{% if f.pausas %}<p class="muted">Pausas: {% for p in f.pausas %}{{ p.desde }}&ndash;{{ p.hasta }} ({{ p.min }} min){% if not loop.last %} &middot; {% endif %}{% endfor %}</p>{% endif %}
 <table class="report-table">
   <thead><tr><th>Proceso</th><th>Categor&iacute;a</th><th class="num">Tiempo activo</th></tr></thead>
   <tbody>
@@ -1175,13 +1189,16 @@ ACTIVIDAD_SEMANA = (
     + _ACTIVIDAD_SIN_DATOS
     + """{% else %}
 <div class="section-title">Usuarios por tiempo activo</div>
+<p class="muted">% de la meta: tiempo activo sobre {{ hm(r.meta_min) }} por cada d&iacute;a con actividad. Inicio y fin: primera y &uacute;ltima entrada de teclado o mouse del d&iacute;a, en promedio.</p>
 <table class="report-table">
   <thead><tr><th>Sitio</th><th>Equipo</th><th>Usuario</th><th class="num">D&iacute;as</th><th class="num">Activo total</th>
-    <th class="num">Promedio diario</th><th class="num">% productivo</th><th class="num">Improductivo</th><th class="num">Huecos</th></tr></thead>
+    <th class="num">Promedio diario</th><th class="num">% de la meta</th><th class="num">Inicio prom.</th><th class="num">Fin prom.</th><th class="num">Pausas</th><th class="num">% productivo</th><th class="num">Improductivo</th><th class="num">Apagado / suspendido</th></tr></thead>
   <tbody>
   {% for f in r.filas %}
     <tr><td>{{ f.sitio }}</td><td>{{ f.equipo }}</td><td>{{ f.usuario }}</td><td class="num">{{ f.dias }}</td>
       <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.activo_prom_min) }}</td>
+      <td class="num">{{ f.pct_meta }}%</td><td class="num">{{ f.inicio_prom or '—' }}</td><td class="num">{{ f.fin_prom or '—' }}</td>
+      <td class="num">{{ hm(f.pausas_min) }}</td>
       <td class="num">{{ f.pct_productivo }}%</td><td class="num">{{ hm(f.improductivo_min) }}</td>
       <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td></tr>
   {% endfor %}

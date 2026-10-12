@@ -458,7 +458,12 @@
     "activityPruneDays": "Keep activity and screenshots (days)",
     "activityPruneDaysHint": "0 = never purge. Daily summaries and screenshots (with their file) are deleted.",
     "activityPruneDaysRule": "Must be 0 or greater",
-    "emPermissionsNote": "Viewing activity and turning monitoring on/off are separate role permissions (Settings > Roles). Scope changes apply immediately; the settings on this page apply when saved."
+    "emPermissionsNote": "Viewing activity and turning monitoring on/off are separate role permissions (Settings > Roles). Scope changes apply immediately; the settings on this page apply when saved.",
+    "activityAlwaysActive": "Always active (meetings)",
+    "activityAlwaysActiveHint": "One pattern per line (case-insensitive regular expression) matched against the process or window title. Counts as activity even without keyboard or mouse input.",
+    "activityExpectedHours": "Expected workday (hours per day)",
+    "activityExpectedHoursHint": "Goal the active time is measured against in the tab and the reports.",
+    "activityExpectedHoursRule": "Between 0.5 and 24 hours"
   },
   "bulkAction": {
     "close": "Close",
@@ -3438,7 +3443,17 @@
     "topSites": "Websites",
     "network": "Network per application",
     "networkItem": "{app} ({tiempo}, {destinos} destinations)",
-    "screenshots": "Screenshots of the day ({n})"
+    "screenshots": "Screenshots of the day ({n})",
+    "workday": "workday {desde}–{hasta}",
+    "workdayCol": "Workday",
+    "breaks": "Breaks",
+    "goalPct": "% of goal",
+    "legendActive": "% active",
+    "legendIdle": "present, no activity",
+    "legendOff": "device off or agent stopped",
+    "legendSuspended": "device suspended",
+    "legendNoData": "no data",
+    "slotActive": "{t} · {pct}% active"
   },
   "activityMonitoring": {
     "title": "Activity monitoring — {name}",
