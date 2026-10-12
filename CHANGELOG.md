@@ -8,6 +8,14 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.28 — 2026-10-11
+
+- **Sección «Employee Monitoring» en Configuración global.** Todo el monitoreo de actividad en un solo lugar: interruptor global, **alcance** (tabla de clientes, sitios y equipos donde está encendido o apagado, con el número de equipos monitoreados, y para agregar, editar o quitar reglas), muestreo, monitoreo visual, uso de datos y retención.
+- **Capturas de pantalla periódicas** (monitoreo visual): cada N minutos y solo con el usuario activo. Se guardan **cifradas**, se ven en una galería del día en la pestaña Actividad del equipo y se purgan con la retención de actividad. Apagadas por omisión, aunque el monitoreo esté encendido.
+- **Sitios web**, deducidos del título de la ventana del navegador, y **uso de red por aplicación** (tiempo con conexiones, pico de conexiones y destinos distintos; no mide bytes ni contenido). En la pestaña Actividad y en los reportes diario y semanal. La red también viene apagada por omisión.
+- Reportes de actividad: `chrome.exe` y `chrome` cuentan como la misma aplicación al categorizar, y las cifras quedan alineadas bajo su columna.
+- Migraciones: `agents` 0072, `core` 0073. Agente recomendado **2.17.6** (capturas, sitios y red). El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.27 — 2026-10-11
 
 - **Monitoreo de actividad nativo del agente, con datos y reportes en la consola.** Los equipos con agente 2.17.4 o superior pueden medir la aplicación en primer plano y el tiempo activo/inactivo de cada usuario sin scripts ni paquetes del sistema. La consola guarda un resumen por equipo y día, lo muestra en la nueva pestaña **«Actividad»** del equipo y alimenta los reportes «Actividad de usuarios - diario» y «Actividad - resumen semanal». Los datos se purgan a los **90 días** por omisión (ajustable en Retención).
