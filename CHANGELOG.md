@@ -8,6 +8,10 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.30 — 2026-10-11
+
+- **Permisos de escritorio remoto por grupo (047).** Los superusuarios y los roles con escritorio remoto sin restricción de cliente ni sitio reciben un único permiso sobre el grupo de dispositivos, en vez de uno por equipo. El servidor de escritorio remoto ya no reescribe la cuenta de cada operador al dar de alta o de baja un equipo, y un equipo recién enrolado queda controlable sin esperar la sincronización. Los roles restringidos siguen con permisos por equipo. La sincronización migra sola los permisos existentes. Sin migraciones de base.
+
 ## v1.4.29 — 2026-10-11
 
 - **Retiro de Observer Actividad por scripts (048).** El monitoreo nativo del agente lo reemplaza: los scripts `actividad-instalar*` y `actividad-recolector*` salen de la biblioteca y los reportes de actividad leen solo los datos del módulo nativo. El agente 2.17.7 desinstala solo el muestreador antiguo donde quede.
