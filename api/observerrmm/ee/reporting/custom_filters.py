@@ -42,10 +42,9 @@ def from_json(value):
 
 
 # ---------------------------------------------------------------------------
-# Feature 048 · Observer Actividad. El recolector del endpoint imprime por stdout
-# un JSON con los dias cerrados; cada corrida queda en AgentHistory (task_run).
-# Estos filtros normalizan esas filas para las plantillas, que asi no hacen
-# aritmetica en Jinja.
+# Actividad de usuarios (048/049). El agente sube por día un JSON con los
+# usuarios (AgentActivityDaily.data). Estos filtros normalizan esas filas para
+# las plantillas, que asi no hacen aritmetica en Jinja.
 # ---------------------------------------------------------------------------
 
 
@@ -123,10 +122,9 @@ def _actividad_categorias(categorias):
 
 
 def _actividad_usuarios(rows, equipo="", usuario=""):
-    """Recorre las filas de AgentHistory y produce (equipo, sitio, cliente, dia, usuario).
+    """Recorre las filas de AgentActivityDaily y produce (equipo, sitio, cliente, dia, usuario).
 
-    Si un mismo dia de un mismo usuario aparece en dos corridas (recolector
-    re-ejecutado, o -Hoy y despues la corrida final), gana la mas reciente.
+    Si un mismo dia de un mismo usuario aparece en dos filas, gana la ultima.
 
     `equipo` y `usuario` son filtros OPCIONALES (vienen del prompt de dependencias
     como texto, pueden llegar vacios = sin filtrar): equipo compara el hostname
@@ -142,15 +140,11 @@ def _actividad_usuarios(rows, equipo="", usuario=""):
         host = row.get("agent__hostname", "") or ""
         if equipo and host.lower() != equipo:
             continue
-        # Dos fuentes: el modelo nuevo AgentActivityDaily (campo `data`, dict directo,
-        # feature 049-B) o AgentHistory (script_results.stdout, Fase 1).
+        # Fuente: AgentActivityDaily (campo `data`), que sube el módulo nativo del
+        # agente. El camino por AgentHistory de los scripts de la 048 se retiró.
         doc = row.get("data")
         if not isinstance(doc, dict):
             doc = from_json(doc)
-        if not doc.get("dias"):
-            resultados = from_json(row.get("script_results"))
-            if isinstance(resultados, dict):
-                doc = from_json(resultados.get("stdout"))
         if not isinstance(doc, dict):
             continue
         for dia in doc.get("dias", []) or []:

@@ -1041,16 +1041,13 @@ ANTIVIRUS_VARS = """data_sources:
 # ===========================================================================
 # ACTIVIDAD DE USUARIOS (feature 048 · Observer Actividad)
 # ---------------------------------------------------------------------------
-# Fuente: la tarea programada "Observer Actividad - Recolector" (scripts de la
-# biblioteca actividad-recolector*.{ps1,py}). Cada corrida queda en AgentHistory
-# (type=task_run, command=<nombre de la tarea>) con el JSON en el stdout; los
-# filtros actividad_dia / actividad_rango (custom_filters.py) lo normalizan.
+# Fuente: AgentActivityDaily, que sube el modulo nativo del agente (feature
+# 049; reemplaza a los scripts de la 048). Los filtros actividad_dia /
+# actividad_rango (custom_filters.py) lo normalizan.
 # La categoria productivo/improductivo sale del Key Store "actividad_categorias"
 # (JSON {"productivo":[...],"improductivo":[...],"por_defecto":"neutral"}).
 # Mapa de calor en tabla HTML: no requiere chromium.
 # ===========================================================================
-
-ACTIVIDAD_TAREA = "Observer Actividad - Recolector"
 
 _ACTIVIDAD_MACROS = """
 {% macro hm(m) %}{{ '%d:%02d' | format((m or 0) // 60, (m or 0) % 60) }}{% endmacro %}

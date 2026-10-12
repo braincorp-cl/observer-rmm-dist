@@ -3,14 +3,12 @@ import json
 from ee.reporting.custom_filters import actividad_dia, actividad_rango, from_json
 
 
-def _fila(stdout, host="PC-01", sitio="Casa Matriz", cliente="ACME"):
-    if not isinstance(stdout, str):
-        stdout = json.dumps(stdout)
+def _fila(data, host="PC-01", sitio="Casa Matriz", cliente="ACME"):
     return {
         "agent__hostname": host,
         "agent__site__name": sitio,
         "agent__site__client__name": cliente,
-        "script_results": {"stdout": stdout, "stderr": "", "retcode": 0},
+        "data": data,
     }
 
 
@@ -87,8 +85,8 @@ class TestActividadDia:
         assert len(res["filas"]) == 1
         assert res["filas"][0]["activo_min"] == 99
 
-    def test_stdout_ilegible_no_rompe(self):
-        rows = [_fila("ERROR: algo"), {"script_results": None}, "basura"]
+    def test_data_ilegible_no_rompe(self):
+        rows = [_fila("ERROR: algo"), {"data": None}, "basura"]
         res = actividad_dia(rows, "2026-10-10")
         assert res["filas"] == []
         assert res["totales"]["usuarios"] == 0
@@ -117,7 +115,7 @@ class TestActividadRango:
 
 
 class TestOrdenYKeyStore:
-    def test_gana_la_corrida_mas_reciente_aunque_lleguen_desordenadas(self):
+    def test_gana_la_fila_mas_reciente_aunque_lleguen_desordenadas(self):
         nueva = _fila(_doc("2026-10-10", activo=99))
         nueva["time"] = "2026-10-11 02:55:00+00:00"
         vieja = _fila(_doc("2026-10-10", activo=10))
