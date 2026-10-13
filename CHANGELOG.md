@@ -8,6 +8,10 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.32 — 2026-10-13
+
+- **Monitoreo de actividad: reportes al estilo de las herramientas de productividad (049-E).** Barra apilada por usuario y para toda la empresa (improductivo, neutral, productivo, sin categoría e inactivo), categorías también por dominio web, ranking único de programas y sitios, tiempo activo e inactivo por aplicación, URL visitadas (dominio y ruta, sin parámetros), conteo de teclas y eventos de mouse por tramo para distinguir a una persona frente al equipo (sólo cantidades, nunca qué se escribió), filtro «solo horario laboral» y el reporte nuevo «Actividad - por período» (mes, trimestre o cualquier rango). Exportación a Excel (XLSX). **Monitoreo en vivo sin video**: la última captura de cada equipo y un botón para pedir una del momento, auditado. Requiere el agente 2.18.0. Incluye dos migraciones.
+
 ## v1.4.31 — 2026-10-12
 
 - **Medición más exacta del monitoreo de actividad (049-D).** Jornada (primera y última entrada de teclado o mouse), pausas de 10 minutos o más, mapa por tramos de 10 minutos que distingue equipo apagado, suspendido y sin datos, y porcentaje de una jornada esperada configurable (8 h por omisión), en la pestaña Actividad y en los reportes diario y semanal. Las reuniones (Teams, Zoom, Webex y Google Meet por omisión; patrones editables en «Employee Monitoring») cuentan como actividad sin teclado ni mouse. «chrome.exe» y «chrome» se suman como una sola aplicación. Requiere el agente 2.17.8, que además descuenta el tiempo contado como activo antes de cruzar el umbral de inactividad. Incluye una migración (dos campos de configuración).
