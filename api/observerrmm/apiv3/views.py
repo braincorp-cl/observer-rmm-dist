@@ -29,7 +29,7 @@ from agents.models import (
     LostModeState,
     Note,
 )
-from agents.activity import canon_activity_day
+from agents.activity import canon_activity_day, canon_process
 from agents.serializers import AgentHistorySerializer
 from agents.tasks import manual_uninstall_delete_task
 from agents.uninstall import grace_seconds, record_manual_uninstall
@@ -1507,7 +1507,7 @@ class ActivityScreenshotUpload(APIView):
             agent=agent,
             captured_at=captured_at,
             username=(request.data.get("usuario") or "")[:255],
-            process=(request.data.get("proceso") or "")[:255],
+            process=canon_process(request.data.get("proceso"))[:255],
             title=(request.data.get("titulo") or "")[:512],
         )
         shot.image.save(

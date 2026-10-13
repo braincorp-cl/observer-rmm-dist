@@ -32,6 +32,11 @@ class TestHelpers049D(ObserverTestCase):
         self.assertEqual(canon_process("firefox-esr"), "firefox")
         self.assertEqual(canon_process("ms-teams"), "teams")
         self.assertEqual(canon_process("code"), "code")
+        # agente macOS 2.17.8 en macOS 27: bloque entero de lsappinfo
+        self.assertEqual(
+            canon_process('finder"\n !cgsconnection !signalled type=[ null ]'),
+            "finder",
+        )
 
     def test_patrones_limpios_y_validacion(self):
         self.assertEqual(

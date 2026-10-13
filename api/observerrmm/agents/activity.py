@@ -121,7 +121,10 @@ PROCESS_ALIASES = {
 
 
 def canon_process(name) -> str:
-    n = str(name or "").strip().lower().replace("\\", "/").rsplit("/", 1)[-1]
+    # Agente macOS 2.17.8 en macOS 27 mandaba el bloque entero de `lsappinfo`
+    # ('finder"\n !cgsconnection ...'): el nombre real es lo previo a '"'/salto.
+    n = re.split(r'["\r\n]', str(name or ""), maxsplit=1)[0]
+    n = n.strip().lower().replace("\\", "/").rsplit("/", 1)[-1]
     if n.endswith(".exe"):
         n = n[:-4]
     elif n.endswith(".app"):
