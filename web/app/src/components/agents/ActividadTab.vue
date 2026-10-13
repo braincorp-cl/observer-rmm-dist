@@ -102,7 +102,7 @@
             v-for="(e, i) in u.entradaVista"
             :key="`e-${i}`"
             class="tramo"
-            :style="{ background: e[0] ? '#263238' : e[1] ? '#90a4ae' : 'transparent' }"
+            :style="{ background: e[0] ? '#ff8f00' : e[1] ? '#90a4ae' : 'transparent' }"
           >
             <q-tooltip v-if="e[0] || e[1]">{{ $t("agentActivity.slotInput", { k: e[0], m: e[1] }) }}</q-tooltip>
           </div>
@@ -128,7 +128,7 @@
         <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'apagado' }) }" /> {{ $t("agentActivity.legendOff") }}</span>
         <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'suspendido' }) }" /> {{ $t("agentActivity.legendSuspended") }}</span>
         <span><span class="leyenda leyenda-vacia" /> {{ $t("agentActivity.legendNoData") }}</span>
-        <span><span class="leyenda" style="background: #263238" /> {{ $t("agentActivity.legendKeys") }}</span>
+        <span><span class="leyenda" style="background: #ff8f00" /> {{ $t("agentActivity.legendKeys") }}</span>
         <span><span class="leyenda" style="background: #90a4ae" /> {{ $t("agentActivity.legendMouse") }}</span>
         <span><span class="leyenda" style="background: #4a90e2" /> {{ $t("agentActivity.legendAppActive") }}</span>
         <span><span class="leyenda" style="background: #9b6fd6" /> {{ $t("agentActivity.legendAppIdle") }}</span>
