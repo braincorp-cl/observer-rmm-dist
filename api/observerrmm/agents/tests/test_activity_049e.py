@@ -102,6 +102,15 @@ class TestMonitoreoEnVivo(ObserverTestCase):
         self.assertIn("forced a live screenshot", log.message)
         self.assertIn("bloqueado", log.message)
 
+    def test_sin_conexion_responde_al_tiro(self):
+        self._encender()
+        self.agent.last_seen = None
+        self.agent.save()
+        with patch("agents.models.Agent.nats_cmd", new_callable=AsyncMock) as nats:
+            r = self.client.post(self._url())
+        self.assertEqual(r.data["estado"], "offline")
+        nats.assert_not_called()
+
     def test_sin_permiso_403(self):
         self._encender()
         user = self.create_user_with_roles([])

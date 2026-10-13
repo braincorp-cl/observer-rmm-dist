@@ -3528,6 +3528,7 @@
     "state_monitoreo_off": "Monitoreo apagado",
     "state_error": "Error al pedir la captura",
     "state_timeout": "El equipo no respondió",
-    "state_espera": "Espera unos segundos antes de pedir otra"
+    "state_espera": "Espera unos segundos antes de pedir otra",
+    "state_offline": "El equipo está sin conexión"
   }
 }

@@ -2850,6 +2850,10 @@ class AgentActivityScreenshotNow(APIView):
             return Response({"estado": "monitoreo_off"})
         if res.screenshots_min <= 0:
             return Response({"estado": "capturas_off"})
+        if agent.status != AGENT_STATUS_ONLINE:
+            # Sin conexión no se despacha nada: respuesta inmediata en vez de
+            # esperar los 45 s del timeout de NATS.
+            return Response({"estado": "offline"})
         clave = f"activity-shot-now:{agent.agent_id}"
         if not cache.add(clave, 1, CAPTURA_MANUAL_CADA_SEG):
             return Response({"estado": "espera", "seg": CAPTURA_MANUAL_CADA_SEG})

@@ -3528,6 +3528,7 @@
     "state_monitoreo_off": "Monitoring off",
     "state_error": "Error requesting the screenshot",
     "state_timeout": "The device did not respond",
-    "state_espera": "Wait a few seconds before requesting another"
+    "state_espera": "Wait a few seconds before requesting another",
+    "state_offline": "The device is offline"
   }
 }

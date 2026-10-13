@@ -56,8 +56,11 @@
           icon="photo_camera"
           :label="$t('agentActivity.captureNow')"
           :loading="capturando"
+          :disable="enLinea === false"
           @click="capturarAhora"
-        />
+        >
+          <q-tooltip v-if="enLinea === false">{{ $t("activityLive.offline") }}</q-tooltip>
+        </q-btn>
         <q-btn dense flat size="sm" icon="download" :label="$t('agentActivity.exportXlsx')" :loading="exportando" @click="exportar" />
       </div>
 
@@ -185,6 +188,7 @@ import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import {
+  fetchAgent,
   fetchAgentActivity,
   fetchActivityMonitoringState,
   fetchActivityScreenshots,
@@ -364,13 +368,23 @@ export default {
       }));
     });
 
+    // 049-E: sin conexión no se ofrece «Captura ahora» (no hay a quién pedírsela).
+    const enLinea = ref(null);
+
     async function cargarEstado() {
       estado.value = null;
+      enLinea.value = null;
       if (!selectedAgent.value) return;
       try {
         estado.value = await fetchActivityMonitoringState(selectedAgent.value);
       } catch (e) {
         estado.value = null;
+      }
+      try {
+        const agent = await fetchAgent(selectedAgent.value);
+        enLinea.value = agent ? agent.status === "online" : null;
+      } catch (e) {
+        enLinea.value = null;
       }
     }
 
@@ -503,7 +517,7 @@ export default {
     watch(diaSel, cargarCapturas);
     onBeforeUnmount(liberarCapturas);
 
-    return { capturando, exportando, capturarAhora, exportar, colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { enLinea, capturando, exportando, capturarAhora, exportar, colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>
