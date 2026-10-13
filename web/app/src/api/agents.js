@@ -455,3 +455,24 @@ export async function saveActivityMonitoring(level, id, value) {
   });
   return data;
 }
+
+// Feature 049-E: monitoreo en vivo (captura forzada) y exportación XLSX.
+export async function forceActivityScreenshot(agent_id) {
+  const { data } = await axios.post(
+    `${baseUrl}/${agent_id}/activity/screenshots/now/`,
+  );
+  return data;
+}
+
+export async function fetchActivityLive(params) {
+  const { data } = await axios.get(`${baseUrl}/activity/live/`, { params });
+  return data;
+}
+
+export async function downloadActivityExport(params) {
+  const { data } = await axios.get(`${baseUrl}/activity/export/`, {
+    params,
+    responseType: "blob",
+  });
+  return data;
+}

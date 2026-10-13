@@ -46,6 +46,19 @@
         <q-chip v-if="diaActual && diaActual.partial" dense color="orange" text-color="white">
           {{ $t("agentActivity.partial") }}
         </q-chip>
+        <q-space />
+        <!-- 049-E: captura del momento y exportación a Excel -->
+        <q-btn
+          v-if="estado && estado.active"
+          dense
+          flat
+          size="sm"
+          icon="photo_camera"
+          :label="$t('agentActivity.captureNow')"
+          :loading="capturando"
+          @click="capturarAhora"
+        />
+        <q-btn dense flat size="sm" icon="download" :label="$t('agentActivity.exportXlsx')" :loading="exportando" @click="exportar" />
       </div>
 
       <q-table
@@ -84,6 +97,27 @@
             <q-tooltip>{{ textoTramo(tr) }}</q-tooltip>
           </div>
         </div>
+        <div v-if="u.entrada" class="tramos tramos-entrada">
+          <div
+            v-for="(e, i) in u.entradaVista"
+            :key="`e-${i}`"
+            class="tramo"
+            :style="{ background: e[0] ? '#263238' : e[1] ? '#90a4ae' : 'transparent' }"
+          >
+            <q-tooltip v-if="e[0] || e[1]">{{ $t("agentActivity.slotInput", { k: e[0], m: e[1] }) }}</q-tooltip>
+          </div>
+        </div>
+        <!-- 049-E: aplicaciones con tiempo activo e inactivo -->
+        <div v-if="u.apps.length" class="q-mt-sm">
+          <div v-for="a in u.apps" :key="a.p" class="row items-center no-wrap text-caption">
+            <div class="ellipsis" style="width: 160px">{{ a.p }}</div>
+            <div class="col row no-wrap" style="height: 10px">
+              <div :style="{ width: `${(100 * a.a) / u.appsMax}%`, background: '#4a90e2' }" />
+              <div :style="{ width: `${(100 * a.i) / u.appsMax}%`, background: '#9b6fd6' }" />
+            </div>
+            <div class="q-ml-sm text-grey" style="width: 110px">{{ `${hm(a.a)} / ${hm(a.i)}` }}</div>
+          </div>
+        </div>
         <div v-if="(u.pausas || []).length" class="text-caption text-grey q-mt-xs">
           {{ `${$t("agentActivity.breaks")}: ${u.pausas.map((p) => `${p[0]}–${p[1]}`).join(" · ")}` }}
         </div>
@@ -94,6 +128,10 @@
         <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'apagado' }) }" /> {{ $t("agentActivity.legendOff") }}</span>
         <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'suspendido' }) }" /> {{ $t("agentActivity.legendSuspended") }}</span>
         <span><span class="leyenda leyenda-vacia" /> {{ $t("agentActivity.legendNoData") }}</span>
+        <span><span class="leyenda" style="background: #263238" /> {{ $t("agentActivity.legendKeys") }}</span>
+        <span><span class="leyenda" style="background: #90a4ae" /> {{ $t("agentActivity.legendMouse") }}</span>
+        <span><span class="leyenda" style="background: #4a90e2" /> {{ $t("agentActivity.legendAppActive") }}</span>
+        <span><span class="leyenda" style="background: #9b6fd6" /> {{ $t("agentActivity.legendAppIdle") }}</span>
       </div>
 
       <!-- Feature 049-C: capturas del día (servidas por la vista autenticada) -->
@@ -151,6 +189,8 @@ import {
   fetchActivityMonitoringState,
   fetchActivityScreenshots,
   fetchActivityScreenshotBlob,
+  forceActivityScreenshot,
+  downloadActivityExport,
 } from "@/api/agents";
 import ActivityMonitoringDialog from "@/components/agents/ActivityMonitoringDialog.vue";
 
@@ -196,9 +236,16 @@ export default {
         field: (r) => (metaMin.value ? `${Math.round((100 * (r.activo_min || 0)) / metaMin.value)}%` : "—"),
         align: "right",
       },
+      {
+        name: "entrada",
+        label: t("agentActivity.keysMouse"),
+        field: (r) => ("teclas" in r || r.entrada ? `${r.teclas || 0} / ${r.mouse || 0}` : "—"),
+        align: "right",
+      },
       { name: "capturas", label: t("agentActivity.captures"), field: "capturas", align: "right" },
       { name: "procs", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
       { name: "sitios", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
+      { name: "urls", label: t("agentActivity.topUrls"), field: "urlsStr", align: "left" },
       { name: "red", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
 
@@ -268,6 +315,18 @@ export default {
       return `${tr.t} · ${t(`agentActivity.${clave}`)}`;
     }
 
+    // 049-E: activo e inactivo por aplicación (top 8).
+    function appsDe(x) {
+      const a = x.procs || {};
+      const i = x.procs_i || {};
+      const apps = [...new Set([...Object.keys(a), ...Object.keys(i)])]
+        .map((p) => ({ p, a: a[p] || 0, i: i[p] || 0 }))
+        .sort((m, n) => n.a + n.i - (m.a + m.i))
+        .slice(0, 8);
+      const appsMax = Math.max(1, ...apps.map((m) => m.a + m.i));
+      return { apps: Object.keys(i).length ? apps : [], appsMax };
+    }
+
     const usuarios = computed(() => {
       if (!diaActual.value) return [];
       const doc = diaActual.value.data || {};
@@ -276,6 +335,9 @@ export default {
       return u.map((x) => ({
         ...x,
         tramosVista: tramosDe(x, dia.huecos),
+        entradaVista: Array.from({ length: 144 }, (_, i) => (x.entrada || {})[String(i)] || [0, 0]),
+        ...appsDe(x),
+        urlsStr: topStr(x.urls, 4, { valor: (v) => v, texto: (k, v) => `${k} (${hm(v)})` }),
         pausasMin: (x.pausas || []).reduce((acc, p) => {
           const a = aMin(p[0]);
           const b = aMin(p[1]);
@@ -394,12 +456,54 @@ export default {
       return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
     }
 
+    // --- 049-E: captura del momento y exportación XLSX ---
+    const capturando = ref(false);
+    const exportando = ref(false);
+
+    async function capturarAhora() {
+      capturando.value = true;
+      try {
+        const r = await forceActivityScreenshot(selectedAgent.value);
+        if (r.estado === "ok") {
+          await cargarCapturas();
+          $q.notify({ type: "positive", message: t("activityLive.state_ok") });
+        } else {
+          $q.notify({ type: "warning", message: t(`activityLive.state_${r.estado}`) });
+        }
+      } catch (e) {
+        $q.notify({ type: "negative", message: t("activityLive.state_error") });
+      } finally {
+        capturando.value = false;
+      }
+    }
+
+    async function exportar() {
+      exportando.value = true;
+      try {
+        const hasta = diaSel.value || new Date().toISOString().slice(0, 10);
+        const d = new Date(`${hasta}T12:00:00`);
+        d.setDate(d.getDate() - 29);
+        const desde = d.toISOString().slice(0, 10);
+        const blob = await downloadActivityExport({ agent_id: selectedAgent.value, desde, hasta });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `actividad_${estado.value ? estado.value.hostname : "equipo"}_${desde}_${hasta}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        $q.notify({ type: "negative", message: t("activityLive.state_error") });
+      } finally {
+        exportando.value = false;
+      }
+    }
+
     onMounted(cargar);
     watch(selectedAgent, cargar);
     watch(diaSel, cargarCapturas);
     onBeforeUnmount(liberarCapturas);
 
-    return { colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { capturando, exportando, capturarAhora, exportar, colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>
@@ -423,6 +527,10 @@ export default {
 }
 .tramo {
   flex: 1;
+}
+.tramos-entrada {
+  height: 5px;
+  margin-top: 2px;
 }
 .tramo-hora {
   border-left: 1px solid rgba(128, 128, 128, 0.25);

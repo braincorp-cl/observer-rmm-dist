@@ -14,6 +14,8 @@ urlpatterns = [
         "activity-monitoring/overview/",
         views.ActivityMonitoringOverview.as_view(),
     ),
+    path("activity/live/", views.ActivityLive.as_view()),
+    path("activity/export/", views.ActivityExport.as_view()),
     path("<agent:agent_id>/", views.GetUpdateDeleteAgent.as_view()),
     path("<agent:agent_id>/cmd/", views.send_raw_cmd),
     path("<agent:agent_id>/runscript/", views.run_script),
@@ -30,6 +32,10 @@ urlpatterns = [
     path(
         "<agent:agent_id>/activity/screenshots/<int:pk>/file/",
         views.AgentActivityScreenshotFile.as_view(),
+    ),
+    path(
+        "<agent:agent_id>/activity/screenshots/now/",
+        views.AgentActivityScreenshotNow.as_view(),
     ),
     path("<agent:agent_id>/recover/", views.recover),
     path("<agent:agent_id>/reboot/", views.Reboot.as_view()),

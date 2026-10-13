@@ -1757,6 +1757,10 @@ class AgentActivityScreenshot(models.Model):
     username = models.CharField(max_length=255, blank=True, default="")
     process = models.CharField(max_length=255, blank=True, default="")
     title = models.CharField(max_length=512, blank=True, default="")
+    # 049-E: URL (dominio + ruta) de la pestaña activa y si la pidió la consola
+    # desde el monitoreo en vivo (captura forzada) en vez del ciclo periódico.
+    url = models.CharField(max_length=255, blank=True, default="")
+    manual = models.BooleanField(default=False)
     image = models.FileField(
         storage=get_activity_screenshots_fs,
         upload_to=activity_screenshot_path,

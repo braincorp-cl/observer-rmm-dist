@@ -1509,6 +1509,8 @@ class ActivityScreenshotUpload(APIView):
             username=(request.data.get("usuario") or "")[:255],
             process=canon_process(request.data.get("proceso"))[:255],
             title=(request.data.get("titulo") or "")[:512],
+            url=(request.data.get("url") or "")[:255],
+            manual=str(request.data.get("manual") or "") == "1",
         )
         shot.image.save(
             f"{captured_at:%H%M%S}-{os.urandom(4).hex()}.{ext}", archivo, save=False

@@ -106,6 +106,10 @@ class CoreSettings(BaseAuditModel):
         blank=True, default=ACTIVITY_ALWAYS_ACTIVE_DEFAULT
     )
     activity_expected_min = models.PositiveIntegerField(default=480)
+    # 049-E: horario laboral para el filtro «solo horario laboral» de los
+    # reportes: "HH:MM-HH:MM" y días de la semana (0 = lunes … 6 = domingo).
+    activity_work_hours = models.CharField(max_length=11, default="08:00-18:00")
+    activity_work_days = models.CharField(max_length=13, default="0,1,2,3,4")
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)

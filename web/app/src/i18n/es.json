@@ -87,7 +87,8 @@
     "bulkAlarm": "Alarma sonora masiva",
     "bulkStopAlarm": "Detener alarma en masa",
     "eraseCertificates": "Certificados de borrado",
-    "eraseOrders": "Órdenes de borrado"
+    "eraseOrders": "Órdenes de borrado",
+    "activityLive": "Monitoreo en vivo"
   },
   "setup": {
     "gettingStarted": "Primeros pasos",
@@ -463,7 +464,18 @@
     "activityAlwaysActiveHint": "Un patrón por línea (expresión regular, sin distinguir mayúsculas) sobre el proceso o el título. Cuenta como actividad aunque no haya teclado ni mouse.",
     "activityExpectedHours": "Jornada esperada (horas por día)",
     "activityExpectedHoursHint": "Meta contra la que se mide el tiempo activo en la pestaña y los reportes.",
-    "activityExpectedHoursRule": "Entre 0,5 y 24 horas"
+    "activityExpectedHoursRule": "Entre 0,5 y 24 horas",
+    "activityWorkHours": "Horario laboral",
+    "activityWorkHoursHint": "HH:MM-HH:MM, para el filtro «solo horario laboral» de los reportes",
+    "activityWorkHoursRule": "Formato HH:MM-HH:MM",
+    "activityWorkDays": "Días laborales",
+    "weekday0": "Lunes",
+    "weekday1": "Martes",
+    "weekday2": "Miércoles",
+    "weekday3": "Jueves",
+    "weekday4": "Viernes",
+    "weekday5": "Sábado",
+    "weekday6": "Domingo"
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -2860,6 +2872,7 @@
     },
     "dependencyPrompt": {
       "title": "Seleccionar dependencias del reporte",
+      "workHoursOnly": "Solo horario laboral",
       "submit": "Enviar",
       "errorAllFields": "Todos los campos deben tener un valor.",
       "optional": "Opcional"
@@ -3453,7 +3466,16 @@
     "legendOff": "equipo apagado o agente detenido",
     "legendSuspended": "equipo suspendido",
     "legendNoData": "sin datos",
-    "slotActive": "{t} · {pct}% activo"
+    "slotActive": "{t} · {pct}% activo",
+    "captureNow": "Captura ahora",
+    "exportXlsx": "Exportar XLSX (30 días)",
+    "keysMouse": "Teclas / mouse",
+    "topUrls": "URL más visitadas",
+    "slotInput": "{k} teclas, {m} eventos de mouse",
+    "legendKeys": "teclas presionadas",
+    "legendMouse": "solo mouse",
+    "legendAppActive": "app activa",
+    "legendAppIdle": "app al frente sin uso"
   },
   "activityMonitoring": {
     "title": "Monitoreo de actividad — {name}",
@@ -3487,5 +3509,25 @@
     "siteOptional": "Sitio (opcional)",
     "agentOptional": "Equipo (opcional)",
     "add": "Agregar"
+  },
+  "activityLive": {
+    "title": "Monitoreo en vivo",
+    "notice": "Última captura de cada equipo con monitoreo y capturas encendidas. Al abrir la página y con «Actualizar» se pide una captura del momento (sin video). Cada pedido queda en Auditoría.",
+    "refreshAll": "Actualizar todo",
+    "refresh": "Actualizar",
+    "client": "Cliente",
+    "empty": "No hay equipos con monitoreo encendido en este alcance.",
+    "noImage": "Sin captura",
+    "offline": "Sin conexión",
+    "state_ok": "Captura actualizada",
+    "state_en_curso": "Ya hay una captura en curso",
+    "state_bloqueado": "Sesión bloqueada",
+    "state_sin_sesion": "Sin usuario con sesión",
+    "state_sin_imagen": "El equipo no pudo capturar la pantalla",
+    "state_capturas_off": "Capturas desactivadas",
+    "state_monitoreo_off": "Monitoreo apagado",
+    "state_error": "Error al pedir la captura",
+    "state_timeout": "El equipo no respondió",
+    "state_espera": "Espera unos segundos antes de pedir otra"
   }
 }

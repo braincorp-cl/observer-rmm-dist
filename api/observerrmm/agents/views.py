@@ -2805,10 +2805,273 @@ class AgentActivityScreenshots(APIView):
                     "username": s.username,
                     "process": s.process,
                     "title": s.title,
+                    "url": s.url,
+                    "manual": s.manual,
                 }
                 for s in qs
             ]
         )
+
+
+# 049-E · monitoreo en vivo: la consola fuerza una captura del momento.
+CAPTURA_MANUAL_CADA_SEG = 15
+CAPTURA_MANUAL_ESTADOS = {
+    "ok",
+    "en_curso",
+    "bloqueado",
+    "sin_sesion",
+    "sin_imagen",
+    "capturas_off",
+    "monitoreo_off",
+    "error",
+}
+
+
+class AgentActivityScreenshotNow(APIView):
+    """Pide al equipo una captura del momento (049-E, monitoreo en vivo).
+
+    Mismo permiso que ver las capturas; cada pedido queda en Auditoría. El
+    agente responde cuando la imagen ya subió, o el motivo por el que no se
+    tomó (sesión bloqueada, sin usuario, capturas apagadas...).
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def post(self, request, agent_id):
+        from django.core.cache import cache
+
+        from .activity import resolve_activity
+
+        agent = get_object_or_404(
+            Agent.objects.select_related("site__client"), agent_id=agent_id
+        )
+        res = resolve_activity(agent)
+        if not res.active:
+            return Response({"estado": "monitoreo_off"})
+        if res.screenshots_min <= 0:
+            return Response({"estado": "capturas_off"})
+        clave = f"activity-shot-now:{agent.agent_id}"
+        if not cache.add(clave, 1, CAPTURA_MANUAL_CADA_SEG):
+            return Response({"estado": "espera", "seg": CAPTURA_MANUAL_CADA_SEG})
+        r = asyncio.run(agent.nats_cmd({"func": "actividad_captura"}, timeout=45))
+        if isinstance(r, dict):
+            estado = str(r.get("estado", "error"))
+        elif r == "timeout":
+            estado = "timeout"
+        else:
+            estado = "error"
+        if estado not in CAPTURA_MANUAL_ESTADOS and estado != "timeout":
+            estado = "error"
+        AuditLog.audit_activity_screenshot_forced(request.user.username, agent, estado)
+        ultima = (
+            AgentActivityScreenshot.objects.filter(agent=agent)
+            .order_by("-captured_at")
+            .values("id", "captured_at")
+            .first()
+        )
+        return Response({"estado": estado, "ultima": ultima})
+
+
+class ActivityExport(APIView):
+    """Exporta a Excel (XLSX) la actividad de un cliente en un período (049-E).
+
+    Usa las MISMAS funciones que los reportes (ee/reporting/custom_filters.py),
+    así que las cifras coinciden con el reporte «por período».
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request):
+        from io import BytesIO
+
+        from django.http import HttpResponse
+        from openpyxl import Workbook
+        from openpyxl.styles import Font
+
+        from core.models import GlobalKVStore
+        from ee.reporting.custom_filters import actividad_rango
+
+        from .models import AgentActivityDaily
+
+        p = request.query_params
+        try:
+            desde = dt.date.fromisoformat(p.get("desde", ""))
+            hasta = dt.date.fromisoformat(p.get("hasta", ""))
+        except ValueError:
+            return notify_error("Fechas inválidas (AAAA-MM-DD)")
+        if hasta < desde or (hasta - desde).days > 366:
+            return notify_error("El período va de 1 a 366 días")
+        agentes = Agent.objects.filter_by_role(request.user)
+        if p.get("client"):
+            agentes = agentes.filter(site__client_id=p["client"])
+        if p.get("agent_id"):
+            agentes = agentes.filter(agent_id=p["agent_id"])
+        filas = list(
+            AgentActivityDaily.objects.filter(
+                agent__in=agentes, date__gte=desde, date__lte=hasta
+            )
+            .order_by("date", "updated")
+            .values(
+                "date",
+                "data",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            )
+        )
+        for f in filas:
+            f["time"] = str(f.pop("date"))
+        cats = GlobalKVStore.objects.filter(name="actividad_categorias").values("value")
+        res = actividad_rango(
+            filas,
+            desde.isoformat(),
+            0,
+            list(cats),
+            p.get("equipo", ""),
+            p.get("usuario", ""),
+            top=500,
+            hasta=hasta.isoformat(),
+            laboral=p.get("laboral", ""),
+        )
+
+        wb = Workbook()
+        negrita = Font(bold=True)
+
+        def hoja(ws, titulo, cabecera, datos):
+            ws.title = titulo
+            ws.append(cabecera)
+            for c in ws[1]:
+                c.font = negrita
+            for d in datos:
+                ws.append(d)
+
+        hoja(
+            wb.active,
+            "Resumen",
+            [
+                "Cliente",
+                "Sitio",
+                "Equipo",
+                "Usuario",
+                "Días",
+                "Activo (min)",
+                "Inactivo (min)",
+                "Productivo",
+                "Improductivo",
+                "Neutral",
+                "Sin categoría",
+                "% meta",
+                "Inicio prom.",
+                "Fin prom.",
+                "Pausas (min)",
+                "Apagado/suspendido (min)",
+                "Teclas",
+                "Mouse",
+            ],
+            [
+                [
+                    f["cliente"],
+                    f["sitio"],
+                    f["equipo"],
+                    f["usuario"],
+                    f["dias"],
+                    f["activo_min"],
+                    f["inactivo_min"],
+                    f["productivo_min"],
+                    f["improductivo_min"],
+                    f["neutral_min"],
+                    f["sin_categoria_min"],
+                    f["pct_meta"],
+                    f["inicio_prom"],
+                    f["fin_prom"],
+                    f["pausas_min"],
+                    f["huecos_min"],
+                    f["teclas"],
+                    f["mouse"],
+                ]
+                for f in res["filas"]
+            ],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Aplicaciones",
+            ["Proceso", "Categoría", "Activo (min)", "Inactivo (min)", "% del tiempo"],
+            [
+                [a["proceso"], a["cat"], a["min"], a["min_i"], a["pct"]]
+                for a in res["apps"]
+            ],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Programas y sitios",
+            ["Programa o sitio", "Categoría", "Activo (min)"],
+            [[r["nombre"], r["cat"], r["min"]] for r in res["ranking"]],
+        )
+        hoja(
+            wb.create_sheet(),
+            "URL",
+            ["URL (dominio + ruta)", "Activo (min)", "Inactivo (min)"],
+            [[u["url"], u["min"], u["min_i"]] for u in res["urls"]],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Sitios web",
+            ["Sitio (según título)", "Activo (min)"],
+            [[s_["sitio"], s_["min"]] for s_ in res["sitios_web"]],
+        )
+        buf = BytesIO()
+        wb.save(buf)
+        nombre = f"actividad_{desde.isoformat()}_{hasta.isoformat()}.xlsx"
+        resp = HttpResponse(
+            buf.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        resp["Content-Disposition"] = f'attachment; filename="{nombre}"'
+        return resp
+
+
+class ActivityLive(APIView):
+    """Equipos con monitoreo efectivo y capturas, con su última captura (049-E)."""
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request):
+        from .activity import agents_possibly_on, resolve_activity
+
+        qs = (
+            agents_possibly_on()
+            .filter_by_role(request.user)
+            .select_related("site__client")
+            .order_by("site__client__name", "site__name", "hostname")
+        )
+        if request.query_params.get("client"):
+            qs = qs.filter(site__client_id=request.query_params["client"])
+        if request.query_params.get("site"):
+            qs = qs.filter(site_id=request.query_params["site"])
+        core = get_core_settings()
+        out = []
+        for agent in qs[:200]:
+            res = resolve_activity(agent, core)
+            if not res.active:
+                continue
+            ultima = (
+                AgentActivityScreenshot.objects.filter(agent=agent)
+                .order_by("-captured_at")
+                .values("id", "captured_at", "username", "process", "title", "url")
+                .first()
+            )
+            out.append(
+                {
+                    "agent_id": agent.agent_id,
+                    "hostname": agent.hostname,
+                    "client": agent.site.client.name,
+                    "site": agent.site.name,
+                    "status": agent.status,
+                    "screenshots": res.screenshots_min > 0,
+                    "ultima": ultima,
+                }
+            )
+        return Response(out)
 
 
 class AgentActivityScreenshotFile(APIView):

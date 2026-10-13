@@ -1109,6 +1109,31 @@
                         $t('editCoreSettings.activityExpectedHoursRule'),
                     ]"
                   />
+                  <!-- 049-E: horario laboral para el filtro de los reportes -->
+                  <q-input
+                    dense
+                    outlined
+                    style="width: 12rem"
+                    v-model="settings.activity_work_hours"
+                    :label="$t('editCoreSettings.activityWorkHours')"
+                    :hint="$t('editCoreSettings.activityWorkHoursHint')"
+                    :rules="[
+                      (val) =>
+                        /^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/.test(val || '') ||
+                        $t('editCoreSettings.activityWorkHoursRule'),
+                    ]"
+                  />
+                  <q-select
+                    dense
+                    outlined
+                    multiple
+                    emit-value
+                    map-options
+                    style="width: 20rem"
+                    v-model="activityWorkDays"
+                    :options="workDayOptions"
+                    :label="$t('editCoreSettings.activityWorkDays')"
+                  />
                 </q-card-section>
 
                 <div class="text-subtitle2 q-mt-md">
@@ -1365,6 +1390,24 @@ export default {
       set(v) {
         this.settings.activity_expected_min = Math.round(Number(v) * 60);
       },
+    },
+    // 049-E: días laborales "0,1,2,3,4" (0 = lunes) editados como lista.
+    activityWorkDays: {
+      get() {
+        return String(this.settings.activity_work_days || "")
+          .split(",")
+          .filter((d) => d !== "")
+          .map(Number);
+      },
+      set(v) {
+        this.settings.activity_work_days = [...v].sort((a, b) => a - b).join(",");
+      },
+    },
+    workDayOptions() {
+      return [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+        value: d,
+        label: this.$t(`editCoreSettings.weekday${d}`),
+      }));
     },
     hosted() {
       return this.$store.state.hosted;

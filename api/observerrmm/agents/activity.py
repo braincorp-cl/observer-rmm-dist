@@ -200,6 +200,28 @@ def recortar_pausas(pausas, huecos) -> list:
     return out
 
 
+def parse_work_hours(value) -> Optional[tuple]:
+    """'08:00-18:00' -> (480, 1080) en minutos; None si es inválido (049-E)."""
+    try:
+        a, b = str(value).strip().split("-")
+    except (ValueError, AttributeError):
+        return None
+    ini, fin = _hhmm(a.strip()), _hhmm(b.strip())
+    if ini is None or fin is None or not 0 <= ini < fin <= 1440:
+        return None
+    return ini, fin
+
+
+def parse_work_days(value) -> set:
+    """'0,1,2,3,4' -> {0,1,2,3,4} (0 = lunes)."""
+    dias = set()
+    for p in str(value or "").split(","):
+        p = p.strip()
+        if p.isdigit() and 0 <= int(p) <= 6:
+            dias.add(int(p))
+    return dias
+
+
 def canon_activity_day(dia: dict) -> dict:
     """Unifica los nombres de proceso de un día subido por el agente y recorta
     de las pausas los lapsos con el equipo apagado o suspendido."""
@@ -208,7 +230,7 @@ def canon_activity_day(dia: dict) -> dict:
             continue
         if u.get("pausas") and dia.get("huecos"):
             u["pausas"] = recortar_pausas(u["pausas"], dia["huecos"])
-        for k in ("procs", "red"):
+        for k in ("procs", "procs_i", "red"):
             if isinstance(u.get(k), dict):
                 u[k] = _merge_canon(u[k])
         for h in (u.get("horas") or {}).values():

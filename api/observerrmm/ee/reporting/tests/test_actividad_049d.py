@@ -123,7 +123,7 @@ class TestTramos:
         t = f["tramos"]
         assert len(t) == 144
         assert t[0]["estado"] == "apagado" and t[47]["estado"] == "apagado"
-        assert t[48] == {"t": "08:00", "pct": 100, "estado": "medido"}
+        assert t[48] == {"t": "08:00", "pct": 100, "estado": "medido", "k": 0, "m": 0}
         assert t[49]["pct"] == 0 and t[50]["pct"] == 50
         assert [t[i]["estado"] for i in (72, 73, 74)] == ["suspendido"] * 3
         assert t[100]["estado"] == "sin_datos"

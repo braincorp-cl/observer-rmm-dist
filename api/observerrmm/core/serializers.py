@@ -137,6 +137,28 @@ class CoreSettingsSerializer(
             raise serializers.ValidationError("La jornada va de 1 a 1440 minutos")
         return value
 
+    def validate_activity_work_hours(self, value):
+        from agents.activity import parse_work_hours
+
+        rango = parse_work_hours(value)
+        if rango is None:
+            raise serializers.ValidationError(
+                "Formato HH:MM-HH:MM, con el inicio antes del fin"
+            )
+        return "{:02d}:{:02d}-{:02d}:{:02d}".format(
+            rango[0] // 60, rango[0] % 60, rango[1] // 60, rango[1] % 60
+        )
+
+    def validate_activity_work_days(self, value):
+        from agents.activity import parse_work_days
+
+        dias = parse_work_days(value)
+        if not dias:
+            raise serializers.ValidationError(
+                "Al menos un día (0 = lunes … 6 = domingo)"
+            )
+        return ",".join(str(d) for d in sorted(dias))
+
 
 # for audting
 class CoreSerializer(HostedCoreMixin, MaskedSecretsMixin, serializers.ModelSerializer):

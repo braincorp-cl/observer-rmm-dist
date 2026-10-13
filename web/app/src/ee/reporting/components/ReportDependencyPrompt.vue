@@ -57,6 +57,14 @@
           :clearable="isOptional(label)"
         />
 
+        <q-toggle
+          v-else-if="field(label) === 'laboral'"
+          v-model="dependencies[label]"
+          true-value="si"
+          :false-value="''"
+          :label="t('reporting.dependencyPrompt.workHoursOnly')"
+        />
+
         <q-input
           v-else-if="isDate(label)"
           v-model="dependencies[label]"

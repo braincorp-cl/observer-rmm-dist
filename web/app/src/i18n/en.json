@@ -87,7 +87,8 @@
     "bulkAlarm": "Bulk sound alarm",
     "bulkStopAlarm": "Bulk stop alarm",
     "eraseCertificates": "Erase certificates",
-    "eraseOrders": "Erase orders"
+    "eraseOrders": "Erase orders",
+    "activityLive": "Live monitoring"
   },
   "setup": {
     "gettingStarted": "Getting Started",
@@ -463,7 +464,18 @@
     "activityAlwaysActiveHint": "One pattern per line (case-insensitive regular expression) matched against the process or window title. Counts as activity even without keyboard or mouse input.",
     "activityExpectedHours": "Expected workday (hours per day)",
     "activityExpectedHoursHint": "Goal the active time is measured against in the tab and the reports.",
-    "activityExpectedHoursRule": "Between 0.5 and 24 hours"
+    "activityExpectedHoursRule": "Between 0.5 and 24 hours",
+    "activityWorkHours": "Work hours",
+    "activityWorkHoursHint": "HH:MM-HH:MM, for the reports’ «work hours only» filter",
+    "activityWorkHoursRule": "Format HH:MM-HH:MM",
+    "activityWorkDays": "Work days",
+    "weekday0": "Monday",
+    "weekday1": "Tuesday",
+    "weekday2": "Wednesday",
+    "weekday3": "Thursday",
+    "weekday4": "Friday",
+    "weekday5": "Saturday",
+    "weekday6": "Sunday"
   },
   "bulkAction": {
     "close": "Close",
@@ -2860,6 +2872,7 @@
     },
     "dependencyPrompt": {
       "title": "Select Report Dependencies",
+      "workHoursOnly": "Work hours only",
       "submit": "Submit",
       "errorAllFields": "All fields must have a value.",
       "optional": "Optional"
@@ -3453,7 +3466,16 @@
     "legendOff": "device off or agent stopped",
     "legendSuspended": "device suspended",
     "legendNoData": "no data",
-    "slotActive": "{t} · {pct}% active"
+    "slotActive": "{t} · {pct}% active",
+    "captureNow": "Capture now",
+    "exportXlsx": "Export XLSX (30 days)",
+    "keysMouse": "Keys / mouse",
+    "topUrls": "Most visited URLs",
+    "slotInput": "{k} keystrokes, {m} mouse events",
+    "legendKeys": "keys pressed",
+    "legendMouse": "mouse only",
+    "legendAppActive": "app active",
+    "legendAppIdle": "app in front, idle"
   },
   "activityMonitoring": {
     "title": "Activity monitoring — {name}",
@@ -3487,5 +3509,25 @@
     "siteOptional": "Site (optional)",
     "agentOptional": "Device (optional)",
     "add": "Add"
+  },
+  "activityLive": {
+    "title": "Live monitoring",
+    "notice": "Latest screenshot of each device with monitoring and screenshots on. Opening the page and «Refresh» request a screenshot of the moment (no video). Every request is recorded in the Audit log.",
+    "refreshAll": "Refresh all",
+    "refresh": "Refresh",
+    "client": "Client",
+    "empty": "No devices with monitoring on in this scope.",
+    "noImage": "No screenshot",
+    "offline": "Offline",
+    "state_ok": "Screenshot updated",
+    "state_en_curso": "A screenshot is already in progress",
+    "state_bloqueado": "Session locked",
+    "state_sin_sesion": "No user logged in",
+    "state_sin_imagen": "The device could not capture the screen",
+    "state_capturas_off": "Screenshots disabled",
+    "state_monitoreo_off": "Monitoring off",
+    "state_error": "Error requesting the screenshot",
+    "state_timeout": "The device did not respond",
+    "state_espera": "Wait a few seconds before requesting another"
   }
 }
