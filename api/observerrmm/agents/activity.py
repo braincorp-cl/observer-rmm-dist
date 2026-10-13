@@ -151,11 +151,63 @@ def _merge_canon(d) -> dict:
     return out
 
 
+PAUSA_MIN = 10
+
+
+def _hhmm(v) -> Optional[int]:
+    try:
+        h, m = str(v).split(":")
+        return int(h) * 60 + int(m)
+    except (ValueError, AttributeError):
+        return None
+
+
+def recortar_pausas(pausas, huecos) -> list:
+    """Quita de las pausas los lapsos con el equipo apagado o suspendido.
+
+    Una pausa es tiempo sin teclado ni mouse CON el equipo encendido; el agente
+    la mide entre entradas y no sabe que en medio el equipo estuvo apagado. Lo
+    que queda de cada pausa se conserva sólo si sigue durando >= PAUSA_MIN.
+    """
+    cortes = []
+    for h in huecos or []:
+        if isinstance(h, dict):
+            a, b = _hhmm(h.get("desde")), _hhmm(h.get("hasta"))
+            if a is not None and b is not None and b > a:
+                cortes.append((a, b))
+    if not cortes:
+        return pausas
+    out = []
+    for p in pausas or []:
+        if not isinstance(p, (list, tuple)) or len(p) != 2:
+            continue
+        a, b = _hhmm(p[0]), _hhmm(p[1])
+        if a is None or b is None or b <= a:
+            continue
+        trozos = [(a, b)]
+        for ca, cb in cortes:
+            trozos = [
+                t
+                for x, y in trozos
+                for t in ((x, min(y, ca)), (max(x, cb), y))
+                if t[1] > t[0]
+            ]
+        out.extend(
+            [f"{x // 60:02d}:{x % 60:02d}", f"{y // 60:02d}:{y % 60:02d}"]
+            for x, y in trozos
+            if y - x >= PAUSA_MIN
+        )
+    return out
+
+
 def canon_activity_day(dia: dict) -> dict:
-    """Unifica los nombres de proceso de un día subido por el agente."""
+    """Unifica los nombres de proceso de un día subido por el agente y recorta
+    de las pausas los lapsos con el equipo apagado o suspendido."""
     for u in dia.get("usuarios") or []:
         if not isinstance(u, dict):
             continue
+        if u.get("pausas") and dia.get("huecos"):
+            u["pausas"] = recortar_pausas(u["pausas"], dia["huecos"])
         for k in ("procs", "red"):
             if isinstance(u.get(k), dict):
                 u[k] = _merge_canon(u[k])

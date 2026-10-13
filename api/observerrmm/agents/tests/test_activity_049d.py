@@ -8,9 +8,12 @@ vez de perderse en silencio en el agente; la ingesta unifica "chrome.exe" y
 
 from unittest.mock import patch
 
+from django.test import SimpleTestCase
+
 from model_bakery import baker
 
 from agents.activity import (
+    canon_activity_day,
     always_active_patterns,
     canon_process,
     resolve_activity,
@@ -151,3 +154,33 @@ class TestIngestaUnifica(ObserverTestCase):
         self.assertEqual(u["tramos"], {"54": [600, 600]})
         dia_guardado = AgentActivityDaily.objects.get(agent=self.agent).data["dias"][0]
         self.assertEqual(dia_guardado["huecos"][0]["motivo"], "apagado")
+
+
+class TestRecortarPausas(SimpleTestCase):
+    def test_pausa_con_equipo_apagado_no_cuenta(self):
+        from agents.activity import recortar_pausas
+
+        huecos = [
+            {"desde": "01:54", "hasta": "13:40", "motivo": "apagado"},
+            {"desde": "16:19", "hasta": "19:52", "motivo": "apagado"},
+        ]
+        pausas = [["01:54", "13:43"], ["13:57", "14:23"], ["15:54", "19:52"]]
+        self.assertEqual(
+            recortar_pausas(pausas, huecos),
+            [["13:57", "14:23"], ["15:54", "16:19"]],
+        )
+
+    def test_sin_huecos_no_cambia(self):
+        from agents.activity import recortar_pausas
+
+        self.assertEqual(
+            recortar_pausas([["10:00", "10:30"]], []), [["10:00", "10:30"]]
+        )
+
+    def test_canon_activity_day_recorta(self):
+        dia = {
+            "huecos": [{"desde": "12:00", "hasta": "13:00", "motivo": "suspendido"}],
+            "usuarios": [{"usuario": "u", "pausas": [["11:55", "13:20"]]}],
+        }
+        canon_activity_day(dia)
+        self.assertEqual(dia["usuarios"][0]["pausas"], [["13:00", "13:20"]])
