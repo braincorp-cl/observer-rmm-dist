@@ -221,7 +221,7 @@ def _actividad_categorias(categorias):
     for cat in ("productivo", "improductivo", "neutral"):
         for item in cats.get(cat, []) or []:
             if _es_dominio(item):
-                dominios[_host(item).removeprefix("www.")] = cat
+                dominios[_host(item).split(":")[0].removeprefix("www.")] = cat
             else:
                 # Sin el ".exe": "chrome.exe" (Windows) y "chrome" (Linux/macOS)
                 # son la misma aplicación y caen en la misma categoría.
@@ -232,7 +232,8 @@ def _actividad_categorias(categorias):
 
     def categoria(nombre):
         if _es_dominio(nombre):
-            host = _host(nombre).removeprefix("www.")
+            # Sin puerto: "fw.empresa.cl:4444" hereda la regla de "empresa.cl".
+            host = _host(nombre).split(":")[0].removeprefix("www.")
             partes = host.split(".")
             for i in range(len(partes) - 1):
                 cat = dominios.get(".".join(partes[i:]))

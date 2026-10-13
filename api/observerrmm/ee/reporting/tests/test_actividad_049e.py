@@ -59,6 +59,8 @@ class TestCategorias:
         assert cat("excel.exe") == "productivo"  # proceso, no dominio
         assert cat("notepad") == "sin_categoria"
         assert cat("ejemplo.cl") == "sin_categoria"
+        # El puerto no impide heredar la regla del dominio.
+        assert cat("fw.google.com:4444/login") == "productivo"
 
     def test_por_defecto_explicito_se_respeta(self):
         cat = _actividad_categorias('{"por_defecto": "neutral"}')
