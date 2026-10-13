@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 from django.core.cache import cache
 from django.test import override_settings
+from django.utils import timezone as djangotime
 from model_bakery import baker
 
 from agents.activity import canon_activity_day, parse_work_days, parse_work_hours
@@ -55,7 +56,11 @@ class TestMonitoreoEnVivo(ObserverTestCase):
     def setUp(self):
         self.authenticate()
         self.setup_coresettings()
-        self.agent = baker.make_recipe("agents.online_agent")
+        # La receta fija last_seen al importarse: en una corrida larga el equipo
+        # ya saldría «offline» y la captura no se despacharía.
+        self.agent = baker.make_recipe(
+            "agents.online_agent", last_seen=djangotime.now()
+        )
         self.tmp = tempfile.mkdtemp()
         self.override = self.settings(ACTIVITY_SCREENSHOTS_BASE_PATH=self.tmp)
         self.override.enable()
