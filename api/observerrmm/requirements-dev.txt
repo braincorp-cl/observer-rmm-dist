@@ -1,9 +1,9 @@
-black==26.5.1
+black==26.10.1
 daphne
 Werkzeug
 django-extensions
 isort
-django-silk==5.4.0
+django-silk==5.6.0
 mypy
 django-stubs
 pandas-stubs
