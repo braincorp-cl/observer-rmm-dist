@@ -65,7 +65,7 @@
       </template>
 
       <template v-slot:body-cell-uninstall="props">
-        <td>
+        <td class="obs-nowrap">
           <q-btn
             v-if="props.row.uninstall"
             :label="$t('agentTabs.software.uninstall')"
@@ -130,6 +130,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colInstalledOn"),
         field: "install_date",
+        classes: "obs-nowrap",
         sortable: false,
         format: (val) => {
           return val === "01/01/1" || val === "01-1-01" ? "" : val;
@@ -140,7 +141,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colSize"),
         field: "size",
-        classes: "mono",
+        classes: "mono obs-nowrap",
         sortable: false,
       },
       {

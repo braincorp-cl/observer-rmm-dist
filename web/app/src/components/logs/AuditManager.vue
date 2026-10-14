@@ -13,6 +13,7 @@
       :title="modal ? $t('auditManager.tableTitle') : ''"
       :rows="auditLogs"
       :columns="columns"
+      :visible-columns="visibleColumns"
       class="tabs-tbl-sticky"
       :table-class="{
         'table-bgcolor': !$q.dark.isActive,
@@ -201,6 +202,7 @@ export default {
         name: "entry_time",
         label: t("auditManager.colTime"),
         field: "entry_time",
+        classes: "obs-nowrap",
         align: "left",
         sortable: true,
       },
@@ -208,6 +210,7 @@ export default {
         name: "username",
         label: t("auditManager.colUsername"),
         field: "username",
+        classes: "obs-nowrap",
         align: "left",
         sortable: true,
       },
@@ -236,6 +239,7 @@ export default {
         name: "action",
         label: t("auditManager.colAction"),
         field: "action",
+        classes: "obs-nowrap",
         align: "left",
         sortable: true,
         format: (val) => formatTableColumnText(val),
@@ -244,6 +248,7 @@ export default {
         name: "object_type",
         label: t("auditManager.colObject"),
         field: "object_type",
+        classes: "obs-nowrap",
         align: "left",
         sortable: true,
         format: (val) => formatTableColumnText(val),
@@ -259,7 +264,7 @@ export default {
         name: "client_ip",
         label: t("auditManager.colClientIp"),
         field: "ip_address",
-        classes: "mono",
+        classes: "mono obs-nowrap",
         align: "left",
         sortable: true,
       },
@@ -273,6 +278,17 @@ export default {
         sortable: true,
       },
     ]);
+
+    // En la auditoría de un equipo, Agente, Cliente y Sitio valen lo mismo en
+    // todas las filas (ya están en la cabecera): se ocultan para dar ancho a
+    // Mensaje. La exportación conserva todas las columnas.
+    const visibleColumns = computed(() =>
+      columns.value
+        .map((c) => c.name)
+        .filter(
+          (n) => !props.agent || !["agent", "client", "site"].includes(n),
+        ),
+    );
 
     const agentActionOptions = computed(() => [
       { value: "add", label: t("auditManager.actAdd") },
@@ -471,6 +487,7 @@ export default {
 
       // i18n-aware columns/options
       columns,
+      visibleColumns,
       actionOptions,
       objectOptions,
       timeOptions,
