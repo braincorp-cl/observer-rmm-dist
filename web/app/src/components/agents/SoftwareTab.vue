@@ -149,7 +149,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colVersion"),
         field: "version",
-        classes: "mono",
+        classes: "mono obs-wrap-words",
         sortable: false,
       },
       {

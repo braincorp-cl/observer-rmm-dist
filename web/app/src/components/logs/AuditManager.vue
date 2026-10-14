@@ -202,7 +202,7 @@ export default {
         name: "entry_time",
         label: t("auditManager.colTime"),
         field: "entry_time",
-        classes: "obs-nowrap",
+        classes: "obs-wrap-words",
         align: "left",
         sortable: true,
       },
@@ -257,6 +257,8 @@ export default {
         name: "message",
         label: t("auditManager.colMessage"),
         field: "message",
+        classes: "obs-wrap-words",
+        style: "min-width: 200px",
         align: "left",
         sortable: true,
       },
@@ -287,6 +289,12 @@ export default {
         .map((c) => c.name)
         .filter(
           (n) => !props.agent || !["agent", "client", "site"].includes(n),
+        )
+        // Origen (feature 045) solo existe para acciones hechas por MCP.
+        .filter(
+          (n) =>
+            n !== "origin" ||
+            auditLogs.value.some((r) => r.debug_info && r.debug_info.client),
         ),
     );
 
