@@ -217,40 +217,40 @@ export default {
     }
 
     const columns = computed(() => [
-      { name: "usuario", label: t("agentActivity.user"), field: "usuario", align: "left" },
-      { name: "primero", label: t("agentActivity.firstSeen"), field: "primero", align: "left" },
-      { name: "ultimo", label: t("agentActivity.lastSeen"), field: "ultimo", align: "left" },
-      { name: "activo", label: t("agentActivity.activeTime"), field: (r) => hm(r.activo_min), align: "right" },
-      { name: "inactivo", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
+      { name: "usuario", classes: "obs-wrap-words", label: t("agentActivity.user"), field: "usuario", align: "left" },
+      { name: "primero", classes: "obs-nowrap", label: t("agentActivity.firstSeen"), field: "primero", align: "left" },
+      { name: "ultimo", classes: "obs-nowrap", label: t("agentActivity.lastSeen"), field: "ultimo", align: "left" },
+      { name: "activo", classes: "obs-nowrap", label: t("agentActivity.activeTime"), field: (r) => hm(r.activo_min), align: "right" },
+      { name: "inactivo", classes: "obs-nowrap", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
       {
-        name: "jornada",
+        name: "jornada", classes: "obs-nowrap",
         label: t("agentActivity.workdayCol"),
         field: (r) => (r.primer_activo ? `${r.primer_activo}–${r.ultimo_activo}` : "—"),
         align: "left",
       },
       {
-        name: "pausas",
+        name: "pausas", classes: "obs-nowrap",
         label: t("agentActivity.breaks"),
         field: (r) => (r.pausasMin ? `${(r.pausas || []).length} · ${hm(r.pausasMin)}` : "—"),
         align: "right",
       },
       {
-        name: "meta",
+        name: "meta", classes: "mono obs-nowrap",
         label: t("agentActivity.goalPct"),
         field: (r) => (metaMin.value ? `${Math.round((100 * (r.activo_min || 0)) / metaMin.value)}%` : "—"),
         align: "right",
       },
       {
-        name: "entrada",
+        name: "entrada", classes: "mono obs-wrap-words",
         label: t("agentActivity.keysMouse"),
         field: (r) => ("teclas" in r || r.entrada ? `${r.teclas || 0} / ${r.mouse || 0}` : "—"),
         align: "right",
       },
-      { name: "capturas", label: t("agentActivity.captures"), field: "capturas", align: "right" },
-      { name: "procs", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
-      { name: "sitios", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
+      { name: "capturas", classes: "mono obs-nowrap", label: t("agentActivity.captures"), field: "capturas", align: "right" },
+      { name: "procs", classes: "obs-wrap-words", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
+      { name: "sitios", classes: "obs-wrap-words", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
       { name: "urls", label: t("agentActivity.topUrls"), field: "urlsStr", align: "left" },
-      { name: "red", label: t("agentActivity.network"), field: "redStr", align: "left" },
+      { name: "red", classes: "obs-wrap-words", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
 
     // "Zoho Mail (persona@dominio)" -> "Zoho Mail" (mismo criterio que los reportes).
