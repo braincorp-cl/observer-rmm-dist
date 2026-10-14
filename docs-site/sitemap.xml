@@ -56,6 +56,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://docs.observer.cl/guide_monitoring/</loc>
+    <lastmod>2026-10-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://docs.observer.cl/functions/email_alerts/</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>monthly</changefreq>
