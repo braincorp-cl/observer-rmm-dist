@@ -115,6 +115,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colName"),
         field: "name",
+        classes: "obs-wrap-words",
         sortable: true,
       },
       {
@@ -122,7 +123,7 @@ export default {
         align: "left",
         label: t("agentTabs.software.colPublisher"),
         field: "publisher",
-        classes: "mono",
+        classes: "mono obs-wrap-words",
         sortable: true,
       },
       {

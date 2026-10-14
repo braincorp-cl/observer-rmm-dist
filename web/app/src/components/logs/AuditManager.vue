@@ -150,7 +150,13 @@
 
       <template v-slot:body-cell-entry_time="props">
         <q-td :props="props">
-          {{ formatDate(props.value) }}
+          <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones -->
+          <span
+            v-for="(parte, i) in formatDate(props.value).split(' ')"
+            :key="i"
+            class="obs-nowrap-inline"
+            >{{ parte }}
+          </span>
         </q-td>
       </template>
     </q-table>
