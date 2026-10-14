@@ -68,12 +68,27 @@
         v-if="diaActual"
         :rows="usuarios"
         :columns="columns"
+        :visible-columns="columnasVisibles"
         row-key="usuario"
         dense
         flat
         :pagination="{ rowsPerPage: 0 }"
         hide-bottom
       />
+
+      <!-- UI v2 (046): las cuatro listas (procesos, sitios, URL, red) no caben
+           como columnas en el espacio 1c; van por usuario bajo la tabla. -->
+      <template v-if="diaActual">
+        <div v-for="u in usuarios" :key="`ls-${u.usuario}`" class="q-mt-sm">
+          <div v-if="usuarios.length > 1" class="text-caption text-weight-medium">{{ u.usuario }}</div>
+          <div class="act-listas">
+            <div v-for="c in COLUMNAS_LISTA" :key="c.name" class="act-lista">
+              <div class="text-caption text-grey">{{ c.label }}</div>
+              <div :class="c.name === 'urls' ? 'act-lista__url' : 'act-lista__txt'">{{ u[c.field] || "—" }}</div>
+            </div>
+          </div>
+        </div>
+      </template>
 
       <!-- Feature 049-D: tramos de 10 min por usuario (% activo, apagado,
            suspendido, sin datos) y pausas. -->
@@ -252,6 +267,10 @@ export default {
       { name: "urls", label: t("agentActivity.topUrls"), field: "urlsStr", align: "left" },
       { name: "red", classes: "obs-wrap-words", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
+
+    const LISTAS = ["procs", "sitios", "urls", "red"];
+    const columnasVisibles = computed(() => columns.value.map((c) => c.name).filter((n) => !LISTAS.includes(n)));
+    const COLUMNAS_LISTA = computed(() => columns.value.filter((c) => LISTAS.includes(c.name)));
 
     // "Zoho Mail (persona@dominio)" -> "Zoho Mail" (mismo criterio que los reportes).
     function sinCorreo(m) {
@@ -521,7 +540,7 @@ export default {
     watch(diaSel, cargarCapturas);
     onBeforeUnmount(liberarCapturas);
 
-    return { enLinea, capturando, exportando, capturarAhora, exportar, estiloTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { columnasVisibles, COLUMNAS_LISTA, enLinea, capturando, exportando, capturarAhora, exportar, estiloTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>
@@ -559,6 +578,17 @@ export default {
   height: 12px;
   vertical-align: middle;
   border-radius: 2px;
+}
+.act-listas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 4px 16px;
+}
+.act-lista__txt {
+  overflow-wrap: break-word;
+}
+.act-lista__url {
+  overflow-wrap: anywhere;
 }
 .leyenda-vacia {
   border: 1px solid var(--obs-border);
