@@ -95,7 +95,7 @@
             :key="i"
             class="tramo"
             :class="{ 'tramo-hora': i % 6 === 0 }"
-            :style="{ background: colorTramo(tr) }"
+            :style="estiloTramo(tr)"
           >
             <q-tooltip>{{ textoTramo(tr) }}</q-tooltip>
           </div>
@@ -126,10 +126,10 @@
         </div>
       </div>
       <div v-if="usuarios.some((x) => x.tramosVista)" class="row items-center q-gutter-sm q-mt-xs text-caption text-grey">
-        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'medido', pct: 100 }) }" /> {{ $t("agentActivity.legendActive") }}</span>
-        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'medido', pct: 0 }) }" /> {{ $t("agentActivity.legendIdle") }}</span>
-        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'apagado' }) }" /> {{ $t("agentActivity.legendOff") }}</span>
-        <span><span class="leyenda" :style="{ background: colorTramo({ estado: 'suspendido' }) }" /> {{ $t("agentActivity.legendSuspended") }}</span>
+        <span><span class="leyenda" :style="estiloTramo({ estado: 'medido', pct: 100 })" /> {{ $t("agentActivity.legendActive") }}</span>
+        <span><span class="leyenda" :style="estiloTramo({ estado: 'medido', pct: 0 })" /> {{ $t("agentActivity.legendIdle") }}</span>
+        <span><span class="leyenda" :style="estiloTramo({ estado: 'apagado' })" /> {{ $t("agentActivity.legendOff") }}</span>
+        <span><span class="leyenda" :style="estiloTramo({ estado: 'suspendido' })" /> {{ $t("agentActivity.legendSuspended") }}</span>
         <span><span class="leyenda leyenda-vacia" /> {{ $t("agentActivity.legendNoData") }}</span>
         <span><span class="leyenda" style="background: var(--obs-act-keys)" /> {{ $t("agentActivity.legendKeys") }}</span>
         <span><span class="leyenda" style="background: var(--obs-act-mouse)" /> {{ $t("agentActivity.legendMouse") }}</span>
@@ -304,13 +304,17 @@ export default {
       });
     }
 
-    function colorTramo(tr) {
+    // Estilo del tramo: el verde del token con opacidad según el % activo
+    // (opacity en vez de un color mezclado, para que el color siga siendo el token).
+    function estiloTramo(tr) {
       if (tr.estado === "medido") {
-        return tr.pct === 0 ? "var(--obs-act-idle)" : `color-mix(in srgb, var(--obs-act-on) ${Math.round(15 + 0.85 * tr.pct)}%, transparent)`;
+        return tr.pct === 0
+          ? { background: "var(--obs-act-idle)" }
+          : { background: "var(--obs-act-on)", opacity: (0.15 + (0.85 * tr.pct) / 100).toFixed(2) };
       }
-      if (tr.estado === "apagado") return "var(--obs-act-off)";
-      if (tr.estado === "suspendido") return "var(--obs-act-susp)";
-      return "transparent";
+      if (tr.estado === "apagado") return { background: "var(--obs-act-off)" };
+      if (tr.estado === "suspendido") return { background: "var(--obs-act-susp)" };
+      return { background: "transparent" };
     }
 
     function textoTramo(tr) {
@@ -517,7 +521,7 @@ export default {
     watch(diaSel, cargarCapturas);
     onBeforeUnmount(liberarCapturas);
 
-    return { enLinea, capturando, exportando, capturarAhora, exportar, colorTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
+    return { enLinea, capturando, exportando, capturarAhora, exportar, estiloTramo, textoTramo, selectedAgent, estado, configurar, capturas, capturaSel, capturaAbierta, verCaptura, hora, leyenda, dias, diaSel, diaActual, usuarios, opcionesDia, columns, sinPermiso, hm };
   },
 };
 </script>
