@@ -630,24 +630,21 @@ export default {
         { mode: "alarm", label: "nav.bulkAlarm" },
         { mode: "stopalarm", label: "nav.bulkStopAlarm" },
       ],
+      // 050: por omisión, equipo+descripción y cliente+sitio en una celda; las alertas
+      // por equipo (SMS, correo, panel), el sitio y la descripción sueltos y el arranque
+      // quedan elegibles en «Columnas» para que la tabla quepa a 1280 px.
       visibleColumns: [
-        "smsalert",
         "plat",
         "mon-type",
-        "emailalert",
-        "dashboardalert",
         "checks-status",
         "client_name",
-        "site_name",
         "hostname",
-        "description",
         "user",
         "patchespending",
         "pendingactions",
         "agentstatus",
         "needs_reboot",
         "last_seen",
-        "boot_time",
       ],
     };
   },
@@ -987,7 +984,9 @@ export default {
     // Columnas que el usuario puede ocultar o mostrar (todas visibles por omisión, como en v1).
     optionalColumns() {
       return [
-        { name: "client_name", label: "dashboard.colClient" },
+        { name: "smsalert", label: "fleet.colSmsAlert" },
+        { name: "emailalert", label: "fleet.colEmailAlert" },
+        { name: "dashboardalert", label: "fleet.colDashboardAlert" },
         { name: "site_name", label: "dashboard.colSite" },
         { name: "description", label: "dashboard.colDescription" },
         { name: "user", label: "dashboard.colUser" },
@@ -1324,7 +1323,16 @@ export default {
 .obs-fleet__chip
   border-radius: 16px
   min-height: 30px
+  padding: 0 4px
+  font-size: 13px
   color: var(--obs-text-2)
+.obs-fleet__chip.q-btn--outline:before
+  border-color: var(--obs-hdr-ctl-border)
+.obs-fleet__btn.q-btn--outline:before
+  border-color: var(--obs-hdr-ctl-border)
+.obs-fleet__type :deep(.q-btn)
+  font-size: 13px
+  padding: 0 10px
 .obs-fleet__search
   width: 260px
 </style>

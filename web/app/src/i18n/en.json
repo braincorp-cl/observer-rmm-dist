@@ -186,7 +186,10 @@
     "kpiActions": "Pending actions",
     "ofTotal": "of {n}",
     "agentsUnit": "agents",
-    "queuedUnit": "queued"
+    "queuedUnit": "queued",
+    "colSmsAlert": "SMS alert",
+    "colEmailAlert": "Email alert",
+    "colDashboardAlert": "Dashboard alert"
   },
   "agentTable": {
     "noAgents": "No Agents",

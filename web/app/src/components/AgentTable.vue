@@ -96,7 +96,7 @@
           <q-menu context-menu>
             <AgentActionMenu :agent="props.row" />
           </q-menu>
-          <q-td>
+          <q-td key="smsalert" :props="props">
             <q-checkbox
               v-if="
                 props.row.alert_template &&
@@ -123,7 +123,7 @@
               <q-tooltip>{{ sms_overdue_text }}</q-tooltip>
             </q-checkbox>
           </q-td>
-          <q-td>
+          <q-td key="emailalert" :props="props">
             <q-checkbox
               v-if="
                 props.row.alert_template &&
@@ -150,7 +150,7 @@
               <q-tooltip>{{ email_overdue_text }}</q-tooltip>
             </q-checkbox>
           </q-td>
-          <q-td>
+          <q-td key="dashboardalert" :props="props">
             <q-checkbox
               v-if="
                 props.row.alert_template &&
@@ -303,11 +303,27 @@
             </q-icon>
           </q-td>
 
-          <q-td key="client_name" :props="props">{{
-            props.row.client_name
-          }}</q-td>
+          <!-- 050: cliente y sitio en una celda (el sitio también existe como columna elegible) -->
+          <q-td key="client_name" :props="props">
+            <div class="obs-agtbl__main">{{ props.row.client_name }}</div>
+            <div
+              v-if="!visibleColumns.includes('site_name')"
+              class="obs-agtbl__sub"
+            >
+              {{ props.row.site_name }}
+            </div>
+          </q-td>
           <q-td key="site_name" :props="props">{{ props.row.site_name }}</q-td>
-          <q-td key="hostname" :props="props">{{ props.row.hostname }}</q-td>
+          <!-- 050: equipo y descripción en una celda (la descripción también es columna elegible) -->
+          <q-td key="hostname" :props="props">
+            <div class="obs-agtbl__host">{{ props.row.hostname }}</div>
+            <div
+              v-if="props.row.description && !visibleColumns.includes('description')"
+              class="obs-agtbl__sub"
+            >
+              {{ props.row.description }}
+            </div>
+          </q-td>
           <q-td key="description" :props="props">{{
             props.row.description
           }}</q-td>

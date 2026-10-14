@@ -186,7 +186,10 @@
     "kpiActions": "Acciones pendientes",
     "ofTotal": "de {n}",
     "agentsUnit": "equipos",
-    "queuedUnit": "en cola"
+    "queuedUnit": "en cola",
+    "colSmsAlert": "Alerta por SMS",
+    "colEmailAlert": "Alerta por correo",
+    "colDashboardAlert": "Alerta en el panel"
   },
   "agentTable": {
     "noAgents": "Sin agentes",
