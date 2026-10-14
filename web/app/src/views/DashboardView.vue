@@ -79,13 +79,14 @@
                 >{{ props.node.label }}</span
               >
               <q-icon
-                v-if="nodeState(props.node)"
-                :name="nodeStateIcon(props.node)"
-                :class="`obs-fleet__state obs-fleet__state--${nodeState(props.node)}`"
+                v-for="st in nodeStates(props.node)"
+                :key="st"
+                :name="stateIcon(st)"
+                :class="`obs-fleet__state obs-fleet__state--${st}`"
                 size="14px"
-                :aria-label="nodeStateLabel(props.node)"
+                :aria-label="stateLabel(st)"
               >
-                <q-tooltip>{{ nodeStateLabel(props.node) }}</q-tooltip>
+                <q-tooltip>{{ stateLabel(st) }}</q-tooltip>
               </q-icon>
               <span class="mono obs-fleet__count">{{
                 props.node.children
@@ -669,22 +670,21 @@ export default {
   },
   methods: {
     // 050 · flota
-    // Estado del nodo con prioridad error > advertencia > mantenimiento. node.color (store, v1)
-    // pone mantenimiento primero y tapa los chequeos con error de los demás equipos del cliente.
-    nodeState(node) {
+    // Estados del nodo: chequeos (error, si no advertencia) y, aparte, mantenimiento. node.color
+    // (store, v1) elige uno solo con mantenimiento primero y tapa los chequeos con error.
+    nodeStates(node) {
       const d = node.client || node.site;
-      if (!d) return node.color;
-      if (d.failing_checks?.error) return "negative";
-      if (d.failing_checks?.warning) return "warning";
-      if (d.maintenance_mode) return "green";
-      return undefined;
+      if (!d) return node.color ? [node.color] : [];
+      const out = [];
+      if (d.failing_checks?.error) out.push("negative");
+      else if (d.failing_checks?.warning) out.push("warning");
+      if (d.maintenance_mode) out.push("green");
+      return out;
     },
-    nodeStateIcon(node) {
-      const st = this.nodeState(node);
+    stateIcon(st) {
       return st === "green" ? "construction" : st === "negative" ? "error" : "warning";
     },
-    nodeStateLabel(node) {
-      const st = this.nodeState(node);
+    stateLabel(st) {
       if (st === "green") return this.$t("fleet.stateMaintenance");
       if (st === "negative") return this.$t("fleet.stateError");
       return this.$t("fleet.stateWarning");
