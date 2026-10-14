@@ -548,7 +548,7 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <export-table-btn :data="filteredAgents" :columns="exportColumns" />
+        <export-table-btn :data="filteredAgents" :columns="exportColumns" :label="$t('fleet.exportCsv')" />
       </div>
 
       <AgentTable
@@ -977,8 +977,8 @@ export default {
     chips() {
       return [
         { key: "checks", label: "dashboard.checksFailing", on: this.filterChecksFailing },
-        { key: "online", label: "dashboard.showOnlineOnly", on: this.filterAvailability === "online" },
-        { key: "reboot", label: "dashboard.rebootNeeded", on: this.filterRebootNeeded },
+        { key: "online", label: "fleet.chipOnline", on: this.filterAvailability === "online" },
+        { key: "reboot", label: "fleet.chipReboot", on: this.filterRebootNeeded },
       ];
     },
     // Columnas que el usuario puede ocultar o mostrar (todas visibles por omisión, como en v1).

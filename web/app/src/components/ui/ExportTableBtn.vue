@@ -1,5 +1,12 @@
 <template>
-  <q-btn dense color="primary" icon-right="archive" @click="exportTable">
+  <q-btn
+    dense
+    color="primary"
+    icon-right="archive"
+    :label="label"
+    :aria-label="label || $t('exportTableBtn.tooltip')"
+    @click="exportTable"
+  >
     <q-tooltip>{{ $t("exportTableBtn.tooltip") }}</q-tooltip>
   </q-btn>
 </template>
@@ -12,6 +19,8 @@ export default {
   props: {
     columns: !Array,
     data: !Array,
+    // Texto visible opcional; sin él queda solo el ícono (como en v1).
+    label: { type: String, default: undefined },
   },
   setup(props) {
     return {
