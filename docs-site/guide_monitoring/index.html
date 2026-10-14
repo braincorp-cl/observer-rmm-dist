@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Monitoreo de empleados · Configurar, ver la actividad y reportes" data-title-en="Employee monitoring · Set up, view activity and reports">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoreo de empleados · Configurar, ver la actividad y reportes</title>
+<meta name="description" content="Guía para el administrador de Observer RMM: encender el monitoreo de empleados por cliente, sitio o equipo, ver la actividad de cada equipo y generar los reportes de productividad.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/guide_monitoring/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/guide_monitoring/">
+<meta property="og:title" content="Monitoreo de empleados · Configurar, ver la actividad y reportes">
+<meta property="og:description" content="Guía para el administrador de Observer RMM: encender el monitoreo de empleados por cliente, sitio o equipo, ver la actividad de cada equipo y generar los reportes de productividad.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  // Por defecto SIEMPRE 'es'. Antes se autodetectaba con navigator.language, y eso
+  // le pasaba una cuenta al SEO: los rastreadores se anuncian en inglés, así que
+  // renderizaban la página en inglés mientras el <title>, la descripción y el
+  // JSON-LD del HTML estático están en español — metadatos y contenido indexado en
+  // idiomas distintos. El selector ES/EN sigue ahí y su elección se persiste.
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/guide_monitoring/" class="active"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></h1>
+      <p class="lead lang-es">Esta guía lleva al administrador desde el módulo apagado de fábrica hasta el primer reporte de productividad: quién puede usarlo, cómo encenderlo y para qué equipos, cómo clasificar las aplicaciones y los sitios, dónde ver la actividad de cada equipo y qué reportes genera.</p>
+      <p class="lead lang-en">This guide takes the administrator from the module switched off at the factory to the first productivity report: who can use it, how to turn it on and for which machines, how to classify applications and websites, where to see each machine's activity, and which reports it produces.</p>
+
+      <div class="callout warn lang-es">
+        <span class="tag">Antes de encenderlo</span>
+        <p>El agente <strong>no muestra ningún aviso en pantalla</strong> cuando el monitoreo está activo. Por eso las personas que usan los equipos deben estar <strong>informadas por escrito antes</strong> de que lo enciendas (por ejemplo, en el acta de entrega del equipo o en la política de uso). Tienes un texto modelo listo para adoptar en <a href="/uso_aceptable/#medicion-actividad">Uso aceptable y privacidad, §6</a>. Revisa también lo que exige la legislación laboral y de datos personales que te aplique.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Before you turn it on</span>
+        <p>The agent <strong>shows no on-screen notice</strong> while monitoring is active. That is why the people using the machines must be <strong>informed in writing beforehand</strong> (for example, in the device handover record or the use policy). A model text ready to adopt is in <a href="/uso_aceptable/#medicion-actividad">Acceptable use &amp; privacy, §6</a>. Also check the labor and personal-data laws that apply to you.</p>
+      </div>
+
+      <h2 id="que-registra"><span class="lang-es">Qué registra y qué no</span><span class="lang-en">What it records and what it doesn't</span></h2>
+      <p class="lang-es">El monitoreo es un módulo <strong>nativo del agente</strong> (no instala programas adicionales en el equipo) que muestrea la sesión del usuario mientras está abierta. Según lo que enciendas, registra:</p>
+      <p class="lang-en">Monitoring is a <strong>native agent module</strong> (it installs no extra software on the machine) that samples the user's session while it is open. Depending on what you turn on, it records:</p>
+      <ul class="lang-es">
+        <li><strong>Tiempo activo e inactivo</strong> por día, en tramos de 10 minutos, con el inicio y el fin de la jornada y las pausas.</li>
+        <li><strong>Aplicaciones</strong> usadas: cuánto tiempo estuvo cada una al frente, con uso y sin uso.</li>
+        <li><strong>Sitios web y URL</strong> visitados (dominio y ruta, a partir del historial del navegador y de los títulos de ventana).</li>
+        <li><strong>Cantidad</strong> de teclas presionadas y de eventos del mouse — <strong>nunca qué tecla</strong>.</li>
+        <li><strong>Capturas de pantalla</strong> periódicas, sólo con el usuario activo, guardadas cifradas.</li>
+        <li><strong>Red por aplicación</strong>: qué aplicaciones mantienen conexiones, cuánto tiempo y hacia cuántos destinos — sin medir bytes ni contenido.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Active and idle time</strong> per day, in 10-minute slots, with the start and end of the workday and the breaks.</li>
+        <li><strong>Applications</strong> used: how long each one was in the foreground, in use and unused.</li>
+        <li><strong>Websites and URLs</strong> visited (domain and path, from the browser history and window titles).</li>
+        <li>The <strong>number</strong> of key presses and mouse events — <strong>never which key</strong>.</li>
+        <li>Periodic <strong>screenshots</strong>, only while the user is active, stored encrypted.</li>
+        <li><strong>Network per application</strong>: which applications keep connections, for how long and to how many destinations — without measuring bytes or content.</li>
+      </ul>
+      <p class="lang-es">No graba video ni audio, no registra el contenido de lo que se escribe y no lee correos ni archivos.</p>
+      <p class="lang-en">It does not record video or audio, does not log the content of what is typed, and does not read emails or files.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Alcance</span>
+        <p>El módulo está pensado para <strong>equipos físicos</strong> con la persona trabajando en la <strong>consola local</strong> (Windows, Linux y macOS). No cubre sesiones de escritorio remoto (RDP, xrdp) ni servidores de terminales. En Linux con Wayland (GNOME) se miden inactividad y capturas, pero no siempre la ventana activa.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Scope</span>
+        <p>The module is designed for <strong>physical machines</strong> with the person working at the <strong>local console</strong> (Windows, Linux and macOS). It does not cover remote desktop sessions (RDP, xrdp) or terminal servers. On Linux with Wayland (GNOME), idle time and screenshots are measured, but not always the active window.</p>
+      </div>
+
+      <h2 id="permisos"><span class="lang-es">1. Da los permisos a quien corresponda</span><span class="lang-en">1. Grant the permissions to the right people</span></h2>
+      <p class="lang-es">El monitoreo tiene <strong>dos permisos propios</strong>, separados del de administrar equipos. Así, un técnico puede dar soporte a un equipo sin ver la actividad de quien lo usa. Ábrelos en <em>Configuración → Gestor de permisos</em>, edita el rol y marca:</p>
+      <p class="lang-en">Monitoring has <strong>two dedicated permissions</strong>, separate from the one to manage machines. That way a technician can support a machine without seeing the activity of whoever uses it. Open <em>Settings → Permissions manager</em>, edit the role and check:</p>
+      <ul class="lang-es">
+        <li><strong>Ver monitoreo de actividad</strong> — ver la pestaña <em>Actividad</em>, el monitoreo en vivo, los reportes de actividad y exportar.</li>
+        <li><strong>Encender/apagar monitoreo de actividad</strong> — decidir para qué clientes, sitios o equipos se registra.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>View activity monitoring</strong> — see the <em>Activity</em> tab, live monitoring, the activity reports, and export.</li>
+        <li><strong>Turn activity monitoring on/off</strong> — decide for which clients, sites or machines it records.</li>
+      </ul>
+      <p class="lang-es">Los superusuarios tienen ambos permisos. Dáselos sólo a quienes los necesiten (por ejemplo, jefaturas o Recursos Humanos) y revisa el modelo general en <a href="/functions/permissions/">Permisos y seguridad</a>.</p>
+      <p class="lang-en">Superusers have both permissions. Grant them only to those who need them (for example, managers or Human Resources) and review the general model in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
+
+      <h2 id="encender"><span class="lang-es">2. Enciende el interruptor global y ajusta el muestreo</span><span class="lang-en">2. Turn on the global switch and tune the sampling</span></h2>
+      <p class="lang-es">Abre <em>Configuración → Configuración global</em> y ve a la pestaña <strong>Employee Monitoring</strong>. Activa <strong>Monitoreo de actividad de usuarios</strong> y revisa los parámetros (los valores entre paréntesis son los de fábrica):</p>
+      <p class="lang-en">Open <em>Settings → Global settings</em> and go to the <strong>Employee Monitoring</strong> tab. Turn on <strong>User activity monitoring</strong> and review the parameters (factory values in parentheses):</p>
+      <ul class="lang-es">
+        <li><strong>Cadencia de muestreo</strong> (60 s) — cada cuánto el agente mira qué está al frente. Entre 15 y 600 segundos.</li>
+        <li><strong>Umbral de inactividad</strong> (300 s) — sin teclado ni mouse durante este tiempo, el tramo cuenta como inactivo. Entre 30 y 3600 segundos.</li>
+        <li><strong>Registrar títulos de ventana</strong> (encendido) — necesario para deducir los sitios web a partir del título del navegador.</li>
+        <li><strong>Capturas de pantalla cada (min)</strong> (0 = apagadas) — entre 1 y 240 minutos. Sólo se toman con el usuario activo.</li>
+        <li><strong>Medir uso de red por aplicación</strong> (apagado).</li>
+        <li><strong>Siempre activo (reuniones)</strong> (Teams, Zoom, Webex, Meet) — un patrón por línea; mientras esa aplicación o ventana esté al frente, cuenta como actividad aunque no se toquen teclado ni mouse.</li>
+        <li><strong>Jornada esperada</strong> (8 h) — la meta contra la que se calcula el <em>% de la meta</em>.</li>
+        <li><strong>Horario laboral</strong> (08:00-18:00) y <strong>Días laborales</strong> (lunes a viernes) — usados por el filtro «Solo horario laboral» de los reportes.</li>
+        <li><strong>Conservar actividad y capturas</strong> (90 días) — pasado ese plazo se borran los resúmenes y las capturas. 0 = no purgar.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Sampling cadence</strong> (60 s) — how often the agent checks what is in the foreground. Between 15 and 600 seconds.</li>
+        <li><strong>Idle threshold</strong> (300 s) — with no keyboard or mouse for this long, the slot counts as idle. Between 30 and 3600 seconds.</li>
+        <li><strong>Record window titles</strong> (on) — required to infer websites from the browser title.</li>
+        <li><strong>Screenshots every (min)</strong> (0 = off) — between 1 and 240 minutes. Taken only while the user is active.</li>
+        <li><strong>Measure network usage per application</strong> (off).</li>
+        <li><strong>Always active (meetings)</strong> (Teams, Zoom, Webex, Meet) — one pattern per line; while that application or window is in the foreground, it counts as activity even without keyboard or mouse input.</li>
+        <li><strong>Expected workday</strong> (8 h) — the goal against which the <em>% of goal</em> is computed.</li>
+        <li><strong>Work hours</strong> (08:00-18:00) and <strong>Work days</strong> (Monday to Friday) — used by the reports' «Work hours only» filter.</li>
+        <li><strong>Keep activity and screenshots</strong> (90 days) — after that, summaries and screenshots are deleted. 0 = never prune.</li>
+      </ul>
+      <p class="lang-es">Guarda. Encender el interruptor global <strong>todavía no hace muestrear a nadie</strong>: sólo habilita el siguiente paso.</p>
+      <p class="lang-en">Save. Turning on the global switch <strong>does not make anyone get sampled yet</strong>: it only enables the next step.</p>
+
+      <h2 id="alcance"><span class="lang-es">3. Elige qué equipos se monitorean</span><span class="lang-en">3. Choose which machines are monitored</span></h2>
+      <p class="lang-es">El monitoreo se decide en tres niveles: <strong>cliente</strong>, <strong>sitio</strong> y <strong>equipo</strong>. Cada uno puede estar en <em>Encender</em>, <em>Apagar</em> o <em>Heredar</em>, y <strong>gana el valor más específico</strong>: lo que digas en un equipo pesa más que su sitio, y el sitio más que el cliente. Sin ninguna decisión, el equipo queda apagado.</p>
+      <p class="lang-en">Monitoring is decided at three levels: <strong>client</strong>, <strong>site</strong> and <strong>machine</strong>. Each can be set to <em>On</em>, <em>Off</em> or <em>Inherit</em>, and <strong>the most specific value wins</strong>: what you set on a machine outweighs its site, and the site outweighs the client. With no decision at all, the machine stays off.</p>
+      <p class="lang-es">Tienes tres caminos, todos equivalentes:</p>
+      <p class="lang-en">There are three equivalent ways to do it:</p>
+      <ol class="lang-es">
+        <li><strong>Desde el árbol de clientes</strong>: clic derecho sobre un cliente o un sitio → <strong>Monitoreo de actividad…</strong> → elige <em>Encender</em>, <em>Apagar</em> o <em>Heredar</em> y pulsa <strong>Guardar</strong>.</li>
+        <li><strong>Desde un equipo</strong>: selecciónalo, abre la pestaña <strong>Actividad</strong> y pulsa <strong>Configurar</strong>.</li>
+        <li><strong>Desde la Configuración global</strong>: en la pestaña <em>Employee Monitoring</em>, la tabla de alcance muestra todas las reglas vigentes y cuántos equipos quedan monitoreados. Para agregar una, elige el cliente y, si corresponde, un sitio o un equipo, y pulsa <strong>Agregar</strong>; el ícono de quitar la elimina y el nivel vuelve a heredar.</li>
+      </ol>
+      <ol class="lang-en">
+        <li><strong>From the client tree</strong>: right-click a client or a site → <strong>Activity monitoring…</strong> → choose <em>On</em>, <em>Off</em> or <em>Inherit</em> and click <strong>Save</strong>.</li>
+        <li><strong>From a machine</strong>: select it, open the <strong>Activity</strong> tab and click <strong>Configure</strong>.</li>
+        <li><strong>From Global settings</strong>: on the <em>Employee Monitoring</em> tab, the scope table lists every active rule and how many machines are monitored. To add one, pick the client and, if needed, a site or a machine, and click <strong>Add</strong>; the remove icon deletes it and the level goes back to inheriting.</li>
+      </ol>
+      <p class="lang-es">Un patrón habitual: encender el cliente completo y apagar puntualmente los equipos que no corresponde medir (servidores, equipos compartidos, kioscos). El cambio llega al agente al instante si está en línea; si está apagado, lo recibe al reconectarse.</p>
+      <p class="lang-en">A common pattern: turn on the whole client and turn off, one by one, the machines that should not be measured (servers, shared machines, kiosks). The change reaches the agent right away if it is online; if it is off, it receives it when it reconnects.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">En macOS</span>
+        <p>Para las capturas, macOS exige que una persona conceda al agente el permiso de <strong>Grabación de pantalla</strong> en <em>Ajustes del Sistema → Privacidad y seguridad</em>; la consola no puede concederlo. Si una actualización del agente lo hace caducar, hay que volver a concederlo.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">On macOS</span>
+        <p>For screenshots, macOS requires a person to grant the agent the <strong>Screen Recording</strong> permission in <em>System Settings → Privacy &amp; Security</em>; the console cannot grant it. If an agent update makes it expire, it must be granted again.</p>
+      </div>
+
+      <h2 id="categorias"><span class="lang-es">4. Clasifica aplicaciones y sitios</span><span class="lang-en">4. Classify applications and websites</span></h2>
+      <p class="lang-es">Los reportes reparten el tiempo activo entre <strong>Productivo</strong>, <strong>Improductivo</strong>, <strong>Neutral</strong> y <strong>Sin categoría</strong>. La clasificación es tuya y se guarda en <em>Configuración → Configuración global → Almacén de claves</em>, en una clave llamada <code>actividad_categorias</code> cuyo valor es un JSON como este:</p>
+      <p class="lang-en">Reports split active time into <strong>Productive</strong>, <strong>Unproductive</strong>, <strong>Neutral</strong> and <strong>Uncategorized</strong>. The classification is yours and is stored in <em>Settings → Global settings → Key store</em>, under a key named <code>actividad_categorias</code> whose value is a JSON like this:</p>
+      <pre><code>{
+  "productivo":   ["excel", "winword", "outlook", "code", "erp.miempresa.cl"],
+  "improductivo": ["youtube.com", "netflix.com", "steam"],
+  "neutral":      ["chrome", "firefox", "explorer"],
+  "por_defecto":  "sin_categoria"
+}</code></pre>
+      <ul class="lang-es">
+        <li>Cada elemento es un <strong>proceso</strong> (sin el <code>.exe</code>: <code>chrome</code> cubre <code>chrome.exe</code> en Windows y <code>chrome</code> en Linux o macOS) o un <strong>dominio</strong> (<code>google.com</code> cubre también sus subdominios).</li>
+        <li>Lo que no aparece en ninguna lista cae en <code>por_defecto</code> (<code>productivo</code>, <code>improductivo</code>, <code>neutral</code> o <code>sin_categoria</code>).</li>
+        <li>Conviene dejar los navegadores como <em>neutral</em> y clasificar los <strong>dominios</strong>: así el tiempo en el navegador se reparte según el sitio.</li>
+        <li>La clasificación se aplica al generar cada reporte: si la cambias, los reportes siguientes —incluidos los de días pasados— la usan.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Each item is a <strong>process</strong> (without <code>.exe</code>: <code>chrome</code> covers <code>chrome.exe</code> on Windows and <code>chrome</code> on Linux or macOS) or a <strong>domain</strong> (<code>google.com</code> also covers its subdomains).</li>
+        <li>Anything not on a list falls into <code>por_defecto</code> (<code>productivo</code>, <code>improductivo</code>, <code>neutral</code> or <code>sin_categoria</code>).</li>
+        <li>It is best to leave browsers as <em>neutral</em> and classify <strong>domains</strong>: browser time is then split according to the site.</li>
+        <li>The classification is applied when each report is generated: if you change it, later reports —including those for past days— use it.</li>
+      </ul>
+
+      <h2 id="ver-actividad"><span class="lang-es">5. Ve la actividad de un equipo</span><span class="lang-en">5. View a machine's activity</span></h2>
+      <p class="lang-es">Selecciona el equipo en el panel principal y abre la pestaña <strong>Actividad</strong>. Arriba verás si el monitoreo está encendido y de dónde viene la decisión (el propio equipo, su sitio o su cliente). El agente sube el resumen cada <strong>10 minutos</strong>, así que el día en curso aparece marcado como <em>Parcial</em>.</p>
+      <p class="lang-en">Select the machine in the main panel and open the <strong>Activity</strong> tab. At the top you will see whether monitoring is on and where the decision comes from (the machine itself, its site or its client). The agent uploads the summary every <strong>10 minutes</strong>, so the current day shows as <em>Partial</em>.</p>
+      <p class="lang-es">Por cada día y usuario la pestaña muestra:</p>
+      <p class="lang-en">For each day and user the tab shows:</p>
+      <ul class="lang-es">
+        <li><strong>Jornada</strong> (primera y última entrada de teclado o mouse), <strong>Activo</strong>, <strong>Inactivo</strong>, <strong>Pausas</strong> y <strong>% de la meta</strong>.</li>
+        <li>Una <strong>línea de tiempo en tramos de 10 minutos</strong>: el color indica el % activo de cada tramo, y se distinguen <em>presente sin actividad</em>, <em>equipo suspendido</em>, <em>equipo apagado o agente detenido</em> y <em>sin datos</em>. Al pasar el mouse ves las teclas y eventos de mouse del tramo.</li>
+        <li><strong>Procesos más usados</strong>, separando el tiempo con la app activa del tiempo con la app al frente sin uso.</li>
+        <li><strong>Sitios web</strong>, <strong>URL más visitadas</strong> y <strong>Red por aplicación</strong>, si están encendidos.</li>
+        <li><strong>Capturas del día</strong>: clic en una miniatura para verla en grande.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Workday</strong> (first and last keyboard or mouse input), <strong>Active</strong>, <strong>Idle</strong>, <strong>Breaks</strong> and <strong>% of goal</strong>.</li>
+        <li>A <strong>timeline in 10-minute slots</strong>: the color shows each slot's % active, and it tells apart <em>present without activity</em>, <em>machine suspended</em>, <em>machine off or agent stopped</em> and <em>no data</em>. Hover to see the slot's key presses and mouse events.</li>
+        <li><strong>Most used processes</strong>, separating time with the app in use from time with the app in front but unused.</li>
+        <li><strong>Websites</strong>, <strong>Most visited URLs</strong> and <strong>Network per application</strong>, if turned on.</li>
+        <li><strong>Screenshots of the day</strong>: click a thumbnail to view it full size.</li>
+      </ul>
+      <p class="lang-es">Dos acciones en la parte superior de la pestaña:</p>
+      <p class="lang-en">Two actions at the top of the tab:</p>
+      <ul class="lang-es">
+        <li><strong>Captura ahora</strong> — pide una captura del momento (sin video). Queda registrada en <em>Auditoría</em>. Si el equipo está sin conexión, el botón aparece desactivado.</li>
+        <li><strong>Exportar XLSX (30 días)</strong> — descarga una planilla de los últimos 30 días con las hojas <em>Resumen</em> por usuario, <em>Aplicaciones</em>, <em>Programas y sitios</em>, <em>URL</em> y <em>Sitios web</em>.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Capture now</strong> — requests a screenshot of the moment (no video). It is recorded in the <em>Audit log</em>. If the machine is offline, the button is disabled.</li>
+        <li><strong>Export XLSX (30 days)</strong> — downloads a spreadsheet of the last 30 days with a per-user <em>Summary</em> sheet plus <em>Applications</em>, <em>Programs and sites</em>, <em>URL</em> and <em>Websites</em>.</li>
+      </ul>
+
+      <h2 id="en-vivo"><span class="lang-es">6. Monitoreo en vivo</span><span class="lang-en">6. Live monitoring</span></h2>
+      <p class="lang-es">En <em>Herramientas → Monitoreo en vivo</em> ves una grilla con la <strong>última captura de cada equipo</strong> que tiene monitoreo y capturas encendidas, filtrable por cliente. Al abrir la página y con <strong>Actualizar</strong> (un equipo) o <strong>Actualizar todo</strong> se pide una captura del momento. Cada pedido queda en Auditoría.</p>
+      <p class="lang-en">In <em>Tools → Live monitoring</em> you see a grid with the <strong>latest screenshot of every machine</strong> that has monitoring and screenshots turned on, filterable by client. Opening the page and clicking <strong>Refresh</strong> (one machine) or <strong>Refresh all</strong> requests a screenshot of the moment. Every request is recorded in the Audit log.</p>
+      <p class="lang-es">Si un equipo no devuelve imagen, la tarjeta dice por qué: <em>Sesión bloqueada</em>, <em>Sin usuario con sesión</em>, <em>Capturas desactivadas</em>, <em>El equipo está sin conexión</em>, entre otros. Para no saturar el equipo, entre un pedido y el siguiente hay que esperar unos segundos.</p>
+      <p class="lang-en">If a machine returns no image, its card says why: <em>Session locked</em>, <em>No signed-in user</em>, <em>Screenshots disabled</em>, <em>The machine is offline</em>, among others. To avoid overloading the machine, you have to wait a few seconds between requests.</p>
+
+      <h2 id="reportes"><span class="lang-es">7. Genera los reportes de actividad</span><span class="lang-en">7. Generate the activity reports</span></h2>
+      <p class="lang-es">Observer trae tres reportes de actividad de fábrica en <em>Reportes → Gestor de reportes</em>. Se generan igual que cualquier otro (clic derecho → <strong>Abrir reporte HTML</strong> o <strong>Descargar reporte PDF</strong>; el paso a paso general está en <a href="/guide_reports/#generar">Reportes</a>):</p>
+      <p class="lang-en">Observer ships three activity reports in <em>Reports → Report manager</em>. They are generated like any other (right-click → <strong>Open HTML report</strong> or <strong>Download PDF report</strong>; the general walkthrough is in <a href="/guide_reports/#generar">Reports</a>):</p>
+      <ul class="lang-es">
+        <li><strong>Actividad de usuarios - diario</strong> — un día: indicadores (usuarios con actividad, tiempo activo, % de la meta), mapa de calor por hora, barra por categoría y detalle por usuario.</li>
+        <li><strong>Actividad - resumen semanal</strong> — 7 días a partir de la fecha <em>Desde</em>, una fila por usuario y equipo.</li>
+        <li><strong>Actividad - por período</strong> — cualquier rango entre <em>Desde</em> y <em>Hasta</em> (un mes, un trimestre; hasta 366 días).</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Actividad de usuarios - diario</strong> (daily) — one day: indicators (users with activity, active time, % of goal), hourly heat map, bar by category and per-user detail.</li>
+        <li><strong>Actividad - resumen semanal</strong> (weekly summary) — 7 days starting on the <em>From</em> date, one row per user and machine.</li>
+        <li><strong>Actividad - por período</strong> (by period) — any range between <em>From</em> and <em>To</em> (a month, a quarter; up to 366 days).</li>
+      </ul>
+      <p class="lang-es">En el diálogo <strong>«Seleccionar dependencias del reporte»</strong> indicas:</p>
+      <p class="lang-en">In the <strong>«Select report dependencies»</strong> dialog you fill in:</p>
+      <ul class="lang-es">
+        <li><strong>Client</strong> y la <strong>Fecha</strong> (diario) o <strong>Desde</strong>/<strong>Hasta</strong> (semanal y por período) — obligatorios.</li>
+        <li><strong>Equipo</strong> y <strong>Usuario</strong> — opcionales; vacíos, el reporte incluye a todos los del cliente.</li>
+        <li><strong>Solo horario laboral</strong> — limita el cálculo al horario y los días laborales definidos en el paso 2.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Client</strong> and the <strong>Date</strong> (daily) or <strong>From</strong>/<strong>To</strong> (weekly and by period) — required.</li>
+        <li><strong>Machine</strong> and <strong>User</strong> — optional; left empty, the report includes everyone in the client.</li>
+        <li><strong>Work hours only</strong> — limits the calculation to the work hours and days defined in step 2.</li>
+      </ul>
+      <p class="lang-es">Los reportes semanal y por período muestran, por persona: días con actividad, tiempo activo e inactivo, reparto por categoría, % de la meta, inicio y fin promedio, pausas, tiempo con el equipo apagado o suspendido y teclas/mouse; más los rankings de aplicaciones, programas y sitios, URL y sitios web. Para recibirlos en el correo cada lunes o cada mes, prográmalos como se explica en <a href="/guide_reports/#programar">Programar y enviar por correo</a>.</p>
+      <p class="lang-en">The weekly and by-period reports show, per person: days with activity, active and idle time, split by category, % of goal, average start and end, breaks, time with the machine off or suspended, and keys/mouse; plus rankings of applications, programs and sites, URLs and websites. To receive them by email every Monday or every month, schedule them as explained in <a href="/guide_reports/#programar">Schedule and email</a>.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">¿El reporte sale vacío?</span>
+        <p>Revisa, en orden: que el interruptor global esté encendido, que el equipo esté dentro del alcance (pestaña <em>Actividad</em> → «Monitoreo encendido»), que haya pasado al menos una subida (10 minutos con sesión abierta) y que la fecha elegida tenga actividad.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Report comes out empty?</span>
+        <p>Check, in order: that the global switch is on, that the machine is within scope (<em>Activity</em> tab → «Monitoring on»), that at least one upload has happened (10 minutes with an open session), and that the chosen date has activity.</p>
+      </div>
+
+      <h2 id="retencion"><span class="lang-es">8. Retención, auditoría y apagado</span><span class="lang-en">8. Retention, auditing and turning it off</span></h2>
+      <ul class="lang-es">
+        <li>Las capturas se guardan <strong>cifradas</strong> en el servidor y se borran del equipo apenas se suben.</li>
+        <li>Resúmenes y capturas se purgan solos al cumplir el plazo de <em>Conservar actividad y capturas</em> (90 días de fábrica).</li>
+        <li>Las capturas pedidas a mano (<em>Captura ahora</em>, <em>Actualizar</em>) quedan en <em>Auditoría</em> con el usuario que las pidió.</li>
+        <li>Para dejar de monitorear, ponlo en <em>Apagar</em> en el nivel que corresponda o apaga el interruptor global: el agente deja de muestrear de inmediato. Los datos ya registrados se conservan hasta cumplir la retención.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Screenshots are stored <strong>encrypted</strong> on the server and deleted from the machine as soon as they are uploaded.</li>
+        <li>Summaries and screenshots are pruned automatically once the <em>Keep activity and screenshots</em> period is reached (90 days by default).</li>
+        <li>Screenshots requested by hand (<em>Capture now</em>, <em>Refresh</em>) are recorded in the <em>Audit log</em> with the user who requested them.</li>
+        <li>To stop monitoring, set <em>Off</em> at the right level or turn off the global switch: the agent stops sampling immediately. Data already recorded is kept until the retention period ends.</li>
+      </ul>
+
+      <h2 id="resumen"><span class="lang-es">En resumen</span><span class="lang-en">In summary</span></h2>
+      <ol class="lang-es">
+        <li>Informa por escrito a las personas antes de encender.</li>
+        <li>Da los permisos <em>Ver</em> y <em>Encender/apagar</em> monitoreo de actividad sólo a quien corresponda.</li>
+        <li>Enciende el interruptor global en <em>Employee Monitoring</em> y ajusta capturas, jornada y retención.</li>
+        <li>Enciende el monitoreo por cliente, sitio o equipo.</li>
+        <li>Carga la clasificación en <code>actividad_categorias</code>.</li>
+        <li>Revisa la pestaña <em>Actividad</em> y el <em>Monitoreo en vivo</em>.</li>
+        <li>Genera y programa los reportes diario, semanal y por período.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>Inform people in writing before turning it on.</li>
+        <li>Grant the <em>View</em> and <em>Turn on/off</em> activity monitoring permissions only to those who need them.</li>
+        <li>Turn on the global switch in <em>Employee Monitoring</em> and tune screenshots, workday and retention.</li>
+        <li>Turn monitoring on per client, site or machine.</li>
+        <li>Load the classification into <code>actividad_categorias</code>.</li>
+        <li>Check the <em>Activity</em> tab and <em>Live monitoring</em>.</li>
+        <li>Generate and schedule the daily, weekly and by-period reports.</li>
+      </ol>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>
