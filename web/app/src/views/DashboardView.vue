@@ -335,14 +335,13 @@
           :key="k.key"
           type="button"
           class="obs-fleet__kpi"
-          :class="{ 'obs-fleet__kpi--alert': k.alert }"
           :aria-pressed="k.active ? 'true' : 'false'"
           @click="kpiFilter(k.key)"
         >
           <span class="obs-fleet__kpi-label">{{ $t(k.label) }}</span>
           <span class="obs-fleet__kpi-value">
             <span class="mono obs-fleet__kpi-num" :class="k.numClass">{{ k.value }}</span>
-            <span class="mono obs-fleet__kpi-of">{{ k.of }}</span>
+            <span class="obs-fleet__kpi-of">{{ k.of }}</span>
           </span>
         </button>
       </div>
@@ -978,7 +977,7 @@ export default {
       const tone = (v, cls) => (v > 0 ? cls : "");
       return [
         { key: "online", label: "fleet.kpiOnline", value: online, of: this.$t("fleet.ofTotal", { n: a.length }), active: s.includes("is:online") },
-        { key: "checks", label: "fleet.kpiChecks", value: checks, of: this.$t("fleet.agentsUnit"), numClass: tone(checks, "obs-fleet__kpi-num--neg"), alert: checks > 0, active: s.includes("is:checksfailing") },
+        { key: "checks", label: "fleet.kpiChecks", value: checks, of: this.$t("fleet.agentsUnit"), numClass: tone(checks, "obs-fleet__kpi-num--neg"), active: s.includes("is:checksfailing") },
         { key: "patches", label: "fleet.kpiPatches", value: patches, of: this.$t("fleet.agentsUnit"), numClass: tone(patches, "obs-fleet__kpi-num--warn"), active: s.includes("is:patchespending") },
         { key: "reboot", label: "fleet.kpiReboot", value: reboot, of: this.$t("fleet.agentsUnit"), numClass: tone(reboot, "obs-fleet__kpi-num--warn"), active: s.includes("is:rebootneeded") },
         { key: "actions", label: "fleet.kpiActions", value: actions, of: this.$t("fleet.queuedUnit"), active: s.includes("is:actionspending") },
@@ -1313,8 +1312,6 @@ export default {
   &[aria-pressed="true"]
     border-color: var(--q-primary)
     background: var(--obs-selected)
-.obs-fleet__kpi--alert
-  border-color: var(--q-negative)
 .obs-fleet__kpi-label
   font-size: 12px
   color: var(--obs-muted)

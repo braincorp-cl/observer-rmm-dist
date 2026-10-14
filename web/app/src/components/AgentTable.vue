@@ -187,7 +187,7 @@
               v-if="props.row.plat === 'windows'"
               name="mdi-microsoft-windows"
               size="sm"
-              color="primary"
+              class="obs-icon-neutral"
             >
               <q-tooltip>{{ $t("agentTable.osWindows") }}</q-tooltip>
             </q-icon>
@@ -195,7 +195,7 @@
               v-else-if="props.row.plat === 'linux'"
               name="mdi-linux"
               size="sm"
-              color="primary"
+              class="obs-icon-neutral"
             >
               <q-tooltip>{{ $t("agentTable.osLinux") }}</q-tooltip>
             </q-icon>
@@ -203,7 +203,7 @@
               v-else-if="props.row.plat === 'darwin'"
               name="mdi-apple"
               size="sm"
-              color="primary"
+              class="obs-icon-neutral"
             >
               <q-tooltip>{{ $t("agentTable.osMacos") }}</q-tooltip>
             </q-icon>
@@ -231,11 +231,11 @@
               v-if="props.row.monitoring_type === 'server'"
               name="dns"
               size="sm"
-              color="primary"
+              class="obs-icon-neutral"
             >
               <q-tooltip>{{ $t("agentTable.typeServer") }}</q-tooltip>
             </q-icon>
-            <q-icon v-else name="computer" size="sm" color="primary">
+            <q-icon v-else name="computer" size="sm" class="obs-icon-neutral">
               <q-tooltip>{{ $t("agentTable.typeWorkstation") }}</q-tooltip>
             </q-icon>
           </q-td>
@@ -338,7 +338,7 @@
               v-if="props.row.has_patches_pending"
               name="verified_user"
               size="1.5em"
-              color="primary"
+              :color="dash_warning_color"
             >
               <q-tooltip>{{ $t("agentTable.patchesPending") }}</q-tooltip>
             </q-icon>
@@ -349,8 +349,7 @@
               @click="showPendingActionsModal(props.row)"
               name="far fa-clock"
               size="1.4em"
-              :color="dash_warning_color"
-              class="cursor-pointer"
+              class="cursor-pointer obs-icon-neutral"
             >
               <q-tooltip
                 >{{ $t("agentTable.pendingActionCount") }}
@@ -363,7 +362,7 @@
             <q-icon
               v-if="props.row.needs_reboot"
               name="fas fa-power-off"
-              color="primary"
+              :color="dash_warning_color"
             >
               <q-tooltip>{{ $t("agentTable.rebootRequired") }}</q-tooltip>
             </q-icon>

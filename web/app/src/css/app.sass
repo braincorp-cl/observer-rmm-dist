@@ -113,6 +113,10 @@ body.body--dark
   .bg-warning.text-white, .bg-info.text-white, .bg-accent.text-white
     color: var(--obs-on-brand) !important
 
+// Ícono de dato o de control sin estado (SO, tipo de equipo, acciones pendientes): V2-G05.
+.obs-icon-neutral
+  color: var(--obs-text-2) !important
+
 // Chip neutro para datos (valores de inventario, etiquetas sin estado): UI-D05.
 .obs-chip-neutral
   background: var(--obs-raised) !important
@@ -263,10 +267,7 @@ body.body--dark
     color: var(--obs-surface)
 
 // 046 (UI-D01/D02, alcance de pantalla completa): fuera del espacio 1c también.
-// Paginación de tablas = conteos ⇒ mono. El input oculto de q-select no pinta.
-// el rótulo "Filas por página:" es el ítem seguido por su q-select
-.q-table__bottom-item:not(:has(+ .q-select)), .q-table__control > span:not([class])
-  font-family: $obs-font-mono
+// 050 (V2-G01): la paginación ("1-11 de 11") es una frase con números ⇒ Archivo (antes mono, 046).
 .q-select__focus-target
   color: transparent !important
   background: transparent !important
