@@ -20,6 +20,7 @@ from nats.errors import TimeoutError
 from packaging import version as pyver
 from packaging.version import Version as LooseVersion
 
+from agents.activity_storage import get_activity_screenshots_fs
 from agents.lostmode_storage import get_lost_mode_evidence_fs
 from agents.utils import (
     calculate_agent_checks,
@@ -146,6 +147,13 @@ class Agent(BaseAuditModel):
     # en la MISMA transacción que la alerta GEOFENCE. get_agent_config lo lee
     # directo (sin join a alerts). Migración 0068; el default cubre las filas viejas.
     outside_geofence = models.BooleanField(default=False)
+    # Feature 049-B2: monitoreo de actividad del equipo. Tri-estado: None = hereda
+    # del sitio/cliente; True/False pisa. Ver agents/activity.py.
+    activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
+    # Hay un cambio de monitoreo que este equipo puede no haber recibido (estaba
+    # apagado durante el push). Se reenvía y se limpia en su próxima consulta de
+    # config (apiv3.AgentConfig), lo que cubre también a agentes sin polling.
+    activity_sync_pending = models.BooleanField(default=False)
     alert_template = models.ForeignKey(
         "alerts.AlertTemplate",
         related_name="agents",
@@ -1690,3 +1698,76 @@ class DiskEncryptionHistory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - {self.device_id}: {self.previous_status} -> {self.new_status}"
+
+
+class AgentActivityDaily(models.Model):
+    """Resumen diario de actividad del equipo por usuario (feature 049-B).
+
+    Lo sube el agente (v2.17.4+) al endpoint apiv3 `/<agent_id>/activity/`, una
+    fila por (agente, día). `data` guarda el documento en el MISMO formato que
+    consumen los reportes (ActividadResumen con un solo día). Es upsert: el agente
+    reenvía el día en curso de forma incremental y el cierre de día lo deja final.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        "agents.Agent",
+        related_name="activity_days",
+        on_delete=models.CASCADE,
+    )
+    date = models.DateField()
+    data = models.JSONField(default=dict)
+    partial = models.BooleanField(default=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (("agent", "date"),)
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - actividad {self.date}"
+
+
+def activity_screenshot_path(instance: "AgentActivityScreenshot", filename: str) -> str:
+    """Una carpeta por agente y por día: la purga por plazo borra días enteros."""
+    return f"{instance.agent.agent_id}/{instance.captured_at:%Y-%m-%d}/{filename}"
+
+
+class AgentActivityScreenshot(models.Model):
+    """Captura de pantalla del monitoreo de actividad (feature 049-C).
+
+    La sube el agente cada `activity_screenshots_min` minutos, sólo con el
+    usuario activo. El archivo va cifrado en disco (mismo storage que la
+    evidencia del modo perdido) y se sirve sólo por la vista autenticada con el
+    permiso `can_view_activity`. La purga `activity_prune_days` borra fila Y
+    archivo.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    id = models.BigAutoField(primary_key=True)
+    agent = models.ForeignKey(
+        "agents.Agent",
+        related_name="activity_screenshots",
+        on_delete=models.CASCADE,
+    )
+    captured_at = models.DateTimeField()
+    created = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=255, blank=True, default="")
+    process = models.CharField(max_length=255, blank=True, default="")
+    title = models.CharField(max_length=512, blank=True, default="")
+    # 049-E: URL (dominio + ruta) de la pestaña activa y si la pidió la consola
+    # desde el monitoreo en vivo (captura forzada) en vez del ciclo periódico.
+    url = models.CharField(max_length=255, blank=True, default="")
+    manual = models.BooleanField(default=False)
+    image = models.FileField(
+        storage=get_activity_screenshots_fs,
+        upload_to=activity_screenshot_path,
+    )
+
+    class Meta:
+        indexes = [models.Index(fields=["agent", "captured_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - captura {self.captured_at:%Y-%m-%d %H:%M}"

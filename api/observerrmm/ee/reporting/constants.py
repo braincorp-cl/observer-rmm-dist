@@ -30,6 +30,7 @@ REPORTING_MODELS = (
     ("Note", "agents"),
     ("AgentCustomField", "agents"),
     ("AgentHistory", "agents"),
+    ("AgentActivityDaily", "agents"),
     ("Alert", "alerts"),
     ("Policy", "automation"),
     ("AutomatedTask", "autotasks"),

@@ -29,6 +29,8 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 # la de los assets de reporting: distinto régimen de retención y de acceso. Se
 # puede pisar desde local_settings.py para montarla en otro volumen.
 LOST_MODE_EVIDENCE_BASE_PATH = "/opt/observer/lostmode/evidence"
+# 049-C: capturas del monitoreo de actividad (cifradas como la evidencia).
+ACTIVITY_SCREENSHOTS_BASE_PATH = "/opt/observer/activity/screenshots"
 
 # Llave Fernet del cifrado en reposo de esa evidencia (030 · T020, ADR-025 punto
 # 5). Vacía = sin cifrar. NO se versiona ni se pone a mano acá: la genera
@@ -41,16 +43,16 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.23"
+ORMM_VERSION = "1.4.32"
 
-WEB_VERSION = "0.2.11"
+WEB_VERSION = "0.2.14"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.1.12"
+APP_VER = "0.1.15"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
-LATEST_AGENT_VER = "2.17.3"
+LATEST_AGENT_VER = "2.18.0"
 
 MESH_VER = "1.1.32"
 

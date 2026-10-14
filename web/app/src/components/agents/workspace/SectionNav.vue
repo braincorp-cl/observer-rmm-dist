@@ -1,6 +1,6 @@
 <template>
   <!--
-    Navegación del detalle en la dirección 1c (046, T017): las 11 secciones de la
+    Navegación del detalle en la dirección 1c (046, T017): las 12 secciones de la
     v1 agrupadas en Operación / Inventario / Registro, en vez de 10 pestañas planas.
     Es una lista de navegación, no un tablist (UI-E04).
   -->
@@ -70,6 +70,7 @@ const groups = [
     key: "record",
     items: [
       { key: "history", icon: "history" },
+      { key: "actividad", icon: "timeline" },
       { key: "notes", icon: "far fa-sticky-note" },
       { key: "debug", icon: "bug_report" },
       { key: "audit", icon: "travel_explore" },

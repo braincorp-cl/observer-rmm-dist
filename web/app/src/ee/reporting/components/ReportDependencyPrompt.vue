@@ -11,43 +11,78 @@
         </q-btn>
       </q-bar>
 
-      <q-card-section v-for="(_, label) in dependencies" :key="label">
+      <q-card-section v-for="label in dependsOn" :key="label" class="q-pb-none">
         <observer-dropdown
-          v-if="label === 'client'"
+          v-if="field(label) === 'client'"
           v-model="dependencies[label]"
-          :label="`${capitalize(label)}`"
+          :label="controlLabel(label)"
           :options="clientOptions"
           outlined
           mapOptions
           filterable
+          :clearable="isOptional(label)"
         />
 
         <observer-dropdown
-          v-else-if="label === 'site'"
+          v-else-if="field(label) === 'site'"
           v-model="dependencies[label]"
-          :label="`${capitalize(label)}`"
+          :label="controlLabel(label)"
           :options="siteOptions"
           outlined
           mapOptions
           filterable
+          :clearable="isOptional(label)"
         />
 
+        <!-- "agent" (legado): emite el id del equipo. "equipo": emite el hostname,
+             que es lo que cruzan los filtros de los reportes de actividad. -->
         <observer-dropdown
-          v-else-if="label === 'agent'"
+          v-else-if="field(label) === 'agent'"
           v-model="dependencies[label]"
-          :label="`${capitalize(label)}`"
+          :label="controlLabel(label)"
           :options="agentOptions"
           outlined
           mapOptions
           filterable
+          :clearable="isOptional(label)"
+        />
+
+        <observer-dropdown
+          v-else-if="field(label) === 'equipo'"
+          v-model="dependencies[label]"
+          :label="controlLabel(label)"
+          :options="agentOptions"
+          outlined
+          filterable
+          :clearable="isOptional(label)"
+        />
+
+        <q-toggle
+          v-else-if="field(label) === 'laboral'"
+          v-model="dependencies[label]"
+          true-value="si"
+          :false-value="''"
+          :label="t('reporting.dependencyPrompt.workHoursOnly')"
+        />
+
+        <q-input
+          v-else-if="isDate(label)"
+          v-model="dependencies[label]"
+          type="date"
+          :label="controlLabel(label)"
+          outlined
+          dense
+          stack-label
+          :clearable="isOptional(label)"
         />
 
         <q-input
           v-else
           v-model="dependencies[label]"
-          :label="`${capitalize(label)}`"
+          :label="controlLabel(label)"
           outlined
           dense
+          :clearable="isOptional(label)"
         />
       </q-card-section>
 
@@ -104,6 +139,32 @@ const { agentOptions, getAgentOptions } = useAgentDropdown();
 const { clientOptions, getClientOptions } = useClientDropdown();
 const { siteOptions, getSiteOptions } = useSiteDropdown();
 
+// Una dependencia que empieza con "_" es OPCIONAL: puede quedar vacia (= sin
+// filtrar) y la plantilla la lee con `| default('')`. Asi un reporte puede pedir
+// Cliente y Fecha obligatorios y, ademas, acotar por Equipo o Usuario sin volver
+// esos campos obligatorios. El backend no mapea "_equipo"/"_usuario" a modelos
+// (solo client/site/agent), asi que llegan como texto al contexto de la plantilla.
+function isOptional(label: string) {
+  return label.startsWith("_");
+}
+
+// Nombre base (sin el "_" de opcional) para decidir el tipo de control.
+function field(label: string) {
+  return (isOptional(label) ? label.slice(1) : label).toLowerCase();
+}
+
+// Los campos de fecha se muestran con un selector de calendario (input date
+// nativo), que devuelve el formato AAAA-MM-DD que esperan los filtros.
+const DATE_FIELDS = ["fecha", "desde", "hasta", "date", "from", "to"];
+function isDate(label: string) {
+  return DATE_FIELDS.includes(field(label));
+}
+
+function controlLabel(label: string) {
+  const base = capitalize(field(label));
+  return isOptional(label) ? `${base} (${t("reporting.dependencyPrompt.optional")})` : base;
+}
+
 // logic
 const dependencies = props.values
   ? reactive(props.values)
@@ -118,27 +179,40 @@ const loading = ref(false);
 function validate() {
   let valid = true;
   props.dependsOn.forEach((dep) => {
-    if (!dependencies[dep]) valid = false;
+    // Las opcionales ("_...") pueden quedar vacias.
+    if (!isOptional(dep) && !dependencies[dep]) valid = false;
   });
 
   return valid;
 }
 
 function submit() {
-  if (validate()) onDialogOK(dependencies);
-  else notifyError(t("reporting.dependencyPrompt.errorAllFields"));
+  if (!validate()) {
+    notifyError(t("reporting.dependencyPrompt.errorAllFields"));
+    return;
+  }
+  // Las opcionales vacias viajan como "" (no null): el backend las inyecta en el
+  // contexto de la plantilla, donde `| default('')` las trata como "sin filtro".
+  props.dependsOn.forEach((dep) => {
+    if (isOptional(dep) && !dependencies[dep]) dependencies[dep] = "";
+  });
+  onDialogOK(dependencies);
 }
 
 onBeforeMount(() => {
-  if (props.dependsOn.includes("client")) {
+  if (props.dependsOn.some((d) => field(d) === "client")) {
     getClientOptions();
   }
 
-  if (props.dependsOn.includes("site")) {
+  if (props.dependsOn.some((d) => field(d) === "site")) {
     getSiteOptions();
   }
 
-  if (props.dependsOn.includes("agent")) {
+  // "equipo" necesita hostnames planos (el filtro cruza por hostname); "agent"
+  // (legado) usa las opciones con id. Si el reporte pide "equipo", cargamos planas.
+  if (props.dependsOn.some((d) => field(d) === "equipo")) {
+    getAgentOptions(true);
+  } else if (props.dependsOn.some((d) => field(d) === "agent")) {
     getAgentOptions();
   }
 });

@@ -20,6 +20,8 @@ class Client(BaseAuditModel):
 
     name = models.CharField(max_length=255, unique=True)
     block_policy_inheritance = models.BooleanField(default=False)
+    # Feature 049-B2: monitoreo de actividad (None = sin decidir = no).
+    activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
     failing_checks = models.JSONField(default=_default_failing_checks_data)
     workstation_policy = models.ForeignKey(
         "automation.Policy",
@@ -96,6 +98,8 @@ class Site(BaseAuditModel):
     client = models.ForeignKey(Client, related_name="sites", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     block_policy_inheritance = models.BooleanField(default=False)
+    # Feature 049-B2: monitoreo de actividad (None = hereda del cliente).
+    activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
     failing_checks = models.JSONField(default=_default_failing_checks_data)
     # Ubicación física declarada del sitio (feature 026). OPCIONALES: un Site se crea
     # sin coordenadas y se editan después. Cumplen dos funciones, ambas inactivas

@@ -45,6 +45,10 @@ if TYPE_CHECKING:
 TZ_CHOICES = [(_, _) for _ in ALL_TIMEZONES]
 
 
+# 049-D: reuniones por proceso (Teams, Zoom, Webex) o por título (Google Meet).
+ACTIVITY_ALWAYS_ACTIVE_DEFAULT = "teams\nzoom\nwebex\n\\bmeet\\b"
+
+
 class CoreSettings(BaseAuditModel):
     email_alert_recipients = ArrayField(
         models.EmailField(null=True, blank=True),
@@ -79,6 +83,33 @@ class CoreSettings(BaseAuditModel):
     check_history_prune_days = models.PositiveIntegerField(default=30)
     resolved_alerts_prune_days = models.PositiveIntegerField(default=0)
     agent_history_prune_days = models.PositiveIntegerField(default=60)
+    # Feature 049: retención del monitoreo de actividad (datos personales). Plazo
+    # acotado por omisión; 0 = no purgar.
+    activity_prune_days = models.PositiveIntegerField(default=90)
+    # Feature 049-B2: interruptor GLOBAL del monitoreo de actividad. APAGADO de
+    # fábrica: con él apagado ningún equipo muestrea, aunque su cliente, sitio o
+    # ficha digan que sí. Encendido, sólo muestrean los equipos con un "sí"
+    # explícito en la cascada equipo > sitio > cliente (sin valor = no).
+    activity_monitoring_enabled = models.BooleanField(default=False)
+    activity_interval_seg = models.PositiveIntegerField(default=60)
+    activity_idle_seg = models.PositiveIntegerField(default=300)
+    activity_window_titles = models.BooleanField(default=True)
+    # 049-C: capturas de pantalla periódicas (minutos; 0 = apagadas) y uso de
+    # red por aplicación. APAGADOS aunque el monitoreo esté encendido: son un
+    # escalón más de intrusión y se habilitan aparte.
+    activity_screenshots_min = models.PositiveIntegerField(default=0)
+    activity_network = models.BooleanField(default=False)
+    # 049-D: patrones (regex, uno por línea, sin distinguir mayúsculas) de proceso
+    # o título que cuentan como actividad sin teclado ni mouse (reuniones), y la
+    # jornada esperada por día (minutos) contra la que se mide el reporte.
+    activity_always_active_patterns = models.TextField(
+        blank=True, default=ACTIVITY_ALWAYS_ACTIVE_DEFAULT
+    )
+    activity_expected_min = models.PositiveIntegerField(default=480)
+    # 049-E: horario laboral para el filtro «solo horario laboral» de los
+    # reportes: "HH:MM-HH:MM" y días de la semana (0 = lunes … 6 = domingo).
+    activity_work_hours = models.CharField(max_length=11, default="08:00-18:00")
+    activity_work_days = models.CharField(max_length=13, default="0,1,2,3,4")
     debug_log_prune_days = models.PositiveIntegerField(default=30)
     audit_log_prune_days = models.PositiveIntegerField(default=0)
     report_history_prune_days = models.PositiveIntegerField(default=0)

@@ -168,9 +168,9 @@
       <p class="lang-es">Esta lista es tan parte del diseño como la anterior. Sin ella, la declaración de capacidades se lee como una amenaza en vez de como un contrato:</p>
       <p class="lang-en">This list is as much a part of the design as the previous one. Without it, the statement of capabilities reads as a threat rather than as a contract:</p>
       <ul class="lang-es">
-        <li><strong>No</strong> activa la cámara ni la captura de pantalla de un equipo que no esté declarado como perdido o robado.</li>
+        <li><strong>No</strong> activa la cámara de un equipo que no esté declarado como perdido o robado, y <strong>no</strong> captura su pantalla salvo que la organización haya encendido el módulo opcional de medición de actividad con las capturas activadas (ver <a href="#medicion-actividad">§6</a>).</li>
         <li><strong>No</strong> registra pulsaciones de teclado, ni graba audio, ni graba video continuo.</li>
-        <li><strong>No</strong> es una herramienta de medición de productividad ni de control de horario, y no está diseñada para revisar la actividad cotidiana de nadie.</li>
+        <li><strong>No</strong> mide la productividad ni la actividad cotidiana de nadie <strong>por omisión</strong>: eso sólo ocurre si la organización enciende el módulo opcional descrito en <a href="#medicion-actividad">§6</a>, y aun entonces no controla horario ni registra teclas.</li>
         <li><strong>No</strong> abre una sesión de control remoto sin que se anuncie en la pantalla del equipo.</li>
         <li><strong>No</strong> conserva la evidencia de un caso más allá del plazo de retención configurado.</li>
         <li><strong>No</strong> se conecta a redes WiFi protegidas por contraseña ni supera portales cautivos: la reconexión de un equipo perdido usa únicamente redes abiertas.</li>
@@ -178,9 +178,9 @@
         <li><strong>No</strong> borra archivos de un equipo que no esté declarado como perdido o robado, ni sin el permiso dedicado, ni con una sola persona, ni fuera de un caso abierto; y no borra el disco completo ni restablece el equipo de fábrica.</li>
       </ul>
       <ul class="lang-en">
-        <li><strong>It does not</strong> turn on the camera or capture the screen of a device that is not declared lost or stolen.</li>
+        <li><strong>It does not</strong> turn on the camera of a device that is not declared lost or stolen, and it does <strong>not</strong> capture its screen unless the organization has turned on the optional activity measurement module with screenshots enabled (see <a href="#medicion-actividad">§6</a>).</li>
         <li><strong>It does not</strong> log keystrokes, record audio, or record continuous video.</li>
-        <li><strong>It does not</strong> serve as a productivity or time-tracking tool, and it is not designed to review anyone's day-to-day activity.</li>
+        <li><strong>It does not</strong> measure anyone's productivity or day-to-day activity <strong>by default</strong>: that only happens if the organization turns on the optional module described in <a href="#medicion-actividad">§6</a>, and even then it does not track working hours or log keystrokes.</li>
         <li><strong>It does not</strong> open a remote control session without announcing it on the device's screen.</li>
         <li><strong>It does not</strong> keep case evidence beyond the configured retention period.</li>
         <li><strong>It does not</strong> connect to password-protected WiFi networks or get past captive portals: a lost device's reconnection uses open networks only.</li>
@@ -302,6 +302,59 @@ enabled.
 I acknowledge and accept the above.
 
 Name: ______________________  Signature: ____________  Date: __________</code></pre>
+
+      <h2 id="medicion-actividad"><span class="lang-es">6. Medición de actividad (módulo opcional)</span><span class="lang-en">6. Activity measurement (optional module)</span></h2>
+      <p class="lang-es">El monitoreo de actividad (<em>Employee Monitoring</em>) es un módulo <strong>opcional</strong> del agente que viene <strong>apagado de fábrica</strong>. Sólo funciona si un administrador con el permiso dedicado lo enciende en la consola, primero en forma global y luego para un cliente, un sitio o un equipo concreto. Sin esas dos decisiones, nada de lo que sigue ocurre. Encendido, el agente registra, mientras la persona tiene la sesión abierta:</p>
+      <p class="lang-en">Activity monitoring (<em>Employee Monitoring</em>) is an <strong>optional</strong> agent module that ships <strong>turned off</strong>. It only works if an administrator with the dedicated permission turns it on in the console, first globally and then for a specific customer, site or device. Without both decisions, none of the following happens. When on, the agent records, while the person is signed in:</p>
+      <ul class="lang-es">
+        <li>Qué <strong>aplicación</strong> está en primer plano, una muestra por minuto (configurable).</li>
+        <li>Si la persona está <strong>activa o inactiva</strong> según el tiempo desde la última vez que usó el teclado o el mouse, y <strong>cuántas veces</strong> se presionaron teclas y se usó el mouse en cada tramo de 10 minutos. Es sólo una cantidad: no se registra <em>qué</em> tecla ni <em>qué</em> se escribió.</li>
+        <li>Opcionalmente, el <strong>título de la ventana</strong> activa (puede revelar el nombre de un documento). De ese título se deduce el <strong>sitio web</strong>, y la <strong>dirección de la pestaña activa</strong> (dominio y ruta, sin parámetros) se toma del historial del navegador en el propio equipo. No se intercepta el tráfico ni se envía el historial completo.</li>
+        <li>Opcionalmente, <strong>capturas de pantalla</strong> periódicas, sólo mientras la persona está activa y con la sesión desbloqueada (apagadas por omisión; cuando se encienden, se sugiere una cada 10 minutos). Con las capturas encendidas, quien tenga permiso para ver la actividad puede pedir una <strong>captura del momento</strong> desde el monitoreo en vivo, con las mismas condiciones (nunca con la sesión bloqueada); cada pedido queda en la auditoría. No se graba video ni audio.</li>
+        <li>Opcionalmente, el <strong>uso de red por aplicación</strong>: minutos con conexiones abiertas, cantidad de destinos distintos y pico de conexiones. No se registra el contenido, las direcciones visitadas ni el volumen de datos.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>Which <strong>application</strong> is in the foreground, one sample per minute (configurable).</li>
+        <li>Whether the person is <strong>active or idle</strong>, based on the time since the keyboard or mouse was last used, and <strong>how many times</strong> keys were pressed and the mouse was used in each 10-minute slot. It is only a count: <em>which</em> key or <em>what</em> was typed is not recorded.</li>
+        <li>Optionally, the active <strong>window title</strong> (which may reveal a document name). The <strong>website</strong> is derived from that title, and the <strong>active tab's address</strong> (domain and path, without parameters) is taken from the browser history on the device itself. Traffic is not intercepted and the full history is not sent.</li>
+        <li>Optionally, periodic <strong>screenshots</strong>, only while the person is active and the session is unlocked (off by default; when turned on, one every 10 minutes is suggested). With screenshots on, whoever has permission to view activity can request a <strong>screenshot of the moment</strong> from live monitoring, under the same conditions (never with the session locked); every request is recorded in the audit log. No video or audio is recorded.</li>
+        <li>Optionally, <strong>network usage per application</strong>: minutes with open connections, number of distinct destinations and peak connections. Content, visited addresses and data volume are not recorded.</li>
+      </ul>
+      <p class="lang-es">A la consola sube un <strong>resumen diario</strong> por persona (tiempo activo e inactivo por hora, por aplicación y, si están encendidos, por sitio web y uso de red) y las <strong>capturas</strong>, que se guardan <strong>cifradas</strong> en el servidor y se borran del equipo apenas se suben. Resúmenes y capturas se eliminan automáticamente a los <strong>90 días</strong> (configurable). Verlos exige un permiso propio, separado del de administrar equipos, y encender o apagar el monitoreo queda en el registro de auditoría.</p>
+      <p class="lang-en">The agent uploads to the console a <strong>daily summary</strong> per person (active and idle time per hour, per application and, if enabled, per website and network usage) and the <strong>screenshots</strong>, which are stored <strong>encrypted</strong> on the server and deleted from the device as soon as they are uploaded. Summaries and screenshots are deleted automatically after <strong>90 days</strong> (configurable). Viewing them requires a dedicated permission, separate from managing devices, and turning monitoring on or off is recorded in the audit log.</p>
+      <p class="lang-es">El agente <strong>no muestra un aviso en pantalla</strong> cuando el monitoreo se enciende. Por eso el aviso previo y por escrito es <strong>obligatorio</strong> antes de encenderlo: si su organización adopta el módulo, <strong>reemplace en el texto modelo de §5</strong> el párrafo que dice que la organización no captura la pantalla ni mide el desempeño por el siguiente. Deje entre corchetes sólo lo que vaya a encender.</p>
+      <p class="lang-en">The agent <strong>does not show an on-screen notice</strong> when monitoring is turned on. That is why the prior written notice is <strong>mandatory</strong> before turning it on: if your organization adopts the module, <strong>replace in the §5 model text</strong> the paragraph stating that the organization does not capture the screen or measure performance with the following. Keep within brackets only what you will turn on.</p>
+
+      <pre class="lang-es"><code>La organización mide el uso de este equipo con el módulo de monitoreo
+de actividad de Observer RMM: qué aplicación está en primer plano y el
+tiempo activo e inactivo de cada sesión[, el título de la ventana activa
+y el sitio web que se deduce de él][, capturas de pantalla cada
+[N] minutos mientras usted está activo][ y el uso de red de cada
+aplicación, sin su contenido]. No se registra lo que usted escribe, ni
+se graba audio o video, ni se activa la cámara. La información se
+guarda cifrada, se elimina a los [90] días, se usa para medir la
+productividad según esta política y sólo la consultan [cargos
+autorizados]. Usted puede pedir acceso a la información que le concierne
+a [contacto].</code></pre>
+      <pre class="lang-en"><code>The organization measures the use of this device with the Observer RMM
+activity monitoring module: which application is in the foreground and
+the active and idle time of each session[, the active window title and
+the website derived from it][, screenshots every [N] minutes while you
+are active][ and each application's network usage, without its
+content]. What you type is not recorded, no audio or video is captured,
+and the camera is not turned on. The information is stored encrypted,
+deleted after [90] days, used to measure productivity under this policy
+and only accessed by [authorized roles]. You may request access to the
+information about you from [contact].</code></pre>
+
+      <div class="callout danger lang-es">
+        <span class="tag">Antes de encenderlo</span>
+        <p>En Chile, la Dirección del Trabajo ha objetado los sistemas que permiten una vigilancia constante de las personas y exige su consentimiento escrito cuando se tratan datos personales; la Ley 21.719 de protección de datos rige desde el 1 de diciembre de 2026. Incorpore la medida al reglamento interno, obtenga el consentimiento y use sólo lo necesario: títulos de ventana, capturas y uso de red se encienden por separado y se pueden dejar apagados, y el monitoreo puede limitarse a un sitio o a ciertos equipos. <strong>Esto no es asesoría legal.</strong></p>
+      </div>
+      <div class="callout danger lang-en">
+        <span class="tag">Before turning it on</span>
+        <p>In Chile, the Labor Directorate has objected to systems that allow constant monitoring of people and requires their written consent when personal data is processed; Data Protection Law 21.719 takes effect on December 1, 2026. Include the measure in the internal regulations, obtain consent and use only what is necessary: window titles, screenshots and network usage are enabled separately and can be left off, and monitoring can be limited to one site or to specific devices. <strong>This is not legal advice.</strong></p>
+      </div>
 
       <footer>
         <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>

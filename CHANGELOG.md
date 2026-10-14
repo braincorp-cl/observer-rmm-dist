@@ -8,6 +8,57 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.32 — 2026-10-13
+
+- **Monitoreo de actividad: reportes al estilo de las herramientas de productividad (049-E).** Barra apilada por usuario y para toda la empresa (improductivo, neutral, productivo, sin categoría e inactivo), categorías también por dominio web, ranking único de programas y sitios, tiempo activo e inactivo por aplicación, URL visitadas (dominio y ruta, sin parámetros), conteo de teclas y eventos de mouse por tramo para distinguir a una persona frente al equipo (sólo cantidades, nunca qué se escribió), filtro «solo horario laboral» y el reporte nuevo «Actividad - por período» (mes, trimestre o cualquier rango). Exportación a Excel (XLSX). **Monitoreo en vivo sin video**: la última captura de cada equipo y un botón para pedir una del momento, auditado. Requiere el agente 2.18.0. Incluye dos migraciones.
+
+## v1.4.31 — 2026-10-12
+
+- **Medición más exacta del monitoreo de actividad (049-D).** Jornada (primera y última entrada de teclado o mouse), pausas de 10 minutos o más, mapa por tramos de 10 minutos que distingue equipo apagado, suspendido y sin datos, y porcentaje de una jornada esperada configurable (8 h por omisión), en la pestaña Actividad y en los reportes diario y semanal. Las reuniones (Teams, Zoom, Webex y Google Meet por omisión; patrones editables en «Employee Monitoring») cuentan como actividad sin teclado ni mouse. «chrome.exe» y «chrome» se suman como una sola aplicación. Requiere el agente 2.17.8, que además descuenta el tiempo contado como activo antes de cruzar el umbral de inactividad. Incluye una migración (dos campos de configuración).
+
+## v1.4.30 — 2026-10-11
+
+- **Permisos de escritorio remoto por grupo (047).** Los superusuarios y los roles con escritorio remoto sin restricción de cliente ni sitio reciben un único permiso sobre el grupo de dispositivos, en vez de uno por equipo. El servidor de escritorio remoto ya no reescribe la cuenta de cada operador al dar de alta o de baja un equipo, y un equipo recién enrolado queda controlable sin esperar la sincronización. Los roles restringidos siguen con permisos por equipo. La sincronización migra sola los permisos existentes. Sin migraciones de base.
+
+## v1.4.29 — 2026-10-11
+
+- **Retiro de Observer Actividad por scripts (048).** El monitoreo nativo del agente lo reemplaza: los scripts `actividad-instalar*` y `actividad-recolector*` salen de la biblioteca y los reportes de actividad leen solo los datos del módulo nativo. El agente 2.17.7 desinstala solo el muestreador antiguo donde quede.
+- **Uso aceptable y privacidad** actualizado al módulo nativo: apagado de fábrica y encendido desde la consola, sitios web, uso de red, capturas cifradas en el servidor, retención y texto modelo de aviso.
+- La consola ofrece el agente **2.17.7** (antes 2.17.3 por omisión). Sin migraciones. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
+## v1.4.28 — 2026-10-11
+
+- **Sección «Employee Monitoring» en Configuración global.** Todo el monitoreo de actividad en un solo lugar: interruptor global, **alcance** (tabla de clientes, sitios y equipos donde está encendido o apagado, con el número de equipos monitoreados, y para agregar, editar o quitar reglas), muestreo, monitoreo visual, uso de datos y retención.
+- **Capturas de pantalla periódicas** (monitoreo visual): cada N minutos y solo con el usuario activo. Se guardan **cifradas**, se ven en una galería del día en la pestaña Actividad del equipo y se purgan con la retención de actividad. Apagadas por omisión, aunque el monitoreo esté encendido.
+- **Sitios web**, deducidos del título de la ventana del navegador, y **uso de red por aplicación** (tiempo con conexiones, pico de conexiones y destinos distintos; no mide bytes ni contenido). En la pestaña Actividad y en los reportes diario y semanal. La red también viene apagada por omisión.
+- Reportes de actividad: `chrome.exe` y `chrome` cuentan como la misma aplicación al categorizar, y las cifras quedan alineadas bajo su columna.
+- Migraciones: `agents` 0072, `core` 0073. Agente recomendado **2.17.6** (capturas, sitios y red). El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
+## v1.4.27 — 2026-10-11
+
+- **Monitoreo de actividad nativo del agente, con datos y reportes en la consola.** Los equipos con agente 2.17.4 o superior pueden medir la aplicación en primer plano y el tiempo activo/inactivo de cada usuario sin scripts ni paquetes del sistema. La consola guarda un resumen por equipo y día, lo muestra en la nueva pestaña **«Actividad»** del equipo y alimenta los reportes «Actividad de usuarios - diario» y «Actividad - resumen semanal». Los datos se purgan a los **90 días** por omisión (ajustable en Retención).
+- **Encendido controlado, apagado de fábrica.** Un **interruptor global** (Configuración global > General) viene apagado: con él apagado nadie registra actividad. Encendido, el monitoreo se activa **solo donde se pide explícitamente**, por cliente o sitio (menú contextual del árbol, «Monitoreo de actividad…») o por equipo (pestaña Actividad > Configurar); gana el valor más específico. El cambio llega al equipo al instante y, si estaba apagado, en cuanto vuelve a conectarse.
+- **Permisos de rol nuevos:** «Ver monitoreo de actividad» y «Encender/apagar monitoreo de actividad», ambos apagados por omisión.
+- Migraciones: `agents` 0069–0071, `clients` 0026, `core` 0071–0072, `accounts` 0047–0048. Agente recomendado **2.17.5** (aplica el estado también desde su configuración periódica). El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
+## v1.4.26 — 2026-10-10
+
+- **Observer Actividad en Linux: la inactividad se mide sin instalar paquetes.** El muestreador ahora obtiene el tiempo de inactividad por tres vías (xprintidle, xssstate o un medidor propio en Python vía libXss) y usa la primera disponible. El medidor Python no instala nada, así que funciona también en equipos donde el cortafuegos bloquea la descarga de paquetes. Si ninguna vía está disponible, la actividad se reporta como **inactiva** (antes podía contarse como activa sin poder medirla) y el equipo deja constancia en el informe.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
+## v1.4.25 — 2026-10-10
+
+- **Reportes de actividad: filtros por equipo y por usuario, y selector de fecha.** Al generar «Actividad de usuarios - diario» o «Actividad - resumen semanal», la fecha se elige con un **calendario** (antes era un campo de texto sin formato claro) y se puede **acotar a un equipo** (desplegable) o **buscar por usuario** (coincidencia de texto). Ambos son **opcionales**: vacíos, el informe sigue cubriendo todo el cliente. El informe muestra en la cabecera el equipo o usuario filtrado.
+- **Diálogo de dependencias de reportes, en general:** los campos de fecha de cualquier reporte ahora usan selector de calendario, y una dependencia puede declararse opcional (prefijo `_` en su nombre), lo que permite filtros que no obligan a rellenarlos.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
+## v1.4.24 — 2026-10-10
+
+- **Observer Actividad: medición del uso del equipo por usuario (módulo opcional).** Cuatro scripts nuevos en la biblioteca (*Actividad - …*, Windows y Linux/macOS) instalan un muestreador que corre en la sesión de cada usuario y registra qué aplicación está en primer plano y el tiempo activo e inactivo. Si se activan, registra además el título de la ventana y capturas de pantalla periódicas. Las capturas **se quedan en el equipo** (7 días por omisión) y se traen a la consola solo con la recuperación de archivos. La primera vez, el usuario ve un aviso en pantalla que debe aceptar. No registra teclas, audio ni video.
+- **Dos reportes nuevos: «Actividad de usuarios - diario» y «Actividad - resumen semanal».** Por cliente: mapa de calor de 24 horas por persona, tiempo por aplicación, porcentaje productivo e intervalos con el muestreador detenido. Los alimenta una tarea programada llamada exactamente **«Observer Actividad - Recolector»**. Qué aplicaciones cuentan como productivas o improductivas se define en el *Key Store* (`actividad_categorias`), sin tocar código.
+- **Uso aceptable y privacidad:** la página pública declara el módulo, lo que registra, la retención y un texto modelo de consentimiento (§6). Las capturas y la medición de productividad ocurren solo si la organización instala el módulo.
+- Sin migraciones y sin release de agente. El despacho destructivo de Observer Erase (`ERASE_DESTRUCTIVE_DISPATCH_ENABLED`) permanece **False** en producción.
+
 ## v1.4.23 — 2026-09-28
 
 - **Instalador PowerShell: raíz de Let's Encrypt incluida.** Si el equipo no tiene la raíz **ISRG Root X1**, el instalador la agrega antes de descargar el agente (verificada por huella). Corrige el error «No se puede establecer una relación de confianza para el canal seguro SSL/TLS» en redes donde Windows no puede actualizar sus raíces, aunque el navegador del mismo equipo abra la descarga sin problema. Los scripts ya descargados antes de esta versión no la incluyen: hay que generarlos de nuevo desde la consola.

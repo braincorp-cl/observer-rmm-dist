@@ -136,6 +136,9 @@ module.exports = {
         "src/components/agents/AuditTab.vue",
         "src/components/agents/DebugTab.vue",
         "src/components/agents/AssetsTab.vue",
+        "src/components/agents/ActividadTab.vue",
+        "src/components/agents/ActivityMonitoringDialog.vue",
+        "src/components/modals/coresettings/ActivityScopeTable.vue",
         "src/components/agents/HistoryTab.vue",
         "src/components/agents/NotesTab.vue",
         "src/components/agents/SoftwareTab.vue",
@@ -165,6 +168,7 @@ module.exports = {
         // (method.<n>, conversion.<n>, ...): el agente manda el número y la
         // consola lo lee, igual que endpointResponse.codes con la 028.
         "src/views/DiskEncryptionView.vue",
+        "src/views/ActivityLiveView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
         // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
         // consola nace traducida, con namespace propio (erase.*) y los códigos

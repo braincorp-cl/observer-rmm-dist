@@ -84,6 +84,7 @@ import AssetsTab from "@/components/agents/AssetsTab.vue";
 import DebugTab from "@/components/agents/DebugTab.vue";
 import AuditTab from "@/components/agents/AuditTab.vue";
 import EraseCertificatesTab from "@/components/agents/EraseCertificatesTab.vue";
+import ActividadTab from "@/components/agents/ActividadTab.vue";
 
 const SECTIONS = {
   summary: SummaryTab,
@@ -93,6 +94,7 @@ const SECTIONS = {
   software: SoftwareTab,
   assets: AssetsTab,
   history: HistoryTab,
+  actividad: ActividadTab,
   notes: NotesTab,
   debug: DebugTab,
   audit: AuditTab,

@@ -116,6 +116,20 @@
                         }}</q-item-section>
                       </q-item>
 
+                      <!-- Feature 049-B2: monitoreo de actividad por cliente/sitio -->
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="showActivityMonitoring(props.node)"
+                      >
+                        <q-item-section side>
+                          <q-icon name="timeline" />
+                        </q-item-section>
+                        <q-item-section>{{
+                          $t("dashboard.activityMonitoring")
+                        }}</q-item-section>
+                      </q-item>
+
                       <q-item
                         v-if="props.node.children === undefined"
                         clickable
@@ -464,6 +478,7 @@ import AgentTable from "@/components/AgentTable.vue";
 import PolicyAdd from "@/components/automation/modals/PolicyAdd.vue";
 import ClientsForm from "@/components/clients/ClientsForm.vue";
 import SitesForm from "@/components/clients/SitesForm.vue";
+import ActivityMonitoringDialog from "@/components/agents/ActivityMonitoringDialog.vue";
 import DeleteClient from "@/components/clients/DeleteClient.vue";
 import InstallAgent from "@/components/modals/agents/InstallAgent.vue";
 import AlertTemplateAdd from "@/components/modals/alerts/AlertTemplateAdd.vue";
@@ -662,6 +677,16 @@ export default {
         .catch((e) => {
           console.error(e);
         });
+    },
+    showActivityMonitoring(node) {
+      this.$q.dialog({
+        component: ActivityMonitoringDialog,
+        componentProps: {
+          level: node.children ? "client" : "site",
+          id: node.id,
+          name: node.label,
+        },
+      });
     },
     showToggleMaintenance(node) {
       let data = {

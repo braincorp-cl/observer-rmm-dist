@@ -409,3 +409,70 @@ export async function createRegistryValue(agentId, path, name, type, data) {
     throw e;
   }
 }
+
+export async function fetchAgentActivity(agent_id) {
+  const { data } = await axios.get(`${baseUrl}/${agent_id}/activity/`);
+  return data;
+}
+
+// Feature 049-B2: estado efectivo del monitoreo de un equipo y de dónde sale.
+export async function fetchActivityMonitoringState(agent_id) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/monitoring/`,
+  );
+  return data;
+}
+
+export async function fetchActivityMonitoring(level, id) {
+  const { data } = await axios.get(`${baseUrl}/activity-monitoring/`, {
+    params: { level, id },
+  });
+  return data;
+}
+
+// Feature 049-C: capturas del monitoreo (metadatos por día + imagen por id).
+export async function fetchActivityScreenshots(agent_id, date) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/screenshots/`,
+    { params: { date } },
+  );
+  return data;
+}
+
+export async function fetchActivityScreenshotBlob(agent_id, pk) {
+  const { data } = await axios.get(
+    `${baseUrl}/${agent_id}/activity/screenshots/${pk}/file/`,
+    { responseType: "blob" },
+  );
+  return data;
+}
+
+export async function saveActivityMonitoring(level, id, value) {
+  const { data } = await axios.put(`${baseUrl}/activity-monitoring/`, {
+    level,
+    id,
+    value,
+  });
+  return data;
+}
+
+// Feature 049-E: monitoreo en vivo (captura forzada) y exportación XLSX.
+export async function forceActivityScreenshot(agent_id) {
+  const { data } = await axios.post(
+    `${baseUrl}/${agent_id}/activity/screenshots/now/`,
+  );
+  return data;
+}
+
+export async function fetchActivityLive(params) {
+  const { data } = await axios.get(`${baseUrl}/activity/live/`, { params });
+  return data;
+}
+
+export async function downloadActivityExport(params) {
+  const { data } = await axios.get(`${baseUrl}/activity/export/`, {
+    params,
+    responseType: "blob",
+  });
+  return data;
+}

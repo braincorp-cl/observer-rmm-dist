@@ -62,7 +62,7 @@ BASE_HTML = """<html>
   .sev-critical, .sev-important { background: #c0392b; }
   .sev-moderate { background: #e08e0b; }
   .sev-low, .sev-optional, .sev- { background: #5a7d8a; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .num, .report-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
   /* --- Dashboards con graficos (W005) — clases aditivas, no tocan lo anterior --- */
   .kpi-row { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
   .kpi { flex: 1; min-width: 130px; background: #f3f9fb; border: 1px solid #dbe6ea;
@@ -78,6 +78,11 @@ BASE_HTML = """<html>
   .chart-card { border: 1px solid #dbe6ea; border-radius: 6px; padding: 6px; background: #fff; }
   .chart-card svg { display: block; max-width: 100%; height: auto; }
   .section-title { color: #0b6b7f; border-bottom: 2px solid #0E8FA8; margin: 18px 0 4px; font-size: 14px; }
+  /* --- Mapa de calor de Actividad (feature 048) — aditivo --- */
+  .heat { border-collapse: separate; border-spacing: 2px; width: 100%; margin: 6px 0; table-layout: fixed; }
+  .heat th { font-size: 8px; color: #7a929b; font-weight: normal; padding: 0; }
+  .heat td { height: 18px; font-size: 8px; text-align: center; color: #243b44; border: 1px solid #dbe6ea;
+    border-radius: 2px; padding: 0; }
   .ok { color: #2e9e6b; }
   .sev-error, .sev-failing, .st-offline { background: #c0392b; }
   .sev-warning, .sev-pending, .st-overdue { background: #e08e0b; }
@@ -1033,6 +1038,279 @@ ANTIVIRUS_VARS = """data_sources:
 """
 
 
+# ===========================================================================
+# ACTIVIDAD DE USUARIOS (feature 048 · Observer Actividad)
+# ---------------------------------------------------------------------------
+# Fuente: AgentActivityDaily, que sube el modulo nativo del agente (feature
+# 049; reemplaza a los scripts de la 048). Los filtros actividad_dia /
+# actividad_rango (custom_filters.py) lo normalizan.
+# La categoria productivo/improductivo sale del Key Store "actividad_categorias"
+# (JSON {"productivo":[...],"improductivo":[...],"por_defecto":"neutral"}).
+# Mapa de calor en tabla HTML: no requiere chromium.
+# ===========================================================================
+
+_ACTIVIDAD_MACROS = """
+{% macro hm(m) %}{{ '%d:%02d' | format((m or 0) // 60, (m or 0) % 60) }}{% endmacro %}
+{% set _rgb = {'productivo': '46,158,107', 'improductivo': '192,57,43', 'neutral': '212,160,23', 'sin_categoria': '140,140,140', '': '14,143,168'} %}
+{% set _cat_lbl = {'productivo': 'Productivo', 'improductivo': 'Improductivo', 'neutral': 'Neutral', 'sin_categoria': 'Sin categor&iacute;a', 'inactivo': 'Inactivo'} %}
+{% set _bar_rgb = {'improductivo': '192,57,43', 'neutral': '212,160,23', 'productivo': '46,158,107', 'sin_categoria': '150,150,150', 'inactivo': '155,111,214'} %}
+{% macro barra(segs, alto=14) %}<div style="display:flex;height:{{ alto }}px;border-radius:3px;overflow:hidden;background:#eee">{% for s in segs %}{% if s.pct > 0 %}<div style="width:{{ s.pct }}%;background:rgb({{ _bar_rgb[s.cat] }})" title="{{ _cat_lbl[s.cat] }}: {{ hm(s.min) }} ({{ s.pct }}%)"></div>{% endif %}{% endfor %}</div>{% endmacro %}
+{% macro barra_leyenda(segs) %}<table class="report-table"><tr>{% for s in segs %}<td><span style="color:rgb({{ _bar_rgb[s.cat] }})">&#9632;</span> {{ _cat_lbl[s.cat] }}<br><b>{{ hm(s.min) }}</b> &middot; {{ s.pct }}%</td>{% endfor %}</tr></table>{% endmacro %}
+{% macro app_barra(a, maximo) %}<div style="display:flex;height:10px;width:100%">{% if maximo %}<div style="width:{{ (100 * a.min / maximo) | round(1) }}%;background:rgb(74,144,226)"></div><div style="width:{{ (100 * a.min_i / maximo) | round(1) }}%;background:rgb(155,111,214)"></div>{% endif %}</div>{% endmacro %}
+{% set _tramo_lbl = {'apagado': 'equipo apagado o agente detenido', 'suspendido': 'equipo suspendido', 'sin_datos': 'sin datos'} %}
+{% macro tramo_bg(t) %}{% if t.estado == 'medido' %}{% if t.pct == 0 %}#f3d9d5{% else %}rgba(46,158,107,{{ '%.2f' | format(0.15 + 0.85 * t.pct / 100) }}){% endif %}{% elif t.estado == 'apagado' %}#9e9e9e{% elif t.estado == 'suspendido' %}#c5cae9{% else %}#ffffff{% endif %}{% endmacro %}
+"""
+
+_ACTIVIDAD_SIN_DATOS = """
+<p class="muted">No hay actividad registrada para este cliente y fecha. El monitoreo de actividad
+es un m&oacute;dulo opcional del agente: debe estar <b>encendido desde la consola</b> para los equipos
+del cliente, y estos deben haber reportado al menos un d&iacute;a. Verifique tambi&eacute;n que los
+equipos tengan el agente actualizado.</p>
+"""
+
+ACTIVIDAD_DIA = (
+    _header(
+        "Actividad de Usuarios &mdash; Diario",
+        "{% set r = data_sources.corridas | actividad_dia(fecha | default(''), data_sources.categorias, _equipo | default(''), _usuario | default(''), laboral=_laboral | default('')) %}"
+        "Fecha: {{ r.fecha or '—' }}<br>Usuarios: {{ r.totales.usuarios }}"
+        "{% if r.totales.laboral %}<br>Solo horario laboral{% endif %}"
+        "{% if _equipo %}<br>Equipo: {{ _equipo }}{% endif %}"
+        "{% if _usuario %}<br>Usuario: {{ _usuario }}{% endif %}",
+    )
+    + _ACTIVIDAD_MACROS
+    + """
+{% if r.filas | length == 0 %}"""
+    + _ACTIVIDAD_SIN_DATOS
+    + """{% else %}
+<div class="kpi-row">
+  <div class="kpi"><div class="kpi-num">{{ r.totales.usuarios }}</div><div class="kpi-lbl">Usuarios con actividad</div></div>
+  <div class="kpi"><div class="kpi-num">{{ hm(r.totales.activo_min) }}</div><div class="kpi-lbl">Horas activas (total)</div></div>
+  <div class="kpi kpi-ok"><div class="kpi-num">{{ r.totales.pct_productivo }}%</div><div class="kpi-lbl">Del tiempo activo en apps productivas</div></div>
+  <div class="kpi"><div class="kpi-num">{{ r.totales.pct_meta }}%</div><div class="kpi-lbl">De la jornada esperada ({{ hm(r.totales.meta_min) }} por usuario)</div></div>
+  <div class="kpi {% if r.totales.huecos_min > 0 %}kpi-warn{% endif %}"><div class="kpi-num">{{ hm(r.totales.huecos_min) }}</div><div class="kpi-lbl">Equipo apagado o suspendido</div></div>
+</div>
+<div class="section-title">Toda la empresa</div>
+{{ barra(r.totales.barra, 18) }}
+{{ barra_leyenda(r.totales.barra) }}
+<p class="muted">Leyenda del mapa: intensidad = minutos activos en la hora; color = categor&iacute;a del proceso principal
+(<span style="color:rgb(46,158,107)">&#9632;</span> productivo,
+<span style="color:rgb(192,57,43)">&#9632;</span> improductivo,
+<span style="color:rgb(14,143,168)">&#9632;</span> neutral).
+Tramos de 10 min: <span style="color:rgb(46,158,107)">&#9632;</span> % activo,
+<span style="color:#f3d9d5">&#9632;</span> presente sin actividad,
+<span style="color:#9e9e9e">&#9632;</span> apagado,
+<span style="color:#c5cae9">&#9632;</span> suspendido, &#9633; sin datos.
+Debajo, presencia humana: <span style="color:#263238">&#9632;</span> se presionaron teclas,
+<span style="color:#90a4ae">&#9632;</span> s&oacute;lo mouse (se cuenta cu&aacute;ntas, nunca qu&eacute; tecla).
+Programas y sitios: el tiempo de navegador se reparte entre los sitios visitados.
+Una pausa es un lapso de 10 min o m&aacute;s sin teclado ni mouse. {% if r.fechas | length > 1 %}Otras fechas con datos: {{ r.fechas[-8:] | join(', ') }}.{% endif %}</p>
+
+{% for cliente, porcli in r.filas | groupby('cliente') %}
+<div class="client-title">{{ cliente }}</div>
+{% for f in porcli %}
+<div class="agent-title">{{ f.usuario }} <span class="muted">&mdash; {{ f.equipo }} ({{ f.sitio }}) &middot; {% if f.jornada_inicio %}jornada {{ f.jornada_inicio }}&ndash;{{ f.jornada_fin }}{% else %}{{ f.primero }}&ndash;{{ f.ultimo }}{% endif %}</span></div>
+{% if f.nota %}<p class="stale">{{ f.nota }}</p>{% endif %}
+{{ barra(f.barra) }}
+<table class="report-table">
+  <thead><tr><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">% de la meta</th><th class="num">Pausas</th><th class="num">Productivo</th><th class="num">Improductivo</th><th class="num">Neutral</th><th class="num">Sin categor&iacute;a</th><th class="num">% productivo</th><th class="num">Apagado / suspendido</th><th class="num">Teclas / mouse</th><th class="num">Capturas</th></tr></thead>
+  <tbody><tr>
+    <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.inactivo_min) }}</td>
+    <td class="num">{{ f.pct_meta }}%</td>
+    <td class="num">{% if f.pausas_n %}{{ f.pausas_n }} &middot; {{ hm(f.pausas_min) }}{% else %}&mdash;{% endif %}</td>
+    <td class="num">{{ hm(f.productivo_min) }}</td><td class="num">{{ hm(f.improductivo_min) }}</td>
+    <td class="num">{{ hm(f.neutral_min) }}</td><td class="num">{{ hm(f.sin_categoria_min) }}</td>
+    <td class="num">{{ f.pct_productivo }}%</td>
+    <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td>
+    <td class="num">{% if f.con_entrada %}{{ f.teclas }} / {{ f.mouse }}{% else %}&mdash;{% endif %}</td>
+    <td class="num">{{ f.capturas }}</td>
+  </tr></tbody>
+</table>
+<table class="heat">
+  <tr>{% for h in f.horas %}<th>{{ h.h }}</th>{% endfor %}</tr>
+  <tr>{% for h in f.horas %}<td style="background: rgba({{ _rgb[h.cat] }}, {{ '%.2f' | format(0.08 + 0.92 * h.a / 60 if h.a else 0) }})" title="{{ h.h }}:00 &middot; {{ h.a }} min activo, {{ h.i }} inactivo &middot; {{ h.principal }}">{% if h.a %}{{ h.a }}{% endif %}</td>{% endfor %}</tr>
+{% if f.con_tramos %}
+  <tr>{% for h in f.horas %}<td style="padding:0"><div style="display:flex;height:12px">{% for t in f.tramos[loop.index0 * 6:loop.index0 * 6 + 6] %}<div style="flex:1;background:{{ tramo_bg(t) }};border-right:1px solid #eee" title="{{ t.t }} &middot; {% if t.estado == 'medido' %}{{ t.pct }}% activo{% else %}{{ _tramo_lbl[t.estado] }}{% endif %}{% if t.k or t.m %} &middot; {{ t.k }} teclas, {{ t.m }} mouse{% endif %}"></div>{% endfor %}</div></td>{% endfor %}</tr>
+{% if f.con_entrada %}
+  <tr>{% for h in f.horas %}<td style="padding:0"><div style="display:flex;height:4px">{% for t in f.tramos[loop.index0 * 6:loop.index0 * 6 + 6] %}<div style="flex:1;background:{% if t.k %}#263238{% elif t.m %}#90a4ae{% else %}#ffffff{% endif %}"></div>{% endfor %}</div></td>{% endfor %}</tr>
+{% endif %}
+{% endif %}
+</table>
+{% if f.pausas %}<p class="muted">Pausas: {% for p in f.pausas %}{{ p.desde }}&ndash;{{ p.hasta }} ({{ p.min }} min){% if not loop.last %} &middot; {% endif %}{% endfor %}</p>{% endif %}
+{% if f.ranking %}
+<table class="report-table">
+  <thead><tr><th>Programa o sitio (total)</th><th>Categor&iacute;a</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for p in f.ranking %}<tr><td>{{ p.nombre }}</td><td>{{ _cat_lbl[p.cat] }}</td><td class="num">{{ hm(p.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% set _max = (f.apps | map(attribute='min') | list | max if f.apps else 0) + (f.apps | map(attribute='min_i') | list | max if f.apps else 0) %}
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n</th><th>Categor&iacute;a</th><th style="width:30%"><span style="color:rgb(74,144,226)">&#9632;</span> activo <span style="color:rgb(155,111,214)">&#9632;</span> inactivo</th><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">% del tiempo</th></tr></thead>
+  <tbody>
+  {% for a in f.apps %}<tr><td>{{ a.proceso }}</td><td>{{ _cat_lbl[a.cat] }}</td><td>{{ app_barra(a, _max) }}</td><td class="num">{{ hm(a.min) }}</td><td class="num">{{ hm(a.min_i) }}</td><td class="num">{{ a.pct }}%</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if f.urls %}
+<table class="report-table">
+  <thead><tr><th>URL visitada (dominio + ruta)</th><th class="num">Activo</th><th class="num">Inactivo</th></tr></thead>
+  <tbody>
+  {% for u in f.urls %}<tr><td>{{ u.url }}</td><td class="num">{{ hm(u.min) }}</td><td class="num">{{ hm(u.min_i) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if f.titulos %}
+<table class="report-table">
+  <thead><tr><th>Ventana (t&iacute;tulo)</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for t in f.titulos %}<tr><td>{{ t.titulo }}</td><td class="num">{{ hm(t.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if f.sitios_web %}
+<table class="report-table">
+  <thead><tr><th>Sitio web (seg&uacute;n el t&iacute;tulo del navegador)</th><th class="num">Tiempo activo</th></tr></thead>
+  <tbody>
+  {% for w in f.sitios_web %}<tr><td>{{ w.sitio }}</td><td class="num">{{ hm(w.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if f.red %}
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n con red</th><th class="num">Tiempo con conexiones</th><th class="num">Pico de conexiones</th><th class="num">Destinos distintos</th></tr></thead>
+  <tbody>
+  {% for n in f.red %}<tr><td>{{ n.app }}</td><td class="num">{{ hm(n.min) }}</td><td class="num">{{ n.conex_max }}</td><td class="num">{{ n.destinos }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}"""
+    + END
+)
+ACTIVIDAD_VARS = """data_sources:
+  corridas:
+    model: agentactivitydaily
+    filter:
+      agent__site__client__id: {{client.id}}
+    order_by: -date
+    limit: 2000
+    only:
+    - date
+    - agent__hostname
+    - agent__site__name
+    - agent__site__client__name
+    - data
+  categorias:
+    model: globalkvstore
+    filter:
+      name: actividad_categorias
+    only:
+    - value
+"""
+
+_ACTIVIDAD_RANGO_CUERPO = (
+    _ACTIVIDAD_MACROS
+    + """
+{% if r.filas | length == 0 %}"""
+    + _ACTIVIDAD_SIN_DATOS
+    + """{% else %}
+<div class="section-title">Toda la empresa</div>
+{{ barra(r.totales.barra, 18) }}
+{{ barra_leyenda(r.totales.barra) }}
+<div class="section-title">Usuarios por tiempo activo</div>
+<p class="muted">% de la meta: tiempo activo sobre {{ hm(r.meta_min) }} por cada d&iacute;a con actividad. Inicio y fin: primera y &uacute;ltima entrada de teclado o mouse del d&iacute;a, en promedio. Teclas / mouse: cantidad de pulsaciones y eventos del mouse (nunca qu&eacute; tecla).{% if r.totales.laboral %} Solo horario laboral (sitios, URL e inactivo por aplicaci&oacute;n, prorrateados).{% endif %}</p>
+<table class="report-table">
+  <thead><tr><th>Sitio</th><th>Equipo</th><th>Usuario</th><th style="width:16%">Distribuci&oacute;n</th><th class="num">D&iacute;as</th><th class="num">Activo total</th>
+    <th class="num">Promedio diario</th><th class="num">% de la meta</th><th class="num">Inicio prom.</th><th class="num">Fin prom.</th><th class="num">Pausas</th><th class="num">% productivo</th><th class="num">Improductivo</th><th class="num">Sin categor&iacute;a</th><th class="num">Teclas / mouse</th><th class="num">Apagado / suspendido</th></tr></thead>
+  <tbody>
+  {% for f in r.filas %}
+    <tr><td>{{ f.sitio }}</td><td>{{ f.equipo }}</td><td>{{ f.usuario }}</td><td>{{ barra(f.barra, 10) }}</td><td class="num">{{ f.dias }}</td>
+      <td class="num">{{ hm(f.activo_min) }}</td><td class="num">{{ hm(f.activo_prom_min) }}</td>
+      <td class="num">{{ f.pct_meta }}%</td><td class="num">{{ f.inicio_prom or '—' }}</td><td class="num">{{ f.fin_prom or '—' }}</td>
+      <td class="num">{{ hm(f.pausas_min) }}</td>
+      <td class="num">{{ f.pct_productivo }}%</td><td class="num">{{ hm(f.improductivo_min) }}</td><td class="num">{{ hm(f.sin_categoria_min) }}</td>
+      <td class="num">{% if f.teclas or f.mouse %}{{ f.teclas }} / {{ f.mouse }}{% else %}&mdash;{% endif %}</td>
+      <td class="num {% if f.huecos_min > 0 %}stale{% endif %}">{{ hm(f.huecos_min) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if r.ranking %}
+<div class="section-title">Programas y sitios m&aacute;s usados (total)</div>
+<table class="report-table">
+  <thead><tr><th>Programa o sitio</th><th>Categor&iacute;a</th><th class="num">Tiempo activo (todos los usuarios)</th></tr></thead>
+  <tbody>
+  {% for p in r.ranking %}<tr><td>{{ p.nombre }}</td><td>{{ _cat_lbl[p.cat] }}</td><td class="num">{{ hm(p.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+<div class="section-title">Aplicaciones: activo e inactivo</div>
+{% set _max = (r.apps | map(attribute='min') | list | max if r.apps else 0) + (r.apps | map(attribute='min_i') | list | max if r.apps else 0) %}
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n</th><th>Categor&iacute;a</th><th style="width:30%"><span style="color:rgb(74,144,226)">&#9632;</span> activo <span style="color:rgb(155,111,214)">&#9632;</span> inactivo</th><th class="num">Activo</th><th class="num">Inactivo</th><th class="num">% del tiempo</th></tr></thead>
+  <tbody>
+  {% for a in r.apps %}<tr><td>{{ a.proceso }}</td><td>{{ _cat_lbl[a.cat] }}</td><td>{{ app_barra(a, _max) }}</td><td class="num">{{ hm(a.min) }}</td><td class="num">{{ hm(a.min_i) }}</td><td class="num">{{ a.pct }}%</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if r.urls %}
+<div class="section-title">URL m&aacute;s visitadas</div>
+<table class="report-table">
+  <thead><tr><th>URL (dominio + ruta)</th><th class="num">Activo</th><th class="num">Inactivo</th></tr></thead>
+  <tbody>
+  {% for u in r.urls %}<tr><td>{{ u.url }}</td><td class="num">{{ hm(u.min) }}</td><td class="num">{{ hm(u.min_i) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if r.sitios_web %}
+<div class="section-title">Sitios web m&aacute;s visitados</div>
+<table class="report-table">
+  <thead><tr><th>Sitio web (seg&uacute;n el t&iacute;tulo del navegador)</th><th class="num">Tiempo activo (todos los usuarios)</th></tr></thead>
+  <tbody>
+  {% for w in r.sitios_web %}<tr><td>{{ w.sitio }}</td><td class="num">{{ hm(w.min) }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if r.red %}
+<div class="section-title">Uso de red por aplicaci&oacute;n</div>
+<table class="report-table">
+  <thead><tr><th>Aplicaci&oacute;n</th><th class="num">Tiempo con conexiones</th><th class="num">Pico de conexiones</th><th class="num">Destinos distintos</th></tr></thead>
+  <tbody>
+  {% for n in r.red %}<tr><td>{{ n.app }}</td><td class="num">{{ hm(n.min) }}</td><td class="num">{{ n.conex_max }}</td><td class="num">{{ n.destinos }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endif %}"""
+    + END
+)
+
+_FILTROS_RANGO = (
+    "{% if r.totales.laboral %}<br>Solo horario laboral{% endif %}"
+    "{% if _equipo %}<br>Equipo: {{ _equipo }}{% endif %}"
+    "{% if _usuario %}<br>Usuario: {{ _usuario }}{% endif %}"
+)
+
+ACTIVIDAD_SEMANA = (
+    _header(
+        "Actividad de Usuarios &mdash; Resumen Semanal",
+        "{% set r = data_sources.corridas | actividad_rango(desde | default(''), 7, data_sources.categorias, _equipo | default(''), _usuario | default(''), laboral=_laboral | default('')) %}"
+        "Per&iacute;odo: {{ r.desde or '—' }} a {{ r.hasta or '—' }}<br>Usuarios: {{ r.filas | length }}"
+        + _FILTROS_RANGO,
+    )
+    + _ACTIVIDAD_RANGO_CUERPO
+)
+
+# 049-E: período libre (mes, trimestre o cualquier rango, hasta 366 días).
+ACTIVIDAD_PERIODO = (
+    _header(
+        "Actividad de Usuarios &mdash; Por Per&iacute;odo",
+        "{% set r = data_sources.corridas | actividad_rango(desde | default(''), 7, data_sources.categorias, _equipo | default(''), _usuario | default(''), hasta=hasta | default(''), laboral=_laboral | default('')) %}"
+        "Per&iacute;odo: {{ r.desde or '—' }} a {{ r.hasta or '—' }}<br>Usuarios: {{ r.filas | length }}"
+        + _FILTROS_RANGO,
+    )
+    + _ACTIVIDAD_RANGO_CUERPO
+)
+
+
 CURATED = [
     {
         "name": "Inventario de Agentes",
@@ -1148,6 +1426,28 @@ CURATED = [
         "type": "html",
         "template_md": PARCHES,
         "template_variables": PARCHES_VARS,
+    },
+    # --- Actividad de usuarios (feature 048) — piden cliente y fecha al abrir ---
+    {
+        "name": "Actividad de usuarios - diario",
+        "type": "html",
+        "template_md": ACTIVIDAD_DIA,
+        "template_variables": ACTIVIDAD_VARS,
+        "depends_on": ["client", "fecha", "_equipo", "_usuario", "_laboral"],
+    },
+    {
+        "name": "Actividad - resumen semanal",
+        "type": "html",
+        "template_md": ACTIVIDAD_SEMANA,
+        "template_variables": ACTIVIDAD_VARS,
+        "depends_on": ["client", "desde", "_equipo", "_usuario", "_laboral"],
+    },
+    {
+        "name": "Actividad - por período",
+        "type": "html",
+        "template_md": ACTIVIDAD_PERIODO,
+        "template_variables": ACTIVIDAD_VARS,
+        "depends_on": ["client", "desde", "hasta", "_equipo", "_usuario", "_laboral"],
     },
 ]
 

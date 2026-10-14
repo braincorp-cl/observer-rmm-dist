@@ -1,6 +1,12 @@
 [Unit]
 Description=Celery Service V2
 After=network.target redis-server.service postgresql.service
+{% if observer_redis_host in ['localhost', '127.0.0.1'] %}
+# Redis local: si se reinicia (p.ej. unattended-upgrades), el worker se reinicia
+# con él. Sin esto el consumer queda colgado tras «Cannot connect to redis
+# (1/100)» y no vuelve a tomar tareas hasta un restart manual (staging 2026-10-07).
+PartOf=redis-server.service
+{% endif %}
 
 [Service]
 Type=forking

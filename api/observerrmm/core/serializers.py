@@ -122,6 +122,43 @@ class CoreSettingsSerializer(
         fields = "__all__"
         read_only_fields = MESH_READ_ONLY_FIELDS
 
+    def validate_activity_always_active_patterns(self, value):
+        # 049-D: el agente compila con RE2; un patrón inválido se descartaría
+        # en silencio, así que se rechaza acá con el motivo.
+        from agents.activity import always_active_patterns, validate_always_active
+
+        errores = validate_always_active(value)
+        if errores:
+            raise serializers.ValidationError(errores)
+        return "\n".join(always_active_patterns(value))
+
+    def validate_activity_expected_min(self, value):
+        if not 0 < value <= 1440:
+            raise serializers.ValidationError("La jornada va de 1 a 1440 minutos")
+        return value
+
+    def validate_activity_work_hours(self, value):
+        from agents.activity import parse_work_hours
+
+        rango = parse_work_hours(value)
+        if rango is None:
+            raise serializers.ValidationError(
+                "Formato HH:MM-HH:MM, con el inicio antes del fin"
+            )
+        return "{:02d}:{:02d}-{:02d}:{:02d}".format(
+            rango[0] // 60, rango[0] % 60, rango[1] // 60, rango[1] % 60
+        )
+
+    def validate_activity_work_days(self, value):
+        from agents.activity import parse_work_days
+
+        dias = parse_work_days(value)
+        if not dias:
+            raise serializers.ValidationError(
+                "Al menos un día (0 = lunes … 6 = domingo)"
+            )
+        return ",".join(str(d) for d in sorted(dias))
+
 
 # for audting
 class CoreSerializer(HostedCoreMixin, MaskedSecretsMixin, serializers.ModelSerializer):

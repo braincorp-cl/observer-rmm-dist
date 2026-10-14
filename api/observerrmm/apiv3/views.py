@@ -22,11 +22,14 @@ from rest_framework.views import APIView
 from accounts.models import User
 from agents.models import (
     Agent,
+    AgentActivityDaily,
+    AgentActivityScreenshot,
     AgentHistory,
     LostModeEvidence,
     LostModeState,
     Note,
 )
+from agents.activity import canon_activity_day, canon_process
 from agents.serializers import AgentHistorySerializer
 from agents.tasks import manual_uninstall_delete_task
 from agents.uninstall import grace_seconds, record_manual_uninstall
@@ -773,6 +776,30 @@ class AgentHistoryResult(APIView):
         return Response("ok")
 
 
+def _reenviar_actividad_pendiente(agentid: str) -> None:
+    """Feature 049-B2: reentrega el monitoreo a un equipo que no recibió el push.
+
+    El equipo que consulta su config está en línea, así que es el momento de
+    reenviarle el estado resuelto por NATS. Cubre a los agentes sin polling de
+    `actividad_*` (<= 2.17.4) y, para los nuevos, adelanta el polling. Un solo
+    UPDATE indexado por agente cuando no hay nada pendiente.
+    """
+    try:
+        from agents.tasks import push_activity_monitoring_task
+
+        pk = (
+            Agent.objects.filter(agent_id=agentid, activity_sync_pending=True)
+            .values_list("pk", flat=True)
+            .first()
+        )
+        if pk is None:
+            return
+        Agent.objects.filter(pk=pk).update(activity_sync_pending=False)
+        push_activity_monitoring_task.delay(agent_pks=[pk])
+    except Exception:
+        pass
+
+
 class AgentConfig(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -782,6 +809,7 @@ class AgentConfig(APIView):
         # ya llegaba en la ruta y se ignoraba; ahora resuelve el modo perdido de
         # ESE equipo.
         ret = get_agent_config(agentid)
+        _reenviar_actividad_pendiente(agentid)
         return Response(ret._to_dict())
 
 
@@ -1375,3 +1403,117 @@ class WipeReport(APIView):
             error=request.data.get("error", ""),
         )
         return Response({"status": order.status})
+
+
+class ActivityUpload(APIView):
+    """Recibe el resumen diario de actividad que sube el agente (feature 049-B).
+
+    Lo llama el AGENTE con su token (no un operador). Upsert por (agente, día):
+    el agente reenvía el día en curso de forma incremental y el cierre de día lo
+    deja final. El cuerpo es un ActividadResumen: {v, so, equipo, dias:[...]}.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, agentid):
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint solo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        doc = request.data or {}
+        dias = doc.get("dias") or []
+        if not isinstance(dias, list):
+            return notify_error("Formato de actividad invalido")
+
+        base = {k: doc.get(k) for k in ("v", "so", "equipo")}
+        guardados = 0
+        for dia in dias:
+            if not isinstance(dia, dict) or not dia.get("fecha"):
+                continue
+            # 049-D: "chrome.exe" (Windows) y "chrome" (Linux) quedan como uno.
+            canon_activity_day(dia)
+            AgentActivityDaily.objects.update_or_create(
+                agent=agent,
+                date=dia["fecha"],
+                defaults={
+                    "data": {**base, "dias": [dia]},
+                    "partial": bool(dia.get("parcial", False)),
+                },
+            )
+            guardados += 1
+        return Response({"ok": True, "dias": guardados})
+
+
+ACTIVITY_MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024
+
+
+class ActivityScreenshotUpload(APIView):
+    """Recibe una captura del monitoreo de actividad (feature 049-C).
+
+    Token de agente y `agentid` del token = el de la URL (como el resto de la
+    ingesta). Si el monitoreo o las capturas ya no corresponden a este equipo
+    -se apagaron mientras estaba sin red- responde 409 y el agente apaga sus
+    capturas sin esperar al polling de config. Sólo PNG o JPEG, con tope.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, agentid):
+        from agents.activity import resolve_activity
+
+        agent = _agente_del_token(request)
+        if agent is None:
+            return notify_error("Este endpoint solo lo puede llamar un agente")
+        if agent.agent_id != agentid:
+            return notify_error("El agente del token no es el de la URL")
+
+        res = resolve_activity(agent)
+        if not (res.active and res.screenshots_min > 0):
+            return Response(
+                {"status": "screenshots_off"},
+                status=rest_framework_status.HTTP_409_CONFLICT,
+            )
+
+        archivo = request.FILES.get("image")
+        if archivo is None:
+            return notify_error("Falta la imagen")
+        if archivo.size > ACTIVITY_MAX_SCREENSHOT_BYTES:
+            return notify_error("La captura supera el tamaño máximo")
+        cabecera = archivo.read(8)
+        archivo.seek(0)
+        if cabecera.startswith(b"\x89PNG"):
+            ext = "png"
+        elif cabecera.startswith(b"\xff\xd8"):
+            ext = "jpg"
+        else:
+            return notify_error("Formato de captura no soportado")
+
+        captured_at = djangotime.now()
+        valor = request.data.get("captured_at")
+        if valor:
+            try:
+                captured_at = datetime.fromisoformat(str(valor))
+                if captured_at.tzinfo is None:
+                    captured_at = djangotime.make_aware(captured_at)
+            except ValueError:
+                pass
+
+        shot = AgentActivityScreenshot(
+            agent=agent,
+            captured_at=captured_at,
+            username=(request.data.get("usuario") or "")[:255],
+            process=canon_process(request.data.get("proceso"))[:255],
+            title=(request.data.get("titulo") or "")[:512],
+            url=(request.data.get("url") or "")[:255],
+            manual=str(request.data.get("manual") or "") == "1",
+        )
+        shot.image.save(
+            f"{captured_at:%H%M%S}-{os.urandom(4).hex()}.{ext}", archivo, save=False
+        )
+        shot.save()
+        return Response({"id": shot.pk})

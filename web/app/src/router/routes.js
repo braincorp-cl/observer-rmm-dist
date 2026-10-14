@@ -27,6 +27,16 @@ const routes = [
         },
       },
       {
+        // Feature 049-E · monitoreo en vivo sin video: última captura de cada
+        // equipo monitoreado y botón para pedir una del momento.
+        path: "activity-live",
+        name: "ActivityLive",
+        component: () => import("@/views/ActivityLiveView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         // Feature 037 · panel de cumplimiento de cifrado, hermano del Dashboard
         // y de Equipos perdidos. Es una vista de flota que se comparte por URL,
         // no un diálogo.

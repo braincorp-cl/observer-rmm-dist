@@ -406,6 +406,30 @@ def prune_agent_history(older_than_days: int) -> str:
 
 
 @app.task
+def prune_agent_activity(older_than_days: int) -> str:
+    from .models import AgentActivityDaily
+
+    cutoff = (djangotime.now() - djangotime.timedelta(days=older_than_days)).date()
+    AgentActivityDaily.objects.filter(date__lt=cutoff).delete()
+
+    # 049-C: las capturas se van con su archivo (FileField no borra el disco).
+    from .models import AgentActivityScreenshot
+
+    corte = djangotime.now() - djangotime.timedelta(days=older_than_days)
+    vencidas = AgentActivityScreenshot.objects.filter(captured_at__lt=corte)
+    for shot in vencidas.only("id", "image").iterator():
+        try:
+            shot.image.delete(save=False)
+        except OSError as e:
+            DebugLog.error(
+                message=f"actividad: no se pudo borrar {shot.image.name} ({e})"
+            )
+    vencidas.delete()
+
+    return "ok"
+
+
+@app.task
 def prune_lost_mode_evidence(older_than_days: int, closed_case_days: int) -> str:
     """Retención de la evidencia del modo perdido (030 · T019, ADR-025 punto 4).
 
@@ -814,4 +838,40 @@ def bulk_endpoint_response_task(
         DebugLog.error(
             log_type=DebugLogType.AGENT_ISSUES,
             message=f"bulk_endpoint_response_task ({func}) failed: {e}",
+        )
+
+
+# Feature 049-B2 · push del estado de monitoreo de actividad.
+@app.task
+def push_activity_monitoring_task(*, agent_pks: list[int]) -> None:
+    """Empuja a cada equipo su estado RESUELTO de monitoreo (`actividad_monitor`).
+
+    Fire and forget, igual que bulk_endpoint_response_task: un equipo apagado se
+    entera por el polling de config al reconectar. Cada equipo recibe su propio
+    payload porque la cascada (equipo > sitio > cliente) puede diferir entre ellos.
+    """
+    from agents.activity import resolve_activity
+
+    core = get_core_settings()
+    items = [
+        (
+            agent.agent_id,
+            {
+                "func": "actividad_monitor",
+                "payload": resolve_activity(agent, core).nats_payload(),
+            },
+        )
+        for agent in Agent.objects.defer(*AGENT_DEFER)
+        .select_related("site__client")
+        .filter(pk__in=agent_pks)
+    ]
+    if not items:
+        return
+
+    try:
+        asyncio.run(abulk_nats_command(items=items))
+    except Exception as e:
+        DebugLog.error(
+            log_type=DebugLogType.AGENT_ISSUES,
+            message=f"push_activity_monitoring_task failed: {e}",
         )

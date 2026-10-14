@@ -71,6 +71,18 @@ from .serializers import (
 )
 
 
+def _activity_settings(core) -> tuple:
+    return (
+        core.activity_monitoring_enabled,
+        core.activity_interval_seg,
+        core.activity_idle_seg,
+        core.activity_window_titles,
+        core.activity_screenshots_min,
+        core.activity_network,
+        core.activity_always_active_patterns,
+    )
+
+
 class GetEditCoreSettings(APIView):
     permission_classes = [IsAuthenticated, CoreSettingsPerms]
 
@@ -90,9 +102,23 @@ class GetEditCoreSettings(APIView):
             data["enable_server_webterminal"] = False
 
         coresettings = CoreSettings.objects.first()
+        activity_before = _activity_settings(coresettings)
         serializer = CoreSettingsSerializer(instance=coresettings, data=data)
         serializer.is_valid(raise_exception=True)
         coresettings = serializer.save()
+
+        # Feature 049-B2: si cambió el interruptor global o la cadencia del
+        # monitoreo, se empuja el estado nuevo sólo a los equipos con algún "sí"
+        # en su cascada (el resto está apagado igual).
+        if _activity_settings(coresettings) != activity_before:
+            from agents.activity import agents_possibly_on
+            from agents.tasks import push_activity_monitoring_task
+
+            afectados = agents_possibly_on()
+            afectados.update(activity_sync_pending=True)
+            push_activity_monitoring_task.delay(
+                agent_pks=list(afectados.values_list("pk", flat=True))
+            )
 
         # El serializer ignora sync_mesh_with_ormm (MESH_READ_ONLY_FIELDS), así que
         # el modo hosted --donde la sincronización es obligatoria-- lo fija acá en

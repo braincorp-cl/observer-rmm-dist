@@ -193,6 +193,10 @@
           <q-item clickable v-close-popup :to="{ name: 'LostEquipment' }">
             <q-item-section>{{ $t("nav.lostEquipment") }}</q-item-section>
           </q-item>
+          <!-- monitoreo en vivo (feature 049-E) -->
+          <q-item clickable v-close-popup :to="{ name: 'ActivityLive' }">
+            <q-item-section>{{ $t("nav.activityLive") }}</q-item-section>
+          </q-item>
           <!-- panel de cifrado de disco (feature 037) -->
           <q-item clickable v-close-popup :to="{ name: 'DiskEncryption' }">
             <q-item-section>{{ $t("nav.diskEncryption") }}</q-item-section>

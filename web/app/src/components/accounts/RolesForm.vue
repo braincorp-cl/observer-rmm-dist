@@ -183,6 +183,16 @@
                 v-model="localRole.can_manage_asset_intake"
                 :label="$t('rolesForm.manageAssetIntake')"
               />
+              <!-- Feature 049: monitoreo de actividad. Ver y encender/apagar
+                   son permisos separados; ambos off por omisión. -->
+              <q-checkbox
+                v-model="localRole.can_view_activity"
+                :label="$t('rolesForm.viewActivity')"
+              />
+              <q-checkbox
+                v-model="localRole.can_manage_activity"
+                :label="$t('rolesForm.manageActivity')"
+              />
               <!-- fileretrieval (feature 042): recuperar archivos antes de
                    borrar. Permiso liviano, separado de can_wipe_device: recuperar
                    no es destruir. -->
@@ -640,6 +650,9 @@ export default {
           can_manage_asset_intake: false,
           // fileretrieval (feature 042): recuperar antes de borrar, off por omisión.
           can_retrieve_files: false,
+          // monitoreo de actividad (feature 049), off por omisión.
+          can_view_activity: false,
+          can_manage_activity: false,
         });
 
     const loading = ref(false);

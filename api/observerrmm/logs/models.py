@@ -119,6 +119,22 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
+    def audit_activity_screenshot_forced(
+        username: str, agent: "Agent", estado: str
+    ) -> None:
+        # 049-E: cada captura forzada desde el monitoreo en vivo queda registrada
+        # (quién, a qué equipo y con qué resultado). La imagen no va al log.
+        AuditLog.objects.create(
+            username=username,
+            agent=agent.hostname,
+            agent_id=agent.agent_id,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.VIEW,
+            message=f"{username} forced a live screenshot of {agent.hostname} ({estado}).",
+            debug_info={},
+        )
+
+    @staticmethod
     def audit_raw_command(
         username: str,
         agent: "Agent",

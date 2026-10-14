@@ -164,6 +164,10 @@ class Role(BaseAuditModel):
     # Ver certificados y la cadena de custodia (Bloques C/D). Separado de la
     # capacidad de ordenar el borrado: quien audita no necesita poder destruir.
     can_view_erase_certificates = models.BooleanField(default=False)
+    # Ver el monitoreo de actividad del equipo (feature 049). Off por omisión.
+    can_view_activity = models.BooleanField(default=False)
+    # Encender/apagar el monitoreo por cliente, sitio o equipo (feature 049-B2).
+    can_manage_activity = models.BooleanField(default=False)
     can_manage_asset_intake = models.BooleanField(default=False)
     # Recuperar archivos ANTES de borrar (fileretrieval, feature 042). Permiso
     # DEDICADO y off por omisión, SEPARADO de `can_wipe_device`: recuperar no es

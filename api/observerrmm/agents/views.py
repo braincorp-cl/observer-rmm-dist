@@ -80,7 +80,9 @@ from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_ta
 from .diskencryption import filtro_por_estado
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
+    AgentActivityScreenshot,
     Agent,
+    AgentActivityDaily,
     AgentCustomField,
     AgentHistory,
     DiskEncryptionVolume,
@@ -91,6 +93,8 @@ from .models import (
 )
 from .permissions import (
     AgentHistoryPerms,
+    ViewActivityPerms,
+    ManageActivityPerms,
     AgentNotesPerms,
     AgentPerms,
     AgentRegistryPerms,
@@ -112,6 +116,7 @@ from .permissions import (
     ViewLostEvidencePerms,
 )
 from .serializers import (
+    AgentActivityDailySerializer,
     AgentCustomFieldSerializer,
     AgentHistorySerializer,
     AgentHostnameSerializer,
@@ -127,6 +132,7 @@ from .serializers import (
 )
 from .tasks import (
     bulk_endpoint_response_task,
+    push_activity_monitoring_task,
     bulk_recover_agents_task,
     run_script_email_results_task,
     send_agent_update_task,
@@ -2656,5 +2662,530 @@ class DiskEncryptionDetail(APIView):
                 "measured_at": estado.measured_at if estado else None,
                 "volumes": DiskEncryptionVolumeSerializer(volumenes, many=True).data,
                 "history": DiskEncryptionHistorySerializer(historial, many=True).data,
+            }
+        )
+
+
+class AgentActivity(APIView):
+    """Días de actividad de un equipo para la consola (feature 049-B).
+
+    Sólo lectura, con el permiso de rol `can_view_activity`. Devuelve los días
+    más recientes; cada uno trae el documento (`data`) en el formato de reporte.
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        qs = AgentActivityDaily.objects.filter(agent=agent).order_by("-date")[:60]
+        return Response(AgentActivityDailySerializer(qs, many=True).data)
+
+
+class AgentActivityMonitoringState(APIView):
+    """Estado EFECTIVO del monitoreo de un equipo y de dónde sale (feature 049-B2).
+
+    Lo ve quien puede ver la actividad: la consola lo muestra arriba de la pestaña
+    para que "sin datos" no se confunda con "apagado".
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        from .activity import resolve_activity
+
+        agent = get_object_or_404(
+            Agent.objects.select_related("site__client"), agent_id=agent_id
+        )
+        res = resolve_activity(agent)
+        return Response(
+            {
+                "active": res.active,
+                "source": res.source,
+                "agent": agent.activity_monitoring,
+                "site": agent.site.activity_monitoring,
+                "client": agent.site.client.activity_monitoring,
+                "hostname": agent.hostname,
+                "can_manage": _has_perm(request, "can_manage_activity"),
+                # 049-D: jornada esperada, para el % de la meta en la pestaña.
+                "expected_min": get_core_settings().activity_expected_min,
+            }
+        )
+
+
+class ActivityMonitoringSetting(APIView):
+    """Lee/fija el valor de monitoreo de un cliente, sitio o equipo (feature 049-B2).
+
+    `value`: true (encender), false (apagar explícito) o null (heredar). Al fijar,
+    se empuja el estado resuelto a los equipos del alcance; el polling de config
+    es el respaldo para los que estén apagados.
+    """
+
+    permission_classes = [IsAuthenticated, ManageActivityPerms]
+
+    class InputSerializer(serializers.Serializer):
+        level = serializers.ChoiceField(choices=["client", "site", "agent"])
+        id = serializers.CharField()
+        value = serializers.BooleanField(allow_null=True)
+
+    def _target(self, request, level: str, obj_id: str):
+        from clients.models import Client, Site
+
+        if level == "client":
+            obj = get_object_or_404(Client, pk=obj_id)
+            if not _has_perm_on_client(request.user, obj.pk):
+                raise PermissionDenied()
+            return obj, Agent.objects.filter(site__client=obj)
+        if level == "site":
+            obj = get_object_or_404(Site, pk=obj_id)
+            if not _has_perm_on_site(request.user, obj.pk):
+                raise PermissionDenied()
+            return obj, Agent.objects.filter(site=obj)
+        obj = get_object_or_404(Agent, agent_id=obj_id)
+        if not _has_perm_on_agent(request.user, obj.agent_id):
+            raise PermissionDenied()
+        return obj, Agent.objects.filter(pk=obj.pk)
+
+    def get(self, request):
+        level = request.query_params.get("level", "")
+        if level not in ("client", "site", "agent"):
+            return notify_error("level inválido")
+        obj, _ = self._target(request, level, request.query_params.get("id", ""))
+        core = get_core_settings()
+        return Response(
+            {
+                "value": obj.activity_monitoring,
+                "global_enabled": core.activity_monitoring_enabled,
+            }
+        )
+
+    def put(self, request):
+        s = self.InputSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        level, value = s.validated_data["level"], s.validated_data["value"]
+        obj, scope = self._target(request, level, s.validated_data["id"])
+
+        before = obj.activity_monitoring
+        if before != value:
+            obj.activity_monitoring = value
+            # BaseAuditModel.save() ya deja la entrada de auditoría (antes/después).
+            obj.save(update_fields=["activity_monitoring"])
+            scope.update(activity_sync_pending=True)
+            push_activity_monitoring_task.delay(
+                agent_pks=list(scope.values_list("pk", flat=True))
+            )
+        return Response("ok")
+
+
+class AgentActivityScreenshots(APIView):
+    """Capturas de un equipo para un día (feature 049-C). Sólo metadatos; la
+    imagen se pide aparte por su id, siempre por la vista autenticada."""
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+        qs = AgentActivityScreenshot.objects.filter(agent=agent)
+        dia = request.query_params.get("date")
+        if dia:
+            try:
+                fecha = dt.date.fromisoformat(dia)
+            except ValueError:
+                return notify_error("Fecha inválida")
+            tz = get_default_timezone()
+            inicio = djangotime.make_aware(dt.datetime.combine(fecha, dt.time.min), tz)
+            qs = qs.filter(
+                captured_at__gte=inicio, captured_at__lt=inicio + dt.timedelta(days=1)
+            )
+        qs = qs.order_by("captured_at")[:500]
+        return Response(
+            [
+                {
+                    "id": s.pk,
+                    "captured_at": s.captured_at,
+                    "username": s.username,
+                    "process": s.process,
+                    "title": s.title,
+                    "url": s.url,
+                    "manual": s.manual,
+                }
+                for s in qs
+            ]
+        )
+
+
+# 049-E · monitoreo en vivo: la consola fuerza una captura del momento.
+CAPTURA_MANUAL_CADA_SEG = 15
+CAPTURA_MANUAL_ESTADOS = {
+    "ok",
+    "en_curso",
+    "bloqueado",
+    "sin_sesion",
+    "sin_imagen",
+    "capturas_off",
+    "monitoreo_off",
+    "error",
+}
+
+
+class AgentActivityScreenshotNow(APIView):
+    """Pide al equipo una captura del momento (049-E, monitoreo en vivo).
+
+    Mismo permiso que ver las capturas; cada pedido queda en Auditoría. El
+    agente responde cuando la imagen ya subió, o el motivo por el que no se
+    tomó (sesión bloqueada, sin usuario, capturas apagadas...).
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def post(self, request, agent_id):
+        from django.core.cache import cache
+
+        from .activity import resolve_activity
+
+        agent = get_object_or_404(
+            Agent.objects.select_related("site__client"), agent_id=agent_id
+        )
+        res = resolve_activity(agent)
+        if not res.active:
+            return Response({"estado": "monitoreo_off"})
+        if res.screenshots_min <= 0:
+            return Response({"estado": "capturas_off"})
+        if agent.status != AGENT_STATUS_ONLINE:
+            # Sin conexión no se despacha nada: respuesta inmediata en vez de
+            # esperar los 45 s del timeout de NATS.
+            return Response({"estado": "offline"})
+        clave = f"activity-shot-now:{agent.agent_id}"
+        if not cache.add(clave, 1, CAPTURA_MANUAL_CADA_SEG):
+            return Response({"estado": "espera", "seg": CAPTURA_MANUAL_CADA_SEG})
+        r = asyncio.run(agent.nats_cmd({"func": "actividad_captura"}, timeout=45))
+        if isinstance(r, dict):
+            estado = str(r.get("estado", "error"))
+        elif r == "timeout":
+            estado = "timeout"
+        else:
+            estado = "error"
+        if estado not in CAPTURA_MANUAL_ESTADOS and estado != "timeout":
+            estado = "error"
+        AuditLog.audit_activity_screenshot_forced(request.user.username, agent, estado)
+        ultima = (
+            AgentActivityScreenshot.objects.filter(agent=agent)
+            .order_by("-captured_at")
+            .values("id", "captured_at")
+            .first()
+        )
+        return Response({"estado": estado, "ultima": ultima})
+
+
+class ActivityExport(APIView):
+    """Exporta a Excel (XLSX) la actividad de un cliente en un período (049-E).
+
+    Usa las MISMAS funciones que los reportes (ee/reporting/custom_filters.py),
+    así que las cifras coinciden con el reporte «por período».
+    """
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request):
+        from io import BytesIO
+
+        from django.http import HttpResponse
+        from openpyxl import Workbook
+        from openpyxl.styles import Font
+
+        from core.models import GlobalKVStore
+        from ee.reporting.custom_filters import actividad_rango
+
+        from .models import AgentActivityDaily
+
+        p = request.query_params
+        try:
+            desde = dt.date.fromisoformat(p.get("desde", ""))
+            hasta = dt.date.fromisoformat(p.get("hasta", ""))
+        except ValueError:
+            return notify_error("Fechas inválidas (AAAA-MM-DD)")
+        if hasta < desde or (hasta - desde).days > 366:
+            return notify_error("El período va de 1 a 366 días")
+        agentes = Agent.objects.filter_by_role(request.user)
+        if p.get("client"):
+            agentes = agentes.filter(site__client_id=p["client"])
+        if p.get("agent_id"):
+            agentes = agentes.filter(agent_id=p["agent_id"])
+        filas = list(
+            AgentActivityDaily.objects.filter(
+                agent__in=agentes, date__gte=desde, date__lte=hasta
+            )
+            .order_by("date", "updated")
+            .values(
+                "date",
+                "data",
+                "agent__hostname",
+                "agent__site__name",
+                "agent__site__client__name",
+            )
+        )
+        for f in filas:
+            f["time"] = str(f.pop("date"))
+        cats = GlobalKVStore.objects.filter(name="actividad_categorias").values("value")
+        res = actividad_rango(
+            filas,
+            desde.isoformat(),
+            0,
+            list(cats),
+            p.get("equipo", ""),
+            p.get("usuario", ""),
+            top=500,
+            hasta=hasta.isoformat(),
+            laboral=p.get("laboral", ""),
+        )
+
+        wb = Workbook()
+        negrita = Font(bold=True)
+
+        def hoja(ws, titulo, cabecera, datos):
+            ws.title = titulo
+            ws.append(cabecera)
+            for c in ws[1]:
+                c.font = negrita
+            for d in datos:
+                ws.append(d)
+
+        hoja(
+            wb.active,
+            "Resumen",
+            [
+                "Cliente",
+                "Sitio",
+                "Equipo",
+                "Usuario",
+                "Días",
+                "Activo (min)",
+                "Inactivo (min)",
+                "Productivo",
+                "Improductivo",
+                "Neutral",
+                "Sin categoría",
+                "% meta",
+                "Inicio prom.",
+                "Fin prom.",
+                "Pausas (min)",
+                "Apagado/suspendido (min)",
+                "Teclas",
+                "Mouse",
+            ],
+            [
+                [
+                    f["cliente"],
+                    f["sitio"],
+                    f["equipo"],
+                    f["usuario"],
+                    f["dias"],
+                    f["activo_min"],
+                    f["inactivo_min"],
+                    f["productivo_min"],
+                    f["improductivo_min"],
+                    f["neutral_min"],
+                    f["sin_categoria_min"],
+                    f["pct_meta"],
+                    f["inicio_prom"],
+                    f["fin_prom"],
+                    f["pausas_min"],
+                    f["huecos_min"],
+                    f["teclas"],
+                    f["mouse"],
+                ]
+                for f in res["filas"]
+            ],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Aplicaciones",
+            ["Proceso", "Categoría", "Activo (min)", "Inactivo (min)", "% del tiempo"],
+            [
+                [a["proceso"], a["cat"], a["min"], a["min_i"], a["pct"]]
+                for a in res["apps"]
+            ],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Programas y sitios",
+            ["Programa o sitio", "Categoría", "Activo (min)"],
+            [[r["nombre"], r["cat"], r["min"]] for r in res["ranking"]],
+        )
+        hoja(
+            wb.create_sheet(),
+            "URL",
+            ["URL (dominio + ruta)", "Activo (min)", "Inactivo (min)"],
+            [[u["url"], u["min"], u["min_i"]] for u in res["urls"]],
+        )
+        hoja(
+            wb.create_sheet(),
+            "Sitios web",
+            ["Sitio (según título)", "Activo (min)"],
+            [[s_["sitio"], s_["min"]] for s_ in res["sitios_web"]],
+        )
+        buf = BytesIO()
+        wb.save(buf)
+        nombre = f"actividad_{desde.isoformat()}_{hasta.isoformat()}.xlsx"
+        resp = HttpResponse(
+            buf.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        resp["Content-Disposition"] = f'attachment; filename="{nombre}"'
+        return resp
+
+
+class ActivityLive(APIView):
+    """Equipos con monitoreo efectivo y capturas, con su última captura (049-E)."""
+
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request):
+        from .activity import agents_possibly_on, resolve_activity
+
+        qs = (
+            agents_possibly_on()
+            .filter_by_role(request.user)
+            .select_related("site__client")
+            .order_by("site__client__name", "site__name", "hostname")
+        )
+        if request.query_params.get("client"):
+            qs = qs.filter(site__client_id=request.query_params["client"])
+        if request.query_params.get("site"):
+            qs = qs.filter(site_id=request.query_params["site"])
+        core = get_core_settings()
+        out = []
+        for agent in qs[:200]:
+            res = resolve_activity(agent, core)
+            if not res.active:
+                continue
+            ultima = (
+                AgentActivityScreenshot.objects.filter(agent=agent)
+                .order_by("-captured_at")
+                .values("id", "captured_at", "username", "process", "title", "url")
+                .first()
+            )
+            out.append(
+                {
+                    "agent_id": agent.agent_id,
+                    "hostname": agent.hostname,
+                    "client": agent.site.client.name,
+                    "site": agent.site.name,
+                    "status": agent.status,
+                    "screenshots": res.screenshots_min > 0,
+                    "ultima": ultima,
+                }
+            )
+        return Response(out)
+
+
+class AgentActivityScreenshotFile(APIView):
+    permission_classes = [IsAuthenticated, ViewActivityPerms]
+
+    def get(self, request, agent_id, pk):
+        shot = get_object_or_404(
+            AgentActivityScreenshot.objects.filter(agent__agent_id=agent_id), pk=pk
+        )
+        try:
+            contenido = shot.image.open("rb")
+        except EvidenceKeyMissing as e:
+            return notify_error(str(e))
+        except OSError:
+            return notify_error("El archivo de la captura no está disponible")
+        return FileResponse(
+            contenido,
+            as_attachment=False,
+            filename=os.path.basename(shot.image.name),
+        )
+
+
+class ActivityMonitoringOverview(APIView):
+    """Alcance del monitoreo para la sección «Employee Monitoring» (049-B2/C).
+
+    Lista los clientes, sitios y equipos con un valor EXPLÍCITO (encendido o
+    apagado), dentro del alcance del rol, y cuántos equipos quedan efectivamente
+    monitoreados. Los que heredan no se listan: son la mayoría y no deciden nada.
+    """
+
+    permission_classes = [IsAuthenticated, ManageActivityPerms]
+
+    def get(self, request):
+        from clients.models import Client, Site
+
+        from .activity import agents_possibly_on, resolve_activity
+
+        core = get_core_settings()
+        reglas = []
+        for c in (
+            Client.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .order_by("name")
+        ):
+            reglas.append(
+                {
+                    "level": "client",
+                    "id": c.pk,
+                    "name": c.name,
+                    "parent": "",
+                    "value": c.activity_monitoring,
+                }
+            )
+        for st in (
+            Site.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .select_related("client")
+            .order_by("client__name", "name")
+        ):
+            reglas.append(
+                {
+                    "level": "site",
+                    "id": st.pk,
+                    "name": st.name,
+                    "parent": st.client.name,
+                    "value": st.activity_monitoring,
+                }
+            )
+        for a in (
+            Agent.objects.filter_by_role(request.user)
+            .filter(activity_monitoring__isnull=False)
+            .select_related("site__client")
+            .only(
+                "agent_id",
+                "hostname",
+                "activity_monitoring",
+                "site__name",
+                "site__client__name",
+            )
+            .order_by("hostname")
+        ):
+            reglas.append(
+                {
+                    "level": "agent",
+                    "id": a.agent_id,
+                    "name": a.hostname,
+                    "parent": f"{a.site.client.name} / {a.site.name}",
+                    "value": a.activity_monitoring,
+                }
+            )
+
+        monitoreados = 0
+        if core.activity_monitoring_enabled:
+            for a in (
+                agents_possibly_on()
+                .filter(pk__in=Agent.objects.filter_by_role(request.user).values("pk"))
+                .select_related("site__client")
+                .only(
+                    "activity_monitoring",
+                    "site__activity_monitoring",
+                    "site__client__activity_monitoring",
+                )
+            ):
+                if resolve_activity(a, core).active:
+                    monitoreados += 1
+
+        return Response(
+            {
+                "global_enabled": core.activity_monitoring_enabled,
+                "monitored_agents": monitoreados,
+                "rules": reglas,
             }
         )
