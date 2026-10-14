@@ -1237,6 +1237,8 @@ export default {
   color: var(--q-warning)
 .obs-fleet__state--green
   color: var(--obs-muted)
+.obs-fleet__tree :deep(.q-tree__arrow)
+  color: var(--obs-muted)
 .obs-fleet__tree :deep(.q-tree__node-header)
   border-radius: 8px
   padding: 6px 8px
