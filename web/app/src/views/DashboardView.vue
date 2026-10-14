@@ -79,9 +79,9 @@
                 >{{ props.node.label }}</span
               >
               <q-icon
-                v-if="props.node.color"
+                v-if="nodeState(props.node)"
                 :name="nodeStateIcon(props.node)"
-                :class="`obs-fleet__state obs-fleet__state--${props.node.color}`"
+                :class="`obs-fleet__state obs-fleet__state--${nodeState(props.node)}`"
                 size="14px"
                 :aria-label="nodeStateLabel(props.node)"
               >
@@ -355,12 +355,9 @@
           dense
           class="obs-fleet__type"
           toggle-color="primary"
+          role="radiogroup"
           :aria-label="$t('fleet.agentType')"
-          :options="[
-            { label: $t('fleet.typeAll'), value: 'mixed' },
-            { label: $t('dashboard.tabServers'), value: 'server' },
-            { label: $t('dashboard.tabWorkstations'), value: 'workstation' },
-          ]"
+          :options="typeOptions"
         />
         <q-btn
           v-for="c in chips"
@@ -672,12 +669,24 @@ export default {
   },
   methods: {
     // 050 · flota
+    // Estado del nodo con prioridad error > advertencia > mantenimiento. node.color (store, v1)
+    // pone mantenimiento primero y tapa los chequeos con error de los demás equipos del cliente.
+    nodeState(node) {
+      const d = node.client || node.site;
+      if (!d) return node.color;
+      if (d.failing_checks?.error) return "negative";
+      if (d.failing_checks?.warning) return "warning";
+      if (d.maintenance_mode) return "green";
+      return undefined;
+    },
     nodeStateIcon(node) {
-      return node.color === "green" ? "construction" : node.color === "negative" ? "error" : "warning";
+      const st = this.nodeState(node);
+      return st === "green" ? "construction" : st === "negative" ? "error" : "warning";
     },
     nodeStateLabel(node) {
-      if (node.color === "green") return this.$t("fleet.stateMaintenance");
-      if (node.color === "negative") return this.$t("fleet.stateError");
+      const st = this.nodeState(node);
+      if (st === "green") return this.$t("fleet.stateMaintenance");
+      if (st === "negative") return this.$t("fleet.stateError");
       return this.$t("fleet.stateWarning");
     },
     // Un indicador aplica solo su filtro (los mismos is:* de v1); un segundo clic lo quita.
@@ -961,7 +970,8 @@ export default {
       const n = (f) => a.filter(f).length;
       const s = this.search || "";
       const online = n((x) => x.status === "online");
-      const checks = n((x) => x.checks && parseInt(x.checks.failing) > 0);
+      // Mismo criterio que el filtro is:checksfailing de AgentTable (error o advertencia).
+      const checks = n((x) => x.checks && x.checks.has_failing_checks);
       const patches = n((x) => x.has_patches_pending);
       const reboot = n((x) => x.needs_reboot);
       const actions = a.reduce((t, x) => t + (parseInt(x.pending_actions_count) || 0), 0);
@@ -973,6 +983,14 @@ export default {
         { key: "reboot", label: "fleet.kpiReboot", value: reboot, of: this.$t("fleet.agentsUnit"), numClass: tone(reboot, "obs-fleet__kpi-num--warn"), active: s.includes("is:rebootneeded") },
         { key: "actions", label: "fleet.kpiActions", value: actions, of: this.$t("fleet.queuedUnit"), active: s.includes("is:actionspending") },
       ];
+    },
+    // Tipo de equipo como grupo de radio (role/aria-checked por opción).
+    typeOptions() {
+      return [
+        { label: this.$t("fleet.typeAll"), value: "mixed" },
+        { label: this.$t("dashboard.tabServers"), value: "server" },
+        { label: this.$t("dashboard.tabWorkstations"), value: "workstation" },
+      ].map((o) => ({ ...o, attrs: { role: "radio", "aria-checked": String(this.tab === o.value) } }));
     },
     chips() {
       return [
