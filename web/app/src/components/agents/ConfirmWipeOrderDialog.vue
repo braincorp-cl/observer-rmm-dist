@@ -1,7 +1,7 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent>
     <q-card class="q-dialog-plugin" style="min-width: 40vw; max-width: 70vw">
-      <q-bar class="bg-negative text-white">
+      <q-bar>
         <q-icon name="warning" />
         <div>{{ $t("erase.confirmOrder.title") }}</div>
         <q-space />
@@ -11,9 +11,9 @@
         <!-- RF-G02: la segunda confirmación es de OTRA persona. El servidor la
              exige (rechaza con 409 si confirma quien ordenó); el aviso lo dice
              para que nadie intente confirmarse a sí mismo. -->
-        <q-banner dense class="bg-orange-1 text-orange-9 q-mb-md">
+        <q-banner dense class="obs-notice q-mb-md">
           <template v-slot:avatar>
-            <q-icon name="group" color="warning" />
+            <q-icon name="group" />
           </template>
           {{ $t("erase.confirmOrder.twoPersonNotice", { orderedBy: order.ordered_by }) }}
         </q-banner>
@@ -30,7 +30,7 @@
             </tr>
             <tr>
               <th>{{ $t("erase.confirmOrder.serial") }}</th>
-              <td>{{ order.agent_serial || dash }}</td>
+              <td class="mono">{{ order.agent_serial || dash }}</td>
             </tr>
             <tr>
               <th>{{ $t("erase.confirmOrder.reason") }}</th>
@@ -68,11 +68,11 @@
       <q-card-section>
         <i18n-t keypath="confirmDialog.prompt" tag="span">
           <template #yes>
-            <span class="text-negative text-h6">{{ yesWord }}</span>
+            <span class="text-h6 mono">{{ yesWord }}</span>
           </template>
           <template #action>{{ actionLabel(order.action) }}</template>
           <template #hostname>
-            <span class="text-negative text-h6">{{
+            <span class="text-h6">{{
               order.agent_hostname || dash
             }}</span>
           </template>

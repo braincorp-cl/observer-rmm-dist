@@ -55,9 +55,9 @@
         hay un segundo paso donde el operador pueda leer lo que va a pasar.
       -->
       <q-card-section v-if="warning" class="q-pt-none">
-        <q-banner dense class="bg-red-1 text-negative">
+        <q-banner dense class="obs-notice">
           <template v-slot:avatar>
-            <q-icon name="warning" color="negative" />
+            <q-icon name="warning" />
           </template>
           {{ warning }}
         </q-banner>

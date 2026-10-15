@@ -106,7 +106,7 @@
         <q-card-section v-if="!cycles.length">
           <!-- Un caso recién abierto no tiene ciclos todavía: se dice, en vez de
                mostrar una lista vacía que se lee como "algo falló". -->
-          <q-banner dense class="bg-grey-3 text-black">
+          <q-banner dense class="obs-notice">
             <template v-slot:avatar><q-icon name="hourglass_empty" /></template>
             {{ $t("lostEquipment.timeline.noCycles") }}
           </q-banner>
@@ -120,7 +120,7 @@
               ref="mapEl"
               style="height: 420px; width: 100%; border-radius: 4px"
             ></div>
-            <q-banner v-else dense class="bg-grey-3 text-black">
+            <q-banner v-else dense class="obs-notice">
               <template v-slot:avatar><q-icon name="location_off" /></template>
               {{ $t("lostEquipment.timeline.noPoints") }}
             </q-banner>

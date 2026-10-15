@@ -101,10 +101,10 @@
           <q-banner
             v-if="routesToPhysical"
             dense
-            class="bg-orange-1 text-orange-9 q-mt-md"
+            class="obs-notice q-mt-md"
           >
             <template v-slot:avatar>
-              <q-icon name="warning" color="warning" />
+              <q-icon name="warning" />
             </template>
             {{ $t("erase.intakeForm.physicalRouteNotice") }}
           </q-banner>

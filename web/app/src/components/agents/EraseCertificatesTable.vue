@@ -138,6 +138,7 @@ export default {
       },
       {
         name: "method_applied",
+        classes: "mono",
         label: t("erase.certificates.colMethod"),
         field: "method_applied",
         align: "left",

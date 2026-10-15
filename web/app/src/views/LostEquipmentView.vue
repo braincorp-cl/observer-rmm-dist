@@ -314,9 +314,9 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-banner dense class="bg-orange-1 text-orange-9">
+          <q-banner dense class="obs-notice">
             <template v-slot:avatar>
-              <q-icon name="warning" color="warning" />
+              <q-icon name="warning" />
             </template>
             {{ $t("lostEquipment.markWarning") }}
           </q-banner>

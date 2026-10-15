@@ -1,7 +1,7 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin" style="min-width: 38vw">
-      <q-bar :class="expired ? 'bg-grey-7 text-white' : 'bg-warning text-black'">
+      <q-bar>
         <q-icon :name="expired ? 'timer_off' : 'hourglass_bottom'" />
         <div>{{ $t("erase.recovery.title") }}</div>
         <q-space />
@@ -15,7 +15,7 @@
 
         <!-- La cuenta regresiva es la ventana de arrepentimiento (RF-G03): hasta
              que llegue a cero la orden confirmada sigue cancelable. -->
-        <div v-if="!expired" class="text-h3 text-warning q-my-sm">
+        <div v-if="!expired" class="text-h3 mono q-my-sm">
           {{ countdownText }}
         </div>
         <div v-else class="text-h5 text-grey q-my-sm">

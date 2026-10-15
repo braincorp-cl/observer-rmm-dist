@@ -6,7 +6,7 @@
        (ADR-029). El permiso `can_wipe_device` lo gatea el servidor. -->
   <q-dialog v-model="show" @show="load" full-width>
     <q-card>
-      <q-bar class="bg-negative text-white">
+      <q-bar>
         <q-icon name="delete_sweep" />
         <div class="text-weight-bold">
           {{ $t("erase.wipe.title", { hostname: hostname }) }}
@@ -22,10 +22,10 @@
       <q-banner
         v-if="!fileretrievalDone"
         dense
-        class="bg-orange-1 text-orange-9 q-ma-md"
+        class="obs-notice q-ma-md"
       >
         <template v-slot:avatar>
-          <q-icon name="warning" color="warning" />
+          <q-icon name="warning" />
         </template>
         {{ $t("erase.wipe.retrievalWarning") }}
       </q-banner>
@@ -535,7 +535,7 @@ export default {
   overflow-y: auto;
 }
 .oe-path {
-  font-family: monospace;
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
   word-break: break-all;
 }
 </style>

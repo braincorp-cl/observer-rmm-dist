@@ -60,7 +60,7 @@
             <tbody>
               <tr v-for="field in fields" :key="field.key">
                 <th>{{ field.label }}</th>
-                <td>{{ field.value }}</td>
+                <td :class="{ mono: monoKeys.includes(field.key) }">{{ field.value }}</td>
               </tr>
             </tbody>
           </table>
@@ -90,9 +90,9 @@
               </thead>
               <tbody>
                 <tr v-for="r in pathRows" :key="r.path">
-                  <td class="text-left oe-path">{{ r.path }}</td>
+                  <td class="text-left oe-path mono">{{ r.path }}</td>
                   <td class="text-left">{{ r.status }}</td>
-                  <td class="text-right">{{ r.bytes }}</td>
+                  <td class="text-right mono">{{ r.bytes }}</td>
                 </tr>
               </tbody>
             </q-markup-table>
@@ -325,7 +325,11 @@ export default {
 
     onMounted(load);
 
+    // V2-G01: identificador, etiqueta, método y norma son valores dedicados.
+    const monoKeys = ["certificate_id", "asset_tag", "method_applied", "standard_ref"];
+
     return {
+      monoKeys,
       dialogRef,
       onDialogHide,
       loading,
@@ -366,7 +370,6 @@ export default {
   word-break: break-all;
 }
 .oe-path {
-  font-family: monospace;
   word-break: break-all;
 }
 </style>
