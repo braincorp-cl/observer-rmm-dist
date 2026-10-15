@@ -6,11 +6,11 @@
       <q-card-section>
         <i18n-t keypath="confirmDialog.prompt" tag="span">
           <template #yes>
-            <span class="text-negative text-h5">{{ yesWord }}</span>
+            <span class="text-h5 mono">{{ yesWord }}</span>
           </template>
           <template #action>{{ actionVerb }}</template>
           <template #hostname>
-            <span class="text-negative text-h5">{{ hostname }}</span>
+            <span class="text-h5">{{ hostname }}</span>
           </template>
         </i18n-t>
       </q-card-section>
@@ -50,7 +50,7 @@ defineProps({
   actionVerb: { type: String, required: true },
   title: { type: String, default: "Confirm action" },
   okLabel: { type: String, default: "Confirm" },
-  okColor: { type: String, default: "negative" },
+  okColor: { type: String, default: "primary" },
 });
 
 defineEmits([...useDialogPluginComponent.emits]);

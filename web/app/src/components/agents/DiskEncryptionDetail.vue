@@ -39,7 +39,7 @@
     <q-banner
       v-else-if="queryError"
       dense
-      class="bg-orange-1 text-orange-9 q-mb-sm"
+      class="obs-notice q-mb-sm"
     >
       <template v-slot:avatar>
         <q-icon name="warning" color="warning" />

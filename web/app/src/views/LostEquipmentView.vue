@@ -761,7 +761,7 @@ export default {
           actionVerb: t("endpointResponse.verbLock"),
           title: t("endpointResponse.confirmLockTitle"),
           okLabel: t("endpointResponse.lock"),
-          okColor: "negative",
+          okColor: "primary",
         },
       }).onOk(async () => {
         $q.loading.show();

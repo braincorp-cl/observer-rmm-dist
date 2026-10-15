@@ -326,7 +326,15 @@ export default {
     onMounted(load);
 
     // V2-G01: identificador, etiqueta, método y norma son valores dedicados.
-    const monoKeys = ["certificate_id", "asset_tag", "method_applied", "standard_ref"];
+    const monoKeys = [
+      "certificate_id",
+      "asset_tag",
+      "method_applied",
+      "standard_ref",
+      "document_hash",
+      "signature_alg",
+      "signing_key_id",
+    ];
 
     return {
       monoKeys,

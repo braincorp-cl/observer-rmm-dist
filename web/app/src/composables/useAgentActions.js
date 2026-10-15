@@ -246,7 +246,7 @@ export function useAgentActions() {
         actionVerb: t("agentActions.verbShutdown"),
         title: t("agentActions.confirmShutdownTitle"),
         okLabel: t("agentActions.shutdown"),
-        okColor: "negative",
+        okColor: "primary",
       },
     }).onOk(async () => {
       $q.loading.show();
@@ -289,7 +289,7 @@ export function useAgentActions() {
         actionVerb: t("endpointResponse.verbLock"),
         title: t("endpointResponse.confirmLockTitle"),
         okLabel: t("endpointResponse.lock"),
-        okColor: "negative",
+        okColor: "primary",
       },
     }).onOk(async () => {
       $q.loading.show();
@@ -390,7 +390,7 @@ export function useAgentActions() {
         actionVerb: t("agentActions.verbDeletion"),
         title: t("agentActions.confirmDeletionTitle"),
         okLabel: t("agentActions.uninstall"),
-        okColor: "negative",
+        okColor: "primary",
       },
     }).onOk(async () => {
       try {
