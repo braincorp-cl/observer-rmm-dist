@@ -172,7 +172,7 @@
                       @click.stop="openFull(c.webcam.id)"
                     />
                     <q-icon v-else name="photo_camera" color="grey-6" />
-                    <q-badge floating color="deep-orange" rounded>
+                    <q-badge floating color="grey" class="obs-chip-neutral" rounded>
                       <q-icon name="photo_camera" size="12px" />
                     </q-badge>
                   </q-avatar>

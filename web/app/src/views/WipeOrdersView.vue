@@ -170,6 +170,7 @@ export default {
     const columns = [
       {
         name: "id",
+        classes: "mono",
         label: t("erase.orders.colId"),
         field: "id",
         align: "left",

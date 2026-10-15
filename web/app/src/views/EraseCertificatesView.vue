@@ -271,6 +271,7 @@ export default {
     const intakeColumns = [
       {
         name: "process_id",
+        classes: "mono",
         label: t("erase.view.colProcess"),
         field: "process_id",
         align: "left",
@@ -284,12 +285,14 @@ export default {
       },
       {
         name: "equipment_serial",
+        classes: "mono",
         label: t("erase.view.colEquipmentSerial"),
         field: "equipment_serial",
         align: "left",
       },
       {
         name: "asset_tag",
+        classes: "mono",
         label: t("erase.view.colAssetTag"),
         field: "asset_tag",
         align: "left",

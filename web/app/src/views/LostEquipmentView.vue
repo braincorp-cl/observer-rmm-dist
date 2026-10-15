@@ -240,6 +240,7 @@
             filled
             type="number"
             v-model.number="form.interval_min"
+            input-class="mono"
             :label="$t('lostEquipment.intervalLabel')"
             :hint="$t('lostEquipment.intervalHint')"
             :min="MIN_INTERVAL_MIN"
@@ -275,6 +276,7 @@
                 filled
                 type="number"
                 v-model.number="form.cascade.lock_delay_min"
+                input-class="mono"
                 :label="$t('lostEquipment.cascadeLockDelay')"
                 :hint="$t('lostEquipment.cascadeLockDelayHint')"
                 :min="0"
@@ -326,7 +328,7 @@
           <q-btn flat :label="$t('lostEquipment.cancel')" v-close-popup />
           <q-btn
             flat
-            color="negative"
+            color="primary"
             :loading="saving"
             :disable="!form.agent_id || !form.reason.trim()"
             :label="$t('lostEquipment.markLost')"
@@ -372,6 +374,7 @@
             filled
             type="number"
             v-model.number="policyForm.lock_delay_min"
+            input-class="mono"
             :label="$t('lostEquipment.cascadeLockDelay')"
             :hint="
               $t('lostEquipment.policyDelayHint', {
@@ -641,6 +644,7 @@ export default {
       },
       {
         name: "interval_min",
+        classes: "mono",
         label: t("lostEquipment.colInterval"),
         field: "interval_min",
         align: "right",

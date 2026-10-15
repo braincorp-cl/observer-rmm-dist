@@ -109,6 +109,7 @@ export default {
     const columns = [
       {
         name: "certificate_id",
+        classes: "mono",
         label: t("erase.certificates.colId"),
         field: "certificate_id",
         align: "left",
@@ -130,6 +131,7 @@ export default {
       },
       {
         name: "asset_tag",
+        classes: "mono",
         label: t("erase.certificates.colAssetTag"),
         field: "asset_tag",
         align: "left",
@@ -142,6 +144,7 @@ export default {
       },
       {
         name: "standard_ref",
+        classes: "mono",
         label: t("erase.certificates.colStandard"),
         field: "standard_ref",
         align: "left",
