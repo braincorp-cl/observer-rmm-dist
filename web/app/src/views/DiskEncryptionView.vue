@@ -1,35 +1,30 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("diskEncryption.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <ObsPageHead :title="$t('diskEncryption.title')" :crumbs="[$t('nav.agents')]">
       <q-btn
-        dense
-        flat
+        outline
+        no-caps
+        class="obs-page__btn"
         icon="refresh"
+        :label="$t('diskEncryption.refresh')"
         :loading="loading"
         @click="load"
-        :aria-label="$t('diskEncryption.refresh')"
-      >
-        <q-tooltip>{{ $t("diskEncryption.refresh") }}</q-tooltip>
-      </q-btn>
-    </div>
+      />
+    </ObsPageHead>
 
     <!-- Sólo Windows en esta fase (RN-A07): mostrar macOS/Linux en "sin dato"
          los pintaría como falsos incumplidores. El aviso lo dice para que nadie
          lea el panel como el estado de TODA la flota. -->
-    <q-banner dense class="bg-grey-3 text-black q-mb-md">
-      <template v-slot:avatar>
-        <q-icon name="lock" color="primary" />
-      </template>
-      {{ $t("diskEncryption.windowsOnlyNotice") }}
-    </q-banner>
+    <div class="obs-notice" role="note">
+      <q-icon name="lock" />
+      <div>{{ $t("diskEncryption.windowsOnlyNotice") }}</div>
+    </div>
 
-    <div class="row q-col-gutter-md q-mb-md">
-      <div class="col-12 col-sm-4">
+    <div class="obs-page__filters">
         <q-select
           dense
-          filled
+          outlined
+          class="obs-page__field"
           clearable
           emit-value
           map-options
@@ -38,11 +33,10 @@
           :label="$t('diskEncryption.filterState')"
           @update:model-value="load"
         />
-      </div>
-      <div class="col-12 col-sm-4">
         <q-select
           dense
-          filled
+          outlined
+          class="obs-page__field"
           clearable
           emit-value
           map-options
@@ -51,11 +45,10 @@
           :label="$t('diskEncryption.filterClient')"
           @update:model-value="onClientChange"
         />
-      </div>
-      <div class="col-12 col-sm-4">
         <q-select
           dense
-          filled
+          outlined
+          class="obs-page__field"
           clearable
           emit-value
           map-options
@@ -65,7 +58,6 @@
           :disable="!filters.client"
           @update:model-value="load"
         />
-      </div>
     </div>
 
     <q-table
@@ -83,7 +75,9 @@
     >
       <template v-slot:body-cell-state="props">
         <q-td :props="props">
-          <q-badge :color="stateColor(props.row.state)">
+          <q-badge
+            :color="stateColor(props.row.state)" :class="{ 'obs-chip-neutral': stateColor(props.row.state) === 'grey' }"
+          >
             {{ stateLabel(props.row.state) }}
           </q-badge>
           <!-- "sin dato" con causa: si la consulta falló, el motivo se ve al
@@ -125,6 +119,7 @@
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 
 import { fetchDiskEncryptionFleet } from "@/api/diskencryption";
 import { fetchClients } from "@/api/clients";
@@ -132,6 +127,7 @@ import { formatDate } from "@/utils/format";
 import { encryptionMethodLabel } from "@/utils/diskEncryption";
 
 export default {
+  components: { ObsPageHead },
   name: "DiskEncryptionView",
   setup() {
     const { t } = useI18n();

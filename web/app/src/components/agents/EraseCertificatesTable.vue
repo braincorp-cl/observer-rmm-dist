@@ -22,7 +22,9 @@
 
     <template v-slot:body-cell-verification_result="props">
       <q-td :props="props">
-        <q-badge :color="resultColor(props.row.verification_result)">
+        <q-badge
+          :color="resultColor(props.row.verification_result)" :class="{ 'obs-chip-neutral': resultColor(props.row.verification_result) === 'grey' }"
+        >
           {{ resultLabel(props.row.verification_result) }}
         </q-badge>
       </q-td>

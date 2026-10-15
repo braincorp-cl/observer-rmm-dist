@@ -126,7 +126,7 @@ body.body--dark
 // 046 T037 — dentro del espacio de trabajo 1c, los grises por defecto de Quasar
 // (chips grises por defecto, separadores y bordes con alfa sobre negro, texto gris de
 // tablas) pasan a tokens: los componentes reutilizados de la v1 no los fijan.
-.obs-ws
+.obs-ws, .obs-page
   color: var(--obs-text)
   .q-separator
     background: var(--obs-border)
@@ -216,7 +216,7 @@ body.body--dark
   color: var(--obs-on-brand)
 
 // Controles de Quasar dentro del espacio 1c: grises internos a tokens (UI-D02).
-.obs-ws
+.obs-ws, .obs-page
   .q-field__marginal, .q-field__label, .q-field__bottom
     color: var(--obs-muted)
   .q-field--filled .q-field__control
@@ -234,7 +234,7 @@ body.body--dark
 
 // Componentes "--dark" de Quasar fijan color blanco puro y grises con alfa; dentro del
 // espacio 1c salen de los tokens (barrido propio + gauntlet UI-D02, 2026-10-06).
-.obs-ws
+.obs-ws, .obs-page
   .q-dark, .q-list--dark, .q-item--dark, .q-expansion-item
     color: var(--obs-text)
   .q-item__section--side
@@ -491,3 +491,58 @@ body.body--dark
 .obs-agtbl__sub
   font-size: 12px
   color: var(--obs-muted)
+
+// 050 ola 3 — páginas de flota secundarias (perdidos, cifrado, borrado, en vivo) con el
+// lenguaje de la flota: cabecera con migas y título, aviso neutro, barra de filtros.
+.obs-page
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px 24px 16px
+.obs-page__head
+  gap: 8px
+.obs-page__crumbs
+  font-size: 13px
+  color: var(--obs-muted)
+.obs-page__title
+  margin: 4px 0 0
+  font-size: 26px
+  line-height: 1.2
+  font-weight: 700
+  letter-spacing: -.01em
+  color: var(--obs-text)
+.obs-page__btn
+  min-height: 36px
+  border-radius: 8px
+  &.q-btn--outline:before
+    border-color: var(--obs-hdr-ctl-border)
+.obs-page__filters
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 8px
+.obs-page__field
+  width: 260px
+  max-width: 100%
+// Aviso informativo (gobernanza, alcance): neutro, no es estado.
+.obs-notice
+  display: flex
+  align-items: flex-start
+  gap: 10px
+  padding: 10px 14px
+  border: 1px solid var(--obs-border)
+  border-radius: 8px
+  background: var(--obs-raised)
+  color: var(--obs-text-2)
+  font-size: 13px
+  .q-icon
+    color: var(--obs-muted)
+    font-size: 18px
+// Grupo de radio segmentado (como el tipo de equipo de la flota).
+.obs-page__toggle
+  border: 1px solid var(--obs-border)
+  border-radius: 9px
+  background: var(--obs-surface)
+  .q-btn
+    font-size: 13px
+    padding: 0 10px

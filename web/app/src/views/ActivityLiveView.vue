@@ -1,25 +1,28 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("activityLive.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <ObsPageHead :title="$t('activityLive.title')" :crumbs="[$t('nav.agents')]">
       <q-btn
-        dense
+        unelevated
+        no-caps
         color="primary"
+        class="obs-page__btn"
         icon="refresh"
         :label="$t('activityLive.refreshAll')"
         :loading="actualizandoTodo"
         :disable="!pagina.length"
         @click="actualizarPagina"
       />
+    </ObsPageHead>
+    <div class="obs-notice" role="note">
+      <q-icon name="visibility" />
+      <div>{{ $t("activityLive.notice") }}</div>
     </div>
-    <p class="text-caption text-grey q-mb-md">{{ $t("activityLive.notice") }}</p>
 
-    <div class="row q-col-gutter-md q-mb-md">
-      <div class="col-12 col-sm-4">
+    <div class="obs-page__filters">
         <q-select
           dense
-          filled
+          outlined
+          class="obs-page__field"
           clearable
           emit-value
           map-options
@@ -28,7 +31,6 @@
           :label="$t('activityLive.client')"
           @update:model-value="cargar"
         />
-      </div>
     </div>
 
     <div v-if="cargando" class="q-pa-md"><q-spinner size="md" /></div>
@@ -38,9 +40,9 @@
     <div v-else>
       <div class="row q-col-gutter-md">
         <div v-for="e in pagina" :key="e.agent_id" class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <q-card flat bordered>
+          <q-card flat bordered class="obs-live__card">
             <q-card-section class="q-py-xs row items-center no-wrap">
-              <div class="ellipsis text-weight-medium">{{ e.hostname }}</div>
+              <div class="ellipsis obs-live__host" :title="e.hostname">{{ e.hostname }}</div>
               <q-space />
               <q-btn
                 dense
@@ -75,7 +77,7 @@
               >
                 {{ $t(`activityLive.state_${e.estado}`) }}
               </q-chip>
-              <q-chip v-else-if="e.status !== 'online'" dense size="sm" color="grey-7" text-color="white" class="q-ml-none">
+              <q-chip v-else-if="e.status !== 'online'" dense size="sm" class="q-ml-none obs-chip-neutral">
                 {{ $t("activityLive.offline") }}
               </q-chip>
             </q-card-section>
@@ -103,6 +105,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import { fetchClients } from "@/api/clients";
 import { fetchActivityLive, fetchActivityScreenshotBlob, forceActivityScreenshot } from "@/api/agents";
 
@@ -218,5 +221,13 @@ onBeforeUnmount(() => equipos.value.forEach(liberar));
 .sin-imagen {
   aspect-ratio: 16 / 9;
   background: var(--obs-hover);
+}
+.obs-live__card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+.obs-live__host {
+  font-weight: 600;
+  color: var(--obs-text);
 }
 </style>

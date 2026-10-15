@@ -1,30 +1,25 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("erase.orders.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <ObsPageHead :title="$t('erase.orders.title')" :crumbs="[$t('nav.agents')]">
       <q-btn
-        dense
-        flat
+        outline
+        no-caps
+        class="obs-page__btn"
         icon="refresh"
+        :label="$t('erase.orders.refresh')"
         :loading="loading"
-        :aria-label="$t('erase.orders.refresh')"
         @click="load"
-      >
-        <q-tooltip>{{ $t("erase.orders.refresh") }}</q-tooltip>
-      </q-btn>
-    </div>
+      />
+    </ObsPageHead>
 
     <!-- Gobernanza B0: esta vista NO crea órdenes destructivas (crearlas es el
          Bloque A, GATED por ADR-029). Sólo gobierna las existentes: segunda
          confirmación y ventana de arrepentimiento. El despacho real al equipo
          sigue deshabilitado en el servidor. -->
-    <q-banner dense class="bg-grey-3 text-black q-mb-md">
-      <template v-slot:avatar>
-        <q-icon name="gavel" color="primary" />
-      </template>
-      {{ $t("erase.orders.governanceNotice") }}
-    </q-banner>
+    <div class="obs-notice" role="note">
+      <q-icon name="gavel" />
+      <div>{{ $t("erase.orders.governanceNotice") }}</div>
+    </div>
 
     <q-table
       dense
@@ -44,7 +39,9 @@
 
       <template v-slot:body-cell-status="props">
         <q-td :props="props">
-          <q-badge :color="statusColor(props.row.status)">
+          <q-badge
+            :color="statusColor(props.row.status)" :class="{ 'obs-chip-neutral': statusColor(props.row.status) === 'grey' }"
+          >
             {{ $t(`erase.status.${props.row.status}`) }}
           </q-badge>
         </q-td>
@@ -52,7 +49,10 @@
 
       <template v-slot:body-cell-dry_run="props">
         <q-td :props="props">
-          <q-badge :color="props.row.dry_run ? 'grey' : 'negative'">
+          <q-badge
+            :color="props.row.dry_run ? 'grey' : 'negative'"
+            :class="{ 'obs-chip-neutral': props.row.dry_run }"
+          >
             {{
               props.row.dry_run
                 ? $t("erase.confirmOrder.dryRunYes")
@@ -74,7 +74,7 @@
             flat
             no-caps
             size="sm"
-            color="negative"
+            color="primary"
             icon="how_to_reg"
             :label="$t('erase.orders.confirmAction')"
             @click="openConfirm(props.row)"
@@ -85,7 +85,7 @@
             flat
             no-caps
             size="sm"
-            color="warning"
+            color="primary"
             icon="hourglass_bottom"
             :label="$t('erase.orders.windowAction')"
             @click="openWindow(props.row)"
@@ -106,6 +106,7 @@
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 
 import ConfirmWipeOrderDialog from "@/components/agents/ConfirmWipeOrderDialog.vue";
 import RecoveryWindowDialog from "@/components/agents/RecoveryWindowDialog.vue";
@@ -113,6 +114,7 @@ import { fetchWipeOrders } from "@/api/erase";
 import { formatDate } from "@/utils/format";
 
 export default {
+  components: { ObsPageHead },
   name: "WipeOrdersView",
   setup() {
     const { t } = useI18n();
@@ -181,13 +183,13 @@ export default {
     // terminal (cancelada/ejecutada/fallida). No fusiona estados.
     const statusColorMap = {
       draft: "grey",
-      pending_confirmation: "orange",
-      confirmed: "amber",
+      pending_confirmation: "warning",
+      confirmed: "warning",
       recovery_window: "warning",
-      dispatched: "blue",
+      dispatched: "info",
       executed: "negative",
       cancelled: "positive",
-      failed: "deep-orange",
+      failed: "negative",
     };
 
     function statusColor(status) {

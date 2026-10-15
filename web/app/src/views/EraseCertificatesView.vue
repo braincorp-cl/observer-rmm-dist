@@ -1,42 +1,40 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("erase.view.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <ObsPageHead :title="$t('erase.view.title')" :crumbs="[$t('nav.agents')]">
       <q-btn
-        dense
-        flat
+        outline
+        no-caps
+        class="obs-page__btn"
         icon="refresh"
+        :label="$t('erase.view.refresh')"
         :loading="loading"
-        :aria-label="$t('erase.view.refresh')"
         @click="reload"
-      >
-        <q-tooltip>{{ $t("erase.view.refresh") }}</q-tooltip>
-      </q-btn>
-    </div>
+      />
+    </ObsPageHead>
 
-    <q-tabs
-      v-model="tab"
-      dense
-      class="text-grey q-mb-md"
-      active-color="primary"
-      indicator-color="primary"
-      align="left"
-      narrow-indicator
-      no-caps
-    >
-      <q-tab name="certificates" :label="$t('erase.view.tabCertificates')" />
-      <q-tab name="intake" :label="$t('erase.view.tabIntake')" />
-    </q-tabs>
-    <q-separator class="q-mb-md" />
+    <!-- 050 (V2-S02): sin pestañas; certificados / ingresos es un grupo de radio
+         en la barra de filtros, como el tipo de equipo de la flota. -->
+    <div class="obs-page__filters">
+      <q-btn-toggle
+        v-model="tab"
+        no-caps
+        unelevated
+        dense
+        class="obs-page__toggle"
+        toggle-color="primary"
+        role="radiogroup"
+        :aria-label="$t('erase.view.title')"
+        :options="tabOptions"
+      />
+    </div>
 
     <!-- Certificados (Bloque C) -->
     <div v-show="tab === 'certificates'">
-      <div class="row q-col-gutter-md q-mb-md">
-        <div class="col-12 col-sm-4">
+      <div class="obs-page__filters q-mb-md">
           <q-select
             dense
-            filled
+            outlined
+            class="obs-page__field"
             clearable
             emit-value
             map-options
@@ -44,11 +42,10 @@
             :options="kindOptions"
             :label="$t('erase.view.filterKind')"
           />
-        </div>
-        <div class="col-12 col-sm-4">
           <q-input
             dense
-            filled
+            outlined
+            class="obs-page__field"
             clearable
             debounce="200"
             v-model="certSearch"
@@ -58,7 +55,6 @@
               <q-icon name="search" />
             </template>
           </q-input>
-        </div>
       </div>
 
       <EraseCertificatesTable
@@ -72,7 +68,9 @@
     <div v-show="tab === 'intake'">
       <div class="row items-center q-mb-md">
         <q-btn
+          unelevated
           color="primary"
+          class="obs-page__btn"
           icon="add"
           no-caps
           :label="$t('erase.view.newIntake')"
@@ -109,7 +107,7 @@
           <q-td :props="props">
             <q-badge
               v-if="props.row.routes_to_physical_destruction"
-              color="deep-orange"
+              color="warning"
             >
               {{ $t("erase.view.routesPhysical") }}
             </q-badge>
@@ -128,7 +126,7 @@
               flat
               no-caps
               size="sm"
-              color="deep-orange"
+              color="primary"
               icon="delete_forever"
               :label="$t('erase.view.certifyDestruction')"
               @click="askCertify(props.row)"
@@ -182,7 +180,7 @@
         <q-card-actions align="right">
           <q-btn flat :label="$t('erase.certify.cancel')" v-close-popup />
           <q-btn
-            color="deep-orange"
+            color="primary"
             :loading="certifying"
             :label="$t('erase.certify.emit')"
             @click="doCertify"
@@ -208,6 +206,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 
 import EraseCertificatesTable from "@/components/agents/EraseCertificatesTable.vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import EraseCertificateDetailDialog from "@/components/agents/EraseCertificateDetailDialog.vue";
 import AssetIntakeForm from "@/components/agents/AssetIntakeForm.vue";
 import {
@@ -221,13 +220,23 @@ import { notifySuccess, notifyError } from "@/utils/notify";
 
 export default {
   name: "EraseCertificatesView",
-  components: { EraseCertificatesTable },
+  components: { EraseCertificatesTable, ObsPageHead },
   setup() {
     const { t } = useI18n();
     const $q = useQuasar();
 
     const dash = "—";
     const tab = ref("certificates");
+    // Grupo de radio de la barra de filtros (antes q-tabs): mismas dos vistas.
+    const tabOptions = computed(() =>
+      [
+        { label: t("erase.view.tabCertificates"), value: "certificates" },
+        { label: t("erase.view.tabIntake"), value: "intake" },
+      ].map((o) => ({
+        ...o,
+        attrs: { role: "radio", "aria-checked": String(tab.value === o.value) },
+      })),
+    );
     const loading = ref(false);
 
     const certs = ref([]);
@@ -320,8 +329,8 @@ export default {
     }
 
     function intakeStateColor(state) {
-      if (state === "functional") return "primary";
-      return "deep-orange";
+      if (state === "functional") return "positive";
+      return "warning";
     }
 
     async function loadCerts() {
@@ -398,6 +407,7 @@ export default {
     return {
       dash,
       tab,
+      tabOptions,
       loading,
       certs,
       intakes,

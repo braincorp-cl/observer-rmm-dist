@@ -1,31 +1,35 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("lostEquipment.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <ObsPageHead :title="$t('lostEquipment.title')" :crumbs="[$t('nav.agents')]">
       <q-btn
-        dense
-        flat
+        outline
+        no-caps
+        class="obs-page__btn"
         icon="refresh"
+        :label="$t('lostEquipment.refresh')"
         :loading="loading"
         @click="load"
-        :aria-label="$t('lostEquipment.refresh')"
-      >
-        <q-tooltip>{{ $t("lostEquipment.refresh") }}</q-tooltip>
-      </q-btn>
-    </div>
+      />
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        class="obs-page__btn"
+        icon="add"
+        :label="$t('lostEquipment.markLost')"
+        @click="openMark"
+      />
+    </ObsPageHead>
 
     <!-- El color de texto va EXPLICITO junto al de fondo: `bg-grey-3` sola deja
          el texto heredando el del tema, y en modo oscuro eso es texto claro sobre
          gris claro -- el aviso de gobernanza quedaba ilegible justo en el modulo
          donde mas importa que se lea. Mismo par que usan los otros banners del
          producto (`text-black bg-warning` en ScriptFormModal). -->
-    <q-banner dense class="bg-grey-3 text-black q-mb-md">
-      <template v-slot:avatar>
-        <q-icon name="policy" color="primary" />
-      </template>
-      {{ $t("lostEquipment.governanceNotice") }}
-    </q-banner>
+    <div class="obs-notice" role="note">
+      <q-icon name="policy" />
+      <div>{{ $t("lostEquipment.governanceNotice") }}</div>
+    </div>
 
     <q-table
       dense
@@ -51,7 +55,9 @@
            protegido cuando el equipo se perdió. -->
       <template v-slot:body-cell-encryption="props">
         <q-td :props="props">
-          <q-badge :color="encryptionColor(props.row.encryption_state)">
+          <q-badge
+            :color="encryptionColor(props.row.encryption_state)" :class="{ 'obs-chip-neutral': encryptionColor(props.row.encryption_state) === 'grey' }"
+          >
             {{ encryptionLabel(props.row.encryption_state) }}
           </q-badge>
         </q-td>
@@ -408,11 +414,6 @@
       @confirm="doRecover"
     />
 
-    <q-page-sticky position="bottom-right" :offset="[18, 18]">
-      <q-btn fab icon="add" color="negative" @click="openMark">
-        <q-tooltip>{{ $t("lostEquipment.markLost") }}</q-tooltip>
-      </q-btn>
-    </q-page-sticky>
   </q-page>
 </template>
 
@@ -437,6 +438,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import ConfirmYesDialog from "@/components/agents/ConfirmYesDialog.vue";
 import LostCaseTimelineDialog from "@/components/agents/LostCaseTimelineDialog.vue";
 import SendEndpointAlert from "@/components/modals/agents/SendEndpointAlert.vue";
@@ -462,7 +464,7 @@ const DEFAULT_INTERVAL_MIN = 5;
 
 export default {
   name: "LostEquipmentView",
-  components: { ConfirmDialog, LostCaseTimelineDialog },
+  components: { ConfirmDialog, LostCaseTimelineDialog, ObsPageHead },
   setup() {
     const { t } = useI18n();
     const $q = useQuasar();
