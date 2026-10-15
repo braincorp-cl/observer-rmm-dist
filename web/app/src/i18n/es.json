@@ -3134,7 +3134,9 @@
       "reason_camara_sin_imagen": "La cámara no dio imagen (tapa puesta, oscuridad o controlador)",
       "reason_permiso_denegado_camara": "El sistema no concede el permiso de cámara",
       "reason_so_no_soportado_camara": "Este sistema operativo no toma fotos con la cámara"
-    }
+    },
+    "filterClient": "Cliente",
+    "search": "Buscar en la tabla"
   },
   "diskEncryption": {
     "title": "Cifrado de disco",
@@ -3458,7 +3460,9 @@
       "colOrderedBy": "Ordenada por",
       "colOrderedAt": "Ordenada",
       "colDryRun": "Simulacro",
-      "colActions": "Acciones"
+      "colActions": "Acciones",
+      "filterStatus": "Estado",
+      "search": "Buscar en la tabla"
     }
   },
   "navRail": {

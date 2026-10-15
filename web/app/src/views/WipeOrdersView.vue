@@ -21,12 +21,40 @@
       <div>{{ $t("erase.orders.governanceNotice") }}</div>
     </div>
 
+    <div class="obs-page__filters">
+      <q-select
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        emit-value
+        map-options
+        v-model="statusFilter"
+        :options="statusOptions"
+        :label="$t('erase.orders.filterStatus')"
+      />
+      <q-input
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        debounce="200"
+        v-model="search"
+        :label="$t('erase.orders.search')"
+      >
+        <template v-slot:prepend>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </div>
+
     <q-table
       dense
       flat
       bordered
       row-key="id"
-      :rows="rows"
+      :filter="search"
+      :rows="filteredRows"
       :columns="columns"
       :loading="loading"
       :rows-per-page-options="[25, 50, 0]"
@@ -103,7 +131,7 @@
 // confirmación (RF-G02) y la ventana de arrepentimiento (RF-G03). No hay botón
 // de crear: eso es el Bloque A destructivo y está GATED.
 
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import ObsPageHead from "@/components/ui/ObsPageHead.vue";
@@ -123,6 +151,21 @@ export default {
     const dash = "—";
     const rows = ref([]);
     const loading = ref(false);
+
+    // Barra de filtros (lenguaje de la flota): filtra en el cliente lo ya
+    // cargado; no cambia la petición a /erase/orders/.
+    const search = ref("");
+    const statusFilter = ref(null);
+    const statusOptions = computed(() =>
+      [...new Set(rows.value.map((r) => r.status).filter(Boolean))].map(
+        (s) => ({ label: t(`erase.status.${s}`), value: s }),
+      ),
+    );
+    const filteredRows = computed(() =>
+      statusFilter.value
+        ? rows.value.filter((r) => r.status === statusFilter.value)
+        : rows.value,
+    );
 
     const columns = [
       {
@@ -229,6 +272,10 @@ export default {
       dash,
       rows,
       columns,
+      search,
+      statusFilter,
+      statusOptions,
+      filteredRows,
       loading,
       statusColor,
       actionLabel,

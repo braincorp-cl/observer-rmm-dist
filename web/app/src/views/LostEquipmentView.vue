@@ -31,13 +31,41 @@
       <div>{{ $t("lostEquipment.governanceNotice") }}</div>
     </div>
 
+    <div class="obs-page__filters">
+      <q-select
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        emit-value
+        map-options
+        v-model="clientFilter"
+        :options="clientOptions"
+        :label="$t('lostEquipment.filterClient')"
+      />
+      <q-input
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        debounce="200"
+        v-model="search"
+        :label="$t('lostEquipment.search')"
+      >
+        <template v-slot:prepend>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </div>
+
     <q-table
       dense
       flat
       bordered
       row-key="agent_id"
       @row-click="openTimeline"
-      :rows="rows"
+      :filter="search"
+      :rows="filteredRows"
       :columns="columns"
       :loading="loading"
       :rows-per-page-options="[25, 50, 0]"
@@ -433,7 +461,7 @@
 // traduce a un toast por el interceptor de axios. Introducirlo sólo acá rompería
 // la consistencia sin ganar seguridad — el permiso lo aplica el servidor.
 
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 
@@ -472,6 +500,21 @@ export default {
     const rows = ref([]);
     const loading = ref(false);
     const saving = ref(false);
+
+    // Barra de filtros (lenguaje de la flota): filtra en el cliente lo ya
+    // cargado; no cambia la petición a /lostmode/.
+    const search = ref("");
+    const clientFilter = ref(null);
+    const clientOptions = computed(() =>
+      [...new Set(rows.value.map((r) => r.client_name).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b))
+        .map((c) => ({ label: c, value: c })),
+    );
+    const filteredRows = computed(() =>
+      clientFilter.value
+        ? rows.value.filter((r) => r.client_name === clientFilter.value)
+        : rows.value,
+    );
 
     const markDialog = ref(false);
     const recoverDialog = ref(false);
@@ -876,6 +919,10 @@ export default {
       MAX_INTERVAL_MIN,
       rows,
       columns,
+      search,
+      clientFilter,
+      clientOptions,
+      filteredRows,
       loading,
       saving,
       markDialog,

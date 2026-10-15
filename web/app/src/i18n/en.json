@@ -3134,7 +3134,9 @@
       "reason_camara_sin_imagen": "The camera returned no image (cover on, darkness, or driver)",
       "reason_permiso_denegado_camara": "The system won't grant camera permission",
       "reason_so_no_soportado_camara": "This operating system cannot take camera photos"
-    }
+    },
+    "filterClient": "Client",
+    "search": "Search the table"
   },
   "diskEncryption": {
     "title": "Disk encryption",
@@ -3458,7 +3460,9 @@
       "colOrderedBy": "Ordered by",
       "colOrderedAt": "Ordered",
       "colDryRun": "Dry run",
-      "colActions": "Actions"
+      "colActions": "Actions",
+      "filterStatus": "Status",
+      "search": "Search the table"
     }
   },
   "navRail": {
