@@ -424,6 +424,9 @@ body.body--light .text-white:not(.q-header):not(.bg-dark)
 body .leaflet-container
   background: var(--obs-raised)
   color: var(--obs-text)
+  // V2-G01: zoom y atribución traen Lucida Console / Helvetica de leaflet.css
+  &, .leaflet-bar a, .leaflet-control-attribution, .leaflet-control-attribution a
+    font-family: $typography-font-family
   a
     color: var(--q-primary)
 body .leaflet-bar

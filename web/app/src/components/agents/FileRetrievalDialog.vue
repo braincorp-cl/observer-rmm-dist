@@ -61,7 +61,7 @@
             <q-td :props="props">
               <q-icon
                 :name="props.row.dry_run ? 'science' : 'download'"
-                :color="props.row.dry_run ? 'orange' : 'primary'"
+                :color="props.row.dry_run ? 'warning' : 'secondary'"
               />
             </q-td>
           </template>
@@ -81,7 +81,7 @@
                 dense
                 flat
                 icon="cancel"
-                color="negative"
+                color="primary"
                 :aria-label="$t('erase.fileretrieval.cancel')"
                 @click="cancel(props.row.id)"
               >

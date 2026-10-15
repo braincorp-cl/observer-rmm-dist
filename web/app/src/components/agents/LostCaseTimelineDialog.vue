@@ -91,8 +91,7 @@
             square
             class="text-caption"
             :icon="encrypted ? 'lock' : 'lock_open'"
-            :color="encrypted ? 'green-2' : 'orange-2'"
-            text-color="black"
+            :color="encrypted ? 'positive' : 'warning'"
           >
             {{
               $t(

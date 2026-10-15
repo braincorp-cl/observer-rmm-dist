@@ -96,7 +96,7 @@
           />
           <q-space />
           <q-btn
-            color="negative"
+            color="primary"
             icon="send"
             :label="$t('erase.wipe.launch')"
             :loading="launching"
@@ -129,7 +129,7 @@
             <q-td :props="props">
               <q-icon
                 :name="props.row.dry_run ? 'science' : 'delete_forever'"
-                :color="props.row.dry_run ? 'orange' : 'negative'"
+                :color="props.row.dry_run ? 'warning' : 'negative'"
               />
             </q-td>
           </template>
@@ -149,7 +149,7 @@
                 dense
                 flat
                 icon="how_to_reg"
-                color="negative"
+                color="primary"
                 :aria-label="$t('erase.wipe.confirm')"
                 @click="confirm(props.row)"
               >
@@ -160,7 +160,7 @@
                 dense
                 flat
                 icon="cancel"
-                color="warning"
+                color="primary"
                 :aria-label="$t('erase.wipe.cancel')"
                 @click="cancel(props.row.id)"
               >

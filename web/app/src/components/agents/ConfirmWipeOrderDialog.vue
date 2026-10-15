@@ -58,6 +58,7 @@
           filled
           type="number"
           v-model.number="recoverySeconds"
+          input-class="mono"
           :label="$t('erase.confirmOrder.recoverySeconds')"
           :hint="$t('erase.confirmOrder.recoverySecondsHint')"
           :rules="[(val) => val >= 0 || $t('erase.confirmOrder.recoveryInvalid')]"
@@ -92,7 +93,7 @@
           @click="onDialogCancel"
         />
         <q-btn
-          color="negative"
+          color="primary"
           :loading="loading"
           :label="$t('erase.confirmOrder.confirm')"
           :disable="(typed || '').toLowerCase() !== yesWord"

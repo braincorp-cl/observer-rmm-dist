@@ -18,6 +18,7 @@
           stack-label
           type="number"
           v-model.number="state.duration"
+          input-class="mono"
           :disable="state.forever"
           :label="$t('endpointResponse.alarmDurationLabel')"
           :min="ALARM_MIN_SECONDS"
@@ -76,7 +77,7 @@
           flat
           push
           :label="$t('endpointResponse.alarm')"
-          :color="warning ? 'negative' : 'primary'"
+          color="primary"
           @click="send"
         />
       </q-card-actions>

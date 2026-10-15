@@ -44,7 +44,7 @@
         <q-btn flat :label="$t('erase.recovery.close')" v-close-popup />
         <q-btn
           v-if="!expired"
-          color="positive"
+          color="primary"
           icon="undo"
           :loading="cancelling"
           :label="$t('erase.recovery.cancelOrder')"
