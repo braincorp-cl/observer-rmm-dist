@@ -206,6 +206,9 @@
           <q-item clickable v-close-popup :to="{ name: 'EraseCertificates' }">
             <q-item-section>{{ $t("nav.eraseCertificates") }}</q-item-section>
           </q-item>
+          <q-item clickable v-close-popup :to="{ name: 'EraseIntake' }">
+            <q-item-section>{{ $t("nav.eraseIntake") }}</q-item-section>
+          </q-item>
           <q-item clickable v-close-popup :to="{ name: 'EraseOrders' }">
             <q-item-section>{{ $t("nav.eraseOrders") }}</q-item-section>
           </q-item>

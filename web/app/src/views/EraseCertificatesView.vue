@@ -1,6 +1,16 @@
 <template>
   <q-page class="obs-page">
-    <ObsPageHead :title="$t('erase.view.title')" :crumbs="[$t('nav.agents')]">
+    <ObsPageHead :title="pageTitle" :crumbs="[$t('nav.agents')]">
+      <q-btn
+        v-if="tab === 'intake'"
+        unelevated
+        color="primary"
+        class="obs-page__btn"
+        icon="add"
+        no-caps
+        :label="$t('erase.view.newIntake')"
+        @click="openIntakeForm"
+      />
       <q-btn
         outline
         no-caps
@@ -12,22 +22,8 @@
       />
     </ObsPageHead>
 
-    <!-- 050 (V2-S02): sin pestañas; certificados / ingresos es un grupo de radio
-         en la barra de filtros, como el tipo de equipo de la flota. -->
-    <div class="obs-page__filters">
-      <q-btn-toggle
-        v-model="tab"
-        no-caps
-        unelevated
-        dense
-        class="obs-page__toggle"
-        toggle-color="primary"
-        role="radiogroup"
-        :aria-label="$t('erase.view.title')"
-        :options="tabOptions"
-      />
-    </div>
-
+    <!-- 050 (V2-S02): sin pestañas ni segmentado; certificados e ingresos son
+         dos rutas (/erase-certificates y /erase-intake) que comparten esta vista. -->
     <!-- Certificados (Bloque C) -->
     <div v-show="tab === 'certificates'">
       <div class="obs-page__filters q-mb-md">
@@ -66,17 +62,20 @@
 
     <!-- Ingresos de activos (Bloque D · custodia) -->
     <div v-show="tab === 'intake'">
-      <div class="row items-center q-mb-md">
-        <q-btn
-          unelevated
-          color="primary"
-          class="obs-page__btn"
-          icon="add"
-          no-caps
-          :label="$t('erase.view.newIntake')"
-          @click="openIntakeForm"
-        />
-        <q-space />
+      <div class="obs-page__filters q-mb-md">
+        <q-input
+          dense
+          outlined
+          class="obs-page__field"
+          clearable
+          debounce="200"
+          v-model="intakeSearch"
+          :label="$t('erase.view.search')"
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
       </div>
 
       <q-table
@@ -85,6 +84,7 @@
         bordered
         row-key="id"
         :rows="intakes"
+        :filter="intakeSearch"
         :columns="intakeColumns"
         :loading="loading"
         :rows-per-page-options="[25, 50, 0]"
@@ -221,22 +221,20 @@ import { notifySuccess, notifyError } from "@/utils/notify";
 export default {
   name: "EraseCertificatesView",
   components: { EraseCertificatesTable, ObsPageHead },
-  setup() {
+  props: {
+    // Lo fija la ruta: "certificates" (/erase-certificates) o "intake" (/erase-intake).
+    mode: { type: String, default: "certificates" },
+  },
+  setup(props) {
     const { t } = useI18n();
     const $q = useQuasar();
 
     const dash = "—";
-    const tab = ref("certificates");
-    // Grupo de radio de la barra de filtros (antes q-tabs): mismas dos vistas.
-    const tabOptions = computed(() =>
-      [
-        { label: t("erase.view.tabCertificates"), value: "certificates" },
-        { label: t("erase.view.tabIntake"), value: "intake" },
-      ].map((o) => ({
-        ...o,
-        attrs: { role: "radio", "aria-checked": String(tab.value === o.value) },
-      })),
+    const tab = computed(() => props.mode);
+    const pageTitle = computed(() =>
+      tab.value === "intake" ? t("nav.eraseIntake") : t("nav.eraseCertificates"),
     );
+    const intakeSearch = ref("");
     const loading = ref(false);
 
     const certs = ref([]);
@@ -407,7 +405,8 @@ export default {
     return {
       dash,
       tab,
-      tabOptions,
+      pageTitle,
+      intakeSearch,
       loading,
       certs,
       intakes,

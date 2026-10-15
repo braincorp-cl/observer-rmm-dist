@@ -54,6 +54,18 @@ const routes = [
         path: "erase-certificates",
         name: "EraseCertificates",
         component: () => import("@/views/EraseCertificatesView.vue"),
+        props: { mode: "certificates" },
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
+        // 050 (V2-S02): custodia de activos (Bloque D) con ruta propia; antes
+        // era la segunda pestaña de /erase-certificates.
+        path: "erase-intake",
+        name: "EraseIntake",
+        component: () => import("@/views/EraseCertificatesView.vue"),
+        props: { mode: "intake" },
         meta: {
           requireAuth: true,
         },

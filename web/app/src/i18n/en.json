@@ -87,6 +87,7 @@
     "bulkAlarm": "Bulk sound alarm",
     "bulkStopAlarm": "Bulk stop alarm",
     "eraseCertificates": "Erase certificates",
+    "eraseIntake": "Asset intake",
     "eraseOrders": "Erase orders",
     "activityLive": "Live monitoring"
   },
