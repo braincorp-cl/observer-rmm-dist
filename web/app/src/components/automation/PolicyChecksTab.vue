@@ -1,8 +1,10 @@
 <template>
   <div class="row">
     <div class="col-12">
+      <!-- 050 (T028): en la página /automation esta barra la pone la cabecera
+           de la sección (prop embedded). -->
       <q-btn
-        v-if="!!selectedPolicy"
+        v-if="!!selectedPolicy && !embedded"
         class="q-mr-sm"
         dense
         flat
@@ -11,7 +13,7 @@
         icon="refresh"
       />
       <q-btn-dropdown
-        v-if="!!selectedPolicy"
+        v-if="!!selectedPolicy && !embedded"
         icon="add"
         :label="$t('policyChecksTab.new')"
         no-caps
@@ -257,6 +259,7 @@ export default {
   mixins: [mixins],
   props: {
     selectedPolicy: !Number,
+    embedded: { type: Boolean, default: false },
   },
   data() {
     return {

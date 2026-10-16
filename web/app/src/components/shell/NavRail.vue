@@ -28,6 +28,24 @@
           $t("navRail.home")
         }}</q-tooltip>
       </q-btn>
+      <!-- 050 (ola 4): accesos directos a los gestores-página, con estado activo. -->
+      <q-btn
+        v-for="g in managers"
+        :key="g.route"
+        flat
+        round
+        dense
+        :icon="g.icon"
+        class="obs-rail__mgr"
+        :class="{ 'obs-rail__mgr--active': route.name === g.route }"
+        :aria-label="$t(g.label)"
+        :aria-current="route.name === g.route ? 'page' : undefined"
+        :to="{ name: g.route }"
+      >
+        <q-tooltip anchor="center right" self="center left">{{
+          $t(g.label)
+        }}</q-tooltip>
+      </q-btn>
       <q-separator class="obs-rail__sep" />
       <NavMenu />
     </div>
@@ -40,6 +58,11 @@ import { useStore } from "vuex";
 import NavMenu from "@/components/shell/NavMenu.vue";
 
 const route = useRoute();
+const managers = [
+  { route: "Scripts", icon: "code", label: "nav.scriptManager" },
+  { route: "Automation", icon: "account_tree", label: "nav.automationManager" },
+  { route: "Alerts", icon: "warning_amber", label: "nav.alertsManager" },
+];
 const router = useRouter();
 const store = useStore();
 
@@ -56,6 +79,12 @@ function goHome() {
 .obs-rail__inner
   gap: 6px
 .obs-rail__home
+  color: var(--q-primary)
+.obs-rail__mgr
+  color: var(--obs-muted)
+  border-radius: 10px
+.obs-rail__mgr--active
+  background: var(--obs-selected)
   color: var(--q-primary)
 .obs-rail__sep
   width: 28px

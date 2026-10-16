@@ -46,7 +46,7 @@
                 pol.name
               }}</q-item-label>
               <q-item-label caption class="ellipsis" :title="pol.desc">{{
-                pol.desc || "—"
+                policyMeta(pol)
               }}</q-item-label>
             </q-item-section>
             <q-item-section side top>
@@ -176,20 +176,64 @@
               </q-menu>
             </q-btn>
           </div>
-          <h2 class="obs-mgr__section-title">
-            {{
-              subtab === "tasks"
-                ? $t("automationManager.tabTasks")
-                : $t("automationManager.tabChecks")
-            }}
-          </h2>
+          <div class="row items-center no-wrap q-gutter-sm">
+            <h2 class="col obs-mgr__section-title">
+              {{
+                subtab === "tasks"
+                  ? $t("automationManager.tabTasks")
+                  : $t("automationManager.tabChecks")
+              }}
+            </h2>
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              icon="refresh"
+              :aria-label="$t('automationManager.refresh')"
+              @click="refreshSection"
+            />
+            <q-btn-dropdown
+              v-if="subtab === 'checks'"
+              unelevated
+              no-caps
+              color="primary"
+              class="obs-page__btn"
+              :label="$t('automationManager.addCheck')"
+            >
+              <q-list dense style="min-width: 200px">
+                <q-item
+                  v-for="ct in checkTypes"
+                  :key="ct.type"
+                  clickable
+                  v-close-popup
+                  @click="$refs.section.showCheckModal(ct.type)"
+                >
+                  <q-item-section side><q-icon size="xs" :name="ct.icon" /></q-item-section>
+                  <q-item-section>{{ $t(ct.label) }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+            <q-btn
+              v-else
+              unelevated
+              no-caps
+              color="primary"
+              class="obs-page__btn"
+              :label="$t('automationManager.addTask')"
+              @click="$refs.section.showAddTask()"
+            />
+          </div>
           <PolicyChecksTab
             v-if="subtab === 'checks'"
+            ref="section"
+            embedded
             :key="`c${selectedPolicy.id}`"
             :selectedPolicy="selectedPolicy.id"
           />
           <PolicyAutomatedTasksTab
             v-else
+            ref="section"
+            embedded
             :key="`t${selectedPolicy.id}`"
             :selectedPolicy="selectedPolicy.id"
           />
@@ -573,6 +617,17 @@ export default {
       QDialog,
       sep: " · ",
       sectionCounts: { checks: null, tasks: null },
+      // Conteos por política para la columna (chequeos, tareas).
+      policyCounts: {},
+      checkTypes: [
+        { type: "diskspace", icon: "far fa-hdd", label: "policyChecksTab.diskSpaceCheck" },
+        { type: "ping", icon: "fas fa-network-wired", label: "policyChecksTab.pingCheck" },
+        { type: "cpuload", icon: "fas fa-microchip", label: "policyChecksTab.cpuLoadCheck" },
+        { type: "memory", icon: "fas fa-memory", label: "policyChecksTab.memoryCheck" },
+        { type: "winsvc", icon: "fas fa-cogs", label: "policyChecksTab.windowsServiceCheck" },
+        { type: "script", icon: "fas fa-terminal", label: "policyChecksTab.scriptCheck" },
+        { type: "eventlog", icon: "fas fa-clipboard-list", label: "policyChecksTab.eventLogCheck" },
+      ],
       countsFor: null,
       subtab: "checks",
       policies: [],
@@ -704,6 +759,40 @@ export default {
     selectSection(section) {
       this.goTo(this.selectedPolicy, section);
     },
+    refreshSection() {
+      const r = this.$refs.section;
+      if (!r) return;
+      if (this.subtab === "tasks") r.getTasks();
+      else r.getChecks();
+      this.countsFor = null;
+      this.policyCounts = {};
+      this.loadSectionCounts();
+      this.loadPolicyCounts();
+    },
+    // «N chequeos · N tareas · N equipos» bajo cada política, como la maqueta.
+    loadPolicyCounts() {
+      this.policies.forEach((pol) => {
+        if (this.policyCounts[pol.id]) return;
+        this.policyCounts[pol.id] = { checks: null, tasks: null };
+        ["checks", "tasks"].forEach((k) =>
+          this.$axios
+            .get(`/automation/policies/${pol.id}/${k}/`)
+            .then((r) => {
+              this.policyCounts[pol.id][k] = r.data.length;
+            })
+            .catch(() => {}),
+        );
+      });
+    },
+    policyMeta(pol) {
+      const c = this.policyCounts[pol.id] || {};
+      const n = (v) => (v === null || v === undefined ? "…" : v);
+      return this.$t("automationManager.policyMeta", {
+        checks: n(c.checks),
+        tasks: n(c.tasks),
+        agents: pol.agents_count,
+      });
+    },
     exclusionsCount(policy) {
       return (
         policy.excluded_agents.length +
@@ -738,6 +827,7 @@ export default {
         .then((r) => {
           this.policies = r.data;
           this.syncFromRoute();
+          if (this.embedded) this.loadPolicyCounts();
           this.$q.loading.hide();
         })
         .catch(() => {
@@ -749,6 +839,7 @@ export default {
     },
     refresh() {
       this.countsFor = null;
+      this.policyCounts = {};
       this.getPolicies();
       this.clearRow();
     },

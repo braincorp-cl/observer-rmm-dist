@@ -261,6 +261,7 @@
             </q-tr>
           </template>
         </q-table>
+        <p class="obs-mgr__hint">{{ $t("scriptManager.pageHint") }}</p>
       </div>
       <q-bar v-if="!embedded">
         <q-btn
@@ -1204,30 +1205,19 @@ export default {
     const libraryGroups = computed(() => {
       const count = (key) =>
         visibleScripts.value.filter((s) => inLibrary(s, key)).length;
-      // Las categorías «Prefijo:Nombre» se agrupan por prefijo para que se lean
-      // completas en la navegación lateral; las demás van en «Categorías».
-      const cats = [...categories.value].sort((a, b) => a.localeCompare(b));
-      const plain = cats.filter((c) => !c.includes(":"));
-      const prefixed = {};
-      cats
-        .filter((c) => c.includes(":"))
-        .forEach((c) => {
-          const i = c.lastIndexOf(":");
-          const pre = c.slice(0, i);
-          if (!prefixed[pre]) prefixed[pre] = [];
-          prefixed[pre].push(c);
-        });
-      const prefixGroups = Object.keys(prefixed)
-        .sort((a, b) => a.localeCompare(b))
-        .map((pre) => ({
-          key: `pre:${pre}`,
-          label: pre,
-          items: prefixed[pre].map((c) => ({
-            key: `cat:${c}`,
-            label: c.slice(pre.length + 1),
-            count: count(`cat:${c}`),
-          })),
-        }));
+      // Categorías en una lista plana como la maqueta. Las «Prefijo (X):Nombre»
+      // se rotulan «Nombre (X)» para que se lean completas; el title lleva el
+      // nombre entero.
+      const short = (c) => {
+        const i = c.lastIndexOf(":");
+        if (i < 0) return c;
+        const pre = c.slice(0, i);
+        const m = pre.match(/\(([^)]*)\)\s*$/);
+        return `${c.slice(i + 1)} (${m ? m[1] : pre})`;
+      };
+      const cats = [...categories.value]
+        .map((c) => ({ key: `cat:${c}`, label: short(c), full: c }))
+        .sort((a, b) => a.label.localeCompare(b.label));
       return [
         {
           key: "library",
@@ -1242,17 +1232,16 @@ export default {
           key: "categories",
           label: t("scriptManager.categoriesGroup"),
           items: [
-            ...plain.map((c) => ({ key: `cat:${c}`, label: c })),
+            ...cats,
             { key: `cat:${UNCAT}`, label: t("scriptManager.uncategorized") },
           ].map((i) => ({ ...i, count: count(i.key) })),
         },
-        ...prefixGroups,
       ];
     });
     const libraryLabel = computed(() => {
       for (const g of libraryGroups.value) {
         const it = g.items.find((i) => i.key === library.value);
-        if (it) return g.key.startsWith("pre:") ? `${g.label}:${it.label}` : it.label;
+        if (it) return it.full || it.label;
       }
       return "";
     });

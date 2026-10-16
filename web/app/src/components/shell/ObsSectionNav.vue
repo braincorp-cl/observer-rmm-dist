@@ -23,7 +23,7 @@
             <q-icon :name="item.icon" size="16px" />
           </q-item-section>
           <q-item-section class="ellipsis">
-            <span :title="item.label">{{ item.label }}</span>
+            <span :title="item.full || item.label">{{ item.label }}</span>
           </q-item-section>
           <q-item-section v-if="item.count || item.count === 0" side>
             <span class="mono obs-secnav__count" :class="item.countClass">{{
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-// groups: [{ key, label?, items: [{ key, label, icon?, count?, countClass? }] }]
+// groups: [{ key, label?, items: [{ key, label, full?, icon?, count?, countClass? }] }]
 defineProps({
   groups: { type: Array, required: true },
   section: { type: String, default: null },

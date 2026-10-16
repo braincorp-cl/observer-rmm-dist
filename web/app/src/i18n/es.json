@@ -1319,7 +1319,10 @@
     "disablePolicy": "Desactivar política",
     "enforcePolicy": "Forzar política",
     "unenforcePolicy": "Dejar de forzar",
-    "pickPolicy": "Elige una política o crea una nueva."
+    "pickPolicy": "Elige una política o crea una nueva.",
+    "addCheck": "Agregar chequeo",
+    "addTask": "Agregar tarea",
+    "policyMeta": "{checks} chequeos · {tasks} tareas · {agents} equipos"
   },
   "policyStatus": {
     "close": "Cerrar",
@@ -1527,7 +1530,10 @@
     "notifiesChecks": "Chequeos",
     "notifiesTasks": "Tareas",
     "notifiesAvailability": "Disponibilidad",
-    "rowActions": "Acciones"
+    "rowActions": "Acciones",
+    "colExclusionsShort": "Exclusiones",
+    "colOnFailure": "Acción al fallar",
+    "colOnResolve": "Acción al resolver"
   },
   "eventLogCheckOutput": {
     "close": "Cerrar",
@@ -1588,7 +1594,8 @@
     "columnTimeoutShort": "Tiempo de espera",
     "rowActions": "Acciones",
     "columnsBtn": "Columnas",
-    "columnArgsShort": "Argumentos"
+    "columnArgsShort": "Argumentos",
+    "pageHint": "Doble clic en la fila: editar (en las plantillas, ver código). El botón ⋯ y el clic derecho abren las acciones del script: ver código, clonar, editar, eliminar, favorito, descargar y ocultar."
   },
   "scriptOutput": {
     "title": "Salida del script",

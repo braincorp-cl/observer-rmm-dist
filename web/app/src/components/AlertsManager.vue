@@ -37,7 +37,7 @@
           flat
           bordered
           dense
-          class="obs-mgr__table"
+          class="obs-mgr__table obs-mgr__table--narrow"
           :rows="templates"
           :columns="pageColumns"
           v-model:pagination="pagination"
@@ -427,9 +427,9 @@ export default {
         { ...c("name", this.$t("alertsManager.colName"), "name"), sortable: true },
         c("notifies", this.$t("alertsManager.colNotifies"), "name"),
         c("applied_to", this.$t("alertsManager.colAppliedTo"), "applied_count"),
-        c("alert_exclusions", this.$t("alertsManager.colAlertExclusions"), "id"),
-        c("action_name", this.$t("alertsManager.colFailureAction"), "action_name"),
-        c("resolved_action_name", this.$t("alertsManager.colResolvedAction"), "resolved_action_name"),
+        c("alert_exclusions", this.$t("alertsManager.colExclusionsShort"), "id"),
+        c("action_name", this.$t("alertsManager.colOnFailure"), "action_name"),
+        c("resolved_action_name", this.$t("alertsManager.colOnResolve"), "resolved_action_name"),
         { name: "actions", label: "", field: "id", align: "right" },
       ];
     },

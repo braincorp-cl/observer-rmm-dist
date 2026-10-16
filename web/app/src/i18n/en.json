@@ -1319,7 +1319,10 @@
     "disablePolicy": "Disable policy",
     "enforcePolicy": "Enforce policy",
     "unenforcePolicy": "Stop enforcing",
-    "pickPolicy": "Pick a policy or create a new one."
+    "pickPolicy": "Pick a policy or create a new one.",
+    "addCheck": "Add check",
+    "addTask": "Add task",
+    "policyMeta": "{checks} checks · {tasks} tasks · {agents} agents"
   },
   "policyStatus": {
     "close": "Close",
@@ -1527,7 +1530,10 @@
     "notifiesChecks": "Checks",
     "notifiesTasks": "Tasks",
     "notifiesAvailability": "Availability",
-    "rowActions": "Actions"
+    "rowActions": "Actions",
+    "colExclusionsShort": "Exclusions",
+    "colOnFailure": "On failure",
+    "colOnResolve": "On resolve"
   },
   "eventLogCheckOutput": {
     "close": "Close",
@@ -1588,7 +1594,8 @@
     "columnTimeoutShort": "Timeout",
     "rowActions": "Actions",
     "columnsBtn": "Columns",
-    "columnArgsShort": "Arguments"
+    "columnArgsShort": "Arguments",
+    "pageHint": "Double-click a row: edit (view code for templates). The ⋯ button and right-click open the script actions: view code, clone, edit, delete, favorite, download and hide."
   },
   "scriptOutput": {
     "title": "Script Output",
