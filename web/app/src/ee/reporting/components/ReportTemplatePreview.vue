@@ -53,6 +53,7 @@
 import { ref, onUnmounted, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 
 // types
 import type { ReportFormat } from "../types/reporting";
@@ -86,6 +87,7 @@ if (props.debug) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       document.getElementById("templateDiv")!,
       {
+        fontFamily: OBS_FONT_MONO,
         automaticLayout: true,
         value: props.source || "",
         theme: theme,
@@ -99,6 +101,7 @@ if (props.debug) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       document.getElementById("variablesDiv")!,
       {
+        fontFamily: OBS_FONT_MONO,
         automaticLayout: true,
         value: props.variables || "",
         language: "json",

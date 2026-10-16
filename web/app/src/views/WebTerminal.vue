@@ -18,6 +18,7 @@
 </style>
 
 <script setup lang="ts">
+import { OBS_FONT_MONO } from "@/utils/fonts";
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -45,7 +46,7 @@ onBeforeUnmount(() => {
 function setupXTerm() {
   term = new Terminal({
     convertEol: true,
-    fontFamily: "Menlo, Monaco, Courier New, monospace",
+    fontFamily: OBS_FONT_MONO,
     fontSize: 15,
     fontWeight: 400,
     cursorBlink: true,

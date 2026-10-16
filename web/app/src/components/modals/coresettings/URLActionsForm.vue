@@ -119,6 +119,7 @@ import { URLAction, URLActionType } from "@/types/core/urlactions";
 import TestURLAction from "@/components/modals/coresettings/TestURLAction.vue";
 
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 
 // define emits
 defineEmits([...useDialogPluginComponent.emits]);
@@ -238,6 +239,7 @@ function loadEditor() {
   if (!editorDiv.value) return;
 
   editor = monaco.editor.create(editorDiv.value, {
+    fontFamily: OBS_FONT_MONO,
     model: tab.value === "body" ? modelBody : modelHeaders,
     theme: theme,
     automaticLayout: true,

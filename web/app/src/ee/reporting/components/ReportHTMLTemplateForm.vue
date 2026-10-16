@@ -33,7 +33,12 @@
       ></div>
 
       <q-card-actions align="right">
-        <q-btn v-close-popup dense flat :label="$t('reporting.common.cancel')" />
+        <q-btn
+          v-close-popup
+          dense
+          flat
+          :label="$t('reporting.common.cancel')"
+        />
         <q-btn
           :loading="isLoading"
           dense
@@ -54,6 +59,7 @@ import { useDialogPluginComponent, extend, useQuasar } from "quasar";
 import { useSharedReportHTMLTemplates } from "../api/reporting";
 import { until } from "@vueuse/shared";
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 import { useI18n } from "vue-i18n";
 
 const $q = useQuasar();
@@ -122,6 +128,7 @@ const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
 function loadEditor() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(htmlEditor.value!, {
+    fontFamily: OBS_FONT_MONO,
     language: "html",
     value: state.html,
     theme: theme,

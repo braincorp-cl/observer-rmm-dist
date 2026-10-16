@@ -340,6 +340,7 @@ import {
 import { notifyError } from "@/utils/notify";
 import { useI18n } from "vue-i18n";
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 import { parseDocument } from "yaml";
 
 // ui imports
@@ -529,8 +530,8 @@ const tab = ref(
   props.templateType === "markdown"
     ? "markdown"
     : props.templateType === "html"
-    ? "html"
-    : "plaintext",
+      ? "html"
+      : "plaintext",
 );
 
 onBeforeMount(() => {
@@ -661,6 +662,7 @@ function initializeEditor() {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor.value = monaco.editor.create(editorDiv.value!, {
+    fontFamily: OBS_FONT_MONO,
     automaticLayout: true,
     model: templateModel,
     theme: theme,
@@ -688,6 +690,7 @@ function initializeEditor() {
   );
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   variablesEditor.value = monaco.editor.create(variablesDiv.value!, {
+    fontFamily: OBS_FONT_MONO,
     automaticLayout: true,
     model: variablesModel,
     theme: theme,

@@ -91,6 +91,7 @@ import { notifySuccess } from "@/utils/notify";
 
 // ui imports
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
@@ -219,6 +220,7 @@ function loadEditor() {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(snippetEditor.value!, {
+    fontFamily: OBS_FONT_MONO,
     automaticLayout: true,
     model: model,
     theme: theme,

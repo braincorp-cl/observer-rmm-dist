@@ -163,6 +163,7 @@
               filled
               dense
               v-model.number="script.default_timeout"
+              input-class="mono"
               :label="$t('scriptFormModal.timeoutSeconds')"
               :rules="[(val) => val >= 5 || $t('scriptsCommon.minTimeout')]"
               hide-bottom-space
@@ -170,6 +171,7 @@
             <q-input
               :label="$t('scriptFormModal.syntax')"
               v-model="script.syntax"
+              input-class="mono"
               dense
               filled
               autogrow
@@ -294,6 +296,7 @@ import TestScriptModal from "@/components/scripts/TestScriptModal.vue";
 import AiScriptPromptModal from "@/components/scripts/AiScriptPromptModal.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import * as monaco from "monaco-editor";
+import { OBS_FONT_MONO } from "@/utils/fonts";
 
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
@@ -490,6 +493,7 @@ function loadEditor() {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(scriptEditor.value!, {
+    fontFamily: OBS_FONT_MONO,
     readOnly: props.readonly,
     automaticLayout: true,
     model: model,

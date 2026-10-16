@@ -639,6 +639,27 @@ body.body--dark
 .obs-mgr__pol-name
   font-weight: 600
   color: var(--obs-text)
+// 050 (T030, G13): a ≤700 px las columnas del gestor se apilan (políticas,
+// navegación de sección, detalle) y la página se desplaza entera.
+@media (max-width: 700px)
+  .obs-mgr-page .obs-mgr
+    flex-direction: column
+    overflow-y: auto
+  .obs-mgr-page .obs-mgr__card
+    flex-direction: column
+    flex: none
+  .obs-mgr-page .obs-mgr__policies
+    width: auto
+    max-height: 40vh
+    border-right: none
+    border-bottom: 1px solid var(--obs-border)
+  .obs-mgr-page .obs-mgr__main
+    flex: none
+  .obs-mgr-page .obs-mgr .obs-secnav
+    width: auto
+    max-height: 30vh
+    border-right: none
+    border-bottom: 1px solid var(--obs-border)
 .obs-mgr__pol--active
   background: var(--obs-selected)
   .obs-mgr__pol-name
