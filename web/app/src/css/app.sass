@@ -650,3 +650,16 @@ body.body--dark
   font-size: 16px
   font-weight: 600
   color: var(--obs-text)
+// 050: contenedor de páginas con desplazamiento propio (el body no se desplaza).
+.obs-scroll-root
+  height: 100vh
+  overflow-y: auto
+.obs-mgr-page
+  overflow: hidden
+  > .obs-page
+    height: 100%
+    overflow-y: auto
+.obs-mgr, .obs-mgr__card
+  height: 100%
+.obs-mgr__main, .obs-mgr__policies
+  overflow-y: auto

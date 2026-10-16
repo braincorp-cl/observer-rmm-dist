@@ -273,7 +273,9 @@
       </q-toolbar>
     </q-header>
     <NavRail />
-    <q-page-container>
+    <!-- 050: el body no se desplaza (App.vue, herencia v1); las páginas que no
+         fijan su altura se desplazan dentro del contenedor. -->
+    <q-page-container class="obs-scroll-root">
       <router-view />
     </q-page-container>
   </q-layout>
