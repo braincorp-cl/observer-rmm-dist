@@ -153,7 +153,12 @@
                 <q-icon
                   :name="props.row.favorite ? 'star' : 'star_outline'"
                   size="16px"
-                  :class="props.row.favorite ? 'obs-mgr__star--on' : 'obs-mgr__star'"
+                  :aria-label="
+                    props.row.favorite
+                      ? $t('scriptManager.removeFavorite')
+                      : $t('scriptManager.addFavorite')
+                  "
+                  :class="props.row.favorite ? 'text-warning' : 'obs-mgr__star'"
                 />
               </q-td>
               <q-td key="name" :props="props">
