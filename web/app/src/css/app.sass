@@ -118,7 +118,8 @@ body.body--dark
   color: var(--obs-text-2) !important
 
 // Chip neutro para datos (valores de inventario, etiquetas sin estado): UI-D05.
-.obs-chip-neutral
+// Le gana a .bg-grey (definida más abajo con !important): color="grey" + esta clase.
+.obs-chip-neutral, .bg-grey.obs-chip-neutral
   background: var(--obs-raised) !important
   color: var(--obs-text-2) !important
   border: 1px solid var(--obs-border)
