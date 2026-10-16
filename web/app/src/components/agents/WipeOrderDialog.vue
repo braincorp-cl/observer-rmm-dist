@@ -120,7 +120,10 @@
         >
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
-              <q-badge :color="statusColor(props.row.status)">
+              <q-badge
+                :color="statusColor(props.row.status)"
+                :class="{ 'obs-chip-neutral': statusColor(props.row.status) === 'grey' }"
+              >
                 {{ $t("erase.status." + props.row.status) }}
               </q-badge>
             </q-td>
@@ -178,7 +181,10 @@
           <div class="text-subtitle2">
             {{ $t("erase.wipe.detailTitle", { id: detail.id }) }}
           </div>
-          <q-badge :color="verifiedColor(detail.verified)">
+          <q-badge
+            :color="verifiedColor(detail.verified)"
+            :class="{ 'obs-chip-neutral': verifiedColor(detail.verified) === 'grey' }"
+          >
             {{ verifiedLabel(detail.verified) }}
           </q-badge>
           <q-space />
@@ -241,16 +247,17 @@ import { notifySuccess, notifyError } from "@/utils/notify";
 // despacharse). Después es terminal.
 const CANCELABLE = ["pending_confirmation", "confirmed", "recovery_window"];
 
+// 050 (V2-G05): solo tokens de estado, el mismo mapa que WipeOrdersView.
 const STATUS_COLOR = {
   draft: "grey",
-  pending_confirmation: "orange",
-  confirmed: "amber",
+  pending_confirmation: "warning",
+  confirmed: "warning",
   recovery_window: "warning",
-  dispatched: "blue",
+  dispatched: "info",
   executed: "negative",
-  incomplete: "deep-orange",
+  incomplete: "negative",
   cancelled: "positive",
-  failed: "deep-orange",
+  failed: "negative",
 };
 
 export default {

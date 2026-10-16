@@ -232,6 +232,7 @@ export default {
       recovery_window: "warning",
       dispatched: "info",
       executed: "negative",
+      incomplete: "negative",
       cancelled: "positive",
       failed: "negative",
     };
