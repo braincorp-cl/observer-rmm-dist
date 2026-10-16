@@ -435,7 +435,6 @@
       v-model="recoverDialog"
       type="confirm"
       icon="check_circle"
-      icon-color="positive"
       :title="$t('lostEquipment.confirmRecoverTitle')"
       :message="
         $t('lostEquipment.confirmRecoverMessage', {
