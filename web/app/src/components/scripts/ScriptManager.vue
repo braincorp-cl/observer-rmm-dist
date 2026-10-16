@@ -1257,15 +1257,15 @@ export default {
       return "";
     });
     const pageColumns = computed(() => [
-      { name: "favorite", label: "", field: "favorite", align: "left", sortable: true },
-      { name: "name", label: t("scriptsCommon.name"), field: "name", align: "left", sortable: true },
+      { name: "favorite", label: "", field: "favorite", align: "left", sortable: true, required: true },
+      { name: "name", label: t("scriptsCommon.name"), field: "name", align: "left", sortable: true, required: true },
       { name: "shell", label: t("scriptManager.shell"), field: "shell", align: "left", sortable: true },
       { name: "supported_platforms", label: t("scriptManager.columnPlatforms"), field: "supported_platforms", align: "left" },
       { name: "category", label: t("scriptsCommon.category"), field: "category", align: "left", sortable: true },
       { name: "desc", label: t("scriptsCommon.description"), field: "description", align: "left" },
       { name: "args", label: t("scriptManager.columnDefaultArgs"), field: "args", align: "left" },
       { name: "default_timeout", label: t("scriptManager.columnTimeoutShort"), field: "default_timeout", align: "left", sortable: true },
-      { name: "actions", label: "", field: "id", align: "right" },
+      { name: "actions", label: "", field: "id", align: "right", required: true },
     ]);
     // Selector de columnas (el ⋯ de la cabecera de la v1); la descripción ya
     // va bajo el nombre, así que su columna parte oculta.
