@@ -43,7 +43,7 @@
             <q-card-section>
               <q-toggle
                 v-model="template.is_active"
-                color="green"
+                color="primary"
                 :label="$t('alertTemplate.enabled')"
                 left-label
               />
@@ -374,21 +374,21 @@
               <q-toggle
                 v-model="template.agent_script_actions"
                 :label="$t('alertTemplate.agents')"
-                color="green"
+                color="primary"
                 left-label
               />
 
               <q-toggle
                 v-model="template.check_script_actions"
                 :label="$t('alertTemplate.checks')"
-                color="green"
+                color="primary"
                 left-label
               />
 
               <q-toggle
                 v-model="template.task_script_actions"
                 :label="$t('alertTemplate.tasks')"
-                color="green"
+                color="primary"
                 left-label
               />
             </q-card-section>
@@ -413,21 +413,21 @@
               <q-toggle
                 v-model="template.agent_always_email"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.agent_always_text"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.agent_always_alert"
                 :label="$t('alertTemplate.dashboard')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
@@ -457,13 +457,13 @@
               <q-toggle
                 v-model="template.agent_email_on_resolved"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
               />
               <q-toggle
                 v-model="template.agent_text_on_resolved"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
               />
             </q-card-section>
@@ -489,21 +489,21 @@
               <q-toggle
                 v-model="template.check_always_email"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.check_always_text"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.check_always_alert"
                 :label="$t('alertTemplate.dashboard')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
@@ -582,13 +582,13 @@
               <q-toggle
                 v-model="template.check_email_on_resolved"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
               />
               <q-toggle
                 v-model="template.check_text_on_resolved"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
               />
             </q-card-section>
@@ -614,21 +614,21 @@
               <q-toggle
                 v-model="template.task_always_email"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.task_always_text"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
               <q-toggle
                 v-model="template.task_always_alert"
                 :label="$t('alertTemplate.dashboard')"
-                color="green"
+                color="primary"
                 left-label
                 toggle-indeterminate
               />
@@ -707,13 +707,13 @@
               <q-toggle
                 v-model="template.task_email_on_resolved"
                 :label="$t('alertTemplate.email')"
-                color="green"
+                color="primary"
                 left-label
               />
               <q-toggle
                 v-model="template.task_text_on_resolved"
                 :label="$t('alertTemplate.text')"
-                color="green"
+                color="primary"
                 left-label
               />
             </q-card-section>

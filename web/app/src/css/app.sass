@@ -639,6 +639,10 @@ body.body--dark
 .obs-mgr__pol-name
   font-weight: 600
   color: var(--obs-text)
+// 050 (T030, G05): en tema oscuro QDialogPlugin pinta OK/Cancelar en ámbar
+// (color de estado) cuando el llamador no da color; las acciones van en teal.
+.q-dialog-plugin--dark .q-card__actions .q-btn.text-amber
+  color: var(--q-primary) !important
 // 050 (T030, G01): argumentos y variables de script (chips y lo que se escribe)
 // y todo campo numérico son valores dedicados: JetBrains Mono.
 .obs-mono-values .q-chip__content,
