@@ -190,7 +190,7 @@
                 />
               </q-td>
               <q-td key="name" :props="props">
-                <div class="obs-mgr__name">
+                <div class="obs-mgr__name ellipsis obs-mgr__name--cell" :title="props.row.name">
                   <img
                     v-if="props.row.script_type === 'builtin'"
                     class="vertical-middle q-mr-xs"
@@ -1263,7 +1263,7 @@ export default {
       { name: "supported_platforms", label: t("scriptManager.columnPlatforms"), field: "supported_platforms", align: "left" },
       { name: "category", label: t("scriptsCommon.category"), field: "category", align: "left", sortable: true },
       { name: "desc", label: t("scriptsCommon.description"), field: "description", align: "left" },
-      { name: "args", label: t("scriptManager.columnDefaultArgs"), field: "args", align: "left" },
+      { name: "args", label: t("scriptManager.columnArgsShort"), field: "args", align: "left" },
       { name: "default_timeout", label: t("scriptManager.columnTimeoutShort"), field: "default_timeout", align: "left", sortable: true },
       { name: "actions", label: "", field: "id", align: "right", required: true },
     ]);
