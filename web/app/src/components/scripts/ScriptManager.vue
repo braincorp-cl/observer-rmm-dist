@@ -1,16 +1,222 @@
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <!-- 050 (T027): con `embedded` es la página /scripts (sin q-bar ni cierre). -->
+  <component
+    :is="embedded ? 'div' : QDialog"
+    ref="dialogRef"
+    :class="{ 'obs-mgr': embedded }"
+    @hide="onDialogHide"
+  >
     <q-card
-      class="q-dialog-plugin"
+      :flat="embedded"
+      :class="embedded ? 'obs-mgr__card' : 'q-dialog-plugin'"
       id="script-manager-card"
-      :style="{
-        width: `${$q.screen.width - 100}px`,
-        'max-width': `${$q.screen.width - 100}px`,
-        height: `${$q.screen.height - 100}px`,
-        'max-height': `${$q.screen.height - 100}px`,
-      }"
+      :style="
+        embedded
+          ? null
+          : {
+              width: `${$q.screen.width - 100}px`,
+              'max-width': `${$q.screen.width - 100}px`,
+              height: `${$q.screen.height - 100}px`,
+              'max-height': `${$q.screen.height - 100}px`,
+            }
+      "
     >
-      <q-bar>
+      <ObsSectionNav
+        v-if="embedded"
+        :groups="libraryGroups"
+        :section="library"
+        :aria-label="$t('scriptManager.title')"
+        @select="library = $event"
+      />
+      <div v-if="embedded" class="obs-page obs-mgr__main">
+        <ObsPageHead
+          :title="$t('scriptManager.pageTitle')"
+          :crumbs="[$t('scriptManager.pageTitle'), libraryLabel]"
+        >
+          <q-btn
+            outline
+            no-caps
+            class="obs-page__btn"
+            icon="refresh"
+            :aria-label="$t('scriptManager.refresh')"
+            @click="getScripts"
+          />
+          <q-btn
+            outline
+            no-caps
+            class="obs-page__btn"
+            :label="$t('scriptManager.scriptSnippets')"
+            @click="ScriptSnippetModal"
+          />
+          <q-btn
+            outline
+            no-caps
+            class="obs-page__btn"
+            :label="$t('scriptManager.uploadScript')"
+            @click="uploadScriptModal"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            class="obs-page__btn"
+            :label="$t('scriptManager.newScript')"
+            @click="newScriptModal"
+          />
+        </ObsPageHead>
+        <div class="obs-page__filters">
+          <q-input
+            v-model="search"
+            dense
+            outlined
+            clearable
+            class="obs-page__field obs-mgr__search"
+            :label="$t('scriptManager.searchPlaceholder')"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+          <q-btn
+            no-caps
+            dense
+            rounded
+            :outline="!showScriptTemplates"
+            :unelevated="showScriptTemplates"
+            :color="showScriptTemplates ? 'primary' : undefined"
+            class="obs-page__chip"
+            :aria-pressed="showScriptTemplates ? 'true' : 'false'"
+            :label="$t('scriptManager.includeTemplates')"
+            @click="setShowScriptTemplates(!showScriptTemplates)"
+          />
+          <q-btn
+            no-caps
+            dense
+            rounded
+            :outline="!showHiddenScripts"
+            :unelevated="showHiddenScripts"
+            :color="showHiddenScripts ? 'primary' : undefined"
+            class="obs-page__chip"
+            :aria-pressed="showHiddenScripts ? 'true' : 'false'"
+            :label="$t('scriptManager.showHidden')"
+            @click="showHiddenScripts = !showHiddenScripts"
+          />
+          <q-space />
+          <span class="obs-mgr__count">
+            <span class="mono">{{ libraryScripts.length }}</span>
+            {{ $t("scriptManager.countLabel") }}
+          </span>
+        </div>
+        <q-table
+          flat
+          bordered
+          dense
+          class="obs-mgr__table"
+          :rows="libraryScripts"
+          :columns="pageColumns"
+          :loading="loading"
+          :filter="search"
+          :pagination="{ rowsPerPage: 0, sortBy: 'favorite', descending: true }"
+          :rows-per-page-options="[0]"
+          row-key="id"
+          binary-state-sort
+          hide-bottom
+          :no-data-label="$t('scriptManager.noScriptsFound')"
+        >
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="cursor-pointer"
+              :class="{ 'obs-mgr__row--hidden': props.row.hidden }"
+              @dblclick="
+                props.row.script_type === 'builtin'
+                  ? viewCodeModal(props.row)
+                  : editScriptModal(props.row)
+              "
+            >
+              <q-menu context-menu>
+                <q-list dense style="min-width: 200px">
+                  <q-item
+                    v-for="a in rowActions(props.row)"
+                    :key="a.key"
+                    clickable
+                    v-close-popup
+                    :disable="a.disable"
+                    @click="a.run"
+                  >
+                    <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                    <q-item-section>{{ a.label }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              <q-td key="favorite" :props="props" auto-width>
+                <q-icon
+                  :name="props.row.favorite ? 'star' : 'star_outline'"
+                  size="16px"
+                  :class="props.row.favorite ? 'obs-mgr__star--on' : 'obs-mgr__star'"
+                />
+              </q-td>
+              <q-td key="name" :props="props">
+                <div class="obs-mgr__name">
+                  <img
+                    v-if="props.row.script_type === 'builtin'"
+                    class="vertical-middle q-mr-xs"
+                    :src="ormmMark"
+                    style="height: 16px; width: 16px"
+                    :alt="$t('scriptManager.templateMarkTip')"
+                  />{{ props.row.name }}
+                </div>
+                <div class="obs-mgr__desc ellipsis" :title="props.row.description">
+                  {{ props.row.description }}
+                </div>
+              </q-td>
+              <q-td key="shell" :props="props" class="mono">{{ props.row.shell }}</q-td>
+              <q-td key="supported_platforms" :props="props">{{
+                platformsLabel(props.row)
+              }}</q-td>
+              <q-td key="category" :props="props">{{
+                props.row.category || $t("scriptManager.uncategorized")
+              }}</q-td>
+              <q-td key="args" :props="props" class="mono">
+                <span
+                  class="ellipsis obs-mgr__args"
+                  :title="props.row.args.join(' ')"
+                  >{{ props.row.args.length ? props.row.args.join(" ") : dash }}</span
+                >
+              </q-td>
+              <q-td key="default_timeout" :props="props" class="mono">{{
+                `${props.row.default_timeout} s`
+              }}</q-td>
+              <q-td key="actions" :props="props" auto-width @click.stop>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="more_horiz"
+                  :aria-label="$t('scriptManager.rowActions')"
+                >
+                  <q-menu>
+                    <q-list dense style="min-width: 200px">
+                      <q-item
+                        v-for="a in rowActions(props.row)"
+                        :key="a.key"
+                        clickable
+                        v-close-popup
+                        :disable="a.disable"
+                        @click="a.run"
+                      >
+                        <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                        <q-item-section>{{ a.label }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </div>
+      <q-bar v-if="!embedded">
         <q-btn
           @click="getScripts"
           class="q-mr-sm"
@@ -26,7 +232,7 @@
           }}</q-tooltip>
         </q-btn>
       </q-bar>
-      <div class="row q-pt-xs q-pl-xs">
+      <div v-if="!embedded" class="row q-pt-xs q-pl-xs">
         <q-btn-dropdown
           icon="add"
           :label="$t('scriptsCommon.newBtn')"
@@ -122,7 +328,7 @@
       </div>
       <!-- List View -->
       <div
-        v-if="!tableView"
+        v-if="!embedded && !tableView"
         class="scroll q-pl-xs"
         :style="{
           'max-height': `${$q.screen.height - 182}px`,
@@ -342,7 +548,7 @@
         </q-tree>
       </div>
       <observer-table
-        v-if="tableView"
+        v-if="!embedded && tableView"
         dense
         :style="{ 'max-height': `${$q.screen.height - 182}px` }"
         :rows="visibleScripts"
@@ -625,7 +831,7 @@
         </template>
       </observer-table>
     </q-card>
-  </q-dialog>
+  </component>
 </template>
 
 <script>
@@ -633,7 +839,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
-import { useQuasar, useDialogPluginComponent, exportFile } from "quasar";
+import { QDialog, useQuasar, useDialogPluginComponent, exportFile } from "quasar";
 import { useStorage } from "@vueuse/core";
 import {
   fetchScripts,
@@ -649,6 +855,8 @@ import ScriptUploadModal from "@/components/scripts/ScriptUploadModal.vue";
 import ScriptFormModal from "@/components/scripts/ScriptFormModal.vue";
 import ScriptSnippets from "@/components/scripts/ScriptSnippets.vue";
 import ObserverTable from "@/core/dashboard/ui/ObserverTable.vue";
+import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 
 import ormmMark from "@/assets/ormm_mark_128.png";
 
@@ -656,6 +864,12 @@ export default {
   name: "ScriptManager",
   components: {
     ObserverTable,
+    ObsSectionNav,
+    ObsPageHead,
+  },
+  props: {
+    // 050 (T027): página /scripts en vez de diálogo.
+    embedded: { type: Boolean, default: false },
   },
   emits: [...useDialogPluginComponent.emits],
   setup() {
@@ -906,6 +1120,92 @@ export default {
       }
     });
 
+    // 050 (T027): página /scripts. La navegación lateral por biblioteca y
+    // categoría reemplaza la vista de carpetas; filtra lo que ya se ve.
+    const library = ref("all");
+    const UNCAT = "__none__";
+    const libraryFilters = {
+      all: () => true,
+      favorites: (s) => s.favorite,
+      own: (s) => s.script_type !== "builtin",
+    };
+    function inLibrary(s, key) {
+      if (libraryFilters[key]) return libraryFilters[key](s);
+      if (key === `cat:${UNCAT}`) return !s.category;
+      return key.startsWith("cat:") && s.category === key.slice(4);
+    }
+    const libraryScripts = computed(() =>
+      visibleScripts.value.filter((s) => inLibrary(s, library.value)),
+    );
+    const libraryGroups = computed(() => {
+      const count = (key) =>
+        visibleScripts.value.filter((s) => inLibrary(s, key)).length;
+      const cats = [...categories.value].sort((a, b) => a.localeCompare(b));
+      return [
+        {
+          key: "library",
+          label: t("scriptManager.libraryGroup"),
+          items: [
+            { key: "all", label: t("scriptManager.libAll") },
+            { key: "favorites", label: t("scriptManager.libFavorites") },
+            { key: "own", label: t("scriptManager.libOwn") },
+          ].map((i) => ({ ...i, count: count(i.key) })),
+        },
+        {
+          key: "categories",
+          label: t("scriptManager.categoriesGroup"),
+          items: [
+            ...cats.map((c) => ({ key: `cat:${c}`, label: c })),
+            { key: `cat:${UNCAT}`, label: t("scriptManager.uncategorized") },
+          ].map((i) => ({ ...i, count: count(i.key) })),
+        },
+      ];
+    });
+    const libraryLabel = computed(() => {
+      for (const g of libraryGroups.value) {
+        const it = g.items.find((i) => i.key === library.value);
+        if (it) return it.label;
+      }
+      return "";
+    });
+    const pageColumns = computed(() => [
+      { name: "favorite", label: "", field: "favorite", align: "left", sortable: true },
+      { name: "name", label: t("scriptsCommon.name"), field: "name", align: "left", sortable: true },
+      { name: "shell", label: t("scriptManager.shell"), field: "shell", align: "left", sortable: true },
+      { name: "supported_platforms", label: t("scriptManager.columnPlatforms"), field: "supported_platforms", align: "left" },
+      { name: "category", label: t("scriptsCommon.category"), field: "category", align: "left", sortable: true },
+      { name: "args", label: t("scriptManager.columnDefaultArgs"), field: "args", align: "left" },
+      { name: "default_timeout", label: t("scriptManager.columnTimeoutShort"), field: "default_timeout", align: "left", sortable: true },
+      { name: "actions", label: "", field: "id", align: "right" },
+    ]);
+    function platformsLabel(row) {
+      const p = row.supported_platforms || [];
+      return p.length ? p.map(capitalize).join(", ") : t("scriptManager.platformAll");
+    }
+    // Las 7 acciones de fila de la v1 (menú contextual), también en el botón ⋯.
+    function rowActions(row) {
+      const builtin = row.script_type === "builtin";
+      return [
+        { key: "view", icon: "remove_red_eye", label: t("scriptManager.viewCode"), run: () => viewCodeModal(row) },
+        { key: "clone", icon: "content_copy", label: t("scriptManager.clone"), run: () => cloneScriptModal(row) },
+        { key: "edit", icon: "edit", label: t("scriptsCommon.edit"), disable: builtin, run: () => editScriptModal(row) },
+        { key: "delete", icon: "delete", label: t("scriptsCommon.delete"), disable: builtin, run: () => deleteScript(row) },
+        {
+          key: "favorite",
+          icon: "star",
+          label: row.favorite ? t("scriptManager.removeFavorite") : t("scriptManager.addFavorite"),
+          run: () => favoriteScript(row),
+        },
+        { key: "download", icon: "cloud_download", label: t("scriptManager.downloadScript"), run: () => exportScript(row) },
+        {
+          key: "hide",
+          icon: row.hidden ? "visibility" : "visibility_off",
+          label: row.hidden ? t("scriptManager.showScript") : t("scriptManager.hideScript"),
+          run: () => hideScript(row),
+        },
+      ];
+    }
+
     // dialog open functions
     function viewCodeModal(script) {
       $q.dialog({
@@ -1016,6 +1316,17 @@ export default {
       // helper methods
       truncateText,
       capitalize,
+
+      // 050 (T027): página
+      QDialog,
+      dash: "—",
+      library,
+      libraryGroups,
+      libraryLabel,
+      libraryScripts,
+      pageColumns,
+      platformsLabel,
+      rowActions,
 
       // quasar dialog plugin
       dialogRef,

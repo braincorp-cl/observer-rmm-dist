@@ -1,7 +1,153 @@
 <template>
-  <q-dialog ref="dialog" @hide="onHide">
-    <div class="q-dialog-plugin" style="width: 90vw; max-width: 90vw">
-      <q-card>
+  <!-- 050 (T029): con `embedded` es la página /alerts (sin q-bar ni cierre). -->
+  <component
+    :is="embedded ? 'div' : QDialog"
+    ref="dialog"
+    :class="{ 'obs-page': embedded }"
+    @hide="onHide"
+  >
+    <div
+      :class="{ 'q-dialog-plugin': !embedded }"
+      :style="embedded ? null : 'width: 90vw; max-width: 90vw'"
+    >
+      <template v-if="embedded">
+        <ObsPageHead
+          :title="$t('alertsManager.pageTitle')"
+          :crumbs="[$t('alertsManager.pageCrumb'), $t('alertsManager.pageTemplates')]"
+        >
+          <q-btn
+            outline
+            no-caps
+            class="obs-page__btn"
+            icon="refresh"
+            :aria-label="$t('alertsManager.refresh')"
+            @click="refresh"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            class="obs-page__btn"
+            :label="$t('alertsManager.newTemplate')"
+            @click="showAddTemplateModal"
+          />
+        </ObsPageHead>
+        <p class="obs-page__lead">{{ $t("alertsManager.pageLead") }}</p>
+        <q-table
+          flat
+          bordered
+          dense
+          class="obs-mgr__table"
+          :rows="templates"
+          :columns="pageColumns"
+          v-model:pagination="pagination"
+          row-key="id"
+          binary-state-sort
+          hide-bottom
+          :rows-per-page-options="[0]"
+          :no-data-label="$t('alertsManager.noTemplates')"
+        >
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="cursor-pointer"
+              @dblclick="showEditTemplateModal(props.row)"
+            >
+              <q-menu context-menu>
+                <q-list dense style="min-width: 200px">
+                  <q-item
+                    v-for="a in rowActions(props.row)"
+                    :key="a.key"
+                    clickable
+                    v-close-popup
+                    @click="a.run"
+                  >
+                    <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                    <q-item-section>{{ a.label }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              <q-td key="is_active" :props="props" auto-width @click.stop>
+                <q-toggle
+                  dense
+                  color="primary"
+                  :aria-label="$t('alertsManager.enableTemplate')"
+                  @update:model-value="toggleEnabled(props.row)"
+                  v-model="props.row.is_active"
+                />
+              </q-td>
+              <q-td key="name" :props="props">
+                <span class="obs-mgr__name">{{ props.row.name }}</span>
+                <q-badge
+                  v-if="props.row.default_template"
+                  color="grey"
+                  class="obs-chip-neutral q-ml-sm"
+                  >{{ $t("alertsManager.defaultChip") }}</q-badge
+                >
+              </q-td>
+              <q-td key="notifies" :props="props">{{ notifiesLabel(props.row) }}</q-td>
+              <q-td key="applied_to" :props="props" @click.stop>
+                <a
+                  href="#"
+                  class="obs-mgr__link"
+                  @click.prevent="showTemplateApplied(props.row)"
+                  >{{
+                    $t("alertsManager.showAppliedCount", {
+                      count: props.row.applied_count,
+                    })
+                  }}</a
+                >
+              </q-td>
+              <q-td key="alert_exclusions" :props="props" @click.stop>
+                <a
+                  href="#"
+                  class="obs-mgr__link"
+                  @click.prevent="showAlertExclusions(props.row)"
+                  >{{
+                    $t("alertsManager.alertExclusionsCount", {
+                      count:
+                        props.row.excluded_agents.length +
+                        props.row.excluded_clients.length +
+                        props.row.excluded_sites.length,
+                    })
+                  }}</a
+                >
+              </q-td>
+              <q-td key="action_name" :props="props">{{
+                props.row.action_name || "—"
+              }}</q-td>
+              <q-td key="resolved_action_name" :props="props">{{
+                props.row.resolved_action_name || "—"
+              }}</q-td>
+              <q-td key="actions" :props="props" auto-width @click.stop>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="more_horiz"
+                  :aria-label="$t('alertsManager.rowActions')"
+                >
+                  <q-menu>
+                    <q-list dense style="min-width: 200px">
+                      <q-item
+                        v-for="a in rowActions(props.row)"
+                        :key="a.key"
+                        clickable
+                        v-close-popup
+                        @click="a.run"
+                      >
+                        <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                        <q-item-section>{{ a.label }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </template>
+      <q-card v-else>
         <q-bar>
           <q-btn
             ref="refresh"
@@ -241,21 +387,29 @@
         </div>
       </q-card>
     </div>
-  </q-dialog>
+  </component>
 </template>
 
 <script>
+import { QDialog } from "quasar";
 import mixins from "@/mixins/mixins";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import AlertTemplateForm from "@/components/modals/alerts/AlertTemplateForm.vue";
 import AlertExclusions from "@/components/modals/alerts/AlertExclusions.vue";
 import AlertTemplateRelated from "@/components/modals/alerts/AlertTemplateRelated.vue";
 
 export default {
   name: "AlertsManager",
+  components: { ObsPageHead },
   mixins: [mixins],
+  props: {
+    // 050 (T029): página /alerts en vez de diálogo.
+    embedded: { type: Boolean, default: false },
+  },
   emits: ["hide", "ok", "cancel"],
   data() {
     return {
+      QDialog,
       selectedTemplate: null,
       templates: [],
       pagination: {
@@ -266,6 +420,19 @@ export default {
     };
   },
   computed: {
+    pageColumns() {
+      const c = (name, label, field) => ({ name, label, field, align: "left" });
+      return [
+        { ...c("is_active", this.$t("alertsManager.colActive"), "is_active"), sortable: true },
+        { ...c("name", this.$t("alertsManager.colName"), "name"), sortable: true },
+        c("notifies", this.$t("alertsManager.colNotifies"), "name"),
+        c("applied_to", this.$t("alertsManager.colAppliedTo"), "applied_count"),
+        c("alert_exclusions", this.$t("alertsManager.colAlertExclusions"), "id"),
+        c("action_name", this.$t("alertsManager.colFailureAction"), "action_name"),
+        c("resolved_action_name", this.$t("alertsManager.colResolvedAction"), "resolved_action_name"),
+        { name: "actions", label: "", field: "id", align: "right" },
+      ];
+    },
     columns() {
       return [
         {
@@ -323,6 +490,22 @@ export default {
     },
   },
   methods: {
+    // 050 (T029): «Avisa sobre» resume los tres indicadores de la v1.
+    notifiesLabel(row) {
+      const parts = [];
+      if (row.check_settings) parts.push(this.$t("alertsManager.notifiesChecks"));
+      if (row.task_settings) parts.push(this.$t("alertsManager.notifiesTasks"));
+      if (row.agent_settings) parts.push(this.$t("alertsManager.notifiesAvailability"));
+      return parts.length ? parts.join(", ") : "—";
+    },
+    // Las acciones del menú contextual de la v1, también en el botón ⋯.
+    rowActions(row) {
+      return [
+        { key: "edit", icon: "edit", label: this.$t("alertsManager.edit"), run: () => this.showEditTemplateModal(row) },
+        { key: "delete", icon: "delete", label: this.$t("alertsManager.delete"), run: () => this.deleteTemplate(row) },
+        { key: "exclusions", icon: "rule", label: this.$t("alertsManager.alertExclusions"), run: () => this.showAlertExclusions(row) },
+      ];
+    },
     getTemplates() {
       this.$q.loading.show();
       this.$axios

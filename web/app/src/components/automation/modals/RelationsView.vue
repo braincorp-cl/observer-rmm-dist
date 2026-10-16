@@ -27,25 +27,19 @@
           }}
         </div>
       </q-card-section>
-      <q-card-section>
-        <q-tabs
-          v-model="tab"
-          dense
-          inline-label
-          class="text-grey"
-          active-color="primary"
-          indicator-color="primary"
-          align="left"
-          narrow-indicator
-          no-caps
+      <!-- 050 (T028): navegación lateral en vez de pestañas. -->
+      <q-card-section class="row no-wrap q-pa-none">
+        <ObsSectionNav
+          :groups="navGroups"
+          :section="tab"
+          :aria-label="$t('relationsView.title', { name: policy.name })"
+          @select="tab = $event"
+        />
+        <q-scroll-area
+          :thumb-style="thumbStyle"
+          class="col"
+          style="height: 50vh"
         >
-          <q-tab name="clients" :label="$t('relationsView.clients')" />
-          <q-tab name="sites" :label="$t('relationsView.sites')" />
-          <q-tab name="agents" :label="$t('relationsView.agents')" />
-        </q-tabs>
-
-        <q-separator />
-        <q-scroll-area :thumb-style="thumbStyle" style="height: 50vh">
           <q-tab-panels v-model="tab" :animated="false">
             <q-tab-panel name="clients">
               <q-list separator padding>
@@ -132,13 +126,29 @@
 </template>
 
 <script>
+import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
+
 export default {
   name: "RelationsView",
+  components: { ObsSectionNav },
   emits: ["hide", "ok", "cancel"],
   props: {
     policy: {
       type: Object,
       required: true,
+    },
+  },
+  computed: {
+    navGroups() {
+      return [
+        {
+          key: "relations",
+          items: ["clients", "sites", "agents"].map((k) => ({
+            key: k,
+            label: this.$t(`relationsView.${k}`),
+          })),
+        },
+      ];
     },
   },
   data() {

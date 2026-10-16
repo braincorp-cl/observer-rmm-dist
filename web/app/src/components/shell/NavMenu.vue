@@ -110,15 +110,16 @@
             <q-item-section>{{ $t("nav.clientsManager") }}</q-item-section>
           </q-item>
           <!-- script manager -->
-          <q-item clickable v-close-popup @click="showScriptManager">
+          <!-- 050 (T026): los tres gestores navegan a su página -->
+          <q-item clickable v-close-popup :to="{ name: 'Scripts' }">
             <q-item-section>{{ $t("nav.scriptManager") }}</q-item-section>
           </q-item>
           <!-- automation manager -->
-          <q-item clickable v-close-popup @click="showAutomationManager">
+          <q-item clickable v-close-popup :to="{ name: 'Automation' }">
             <q-item-section>{{ $t("nav.automationManager") }}</q-item-section>
           </q-item>
           <!-- alerts manager -->
-          <q-item clickable v-close-popup @click="showAlertsManager">
+          <q-item clickable v-close-popup :to="{ name: 'Alerts' }">
             <q-item-section>{{ $t("nav.alertsManager") }}</q-item-section>
           </q-item>
           <!-- permissions manager -->
@@ -336,10 +337,7 @@ import ClientsManager from "@/components/clients/ClientsManager.vue";
 import ClientsForm from "@/components/clients/ClientsForm.vue";
 import SitesForm from "@/components/clients/SitesForm.vue";
 import UpdateAgents from "@/components/modals/agents/UpdateAgents.vue";
-import ScriptManager from "@/components/scripts/ScriptManager.vue";
 import EditCoreSettings from "@/components/modals/coresettings/EditCoreSettings.vue";
-import AlertsManager from "@/components/AlertsManager.vue";
-import AutomationManager from "@/components/automation/AutomationManager.vue";
 import AdminManager from "@/components/AdminManager.vue";
 import InstallAgent from "@/components/modals/agents/InstallAgent.vue";
 import AuditManager from "@/components/logs/AuditManager.vue";
@@ -418,16 +416,6 @@ export default {
       }
       window.open(url, "_blank");
     },
-    showAutomationManager() {
-      this.$q.dialog({
-        component: AutomationManager,
-      });
-    },
-    showAlertsManager() {
-      this.$q.dialog({
-        component: AlertsManager,
-      });
-    },
     showClientsManager() {
       this.$q
         .dialog({
@@ -469,11 +457,6 @@ export default {
             ["transition-hide"]: "slide-down",
           },
         },
-      });
-    },
-    showScriptManager() {
-      this.$q.dialog({
-        component: ScriptManager,
       });
     },
     showBulkAction(mode) {

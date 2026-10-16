@@ -1,6 +1,205 @@
 <template>
-  <q-dialog ref="dialog" @hide="onHide">
-    <div class="q-dialog-plugin" style="width: 90vw; max-width: 90vw">
+  <!-- 050 (T028): con `embedded` es la página /automation/:policy?/:section?
+       (columna de políticas + navegación Chequeos/Tareas, sin pestañas). -->
+  <component
+    :is="embedded ? 'div' : QDialog"
+    ref="dialog"
+    :class="{ 'obs-mgr': embedded }"
+    @hide="onHide"
+  >
+    <template v-if="embedded">
+      <aside class="obs-mgr__policies">
+        <div class="row items-center no-wrap obs-mgr__pol-head">
+          <div class="col obs-mgr__pol-title">
+            {{ $t("automationManager.policiesGroup") }}
+          </div>
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            class="obs-page__btn"
+            :label="$t('automationManager.newShort')"
+            @click="showAddPolicyForm"
+          />
+        </div>
+        <q-btn
+          outline
+          no-caps
+          class="obs-page__btn full-width q-mb-sm"
+          :label="$t('automationManager.policyOverviewLong')"
+          @click="showPolicyOverview"
+        />
+        <q-separator class="q-mb-sm" />
+        <q-list dense>
+          <q-item
+            v-for="pol in sortedPolicies"
+            :key="pol.id"
+            clickable
+            :active="selectedPolicy && selectedPolicy.id === pol.id"
+            active-class="obs-mgr__pol--active"
+            class="obs-mgr__pol"
+            @click="selectPolicy(pol)"
+            @dblclick="showEditPolicyForm(pol)"
+          >
+            <q-item-section>
+              <q-item-label class="obs-mgr__pol-name ellipsis" :title="pol.name">{{
+                pol.name
+              }}</q-item-label>
+              <q-item-label caption class="ellipsis" :title="pol.desc">{{
+                pol.desc || "—"
+              }}</q-item-label>
+            </q-item-section>
+            <q-item-section side top>
+              <q-badge
+                :color="pol.active ? 'positive' : 'grey'"
+                :class="{ 'obs-chip-neutral': !pol.active }"
+                >{{
+                  pol.active
+                    ? $t("automationManager.stateActive")
+                    : $t("automationManager.stateInactive")
+                }}</q-badge
+              >
+            </q-item-section>
+          </q-item>
+          <q-item v-if="!policies.length">
+            <q-item-section class="obs-text-muted">{{
+              $t("automationManager.noPolicies")
+            }}</q-item-section>
+          </q-item>
+        </q-list>
+      </aside>
+      <ObsSectionNav
+        v-if="selectedPolicy"
+        :groups="sectionGroups"
+        :section="subtab"
+        :aria-label="$t('automationManager.policyGroup')"
+        @select="selectSection"
+      />
+      <div class="obs-page obs-mgr__main">
+        <template v-if="selectedPolicy">
+          <ObsPageHead
+            :title="selectedPolicy.name"
+            :crumbs="[
+              $t('automationManager.pageCrumb'),
+              $t('automationManager.policiesCrumb'),
+            ]"
+          >
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              icon="refresh"
+              :aria-label="$t('automationManager.refresh')"
+              @click="refresh"
+            />
+          </ObsPageHead>
+          <div class="row items-center q-gutter-sm obs-mgr__pol-meta">
+            <q-badge
+              :color="selectedPolicy.active ? 'positive' : 'grey'"
+              :class="{ 'obs-chip-neutral': !selectedPolicy.active }"
+              >{{
+                selectedPolicy.active
+                  ? $t("automationManager.stateActive")
+                  : $t("automationManager.stateInactive")
+              }}</q-badge
+            >
+            <q-badge v-if="selectedPolicy.enforced" color="grey" class="obs-chip-neutral">{{
+              $t("automationManager.stateEnforced")
+            }}</q-badge>
+            <q-badge
+              v-if="selectedPolicy.default_server_policy"
+              color="grey"
+              class="obs-chip-neutral"
+              >{{ $t("automationManager.defaultServer") }}</q-badge
+            >
+            <q-badge
+              v-if="selectedPolicy.default_workstation_policy"
+              color="grey"
+              class="obs-chip-neutral"
+              >{{ $t("automationManager.defaultWorkstation") }}</q-badge
+            >
+            <span class="obs-text-muted">{{ selectedPolicy.desc }}</span>
+          </div>
+          <div class="obs-page__filters">
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              @click="showRelations(selectedPolicy)"
+              >{{ $t("automationManager.relationsBtn") }}{{ sep }}<span class="mono">{{
+                selectedPolicy.agents_count
+              }}</span></q-btn
+            >
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              @click="showPolicyExclusions(selectedPolicy)"
+              >{{ $t("automationManager.exclusionsBtn") }}{{ sep }}<span class="mono">{{
+                exclusionsCount(selectedPolicy)
+              }}</span></q-btn
+            >
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              :label="patchPolicyText(selectedPolicy)"
+              @click="showPatchPolicyForm(selectedPolicy)"
+            />
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              :label="alertTemplateText(selectedPolicy)"
+              @click="showAlertTemplateAdd(selectedPolicy)"
+            />
+            <q-btn
+              outline
+              no-caps
+              class="obs-page__btn"
+              icon="more_horiz"
+              :aria-label="$t('automationManager.moreActions')"
+            >
+              <q-menu>
+                <q-list dense style="min-width: 220px">
+                  <q-item
+                    v-for="a in policyActions(selectedPolicy)"
+                    :key="a.key"
+                    clickable
+                    v-close-popup
+                    @click="a.run"
+                  >
+                    <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                    <q-item-section>{{ a.label }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </div>
+          <h2 class="obs-mgr__section-title">
+            {{
+              subtab === "tasks"
+                ? $t("automationManager.tabTasks")
+                : $t("automationManager.tabChecks")
+            }}
+          </h2>
+          <PolicyChecksTab
+            v-if="subtab === 'checks'"
+            :key="`c${selectedPolicy.id}`"
+            :selectedPolicy="selectedPolicy.id"
+          />
+          <PolicyAutomatedTasksTab
+            v-else
+            :key="`t${selectedPolicy.id}`"
+            :selectedPolicy="selectedPolicy.id"
+          />
+        </template>
+        <div v-else class="obs-text-muted q-pa-md">
+          {{ $t("automationManager.pickPolicy") }}
+        </div>
+      </div>
+    </template>
+    <div v-else class="q-dialog-plugin" style="width: 90vw; max-width: 90vw">
       <q-card>
         <q-bar>
           <q-btn
@@ -337,11 +536,14 @@
         </q-card-section>
       </q-card>
     </div>
-  </q-dialog>
+  </component>
 </template>
 
 <script>
+import { QDialog } from "quasar";
 import mixins from "@/mixins/mixins";
+import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import DialogWrapper from "@/components/ui/DialogWrapper.vue";
 import PolicyForm from "@/components/automation/modals/PolicyForm.vue";
 import PolicyOverview from "@/components/automation/PolicyOverview.vue";
@@ -355,10 +557,21 @@ import PolicyAutomatedTasksTab from "@/components/automation/PolicyAutomatedTask
 export default {
   name: "AutomationManager",
   emits: ["hide", "ok", "cancel"],
-  components: { PolicyChecksTab, PolicyAutomatedTasksTab },
+  components: {
+    PolicyChecksTab,
+    PolicyAutomatedTasksTab,
+    ObsSectionNav,
+    ObsPageHead,
+  },
   mixins: [mixins],
+  props: {
+    // 050 (T028): página /automation/:policy?/:section? en vez de diálogo.
+    embedded: { type: Boolean, default: false },
+  },
   data() {
     return {
+      QDialog,
+      sep: " · ",
       subtab: "checks",
       policies: [],
       selectedPolicy: null,
@@ -370,6 +583,21 @@ export default {
     };
   },
   computed: {
+    sortedPolicies() {
+      return [...this.policies].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    sectionGroups() {
+      return [
+        {
+          key: "policy",
+          label: this.$t("automationManager.policyGroup"),
+          items: [
+            { key: "checks", label: this.$t("automationManager.tabChecks") },
+            { key: "tasks", label: this.$t("automationManager.tabTasks") },
+          ],
+        },
+      ];
+    },
     columns() {
       return [
         {
@@ -430,12 +658,61 @@ export default {
     },
   },
   methods: {
+    // 050 (T028): la política y la sección viven en la URL de la página.
+    syncFromRoute() {
+      if (!this.embedded) return;
+      const id = Number(this.$route.params.policy);
+      const sec = this.$route.params.section;
+      this.subtab = sec === "tasks" ? "tasks" : "checks";
+      this.selectedPolicy =
+        this.policies.find((p) => p.id === id) || this.sortedPolicies[0] || null;
+    },
+    goTo(policy, section) {
+      this.$router.replace({
+        name: "Automation",
+        params: { policy: policy ? policy.id : undefined, section },
+      });
+    },
+    selectPolicy(policy) {
+      this.goTo(policy, this.subtab);
+    },
+    selectSection(section) {
+      this.goTo(this.selectedPolicy, section);
+    },
+    exclusionsCount(policy) {
+      return (
+        policy.excluded_agents.length +
+        policy.excluded_clients.length +
+        policy.excluded_sites.length
+      );
+    },
+    // Las acciones del menú contextual de la v1 que no están a la vista.
+    policyActions(policy) {
+      return [
+        { key: "edit", icon: "edit", label: this.$t("automationManager.edit"), run: () => this.showEditPolicyForm(policy) },
+        { key: "copy", icon: "content_copy", label: this.$t("automationManager.copy"), run: () => this.showCopyPolicyForm(policy) },
+        {
+          key: "active",
+          icon: "power_settings_new",
+          label: policy.active ? this.$t("automationManager.disablePolicy") : this.$t("automationManager.enablePolicy"),
+          run: () => this.toggleCheckbox(policy, "Active"),
+        },
+        {
+          key: "enforced",
+          icon: "security",
+          label: policy.enforced ? this.$t("automationManager.unenforcePolicy") : this.$t("automationManager.enforcePolicy"),
+          run: () => this.toggleCheckbox(policy, "Enforced"),
+        },
+        { key: "delete", icon: "delete", label: this.$t("automationManager.delete"), run: () => this.deletePolicy(policy) },
+      ];
+    },
     getPolicies() {
       this.$q.loading.show();
       this.$axios
         .get("/automation/policies/")
         .then((r) => {
           this.policies = r.data;
+          this.syncFromRoute();
           this.$q.loading.hide();
         })
         .catch(() => {
@@ -443,7 +720,7 @@ export default {
         });
     },
     clearRow() {
-      this.selectedPolicy = null;
+      if (!this.embedded) this.selectedPolicy = null;
     },
     refresh() {
       this.getPolicies();
@@ -616,6 +893,11 @@ export default {
     },
     onHide() {
       this.$emit("hide");
+    },
+  },
+  watch: {
+    "$route.params"() {
+      this.syncFromRoute();
     },
   },
   mounted() {

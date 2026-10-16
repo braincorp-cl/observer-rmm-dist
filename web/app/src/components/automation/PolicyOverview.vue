@@ -31,29 +31,16 @@
         </template>
 
         <template v-slot:after>
-          <q-tabs
-            v-model="selectedTab"
-            dense
-            inline-label
-            class="text-grey"
-            active-color="primary"
-            indicator-color="primary"
-            align="left"
-            narrow-indicator
-            no-caps
-          >
-            <q-tab
-              name="checks"
-              icon="fas fa-check-double"
-              :label="$t('policyOverview.tabChecks')"
-            />
-            <q-tab
-              name="tasks"
-              icon="fas fa-tasks"
-              :label="$t('policyOverview.tabTasks')"
-            />
-          </q-tabs>
+          <!-- 050 (T028): navegación lateral en vez de pestañas. -->
+          <div class="row no-wrap full-height">
+          <ObsSectionNav
+            :groups="navGroups"
+            :section="selectedTab"
+            :aria-label="$t('policyOverview.title')"
+            @select="selectedTab = $event"
+          />
           <q-tab-panels
+            class="col"
             v-model="selectedTab"
             animated
             transition-prev="jump-up"
@@ -72,6 +59,7 @@
               />
             </q-tab-panel>
           </q-tab-panels>
+          </div>
         </template>
       </q-splitter>
     </q-card>
@@ -80,6 +68,7 @@
 
 <script>
 import mixins from "@/mixins/mixins";
+import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
 import PolicyChecksTab from "@/components/automation/PolicyChecksTab.vue";
 import PolicyAutomatedTasksTab from "@/components/automation/PolicyAutomatedTasksTab.vue";
 
@@ -89,8 +78,22 @@ export default {
   components: {
     PolicyAutomatedTasksTab,
     PolicyChecksTab,
+    ObsSectionNav,
   },
   mixins: [mixins],
+  computed: {
+    navGroups() {
+      return [
+        {
+          key: "policy",
+          items: [
+            { key: "checks", label: this.$t("policyOverview.tabChecks"), icon: "fas fa-check-double" },
+            { key: "tasks", label: this.$t("policyOverview.tabTasks"), icon: "fas fa-tasks" },
+          ],
+        },
+      ];
+    },
+  },
   data() {
     return {
       splitterModel: 25,

@@ -7,6 +7,32 @@ const routes = [
     component: () => import("@/layouts/MainLayout.vue"),
     children: [
       {
+        // 050 (T026): los gestores principales son páginas, no diálogos.
+        path: "scripts",
+        name: "Scripts",
+        component: () => import("@/views/ScriptsView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
+        // La política y la sección (chequeos/tareas) van en la URL.
+        path: "automation/:policy?/:section?",
+        name: "Automation",
+        component: () => import("@/views/AutomationView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
+        path: "alerts",
+        name: "Alerts",
+        component: () => import("@/views/AlertsView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         // 046 (dirección 1c): la sección del espacio de trabajo va en la URL.
         path: "agents/:agent_id/:section?",
         name: "Agent",
