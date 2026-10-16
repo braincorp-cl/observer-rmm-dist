@@ -26,7 +26,7 @@
         :groups="libraryGroups"
         :section="library"
         :aria-label="$t('scriptManager.title')"
-        @select="library = $event"
+        @select="selectLibrary"
       />
       <div v-if="embedded" class="obs-page obs-mgr__main">
         <ObsPageHead
@@ -101,6 +101,25 @@
             :label="$t('scriptManager.showHidden')"
             @click="showHiddenScripts = !showHiddenScripts"
           />
+          <q-btn
+            dense
+            no-caps
+            outline
+            class="obs-page__chip"
+            icon="view_column"
+            :label="$t('scriptManager.columnsBtn')"
+          >
+            <q-menu>
+              <q-list dense style="min-width: 220px">
+                <q-item v-for="c in optionalColumns" :key="c.name" tag="label">
+                  <q-item-section side>
+                    <q-checkbox v-model="pageVisibleColumns" :val="c.name" />
+                  </q-item-section>
+                  <q-item-section>{{ c.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
           <q-space />
           <span class="obs-mgr__count">
             <span class="mono">{{ libraryScripts.length }}</span>
@@ -114,6 +133,7 @@
           class="obs-mgr__table"
           :rows="libraryScripts"
           :columns="pageColumns"
+          :visible-columns="pageVisibleColumns"
           :loading="loading"
           :filter="search"
           :pagination="{ rowsPerPage: 0, sortBy: 'favorite', descending: true }"
@@ -147,18 +167,26 @@
                     <q-item-section side><q-icon :name="a.icon" /></q-item-section>
                     <q-item-section>{{ a.label }}</q-item-section>
                   </q-item>
+                  <q-separator />
+                  <q-item clickable v-close-popup>
+                    <q-item-section>{{ $t("scriptsCommon.close") }}</q-item-section>
+                  </q-item>
                 </q-list>
               </q-menu>
-              <q-td key="favorite" :props="props" auto-width>
-                <q-icon
-                  :name="props.row.favorite ? 'star' : 'star_outline'"
-                  size="16px"
+              <q-td key="favorite" :props="props" auto-width @click.stop>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  size="sm"
+                  :icon="props.row.favorite ? 'star' : 'star_outline'"
                   :aria-label="
                     props.row.favorite
                       ? $t('scriptManager.removeFavorite')
                       : $t('scriptManager.addFavorite')
                   "
                   :class="props.row.favorite ? 'text-warning' : 'obs-mgr__star'"
+                  @click="favoriteScript(props.row)"
                 />
               </q-td>
               <q-td key="name" :props="props">
@@ -179,9 +207,18 @@
               <q-td key="supported_platforms" :props="props">{{
                 platformsLabel(props.row)
               }}</q-td>
-              <q-td key="category" :props="props">{{
-                props.row.category || $t("scriptManager.uncategorized")
-              }}</q-td>
+              <q-td key="category" :props="props">
+                <span
+                  class="ellipsis obs-mgr__cat"
+                  :title="props.row.category"
+                  >{{ props.row.category || $t("scriptManager.uncategorized") }}</span
+                >
+              </q-td>
+              <q-td key="desc" :props="props">
+                <span class="ellipsis obs-mgr__cat" :title="props.row.description">{{
+                  props.row.description
+                }}</span>
+              </q-td>
               <q-td key="args" :props="props" class="mono">
                 <span
                   class="ellipsis obs-mgr__args"
@@ -212,6 +249,10 @@
                       >
                         <q-item-section side><q-icon :name="a.icon" /></q-item-section>
                         <q-item-section>{{ a.label }}</q-item-section>
+                      </q-item>
+                      <q-separator />
+                      <q-item clickable v-close-popup>
+                        <q-item-section>{{ $t("scriptsCommon.close") }}</q-item-section>
                       </q-item>
                     </q-list>
                   </q-menu>
@@ -841,7 +882,8 @@
 
 <script>
 // composition imports
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { QDialog, useQuasar, useDialogPluginComponent, exportFile } from "quasar";
@@ -877,7 +919,7 @@ export default {
     embedded: { type: Boolean, default: false },
   },
   emits: [...useDialogPluginComponent.emits],
-  setup() {
+  setup(props) {
     // setup vuex store
     const store = useStore();
     const showScriptTemplates = computed(() => store.state.showScriptTemplates);
@@ -1127,7 +1169,24 @@ export default {
 
     // 050 (T027): página /scripts. La navegación lateral por biblioteca y
     // categoría reemplaza la vista de carpetas; filtra lo que ya se ve.
-    const library = ref("all");
+    // La biblioteca o categoría elegida vive en la URL (/scripts/:library?).
+    const route = useRoute();
+    const router = useRouter();
+    const library = ref(
+      (props.embedded && route.params.library) || "all",
+    );
+    if (props.embedded) {
+      watch(
+        () => route.params.library,
+        (v) => (library.value = v || "all"),
+      );
+    }
+    function selectLibrary(key) {
+      router.replace({
+        name: "Scripts",
+        params: { library: key === "all" ? undefined : key },
+      });
+    }
     const UNCAT = "__none__";
     const libraryFilters = {
       all: () => true,
@@ -1145,7 +1204,30 @@ export default {
     const libraryGroups = computed(() => {
       const count = (key) =>
         visibleScripts.value.filter((s) => inLibrary(s, key)).length;
+      // Las categorías «Prefijo:Nombre» se agrupan por prefijo para que se lean
+      // completas en la navegación lateral; las demás van en «Categorías».
       const cats = [...categories.value].sort((a, b) => a.localeCompare(b));
+      const plain = cats.filter((c) => !c.includes(":"));
+      const prefixed = {};
+      cats
+        .filter((c) => c.includes(":"))
+        .forEach((c) => {
+          const i = c.lastIndexOf(":");
+          const pre = c.slice(0, i);
+          if (!prefixed[pre]) prefixed[pre] = [];
+          prefixed[pre].push(c);
+        });
+      const prefixGroups = Object.keys(prefixed)
+        .sort((a, b) => a.localeCompare(b))
+        .map((pre) => ({
+          key: `pre:${pre}`,
+          label: pre,
+          items: prefixed[pre].map((c) => ({
+            key: `cat:${c}`,
+            label: c.slice(pre.length + 1),
+            count: count(`cat:${c}`),
+          })),
+        }));
       return [
         {
           key: "library",
@@ -1160,16 +1242,17 @@ export default {
           key: "categories",
           label: t("scriptManager.categoriesGroup"),
           items: [
-            ...cats.map((c) => ({ key: `cat:${c}`, label: c })),
+            ...plain.map((c) => ({ key: `cat:${c}`, label: c })),
             { key: `cat:${UNCAT}`, label: t("scriptManager.uncategorized") },
           ].map((i) => ({ ...i, count: count(i.key) })),
         },
+        ...prefixGroups,
       ];
     });
     const libraryLabel = computed(() => {
       for (const g of libraryGroups.value) {
         const it = g.items.find((i) => i.key === library.value);
-        if (it) return it.label;
+        if (it) return g.key.startsWith("pre:") ? `${g.label}:${it.label}` : it.label;
       }
       return "";
     });
@@ -1179,9 +1262,23 @@ export default {
       { name: "shell", label: t("scriptManager.shell"), field: "shell", align: "left", sortable: true },
       { name: "supported_platforms", label: t("scriptManager.columnPlatforms"), field: "supported_platforms", align: "left" },
       { name: "category", label: t("scriptsCommon.category"), field: "category", align: "left", sortable: true },
+      { name: "desc", label: t("scriptsCommon.description"), field: "description", align: "left" },
       { name: "args", label: t("scriptManager.columnDefaultArgs"), field: "args", align: "left" },
       { name: "default_timeout", label: t("scriptManager.columnTimeoutShort"), field: "default_timeout", align: "left", sortable: true },
       { name: "actions", label: "", field: "id", align: "right" },
+    ]);
+    // Selector de columnas (el ⋯ de la cabecera de la v1); la descripción ya
+    // va bajo el nombre, así que su columna parte oculta.
+    const FIXED = ["favorite", "name", "actions"];
+    const optionalColumns = computed(() =>
+      pageColumns.value.filter((c) => !FIXED.includes(c.name)),
+    );
+    const pageVisibleColumns = useStorage(`${storageKey}page_columns`, [
+      "shell",
+      "supported_platforms",
+      "category",
+      "args",
+      "default_timeout",
     ]);
     function platformsLabel(row) {
       const p = row.supported_platforms || [];
@@ -1326,6 +1423,9 @@ export default {
       QDialog,
       dash: "—",
       library,
+      selectLibrary,
+      optionalColumns,
+      pageVisibleColumns,
       libraryGroups,
       libraryLabel,
       libraryScripts,

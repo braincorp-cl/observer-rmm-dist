@@ -572,6 +572,8 @@ export default {
     return {
       QDialog,
       sep: " · ",
+      sectionCounts: { checks: null, tasks: null },
+      countsFor: null,
       subtab: "checks",
       policies: [],
       selectedPolicy: null,
@@ -592,8 +594,8 @@ export default {
           key: "policy",
           label: this.$t("automationManager.policyGroup"),
           items: [
-            { key: "checks", label: this.$t("automationManager.tabChecks") },
-            { key: "tasks", label: this.$t("automationManager.tabTasks") },
+            { key: "checks", label: this.$t("automationManager.tabChecks"), count: this.sectionCounts.checks },
+            { key: "tasks", label: this.$t("automationManager.tabTasks"), count: this.sectionCounts.tasks },
           ],
         },
       ];
@@ -666,6 +668,29 @@ export default {
       this.subtab = sec === "tasks" ? "tasks" : "checks";
       this.selectedPolicy =
         this.policies.find((p) => p.id === id) || this.sortedPolicies[0] || null;
+      // Desde el riel se llega a /automation: se completa la URL con la
+      // política y la sección para que el enlace sea directo.
+      if (this.selectedPolicy && (!id || !sec)) {
+        this.goTo(this.selectedPolicy, this.subtab);
+      }
+      this.loadSectionCounts();
+    },
+    // Conteos de la navegación Chequeos/Tareas: las mismas lecturas de las
+    // tablas de la política.
+    loadSectionCounts() {
+      const pol = this.selectedPolicy;
+      if (!pol) return;
+      if (this.countsFor === pol.id) return;
+      this.countsFor = pol.id;
+      this.sectionCounts = { checks: null, tasks: null };
+      ["checks", "tasks"].forEach((k) =>
+        this.$axios
+          .get(`/automation/policies/${pol.id}/${k}/`)
+          .then((r) => {
+            if (this.countsFor === pol.id) this.sectionCounts[k] = r.data.length;
+          })
+          .catch(() => {}),
+      );
     },
     goTo(policy, section) {
       this.$router.replace({
@@ -723,6 +748,7 @@ export default {
       if (!this.embedded) this.selectedPolicy = null;
     },
     refresh() {
+      this.countsFor = null;
       this.getPolicies();
       this.clearRow();
     },

@@ -1586,7 +1586,8 @@
     "categoriesGroup": "Categorías",
     "uncategorized": "Sin categoría",
     "columnTimeoutShort": "Tiempo de espera",
-    "rowActions": "Acciones"
+    "rowActions": "Acciones",
+    "columnsBtn": "Columnas"
   },
   "scriptOutput": {
     "title": "Salida del script",

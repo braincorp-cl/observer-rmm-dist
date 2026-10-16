@@ -8,7 +8,7 @@ const routes = [
     children: [
       {
         // 050 (T026): los gestores principales son páginas, no diálogos.
-        path: "scripts",
+        path: "scripts/:library?",
         name: "Scripts",
         component: () => import("@/views/ScriptsView.vue"),
         meta: {
