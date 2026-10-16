@@ -82,6 +82,7 @@
         <q-card-section>
           <observer-dropdown
             v-model="script.args"
+            class="obs-mono-values"
             :label="$t('scriptsCommon.scriptArguments')"
             :placeholder="$t('scriptUpload.argsPlaceholder')"
             filled
@@ -96,6 +97,7 @@
         <q-card-section>
           <observer-dropdown
             v-model="script.env_vars"
+            class="obs-mono-values"
             :label="$t('scriptsCommon.environmentVariables')"
             :placeholder="$t('scriptUpload.envVarsPlaceholder')"
             filled

@@ -221,7 +221,7 @@
 
               <q-select
                 v-if="template.action_type !== 'rest'"
-                class="q-mb-sm"
+                class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.failureArgs')"
                 filled
@@ -236,7 +236,7 @@
 
               <q-select
                 v-if="template.action_type !== 'rest'"
-                class="q-mb-sm"
+                class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.failureEnvVars')"
                 filled
@@ -319,7 +319,7 @@
 
               <q-select
                 v-if="template.resolved_action_type !== 'rest'"
-                class="q-mb-sm"
+                class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.resolvedArgs')"
                 filled
@@ -334,7 +334,7 @@
 
               <q-select
                 v-if="template.resolved_action_type !== 'rest'"
-                class="q-mb-sm"
+                class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.resolvedEnvVars')"
                 filled

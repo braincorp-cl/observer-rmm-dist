@@ -63,6 +63,7 @@
         <q-card-section>
           <observer-dropdown
             v-model="state.args"
+            class="obs-mono-values"
             :label="$t('runScript.scriptArgs')"
             filled
             use-input
@@ -75,6 +76,7 @@
         <q-card-section>
           <observer-dropdown
             v-model="state.env_vars"
+            class="obs-mono-values"
             :label="$t('scriptsCommon.envVarsLabel')"
             filled
             use-input
@@ -144,7 +146,7 @@
             v-model="state.run_as_user"
             :label="$t('runScript.runAsUser')"
           >
-            <q-tooltip>{{ $t('scriptsCommon.runAsUserTip') }}</q-tooltip>
+            <q-tooltip>{{ $t("scriptsCommon.runAsUserTip") }}</q-tooltip>
           </q-checkbox>
           <q-checkbox
             v-if="!hosted"

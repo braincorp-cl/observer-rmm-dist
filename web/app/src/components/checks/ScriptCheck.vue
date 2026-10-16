@@ -34,6 +34,7 @@
             :label="$t('scriptCheck.scriptArgs')"
             filled
             v-model="state.script_args"
+            class="obs-mono-values"
             use-input
             use-chips
             multiple
@@ -47,6 +48,7 @@
             :label="$t('scriptsCommon.envVarsLabel')"
             filled
             v-model="state.env_vars"
+            class="obs-mono-values"
             use-input
             use-chips
             multiple

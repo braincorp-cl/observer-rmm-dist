@@ -140,6 +140,7 @@
                  escrito no se guarda (en modo lectura no hay botón Guardar). -->
             <observer-dropdown
               v-model="script.args"
+              class="obs-mono-values"
               :label="$t('scriptFormModal.scriptArgsLabel')"
               filled
               use-input
@@ -150,6 +151,7 @@
             />
             <observer-dropdown
               v-model="script.env_vars"
+              class="obs-mono-values"
               :label="$t('scriptsCommon.envVarsLabel')"
               filled
               use-input

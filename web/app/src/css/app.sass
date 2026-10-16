@@ -639,6 +639,13 @@ body.body--dark
 .obs-mgr__pol-name
   font-weight: 600
   color: var(--obs-text)
+// 050 (T030, G01): argumentos y variables de script (chips y lo que se escribe)
+// y todo campo numérico son valores dedicados: JetBrains Mono.
+.obs-mono-values .q-chip__content,
+.obs-mono-values .q-field__native,
+.obs-mono-values .q-field__input,
+.q-field input[type="number"]
+  font-family: $obs-font-mono
 // 050 (T030, G13): a ≤700 px las columnas del gestor se apilan (políticas,
 // navegación de sección, detalle) y la página se desplaza entera.
 @media (max-width: 700px)

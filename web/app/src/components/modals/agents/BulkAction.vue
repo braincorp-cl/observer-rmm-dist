@@ -105,6 +105,7 @@
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <observer-dropdown
             v-model="state.args"
+            class="obs-mono-values"
             :label="$t('bulkAction.scriptArgs')"
             filled
             use-input
@@ -117,6 +118,7 @@
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <observer-dropdown
             v-model="state.env_vars"
+            class="obs-mono-values"
             :label="$t('scriptsCommon.envVarsLabel')"
             filled
             use-input
@@ -164,7 +166,7 @@
             v-model="state.run_as_user"
             :label="$t('bulkAction.runAsUser')"
           >
-            <q-tooltip>{{ $t('scriptsCommon.runAsUserTip') }}</q-tooltip>
+            <q-tooltip>{{ $t("scriptsCommon.runAsUserTip") }}</q-tooltip>
           </q-checkbox>
         </q-card-section>
 
