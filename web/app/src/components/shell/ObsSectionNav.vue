@@ -4,7 +4,7 @@
     SectionNav.vue (046): grupos e ítems por props y la sección elegida la decide
     la URL de quien la usa. Es una lista de navegación, no un tablist (UI-E04).
   -->
-  <nav class="obs-secnav" :aria-label="ariaLabel">
+  <nav class="obs-secnav" :class="{ 'obs-secnav--wide': wide }" :aria-label="ariaLabel">
     <slot name="top" />
     <template v-for="group in groups" :key="group.key">
       <div v-if="group.label" class="obs-secnav__group">{{ group.label }}</div>
@@ -42,6 +42,8 @@ defineProps({
   groups: { type: Array, required: true },
   section: { type: String, default: null },
   ariaLabel: { type: String, default: null },
+  // Ancho mayor para rótulos largos (categorías de Scripts).
+  wide: { type: Boolean, default: false },
 });
 defineEmits(["select"]);
 </script>
@@ -54,6 +56,8 @@ defineEmits(["select"]);
   border-right: 1px solid var(--obs-border)
   background: var(--obs-surface)
   overflow-y: auto
+.obs-secnav--wide
+  width: 240px
 .obs-secnav__group
   font-size: 10.5px
   font-weight: 600

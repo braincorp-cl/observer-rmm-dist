@@ -45,7 +45,7 @@
               <q-item-label class="obs-mgr__pol-name ellipsis" :title="pol.name">{{
                 pol.name
               }}</q-item-label>
-              <q-item-label caption class="ellipsis" :title="pol.desc">{{
+              <q-item-label caption :title="pol.desc">{{
                 policyMeta(pol)
               }}</q-item-label>
             </q-item-section>
@@ -176,7 +176,7 @@
               </q-menu>
             </q-btn>
           </div>
-          <div class="row items-center no-wrap q-gutter-sm">
+          <div class="row items-center no-wrap obs-mgr__section-head">
             <h2 class="col obs-mgr__section-title">
               {{
                 subtab === "tasks"

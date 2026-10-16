@@ -23,6 +23,7 @@
     >
       <ObsSectionNav
         v-if="embedded"
+        wide
         :groups="libraryGroups"
         :section="library"
         :aria-label="$t('scriptManager.title')"
