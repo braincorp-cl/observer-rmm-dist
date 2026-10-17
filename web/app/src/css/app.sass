@@ -643,6 +643,10 @@ body.body--dark
 // (color de estado) cuando el llamador no da color; las acciones van en teal.
 .q-dialog-plugin--dark .q-card__actions .q-btn.text-amber
   color: var(--q-primary) !important
+// 050 (T030, G05): la pestaña de un paso con error es un control: su rótulo
+// queda neutro y el error lo marca solo el ícono (insignia de estado).
+.q-stepper__tab--error .q-stepper__title
+  color: var(--obs-text)
 // 050 (T030, G01): argumentos y variables de script (chips y lo que se escribe)
 // y todo campo numérico son valores dedicados: JetBrains Mono.
 .obs-mono-values .q-chip__content,

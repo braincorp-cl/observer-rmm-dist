@@ -43,13 +43,13 @@
         <q-card-section class="row">
           <div class="col-2">{{ $t("policyForm.active") }}</div>
           <div class="col-10">
-            <q-toggle v-model="localPolicy.active" color="green" />
+            <q-toggle v-model="localPolicy.active" color="primary" />
           </div>
         </q-card-section>
         <q-card-section class="row">
           <div class="col-2">{{ $t("policyForm.enforced") }}</div>
           <div class="col-10">
-            <q-toggle v-model="localPolicy.enforced" color="green" />
+            <q-toggle v-model="localPolicy.enforced" color="primary" />
           </div>
         </q-card-section>
         <q-card-actions align="right">

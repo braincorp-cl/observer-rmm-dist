@@ -123,7 +123,7 @@
           </q-btn>
           <q-space />
           <span class="obs-mgr__count">
-            <span class="mono">{{ libraryScripts.length }}</span>
+            {{ libraryScripts.length }}
             {{ $t("scriptManager.countLabel") }}
           </span>
         </div>
