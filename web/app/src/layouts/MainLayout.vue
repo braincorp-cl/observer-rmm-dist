@@ -228,7 +228,7 @@
             <q-item
               clickable
               v-ripple
-              @click="showUserPreferences"
+              :to="{ name: 'Preferences' }"
               v-close-popup
             >
               <q-item-section>
@@ -301,7 +301,6 @@ import { checkWebTermPerms, openWebTerminal } from "@/api/core";
 // ui imports
 import AlertsIcon from "@/components/AlertsIcon.vue";
 import NavRail from "@/components/shell/NavRail.vue";
-import UserPreferences from "@/components/modals/coresettings/UserPreferences.vue";
 import ResetPass from "@/components/accounts/ResetPass.vue";
 
 const store = useStore();
@@ -382,12 +381,6 @@ const latestReleaseURL = computed(() => {
     ? `https://agents.observer.cl/changelog/#v${latestVersion.value}`
     : "";
 });
-
-function showUserPreferences() {
-  $q.dialog({
-    component: UserPreferences,
-  }).onOk(() => store.dispatch("getDashInfo"));
-}
 
 function resetPassword() {
   $q.dialog({

@@ -1373,7 +1373,8 @@
     "optMixed": "Mixto",
     "noUrlActions": "No hay acciones URL configuradas. Ve a Configuración > Configuración global > Acciones URL",
     "selectUrlAction": "Selecciona una acción URL",
-    "prefsSaved": "¡Las preferencias fueron guardadas!"
+    "prefsSaved": "¡Las preferencias fueron guardadas!",
+    "accountCrumb": "Cuenta"
   },
   "policyOverview": {
     "title": "Resumen de políticas",

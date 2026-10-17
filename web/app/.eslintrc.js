@@ -174,6 +174,7 @@ module.exports = {
         "src/views/AutomationView.vue",
         "src/views/AlertsView.vue",
         "src/views/SettingsView.vue",
+        "src/views/PreferencesView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
         // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
         // consola nace traducida, con namespace propio (erase.*) y los códigos

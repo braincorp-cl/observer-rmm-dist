@@ -34,6 +34,15 @@ const routes = [
         },
       },
       {
+        // 050 (T034): Preferencias de usuario como página (maqueta de ajustes).
+        path: "preferences",
+        name: "Preferences",
+        component: () => import("@/views/PreferencesView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         path: "alerts",
         name: "Alerts",
         component: () => import("@/views/AlertsView.vue"),

@@ -1373,7 +1373,8 @@
     "optMixed": "Mixed",
     "noUrlActions": "No URL Actions configured. Go to Settings > Global Settings > URL Actions",
     "selectUrlAction": "Select a URL Action",
-    "prefsSaved": "Preferences were saved!"
+    "prefsSaved": "Preferences were saved!",
+    "accountCrumb": "Account"
   },
   "policyOverview": {
     "title": "Policy Overview",
