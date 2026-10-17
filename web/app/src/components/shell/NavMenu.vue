@@ -131,11 +131,7 @@
             <q-item-section>{{ $t("nav.userAdministration") }}</q-item-section>
           </q-item>
           <!-- core settings -->
-          <q-item
-            clickable
-            v-close-popup
-            @click="showEditCoreSettingsModal = true"
-          >
+          <q-item clickable v-close-popup :to="{ name: 'Settings' }">
             <q-item-section>{{ $t("nav.globalSettings") }}</q-item-section>
           </q-item>
           <!-- code sign -->
@@ -297,9 +293,6 @@
     </q-btn>
 
     <!-- edit core settings modal -->
-    <q-dialog v-model="showEditCoreSettingsModal">
-      <EditCoreSettings @close="showEditCoreSettingsModal = false" />
-    </q-dialog>
     <!-- Install Agents -->
     <q-dialog v-model="showInstallAgent">
       <InstallAgent @close="showInstallAgent = false" />
@@ -337,7 +330,6 @@ import ClientsManager from "@/components/clients/ClientsManager.vue";
 import ClientsForm from "@/components/clients/ClientsForm.vue";
 import SitesForm from "@/components/clients/SitesForm.vue";
 import UpdateAgents from "@/components/modals/agents/UpdateAgents.vue";
-import EditCoreSettings from "@/components/modals/coresettings/EditCoreSettings.vue";
 import AdminManager from "@/components/AdminManager.vue";
 import InstallAgent from "@/components/modals/agents/InstallAgent.vue";
 import AuditManager from "@/components/logs/AuditManager.vue";
@@ -356,7 +348,6 @@ export default {
   mixins: [mixins],
   components: {
     UpdateAgents,
-    EditCoreSettings,
     InstallAgent,
     AdminManager,
     ServerMaintenance,
@@ -366,7 +357,6 @@ export default {
     return {
       showServerMaintenance: false,
       showUpdateAgentsModal: false,
-      showEditCoreSettingsModal: false,
       showAdminManager: false,
       showInstallAgent: false,
       showCodeSign: false,

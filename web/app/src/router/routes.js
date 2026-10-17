@@ -25,6 +25,15 @@ const routes = [
         },
       },
       {
+        // 050 (T032): Ajustes globales como página, con la sección en la URL.
+        path: "settings/:section?",
+        name: "Settings",
+        component: () => import("@/views/SettingsView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         path: "alerts",
         name: "Alerts",
         component: () => import("@/views/AlertsView.vue"),

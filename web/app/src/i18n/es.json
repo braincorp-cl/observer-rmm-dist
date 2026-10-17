@@ -3680,5 +3680,19 @@
     "state_timeout": "El equipo no respondió",
     "state_espera": "Espera unos segundos antes de pedir otra",
     "state_offline": "El equipo está sin conexión"
+  },
+  "settingsPage": {
+    "pageTitle": "Ajustes",
+    "navLabel": "Secciones de ajustes",
+    "groups": {
+      "platform": "Plataforma",
+      "notifications": "Notificaciones",
+      "integrations": "Integraciones",
+      "data": "Datos",
+      "monitoring": "Monitoreo"
+    },
+    "unsaved": "Sin cambios | {n} cambio sin guardar | {n} cambios sin guardar",
+    "noChanges": "Sin cambios sin guardar",
+    "reset": "Restablecer"
   }
 }

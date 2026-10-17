@@ -1,132 +1,144 @@
 <template>
-  <q-card style="min-width: 60vw">
-    <q-splitter v-model="splitterModel">
-      <template v-slot:before>
-        <q-tabs dense v-model="tab" vertical class="text-primary">
-          <q-tab name="general" :label="$t('editCoreSettings.tabGeneral')" />
-          <q-tab
-            name="emailalerts"
-            :label="$t('editCoreSettings.tabEmailAlerts')"
-          />
-          <q-tab
-            name="smsalerts"
-            :label="$t('editCoreSettings.tabSmsAlerts')"
-          />
-          <q-tab
-            name="meshcentral"
-            :label="$t('editCoreSettings.tabMeshCentral')"
-          />
-          <q-tab
-            name="customfields"
-            :label="$t('editCoreSettings.tabCustomFields')"
-          />
-          <q-tab name="keystore" :label="$t('editCoreSettings.tabKeyStore')" />
-          <q-tab
-            name="urlactions"
-            :label="$t('editCoreSettings.tabUrlActions')"
-          />
-          <q-tab name="webhooks" :label="$t('editCoreSettings.tabWebHooks')" />
-          <q-tab
-            name="retention"
-            :label="$t('editCoreSettings.tabRetention')"
-          />
-          <q-tab name="apikeys" :label="$t('editCoreSettings.tabApiKeys')" />
-          <!-- SSO descartado (ADR-010, 2026-06-17): tab Single Sign-On eliminado (módulo ee/sso vaciado). -->
-          <q-tab
-            name="schedules"
-            :label="$t('editCoreSettings.tabSchedules')"
-          />
-          <q-tab name="ai" :label="$t('editCoreSettings.tabAiAssistant')" />
-          <!-- Feature 049: sección propia del monitoreo de actividad -->
-          <q-tab
-            name="monitoring"
-            :label="$t('editCoreSettings.tabEmployeeMonitoring')"
-          />
-        </q-tabs>
-      </template>
-      <template v-slot:after>
-        <q-form @submit.prevent="editSettings">
-          <q-card-section class="row items-center">
-            <div class="text-h6">
-              {{ $t("editCoreSettings.globalSettings") }}
-            </div>
-            <q-space />
-            <q-btn icon="close" flat round dense v-close-popup />
-          </q-card-section>
-          <q-scroll-area :thumb-style="thumbStyle" style="height: 60vh">
-            <q-tab-panels
-              v-model="tab"
-              animated
-              transition-prev="jump-up"
-              transition-next="jump-up"
-            >
-              <!-- general -->
-              <q-tab-panel name="general">
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.tabGeneral") }}
-                </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="settings.agent_auto_update"
-                    :label="$t('editCoreSettings.agentAutoUpdate')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.agentAutoUpdateTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="settings.geo_tracking_enabled"
-                    :label="$t('editCoreSettings.geoTracking')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.geoTrackingTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <q-card-section class="row q-pl-lg">
-                  <q-checkbox
-                    v-model="settings.geo_force_location_on"
-                    :disable="!settings.geo_tracking_enabled"
-                    :label="$t('editCoreSettings.geoForceLocation')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.geoForceLocationTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <!-- Geocerca por sitio (feature 026) -->
-                <q-card-section class="row items-center q-pl-lg q-gutter-md">
-                  <q-checkbox
-                    v-model="settings.geo_geofence_enabled"
-                    :disable="!settings.geo_tracking_enabled"
-                    :label="$t('editCoreSettings.geoGeofence')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.geoGeofenceTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 12rem"
-                    v-model.number="settings.geo_geofence_radius_m"
-                    :disable="
-                      !settings.geo_tracking_enabled ||
-                      !settings.geo_geofence_enabled
-                    "
-                    :label="$t('editCoreSettings.geoGeofenceRadius')"
-                    :rules="[
-                      (val) =>
-                        (val >= 50 && val <= 1000000) ||
-                        $t('editCoreSettings.geoGeofenceRadiusRule'),
-                    ]"
-                  />
-                </q-card-section>
-                <!--
+  <!--
+    050 (T032): con `embedded` es la página /settings/:section (navegación lateral
+    de 5 grupos, sin pestañas, barra de guardado fija abajo). Sin `embedded` sigue
+    siendo el diálogo de v1. Cada campo y su guardado son los mismos en los dos.
+  -->
+  <component
+    :is="embedded ? 'div' : QCard"
+    :class="embedded ? 'obs-mgr obs-set' : 'row no-wrap'"
+    :style="embedded ? null : 'min-width: 60vw'"
+  >
+    <ObsSectionNav
+      v-if="embedded"
+      wide
+      :groups="navGroups"
+      :section="tab"
+      :aria-label="$t('settingsPage.navLabel')"
+      @select="selectSection"
+    />
+    <div v-else class="obs-set__tabs">
+      <q-tabs dense v-model="tab" vertical class="text-primary">
+        <q-tab name="general" :label="$t('editCoreSettings.tabGeneral')" />
+        <q-tab
+          name="emailalerts"
+          :label="$t('editCoreSettings.tabEmailAlerts')"
+        />
+        <q-tab name="smsalerts" :label="$t('editCoreSettings.tabSmsAlerts')" />
+        <q-tab
+          name="meshcentral"
+          :label="$t('editCoreSettings.tabMeshCentral')"
+        />
+        <q-tab
+          name="customfields"
+          :label="$t('editCoreSettings.tabCustomFields')"
+        />
+        <q-tab name="keystore" :label="$t('editCoreSettings.tabKeyStore')" />
+        <q-tab
+          name="urlactions"
+          :label="$t('editCoreSettings.tabUrlActions')"
+        />
+        <q-tab name="webhooks" :label="$t('editCoreSettings.tabWebHooks')" />
+        <q-tab name="retention" :label="$t('editCoreSettings.tabRetention')" />
+        <q-tab name="apikeys" :label="$t('editCoreSettings.tabApiKeys')" />
+        <!-- SSO descartado (ADR-010, 2026-06-17): tab Single Sign-On eliminado (módulo ee/sso vaciado). -->
+        <q-tab name="schedules" :label="$t('editCoreSettings.tabSchedules')" />
+        <q-tab name="ai" :label="$t('editCoreSettings.tabAiAssistant')" />
+        <!-- Feature 049: sección propia del monitoreo de actividad -->
+        <q-tab
+          name="monitoring"
+          :label="$t('editCoreSettings.tabEmployeeMonitoring')"
+        />
+      </q-tabs>
+    </div>
+    <q-form
+      class="obs-set__form"
+      :class="{ col: !embedded }"
+      @submit.prevent="editSettings"
+    >
+      <q-card-section v-if="!embedded" class="row items-center">
+        <div class="text-h6">
+          {{ $t("editCoreSettings.globalSettings") }}
+        </div>
+        <q-space />
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-section>
+      <component
+        :is="embedded ? 'div' : QScrollArea"
+        :class="{ 'obs-set__scroll': embedded }"
+        :thumb-style="embedded ? undefined : thumbStyle"
+        :style="embedded ? null : 'height: 60vh'"
+      >
+        <div :class="{ 'obs-page obs-set__page': embedded }">
+          <ObsPageHead v-if="embedded" :title="sectionLabel" :crumbs="crumbs" />
+          <div class="obs-set__panels">
+            <!-- general -->
+            <div v-if="tab === 'general'" class="obs-set__panel">
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.tabGeneral") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <q-checkbox
+                  v-model="settings.agent_auto_update"
+                  :label="$t('editCoreSettings.agentAutoUpdate')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.agentAutoUpdateTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <q-card-section class="row">
+                <q-checkbox
+                  v-model="settings.geo_tracking_enabled"
+                  :label="$t('editCoreSettings.geoTracking')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.geoTrackingTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <q-card-section class="row q-pl-lg">
+                <q-checkbox
+                  v-model="settings.geo_force_location_on"
+                  :disable="!settings.geo_tracking_enabled"
+                  :label="$t('editCoreSettings.geoForceLocation')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.geoForceLocationTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <!-- Geocerca por sitio (feature 026) -->
+              <q-card-section class="row items-center q-pl-lg q-gutter-md">
+                <q-checkbox
+                  v-model="settings.geo_geofence_enabled"
+                  :disable="!settings.geo_tracking_enabled"
+                  :label="$t('editCoreSettings.geoGeofence')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.geoGeofenceTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 12rem"
+                  v-model.number="settings.geo_geofence_radius_m"
+                  :disable="
+                    !settings.geo_tracking_enabled ||
+                    !settings.geo_geofence_enabled
+                  "
+                  :label="$t('editCoreSettings.geoGeofenceRadius')"
+                  :rules="[
+                    (val) =>
+                      (val >= 50 && val <= 1000000) ||
+                      $t('editCoreSettings.geoGeofenceRadiusRule'),
+                  ]"
+                />
+              </q-card-section>
+              <!--
                   Baseline keep-awake (feature 041 · RN-08/RF-12, T032). Toggle
                   global ON por omisión: NO se indenta bajo geo_tracking porque es
                   un prerrequisito de la MEDICIÓN, no una sub-opción de geocerca —
@@ -135,610 +147,599 @@
                   y viaja al agente por el config; apagarlo revierte la flota
                   enrolada y fija el default de -power en instaladores futuros.
                 -->
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="settings.keep_awake_baseline_enabled"
-                    :label="$t('editCoreSettings.keepAwakeBaseline')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.keepAwakeBaselineTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <!--
+              <q-card-section class="row">
+                <q-checkbox
+                  v-model="settings.keep_awake_baseline_enabled"
+                  :label="$t('editCoreSettings.keepAwakeBaseline')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.keepAwakeBaselineTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <!--
                   RF-05 (feature 041 · RN-06, T034/T016/T017). Toggle global ON por
                   omisión: parte del módulo de perdidos/robados (uso corporativo
                   cubierto por el acta de entrega). Es un OPT-OUT para el cliente que
                   desestima ese módulo. El agente lo consulta como primer gate; con
                   esto en false es no-op en toda la flota.
                 -->
-                <q-card-section class="row items-center">
-                  <q-checkbox
-                    v-model="settings.open_wifi_enabled"
-                    :label="$t('editCoreSettings.openWifi')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.openWifiTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-icon
-                    name="ion-information-circle-outline"
-                    size="sm"
-                    class="q-ml-sm cursor-help"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.openWifiWarning") }}
-                    </q-tooltip>
-                  </q-icon>
-                </q-card-section>
-                <!--
+              <q-card-section class="row items-center">
+                <q-checkbox
+                  v-model="settings.open_wifi_enabled"
+                  :label="$t('editCoreSettings.openWifi')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.openWifiTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-icon
+                  name="ion-information-circle-outline"
+                  size="sm"
+                  class="q-ml-sm cursor-help"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.openWifiWarning") }}
+                  </q-tooltip>
+                </q-icon>
+              </q-card-section>
+              <!--
                   Foto de webcam del modo perdido (feature 030 · Fase 2, ADR-025).
                   APAGADA de fábrica y separada de la geolocalización a propósito:
                   ubicar un activo corporativo y fotografiar la cara de quien lo
                   tiene son dos cosas distintas, y la segunda no puede quedar
                   encendida porque alguien encendió la primera.
                 -->
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="settings.lost_mode_webcam_enabled"
-                    :label="$t('editCoreSettings.lostWebcam')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.lostWebcamTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <q-card-section
-                  v-if="settings.lost_mode_webcam_enabled"
-                  class="row q-pl-lg q-pt-none"
+              <q-card-section class="row">
+                <q-checkbox
+                  v-model="settings.lost_mode_webcam_enabled"
+                  :label="$t('editCoreSettings.lostWebcam')"
                 >
-                  <q-banner dense class="bg-orange-2 text-black full-width">
-                    <template v-slot:avatar>
-                      <q-icon name="warning" />
-                    </template>
-                    {{ $t("editCoreSettings.lostWebcamWarning") }}
-                  </q-banner>
-                </q-card-section>
-                <!--
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.lostWebcamTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <q-card-section
+                v-if="settings.lost_mode_webcam_enabled"
+                class="row q-pl-lg q-pt-none"
+              >
+                <q-banner dense class="bg-orange-2 text-black full-width">
+                  <template v-slot:avatar>
+                    <q-icon name="warning" />
+                  </template>
+                  {{ $t("editCoreSettings.lostWebcamWarning") }}
+                </q-banner>
+              </q-card-section>
+              <!--
                   Feature 038: defaults GLOBALES de la cascada al marcar un equipo
                   como perdido/robado. Son el nivel MÁS BAJO de precedencia: la
                   ficha del equipo y el propio caso pueden pisarlos. El bloqueo es
                   silencioso-diferido (se recolecta evidencia y recién luego se
                   bloquea); la alarma es opt-in.
                 -->
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-checkbox
-                    v-model="settings.lost_mode_auto_lock_enabled"
-                    :label="$t('editCoreSettings.lostAutoLock')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.lostAutoLockTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 14rem"
-                    v-model.number="settings.lost_mode_lock_delay_min"
-                    :disable="!settings.lost_mode_auto_lock_enabled"
-                    :label="$t('editCoreSettings.lostLockDelay')"
-                    :rules="[
-                      (val) =>
-                        (val >= 0 && val <= 60) ||
-                        $t('editCoreSettings.lostLockDelayRule'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-checkbox
-                    v-model="settings.lost_mode_no_hibernate_enabled"
-                    :label="$t('editCoreSettings.lostNoHibernate')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.lostNoHibernateTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-checkbox
-                    v-model="settings.lost_mode_webcam_override_default"
-                    :label="$t('editCoreSettings.lostWebcamOverride')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.lostWebcamOverrideTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-checkbox
-                    v-model="settings.lost_mode_alarm_enabled"
-                    :label="$t('editCoreSettings.lostAlarm')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.lostAlarmTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <!--
+              <q-card-section class="row items-center q-gutter-md">
+                <q-checkbox
+                  v-model="settings.lost_mode_auto_lock_enabled"
+                  :label="$t('editCoreSettings.lostAutoLock')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.lostAutoLockTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 14rem"
+                  v-model.number="settings.lost_mode_lock_delay_min"
+                  :disable="!settings.lost_mode_auto_lock_enabled"
+                  :label="$t('editCoreSettings.lostLockDelay')"
+                  :rules="[
+                    (val) =>
+                      (val >= 0 && val <= 60) ||
+                      $t('editCoreSettings.lostLockDelayRule'),
+                  ]"
+                />
+              </q-card-section>
+              <q-card-section class="row items-center q-gutter-md">
+                <q-checkbox
+                  v-model="settings.lost_mode_no_hibernate_enabled"
+                  :label="$t('editCoreSettings.lostNoHibernate')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.lostNoHibernateTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-checkbox
+                  v-model="settings.lost_mode_webcam_override_default"
+                  :label="$t('editCoreSettings.lostWebcamOverride')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.lostWebcamOverrideTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-checkbox
+                  v-model="settings.lost_mode_alarm_enabled"
+                  :label="$t('editCoreSettings.lostAlarm')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.lostAlarmTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <!--
                   Recordatorio de mantenimiento prolongado (feature 036). NO es una
                   caducidad: el modo mantenimiento sigue siendo indefinido por
                   diseño, esto sólo avisa por correo para que el olvido tenga fecha
                   de vencimiento humana.
                 -->
-                <q-card-section class="row items-center q-pl-lg q-gutter-md">
-                  <q-checkbox
-                    v-model="settings.maintenance_alert_enabled"
-                    :label="$t('editCoreSettings.maintenanceAlert')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.maintenanceAlertTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 12rem"
-                    v-model.number="settings.maintenance_alert_days"
-                    :disable="!settings.maintenance_alert_enabled"
-                    :label="$t('editCoreSettings.maintenanceAlertDays')"
-                    :rules="[
-                      (val) =>
-                        (val >= 1 && val <= 365) ||
-                        $t('editCoreSettings.maintenanceAlertDaysRule'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section v-if="!hosted" class="row">
-                  <q-checkbox
-                    v-model="settings.enable_server_scripts"
-                    :label="$t('editCoreSettings.enableServerScripts')"
-                  >
-                    <q-tooltip>{{
-                      $t("editCoreSettings.enableServerScriptsTooltip")
-                    }}</q-tooltip>
-                  </q-checkbox>
-                  <q-btn
-                    size="sm"
-                    round
-                    dense
-                    flat
-                    icon="warning"
-                    @click="
-                      openURL(
-                        'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
-                      )
-                    "
-                  >
-                  </q-btn>
-                </q-card-section>
-                <q-card-section v-if="!hosted" class="row">
-                  <q-checkbox
-                    v-model="settings.enable_server_webterminal"
-                    :label="$t('editCoreSettings.enableWebTerminal')"
-                  >
-                    <q-tooltip>{{
-                      $t("editCoreSettings.enableWebTerminalTooltip")
-                    }}</q-tooltip>
-                  </q-checkbox>
-                  <q-btn
-                    size="sm"
-                    round
-                    dense
-                    flat
-                    icon="warning"
-                    @click="
-                      openURL(
-                        'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
-                      )
-                    "
-                  >
-                  </q-btn>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.defaultAgentTimezone") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <observer-dropdown
-                    filterable
-                    outlined
-                    dense
-                    options-dense
-                    v-model="settings.default_time_zone"
-                    :options="allTimezones"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.defaultDateFormat") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.date_format"
-                    class="col-6"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="
-                          openURL(
-                            'https://quasar.dev/quasar-utils/date-utils#format-for-display',
-                          )
-                        "
-                      >
-                        <q-tooltip>{{
-                          $t("editCoreSettings.dateFormatTooltip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.defaultServerPolicy") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    clearable
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="settings.server_policy"
-                    :options="policies"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.defaultWorkstationPolicy") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    clearable
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="settings.workstation_policy"
-                    :options="policies"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.defaultAlertTemplate") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    clearable
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="settings.alert_template"
-                    :options="alertTemplateOptions"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4 flex items-center">
-                    {{ $t("editCoreSettings.receiveNotificationsOn") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-checkbox
-                    dense
-                    v-model="settings.notify_on_info_alerts"
-                    class="col-3"
-                    :label="$t('editCoreSettings.informationalAlerts')"
-                  />
-                  <q-checkbox
-                    dense
-                    v-model="settings.notify_on_warning_alerts"
-                    class="col-3"
-                    :label="$t('editCoreSettings.warningAlerts')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.agentDebugLevel") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    emit-value
-                    map-options
-                    outlined
-                    dense
-                    options-dense
-                    v-model="settings.agent_debug_level"
-                    :options="logLevelOptions"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.clearFaultsDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                    outlined
-                    dense
-                    v-model.number="settings.clear_faults_days"
-                    class="col-6"
-                    :rules="[
-                      (val) => val >= 0 || $t('editCoreSettings.minZero'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.resetPatchPolicyLabel") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-btn
-                    color="negative"
-                    :label="$t('editCoreSettings.reset')"
-                    @click="showResetPatchPolicy"
-                  />
-                </q-card-section>
-              </q-tab-panel>
-              <!-- email alerts -->
-              <q-tab-panel name="emailalerts">
-                <div class="text-subtitle2 row">
-                  <div>{{ $t("editCoreSettings.emailAlertRouting") }}</div>
-                  <q-space />
-                  <div>
-                    <q-btn
-                      size="sm"
-                      color="grey-5"
-                      icon="fas fa-plus"
-                      text-color="black"
-                      :label="$t('editCoreSettings.addEmails')"
-                      @click="toggleAddEmail"
-                    />
-                  </div>
+              <q-card-section class="row items-center q-pl-lg q-gutter-md">
+                <q-checkbox
+                  v-model="settings.maintenance_alert_enabled"
+                  :label="$t('editCoreSettings.maintenanceAlert')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.maintenanceAlertTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 12rem"
+                  v-model.number="settings.maintenance_alert_days"
+                  :disable="!settings.maintenance_alert_enabled"
+                  :label="$t('editCoreSettings.maintenanceAlertDays')"
+                  :rules="[
+                    (val) =>
+                      (val >= 1 && val <= 365) ||
+                      $t('editCoreSettings.maintenanceAlertDaysRule'),
+                  ]"
+                />
+              </q-card-section>
+              <q-card-section v-if="!hosted" class="row">
+                <q-checkbox
+                  v-model="settings.enable_server_scripts"
+                  :label="$t('editCoreSettings.enableServerScripts')"
+                >
+                  <q-tooltip>{{
+                    $t("editCoreSettings.enableServerScriptsTooltip")
+                  }}</q-tooltip>
+                </q-checkbox>
+                <q-btn
+                  size="sm"
+                  round
+                  dense
+                  flat
+                  icon="warning"
+                  @click="
+                    openURL(
+                      'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
+                    )
+                  "
+                >
+                </q-btn>
+              </q-card-section>
+              <q-card-section v-if="!hosted" class="row">
+                <q-checkbox
+                  v-model="settings.enable_server_webterminal"
+                  :label="$t('editCoreSettings.enableWebTerminal')"
+                >
+                  <q-tooltip>{{
+                    $t("editCoreSettings.enableWebTerminalTooltip")
+                  }}</q-tooltip>
+                </q-checkbox>
+                <q-btn
+                  size="sm"
+                  round
+                  dense
+                  flat
+                  icon="warning"
+                  @click="
+                    openURL(
+                      'https://docs.observer.cl/functions/permissions/#permisos-con-implicancias-de-seguridad',
+                    )
+                  "
+                >
+                </q-btn>
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.defaultAgentTimezone") }}
                 </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-3">
-                    {{ $t("editCoreSettings.recipients") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <div class="col-5">
-                    <q-list
+                <div class="col-2"></div>
+                <observer-dropdown
+                  filterable
+                  outlined
+                  dense
+                  options-dense
+                  v-model="settings.default_time_zone"
+                  :options="allTimezones"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.defaultDateFormat") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.date_format"
+                  class="col-6"
+                >
+                  <template v-slot:after>
+                    <q-btn
+                      round
                       dense
-                      v-if="
-                        ready && settings.email_alert_recipients.length !== 0
+                      flat
+                      size="sm"
+                      icon="info"
+                      @click="
+                        openURL(
+                          'https://quasar.dev/quasar-utils/date-utils#format-for-display',
+                        )
                       "
                     >
-                      <q-item
-                        v-for="email in settings.email_alert_recipients"
-                        :key="email"
-                        clickable
-                        v-ripple
-                        @click="removeEmail(email)"
-                      >
-                        <q-item-section>
-                          <q-item-label>{{ email }}</q-item-label>
-                        </q-item-section>
-                        <q-item-section side>
-                          <q-icon name="delete" color="red" />
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                    <q-list v-else>
-                      <q-item-section>
-                        <q-item-label>{{
-                          $t("editCoreSettings.noRecipients")
-                        }}</q-item-label>
-                      </q-item-section>
-                    </q-list>
-                  </div>
-                </q-card-section>
-                <!-- smtp -->
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.smtpSettings") }}
+                      <q-tooltip>{{
+                        $t("editCoreSettings.dateFormatTooltip")
+                      }}</q-tooltip>
+                    </q-btn>
+                  </template>
+                </q-input>
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.defaultServerPolicy") }}
                 </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("editCoreSettings.fromEmail") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.smtp_from_email"
-                    class="col-6 q-pa-none"
-                    :rules="[
-                      (val) =>
-                        isValidEmail(val) ||
-                        $t('editCoreSettings.invalidEmail'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">{{ $t("editCoreSettings.fromName") }}</div>
-                  <div class="col-4"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.smtp_from_name"
-                    class="col-6 q-pa-none"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">{{ $t("editCoreSettings.host") }}</div>
-                  <div class="col-4"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.smtp_host"
-                    class="col-6 q-pa-none"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">{{ $t("editCoreSettings.port") }}</div>
-                  <div class="col-4"></div>
-                  <q-input
-                    dense
-                    v-model.number="settings.smtp_port"
-                    type="number"
-                    filled
-                    class="q-pa-none"
-                    :rules="[
-                      (val) =>
-                        (val > 0 && val <= 65535) ||
-                        $t('editCoreSettings.invalidPort'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="settings.smtp_requires_auth"
-                    :label="$t('editCoreSettings.requiresAuth')"
-                    class="q-pa-none"
-                  />
-                </q-card-section>
-                <q-card-section
-                  class="row"
-                  v-show="settings.smtp_requires_auth"
-                >
-                  <div class="col-2">
-                    {{ $t("editCoreSettings.username") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.smtp_host_user"
-                    class="col-6 q-pa-none"
-                  />
-                </q-card-section>
-                <q-card-section
-                  class="row"
-                  v-show="settings.smtp_requires_auth"
-                >
-                  <div class="col-2">
-                    {{ $t("editCoreSettings.password") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <secret-input
-                    class="col-6 q-pa-none"
-                    v-model="settings.smtp_host_password"
-                    :is-set="settings.smtp_host_password_set"
-                  />
-                </q-card-section>
-              </q-tab-panel>
-              <!-- twilio sms alerts -->
-              <q-tab-panel name="smsalerts">
-                <div class="text-subtitle2 row">
-                  <div>{{ $t("editCoreSettings.smsAlertRouting") }}</div>
-                  <q-space />
-                  <div>
-                    <q-btn
-                      size="sm"
-                      color="grey-5"
-                      icon="fas fa-plus"
-                      text-color="black"
-                      :label="$t('editCoreSettings.addNumbers')"
-                      @click="toggleAddSMSNumber"
-                    />
-                  </div>
+                <div class="col-2"></div>
+                <q-select
+                  clearable
+                  map-options
+                  emit-value
+                  outlined
+                  dense
+                  options-dense
+                  v-model="settings.server_policy"
+                  :options="policies"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.defaultWorkstationPolicy") }}
                 </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-3">
-                    {{ $t("editCoreSettings.recipients") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <div class="col-5">
-                    <q-list
-                      dense
-                      v-if="ready && settings.sms_alert_recipients.length !== 0"
+                <div class="col-2"></div>
+                <q-select
+                  clearable
+                  map-options
+                  emit-value
+                  outlined
+                  dense
+                  options-dense
+                  v-model="settings.workstation_policy"
+                  :options="policies"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.defaultAlertTemplate") }}
+                </div>
+                <div class="col-2"></div>
+                <q-select
+                  clearable
+                  map-options
+                  emit-value
+                  outlined
+                  dense
+                  options-dense
+                  v-model="settings.alert_template"
+                  :options="alertTemplateOptions"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4 flex items-center">
+                  {{ $t("editCoreSettings.receiveNotificationsOn") }}
+                </div>
+                <div class="col-2"></div>
+                <q-checkbox
+                  dense
+                  v-model="settings.notify_on_info_alerts"
+                  class="col-3"
+                  :label="$t('editCoreSettings.informationalAlerts')"
+                />
+                <q-checkbox
+                  dense
+                  v-model="settings.notify_on_warning_alerts"
+                  class="col-3"
+                  :label="$t('editCoreSettings.warningAlerts')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.agentDebugLevel") }}
+                </div>
+                <div class="col-2"></div>
+                <q-select
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  options-dense
+                  v-model="settings.agent_debug_level"
+                  :options="logLevelOptions"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.clearFaultsDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                  outlined
+                  dense
+                  v-model.number="settings.clear_faults_days"
+                  class="col-6"
+                  :rules="[(val) => val >= 0 || $t('editCoreSettings.minZero')]"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.resetPatchPolicyLabel") }}
+                </div>
+                <div class="col-2"></div>
+                <q-btn
+                  color="negative"
+                  :label="$t('editCoreSettings.reset')"
+                  @click="showResetPatchPolicy"
+                />
+              </q-card-section>
+            </div>
+            <!-- email alerts -->
+            <div v-if="tab === 'emailalerts'" class="obs-set__panel">
+              <div class="text-subtitle2 row">
+                <div>{{ $t("editCoreSettings.emailAlertRouting") }}</div>
+                <q-space />
+                <div>
+                  <q-btn
+                    size="sm"
+                    color="grey-5"
+                    icon="fas fa-plus"
+                    text-color="black"
+                    :label="$t('editCoreSettings.addEmails')"
+                    @click="toggleAddEmail"
+                  />
+                </div>
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <div class="col-3">
+                  {{ $t("editCoreSettings.recipients") }}
+                </div>
+                <div class="col-4"></div>
+                <div class="col-5">
+                  <q-list
+                    dense
+                    v-if="ready && settings.email_alert_recipients.length !== 0"
+                  >
+                    <q-item
+                      v-for="email in settings.email_alert_recipients"
+                      :key="email"
+                      clickable
+                      v-ripple
+                      @click="removeEmail(email)"
                     >
-                      <q-item
-                        v-for="num in settings.sms_alert_recipients"
-                        :key="num"
-                        clickable
-                        v-ripple
-                        @click="removeSMSNumber(num)"
-                      >
-                        <q-item-section>
-                          <q-item-label>{{ num }}</q-item-label>
-                        </q-item-section>
-                        <q-item-section side>
-                          <q-icon name="delete" color="red" />
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                    <q-list v-else>
                       <q-item-section>
-                        <q-item-label>{{
-                          $t("editCoreSettings.noRecipients")
-                        }}</q-item-label>
+                        <q-item-label>{{ email }}</q-item-label>
                       </q-item-section>
-                    </q-list>
-                  </div>
-                </q-card-section>
-                <!-- smtp -->
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.twilioSettings") }}
+                      <q-item-section side>
+                        <q-icon name="delete" color="red" />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                  <q-list v-else>
+                    <q-item-section>
+                      <q-item-label>{{
+                        $t("editCoreSettings.noRecipients")
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-list>
                 </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-3">
-                    {{ $t("editCoreSettings.twilioNumber") }}
-                  </div>
-                  <div class="col-3"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.twilio_number"
-                    class="col-6 q-pa-none"
-                    placeholder="+12131231234"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-3">
-                    {{ $t("editCoreSettings.twilioAccountSid") }}
-                  </div>
-                  <div class="col-3"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="settings.twilio_account_sid"
-                    class="col-6 q-pa-none"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-3">
-                    {{ $t("editCoreSettings.twilioAuthToken") }}
-                  </div>
-                  <div class="col-3"></div>
-                  <secret-input
-                    v-model="settings.twilio_auth_token"
-                    :is-set="settings.twilio_auth_token_set"
-                    class="col-6 q-pa-none"
-                  />
-                </q-card-section>
-              </q-tab-panel>
-              <!-- meshcentral -->
-              <q-tab-panel name="meshcentral">
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.meshSettings") }}
+              </q-card-section>
+              <!-- smtp -->
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.smtpSettings") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <div class="col-2">
+                  {{ $t("editCoreSettings.fromEmail") }}
                 </div>
-                <q-separator />
-                <!--
+                <div class="col-4"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.smtp_from_email"
+                  class="col-6 q-pa-none"
+                  :rules="[
+                    (val) =>
+                      isValidEmail(val) || $t('editCoreSettings.invalidEmail'),
+                  ]"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-2">{{ $t("editCoreSettings.fromName") }}</div>
+                <div class="col-4"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.smtp_from_name"
+                  class="col-6 q-pa-none"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-2">{{ $t("editCoreSettings.host") }}</div>
+                <div class="col-4"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.smtp_host"
+                  class="col-6 q-pa-none"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-2">{{ $t("editCoreSettings.port") }}</div>
+                <div class="col-4"></div>
+                <q-input
+                  dense
+                  v-model.number="settings.smtp_port"
+                  type="number"
+                  filled
+                  class="q-pa-none"
+                  :rules="[
+                    (val) =>
+                      (val > 0 && val <= 65535) ||
+                      $t('editCoreSettings.invalidPort'),
+                  ]"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <q-checkbox
+                  v-model="settings.smtp_requires_auth"
+                  :label="$t('editCoreSettings.requiresAuth')"
+                  class="q-pa-none"
+                />
+              </q-card-section>
+              <q-card-section class="row" v-show="settings.smtp_requires_auth">
+                <div class="col-2">
+                  {{ $t("editCoreSettings.username") }}
+                </div>
+                <div class="col-4"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.smtp_host_user"
+                  class="col-6 q-pa-none"
+                />
+              </q-card-section>
+              <q-card-section class="row" v-show="settings.smtp_requires_auth">
+                <div class="col-2">
+                  {{ $t("editCoreSettings.password") }}
+                </div>
+                <div class="col-4"></div>
+                <secret-input
+                  class="col-6 q-pa-none"
+                  v-model="settings.smtp_host_password"
+                  :is-set="settings.smtp_host_password_set"
+                />
+              </q-card-section>
+            </div>
+            <!-- twilio sms alerts -->
+            <div v-if="tab === 'smsalerts'" class="obs-set__panel">
+              <div class="text-subtitle2 row">
+                <div>{{ $t("editCoreSettings.smsAlertRouting") }}</div>
+                <q-space />
+                <div>
+                  <q-btn
+                    size="sm"
+                    color="grey-5"
+                    icon="fas fa-plus"
+                    text-color="black"
+                    :label="$t('editCoreSettings.addNumbers')"
+                    @click="toggleAddSMSNumber"
+                  />
+                </div>
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <div class="col-3">
+                  {{ $t("editCoreSettings.recipients") }}
+                </div>
+                <div class="col-4"></div>
+                <div class="col-5">
+                  <q-list
+                    dense
+                    v-if="ready && settings.sms_alert_recipients.length !== 0"
+                  >
+                    <q-item
+                      v-for="num in settings.sms_alert_recipients"
+                      :key="num"
+                      clickable
+                      v-ripple
+                      @click="removeSMSNumber(num)"
+                    >
+                      <q-item-section>
+                        <q-item-label>{{ num }}</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-icon name="delete" color="red" />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                  <q-list v-else>
+                    <q-item-section>
+                      <q-item-label>{{
+                        $t("editCoreSettings.noRecipients")
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-list>
+                </div>
+              </q-card-section>
+              <!-- smtp -->
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.twilioSettings") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <div class="col-3">
+                  {{ $t("editCoreSettings.twilioNumber") }}
+                </div>
+                <div class="col-3"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.twilio_number"
+                  class="col-6 q-pa-none"
+                  placeholder="+12131231234"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-3">
+                  {{ $t("editCoreSettings.twilioAccountSid") }}
+                </div>
+                <div class="col-3"></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="settings.twilio_account_sid"
+                  class="col-6 q-pa-none"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-3">
+                  {{ $t("editCoreSettings.twilioAuthToken") }}
+                </div>
+                <div class="col-3"></div>
+                <secret-input
+                  v-model="settings.twilio_auth_token"
+                  :is-set="settings.twilio_auth_token_set"
+                  class="col-6 q-pa-none"
+                />
+              </q-card-section>
+            </div>
+            <!-- meshcentral -->
+            <div v-if="tab === 'meshcentral'" class="obs-set__panel">
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.meshSettings") }}
+              </div>
+              <q-separator />
+              <!--
                   Conexión con MeshCentral: se lee, no se edita. El valor que
                   manda vive en local_settings.py (Ansible lo renderiza desde el
                   vault) y `initial_mesh_setup` lo copia a la base en cada corrida
@@ -746,590 +747,617 @@
                   "Tomar control" roto hasta el próximo despliegue con el rol.
                   El serializer también los rechaza (read_only_fields).
                 -->
-                <q-card-section class="row items-center" v-if="!hosted">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.username") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <div class="col-6">{{ settings.mesh_username }}</div>
-                </q-card-section>
-                <q-card-section class="row items-center" v-if="!hosted">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.meshSite") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <div class="col-6">{{ settings.mesh_site }}</div>
-                </q-card-section>
-                <q-card-section class="row items-center" v-if="!hosted">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.meshToken") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <div class="col-6">
-                    <q-icon
-                      :name="
-                        settings.mesh_token_set
-                          ? 'check_circle'
-                          : 'error_outline'
-                      "
-                      :color="settings.mesh_token_set ? 'positive' : 'warning'"
-                      size="xs"
-                      class="q-mr-xs"
-                    />
-                    {{
-                      settings.mesh_token_set
-                        ? $t("editCoreSettings.meshTokenSet")
-                        : $t("editCoreSettings.meshTokenMissing")
-                    }}
-                  </div>
-                </q-card-section>
-                <q-card-section class="row items-center" v-if="!hosted">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.meshDeviceGroup") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <div class="col-6">{{ settings.mesh_device_group }}</div>
-                </q-card-section>
-                <q-card-section class="row items-center" v-if="!hosted">
-                  <div class="col-4 flex items-center">
-                    {{ $t("editCoreSettings.syncMeshPerms") }}
-                    <q-icon
-                      right
-                      name="ion-information-circle-outline"
-                      size="sm"
-                      class="cursor-pointer"
-                    >
-                      <q-tooltip class="text-caption">
-                        {{ $t("editCoreSettings.syncMeshPermsTooltip") }}
-                      </q-tooltip>
-                    </q-icon>
-                  </div>
-                  <div class="col-2"></div>
-                  <div class="col-6">
-                    <q-icon
-                      :name="
-                        settings.sync_mesh_with_ormm
-                          ? 'check_circle'
-                          : 'error_outline'
-                      "
-                      :color="
-                        settings.sync_mesh_with_ormm ? 'positive' : 'warning'
-                      "
-                      size="xs"
-                      class="q-mr-xs"
-                    />
-                    {{
-                      settings.sync_mesh_with_ormm
-                        ? $t("editCoreSettings.syncMeshPermsOn")
-                        : $t("editCoreSettings.syncMeshPermsOff")
-                    }}
-                  </div>
-                </q-card-section>
-                <q-card-section class="row" v-if="!hosted">
-                  <div class="col-4"></div>
-                  <div class="col-2"></div>
-                  <div class="col-6 text-caption text-grey-6">
-                    {{ $t("editCoreSettings.meshManagedByDeploy") }}
-                  </div>
-                </q-card-section>
-
-                <q-card-section class="row items-center">
-                  <div class="col-4 flex items-center">
-                    {{ $t("editCoreSettings.companyName") }}
-                    <q-icon
-                      name="ion-information-circle-outline"
-                      size="sm"
-                      class="q-ml-sm cursor-pointer"
-                    >
-                      <q-tooltip class="text-caption">
-                        {{ $t("editCoreSettings.companyNameTooltip") }}
-                      </q-tooltip>
-                    </q-icon>
-                  </div>
-
-                  <div class="col-2"></div>
-
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.mesh_company_name"
-                    class="col-6"
+              <q-card-section class="row items-center" v-if="!hosted">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.username") }}
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">{{ settings.mesh_username }}</div>
+              </q-card-section>
+              <q-card-section class="row items-center" v-if="!hosted">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.meshSite") }}
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">{{ settings.mesh_site }}</div>
+              </q-card-section>
+              <q-card-section class="row items-center" v-if="!hosted">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.meshToken") }}
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">
+                  <q-icon
+                    :name="
+                      settings.mesh_token_set ? 'check_circle' : 'error_outline'
+                    "
+                    :color="settings.mesh_token_set ? 'positive' : 'warning'"
+                    size="xs"
+                    class="q-mr-xs"
+                  />
+                  {{
+                    settings.mesh_token_set
+                      ? $t("editCoreSettings.meshTokenSet")
+                      : $t("editCoreSettings.meshTokenMissing")
+                  }}
+                </div>
+              </q-card-section>
+              <q-card-section class="row items-center" v-if="!hosted">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.meshDeviceGroup") }}
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">{{ settings.mesh_device_group }}</div>
+              </q-card-section>
+              <q-card-section class="row items-center" v-if="!hosted">
+                <div class="col-4 flex items-center">
+                  {{ $t("editCoreSettings.syncMeshPerms") }}
+                  <q-icon
+                    right
+                    name="ion-information-circle-outline"
+                    size="sm"
+                    class="cursor-pointer"
                   >
-                  </q-input>
-                </q-card-section>
-              </q-tab-panel>
-
-              <!-- custom fields -->
-              <q-tab-panel name="customfields">
-                <CustomFields />
-              </q-tab-panel>
-
-              <!-- key store -->
-              <q-tab-panel name="keystore">
-                <KeyStoreTable />
-              </q-tab-panel>
-
-              <!-- url actions -->
-              <q-tab-panel name="urlactions">
-                <URLActionsTable type="web" />
-              </q-tab-panel>
-
-              <!-- web hooks -->
-              <q-tab-panel name="webhooks">
-                <URLActionsTable type="rest" />
-              </q-tab-panel>
-
-              <!-- retention -->
-              <q-tab-panel name="retention">
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.checkHistoryDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.check_history_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
+                    <q-tooltip class="text-caption">
+                      {{ $t("editCoreSettings.syncMeshPermsTooltip") }}
+                    </q-tooltip>
+                  </q-icon>
+                </div>
+                <div class="col-2"></div>
+                <div class="col-6">
+                  <q-icon
+                    :name="
+                      settings.sync_mesh_with_ormm
+                        ? 'check_circle'
+                        : 'error_outline'
+                    "
+                    :color="
+                      settings.sync_mesh_with_ormm ? 'positive' : 'warning'
+                    "
+                    size="xs"
+                    class="q-mr-xs"
                   />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.resolvedAlertsDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.resolved_alerts_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.agentHistoryDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.agent_history_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.debugLogsDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.debug_log_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.auditLogsDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.audit_log_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.reportHistoryDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.report_history_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.disableFeatureHint')"
-                  />
-                </q-card-section>
+                  {{
+                    settings.sync_mesh_with_ormm
+                      ? $t("editCoreSettings.syncMeshPermsOn")
+                      : $t("editCoreSettings.syncMeshPermsOff")
+                  }}
+                </div>
+              </q-card-section>
+              <q-card-section class="row" v-if="!hosted">
+                <div class="col-4"></div>
+                <div class="col-2"></div>
+                <div class="col-6 text-caption text-grey-6">
+                  {{ $t("editCoreSettings.meshManagedByDeploy") }}
+                </div>
+              </q-card-section>
 
-                <!-- 030 · T019 (ADR-025): estas dos NO llevan disableFeatureHint.
+              <q-card-section class="row items-center">
+                <div class="col-4 flex items-center">
+                  {{ $t("editCoreSettings.companyName") }}
+                  <q-icon
+                    name="ion-information-circle-outline"
+                    size="sm"
+                    class="q-ml-sm cursor-pointer"
+                  >
+                    <q-tooltip class="text-caption">
+                      {{ $t("editCoreSettings.companyNameTooltip") }}
+                    </q-tooltip>
+                  </q-icon>
+                </div>
+
+                <div class="col-2"></div>
+
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.mesh_company_name"
+                  class="col-6"
+                >
+                </q-input>
+              </q-card-section>
+            </div>
+
+            <!-- custom fields -->
+            <div v-if="tab === 'customfields'" class="obs-set__panel">
+              <CustomFields />
+            </div>
+
+            <!-- key store -->
+            <div v-if="tab === 'keystore'" class="obs-set__panel">
+              <KeyStoreTable />
+            </div>
+
+            <!-- url actions -->
+            <div v-if="tab === 'urlactions'" class="obs-set__panel">
+              <URLActionsTable type="web" />
+            </div>
+
+            <!-- web hooks -->
+            <div v-if="tab === 'webhooks'" class="obs-set__panel">
+              <URLActionsTable type="rest" />
+            </div>
+
+            <!-- retention -->
+            <div v-if="tab === 'retention'" class="obs-set__panel">
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.checkHistoryDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.check_history_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.resolvedAlertsDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.resolved_alerts_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.agentHistoryDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.agent_history_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.debugLogsDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.debug_log_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.auditLogsDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.audit_log_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.reportHistoryDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.report_history_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.disableFeatureHint')"
+                />
+              </q-card-section>
+
+              <!-- 030 · T019 (ADR-025): estas dos NO llevan disableFeatureHint.
                      El 0 no apaga la retención de la evidencia — el campo está
                      acotado a 1..365 en el modelo. Reutilizar ese hint acá le
                      diría al operador que puede desactivar algo que la
                      normativa exige que ocurra solo. -->
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.lostEvidenceDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    min="1"
-                    max="365"
-                    v-model="settings.lost_mode_evidence_prune_days"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.lostEvidenceDaysHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.lostEvidenceClosedCaseDays") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    min="0"
-                    max="365"
-                    v-model="settings.lost_mode_evidence_closed_case_days"
-                    class="col-6"
-                    :hint="
-                      $t('editCoreSettings.lostEvidenceClosedCaseDaysHint')
-                    "
-                  />
-                </q-card-section>
-              </q-tab-panel>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.lostEvidenceDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  min="1"
+                  max="365"
+                  v-model="settings.lost_mode_evidence_prune_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.lostEvidenceDaysHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.lostEvidenceClosedCaseDays") }}
+                </div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  min="0"
+                  max="365"
+                  v-model="settings.lost_mode_evidence_closed_case_days"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.lostEvidenceClosedCaseDaysHint')"
+                />
+              </q-card-section>
+            </div>
 
-              <q-tab-panel name="apikeys">
-                <APIKeysTable />
-              </q-tab-panel>
+            <div v-if="tab === 'apikeys'" class="obs-set__panel">
+              <APIKeysTable />
+            </div>
 
-              <!-- SSO descartado (ADR-010, 2026-06-17): panel y SSOProvidersTable eliminados (módulo ee/sso vaciado). -->
+            <!-- SSO descartado (ADR-010, 2026-06-17): panel y SSOProvidersTable eliminados (módulo ee/sso vaciado). -->
 
-              <!-- schedules -->
-              <q-tab-panel name="schedules">
-                <ScheduleTable />
-              </q-tab-panel>
+            <!-- schedules -->
+            <div v-if="tab === 'schedules'" class="obs-set__panel">
+              <ScheduleTable />
+            </div>
 
-              <!-- AI Assistant (LLM OpenAI-compatible) -->
-              <!-- Feature 049: Employee Monitoring. Todo APAGADO de fábrica:
+            <!-- AI Assistant (LLM OpenAI-compatible) -->
+            <!-- Feature 049: Employee Monitoring. Todo APAGADO de fábrica:
                    el interruptor global no hace muestrear a nadie, solo habilita
                    a los clientes/sitios/equipos del alcance; capturas y red son
                    un escalón más y se encienden aparte. -->
-              <q-tab-panel name="monitoring">
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.tabEmployeeMonitoring") }}
+            <div v-if="tab === 'monitoring'" class="obs-set__panel">
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.tabEmployeeMonitoring") }}
+              </div>
+              <q-separator />
+              <q-card-section class="q-pb-none">
+                <q-toggle
+                  v-model="settings.activity_monitoring_enabled"
+                  :label="$t('editCoreSettings.activityMonitoring')"
+                />
+                <div class="text-caption text-grey">
+                  {{ $t("editCoreSettings.activityMonitoringTooltip") }}
                 </div>
-                <q-separator />
-                <q-card-section class="q-pb-none">
-                  <q-toggle
-                    v-model="settings.activity_monitoring_enabled"
-                    :label="$t('editCoreSettings.activityMonitoring')"
-                  />
-                  <div class="text-caption text-grey">
-                    {{ $t("editCoreSettings.activityMonitoringTooltip") }}
-                  </div>
-                </q-card-section>
+              </q-card-section>
 
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.emScope") }}
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.emScope") }}
+              </div>
+              <q-separator />
+              <q-card-section>
+                <activity-scope-table
+                  :global-enabled="settings.activity_monitoring_enabled"
+                />
+              </q-card-section>
+
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.emSampling") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row items-center q-gutter-md">
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 14rem"
+                  v-model.number="settings.activity_interval_seg"
+                  :label="$t('editCoreSettings.activityInterval')"
+                  :rules="[
+                    (val) =>
+                      (val >= 15 && val <= 600) ||
+                      $t('editCoreSettings.activityIntervalRule'),
+                  ]"
+                />
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 14rem"
+                  v-model.number="settings.activity_idle_seg"
+                  :label="$t('editCoreSettings.activityIdle')"
+                  :rules="[
+                    (val) =>
+                      (val >= 30 && val <= 3600) ||
+                      $t('editCoreSettings.activityIdleRule'),
+                  ]"
+                />
+                <q-checkbox
+                  v-model="settings.activity_window_titles"
+                  :label="$t('editCoreSettings.activityTitles')"
+                >
+                  <q-tooltip>
+                    {{ $t("editCoreSettings.activityTitlesTooltip") }}
+                  </q-tooltip>
+                </q-checkbox>
+              </q-card-section>
+              <!-- 049-D: reuniones como actividad y jornada esperada -->
+              <q-card-section class="row items-start q-gutter-md">
+                <q-input
+                  dense
+                  outlined
+                  autogrow
+                  type="textarea"
+                  style="width: 22rem"
+                  v-model="settings.activity_always_active_patterns"
+                  :label="$t('editCoreSettings.activityAlwaysActive')"
+                  :hint="$t('editCoreSettings.activityAlwaysActiveHint')"
+                />
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  step="0.5"
+                  style="width: 14rem"
+                  v-model.number="activityExpectedHours"
+                  :label="$t('editCoreSettings.activityExpectedHours')"
+                  :hint="$t('editCoreSettings.activityExpectedHoursHint')"
+                  :rules="[
+                    (val) =>
+                      (val > 0 && val <= 24) ||
+                      $t('editCoreSettings.activityExpectedHoursRule'),
+                  ]"
+                />
+                <!-- 049-E: horario laboral para el filtro de los reportes -->
+                <q-input
+                  dense
+                  outlined
+                  style="width: 12rem"
+                  v-model="settings.activity_work_hours"
+                  :label="$t('editCoreSettings.activityWorkHours')"
+                  :hint="$t('editCoreSettings.activityWorkHoursHint')"
+                  :rules="[
+                    (val) =>
+                      /^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/.test(val || '') ||
+                      $t('editCoreSettings.activityWorkHoursRule'),
+                  ]"
+                />
+                <q-select
+                  dense
+                  outlined
+                  multiple
+                  emit-value
+                  map-options
+                  style="width: 20rem"
+                  v-model="activityWorkDays"
+                  :options="workDayOptions"
+                  :label="$t('editCoreSettings.activityWorkDays')"
+                />
+              </q-card-section>
+
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.emVisual") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row items-center q-gutter-md">
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 18rem"
+                  v-model.number="settings.activity_screenshots_min"
+                  :label="$t('editCoreSettings.activityScreenshots')"
+                  :hint="$t('editCoreSettings.activityScreenshotsHint')"
+                  :rules="[
+                    (val) =>
+                      val === 0 ||
+                      (val >= 1 && val <= 240) ||
+                      $t('editCoreSettings.activityScreenshotsRule'),
+                  ]"
+                />
+              </q-card-section>
+
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.emData") }}
+              </div>
+              <q-separator />
+              <q-card-section>
+                <q-checkbox
+                  v-model="settings.activity_network"
+                  :label="$t('editCoreSettings.activityNetwork')"
+                />
+                <div class="text-caption text-grey">
+                  {{ $t("editCoreSettings.activityNetworkTooltip") }}
                 </div>
-                <q-separator />
-                <q-card-section>
-                  <activity-scope-table
-                    :global-enabled="settings.activity_monitoring_enabled"
-                  />
-                </q-card-section>
+              </q-card-section>
 
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.emSampling") }}
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.emRetention") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row items-center q-gutter-md">
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  style="width: 18rem"
+                  v-model.number="settings.activity_prune_days"
+                  :label="$t('editCoreSettings.activityPruneDays')"
+                  :hint="$t('editCoreSettings.activityPruneDaysHint')"
+                  :rules="[
+                    (val) =>
+                      val >= 0 || $t('editCoreSettings.activityPruneDaysRule'),
+                  ]"
+                />
+              </q-card-section>
+              <q-card-section class="text-caption text-grey">
+                {{ $t("editCoreSettings.emPermissionsNote") }}
+              </q-card-section>
+            </div>
+
+            <div v-if="tab === 'ai'" class="obs-set__panel">
+              <div class="text-subtitle2">
+                {{ $t("editCoreSettings.tabAiAssistant") }}
+              </div>
+              <q-separator />
+              <q-card-section class="row">
+                <div class="col-4">{{ $t("editCoreSettings.aiApiKey") }}</div>
+                <div class="col-2"></div>
+                <secret-input
+                  v-model="settings.open_ai_token"
+                  :is-set="settings.open_ai_token_set"
+                  class="col-6"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.aiBaseUrl") }}
                 </div>
-                <q-separator />
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 14rem"
-                    v-model.number="settings.activity_interval_seg"
-                    :label="$t('editCoreSettings.activityInterval')"
-                    :rules="[
-                      (val) =>
-                        (val >= 15 && val <= 600) ||
-                        $t('editCoreSettings.activityIntervalRule'),
-                    ]"
-                  />
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 14rem"
-                    v-model.number="settings.activity_idle_seg"
-                    :label="$t('editCoreSettings.activityIdle')"
-                    :rules="[
-                      (val) =>
-                        (val >= 30 && val <= 3600) ||
-                        $t('editCoreSettings.activityIdleRule'),
-                    ]"
-                  />
-                  <q-checkbox
-                    v-model="settings.activity_window_titles"
-                    :label="$t('editCoreSettings.activityTitles')"
-                  >
-                    <q-tooltip>
-                      {{ $t("editCoreSettings.activityTitlesTooltip") }}
-                    </q-tooltip>
-                  </q-checkbox>
-                </q-card-section>
-                <!-- 049-D: reuniones como actividad y jornada esperada -->
-                <q-card-section class="row items-start q-gutter-md">
-                  <q-input
-                    dense
-                    outlined
-                    autogrow
-                    type="textarea"
-                    style="width: 22rem"
-                    v-model="settings.activity_always_active_patterns"
-                    :label="$t('editCoreSettings.activityAlwaysActive')"
-                    :hint="$t('editCoreSettings.activityAlwaysActiveHint')"
-                  />
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    step="0.5"
-                    style="width: 14rem"
-                    v-model.number="activityExpectedHours"
-                    :label="$t('editCoreSettings.activityExpectedHours')"
-                    :hint="$t('editCoreSettings.activityExpectedHoursHint')"
-                    :rules="[
-                      (val) =>
-                        (val > 0 && val <= 24) ||
-                        $t('editCoreSettings.activityExpectedHoursRule'),
-                    ]"
-                  />
-                  <!-- 049-E: horario laboral para el filtro de los reportes -->
-                  <q-input
-                    dense
-                    outlined
-                    style="width: 12rem"
-                    v-model="settings.activity_work_hours"
-                    :label="$t('editCoreSettings.activityWorkHours')"
-                    :hint="$t('editCoreSettings.activityWorkHoursHint')"
-                    :rules="[
-                      (val) =>
-                        /^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/.test(val || '') ||
-                        $t('editCoreSettings.activityWorkHoursRule'),
-                    ]"
-                  />
-                  <q-select
-                    dense
-                    outlined
-                    multiple
-                    emit-value
-                    map-options
-                    style="width: 20rem"
-                    v-model="activityWorkDays"
-                    :options="workDayOptions"
-                    :label="$t('editCoreSettings.activityWorkDays')"
-                  />
-                </q-card-section>
-
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.emVisual") }}
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.open_ai_base_url"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.aiBaseUrlHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">{{ $t("editCoreSettings.aiModel") }}</div>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  v-model="settings.open_ai_model"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.aiModelHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.aiMaxTokens") }}
                 </div>
-                <q-separator />
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 18rem"
-                    v-model.number="settings.activity_screenshots_min"
-                    :label="$t('editCoreSettings.activityScreenshots')"
-                    :hint="$t('editCoreSettings.activityScreenshotsHint')"
-                    :rules="[
-                      (val) =>
-                        val === 0 ||
-                        (val >= 1 && val <= 240) ||
-                        $t('editCoreSettings.activityScreenshotsRule'),
-                    ]"
-                  />
-                </q-card-section>
-
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.emData") }}
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  v-model.number="settings.open_ai_max_tokens"
+                  class="col-6"
+                  :rules="[
+                    (val) =>
+                      (!!val && val > 0) ||
+                      $t('editCoreSettings.aiMaxTokensRule'),
+                  ]"
+                  :hint="$t('editCoreSettings.aiMaxTokensHint')"
+                />
+              </q-card-section>
+              <q-card-section class="row">
+                <div class="col-4">
+                  {{ $t("editCoreSettings.aiTemperature") }}
                 </div>
-                <q-separator />
-                <q-card-section>
-                  <q-checkbox
-                    v-model="settings.activity_network"
-                    :label="$t('editCoreSettings.activityNetwork')"
-                  />
-                  <div class="text-caption text-grey">
-                    {{ $t("editCoreSettings.activityNetworkTooltip") }}
-                  </div>
-                </q-card-section>
+                <div class="col-2"></div>
+                <q-input
+                  dense
+                  outlined
+                  type="number"
+                  step="0.1"
+                  v-model.number="settings.open_ai_temperature"
+                  class="col-6"
+                  :hint="$t('editCoreSettings.aiTemperatureHint')"
+                />
+              </q-card-section>
 
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.emRetention") }}
-                </div>
-                <q-separator />
-                <q-card-section class="row items-center q-gutter-md">
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    style="width: 18rem"
-                    v-model.number="settings.activity_prune_days"
-                    :label="$t('editCoreSettings.activityPruneDays')"
-                    :hint="$t('editCoreSettings.activityPruneDaysHint')"
-                    :rules="[
-                      (val) => val >= 0 || $t('editCoreSettings.activityPruneDaysRule'),
-                    ]"
-                  />
-                </q-card-section>
-                <q-card-section class="text-caption text-grey">
-                  {{ $t("editCoreSettings.emPermissionsNote") }}
-                </q-card-section>
-              </q-tab-panel>
-
-              <q-tab-panel name="ai">
-                <div class="text-subtitle2">
-                  {{ $t("editCoreSettings.tabAiAssistant") }}
-                </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-4">{{ $t("editCoreSettings.aiApiKey") }}</div>
-                  <div class="col-2"></div>
-                  <secret-input
-                    v-model="settings.open_ai_token"
-                    :is-set="settings.open_ai_token_set"
-                    class="col-6"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.aiBaseUrl") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.open_ai_base_url"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.aiBaseUrlHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">{{ $t("editCoreSettings.aiModel") }}</div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="settings.open_ai_model"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.aiModelHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.aiMaxTokens") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    v-model.number="settings.open_ai_max_tokens"
-                    class="col-6"
-                    :rules="[
-                      (val) =>
-                        (!!val && val > 0) ||
-                        $t('editCoreSettings.aiMaxTokensRule'),
-                    ]"
-                    :hint="$t('editCoreSettings.aiMaxTokensHint')"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("editCoreSettings.aiTemperature") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    dense
-                    outlined
-                    type="number"
-                    step="0.1"
-                    v-model.number="settings.open_ai_temperature"
-                    class="col-6"
-                    :hint="$t('editCoreSettings.aiTemperatureHint')"
-                  />
-                </q-card-section>
-
-                <!--
+              <!--
                   Feature 045: interruptor global del servidor MCP. Es otro canal:
                   el asistente del técnico usa SU modelo y SUS créditos, no el
                   token de arriba. Apagarlo corta /mcp en toda la plataforma sin
                   redeploy; quién lo usa se decide por rol (can_use_mcp).
                 -->
-                <div class="text-subtitle2 q-mt-md">
-                  {{ $t("editCoreSettings.mcpTitle") }}
+              <div class="text-subtitle2 q-mt-md">
+                {{ $t("editCoreSettings.mcpTitle") }}
+              </div>
+              <q-separator />
+              <q-card-section>
+                <q-checkbox
+                  v-model="settings.mcp_enabled"
+                  :label="$t('editCoreSettings.mcpEnabled')"
+                />
+                <div class="text-caption text-grey q-pl-sm">
+                  {{ $t("editCoreSettings.mcpEnabledHint") }}
                 </div>
-                <q-separator />
-                <q-card-section>
-                  <q-checkbox
-                    v-model="settings.mcp_enabled"
-                    :label="$t('editCoreSettings.mcpEnabled')"
-                  />
-                  <div class="text-caption text-grey q-pl-sm">
-                    {{ $t("editCoreSettings.mcpEnabledHint") }}
-                  </div>
-                </q-card-section>
-              </q-tab-panel>
-            </q-tab-panels>
-          </q-scroll-area>
-          <q-card-section class="row items-center">
-            <q-btn
-              v-show="
-                tab === 'general' ||
-                tab === 'emailalerts' ||
-                tab === 'smsalerts' ||
-                tab === 'meshcentral' ||
-                tab === 'retention' ||
-                tab === 'ai' ||
-                tab === 'monitoring'
-              "
-              :label="$t('editCoreSettings.save')"
-              color="primary"
-              type="submit"
-            />
-            <q-btn
-              v-show="tab === 'emailalerts'"
-              :label="$t('editCoreSettings.saveAndTestEmail')"
-              color="primary"
-              type="submit"
-              class="q-ml-md"
-              @click="emailTest = true"
-            />
-            <q-btn
-              v-show="tab === 'smsalerts'"
-              :label="$t('editCoreSettings.saveAndTestSms')"
-              color="primary"
-              type="submit"
-              class="q-ml-md"
-              @click="smsTest = true"
-            />
-          </q-card-section>
-        </q-form>
-      </template>
-    </q-splitter>
-  </q-card>
+              </q-card-section>
+            </div>
+          </div>
+        </div>
+      </component>
+      <component
+        :is="embedded ? 'div' : QCardSection"
+        :class="embedded ? 'obs-set__bar' : 'row items-center'"
+      >
+        <template v-if="embedded">
+          <span v-if="savable" class="obs-set__dirty" aria-live="polite">{{
+            dirtyCount
+              ? $t("settingsPage.unsaved", { n: dirtyCount }, dirtyCount)
+              : $t("settingsPage.noChanges")
+          }}</span>
+          <q-space />
+          <q-btn
+            v-if="savable"
+            outline
+            no-caps
+            class="obs-page__btn"
+            :disable="!dirtyCount"
+            :label="$t('settingsPage.reset')"
+            @click="resetSettings"
+          />
+        </template>
+        <q-btn
+          v-show="
+            tab === 'general' ||
+            tab === 'emailalerts' ||
+            tab === 'smsalerts' ||
+            tab === 'meshcentral' ||
+            tab === 'retention' ||
+            tab === 'ai' ||
+            tab === 'monitoring'
+          "
+          :label="$t('editCoreSettings.save')"
+          color="primary"
+          type="submit"
+          :no-caps="embedded"
+          :unelevated="embedded"
+          :class="{ 'obs-page__btn': embedded }"
+        />
+        <q-btn
+          v-show="tab === 'emailalerts'"
+          :label="$t('editCoreSettings.saveAndTestEmail')"
+          color="primary"
+          type="submit"
+          :no-caps="embedded"
+          :unelevated="embedded"
+          :class="{ 'obs-page__btn': embedded }"
+          class="q-ml-md"
+          @click="emailTest = true"
+        />
+        <q-btn
+          v-show="tab === 'smsalerts'"
+          :label="$t('editCoreSettings.saveAndTestSms')"
+          color="primary"
+          type="submit"
+          :no-caps="embedded"
+          :unelevated="embedded"
+          :class="{ 'obs-page__btn': embedded }"
+          class="q-ml-md"
+          @click="smsTest = true"
+        />
+      </component>
+    </q-form>
+  </component>
 </template>
 
 <script>
-import { openURL } from "quasar";
+import { openURL, QCard, QCardSection, QScrollArea } from "quasar";
+import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import mixins from "@/mixins/mixins";
 import ResetPatchPolicy from "@/components/modals/coresettings/ResetPatchPolicy.vue";
 import CustomFields from "@/components/modals/coresettings/CustomFields.vue";
@@ -1344,10 +1372,54 @@ import ActivityScopeTable from "@/components/modals/coresettings/ActivityScopeTa
 // SSO descartado (ADR-010, 2026-06-17): el dynamic import de SSOProvidersTable
 // fue eliminado junto con el módulo ee/sso (vaciado, pendiente de reimplementación).
 
+// 050 (T032): las 13 secciones de v1 en los 5 grupos de la maqueta de ajustes.
+const SECTION_GROUPS = [
+  { key: "platform", items: ["general", "retention", "schedules"] },
+  { key: "notifications", items: ["emailalerts", "smsalerts", "webhooks"] },
+  { key: "integrations", items: ["meshcentral", "apikeys", "ai"] },
+  { key: "data", items: ["customfields", "keystore", "urlactions"] },
+  { key: "monitoring", items: ["monitoring"] },
+];
+const SECTION_LABEL = {
+  general: "tabGeneral",
+  emailalerts: "tabEmailAlerts",
+  smsalerts: "tabSmsAlerts",
+  meshcentral: "tabMeshCentral",
+  customfields: "tabCustomFields",
+  keystore: "tabKeyStore",
+  urlactions: "tabUrlActions",
+  webhooks: "tabWebHooks",
+  retention: "tabRetention",
+  apikeys: "tabApiKeys",
+  schedules: "tabSchedules",
+  ai: "tabAiAssistant",
+  monitoring: "tabEmployeeMonitoring",
+};
+// Secciones que se guardan con el PUT /core/settings/ (las demás son tablas
+// con sus propias acciones).
+const SAVABLE = [
+  "general",
+  "emailalerts",
+  "smsalerts",
+  "meshcentral",
+  "retention",
+  "ai",
+  "monitoring",
+];
+
 export default {
   name: "EditCoreSettings",
   emits: ["close"],
+  props: {
+    embedded: { type: Boolean, default: false },
+    section: { type: String, default: null },
+  },
+  setup() {
+    return { QCard, QCardSection, QScrollArea };
+  },
   components: {
+    ObsPageHead,
+    ObsSectionNav,
     ActivityScopeTable,
     CustomFields,
     KeyStoreTable,
@@ -1364,8 +1436,11 @@ export default {
       ready: false,
       policies: [],
       settings: {},
+      // Copia de lo que devolvió el servidor: cuenta los cambios sin guardar y
+      // permite restablecer (050, T032).
+      saved: {},
       email: null,
-      tab: "general",
+      tab: SECTION_LABEL[this.section] ? this.section : "general",
       splitterModel: 20,
       allTimezones: [],
       emailTest: false,
@@ -1400,7 +1475,9 @@ export default {
           .map(Number);
       },
       set(v) {
-        this.settings.activity_work_days = [...v].sort((a, b) => a - b).join(",");
+        this.settings.activity_work_days = [...v]
+          .sort((a, b) => a - b)
+          .join(",");
       },
     },
     workDayOptions() {
@@ -1411,6 +1488,35 @@ export default {
     },
     hosted() {
       return this.$store.state.hosted;
+    },
+    navGroups() {
+      return SECTION_GROUPS.map((g) => ({
+        key: g.key,
+        label: this.$t(`settingsPage.groups.${g.key}`),
+        items: g.items.map((k) => ({
+          key: k,
+          label: this.$t(`editCoreSettings.${SECTION_LABEL[k]}`),
+        })),
+      }));
+    },
+    sectionLabel() {
+      return this.$t(`editCoreSettings.${SECTION_LABEL[this.tab]}`);
+    },
+    crumbs() {
+      const g = SECTION_GROUPS.find((x) => x.items.includes(this.tab));
+      return [
+        this.$t("settingsPage.pageTitle"),
+        this.$t(`settingsPage.groups.${g.key}`),
+      ];
+    },
+    savable() {
+      return SAVABLE.includes(this.tab);
+    },
+    dirtyCount() {
+      return Object.keys(this.saved).filter(
+        (k) =>
+          JSON.stringify(this.settings[k]) !== JSON.stringify(this.saved[k]),
+      ).length;
     },
     // Movido de data() a computed para reaccionar al cambio de idioma en caliente.
     logLevelOptions() {
@@ -1423,7 +1529,21 @@ export default {
     },
   },
   // SSO descartado (ADR-010, 2026-06-17): watch del tab "sso" eliminado (módulo ee/sso vaciado).
+  watch: {
+    section(v) {
+      this.tab = SECTION_LABEL[v] ? v : "general";
+    },
+  },
   methods: {
+    selectSection(key) {
+      this.$router.push({ name: "Settings", params: { section: key } });
+    },
+    resetSettings() {
+      this.settings = {
+        ...JSON.parse(JSON.stringify(this.saved)),
+        all_timezones: this.allTimezones,
+      };
+    },
     openURL(url) {
       openURL(url);
     },
@@ -1431,6 +1551,9 @@ export default {
       this.$axios.get("/core/settings/").then((r) => {
         this.settings = r.data;
         this.allTimezones = Object.freeze(r.data.all_timezones);
+        const saved = JSON.parse(JSON.stringify(r.data));
+        delete saved.all_timezones;
+        this.saved = saved;
         this.ready = true;
       });
     },
@@ -1551,6 +1674,11 @@ export default {
                 this.smsTest = false;
                 this.$q.loading.hide();
               });
+          } else if (this.embedded) {
+            // En la página no hay diálogo que cerrar: se relee lo guardado.
+            this.getCoreSettings();
+            this.$store.dispatch("getDashInfo", false);
+            this.notifySuccess(this.$t("editCoreSettings.settingsEdited"));
           } else {
             this.$emit("close");
             this.$store.dispatch("getDashInfo", false);

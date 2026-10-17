@@ -48,6 +48,23 @@
       </q-btn>
       <q-separator class="obs-rail__sep" />
       <NavMenu />
+      <q-space />
+      <!-- 050 (T032): Ajustes al pie del riel, como en la maqueta. -->
+      <q-btn
+        flat
+        round
+        dense
+        icon="settings"
+        class="obs-rail__mgr"
+        :class="{ 'obs-rail__mgr--active': route.name === 'Settings' }"
+        :aria-label="$t('nav.globalSettings')"
+        :aria-current="route.name === 'Settings' ? 'page' : undefined"
+        :to="{ name: 'Settings' }"
+      >
+        <q-tooltip anchor="center right" self="center left">{{
+          $t("nav.globalSettings")
+        }}</q-tooltip>
+      </q-btn>
     </div>
   </q-drawer>
 </template>

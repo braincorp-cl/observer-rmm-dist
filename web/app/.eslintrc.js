@@ -169,6 +169,11 @@ module.exports = {
         // consola lo lee, igual que endpointResponse.codes con la 028.
         "src/views/DiskEncryptionView.vue",
         "src/views/ActivityLiveView.vue",
+        // 050 (ola 4-5): gestores y ajustes como páginas.
+        "src/views/ScriptsView.vue",
+        "src/views/AutomationView.vue",
+        "src/views/AlertsView.vue",
+        "src/views/SettingsView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
         // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
         // consola nace traducida, con namespace propio (erase.*) y los códigos

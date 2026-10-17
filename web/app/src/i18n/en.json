@@ -3680,5 +3680,19 @@
     "state_timeout": "The device did not respond",
     "state_espera": "Wait a few seconds before requesting another",
     "state_offline": "The device is offline"
+  },
+  "settingsPage": {
+    "pageTitle": "Settings",
+    "navLabel": "Settings sections",
+    "groups": {
+      "platform": "Platform",
+      "notifications": "Notifications",
+      "integrations": "Integrations",
+      "data": "Data",
+      "monitoring": "Monitoring"
+    },
+    "unsaved": "No changes | {n} unsaved change | {n} unsaved changes",
+    "noChanges": "No unsaved changes",
+    "reset": "Reset"
   }
 }
