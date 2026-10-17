@@ -226,7 +226,7 @@
                 >{{ $t("policyTabsCommon.seeStatus") }}</span
               >
             </q-td>
-            <q-td v-if="props.row.assignedtasks.length > 1">{{
+            <q-td v-if="props.row.assignedtasks.length > 1" class="mono">{{
               $t("policyChecksTab.tasksCount", {
                 count: props.row.assignedtasks.length,
               })

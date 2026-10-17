@@ -24,7 +24,6 @@
       >
         <q-step
           :name="1"
-          :error="!template.name && step > 1"
           :title="$t('alertTemplate.stepGeneral')"
           icon="settings"
         >

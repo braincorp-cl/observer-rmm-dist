@@ -184,20 +184,26 @@
                 </q-list>
               </q-menu>
               <q-td key="favorite" :props="props" auto-width @click.stop>
+                <!-- 050 (T030, G05): el botón queda neutro (también su hover);
+                     solo la estrella de un favorito va en ámbar (excepción b). -->
                 <q-btn
                   flat
                   dense
                   round
                   size="sm"
-                  :icon="props.row.favorite ? 'star' : 'star_outline'"
+                  class="obs-mgr__star"
                   :aria-label="
                     props.row.favorite
                       ? $t('scriptManager.removeFavorite')
                       : $t('scriptManager.addFavorite')
                   "
-                  :class="props.row.favorite ? 'text-warning' : 'obs-mgr__star'"
                   @click="favoriteScript(props.row)"
-                />
+                >
+                  <q-icon
+                    :name="props.row.favorite ? 'star' : 'star_outline'"
+                    :color="props.row.favorite ? 'warning' : undefined"
+                  />
+                </q-btn>
               </q-td>
               <q-td key="name" :props="props">
                 <div class="obs-mgr__name ellipsis obs-mgr__name--cell" :title="props.row.name">
@@ -413,17 +419,16 @@
             >
               <q-icon
                 v-if="props.node.favorite"
-                color="yellow-8"
+                color="warning"
                 name="star"
                 size="sm"
                 class="q-px-sm"
               />
               <q-icon
                 v-else
-                color="yellow-8"
+                class="obs-mgr__star q-px-sm"
                 name="star_outline"
                 size="sm"
-                class="q-px-sm"
               />
 
               <q-icon
@@ -622,7 +627,7 @@
       >
         <template v-slot:header-cell-favorite="props">
           <q-th :props="props" auto-width>
-            <q-icon name="star" color="yellow-8" size="sm" />
+            <q-icon name="star" class="obs-mgr__star" size="sm" />
           </q-th>
         </template>
 
@@ -759,7 +764,7 @@
             <q-td key="favorite" :props="props">
               <q-icon
                 v-if="props.row.favorite"
-                color="yellow-8"
+                color="warning"
                 name="star"
                 size="sm"
               />
