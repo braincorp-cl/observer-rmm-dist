@@ -494,8 +494,12 @@
                   {{ $t("editCoreSettings.resetPatchPolicyLabel") }}
                 </div>
                 <div class="col-2"></div>
+                <!-- 050 (T034, G05): abre un diálogo con su propia confirmación;
+                     el botón es una acción, no un estado. -->
                 <q-btn
-                  color="negative"
+                  outline
+                  no-caps
+                  class="obs-page__btn"
                   :label="$t('editCoreSettings.reset')"
                   @click="showResetPatchPolicy"
                 />

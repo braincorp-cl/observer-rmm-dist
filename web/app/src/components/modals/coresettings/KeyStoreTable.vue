@@ -75,7 +75,7 @@
             {{ props.row.name }}
           </q-td>
           <!-- value -->
-          <q-td>
+          <q-td :class="{ mono: !isPwd }">
             {{ isPwd ? $t("keyStoreTable.masked") : props.row.value }}
           </q-td>
         </q-tr>

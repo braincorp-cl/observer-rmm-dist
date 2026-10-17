@@ -79,7 +79,7 @@
             props.row.default_values_multiple
           }}</span>
         </q-td>
-        <q-td v-else>
+        <q-td v-else class="mono">
           {{ truncateText(props.row.default_value_string) }}
           <q-tooltip
             v-if="props.row.default_value_string.length >= 60"

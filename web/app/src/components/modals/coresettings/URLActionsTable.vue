@@ -77,7 +77,7 @@
             {{ truncateText(props.row.desc, 20) }}
           </q-td>
           <!-- pattern -->
-          <q-td>
+          <q-td class="mono">
             {{ truncateText(props.row.pattern, 20) }}
           </q-td>
         </q-tr>
