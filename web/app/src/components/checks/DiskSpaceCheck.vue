@@ -21,6 +21,7 @@
               :disable="!!check"
               outlined
               v-model="state.disk"
+              class="obs-mono-values"
               :options="diskOptions"
               :label="$t('diskSpaceCheck.disk')"
               :rules="[(val) => !!val || $t('checksCommon.required')]"
@@ -58,6 +59,7 @@
               dense
               options-dense
               v-model="state.fails_b4_alert"
+              class="obs-mono-values"
               :options="failOptions"
               :label="$t('checksCommon.failsBeforeAlert')"
             />

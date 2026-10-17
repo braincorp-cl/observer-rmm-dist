@@ -51,6 +51,7 @@
               dense
               outlined
               v-model="state.event_id"
+              class="obs-mono-values"
               :label="$t('eventLogCheck.eventId')"
               :rules="[
                 (val) =>
@@ -87,6 +88,7 @@
               dense
               outlined
               v-model.number="state.search_last_days"
+              class="obs-mono-values"
               :label="$t('eventLogCheck.searchLastDays')"
               :rules="[
                 (val) => !!val.toString() || $t('checksCommon.required'),
@@ -157,6 +159,7 @@
               dense
               options-dense
               v-model="state.fails_b4_alert"
+              class="obs-mono-values"
               :options="failOptions"
               :label="$t('checksCommon.failsBeforeAlert')"
             />

@@ -46,6 +46,7 @@
               outlined
               dense
               v-model="state.svc_name"
+              class="obs-mono-values"
               :label="$t('winSvcCheck.serviceName')"
             />
             <q-input
@@ -106,6 +107,7 @@
               dense
               options-dense
               v-model="state.fails_b4_alert"
+              class="obs-mono-values"
               :options="failOptions"
               :label="$t('checksCommon.failsBeforeAlert')"
             />

@@ -127,7 +127,7 @@
 
                 <q-select
                   v-if="actionType === 'script'"
-                  class="col-3"
+                  class="col-3 obs-mono-values"
                   dense
                   :label="$t('automatedTask.scriptArgs')"
                   filled
@@ -142,7 +142,7 @@
 
                 <q-select
                   v-if="actionType === 'script'"
-                  class="col-3"
+                  class="col-3 obs-mono-values"
                   dense
                   :label="$t('scriptsCommon.envVarsLabel')"
                   filled
@@ -171,7 +171,7 @@
                   v-model="command"
                   dense
                   filled
-                  class="col-5"
+                  class="col-5 obs-mono-values"
                 />
                 <q-input
                   v-if="actionType === 'cmd'"
@@ -215,6 +215,7 @@
             <div v-if="shell === 'custom'" class="col-5">
               <q-input
                 v-model="custom_shell"
+                class="obs-mono-values"
                 outlined
                 :label="$t('automatedTask.customShell')"
                 stack-label
@@ -258,14 +259,15 @@
                       </q-item-label>
                       <q-item-label caption>
                         {{ $t("automatedTask.arguments") }}
-                        {{ element.script_args }}
+                        <span class="mono">{{ element.script_args }}</span>
                       </q-item-label>
                       <q-item-label caption>
-                        {{ $t("automatedTask.envVars") }} {{ element.env_vars }}
+                        {{ $t("automatedTask.envVars") }}
+                        <span class="mono">{{ element.env_vars }}</span>
                       </q-item-label>
                       <q-item-label caption>
                         {{ $t("automatedTask.timeoutShort") }}
-                        {{ element.timeout }}
+                        <span class="mono">{{ element.timeout }}</span>
                       </q-item-label>
                     </q-item-section>
                     <q-item-section v-else>
@@ -281,11 +283,11 @@
                           "
                           color="primary"
                         />
-                        {{ element.command }}
+                        <span class="mono">{{ element.command }}</span>
                       </q-item-label>
                       <q-item-label caption>
                         {{ $t("automatedTask.timeoutShort") }}
-                        {{ element.timeout }}
+                        <span class="mono">{{ element.timeout }}</span>
                       </q-item-label>
                     </q-item-section>
                     <q-item-section side>
@@ -420,7 +422,7 @@
                       (val > 0 && val < 53) ||
                       $t('automatedTask.weeklyIntervalErr'),
                   ]"
-                  class="col-6 q-pa-sm"
+                  class="col-6 q-pa-sm obs-mono-values"
                   dense
                   :label="$t('automatedTask.runEvery')"
                   v-model="state.weekly_interval"
@@ -679,7 +681,7 @@
                 </div>
                 <q-input
                   v-if="!isPosix"
-                  class="col-6 q-pa-sm"
+                  class="col-6 q-pa-sm obs-mono-values"
                   dense
                   :label="$t('automatedTask.repeatEvery')"
                   filled
@@ -697,7 +699,7 @@
                 <q-input
                   v-if="!isPosix"
                   :disable="!state.task_repetition_interval"
-                  class="col-6 q-pa-sm"
+                  class="col-6 q-pa-sm obs-mono-values"
                   dense
                   :label="$t('automatedTask.repeatDuration')"
                   filled
@@ -729,7 +731,7 @@
 
                 <q-input
                   v-if="!isPosix"
-                  class="col-6 q-pa-sm"
+                  class="col-6 q-pa-sm obs-mono-values"
                   dense
                   :label="$t('automatedTask.randomDelay')"
                   filled

@@ -27,6 +27,7 @@
               dense
               outlined
               v-model="state.ip"
+              class="obs-mono-values"
               :label="$t('pingCheck.hostnameOrIp')"
               :rules="[(val) => !!val || $t('checksCommon.required')]"
             />
@@ -51,6 +52,7 @@
               map-options
               emit-value
               v-model="state.fails_b4_alert"
+              class="obs-mono-values"
               :options="failOptions"
               :label="$t('checksCommon.failsBeforeAlert')"
             />

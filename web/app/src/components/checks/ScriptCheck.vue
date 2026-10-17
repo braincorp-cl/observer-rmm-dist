@@ -61,6 +61,7 @@
             :label="$t('scriptCheck.infoReturnCodes')"
             filled
             v-model="state.info_return_codes"
+            class="obs-mono-values"
             multiple
             hide-dropdown-icon
             use-input
@@ -74,6 +75,7 @@
             :label="$t('scriptCheck.warningReturnCodes')"
             filled
             v-model="state.warning_return_codes"
+            class="obs-mono-values"
             use-input
             multiple
             hide-dropdown-icon
@@ -87,6 +89,7 @@
             :label="$t('scriptCheck.successReturnCodes')"
             filled
             v-model="state.success_return_codes"
+            class="obs-mono-values"
             use-input
             multiple
             hide-dropdown-icon
@@ -100,6 +103,7 @@
             outlined
             dense
             v-model.number="state.timeout"
+            class="obs-mono-values"
             :label="$t('scriptCheck.timeout')"
           />
         </q-card-section>
@@ -109,6 +113,7 @@
             dense
             options-dense
             v-model="state.fails_b4_alert"
+            class="obs-mono-values"
             :options="failOptions"
             :label="$t('checksCommon.failsBeforeAlert')"
           />
