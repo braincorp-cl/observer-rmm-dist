@@ -204,7 +204,7 @@
                 v-if="settings.lost_mode_webcam_enabled"
                 class="row q-pl-lg q-pt-none"
               >
-                <q-banner dense class="bg-orange-2 text-black full-width">
+                <q-banner dense class="obs-notice full-width">
                   <template v-slot:avatar>
                     <q-icon name="warning" />
                   </template>
@@ -540,7 +540,7 @@
                       @click="removeEmail(email)"
                     >
                       <q-item-section>
-                        <q-item-label>{{ email }}</q-item-label>
+                        <q-item-label class="mono">{{ email }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
                         <q-icon name="delete" color="negative" />
@@ -679,7 +679,7 @@
                       @click="removeSMSNumber(num)"
                     >
                       <q-item-section>
-                        <q-item-label>{{ num }}</q-item-label>
+                        <q-item-label class="mono">{{ num }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
                         <q-icon name="delete" color="negative" />
@@ -756,14 +756,14 @@
                   {{ $t("editCoreSettings.username") }}
                 </div>
                 <div class="col-2"></div>
-                <div class="col-6">{{ settings.mesh_username }}</div>
+                <div class="col-6 mono">{{ settings.mesh_username }}</div>
               </q-card-section>
               <q-card-section class="row items-center" v-if="!hosted">
                 <div class="col-4">
                   {{ $t("editCoreSettings.meshSite") }}
                 </div>
                 <div class="col-2"></div>
-                <div class="col-6">{{ settings.mesh_site }}</div>
+                <div class="col-6 mono">{{ settings.mesh_site }}</div>
               </q-card-section>
               <q-card-section class="row items-center" v-if="!hosted">
                 <div class="col-4">

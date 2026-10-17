@@ -82,6 +82,7 @@
             stack-label
             outlined
             v-model="localField.default_value_string"
+            class="obs-mono-values"
             :rules="defaultValueRules"
             reactive-rules
           />
@@ -91,7 +92,7 @@
             v-else-if="localField.type == 'checkbox'"
             :label="$t('customFieldsCommon.defaultValue')"
             v-model="localField.default_value_bool"
-            color="green"
+            color="primary"
           />
 
           <!-- Dropdown Single -->
@@ -102,6 +103,7 @@
             outlined
             dense
             v-model="localField.default_value_string"
+            class="obs-mono-values"
             :rules="defaultValueRules"
             reactive-rules
           />
@@ -115,6 +117,7 @@
             dense
             multiple
             v-model="localField.default_values_multiple"
+            class="obs-mono-values"
             :rules="defaultValueRules"
             reactive-rules
           />
@@ -127,6 +130,7 @@
             outlined
             dense
             v-model="localField.default_value_string"
+            class="obs-mono-values"
             :rules="defaultValueRules"
             reactive-rules
             autogrow
@@ -137,17 +141,17 @@
             v-if="localField.type !== 'checkbox'"
             :label="$t('customFieldsCommon.required')"
             v-model="localField.required"
-            color="green"
+            color="primary"
           />
           <q-toggle
             :label="$t('customFieldsForm.hideInDashboard')"
             v-model="localField.hide_in_ui"
-            color="green"
+            color="primary"
           />
           <q-toggle
             :label="$t('customFieldsCommon.hideInSummary')"
             v-model="localField.hide_in_summary"
-            color="green"
+            color="primary"
           />
         </q-card-section>
         <q-card-actions align="right">

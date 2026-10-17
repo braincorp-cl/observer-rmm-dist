@@ -433,7 +433,7 @@
     "addEmailTitle": "Add email",
     "add": "Add",
     "addNumberTitle": "Add number",
-    "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='text-red'>country code</span>, followed by the <span class='text-green'>phone number</span> e.g. <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
+    "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='mono'>country code</span>, followed by the <span class='mono'>phone number</span> e.g. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "sendingTestEmail": "Sending test email...",
     "sendingTestSms": "Sending test SMS...",
     "settingsEdited": "Settings were edited!",
@@ -2321,7 +2321,7 @@
     "addEmailTitle": "Add email",
     "addBtn": "Add",
     "addNumberTitle": "Add number",
-    "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='text-red'>country code</span>, followed by the <span class='text-green'>phone number</span> e.g. <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
+    "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='mono'>country code</span>, followed by the <span class='mono'>phone number</span> e.g. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "nameRequired": "Name needs to be set",
     "notifyEdited": "Alert Template edited!"
   },

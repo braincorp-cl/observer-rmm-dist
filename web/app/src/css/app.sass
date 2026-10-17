@@ -778,3 +778,7 @@ body.body--dark
 // (hosts, rutas, URL, puertos, días, tokens, colores) y van en JetBrains Mono.
 .obs-set__panel .q-input .q-field__native
   font-family: $obs-font-mono
+// 050 (T034, G05): en tema oscuro QDialogPlugin enfoca el campo del prompt en
+// ámbar; el borde del campo enfocado es el control y va en teal.
+.q-dialog-plugin--dark .q-field__control.text-amber
+  color: var(--q-primary) !important

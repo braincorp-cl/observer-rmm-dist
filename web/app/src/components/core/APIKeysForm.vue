@@ -45,6 +45,7 @@
             outlined
             dense
             v-model="localKey.key"
+            class="obs-mono-values"
           />
         </q-card-section>
 
@@ -57,6 +58,7 @@
             stack-label
             filled
             v-model="localKey.expiration"
+            class="obs-mono-values"
           />
         </q-card-section>
 

@@ -56,7 +56,11 @@
             </q-list>
           </q-menu>
 
-          <q-td v-for="col in cols" :key="col.id">
+          <q-td
+            v-for="col in cols"
+            :key="col.id"
+            :class="{ mono: col.name.startsWith('run_time') }"
+          >
             {{ col.value }}
           </q-td>
         </q-tr>

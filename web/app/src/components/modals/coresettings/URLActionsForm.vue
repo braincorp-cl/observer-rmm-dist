@@ -50,6 +50,7 @@
             outlined
             dense
             v-model="localAction.pattern"
+            class="obs-mono-values"
             :rules="[(val) => !!val || $t('urlActionsForm.fieldRequired')]"
           />
         </q-card-section>

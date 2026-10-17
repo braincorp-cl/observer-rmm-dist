@@ -34,7 +34,7 @@
         <q-card-section>
           <!-- start time input -->
           <q-input
-            class="q-pa-sm"
+            class="q-pa-sm obs-mono-values"
             type="time"
             dense
             :label="$t('scheduleForm.hourMinute')"

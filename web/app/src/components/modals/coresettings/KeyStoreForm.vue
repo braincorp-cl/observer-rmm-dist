@@ -29,6 +29,7 @@
             outlined
             dense
             v-model="localKey.value"
+            class="obs-mono-values"
             :type="isPwd ? 'password' : 'text'"
             :rules="[(val) => !!val || $t('keyStoreForm.required')]"
             ><template v-slot:append>

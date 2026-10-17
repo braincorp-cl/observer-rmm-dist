@@ -433,7 +433,7 @@
     "addEmailTitle": "Agregar correo",
     "add": "Agregar",
     "addNumberTitle": "Agregar número",
-    "addNumberMessage": "Usa el formato E.164: debe tener el símbolo <b>+</b> y el <span class='text-red'>código de país</span>, seguido del <span class='text-green'>número de teléfono</span>, por ejemplo <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
+    "addNumberMessage": "Usa el formato E.164: debe tener el símbolo <b>+</b> y el <span class='mono'>código de país</span>, seguido del <span class='mono'>número de teléfono</span>, por ejemplo <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "sendingTestEmail": "Enviando correo de prueba...",
     "sendingTestSms": "Enviando SMS de prueba...",
     "settingsEdited": "¡La configuración fue editada!",
@@ -2321,7 +2321,7 @@
     "addEmailTitle": "Agregar correo",
     "addBtn": "Agregar",
     "addNumberTitle": "Agregar número",
-    "addNumberMessage": "Use el formato E.164: debe tener el símbolo <b>+</b> y el <span class='text-red'>código de país</span>, seguido del <span class='text-green'>número de teléfono</span>, p. ej. <b>+<span class='text-red'>1</span><span class='text-green'>2131231234</span></b>",
+    "addNumberMessage": "Use el formato E.164: debe tener el símbolo <b>+</b> y el <span class='mono'>código de país</span>, seguido del <span class='mono'>número de teléfono</span>, p. ej. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "nameRequired": "Debe establecer un nombre",
     "notifyEdited": "¡Plantilla de alerta guardada!"
   },
