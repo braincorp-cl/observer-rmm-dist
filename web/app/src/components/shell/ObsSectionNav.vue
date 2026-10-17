@@ -22,8 +22,8 @@
           <q-item-section v-if="item.icon" avatar class="obs-secnav__icon">
             <q-icon :name="item.icon" size="16px" />
           </q-item-section>
-          <q-item-section class="ellipsis">
-            <span :title="item.full || item.label">{{ item.label }}</span>
+          <q-item-section class="ellipsis" :title="item.full || item.label">
+            <span>{{ item.label }}</span>
           </q-item-section>
           <q-item-section v-if="item.count || item.count === 0" side>
             <span class="mono obs-secnav__count" :class="item.countClass">{{
