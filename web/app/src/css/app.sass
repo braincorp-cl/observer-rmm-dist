@@ -589,8 +589,10 @@ body.body--dark
   flex: 1
   min-width: 0
   overflow-x: auto
+// 050 (T030, G08): el rótulo del buscador cabe entero a 1280 (antes 274>266 con elipsis).
 .obs-mgr__search
-  width: 320px
+  width: 360px
+  max-width: 100%
 .obs-mgr__count
   font-size: 13px
   color: var(--obs-muted)

@@ -73,6 +73,7 @@
             clearable
             class="obs-page__field obs-mgr__search"
             :label="$t('scriptManager.searchPlaceholder')"
+            :title="$t('scriptManager.searchPlaceholder')"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
