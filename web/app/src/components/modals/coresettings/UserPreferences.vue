@@ -1,264 +1,248 @@
 <template>
   <q-dialog ref="dialog" @hide="onHide">
-    <q-card class="q-dialog-plugin" style="min-width: 60vw">
-      <q-splitter v-model="splitterModel">
-        <template v-slot:before>
-          <q-tabs dense v-model="tab" vertical class="text-primary">
-            <q-tab name="ui" :label="$t('userPreferences.userInterface')" />
-          </q-tabs>
-        </template>
-        <template v-slot:after>
-          <q-form @submit.prevent="editUserPrefs">
-            <q-card-section class="row items-center">
-              <div class="text-h6">{{ $t("userPreferences.title") }}</div>
-              <q-space />
-              <q-btn icon="close" flat round dense v-close-popup />
-            </q-card-section>
-            <q-tab-panels
-              v-model="tab"
-              animated
-              transition-prev="jump-up"
-              transition-next="jump-up"
-            >
-              <!-- UI -->
-              <q-tab-panel name="ui">
-                <div class="text-subtitle2">
-                  {{ $t("userPreferences.userInterface") }}
-                </div>
-                <q-separator />
-                <q-card-section class="row">
-                  <div class="col-6">
-                    {{ $t("userPreferences.agentDblClickAction") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="agentDblClickAction"
-                    :options="agentDblClickOptions"
-                    class="col-4"
-                    @update:model-value="url_action = null"
-                  />
-                </q-card-section>
-                <q-card-section
-                  class="row"
-                  v-if="agentDblClickAction === 'urlaction'"
-                >
-                  <div class="col-6">{{ $t("userPreferences.urlAction") }}</div>
-                  <div class="col-2"></div>
-                  <q-select
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="url_action"
-                    :options="urlActions"
-                    class="col-4"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-6">
-                    {{ $t("userPreferences.agentTableDefaultTab") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="defaultAgentTblTab"
-                    :options="defaultAgentTblTabOptions"
-                    class="col-4"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-4">
-                    {{ $t("userPreferences.loadingBarColor") }}
-                  </div>
-                  <div class="col-4"></div>
-                  <q-select
-                    outlined
-                    dense
-                    options-dense
-                    v-model="loading_bar_color"
-                    :options="loadingBarColors"
-                    class="col-4"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.dashInfoColor") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="dash_info_color"
-                    class="col-8"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="openURL(quasar_color_url)"
-                      >
-                        <q-tooltip>{{
-                          $t("userPreferences.colorOptionsTip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.dashPositiveColor") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="dash_positive_color"
-                    class="col-8"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="openURL(quasar_color_url)"
-                      >
-                        <q-tooltip>{{
-                          $t("userPreferences.colorOptionsTip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.dashNegativeColor") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="dash_negative_color"
-                    class="col-8"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="openURL(quasar_color_url)"
-                      >
-                        <q-tooltip>{{
-                          $t("userPreferences.colorOptionsTip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.dashWarningColor") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input
-                    outlined
-                    dense
-                    v-model="dash_warning_color"
-                    class="col-8"
-                  >
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="openURL(quasar_color_url)"
-                      >
-                        <q-tooltip>{{
-                          $t("userPreferences.colorOptionsTip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.clientSort") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-select
-                    map-options
-                    emit-value
-                    outlined
-                    dense
-                    options-dense
-                    v-model="clientTreeSort"
-                    :options="clientTreeSortOptions"
-                    class="col-8"
-                  />
-                </q-card-section>
-                <q-card-section class="row">
-                  <div class="col-2">
-                    {{ $t("userPreferences.dateFormat") }}
-                  </div>
-                  <div class="col-2"></div>
-                  <q-input outlined dense v-model="date_format" class="col-8">
-                    <template v-slot:after>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        size="sm"
-                        icon="info"
-                        @click="
-                          openURL(
-                            'https://quasar.dev/quasar-utils/date-utils#format-for-display',
-                          )
-                        "
-                      >
-                        <q-tooltip>{{
-                          $t("userPreferences.formatOptionsTip")
-                        }}</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-                <q-card-section class="row">
-                  <q-checkbox
-                    v-model="clear_search_when_switching"
-                    :label="$t('userPreferences.clearSearch')"
-                  />
-                </q-card-section>
-              </q-tab-panel>
-            </q-tab-panels>
-
-            <q-card-section class="row items-center">
-              <q-btn
-                :label="$t('userPreferences.save')"
-                color="primary"
-                type="submit"
+    <!-- 050 (T033): restilado según la maqueta de ajustes, sin pestañas: una
+         sola sección (Interfaz) como tarjeta de filas y Guardar abajo. -->
+    <q-card class="q-dialog-plugin obs-set obs-prefs" style="min-width: 60vw">
+      <q-form class="obs-set__form" @submit.prevent="editUserPrefs">
+        <q-card-section class="row items-center">
+          <div class="text-h6">{{ $t("userPreferences.title") }}</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <div class="obs-prefs__body">
+          <section class="obs-set__panel">
+            <h2 class="obs-set__card-title">
+              {{ $t("userPreferences.userInterface") }}
+            </h2>
+            <q-card-section class="row">
+              <div class="col-6">
+                {{ $t("userPreferences.agentDblClickAction") }}
+              </div>
+              <div class="col-2"></div>
+              <q-select
+                map-options
+                emit-value
+                outlined
+                dense
+                options-dense
+                v-model="agentDblClickAction"
+                :options="agentDblClickOptions"
+                class="col-4"
+                @update:model-value="url_action = null"
               />
             </q-card-section>
-          </q-form>
-        </template>
-      </q-splitter>
+            <q-card-section
+              class="row"
+              v-if="agentDblClickAction === 'urlaction'"
+            >
+              <div class="col-6">{{ $t("userPreferences.urlAction") }}</div>
+              <div class="col-2"></div>
+              <q-select
+                map-options
+                emit-value
+                outlined
+                dense
+                options-dense
+                v-model="url_action"
+                :options="urlActions"
+                class="col-4"
+              />
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-6">
+                {{ $t("userPreferences.agentTableDefaultTab") }}
+              </div>
+              <div class="col-2"></div>
+              <q-select
+                map-options
+                emit-value
+                outlined
+                dense
+                options-dense
+                v-model="defaultAgentTblTab"
+                :options="defaultAgentTblTabOptions"
+                class="col-4"
+              />
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-4">
+                {{ $t("userPreferences.loadingBarColor") }}
+              </div>
+              <div class="col-4"></div>
+              <q-select
+                outlined
+                dense
+                options-dense
+                v-model="loading_bar_color"
+                :options="loadingBarColors"
+                class="col-4"
+              />
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.dashInfoColor") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input outlined dense v-model="dash_info_color" class="col-8">
+                <template v-slot:after>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    size="sm"
+                    icon="info"
+                    @click="openURL(quasar_color_url)"
+                  >
+                    <q-tooltip>{{
+                      $t("userPreferences.colorOptionsTip")
+                    }}</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.dashPositiveColor") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input
+                outlined
+                dense
+                v-model="dash_positive_color"
+                class="col-8"
+              >
+                <template v-slot:after>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    size="sm"
+                    icon="info"
+                    @click="openURL(quasar_color_url)"
+                  >
+                    <q-tooltip>{{
+                      $t("userPreferences.colorOptionsTip")
+                    }}</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.dashNegativeColor") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input
+                outlined
+                dense
+                v-model="dash_negative_color"
+                class="col-8"
+              >
+                <template v-slot:after>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    size="sm"
+                    icon="info"
+                    @click="openURL(quasar_color_url)"
+                  >
+                    <q-tooltip>{{
+                      $t("userPreferences.colorOptionsTip")
+                    }}</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.dashWarningColor") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input
+                outlined
+                dense
+                v-model="dash_warning_color"
+                class="col-8"
+              >
+                <template v-slot:after>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    size="sm"
+                    icon="info"
+                    @click="openURL(quasar_color_url)"
+                  >
+                    <q-tooltip>{{
+                      $t("userPreferences.colorOptionsTip")
+                    }}</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.clientSort") }}
+              </div>
+              <div class="col-2"></div>
+              <q-select
+                map-options
+                emit-value
+                outlined
+                dense
+                options-dense
+                v-model="clientTreeSort"
+                :options="clientTreeSortOptions"
+                class="col-8"
+              />
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-2">
+                {{ $t("userPreferences.dateFormat") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input outlined dense v-model="date_format" class="col-8">
+                <template v-slot:after>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    size="sm"
+                    icon="info"
+                    @click="
+                      openURL(
+                        'https://quasar.dev/quasar-utils/date-utils#format-for-display',
+                      )
+                    "
+                  >
+                    <q-tooltip>{{
+                      $t("userPreferences.formatOptionsTip")
+                    }}</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+            </q-card-section>
+            <q-card-section class="row">
+              <q-checkbox
+                v-model="clear_search_when_switching"
+                :label="$t('userPreferences.clearSearch')"
+              />
+            </q-card-section>
+          </section>
+        </div>
+
+        <q-card-section class="row items-center justify-end">
+          <q-btn
+            unelevated
+            no-caps
+            class="obs-page__btn"
+            :label="$t('userPreferences.save')"
+            color="primary"
+            type="submit"
+          />
+        </q-card-section>
+      </q-form>
     </q-card>
   </q-dialog>
 </template>
@@ -279,8 +263,6 @@ export default {
       defaultAgentTblTab: "",
       clientTreeSort: "",
       url_action: null,
-      tab: "ui",
-      splitterModel: 20,
       loading_bar_color: "",
       dash_info_color: "",
       dash_positive_color: "",
