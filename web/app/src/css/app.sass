@@ -647,6 +647,11 @@ body.body--dark
 // queda neutro y el error lo marca solo el ícono (insignia de estado).
 .q-stepper__tab--error .q-stepper__title
   color: var(--obs-text)
+// 050 (T030, G05): la marca de plantilla de Observer señala un dato
+// (script_type builtin), no una acción: va en gris, no en teal.
+.obs-brand-mark
+  filter: grayscale(1)
+  opacity: .75
 // 050 (T030, G01): argumentos y variables de script (chips y lo que se escribe)
 // y todo campo numérico son valores dedicados: JetBrains Mono.
 .obs-mono-values .q-chip__content,

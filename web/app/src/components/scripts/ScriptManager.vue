@@ -209,7 +209,7 @@
                 <div class="obs-mgr__name ellipsis obs-mgr__name--cell" :title="props.row.name">
                   <img
                     v-if="props.row.script_type === 'builtin'"
-                    class="vertical-middle q-mr-xs"
+                    class="obs-brand-mark vertical-middle q-mr-xs"
                     :src="ormmMark"
                     style="height: 16px; width: 16px"
                     :alt="$t('scriptManager.templateMarkTip')"
@@ -434,42 +434,42 @@
               <q-icon
                 v-if="props.node.shell === 'powershell'"
                 name="mdi-powershell"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPowershell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.node.shell === 'python'"
                 name="mdi-language-python"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPython") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.node.shell === 'cmd'"
                 name="mdi-microsoft-windows"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellBatch") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.node.shell === 'shell'"
                 name="mdi-bash"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellShell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.node.shell === 'nushell'"
                 name="mdi-code-greater-than"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellNushell") }}</q-tooltip>
               </q-icon>
               <q-icon
                 v-else-if="props.node.shell === 'deno'"
                 name="mdi-language-typescript"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellDeno") }}</q-tooltip>
               </q-icon>
@@ -477,7 +477,7 @@
               <!-- marca de plantilla propia de Observer RMM -->
               <span v-if="props.node.script_type === 'builtin'">
                 <img
-                  class="vertical-middle"
+                  class="obs-brand-mark vertical-middle"
                   :src="ormmMark"
                   style="height: 20px; width: 20px"
                   :alt="$t('scriptManager.templateMarkTip')"
@@ -774,7 +774,7 @@
               <q-icon
                 v-if="props.row.shell === 'powershell'"
                 name="mdi-powershell"
-                color="primary"
+                class="obs-text-muted"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPowershell") }}</q-tooltip>
@@ -782,7 +782,7 @@
               <q-icon
                 v-else-if="props.row.shell === 'python'"
                 name="mdi-language-python"
-                color="primary"
+                class="obs-text-muted"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPython") }}</q-tooltip>
@@ -790,7 +790,7 @@
               <q-icon
                 v-else-if="props.row.shell === 'cmd'"
                 name="mdi-microsoft-windows"
-                color="primary"
+                class="obs-text-muted"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellBatch") }}</q-tooltip>
@@ -799,7 +799,7 @@
                 v-else-if="props.row.shell === 'shell'"
                 size="sm"
                 name="mdi-bash"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellShell") }}</q-tooltip>
               </q-icon>
@@ -807,7 +807,7 @@
                 v-else-if="props.row.shell === 'nushell'"
                 size="sm"
                 name="mdi-code-greater-than"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellNushell") }}</q-tooltip>
               </q-icon>
@@ -815,7 +815,7 @@
                 v-else-if="props.row.shell === 'deno'"
                 size="sm"
                 name="mdi-language-typescript"
-                color="primary"
+                class="obs-text-muted"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellDeno") }}</q-tooltip>
               </q-icon>
@@ -827,14 +827,16 @@
                   !props.row.supported_platforms ||
                   props.row.supported_platforms.length === 0
                 "
+                color="grey"
+                class="obs-chip-neutral"
                 >{{ $t("scriptManager.platformAll") }}</q-badge
               >
               <q-badge
                 v-else
                 v-for="plat in props.row.supported_platforms"
                 :key="plat"
-                color="primary"
-                class="q-pr-xs"
+                color="grey"
+                class="obs-chip-neutral q-pr-xs"
                 >{{ capitalize(plat) }}</q-badge
               >
             </q-td>
@@ -847,7 +849,7 @@
               <!-- marca de plantilla propia de Observer RMM -->
               <img
                 v-if="props.row.script_type === 'builtin'"
-                class="vertical-middle"
+                class="obs-brand-mark vertical-middle"
                 :src="ormmMark"
                 style="height: 20px; width: 20px"
                 :alt="$t('scriptManager.templateMarkTip')"
@@ -1150,7 +1152,6 @@ export default {
         sortedCategories.forEach((category) => {
           let temp = {
             icon: "folder",
-            iconColor: "yellow-9",
             label: category,
             selectable: false,
             id: category,
