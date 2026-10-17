@@ -5,9 +5,9 @@
       <q-space />
       <q-btn
         size="sm"
-        color="grey-5"
+        outline
+        no-caps
         icon="fas fa-plus"
-        text-color="black"
         :label="$t('scheduleTable.addSchedule')"
         @click="openAddScheduleForm"
       />

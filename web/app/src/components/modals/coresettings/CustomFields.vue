@@ -5,50 +5,46 @@
       <q-space />
       <q-btn
         size="sm"
-        color="grey-5"
+        outline
+        no-caps
         icon="fas fa-plus"
-        text-color="black"
         :label="$t('customFields.addField')"
         @click="addCustomField"
       />
     </div>
     <q-separator />
     <div>
-      <q-tabs
+      <!-- 050 (T034, V2-S04): sin pestañas; el modelo se elige con un grupo
+           segmentado, como el tipo de equipo de la flota. -->
+      <q-btn-toggle
         v-model="tab"
-        dense
-        inline-label
-        class="text-grey"
-        active-color="primary"
-        indicator-color="primary"
-        align="left"
-        narrow-indicator
         no-caps
-      >
-        <q-tab name="client" :label="$t('customFields.tabClients')" />
-        <q-tab name="site" :label="$t('customFields.tabSites')" />
-        <q-tab name="agent" :label="$t('customFields.tabAgents')" />
-      </q-tabs>
-
-      <q-separator />
-      <q-scroll-area :thumb-style="thumbStyle" style="height: 50vh">
-        <q-tab-panels v-model="tab" :animated="false">
-          <q-tab-panel name="client">
-            <CustomFieldsTable
-              @refresh="getCustomFields"
-              :data="clientFields"
-            />
-          </q-tab-panel>
-
-          <q-tab-panel name="site">
-            <CustomFieldsTable @refresh="getCustomFields" :data="siteFields" />
-          </q-tab-panel>
-
-          <q-tab-panel name="agent">
-            <CustomFieldsTable @refresh="getCustomFields" :data="agentFields" />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-scroll-area>
+        unelevated
+        toggle-color="primary"
+        class="obs-page__toggle q-my-sm"
+        :options="[
+          { value: 'client', label: $t('customFields.tabClients') },
+          { value: 'site', label: $t('customFields.tabSites') },
+          { value: 'agent', label: $t('customFields.tabAgents') },
+        ]"
+      />
+      <div style="max-height: 50vh; overflow-y: auto">
+        <CustomFieldsTable
+          v-if="tab === 'client'"
+          @refresh="getCustomFields"
+          :data="clientFields"
+        />
+        <CustomFieldsTable
+          v-else-if="tab === 'site'"
+          @refresh="getCustomFields"
+          :data="siteFields"
+        />
+        <CustomFieldsTable
+          v-else
+          @refresh="getCustomFields"
+          :data="agentFields"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -66,13 +62,6 @@ export default {
     return {
       tab: "client",
       customFields: [],
-      thumbStyle: {
-        right: "2px",
-        borderRadius: "5px",
-        backgroundColor: "#027be3",
-        width: "5px",
-        opacity: 0.75,
-      },
     };
   },
   computed: {

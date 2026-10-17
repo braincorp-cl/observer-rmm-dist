@@ -5,8 +5,8 @@
       <q-space />
       <q-btn
         size="sm"
-        color="grey-5"
-        text-color="black"
+        outline
+        no-caps
         class="q-mr-sm"
         :label="
           isPwd
@@ -18,9 +18,9 @@
       />
       <q-btn
         size="sm"
-        color="grey-5"
+        outline
+        no-caps
         icon="fas fa-plus"
-        text-color="black"
         :label="$t('keyStoreTable.addKey')"
         @click="addKey"
       />

@@ -737,9 +737,12 @@ body.body--dark
   border: 1px solid var(--obs-border)
   border-radius: 12px
   padding: 4px 0
-  > .text-subtitle2:first-child,
-  > .text-subtitle2:first-child + .q-separator
+  > .text-subtitle2:first-child:not(.row),
+  > .text-subtitle2:first-child:not(.row) + .q-separator
     display: none
+  > .text-subtitle2.row:first-child
+    align-items: center
+    padding: 10px 18px
   > .q-card__section
     padding: 10px 18px
     min-height: 48px

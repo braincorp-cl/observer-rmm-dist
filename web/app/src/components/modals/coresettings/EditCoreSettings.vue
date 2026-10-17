@@ -509,9 +509,9 @@
                 <div>
                   <q-btn
                     size="sm"
-                    color="grey-5"
+                    outline
+                    no-caps
                     icon="fas fa-plus"
-                    text-color="black"
                     :label="$t('editCoreSettings.addEmails')"
                     @click="toggleAddEmail"
                   />
@@ -539,7 +539,7 @@
                         <q-item-label>{{ email }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-icon name="delete" color="red" />
+                        <q-icon name="delete" color="negative" />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -648,9 +648,9 @@
                 <div>
                   <q-btn
                     size="sm"
-                    color="grey-5"
+                    outline
+                    no-caps
                     icon="fas fa-plus"
-                    text-color="black"
                     :label="$t('editCoreSettings.addNumbers')"
                     @click="toggleAddSMSNumber"
                   />
@@ -678,7 +678,7 @@
                         <q-item-label>{{ num }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-icon name="delete" color="red" />
+                        <q-icon name="delete" color="negative" />
                       </q-item-section>
                     </q-item>
                   </q-list>
