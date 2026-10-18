@@ -58,6 +58,7 @@
         <q-card-section v-if="type === 'rest'">
           <q-select
             v-model="localAction.rest_method"
+            class="obs-mono-values"
             :label="$t('urlActionsForm.method')"
             :options="URLActionMethods"
             outlined
