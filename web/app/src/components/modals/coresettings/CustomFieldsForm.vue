@@ -59,6 +59,7 @@
             :label="$t('customFieldsForm.inputOptions')"
             filled
             v-model="localField.options"
+            class="obs-mono-values"
             use-input
             use-chips
             multiple
