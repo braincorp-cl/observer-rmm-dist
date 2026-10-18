@@ -784,3 +784,58 @@ body.body--dark
 // ámbar; el borde del campo enfocado es el control y va en teal.
 .q-dialog-plugin--dark .q-field__control.text-amber
   color: var(--q-primary) !important
+
+// 050 (T036): reglas globales de diálogo según la maqueta aprobada
+// (referencia/dialogo.png): superficie elevada con borde y radio 12, cabecera y pie
+// separados por una línea, campos rellenos con fondo propio, botones sin mayúsculas,
+// Cancelar como secundario de contorno y la acción principal en teal.
+.q-dialog .q-card:not(.obs-set)
+  background: var(--obs-raised)
+  border: 1px solid var(--obs-border)
+  border-radius: 12px
+.q-dialog .q-card > .q-bar,
+.q-dialog .q-card > form > .q-bar
+  height: 56px
+  padding: 0 12px 0 20px
+  background: transparent
+  border-bottom: 1px solid var(--obs-border)
+  font-size: 17px
+  font-weight: 600
+  color: var(--obs-text)
+.q-dialog .q-card .text-h6
+  font-size: 17px
+  font-weight: 600
+  line-height: 1.3
+.q-dialog .q-card__actions
+  gap: 8px
+  padding: 12px 20px
+  border-top: 1px solid var(--obs-border)
+.q-dialog .q-card .q-btn
+  text-transform: none
+  border-radius: 8px
+.q-dialog .q-card__actions .q-btn:not(.q-btn--round)
+  min-height: 36px
+  padding: 0 14px
+  font-weight: 500
+// Cancelar (botón plano de la barra de acciones) = secundario de contorno.
+.q-dialog .q-card__actions .q-btn--flat:not(.q-btn--round)
+  color: var(--obs-text-2) !important
+  &:before
+    border: 1px solid var(--obs-hdr-ctl-border)
+    border-radius: 8px
+.q-dialog .q-card__actions .q-btn.bg-primary
+  font-weight: 600
+  box-shadow: none
+  &:before
+    box-shadow: none
+// Campos: rellenos con fondo propio y borde fino (contorneados y estándar).
+.q-dialog .q-field--outlined .q-field__control,
+.q-dialog .q-field--standard .q-field__control
+  background: var(--obs-field)
+  border-radius: 8px
+.q-dialog .q-field--outlined .q-field__control:before
+  border-color: var(--obs-border)
+.q-dialog .q-field--standard .q-field__control
+  padding: 0 12px
+.q-dialog .q-field--standard .q-field__control:before
+  border-bottom: none
