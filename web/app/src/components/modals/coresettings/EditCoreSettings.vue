@@ -356,7 +356,7 @@
                   options-dense
                   v-model="settings.default_time_zone"
                   :options="allTimezones"
-                  class="col-6"
+                  class="col-6 obs-mono-values"
                 />
               </q-card-section>
               <q-card-section class="row">
