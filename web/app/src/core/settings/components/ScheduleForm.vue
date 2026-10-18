@@ -128,9 +128,9 @@
 
           <!-- days of month select input -->
           <q-select
+            class="col-4 q-pa-sm obs-mono-values"
             v-if="localSchedule.monthly_type === 'days'"
             :rules="[(val) => val.length > 0 || $t('scheduleCommon.required')]"
-            class="col-4 q-pa-sm"
             filled
             dense
             options-dense
@@ -181,9 +181,9 @@
 
           <!-- week of month select input -->
           <q-select
+            class="col-4 q-pa-sm obs-mono-values"
             v-if="localSchedule.monthly_type === 'weeks'"
             :rules="[(val) => val.length > 0 || $t('scheduleCommon.required')]"
-            class="col-4 q-pa-sm"
             filled
             dense
             options-dense

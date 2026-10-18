@@ -59,7 +59,9 @@
           <q-td
             v-for="col in cols"
             :key="col.id"
-            :class="{ mono: col.name.startsWith('run_time') }"
+            :class="{
+              mono: ['run_time', 'monthly_days_of_month'].includes(col.name),
+            }"
           >
             {{ col.value }}
           </q-td>

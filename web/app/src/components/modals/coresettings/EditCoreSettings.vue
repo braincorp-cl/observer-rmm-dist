@@ -581,10 +581,10 @@
                 <div class="col-2">{{ $t("editCoreSettings.fromName") }}</div>
                 <div class="col-4"></div>
                 <q-input
+                  class="obs-ui-text col-6 q-pa-none"
                   outlined
                   dense
                   v-model="settings.smtp_from_name"
-                  class="col-6 q-pa-none"
                 />
               </q-card-section>
               <q-card-section class="row">
@@ -853,10 +853,10 @@
                 <div class="col-2"></div>
 
                 <q-input
+                  class="obs-ui-text col-6"
                   dense
                   outlined
                   v-model="settings.mesh_company_name"
-                  class="col-6"
                 >
                 </q-input>
               </q-card-section>

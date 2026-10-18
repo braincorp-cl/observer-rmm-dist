@@ -82,7 +82,7 @@
         <q-td v-else class="mono">
           {{ truncateText(props.row.default_value_string) }}
           <q-tooltip
-            v-if="props.row.default_value_string.length >= 60"
+            v-if="(props.row.default_value_string || '').length >= 60"
             style="font-size: 12px"
             >{{ props.row.default_value_string }}</q-tooltip
           >
