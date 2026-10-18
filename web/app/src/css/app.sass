@@ -847,3 +847,11 @@ body.body--dark
   font-weight: 600
   &:before
     border: none
+// 050 (ola 6, G04/G05): en tema oscuro QDialogPlugin rellena OK en ámbar
+// (bg-amber); la acción principal va en teal.
+.q-dialog-plugin--dark .q-card__actions .q-btn.bg-amber
+  background: var(--q-primary) !important
+  color: var(--obs-on-brand) !important
+// Paso inactivo del stepper: gris de Quasar (#9e9e9e) fuera de tokens ⇒ muted.
+.q-stepper__tab
+  color: var(--obs-muted)
