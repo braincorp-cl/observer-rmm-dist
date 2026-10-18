@@ -12,8 +12,9 @@
 
     <q-separator />
 
-    <!-- 050 (ola 6, G02): aviso informativo neutro; el blanco sobre teal no daba AA. -->
-    <q-banner class="obs-notice q-ma-md">
+    <!-- 050 (ola 6, G02 y V2-S05): aviso informativo con el color de estado info
+         (borde e ícono); el texto queda neutro para mantener AA. -->
+    <q-banner class="obs-notice obs-notice--info q-ma-md">
       <template v-slot:avatar>
         <q-icon name="info" />
       </template>
