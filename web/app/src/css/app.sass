@@ -839,3 +839,11 @@ body.body--dark
   padding: 0 12px
 .q-dialog .q-field--standard .q-field__control:before
   border-bottom: none
+// La acción principal de un formulario (submit) va rellena en teal aunque el
+// componente heredado la declare plana.
+.q-dialog .q-card__actions .q-btn--flat[type="submit"]
+  background: var(--q-primary) !important
+  color: var(--obs-on-brand) !important
+  font-weight: 600
+  &:before
+    border: none
