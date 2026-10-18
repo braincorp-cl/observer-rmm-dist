@@ -71,10 +71,10 @@
           <q-icon v-if="props.row.hide_in_summary" name="check" />
         </q-td>
         <!-- default value -->
-        <q-td v-if="props.row.type === 'checkbox'">
+        <q-td v-if="props.row.type === 'checkbox'" class="mono">
           {{ props.row.default_value_bool }}
         </q-td>
-        <q-td v-else-if="props.row.type === 'multiple'">
+        <q-td v-else-if="props.row.type === 'multiple'" class="mono">
           <span v-if="props.row.default_values_multiple.length > 0">{{
             props.row.default_values_multiple
           }}</span>
