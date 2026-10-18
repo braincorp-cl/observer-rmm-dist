@@ -896,7 +896,8 @@ body.body--dark
     border: 1px solid var(--obs-hdr-ctl-border)
     border-radius: 8px
 // Aviso informativo con color de estado (info): borde lateral e ícono.
+// (!important: Quasar quita el borde izquierdo a los hijos directos de q-card.)
 .obs-notice--info
-  border-left: 3px solid var(--q-info)
+  border-left: 3px solid var(--q-info) !important
   .q-icon
     color: var(--q-info) !important
