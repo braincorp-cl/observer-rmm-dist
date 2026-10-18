@@ -58,7 +58,6 @@
             stack-label
             filled
             v-model="localKey.expiration"
-            class="obs-mono-values"
           />
         </q-card-section>
 

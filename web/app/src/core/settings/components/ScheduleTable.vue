@@ -59,9 +59,7 @@
           <q-td
             v-for="col in cols"
             :key="col.id"
-            :class="{
-              mono: ['run_time', 'monthly_days_of_month'].includes(col.name),
-            }"
+            :class="{ mono: monoCell(col) }"
           >
             {{ col.value }}
           </q-td>
@@ -84,6 +82,16 @@ import ObserverTable from "src/core/dashboard/ui/ObserverTable.vue";
 import { until } from "@vueuse/shared";
 
 const { t } = useI18n();
+
+// 050 (T034, G01): la hora y los días del mes son valores (JetBrains Mono); una
+// frase como «Todos los días» o «1, Última» es texto de interfaz (Archivo).
+function monoCell(col: { name: string; value: unknown }) {
+  if (col.name === "run_time") return true;
+  return (
+    col.name === "monthly_days_of_month" &&
+    /^[\d,\s]+$/.test(String(col.value ?? ""))
+  );
+}
 
 const columns = computed<QTableColumn[]>(() => {
   const monthsAbbrev = [
