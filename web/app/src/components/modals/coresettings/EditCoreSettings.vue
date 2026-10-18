@@ -756,7 +756,7 @@
                   {{ $t("editCoreSettings.username") }}
                 </div>
                 <div class="col-2"></div>
-                <div class="col-6 mono">{{ settings.mesh_username }}</div>
+                <div class="col-6">{{ settings.mesh_username }}</div>
               </q-card-section>
               <q-card-section class="row items-center" v-if="!hosted">
                 <div class="col-4">

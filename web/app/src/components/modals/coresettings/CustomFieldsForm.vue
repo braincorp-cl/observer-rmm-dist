@@ -82,7 +82,6 @@
             stack-label
             outlined
             v-model="localField.default_value_string"
-            class="obs-mono-values"
             :rules="defaultValueRules"
             reactive-rules
           />

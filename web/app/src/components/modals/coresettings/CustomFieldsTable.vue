@@ -79,7 +79,8 @@
             props.row.default_values_multiple
           }}</span>
         </q-td>
-        <q-td v-else class="mono">
+        <!-- 050 (T034, G01): las fechas van en Archivo; el resto de valores en Mono. -->
+        <q-td v-else :class="{ mono: props.row.type !== 'datetime' }">
           {{ truncateText(props.row.default_value_string) }}
           <q-tooltip
             v-if="(props.row.default_value_string || '').length >= 60"
