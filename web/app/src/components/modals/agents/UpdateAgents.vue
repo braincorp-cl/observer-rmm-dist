@@ -12,7 +12,8 @@
 
     <q-separator />
 
-    <q-banner class="bg-primary">
+    <!-- 050 (ola 6, G02): aviso informativo neutro; el blanco sobre teal no daba AA. -->
+    <q-banner class="obs-notice q-ma-md">
       <template v-slot:avatar>
         <q-icon name="info" />
       </template>
