@@ -534,7 +534,7 @@ export default defineComponent({
         title: t("endpointResponse.bulkAlarmConfirmTitle"),
         message: alarmWarning.value,
         cancel: { label: t("endpointResponse.cancel"), flat: true },
-        ok: { label: t("bulkAction.run"), color: "negative" },
+        ok: { label: t("bulkAction.run"), color: "primary" },
         persistent: true,
       }).onOk(run);
     }

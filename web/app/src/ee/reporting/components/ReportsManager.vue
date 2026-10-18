@@ -362,7 +362,7 @@ function deleteTemplate(template: ReportTemplate) {
   $q.dialog({
     title: t("reporting.manager.deleteTitle", { name: template.name }),
     cancel: true,
-    ok: { label: t("reporting.common.delete"), color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "primary" },
   }).onOk(() => {
     deleteReportTemplate(template.id);
   });

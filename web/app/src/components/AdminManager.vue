@@ -253,7 +253,7 @@ export default {
             username: user.username,
           }),
           cancel: true,
-          ok: { label: this.$t("adminManager.delete"), color: "negative" },
+          ok: { label: this.$t("adminManager.delete"), color: "primary" },
         })
         .onOk(() => {
           this.$axios.delete(`/accounts/${user.id}/users/`).then(() => {

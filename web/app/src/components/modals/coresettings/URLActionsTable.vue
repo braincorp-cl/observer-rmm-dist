@@ -190,7 +190,7 @@ function deleteURLAction(action: URLAction) {
   $q.dialog({
     title: t("urlActionsTable.deleteTitle", { name: action.name }),
     cancel: true,
-    ok: { label: t("urlActionsCommon.delete"), color: "negative" },
+    ok: { label: t("urlActionsCommon.delete"), color: "primary" },
   }).onOk(async () => {
     loading.value = true;
     try {

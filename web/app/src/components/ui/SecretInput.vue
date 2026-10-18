@@ -203,7 +203,7 @@ function confirmRemove() {
   $q.dialog({
     title: t("secretInput.removeTitle"),
     message: t("secretInput.removeMessage"),
-    ok: { label: t("secretInput.remove"), color: "negative" },
+    ok: { label: t("secretInput.remove"), color: "primary" },
     cancel: { label: t("secretInput.cancel"), color: "primary" },
   }).onOk(() => {
     cleared.value = true;

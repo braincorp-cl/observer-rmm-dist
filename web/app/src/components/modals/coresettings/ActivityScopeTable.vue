@@ -59,7 +59,6 @@
               flat
               size="sm"
               icon="delete"
-              color="negative"
               @click="quitar(props.row)"
             >
               <q-tooltip>{{ $t("activityScope.removeTooltip") }}</q-tooltip>

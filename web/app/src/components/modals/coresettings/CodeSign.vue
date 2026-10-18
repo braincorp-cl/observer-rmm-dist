@@ -37,7 +37,7 @@
         <q-space />
         <q-btn
           :label="$t('codeSign.delete')"
-          color="negative"
+          outline
           @click="confirmDelete"
         />
       </q-card-section>

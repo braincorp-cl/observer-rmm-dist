@@ -1062,7 +1062,7 @@ export default {
       $q.dialog({
         title: t("scriptManager.deleteTitle", { name: script.name }),
         cancel: true,
-        ok: { label: t("scriptsCommon.delete"), color: "negative" },
+        ok: { label: t("scriptsCommon.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

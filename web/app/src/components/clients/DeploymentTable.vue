@@ -202,7 +202,7 @@ export default {
       $q.dialog({
         title: t("deploymentTable.deleteTitle"),
         cancel: true,
-        ok: { label: t("deploymentTable.delete"), color: "negative" },
+        ok: { label: t("deploymentTable.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

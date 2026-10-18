@@ -152,7 +152,6 @@
                     <q-icon
                       class="cursor-pointer"
                       name="delete"
-                      color="red"
                       @click="removeEmail(email)"
                     />
                   </q-item-section>

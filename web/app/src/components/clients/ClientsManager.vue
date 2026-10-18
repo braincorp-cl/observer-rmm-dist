@@ -204,7 +204,7 @@ export default {
           title: t("clientsManager.confirmTitle"),
           message: t("clientsManager.deleteMessage", { name: client.name }),
           cancel: true,
-          ok: { label: t("clientsManager.delete"), color: "negative" },
+          ok: { label: t("clientsManager.delete"), color: "primary" },
         }).onOk(async () => {
           loading.value = true;
           try {

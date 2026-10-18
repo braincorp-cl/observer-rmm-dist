@@ -14,7 +14,7 @@
         <q-space />
         <q-chip
           v-if="!wsConnected"
-          color="red"
+          color="negative"
           text-color="white"
           icon="error"
           >{{ $t("websocketSendCommand.websocketDisconnected") }}</q-chip

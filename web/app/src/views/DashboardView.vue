@@ -798,7 +798,7 @@ export default {
               label: node.label,
             }),
             cancel: true,
-            ok: { label: this.$t("dashboard.delete"), color: "negative" },
+            ok: { label: this.$t("dashboard.delete"), color: "primary" },
           })
           .onOk(async () => {
             this.$q.loading.show();

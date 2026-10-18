@@ -645,7 +645,7 @@ export default {
           desc: check.readable_desc,
         }),
         cancel: true,
-        ok: { label: t("agentTabs.common.delete"), color: "negative" },
+        ok: { label: t("agentTabs.common.delete"), color: "primary" },
         persistent: true,
       }).onOk(async () => {
         loading.value = true;
@@ -688,7 +688,7 @@ export default {
         title: t("agentTabs.common.areYouSure"),
         message: t("agentTabs.checks.resetAllMessage"),
         cancel: true,
-        ok: { label: t("agentTabs.checks.reset"), color: "negative" },
+        ok: { label: t("agentTabs.checks.reset"), color: "primary" },
         persistent: true,
       }).onOk(async () => {
         loading.value = true;

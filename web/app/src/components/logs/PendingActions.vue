@@ -256,7 +256,7 @@ export default {
       $q.dialog({
         title: t("pendingActions.deleteTitle"),
         cancel: true,
-        ok: { label: t("pendingActions.delete"), color: "negative" },
+        ok: { label: t("pendingActions.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

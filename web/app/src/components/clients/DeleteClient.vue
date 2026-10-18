@@ -92,7 +92,7 @@ export default {
           count: props.object.agent_count,
         }),
         cancel: true,
-        ok: { label: t("deleteClient.delete"), color: "negative" },
+        ok: { label: t("deleteClient.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

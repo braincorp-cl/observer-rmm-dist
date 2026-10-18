@@ -366,7 +366,7 @@ export default {
           title: this.$t("policyChecksTab.deleteCheckTitle", {
             type: check.check_type,
           }),
-          ok: { label: this.$t("policyTabsCommon.delete"), color: "negative" },
+          ok: { label: this.$t("policyTabsCommon.delete"), color: "primary" },
           cancel: true,
         })
         .onOk(() => {

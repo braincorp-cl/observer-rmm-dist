@@ -363,8 +363,8 @@ export function useAgentActions() {
           message: t("agentActions.agentOfflineMessage", {
             hostname: agent.hostname,
           }),
-          cancel: { label: t("agentActions.no"), color: "negative" },
-          ok: { label: t("agentActions.yes"), color: "positive" },
+          cancel: { label: t("agentActions.no"), flat: true },
+          ok: { label: t("agentActions.yes"), color: "primary" },
           persistent: true,
         })
           .onOk(() => deleteAgent(agent))

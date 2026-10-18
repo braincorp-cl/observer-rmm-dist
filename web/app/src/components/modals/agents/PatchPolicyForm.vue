@@ -231,7 +231,7 @@
       <q-btn
         v-if="editing"
         :label="$t('patchPolicy.removePolicy')"
-        color="negative"
+        outline
         @click="deletePolicy(winupdatepolicy)"
       />
     </q-card-actions>
@@ -350,7 +350,7 @@ export default {
         .dialog({
           title: this.$t("patchPolicy.deleteTitle"),
           cancel: true,
-          ok: { label: this.$t("patchPolicy.delete"), color: "negative" },
+          ok: { label: this.$t("patchPolicy.delete"), color: "primary" },
         })
         .onOk(() => {
           this.$q.loading.show();

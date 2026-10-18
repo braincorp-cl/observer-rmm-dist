@@ -848,7 +848,7 @@ export default {
         .dialog({
           title: this.$t("automationManager.deletePolicyTitle"),
           cancel: true,
-          ok: { label: this.$t("automationManager.delete"), color: "negative" },
+          ok: { label: this.$t("automationManager.delete"), color: "primary" },
         })
         .onOk(() => {
           this.$q.loading.show();

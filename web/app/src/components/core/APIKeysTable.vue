@@ -182,7 +182,7 @@ export default {
       $q.dialog({
         title: t("apiKeysTable.deleteTitle", { name: key.name }),
         cancel: true,
-        ok: { label: t("apiKeysTable.delete"), color: "negative" },
+        ok: { label: t("apiKeysTable.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

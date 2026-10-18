@@ -47,7 +47,7 @@
           :disable="!pass || pass !== pass2"
         />
         <q-btn
-          color="negative"
+          flat
           :label="$t('resetPass.cancel')"
           @click="onDialogCancel"
         />

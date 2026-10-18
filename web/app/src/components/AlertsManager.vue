@@ -531,7 +531,7 @@ export default {
         .dialog({
           title: this.$t("alertsManager.deleteTitle", { name: template.name }),
           cancel: true,
-          ok: { label: this.$t("alertsManager.delete"), color: "negative" },
+          ok: { label: this.$t("alertsManager.delete"), color: "primary" },
         })
         .onOk(() => {
           this.$q.loading.show();

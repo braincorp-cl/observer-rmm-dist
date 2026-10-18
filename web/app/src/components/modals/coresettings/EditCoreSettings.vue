@@ -543,7 +543,7 @@
                         <q-item-label class="mono">{{ email }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-icon name="delete" color="negative" />
+                        <q-icon name="delete" />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -682,7 +682,7 @@
                         <q-item-label class="mono">{{ num }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-icon name="delete" color="negative" />
+                        <q-icon name="delete" />
                       </q-item-section>
                     </q-item>
                   </q-list>

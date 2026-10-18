@@ -293,7 +293,6 @@
                     <q-item-section side>
                       <q-icon
                         class="cursor-pointer"
-                        color="negative"
                         name="close"
                         @click="removeAction(index)"
                       />

@@ -80,7 +80,6 @@
                       <q-icon
                         class="cursor-pointer"
                         name="delete"
-                        color="negative"
                         @click="removeEmail(email)"
                       />
                     </q-item-section>
@@ -128,7 +127,6 @@
                       <q-icon
                         class="cursor-pointer"
                         name="delete"
-                        color="negative"
                         @click="removeSMSNumber(num)"
                       />
                     </q-item-section>

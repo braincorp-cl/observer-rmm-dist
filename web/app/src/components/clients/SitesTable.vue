@@ -172,7 +172,7 @@ export default {
           title: t("sitesTable.confirmTitle"),
           message: t("sitesTable.deleteMessage", { name: site.name }),
           cancel: true,
-          ok: { label: t("sitesTable.delete"), color: "negative" },
+          ok: { label: t("sitesTable.delete"), color: "primary" },
         }).onOk(async () => {
           loading.value = true;
           try {

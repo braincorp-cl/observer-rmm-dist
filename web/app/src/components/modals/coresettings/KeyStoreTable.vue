@@ -163,7 +163,7 @@ export default {
         .dialog({
           title: this.$t("keyStoreTable.deleteTitle", { name: key.name }),
           cancel: true,
-          ok: { label: this.$t("keyStoreTable.delete"), color: "negative" },
+          ok: { label: this.$t("keyStoreTable.delete"), color: "primary" },
         })
         .onOk(() => {
           this.$q.loading.show();

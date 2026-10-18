@@ -277,7 +277,7 @@ function deleteHistory(entry: ReportHistory) {
     message: t("reporting.historyTable.deleteMessage"),
     color: "primary",
     cancel: true,
-    ok: { label: t("reporting.common.delete"), color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "primary" },
   }).onOk(() => {
     deleteReportHistory(entry.id);
   });

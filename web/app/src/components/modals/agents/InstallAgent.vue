@@ -305,10 +305,10 @@ export default {
             // El enlace de esta advertencia vive en installAgent.exeWarningMessage
             // (catálogos i18n) y apunta a docs.observer.cl/faq/#agentes-inesperados.
             message: this.$t("installAgent.exeWarningMessage"),
-            color: "negative",
+            color: "primary",
             ok: {
               label: this.$t("installAgent.continueLabel"),
-              color: "negative",
+              color: "primary",
               unelevated: true,
             },
             cancel: {

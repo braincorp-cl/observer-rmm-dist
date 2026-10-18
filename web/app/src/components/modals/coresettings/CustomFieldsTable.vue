@@ -185,7 +185,7 @@ export default {
           cancel: true,
           ok: {
             label: this.$t("customFieldsCommon.delete"),
-            color: "negative",
+            color: "primary",
           },
         })
         .onOk(() => {

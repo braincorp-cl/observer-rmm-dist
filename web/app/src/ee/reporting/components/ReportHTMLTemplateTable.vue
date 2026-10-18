@@ -182,7 +182,7 @@ function deleteHTMLTemplate(template: ReportHTMLTemplate) {
     }),
     message: t("reporting.htmlTemplateTable.deleteMessage"),
     cancel: true,
-    ok: { label: t("reporting.common.delete"), color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "primary" },
   }).onOk(() => {
     deleteReportHTMLTemplate(template.id);
   });

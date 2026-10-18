@@ -222,7 +222,7 @@ export default {
       $q.dialog({
         title: t("agentTabs.notes.deleteNoteTitle"),
         cancel: true,
-        ok: { label: t("agentTabs.common.delete"), color: "negative" },
+        ok: { label: t("agentTabs.common.delete"), color: "primary" },
       }).onOk(async () => {
         loading.value = true;
         try {

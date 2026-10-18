@@ -164,7 +164,7 @@ export default {
       $q.dialog({
         title: t("permissionsManager.confirmDelete", { name: role.name }),
         cancel: true,
-        ok: { label: t("permissionsManager.delete"), color: "negative" },
+        ok: { label: t("permissionsManager.delete"), color: "primary" },
       }).onOk(async () => {
         try {
           $q.loading.show();

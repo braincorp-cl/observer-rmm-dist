@@ -33,7 +33,7 @@
             :label="$t('userSessions.removeAll')"
             @click="removeAllSessions"
             size="sm"
-            color="negative"
+            outline
           />
         </template>
         <template #body="props">
@@ -46,7 +46,7 @@
                 size="sm"
                 @click="removeSession(props.row)"
                 :label="$t('userSessions.disconnect')"
-                color="negative"
+                outline
               ></q-btn>
             </td>
           </q-tr>
@@ -118,7 +118,7 @@ function removeSession(token: AuthToken) {
     title: t("userSessions.confirmDisconnect", { user: token.user }),
     message: t("userSessions.signedOutImmediately"),
     cancel: true,
-    ok: { label: t("userSessions.delete"), color: "negative" },
+    ok: { label: t("userSessions.delete"), color: "primary" },
   }).onOk(async () => {
     loading.value = true;
     try {
@@ -137,7 +137,7 @@ function removeAllSessions() {
       username: props.user.username,
     }),
     cancel: true,
-    ok: { label: t("userSessions.delete"), color: "negative" },
+    ok: { label: t("userSessions.delete"), color: "primary" },
   }).onOk(async () => {
     loading.value = true;
     try {

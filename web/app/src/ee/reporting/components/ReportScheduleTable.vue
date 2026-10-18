@@ -262,7 +262,7 @@ function deleteSchedule(schedule: ReportSchedule) {
     message: t("reporting.scheduleTable.deleteMessage"),
     cancel: true,
     color: "primary",
-    ok: { label: t("reporting.common.delete"), color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "primary" },
   }).onOk(() => {
     deleteReportSchedule(schedule.id);
   });

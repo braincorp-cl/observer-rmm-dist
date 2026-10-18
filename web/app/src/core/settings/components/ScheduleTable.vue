@@ -234,7 +234,7 @@ function removeSchedule(schedule: Schedule) {
     color: "primary",
     message: t("scheduleTable.deleteConfirm", { name: schedule.name }),
     ok: {
-      color: "negative",
+      color: "primary",
     },
     cancel: true,
   }).onOk(async () => {

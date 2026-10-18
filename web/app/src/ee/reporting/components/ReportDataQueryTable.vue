@@ -174,7 +174,7 @@ function deleteDataQuery(dataQuery: ReportDataQuery) {
     title: t("reporting.dataQueryTable.deleteTitle", { name: dataQuery.name }),
     message: t("reporting.dataQueryTable.deleteMessage"),
     cancel: true,
-    ok: { label: t("reporting.common.delete"), color: "negative" },
+    ok: { label: t("reporting.common.delete"), color: "primary" },
   }).onOk(() => {
     deleteReportDataQuery(dataQuery.id);
   });
