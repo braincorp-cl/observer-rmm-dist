@@ -83,12 +83,13 @@ import { until } from "@vueuse/shared";
 
 const { t } = useI18n();
 
-// 050 (T034, G01): la hora y los días del mes son valores (JetBrains Mono), también
-// «1, Última»; solo la frase sin números («Todos los días») queda en Archivo.
+// 050 (T034, G01): la hora y los días y semanas del mes son valores (JetBrains
+// Mono), también «1, Última» o «1ª, 3ª»; solo la frase sin números («Todos los días») queda en Archivo.
 function monoCell(col: { name: string; value: unknown }) {
   if (col.name === "run_time") return true;
   return (
-    col.name === "monthly_days_of_month" && /\d/.test(String(col.value ?? ""))
+    ["monthly_days_of_month", "monthly_weeks_of_month"].includes(col.name) &&
+    /\d/.test(String(col.value ?? ""))
   );
 }
 

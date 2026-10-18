@@ -101,7 +101,7 @@
                   options-dense
                   v-model="loading_bar_color"
                   :options="loadingBarColors"
-                  class="col-4"
+                  class="col-4 obs-mono-values"
                 />
               </q-card-section>
               <q-card-section class="row">
