@@ -223,6 +223,8 @@ export function useAgentActions() {
       }),
       cancel: true,
       persistent: true,
+      // 050 (ola 6, V2-S05): confirmación que corta la sesión: aviso en rojo.
+      class: "obs-dialog-danger",
     }).onOk(async () => {
       $q.loading.show();
       try {

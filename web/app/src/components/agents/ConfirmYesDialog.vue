@@ -1,7 +1,14 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide" persistent>
-    <q-card class="q-dialog-plugin" style="min-width: 25vw; max-width: 70vw">
-      <q-card-section class="text-h6">{{ title }}</q-card-section>
+    <!-- 050 (ola 6, V2-S05): el rojo marca solo el aviso (ícono «!»), como en la
+         maqueta de diálogo; el botón de confirmar es teal. -->
+    <q-card
+      class="q-dialog-plugin obs-dialog-danger"
+      style="min-width: 25vw; max-width: 70vw"
+    >
+      <q-card-section class="text-h6 q-dialog__title">{{
+        title
+      }}</q-card-section>
 
       <q-card-section>
         <i18n-t keypath="confirmDialog.prompt" tag="span">

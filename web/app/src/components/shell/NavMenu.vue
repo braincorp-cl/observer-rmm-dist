@@ -379,6 +379,8 @@ export default {
           title: this.$t("nav.bulkRecoverTitle"),
           message: this.$t("nav.bulkRecoverMessage"),
           cancel: true,
+          // 050 (ola 6, V2-S05): confirmación con efecto amplio: aviso en rojo.
+          class: "obs-dialog-danger",
         })
         .onOk(() => {
           this.$axios

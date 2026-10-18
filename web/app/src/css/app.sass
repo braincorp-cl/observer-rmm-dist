@@ -859,3 +859,39 @@ body.body--dark
 // secundario; el teal atenuado de Quasar no llegaba a AA sobre la tarjeta (4.21).
 .q-dialog .q-tabs .q-tab:not(.q-tab--active)
   color: var(--obs-text-2) !important
+// 050 (ola 6, V2-S05): en una confirmación destructiva el rojo marca el aviso con
+// un ícono «!» junto al título (maqueta de diálogo); el botón de confirmar es teal.
+.obs-dialog-danger .q-dialog__title
+  display: flex
+  align-items: center
+  gap: 12px
+  &:before
+    content: "!"
+    flex: none
+    width: 36px
+    height: 36px
+    border-radius: 50%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 17px
+    font-weight: 700
+    color: var(--q-negative)
+    background: color-mix(in srgb, var(--q-negative) 18%, transparent)
+// La acción principal va rellena en teal: en el pie, el último botón plano cuando
+// no hay ya uno relleno (QDialogPlugin pinta OK y Cancelar iguales; los diálogos
+// heredados declaran el principal plano).
+.q-dialog .q-card__actions:not(:has(.bg-primary)) > .q-btn--flat:last-child:not(:first-child)
+  background: var(--q-primary) !important
+  color: var(--obs-on-brand) !important
+  font-weight: 600
+  &:before
+    border: none
+// Cancelar estándar sin color (acciones masivas) = secundario de contorno.
+.q-dialog .q-card__actions .q-btn--standard:not([class*="bg-"])
+  background: transparent !important
+  color: var(--obs-text-2) !important
+  &:before
+    box-shadow: none
+    border: 1px solid var(--obs-hdr-ctl-border)
+    border-radius: 8px
