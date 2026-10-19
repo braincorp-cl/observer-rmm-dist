@@ -69,15 +69,15 @@
             </q-list>
           </q-menu>
           <!-- name -->
-          <q-td>
+          <q-td :title="props.row.name">
             {{ truncateText(props.row.name, 30) }}
           </q-td>
           <!-- desc -->
-          <q-td>
+          <q-td :title="props.row.desc">
             {{ truncateText(props.row.desc, 20) }}
           </q-td>
           <!-- pattern -->
-          <q-td class="mono">
+          <q-td class="mono" :title="props.row.pattern">
             {{ truncateText(props.row.pattern, 20) }}
           </q-td>
         </q-tr>

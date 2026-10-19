@@ -525,7 +525,7 @@
                   :rules="[
                     (val) => val.length > 0 || $t('automatedTask.required'),
                   ]"
-                  class="col-4 q-pa-sm"
+                  class="col-4 q-pa-sm obs-mono-values"
                   filled
                   dense
                   options-dense
@@ -582,7 +582,7 @@
                   :rules="[
                     (val) => val.length > 0 || $t('automatedTask.required'),
                   ]"
-                  class="col-4 q-pa-sm"
+                  class="col-4 q-pa-sm obs-mono-values"
                   filled
                   dense
                   options-dense

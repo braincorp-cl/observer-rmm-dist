@@ -294,7 +294,7 @@
         </q-card-section>
 
         <q-card-section v-if="alarmWarning" class="q-pt-none">
-          <q-banner dense class="bg-red-1 text-negative">
+          <q-banner dense class="obs-notice obs-notice--negative">
             <template v-slot:avatar>
               <q-icon name="warning" color="negative" />
             </template>
