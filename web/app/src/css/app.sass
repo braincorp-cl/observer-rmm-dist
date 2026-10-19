@@ -849,7 +849,8 @@ body.body--dark
   background: var(--q-primary) !important
   color: var(--obs-on-brand) !important
 // Paso inactivo del stepper: gris de Quasar (#9e9e9e) fuera de tokens ⇒ muted.
-.q-stepper__tab
+// El paso con error conserva el negative de Quasar (estado, V2-G05 (c)).
+.q-stepper__tab:not(.q-stepper__tab--error)
   color: var(--obs-muted)
 // 050 (ola 6, G02): pestañas inactivas de un diálogo (Editar agente) en texto
 // secundario; el teal atenuado de Quasar no llegaba a AA sobre la tarjeta (4.21).
