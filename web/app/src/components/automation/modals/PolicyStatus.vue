@@ -11,7 +11,7 @@
           push
           icon="refresh"
         />
-        {{ title.slice(0, 27) }}
+        <span class="ellipsis" style="min-width: 0">{{ title }}</span>
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip class="bg-white text-primary">{{

@@ -53,7 +53,7 @@
                 />
               </q-td>
               <q-td @click="showDescription(props.row.name)">
-                <span style="cursor: pointer; text-decoration: underline">{{
+                <span class="mono" style="cursor: pointer; text-decoration: underline">{{
                   props.row.name
                 }}</span>
               </q-td>

@@ -116,7 +116,7 @@
       <div class="col-4"></div>
       <q-select
         dense
-        class="col-5"
+        class="col-5 obs-mono-values"
         outlined
         v-model="winupdatepolicy.run_time_hour"
         :options="timeOptions"
