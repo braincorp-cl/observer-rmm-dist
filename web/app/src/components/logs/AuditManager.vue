@@ -149,7 +149,7 @@
       </template>
 
       <template v-slot:body-cell-entry_time="props">
-        <q-td :props="props">
+        <q-td :props="props" class="mono">
           <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones -->
           <span
             v-for="(parte, i) in formatDate(props.value).split(' ')"

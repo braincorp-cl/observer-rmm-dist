@@ -24,6 +24,7 @@
     <q-card-section>
       {{ $t("updateAgents.selectVersion") }}
       <q-select
+        class="obs-mono-values"
         square
         disable
         dense
@@ -72,7 +73,7 @@
       <q-option-group
         v-model="group"
         :options="agentOptions"
-        color="green"
+        color="primary"
         type="checkbox"
         style="max-height: 60vh; max-width: 40vw"
         class="scroll"

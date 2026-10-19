@@ -174,11 +174,11 @@
             <q-td>{{ props.row.username }}</q-td>
             <q-td>{{ props.row.first_name }} {{ props.row.last_name }}</q-td>
             <q-td>{{ props.row.email }}</q-td>
-            <q-td v-if="props.row.last_login">{{
+            <q-td v-if="props.row.last_login" class="mono">{{
               formatDate(props.row.last_login)
             }}</q-td>
             <q-td v-else>{{ $t("adminManager.never") }}</q-td>
-            <q-td>{{ props.row.last_login_ip }}</q-td>
+            <q-td class="mono">{{ props.row.last_login_ip }}</q-td>
           </q-tr>
         </template>
       </q-table>

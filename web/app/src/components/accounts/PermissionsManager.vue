@@ -80,7 +80,7 @@
                 size="sm"
               />
             </q-td>
-            <q-td key="user_count" :props="props">
+            <q-td key="user_count" :props="props" class="mono">
               {{ props.row.user_count }}
             </q-td>
           </q-tr>

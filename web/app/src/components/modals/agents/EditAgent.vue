@@ -75,7 +75,7 @@
                       options-dense
                       v-model="timezone"
                       :options="allTimezones"
-                      class="col-8"
+                      class="col-8 obs-mono-values"
                     />
                   </q-card-section>
                   <q-card-section class="row">

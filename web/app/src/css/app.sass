@@ -898,3 +898,11 @@ body.body--dark
   border-left: 3px solid var(--q-info) !important
   .q-icon
     color: var(--q-info) !important
+// 050 (ola 6, G08): las pestañas verticales de un diálogo (Editar agente) cortaban
+// el rótulo sin forma de leerlo; el rótulo largo pasa a dos líneas.
+.q-dialog .q-tabs--vertical .q-tab__label
+  white-space: normal
+  text-align: left
+.q-dialog .q-tabs--vertical .q-tab
+  height: auto
+  min-height: 36px

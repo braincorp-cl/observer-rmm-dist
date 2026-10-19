@@ -124,7 +124,7 @@
                 }}</span
               >
             </q-td>
-            <q-td>{{ props.row.agent_count }}</q-td>
+            <q-td class="mono">{{ props.row.agent_count }}</q-td>
           </q-tr>
         </template>
       </q-table>

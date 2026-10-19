@@ -4,7 +4,7 @@ import { boot } from "quasar/wrappers";
 // Los rótulos de campo de Quasar y los .ellipsis (incluido el valor de un q-select)
 // llevan el texto entero en title, salvo que ya traigan uno propio. Así se cubren
 // los diálogos heredados de la v1 sin tocar cada campo.
-const SELECTOR = ".q-field__label, .ellipsis";
+const SELECTOR = ".q-field__label, .ellipsis, .q-field__messages > div";
 const MARCA = "obsAutotitle";
 
 function titular(el) {
