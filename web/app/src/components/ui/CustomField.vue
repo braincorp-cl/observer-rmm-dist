@@ -57,7 +57,6 @@
 </template>
 
 <script>
-import { truncateText } from "@/utils/format";
 export default {
   name: "CustomField",
   props: ["field", "modelValue"],
@@ -87,11 +86,13 @@ export default {
             })
           : "";
 
-      return value.length > 100 ? truncateText(value, 100) : value;
+      // 050 (ola 6, G08): el aviso va entero; si no cabe lo corta el CSS con
+      // elipsis y el boot autotitle deja el texto completo en title.
+      return value;
     },
     longTextClass(field) {
       return field.hasOwnProperty("default_value_string") &&
-        field.default_value_string.length >= 130
+        (field.default_value_string || "").length >= 130
         ? "q-mb-xl q-mt-xl"
         : "";
     },

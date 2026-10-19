@@ -906,3 +906,14 @@ body.body--dark
 .q-dialog .q-tabs--vertical .q-tab
   height: auto
   min-height: 36px
+// 050 (ola 6, G08): el aviso de un campo («Valor por defecto: …») va en una
+// línea; si no cabe se corta con elipsis y autotitle pone el texto entero en title.
+.q-field__messages
+  min-width: 0
+.q-field__messages > div
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+// 050 (ola 6, G01): las filas por página de una tabla son un conteo (valor).
+.q-table__bottom .q-select .q-field__native
+  font-family: $obs-font-mono

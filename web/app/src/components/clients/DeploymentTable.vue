@@ -72,10 +72,10 @@
             <q-td key="site" :props="props">{{ props.row.site_name }}</q-td>
             <q-td key="mon_type" :props="props">{{ props.row.mon_type }}</q-td>
             <q-td key="goarch" :props="props" class="mono">{{ props.row.goarch }}</q-td>
-            <q-td key="expiry" :props="props" class="mono">{{
+            <q-td key="expiry" :props="props">{{
               formatDate(props.row.expiry)
             }}</q-td>
-            <q-td key="created" :props="props" class="mono">{{
+            <q-td key="created" :props="props">{{
               formatDate(props.row.created)
             }}</q-td>
             <q-td key="flags" :props="props"

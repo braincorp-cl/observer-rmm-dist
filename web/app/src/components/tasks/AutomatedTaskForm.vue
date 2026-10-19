@@ -254,7 +254,7 @@
                     </q-item-section>
                     <q-item-section v-if="element.type === 'script'">
                       <q-item-label>
-                        <q-icon size="sm" name="description" color="primary" />
+                        <q-icon size="sm" name="description" />
                         &nbsp; {{ element.name }}
                       </q-item-label>
                       <q-item-label caption>
