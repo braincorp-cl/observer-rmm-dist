@@ -40,7 +40,7 @@
               class="q-pr-sm"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" />
               </template>
             </q-input>
             <export-table-btn

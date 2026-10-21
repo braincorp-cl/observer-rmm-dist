@@ -272,7 +272,7 @@
                     </q-item-section>
                     <q-item-section v-else>
                       <q-item-label>
-                        <q-icon size="sm" name="terminal" color="primary" />
+                        <q-icon size="sm" name="terminal" />
                         &nbsp;
                         <q-icon
                           size="sm"
@@ -558,7 +558,10 @@
                   >
                     <q-item v-bind="itemProps">
                       <q-item-section>
-                        <q-item-label v-html="opt.label" />
+                        <q-item-label
+                          v-html="opt.label"
+                          :class="{ mono: /^\d+$/.test(opt.label) }"
+                        />
                       </q-item-section>
                       <q-item-section side>
                         <q-checkbox
@@ -582,7 +585,7 @@
                   :rules="[
                     (val) => val.length > 0 || $t('automatedTask.required'),
                   ]"
-                  class="col-4 q-pa-sm obs-mono-values"
+                  class="col-4 q-pa-sm"
                   filled
                   dense
                   options-dense

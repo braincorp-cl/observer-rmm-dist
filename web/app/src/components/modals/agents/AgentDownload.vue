@@ -39,9 +39,9 @@
           >
           </q-btn>
         </p>
-        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+        <q-banner dense class="obs-notice obs-notice--info q-mb-sm">
           <template v-slot:avatar>
-            <q-icon name="info" color="primary" />
+            <q-icon name="info" />
           </template>
           {{ $t("agentDownload.winExeAdminNote") }}
         </q-banner>
@@ -66,9 +66,9 @@
           >
           </q-btn>
         </p>
-        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+        <q-banner dense class="obs-notice obs-notice--info q-mb-sm">
           <template v-slot:avatar>
-            <q-icon name="info" color="primary" />
+            <q-icon name="info" />
           </template>
           {{ $t("agentDownload.winPsAdminNote") }}
         </q-banner>
@@ -79,9 +79,9 @@
         <div class="text-weight-medium q-mt-sm">
           {{ $t("agentDownload.winUninstallLabel") }}
         </div>
-        <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+        <q-banner dense class="obs-notice obs-notice--info q-mb-sm">
           <template v-slot:avatar>
-            <q-icon name="info" color="primary" />
+            <q-icon name="info" />
           </template>
           {{ $t("agentDownload.winUninstallNote") }}
         </q-banner>
@@ -124,9 +124,9 @@
             >
             </q-btn>
           </p>
-          <q-banner dense class="bg-grey-3 text-black q-mb-sm">
+          <q-banner dense class="obs-notice obs-notice--info q-mb-sm">
             <template v-slot:avatar>
-              <q-icon name="info" color="primary" />
+              <q-icon name="info" />
             </template>
             {{ $t("agentDownload.nixHeadlessNote") }}
           </q-banner>
@@ -134,10 +134,10 @@
         <q-banner
           v-if="info.plat === 'darwin'"
           dense
-          class="bg-grey-3 text-black q-mb-sm"
+          class="obs-notice obs-notice--info q-mb-sm"
         >
           <template v-slot:avatar>
-            <q-icon name="info" color="primary" />
+            <q-icon name="info" />
           </template>
           {{ $t("agentDownload.macUninstallNote") }}
         </q-banner>

@@ -76,7 +76,6 @@
               <q-icon
                 v-if="props.row.is_superuser"
                 name="done"
-                color="primary"
                 size="sm"
               />
             </q-td>

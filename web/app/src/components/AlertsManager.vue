@@ -302,7 +302,6 @@
                 <q-td>
                   <q-icon
                     v-if="props.row.agent_settings"
-                    color="primary"
                     name="done"
                     size="sm"
                   >
@@ -315,7 +314,6 @@
                 <q-td>
                   <q-icon
                     v-if="props.row.check_settings"
-                    color="primary"
                     name="done"
                     size="sm"
                   >
@@ -328,7 +326,6 @@
                 <q-td>
                   <q-icon
                     v-if="props.row.task_settings"
-                    color="primary"
                     name="done"
                     size="sm"
                   >
@@ -342,8 +339,7 @@
                   >{{ props.row.name }}
                   <q-chip
                     v-if="props.row.default_template"
-                    color="primary"
-                    text-color="white"
+                    class="obs-chip-neutral"
                     size="sm"
                     >{{ $t("alertsManager.defaultChip") }}</q-chip
                   >

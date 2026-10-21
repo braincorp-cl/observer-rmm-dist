@@ -105,7 +105,6 @@
               <q-icon
                 v-if="props.row.shell === 'powershell'"
                 name="mdi-powershell"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPowershell") }}</q-tooltip>
@@ -113,7 +112,6 @@
               <q-icon
                 v-else-if="props.row.shell === 'python'"
                 name="mdi-language-python"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellPython") }}</q-tooltip>
@@ -121,7 +119,6 @@
               <q-icon
                 v-else-if="props.row.shell === 'cmd'"
                 name="mdi-microsoft-windows"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellBatch") }}</q-tooltip>
@@ -129,7 +126,6 @@
               <q-icon
                 v-else-if="props.row.shell === 'shell'"
                 name="mdi-bash"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellShell") }}</q-tooltip>
@@ -137,7 +133,6 @@
               <q-icon
                 v-else-if="props.row.shell === 'nushell'"
                 name="mdi-nushell"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellNushell") }}</q-tooltip>
@@ -145,7 +140,6 @@
               <q-icon
                 v-else-if="props.row.shell === 'deno'"
                 name="mdi-typescript"
-                color="primary"
                 size="sm"
               >
                 <q-tooltip>{{ $t("scriptsCommon.shellDeno") }}</q-tooltip>

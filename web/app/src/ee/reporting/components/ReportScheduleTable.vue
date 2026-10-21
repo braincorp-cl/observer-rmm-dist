@@ -61,7 +61,7 @@
             class="q-pr-md q-pb-xs"
           >
             <template #prepend>
-              <q-icon name="search" color="primary" />
+              <q-icon name="search" />
             </template>
           </q-input>
         </template>

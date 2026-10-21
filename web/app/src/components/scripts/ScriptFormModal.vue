@@ -45,10 +45,10 @@
         v-if="readonly"
         dense
         inline-actions
-        :class="$q.dark.isActive ? 'bg-grey-9 text-white' : 'bg-blue-grey-1'"
+        class="obs-notice obs-notice--info"
       >
         <template v-slot:avatar>
-          <q-icon class="text-center" name="info" color="primary" />
+          <q-icon class="text-center" name="info" />
         </template>
         {{ $t("scriptFormModal.readonlyTemplateNote") }}
       </q-banner>

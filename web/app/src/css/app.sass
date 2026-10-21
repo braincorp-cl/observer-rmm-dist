@@ -481,6 +481,10 @@ body.body--dark
   background: var(--obs-raised)
   color: var(--obs-text)
   border: 1px solid var(--obs-border)
+// 050 (ola 6, G05): los diálogos heredados piden `text-primary` en el tooltip;
+// un tooltip no es acción ⇒ texto neutro (teal solo acción o navegación).
+.q-tooltip.text-primary
+  color: var(--obs-text) !important
 .q-chip[class*="bg-"]:not(.bg-secondary):not(.obs-chip-neutral):not(.obs-hdr-chip)
   color: var(--obs-on-brand)
 .obs-text-muted

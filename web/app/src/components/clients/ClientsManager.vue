@@ -116,7 +116,10 @@
               <span
                 style="cursor: pointer; text-decoration: underline"
                 class="text-primary"
+                role="button"
+                tabindex="0"
                 @click="showSitesTable(props.row)"
+                @keyup.enter="showSitesTable(props.row)"
                 >{{
                   $t("clientsManager.showSites", {
                     count: props.row.sites.length,
