@@ -661,6 +661,20 @@ body.body--dark
 .obs-mono-values .q-field__input,
 .q-field input[type="number"]
   font-family: $obs-font-mono
+// Opciones del menú de un select de valores (boot/monooptions.js); una opción que es
+// palabra («Último día») lleva obs-ui-text y queda en Archivo.
+.obs-mono-options .q-item__label
+  font-family: $obs-font-mono
+.obs-mono-options .q-item__label.obs-ui-text,
+.obs-mono-values .q-field__native .obs-ui-text
+  font-family: $typography-font-family
+// Valor mostrado de un select múltiple armado con slot: separador entre ítems.
+.obs-sel-item + .obs-sel-item:before
+  content: ", "
+// Un placeholder es texto de interfaz aunque el campo sea de valores.
+.q-field__native::placeholder,
+.q-field__input::placeholder
+  font-family: $typography-font-family
 // 050 (T030, G13): a ≤700 px las columnas del gestor se apilan (políticas,
 // navegación de sección, detalle) y la página se desplaza entera.
 @media (max-width: 700px)

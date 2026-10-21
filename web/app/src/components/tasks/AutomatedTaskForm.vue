@@ -536,10 +536,17 @@
                   emit-value
                   map-options
                 >
+                  <template v-slot:selected-item="{ opt }">
+                    <span
+                      class="obs-sel-item"
+                      :class="{ 'obs-ui-text': !/^\d+$/.test(opt.label) }"
+                      >{{ opt.label }}</span
+                    >
+                  </template>
                   <template v-slot:before-options>
                     <q-item>
                       <q-item-section>
-                        <q-item-label>{{
+                        <q-item-label class="obs-ui-text">{{
                           $t("automatedTask.allDays")
                         }}</q-item-label>
                       </q-item-section>
@@ -560,7 +567,7 @@
                       <q-item-section>
                         <q-item-label
                           v-html="opt.label"
-                          :class="{ mono: /^\d+$/.test(opt.label) }"
+                          :class="{ 'obs-ui-text': !/^\d+$/.test(opt.label) }"
                         />
                       </q-item-section>
                       <q-item-section side>
@@ -634,7 +641,7 @@
                   <template v-slot:before-options>
                     <q-item>
                       <q-item-section>
-                        <q-item-label>{{
+                        <q-item-label class="obs-ui-text">{{
                           $t("automatedTask.allDays")
                         }}</q-item-label>
                       </q-item-section>
