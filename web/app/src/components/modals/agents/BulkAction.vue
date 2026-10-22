@@ -145,6 +145,7 @@
           <q-input
             v-model="state.custom_shell"
             outlined
+            class="obs-mono-values"
             :label="$t('bulkAction.customShell')"
             stack-label
             :placeholder="$t('bulkAction.customShellPlaceholder')"
@@ -155,6 +156,7 @@
           <q-input
             v-model="state.cmd"
             outlined
+            class="obs-mono-values"
             :label="$t('bulkAction.command')"
             stack-label
             :placeholder="cmdPlaceholder(state.shell)"
@@ -210,6 +212,7 @@
             outlined
             type="number"
             style="max-width: 150px"
+            class="obs-mono-values"
             :label="$t('bulkAction.timeoutSeconds')"
             stack-label
             :rules="[

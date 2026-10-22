@@ -65,6 +65,7 @@
           <q-input
             v-model="state.custom_shell"
             outlined
+            class="obs-mono-values"
             :label="$t('sendCommandCommon.customShell')"
             stack-label
             :placeholder="$t('sendCommandCommon.customShellPlaceholder')"
@@ -78,6 +79,7 @@
             outlined
             type="number"
             style="max-width: 150px"
+            class="obs-mono-values"
             :label="$t('sendCommandCommon.timeoutSeconds')"
             stack-label
             :rules="[
@@ -94,6 +96,7 @@
           <q-input
             v-model="state.cmd"
             outlined
+            class="obs-mono-values"
             :label="$t('sendCommandCommon.command')"
             stack-label
             :placeholder="cmdPlaceholder(state.shell)"
