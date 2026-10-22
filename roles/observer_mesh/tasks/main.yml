@@ -99,6 +99,9 @@
 
 - name: Mesh — agentes macOS firmados con Developer ID ({{ observer_mesh_macos_signed_tag }})
   when: observer_mesh_macos_signed_tag | length > 0
+  # Tag propio: permite desplegar SOLO los binarios sin correr el rol entero
+  # (install.yml --tags mesh_macos_signed --limit observer_mesh).
+  tags: [mesh_macos_signed]
   block:
     - name: Crear meshcentral-data/agents
       ansible.builtin.file:
