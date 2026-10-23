@@ -67,6 +67,14 @@ export async function fetchAgentLocation(agent_id) {
   return data;
 }
 
+// Feature 051: pide una captura de ubicación ahora (202). Fuera de línea o con
+// la geo apagada responde 400 con un código `endpoint_response:` que el
+// interceptor de axios traduce.
+export async function refreshAgentLocation(agent_id) {
+  const { data } = await axios.post(`${baseUrl}/${agent_id}/location/refresh/`);
+  return data;
+}
+
 export async function fetchAgentLocationHistory(agent_id, params = {}) {
   const { data } = await axios.get(`${baseUrl}/${agent_id}/location/history/`, {
     params: params,

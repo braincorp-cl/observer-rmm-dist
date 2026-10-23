@@ -119,6 +119,22 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
+    def audit_agent_location_refresh(
+        username: str, agent: "Agent", debug_info: Dict[Any, Any] = {}
+    ) -> None:
+        # Feature 051 (RN-04): cada pedido de ubicación a demanda queda registrado
+        # (quién, a qué equipo y cuándo). Igual que la consulta, sin coordenadas.
+        AuditLog.objects.create(
+            username=username,
+            agent=agent.hostname,
+            agent_id=agent.agent_id,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.VIEW,
+            message=f"{username} requested a location refresh of {agent.hostname}.",
+            debug_info=debug_info,
+        )
+
+    @staticmethod
     def audit_activity_screenshot_forced(
         username: str, agent: "Agent", estado: str
     ) -> None:

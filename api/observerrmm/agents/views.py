@@ -96,6 +96,7 @@ from .permissions import (
     ViewActivityPerms,
     ManageActivityPerms,
     AgentNotesPerms,
+    AgentLocationRefreshPerms,
     AgentPerms,
     AgentRegistryPerms,
     AgentWOLPerms,
@@ -2129,6 +2130,36 @@ class AgentLocation(APIView):
                 "captured_at": latest.x,
             }
         )
+
+
+class AgentLocationRefresh(APIView):
+    """Feature 051: pide al equipo una captura de ubicación ahora, en vez de
+    esperar el ciclo periódico (CHECKIN_GEO, 25-35 min).
+
+    Solo con la geo global encendida (RN-05; el modo perdido ya captura por su
+    cuenta) y con el equipo en línea: fuera de línea se rechaza sin encolar nada.
+    Un agente sin el RPC no responde y sale como inalcanzable.
+    """
+
+    permission_classes = [IsAuthenticated, AgentLocationRefreshPerms]
+
+    def post(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        if not get_core_settings().geo_tracking_enabled:
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}geo_disabled")
+
+        if agent.status != AGENT_STATUS_ONLINE:
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}agent_offline")
+
+        AuditLog.audit_agent_location_refresh(
+            username=request.user.username, agent=agent
+        )
+        r = asyncio.run(agent.nats_cmd({"func": "geolocation"}, timeout=5))
+        if r != "ok":
+            return notify_error(f"{ENDPOINT_RESPONSE_PREFIX}agent_unreachable")
+
+        return Response({"requested": True}, status=202)
 
 
 class AgentLocationHistory(APIView):

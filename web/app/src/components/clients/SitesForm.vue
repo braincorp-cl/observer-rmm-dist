@@ -48,8 +48,8 @@
                 outlined
                 dense
                 clearable
-                type="number"
-                step="any"
+                inputmode="decimal"
+                class="obs-mono-values"
                 v-model="state.latitude"
                 :label="$t('sitesForm.latitude')"
                 :rules="[latitudeRule]"
@@ -60,8 +60,8 @@
                 outlined
                 dense
                 clearable
-                type="number"
-                step="any"
+                inputmode="decimal"
+                class="obs-mono-values"
                 v-model="state.longitude"
                 :label="$t('sitesForm.longitude')"
                 :rules="[longitudeRule]"
@@ -110,6 +110,7 @@ import { fetchSite, saveSite, editSite } from "@/api/clients";
 import { fetchCustomFields } from "@/api/core";
 import { formatCustomFields } from "@/utils/format";
 import { notifySuccess } from "@/utils/notify";
+import { parseCoord, coordError } from "@/utils/coords";
 
 // ui imports
 import CustomField from "@/components/ui/CustomField.vue";
@@ -143,26 +144,15 @@ export default {
     const customFields = ref([]);
     const loading = ref(false);
 
-    // Coordenadas del sitio (feature 026). q-input entrega strings, y al limpiar
-    // el campo entrega "" o null; el backend espera number o null, así que se
-    // normaliza acá en vez de mandar "" y comerse un 400.
-    function coord(value) {
-      if (value === null || value === undefined || value === "") return null;
-      const n = Number(value);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    // Ambas o ninguna, y dentro de rango: media coordenada no ubica nada y el
-    // backend la rechaza igual, así que se avisa antes de mandar el formulario.
+    // Coordenadas del sitio (feature 026). Feature 051: se aceptan coma o punto
+    // decimal y un texto que no es número es error, nunca «sin coordenada»
+    // (antes, con coma en los dos campos, el sitio se guardaba sin ubicación).
     function coordRule(own, other, max, errorKey) {
-      const a = coord(own);
-      const b = coord(other);
-      if (a === null && b === null) return true;
-      if (a === null || Math.abs(a) > max) return t(errorKey);
-      // (0, 0) es el "null island" del Atlántico: siempre es un campo a medio
-      // llenar, nunca una oficina.
-      if (a === 0 && b === 0) return t("sitesForm.nullIslandInvalid");
-      return true;
+      const error = coordError(own, other, max);
+      if (error === null) return true;
+      return t(
+        error === "nullIsland" ? "sitesForm.nullIslandInvalid" : errorKey,
+      );
     }
 
     const latitudeRule = (val) =>
@@ -172,8 +162,8 @@ export default {
 
     async function submit() {
       loading.value = true;
-      state.value.latitude = coord(state.value.latitude);
-      state.value.longitude = coord(state.value.longitude);
+      state.value.latitude = parseCoord(state.value.latitude);
+      state.value.longitude = parseCoord(state.value.longitude);
       const data = {
         site: state.value,
         custom_fields: formatCustomFields(

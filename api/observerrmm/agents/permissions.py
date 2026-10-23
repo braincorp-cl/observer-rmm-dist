@@ -25,6 +25,17 @@ class AgentPerms(permissions.BasePermission):
                 )
 
 
+class AgentLocationRefreshPerms(permissions.BasePermission):
+    """Feature 051: pedir la ubicación a demanda exige lo mismo que verla
+    (GET /location/ va por AgentPerms con can_list_agents), aunque sea un POST:
+    el pedido no cambia nada del equipo, solo adelanta la captura periódica."""
+
+    def has_permission(self, r, view) -> bool:
+        return _has_perm(r, "can_list_agents") and _has_perm_on_agent(
+            r.user, view.kwargs["agent_id"]
+        )
+
+
 class RecoverAgentPerms(permissions.BasePermission):
     def has_permission(self, r, view) -> bool:
         if "agent_id" not in view.kwargs.keys():
