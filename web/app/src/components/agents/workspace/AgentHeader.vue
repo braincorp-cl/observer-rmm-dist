@@ -221,6 +221,7 @@
       v-model="showLocation"
       :agent-id="agent.agent_id"
       :hostname="agent.hostname"
+      :status="agent.status"
     />
   </header>
 </template>
