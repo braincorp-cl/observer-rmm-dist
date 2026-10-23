@@ -18,6 +18,8 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 | `/functions/mcp/` | Guía independiente (no enlazada desde la UI): conectar asistentes de IA (Claude Code, VS Code, Cursor, Claude Desktop, n8n) al servidor MCP (feature 045) |
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
+| `/administracion/` | Guía independiente (no enlazada desde la UI): administración de usuarios —alta, perfil, alcance por cliente/sitio, doble factor, llaves de API, baja y delegación al cliente | 
+| `/administracion/roles/` | Catálogo de los perfiles que la plataforma siembra de fábrica. **Generada**: `python3 scripts/docs/build_roles_page.py` (perfiles y permisos salen de `api/observerrmm/accounts/role_catalog.py`, el mismo módulo que usa `seed_default_roles`; las etiquetas de cada permiso, de `RolesForm.vue` + `i18n/{es,en}.json`; el rail se copia de `/functions/permissions/`) |
 | `/api/` | Referencia pública de la API REST para integraciones de terceros (ITSM/CMDB) con API key. **Generada**: `python3 scripts/docs/build_api_page.py` (rutas y métodos extraídos de `urls.py` + vistas; descripciones en `scripts/docs/api_catalog.py`; falla si una ruta nueva no está descrita) |
 
 Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Usuarios y roles · Observer RMM" data-title-en="Users &amp; roles · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administrar usuarios y roles en Observer RMM</title>
+<meta name="description" content="Cómo administrar el acceso a Observer RMM: crear usuarios, asignarles un perfil, exigir doble factor, acotar por cliente y sitio, emitir llaves de API y revisar la auditoría.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/administracion/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/administracion/">
+<meta property="og:title" content="Administrar usuarios y roles en Observer RMM">
+<meta property="og:description" content="Crear usuarios, asignarles un perfil, exigir doble factor, acotar el alcance por cliente y sitio, emitir llaves de API y revisar la auditoría.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .table-wrap { overflow-x: auto; }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/administracion/" class="active"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/administracion/roles/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
+    <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Administración</p>
+      <p class="eyebrow lang-en">Administration</p>
+      <h1><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></h1>
+      <p class="lead lang-es">Quién entra a la consola, con qué perfil y sobre qué equipos. Esta guía cubre el ciclo completo de una cuenta —alta, perfil, alcance, doble factor, baja— y las llaves de API para sistemas externos.</p>
+      <p class="lead lang-en">Who gets into the console, with which role and over which machines. This guide covers an account's full life cycle —creation, role, scope, two-factor, removal— and the API keys used by external systems.</p>
+
+      <h2 id="donde"><span class="lang-es">Dónde se administra</span><span class="lang-en">Where it is administered</span></h2>
+      <div class="table-wrap"><table><thead><tr>
+        <th><span class="lang-es">Pantalla</span><span class="lang-en">Screen</span></th>
+        <th><span class="lang-es">Para qué</span><span class="lang-en">What for</span></th>
+      </tr></thead><tbody>
+        <tr><td><strong><span class="lang-es">Configuración → Gestor de usuarios</span><span class="lang-en">Settings → Users manager</span></strong></td>
+            <td><span class="lang-es">Crear y dar de baja cuentas, asignarles un perfil, restablecer la contraseña y el doble factor.</span><span class="lang-en">Create and remove accounts, assign them a role, reset password and two-factor.</span></td></tr>
+        <tr><td><strong><span class="lang-es">Configuración → Gestor de permisos</span><span class="lang-en">Settings → Permissions manager</span></strong></td>
+            <td><span class="lang-es">Ver, crear y editar perfiles, y acotar su alcance a determinados clientes y sitios.</span><span class="lang-en">View, create and edit roles, and limit their scope to specific clients and sites.</span></td></tr>
+        <tr><td><strong><span class="lang-es">Configuración → Llaves de API</span><span class="lang-en">Settings → API keys</span></strong></td>
+            <td><span class="lang-es">Emitir y revocar llaves para integraciones externas. Cada llave hereda el perfil del usuario al que se asocia.</span><span class="lang-en">Issue and revoke keys for external integrations. Each key inherits the role of the user it is tied to.</span></td></tr>
+        <tr><td><strong><span class="lang-es">Herramientas → Registros de auditoría</span><span class="lang-en">Tools → Audit logs</span></strong></td>
+            <td><span class="lang-es">Quién hizo qué y cuándo: altas de usuario, cambios de perfil, inicios de sesión y acciones sobre los equipos.</span><span class="lang-en">Who did what and when: user creation, role changes, logins and actions on machines.</span></td></tr>
+      </tbody></table></div>
+
+      <h2 id="alta-de-usuario"><span class="lang-es">Dar de alta a una persona</span><span class="lang-en">Onboarding a person</span></h2>
+      <ol class="lang-es">
+        <li><strong>Elige el perfil primero, no después.</strong> Revisa el <a href="/administracion/roles/">catálogo de perfiles</a> y toma el que describa la función de la persona. Si ninguno calza, parte del más parecido y recórtalo; crear un perfil nuevo para una sola persona suele ser señal de que el recorte iba en otra parte.</li>
+        <li><strong>Crea la cuenta</strong> en el Gestor de usuarios con su nombre, correo y el perfil elegido.</li>
+        <li><strong>Acota el alcance</strong> si corresponde: en el perfil puedes limitar los clientes y sitios visibles. Un técnico de una región no necesita ver la flota completa.</li>
+        <li><strong>Entrega el acceso.</strong> En el primer inicio de sesión la plataforma exige configurar el <strong>doble factor</strong>; sin él no se completa el ingreso.</li>
+      </ol>
+      <ol class="lang-en">
+        <li><strong>Pick the role first, not last.</strong> Check the <a href="/administracion/roles/">role catalogue</a> and take the one that matches the person's job. If none fits, start from the closest and trim it; creating a brand-new role for a single person usually means the trimming belonged somewhere else.</li>
+        <li><strong>Create the account</strong> in the Users manager with their name, email and the chosen role.</li>
+        <li><strong>Limit the scope</strong> where it applies: a role can be restricted to specific clients and sites. A technician covering one region does not need to see the whole fleet.</li>
+        <li><strong>Hand over the access.</strong> On first login the platform requires setting up <strong>two-factor authentication</strong>; without it the login does not complete.</li>
+      </ol>
+
+      <h2 id="doble-factor"><span class="lang-es">Doble factor</span><span class="lang-en">Two-factor authentication</span></h2>
+      <p class="lang-es">El doble factor (TOTP, con una aplicación tipo Authenticator) es <strong>obligatorio para todas las cuentas</strong> y no se puede desactivar por usuario. Si alguien pierde el teléfono, un administrador restablece su segundo factor desde el Gestor de usuarios y la persona vuelve a enrolarlo en el siguiente ingreso.</p>
+      <p class="lang-en">Two-factor (TOTP, with an authenticator app) is <strong>mandatory for every account</strong> and cannot be switched off per user. If someone loses their phone, an administrator resets their second factor from the Users manager and the person enrols it again on their next login.</p>
+
+      <h2 id="alcance"><span class="lang-es">Alcance: clientes y sitios</span><span class="lang-en">Scope: clients and sites</span></h2>
+      <p class="lang-es">Los permisos dicen <em>qué</em> puede hacer alguien; el alcance dice <em>sobre qué</em>. Un mismo perfil —por ejemplo, Técnico de Soporte Nivel 1— se puede entregar a diez personas y que cada una solo vea los equipos de su cliente o de su sitio. Es la forma más barata de aplicar mínimo privilegio sin multiplicar perfiles.</p>
+      <p class="lang-en">Permissions say <em>what</em> someone can do; scope says <em>to what</em>. The same role —Tier 1 Support Technician, say— can be given to ten people, each seeing only the machines of their client or site. It is the cheapest way to apply least privilege without multiplying roles.</p>
+
+      <h2 id="llaves-api"><span class="lang-es">Llaves de API</span><span class="lang-en">API keys</span></h2>
+      <p class="lang-es">Una integración externa (un ITSM, una CMDB, un tablero) se conecta con una <strong>llave de API</strong>, no con la cuenta de una persona. La llave se asocia a un usuario y hereda su perfil, así que conviene crear un usuario dedicado con el perfil <em>Integración de Solo Lectura</em> y emitir la llave sobre él. Así la integración no puede ejecutar nada, y revocarla no afecta a ninguna persona. El detalle de los endpoints está en la <a href="/api/">referencia de la API REST</a>.</p>
+      <p class="lang-en">An external integration (an ITSM, a CMDB, a dashboard) connects with an <strong>API key</strong>, not with a person's account. The key is tied to a user and inherits their role, so create a dedicated user with the <em>Read-only Integration</em> role and issue the key on it. That way the integration cannot execute anything, and revoking it affects nobody. Endpoint details are in the <a href="/api/">REST API reference</a>.</p>
+
+      <h2 id="delegacion"><span class="lang-es">Delegar la administración al cliente</span><span class="lang-en">Delegating administration to the customer</span></h2>
+      <p class="lang-es">En instalaciones dedicadas a un solo cliente es habitual que su propio responsable de TI dé de alta y de baja a su gente sin pasar por el proveedor. Para eso está el perfil <strong>Administrador de Organización</strong>: administra la flota, los sitios y las cuentas de su equipo, pero <strong>no puede crear ni editar perfiles</strong> ni tocar la configuración del servidor.</p>
+      <p class="lang-en">In single-customer installations it is common for the customer's own IT lead to onboard and offboard their people without going through the provider. That is what the <strong>Organization Administrator</strong> role is for: it administers the fleet, the sites and the team's accounts, but <strong>cannot create or edit roles</strong> nor touch server configuration.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Límite actual</span>
+        <p>Quien puede gestionar cuentas y listar roles ve <em>todos</em> los perfiles en el selector, incluidos los más privilegiados. Mientras no esté disponible la restricción por perfil asignable, delega este rol solo a personas de confianza y revisa los registros de auditoría: cada creación de usuario y cada cambio de perfil queda registrado con autor y fecha.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Current limitation</span>
+        <p>Whoever can manage accounts and list roles sees <em>every</em> role in the selector, the most privileged ones included. Until the assignable-role restriction is available, delegate this role only to trusted people and review the audit logs: every user creation and every role change is recorded with author and date.</p>
+      </div>
+
+      <h2 id="baja"><span class="lang-es">Dar de baja</span><span class="lang-en">Offboarding</span></h2>
+      <p class="lang-es">Al salir una persona, <strong>deshabilita su cuenta</strong> en vez de eliminarla: así se conserva la trazabilidad de lo que hizo en los registros de auditoría. Revisa además si tenía llaves de API emitidas a su nombre y revócalas.</p>
+      <p class="lang-en">When someone leaves, <strong>disable their account</strong> instead of deleting it: that preserves the traceability of what they did in the audit logs. Also check whether they had API keys issued in their name and revoke them.</p>
+
+      <h2 id="buenas-practicas"><span class="lang-es">Buenas prácticas</span><span class="lang-en">Best practices</span></h2>
+      <ul class="lang-es">
+        <li>Una cuenta por persona. Las cuentas compartidas destruyen la auditoría.</li>
+        <li>Pocos superusuarios, y ninguno de uso diario.</li>
+        <li>Asigna el perfil del catálogo antes de inventar uno nuevo.</li>
+        <li>Acota por cliente y sitio siempre que la función lo permita.</li>
+        <li>Revisa trimestralmente quién tiene perfiles de alto impacto y revoca lo que ya no corresponda.</li>
+        <li>Las capacidades de custodia —borrado remoto, evidencia, actividad laboral— se asignan por caso, no de forma permanente.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>One account per person. Shared accounts destroy the audit trail.</li>
+        <li>Few superusers, and none for day-to-day work.</li>
+        <li>Assign a catalogue role before inventing a new one.</li>
+        <li>Scope by client and site whenever the job allows it.</li>
+        <li>Review quarterly who holds high-impact roles and revoke what no longer applies.</li>
+        <li>Custody capabilities —remote wipe, evidence, activity monitoring— are assigned per case, not permanently.</li>
+      </ul>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>
