@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.33 — 2026-10-23
+
+- **Coordenadas del sitio con coma decimal.** Latitud y longitud aceptan `19,429449` o `19.429449`. Un texto que no es número muestra un error en vez de guardar el sitio sin coordenadas (antes, con coma en los dos campos, el sitio quedaba sin ubicación y sin geocerca, sin aviso).
+- **Fabricante y modelo con respaldo.** Si Windows no entrega `Win32_ComputerSystemProduct`, el fabricante se toma de `Win32_ComputerSystem` o de la placa base, en vez de mostrar «unknown make/model».
+- **Ubicación a demanda.** Botón «Actualizar ubicación» en el mapa del equipo: pide una captura en el momento en vez de esperar el ciclo periódico. Solo con la geolocalización encendida y el equipo en línea; queda en la auditoría. Requiere el agente 2.18.4.
+
 ## v1.4.32 — 2026-10-13
 
 - **Monitoreo de actividad: reportes al estilo de las herramientas de productividad (049-E).** Barra apilada por usuario y para toda la empresa (improductivo, neutral, productivo, sin categoría e inactivo), categorías también por dominio web, ranking único de programas y sitios, tiempo activo e inactivo por aplicación, URL visitadas (dominio y ruta, sin parámetros), conteo de teclas y eventos de mouse por tramo para distinguir a una persona frente al equipo (sólo cantidades, nunca qué se escribió), filtro «solo horario laboral» y el reporte nuevo «Actividad - por período» (mes, trimestre o cualquier rango). Exportación a Excel (XLSX). **Monitoreo en vivo sin video**: la última captura de cada equipo y un botón para pedir una del momento, auditado. Requiere el agente 2.18.0. Incluye dos migraciones.
