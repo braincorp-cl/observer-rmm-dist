@@ -97,6 +97,37 @@
     mode: "0640"
   notify: restart meshcentral
 
+- name: Mesh — agentes macOS firmados con Developer ID ({{ observer_mesh_macos_signed_tag }})
+  when: observer_mesh_macos_signed_tag | length > 0
+  # Tag propio: permite desplegar SOLO los binarios sin correr el rol entero
+  # (install.yml --tags mesh_macos_signed --limit observer_mesh).
+  tags: [mesh_macos_signed]
+  block:
+    - name: Crear meshcentral-data/agents
+      ansible.builtin.file:
+        path: /meshcentral/meshcentral-data/agents
+        state: directory
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0755"
+
+    # El checksum sale del SHA256SUMS del mismo pre-release: get_url no deja el
+    # archivo si no coincide, así que un binario a medio bajar nunca llega a
+    # servirse a los Mac.
+    - name: Bajar los binarios macOS firmados
+      ansible.builtin.get_url:
+        url: "https://agents.observer.cl/releases/download/{{ observer_mesh_macos_signed_tag }}/{{ item }}"
+        dest: "/meshcentral/meshcentral-data/agents/{{ item }}"
+        checksum: "sha256:https://agents.observer.cl/releases/download/{{ observer_mesh_macos_signed_tag }}/SHA256SUMS"
+        owner: "{{ observer_user }}"
+        group: "{{ observer_group }}"
+        mode: "0755"
+      loop:
+        - meshagent_osx-arm-64
+        - meshagent_osx-x86-64
+        - meshagent_osx-universal-64
+      notify: restart meshcentral
+
 - name: Desplegar meshcentral.service
   ansible.builtin.template:
     src: meshcentral.service.j2

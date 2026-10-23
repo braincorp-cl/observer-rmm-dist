@@ -61,3 +61,15 @@ observer_mesh_db_maintenance_dir: /opt/observer/scripts
 observer_mesh_autobackup_enabled: false
 observer_mesh_autobackup_keep_days: 7
 observer_mesh_autobackup_hour: 6
+
+# --- Mesh Agent macOS firmado con Developer ID ---
+# Tag del pre-release (repo privado observer-agent-dist; se baja del CDN
+# agents.observer.cl) que publica el workflow
+# «Firmar meshagent macOS» (p. ej. "meshagent-macos-testing-sep2026"). Con valor,
+# se bajan los tres binarios macOS a meshcentral-data/agents/, que MeshCentral
+# prefiere sobre los de node_modules (meshcentral.js, agentpath3), y los nodos Mac
+# se auto-actualizan a la versión firmada. Vacío = no se toca nada (quedan los de
+# upstream, firmados ad-hoc, o el override que haya a mano).
+# Por qué: con ad-hoc, TCC ancla el permiso de pantalla al cdhash y cada update
+# del Mesh deja el escritorio remoto en gris (medido 2026-10-22, macOS 27).
+observer_mesh_macos_signed_tag: ""
