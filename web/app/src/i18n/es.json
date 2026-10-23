@@ -764,7 +764,11 @@
       "source_unavailable": "no disponible",
       "showHistory": "Histórico",
       "hideHistory": "Ocultar histórico",
-      "historyCount": "{count} ubicaciones anteriores"
+      "historyCount": "{count} ubicaciones anteriores",
+      "refresh": "Actualizar ubicación",
+      "refreshOffline": "El equipo no está en línea",
+      "refreshRequested": "Ubicación pedida: el punto nuevo puede tardar hasta un minuto",
+      "refreshNoNewFix": "El equipo todavía no informó un punto nuevo"
     }
   },
   "agentActions": {
@@ -3018,6 +3022,8 @@
       "empty_message": "El mensaje no puede quedar vacío.",
       "empty_reason": "El motivo es obligatorio para marcar un equipo como perdido: queda registrado en la auditoría.",
       "agent_unreachable": "No se pudo contactar al agente. El equipo puede estar apagado o sin red.",
+      "agent_offline": "El equipo no está en línea.",
+      "geo_disabled": "La geolocalización está desactivada.",
       "error": "La acción falló en el equipo. Revisa el log del agente para ver el detalle."
     }
   },

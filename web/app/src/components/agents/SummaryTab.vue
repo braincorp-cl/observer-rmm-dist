@@ -322,6 +322,7 @@
       v-model="showLocation"
       :agent-id="selectedAgent"
       :hostname="summary.hostname"
+      :status="summary.status"
     />
   </div>
 </template>

@@ -477,10 +477,26 @@ class Agent(BaseAuditModel):
             except:
                 return "error getting make/model"
 
+        def first(wmi_class: str, prop: str) -> str:
+            with suppress(Exception):
+                instance = self.wmi_detail[wmi_class][0]
+                value = [x[prop] for x in instance if prop in x][0]
+                if value:
+                    return cast(str, value)
+            return ""
+
         with suppress(Exception):
             comp_sys = self.wmi_detail["comp_sys"][0]
-            comp_sys_prod = self.wmi_detail["comp_sys_prod"][0]
-            make = [x["Vendor"] for x in comp_sys_prod if "Vendor" in x][0]
+            # Feature 051: hay equipos cuyo WMI no entrega
+            # Win32_ComputerSystemProduct; el fabricante sigue estando en
+            # Win32_ComputerSystem o, en último caso, en la placa.
+            make = (
+                first("comp_sys_prod", "Vendor")
+                or first("comp_sys", "Manufacturer")
+                or first("base_board", "Manufacturer")
+            )
+            if not make:
+                raise ValueError("sin fabricante")
             model = [x["Model"] for x in comp_sys if "Model" in x][0]
 
             if "to be filled" in model.lower():

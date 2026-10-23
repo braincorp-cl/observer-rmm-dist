@@ -764,7 +764,11 @@
       "source_unavailable": "unavailable",
       "showHistory": "History",
       "hideHistory": "Hide history",
-      "historyCount": "{count} previous locations"
+      "historyCount": "{count} previous locations",
+      "refresh": "Refresh location",
+      "refreshOffline": "The device is offline",
+      "refreshRequested": "Location requested: the new fix may take up to a minute",
+      "refreshNoNewFix": "The device has not reported a new fix yet"
     }
   },
   "agentActions": {
@@ -3018,6 +3022,8 @@
       "empty_message": "The message cannot be empty.",
       "empty_reason": "A reason is required to mark a device as lost: it is recorded in the audit log.",
       "agent_unreachable": "Could not reach the agent. The device may be powered off or offline.",
+      "agent_offline": "The device is offline.",
+      "geo_disabled": "Geolocation is turned off.",
       "error": "The action failed on the device. Check the agent log for details."
     }
   },

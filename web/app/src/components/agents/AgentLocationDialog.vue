@@ -7,6 +7,24 @@
           {{ $t("agentTabs.location.title", { hostname: hostname }) }}
         </div>
         <q-space />
+        <!-- Feature 051: ubicación a demanda (solo con la geo encendida). El
+             tooltip va en el contenedor: un botón deshabilitado no recibe el
+             hover. -->
+        <div v-if="location && location.enabled" class="inline-block">
+          <q-btn
+            dense
+            flat
+            no-caps
+            icon="my_location"
+            :label="$t('agentTabs.location.refresh')"
+            :loading="refreshing"
+            :disable="!canRefresh"
+            @click="refresh"
+          />
+          <q-tooltip v-if="!online">
+            {{ $t("agentTabs.location.refreshOffline") }}
+          </q-tooltip>
+        </div>
         <q-btn v-close-popup dense flat icon="close">
           <q-tooltip>{{ $t("agentTabs.location.close") }}</q-tooltip>
         </q-btn>
@@ -101,7 +119,18 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useStore } from "vuex";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fetchAgentLocation, fetchAgentLocationHistory } from "@/api/agents";
+import {
+  fetchAgentLocation,
+  fetchAgentLocationHistory,
+  refreshAgentLocation,
+} from "@/api/agents";
+import { notifyInfo, notifyWarning } from "@/utils/notify";
+import { useI18n } from "vue-i18n";
+
+// Feature 051: tras pedir la ubicación, el botón queda deshabilitado este tiempo
+// (Q4) y se consulta /location/ cada POLL_MS hasta ver un punto nuevo.
+const REFRESH_COOLDOWN_MS = 60000;
+const POLL_MS = 5000;
 
 export default {
   name: "AgentLocationDialog",
@@ -109,10 +138,14 @@ export default {
     modelValue: { type: Boolean, default: false },
     agentId: { type: String, required: true },
     hostname: { type: String, default: "" },
+    // Estado del equipo (online/offline/overdue) para habilitar el pedido a
+    // demanda; sin él se asume en línea y decide el backend.
+    status: { type: String, default: "online" },
   },
   emits: ["update:modelValue"],
   setup(props, { emit }) {
     const store = useStore();
+    const { t } = useI18n();
     const show = computed({
       get: () => props.modelValue,
       set: (v) => emit("update:modelValue", v),
@@ -125,6 +158,20 @@ export default {
     const mapEl = ref(null);
     let map = null;
     let historyLayer = null; // capa Leaflet con trayectoria + puntos anteriores
+
+    // Feature 051 · ubicación a demanda.
+    const refreshing = ref(false);
+    const coolingDown = ref(false);
+    // El backend dijo «fuera de línea» aunque la consola lo veía en línea.
+    const offlineDetected = ref(false);
+    let cooldownTimer = null;
+    let pollTimer = null;
+    const online = computed(
+      () => props.status === "online" && !offlineDetected.value,
+    );
+    const canRefresh = computed(
+      () => online.value && !refreshing.value && !coolingDown.value,
+    );
 
     const sourceLabel = computed(() => {
       const src = location.value?.source;
@@ -146,21 +193,25 @@ export default {
       );
     });
 
+    async function fetchAll() {
+      location.value = await fetchAgentLocation(props.agentId);
+      if (location.value?.enabled && location.value.lat != null) {
+        const hist = await fetchAgentLocationHistory(props.agentId, {
+          limit: 500,
+        });
+        points.value = (hist?.points || []).filter(
+          (p) => p.lat != null && p.long != null,
+        );
+      }
+    }
+
     async function load() {
       loading.value = true;
       location.value = null;
       points.value = [];
       showHistory.value = false;
       try {
-        location.value = await fetchAgentLocation(props.agentId);
-        if (location.value?.enabled && location.value.lat != null) {
-          const hist = await fetchAgentLocationHistory(props.agentId, {
-            limit: 500,
-          });
-          points.value = (hist?.points || []).filter(
-            (p) => p.lat != null && p.long != null,
-          );
-        }
+        await fetchAll();
       } catch (e) {
         console.error(e);
       }
@@ -169,6 +220,61 @@ export default {
         await nextTick();
         renderMap();
       }
+    }
+
+    function stopRefreshTimers() {
+      clearTimeout(cooldownTimer);
+      clearTimeout(pollTimer);
+      cooldownTimer = pollTimer = null;
+      refreshing.value = false;
+      coolingDown.value = false;
+    }
+
+    // Pide la captura y espera el punto nuevo sin recargar el diálogo: se
+    // consulta /location/ hasta que cambie `captured_at` o pase el minuto.
+    async function refresh() {
+      if (!canRefresh.value) return;
+      refreshing.value = true;
+      const before = location.value?.captured_at ?? null;
+      try {
+        await refreshAgentLocation(props.agentId);
+      } catch (e) {
+        // El interceptor ya mostró el motivo traducido; acá solo se refleja
+        // en el botón (Q5: fuera de línea ⇒ deshabilitado, sin reintentos).
+        if (String(e?.response?.data ?? "").endsWith("agent_offline")) {
+          offlineDetected.value = true;
+        }
+        refreshing.value = false;
+        return;
+      }
+      notifyInfo(t("agentTabs.location.refreshRequested"), 4000);
+      coolingDown.value = true;
+      cooldownTimer = setTimeout(() => {
+        coolingDown.value = false;
+      }, REFRESH_COOLDOWN_MS);
+
+      const deadline = Date.now() + REFRESH_COOLDOWN_MS;
+      const poll = async () => {
+        try {
+          const latest = await fetchAgentLocation(props.agentId);
+          if (latest?.captured_at && latest.captured_at !== before) {
+            await fetchAll();
+            refreshing.value = false;
+            await nextTick();
+            renderMap();
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        if (Date.now() >= deadline) {
+          refreshing.value = false;
+          notifyWarning(t("agentTabs.location.refreshNoNewFix"), 4000);
+          return;
+        }
+        pollTimer = setTimeout(poll, POLL_MS);
+      };
+      pollTimer = setTimeout(poll, POLL_MS);
     }
 
     function renderMap() {
@@ -275,8 +381,13 @@ export default {
     }
 
     watch(show, (v) => {
-      if (v) load();
-      else cleanup();
+      if (v) {
+        offlineDetected.value = false;
+        load();
+      } else {
+        stopRefreshTimers();
+        cleanup();
+      }
     });
 
     return {
@@ -290,6 +401,10 @@ export default {
       toggleHistory,
       mapEl,
       cleanup,
+      online,
+      canRefresh,
+      refreshing,
+      refresh,
     };
   },
 };
