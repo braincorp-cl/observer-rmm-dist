@@ -8,6 +8,10 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.34 — 2026-10-23
+
+- **Delegación restringida de la administración de usuarios (052).** Cada perfil declara ahora **qué otros perfiles puede otorgar** quien lo porta, en «Perfiles que puede otorgar» del editor de perfiles. El selector al crear un usuario muestra exactamente esos y nada más. Por encima de esa lista hay una regla que no se puede desactivar: nadie otorga un perfil con permisos que él mismo no tenga, ni un perfil de superusuario; la lista solo restringe. Como ningún perfil administrativo lleva permisos de custodia, **nombrar custodios —borrado remoto, recuperación de archivos, evidencia, equipos perdidos, actividad laboral— queda reservado al superusuario**. Un administrador delegado tampoco puede cambiarse su propio perfil ni tocar una cuenta de superusuario (editarla, deshabilitarla, eliminarla, resetearle la contraseña o el segundo factor). Las cuentas fuera de su alcance siguen visibles en el listado, para no perder la trazabilidad de quién existe, pero rechazan toda escritura. Cada rechazo queda en los registros de auditoría bajo «Delegación rechazada», con autor, cuenta objetivo, perfil pretendido y motivo. El perfil «Administrador de Organización» viene con cuatro perfiles asignables de fábrica. Incluye dos migraciones.
+
 ## v1.4.33 — 2026-10-23
 
 - **Coordenadas del sitio con coma decimal.** Latitud y longitud aceptan `19,429449` o `19.429449`. Un texto que no es número muestra un error en vez de guardar el sitio sin coordenadas (antes, con coma en los dos campos, el sitio quedaba sin ubicación y sin geocerca, sin aviso).
