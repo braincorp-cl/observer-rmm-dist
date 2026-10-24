@@ -2730,7 +2730,8 @@
       "required": "Required",
       "confirm": "Confirm",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "reportContent": "Report content"
     },
     "notify": {
       "tplRemoved": "The report template was successfully removed",

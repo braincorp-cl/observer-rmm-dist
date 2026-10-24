@@ -256,7 +256,7 @@
         v-if="tab == 'preview'"
         :showing="isLoading"
         :label="$t('reporting.templateForm.generatingReport')"
-        label-class="text-teal"
+        color="primary"
         label-style="font-size: 1.1em"
       />
 

@@ -2730,7 +2730,8 @@
       "required": "Requerido",
       "confirm": "Confirmar",
       "yes": "Sí",
-      "no": "No"
+      "no": "No",
+      "reportContent": "Contenido del reporte"
     },
     "notify": {
       "tplRemoved": "La plantilla de reporte se eliminó correctamente",

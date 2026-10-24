@@ -3,17 +3,20 @@
     <q-inner-loading
       :showing="isLoading"
       :label='$t("reporting.common.pleaseWait")'
-      label-class="text-teal"
       label-style="font-size: 1.1em"
+      color="primary"
     />
+    <!-- 050 (T045, G02): el lienzo del reporte es papel y sale del token
+         --obs-paper, igual en ambos temas; el documento no se re-tematiza. -->
     <iframe
       :srcdoc="$route.query.format !== 'pdf' ? reportData : undefined"
       :src="$route.query.format === 'pdf' ? reportData : undefined"
+      :title="$t('reporting.common.reportContent')"
       :style="{
         'max-height': `${$q.screen.height}px`,
         'min-height': `${$q.screen.height}px`,
         'min-width': '100%',
-        'background-color': 'white',
+        'background-color': 'var(--obs-paper)',
       }"
       id="report-iframe"
     ></iframe>

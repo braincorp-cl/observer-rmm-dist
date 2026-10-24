@@ -34,6 +34,7 @@ body.body--dark
   --obs-faint: #{$obs-d-faint}
   --obs-on-brand: #{$obs-d-on-brand}
   --obs-on-dark: #{$obs-d-text}
+  --obs-paper: #{$obs-paper}
   --obs-shadow: #{$obs-shadow}
   --obs-shadow-1: #{$obs-shadow-1}
   --obs-shadow-2: #{$obs-shadow-2}
@@ -77,6 +78,7 @@ body.body--light
   --obs-faint: #{$obs-l-faint}
   --obs-on-brand: #{$obs-l-on-brand}
   --obs-on-dark: #{$obs-d-text}
+  --obs-paper: #{$obs-paper}
   --obs-shadow: #{$obs-shadow}
   --obs-shadow-1: #{$obs-shadow-1}
   --obs-shadow-2: #{$obs-shadow-2}
@@ -958,3 +960,9 @@ body.body--dark
 .q-dialog__inner--maximized > .q-card:not(.obs-set)
   border: none
   border-radius: 0
+// 050 (ola 7, T045, G02/G05): el rótulo del velo de carga va en el texto del
+// tema. Las vistas de reporte lo pedían con `text-teal`, un color de la paleta
+// de Quasar fuera de los tokens y, además, teal usado como texto y no como
+// acción.
+.q-inner-loading__label
+  color: var(--obs-text)

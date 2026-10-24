@@ -67,6 +67,11 @@ $obs-d-negative : #F25A5F
 $obs-d-positive : #3ED184
 $obs-d-warning  : #FFC15E
 $obs-d-on-brand : #04222A
+// 050 (ola 7, T045): el lienzo de un reporte renderizado es papel. El documento
+// (PDF o HTML) se compone en blanco con tinta oscura y no se re-tematiza, así
+// que su fondo es el mismo en ambos temas; queda como token para que ningún
+// .vue tenga que escribir el color a mano (V2-G02).
+$obs-paper      : #FFFFFF
 // Sombra de capas superpuestas (columna de contexto plegada), ambos temas.
 $obs-shadow     : rgba(0, 0, 0, 0.35)
 // Elevación (tarjetas, menús, tablas), fondo de diálogo y resaltado de fila:
