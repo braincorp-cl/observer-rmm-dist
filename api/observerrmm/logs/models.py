@@ -262,6 +262,13 @@ class AuditLog(models.Model):
         # operación habría escrito si no se la hubiera rechazado: es el campo
         # que ya usan audit_lost_mode para el motivo y audit_raw_command para el
         # comando.
+        #
+        # Queda NULO cuando el rechazo no fue por un perfil —tocar una cuenta de
+        # superusuario, o cambiarse el propio perfil—, siguiendo el `or None` de
+        # audit_lost_mode y audit_endpoint_response. Antes caía al motivo, y una
+        # columna «perfil pretendido» que a veces trae una frase de error es peor
+        # que una vacía: no se puede agrupar ni filtrar por ella, y el motivo ya
+        # viaja completo en `message`.
         detail = f"{username} fue rechazado al administrar a {target}: {reason}"
 
         AuditLog.objects.create(
@@ -269,7 +276,7 @@ class AuditLog(models.Model):
             object_type=AuditObjType.USER,
             action=AuditActionType.DELEGATION_DENIED,
             message=detail,
-            after_value=attempted_role or reason,
+            after_value=attempted_role or None,
             debug_info=debug_info,
         )
 

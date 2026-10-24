@@ -796,3 +796,21 @@ class TestRoleDelegation(ObserverTestCase):
         self.assertEqual(filas.count(), antes + 1)
         fila = filas.last()
         self.assertIn("Potente de prueba", fila.after_value)
+
+    def test_rechazo_sin_perfil_pretendido_deja_after_value_nulo(self):
+        # Cuando el rechazo no es por un perfil —acá, tocar una cuenta de
+        # superusuario— la columna «perfil pretendido» queda vacía en vez de
+        # repetir el motivo, que ya viaja completo en el mensaje.
+        self.as_delegado()
+        r = self.client.delete(f"/accounts/{self.jefe.pk}/users/")
+        self.assertEqual(r.status_code, 403)
+
+        fila = (
+            AuditLog.objects.filter(
+                action=AuditActionType.DELEGATION_DENIED, username="delegado"
+            )
+            .order_by("-entry_time")
+            .first()
+        )
+        self.assertIsNone(fila.after_value)
+        self.assertIn("superusuario", fila.message)
