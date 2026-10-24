@@ -945,3 +945,16 @@ body.body--dark
 // 050 (ola 6, G01): el contador «N / máx» de un campo es un conteo (valor).
 .q-field__counter
   font-family: $obs-font-mono
+// 050 (ola 7, T044, G02/G05): el tirador del cajón de variables del editor de
+// plantillas es un control neutro sobre superficie elevada, no una acción.
+.obs-drawer-handle
+  background: var(--obs-raised)
+  color: var(--obs-text-2)
+  border: 1px solid var(--obs-border)
+// 050 (ola 7, T044): un diálogo maximizado ocupa la ventana entera; el borde y
+// el radio de la superficie elevada (regla de T036) dejarían esquinas
+// redondeadas contra el borde de la pantalla. Afecta sobre todo a los gestores
+// de reportería, que abren maximizados.
+.q-dialog__inner--maximized > .q-card:not(.obs-set)
+  border: none
+  border-radius: 0

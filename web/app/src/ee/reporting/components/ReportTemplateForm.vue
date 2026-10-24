@@ -85,37 +85,18 @@
         />
         <q-space />
 
-        <q-tabs v-model="tab" dense shrink>
-          <q-tab
-            v-if="templateType === 'markdown'"
-            name="markdown"
-            :label="$t('reporting.templateForm.tabMarkdown')"
-            :ripple="false"
-          />
-          <q-tab
-            v-else-if="templateType === 'html'"
-            name="html"
-            :label="$t('reporting.templateForm.tabHtml')"
-            :ripple="false"
-          />
-          <q-tab
-            v-else
-            name="plaintext"
-            :label="$t('reporting.templateForm.tabPlainText')"
-            :ripple="false"
-          />
-          <q-tab
-            v-if="templateType !== 'plaintext'"
-            name="css"
-            :label="$t('reporting.templateForm.tabCss')"
-            :ripple="false"
-          />
-          <q-tab
-            name="preview"
-            :label="$t('reporting.templateForm.tabPreview')"
-            :ripple="false"
-          />
-        </q-tabs>
+        <!-- 050 (T044): sin pestañas; la vista del editor se elige con un grupo
+             segmentado, como el tipo de equipo de la flota y los campos
+             personalizados de Ajustes. -->
+        <q-btn-toggle
+          v-model="tab"
+          no-caps
+          unelevated
+          :ripple="false"
+          toggle-color="primary"
+          class="obs-page__toggle"
+          :options="editorViewOptions"
+        />
       </q-toolbar>
 
       <!-- main editor -->
@@ -133,24 +114,27 @@
             :width="500"
             :mini-width="40"
           >
+            <!-- 050 (T044, G02/G05): el tirador del cajón es un control
+                 neutro sobre superficie elevada; `color="dark"` lo pintaba con
+                 el color de superficie del tema. -->
             <q-btn
               icon="chevron_left"
-              color="dark"
-              class="absolute"
+              class="absolute obs-drawer-handle"
               style="top: 15px; right: -17px"
               @click="drawerMiniState = true"
               dense
               round
+              unelevated
             />
             <template v-slot:mini>
               <div class="q-pt-sm">
                 <q-btn
-                  class=""
+                  class="obs-drawer-handle"
                   icon="chevron_right"
-                  color="dark"
                   @click="drawerMiniState = false"
                   dense
                   round
+                  unelevated
                 />
               </div>
             </template>
@@ -533,6 +517,33 @@ const tab = ref(
       ? "html"
       : "plaintext",
 );
+
+// 050 (T044): opciones del grupo segmentado que reemplaza a las pestañas.
+// Mismo repertorio y mismas condiciones que tenían los q-tab.
+const editorViewOptions = computed(() => {
+  const options = [];
+  if (props.templateType === "markdown") {
+    options.push({
+      value: "markdown",
+      label: t("reporting.templateForm.tabMarkdown"),
+    });
+  } else if (props.templateType === "html") {
+    options.push({ value: "html", label: t("reporting.templateForm.tabHtml") });
+  } else {
+    options.push({
+      value: "plaintext",
+      label: t("reporting.templateForm.tabPlainText"),
+    });
+  }
+  if (props.templateType !== "plaintext") {
+    options.push({ value: "css", label: t("reporting.templateForm.tabCss") });
+  }
+  options.push({
+    value: "preview",
+    label: t("reporting.templateForm.tabPreview"),
+  });
+  return options;
+});
 
 onBeforeMount(() => {
   getReportHTMLTemplates();

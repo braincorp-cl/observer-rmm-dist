@@ -19,16 +19,25 @@
         />
       </q-card-section>
       <q-card-section v-if="tableType === 'variables'">
+        <!-- 050 (T044, G01): la fuente de datos es el nombre de una variable y
+             la salida es la tabla generada (código) ⇒ ambas en Mono. -->
         <q-select
           v-model="source"
           :options="arrayOptions"
+          class="obs-mono-values"
           outlined
           dense
           :label="$t('reporting.tableMaker.dataSourceLabel')"
         />
       </q-card-section>
       <q-card-section style="max-height: 60vh" class="scroll">
-        <q-input v-model="output" filled type="textarea" autogrow />
+        <q-input
+          v-model="output"
+          class="obs-mono-values"
+          filled
+          type="textarea"
+          autogrow
+        />
       </q-card-section>
       <q-card-actions align="right">
         <q-btn

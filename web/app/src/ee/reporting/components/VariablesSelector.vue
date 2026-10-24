@@ -19,8 +19,10 @@
         </q-icon>
       </q-item-section>
       <q-item-section>
+        <!-- 050 (T044, G01): un bloque de la plantilla base y una variable son
+             identificadores de código ⇒ JetBrains Mono. -->
         <span
-          class="cursor-pointer"
+          class="cursor-pointer mono"
           style="text-decoration-line: underline; font-size: smaller"
           @click="copy(block.block, false, true)"
         >
@@ -60,11 +62,13 @@
       @mouseleave="mouseover = ''"
     >
       <q-item-section avatar>
-        <q-badge color="primary" :label="type"></q-badge>
+        <!-- 050 (T044, G05): el tipo de la variable es un dato, no una acción:
+             insignia neutra, no teal. -->
+        <q-badge class="obs-chip-neutral" :label="type"></q-badge>
       </q-item-section>
       <q-item-label :lines="1">
         <span
-          class="cursor-pointer"
+          class="cursor-pointer mono"
           style="text-decoration-line: underline; font-size: smaller"
           @click="copy(prop.toString(), type.toLowerCase() === 'array')"
         >

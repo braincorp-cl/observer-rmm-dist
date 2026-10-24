@@ -34,18 +34,21 @@
           outlined
           class="q-pb-sm"
         />
+        <!-- 050 (T044, G01): la URL y el fragmento generado son valores
+             dedicados ⇒ Mono; el texto del enlace es prosa y queda en Archivo. -->
         <q-input
           v-model="linkUrl"
           :label="$t('reporting.assetSelect.url')"
           dense
           outlined
-          class="q-pb-sm"
+          class="q-pb-sm obs-mono-values"
         />
         <q-input
           v-model="output"
           :label="$t('reporting.assetSelect.output')"
           readonly
           dense
+          class="obs-mono-values"
         />
       </q-card-section>
       <q-card-section
@@ -56,9 +59,11 @@
         <div v-if="tree.length === 0">
           {{ $t("reporting.assetSelect.noAssets") }}
         </div>
+        <!-- 050 (T044, G01): los nodos del árbol son nombres de archivo. -->
         <q-tree
           v-else
           ref="qtree"
+          class="mono"
           :nodes="tree"
           v-model:selected="selected"
           node-key="path"
@@ -73,7 +78,7 @@
           :label="$t('reporting.assetSelect.selected')"
           readonly
           dense
-          class="q-pb-sm"
+          class="q-pb-sm obs-mono-values"
         />
       </q-card-section>
       <q-card-actions>

@@ -29,9 +29,13 @@
       </q-card-section>
 
       <q-card-section class="q-pa-md">
+        <!-- 050 (T044, G01): el nombre y la extensión del adjunto son valores
+             dedicados (nombre de archivo) ⇒ Mono. El asunto y el cuerpo del
+             correo son prosa y quedan en Archivo. -->
         <q-input
           v-model="localEmailSettings.attachment_name"
           :label="$t('reporting.emailSettings.attachmentNameLabel')"
+          class="obs-mono-values"
           dense
           filled
           :hint="$t('reporting.emailSettings.attachmentNameHint')"
@@ -46,6 +50,7 @@
         <q-input
           v-model="localEmailSettings.attachment_extension"
           :label="$t('reporting.emailSettings.attachmentExtensionLabel')"
+          class="obs-mono-values"
           dense
           filled
           prefix="."

@@ -183,11 +183,13 @@ const columns = computed<QTableColumn[]>(() => [
     sortable: true,
   },
   {
+    // 050 (T044, G01): una dirección de correo es un valor dedicado ⇒ Mono.
     name: "email_recipients",
     label: t("reporting.scheduleTable.recipientsCol"),
     field: "email_recipients",
     align: "left",
     sortable: false,
+    classes: "mono obs-wrap-words",
     format: (val: string[]) => val.join(", "),
   },
   {

@@ -25,7 +25,8 @@
                 <q-icon name="insert_drive_file" />
               </q-avatar>
 
-              <div class="ellipsis relative-position">
+              <!-- 050 (T044, G01): el nombre del archivo es un valor dedicado. -->
+              <div class="ellipsis relative-position mono">
                 {{ file.name }}
               </div>
 

@@ -47,15 +47,24 @@
             :rules="[(val: number) => !!val || $t('reporting.scheduleForm.requiredField')]"
           >
             <template #after v-if="hasDependencies">
+              <!-- 050 (T044, G05): el ámbar queda en la insignia de estado
+                   dentro del control; el rótulo de la acción va en teal. -->
               <q-btn
                 flat
                 dense
                 no-caps
-                :icon="!areDependenciesMet ? 'warning' : undefined"
-                :color="!areDependenciesMet ? 'warning' : 'primary'"
-                :label="$t('reporting.scheduleForm.dependenciesLabel')"
+                color="primary"
                 @click="openDependenciesForm"
-              />
+              >
+                <q-icon
+                  v-if="!areDependenciesMet"
+                  name="warning"
+                  color="warning"
+                  size="xs"
+                  class="q-mr-xs"
+                />
+                {{ $t("reporting.scheduleForm.dependenciesLabel") }}
+              </q-btn>
             </template>
           </observer-dropdown>
 
@@ -95,11 +104,14 @@
             </template>
           </observer-dropdown>
 
+          <!-- 050 (T044, G01): el identificador IANA de la zona horaria es un
+               valor dedicado ⇒ JetBrains Mono, igual que en Ajustes. -->
           <observer-dropdown
             v-if="!emailOnly"
             v-model="localSchedule.timezone"
             :options="settings?.all_timezones || []"
             :label="$t('reporting.scheduleForm.timezoneLabel')"
+            class="obs-mono-values"
             options-dense
             dense
             filled
@@ -146,7 +158,9 @@
                   dense
                 >
                   <q-item-section>
-                    <q-item-label>{{ email }}</q-item-label>
+                    <!-- 050 (T044, G01): una dirección de correo es un valor
+                         dedicado ⇒ Mono. -->
+                    <q-item-label class="mono">{{ email }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
                     <q-icon
@@ -364,6 +378,8 @@ function openEmailSettings() {
 function toggleAddEmail() {
   $q.dialog({
     title: t("reporting.scheduleForm.addEmailLabel"),
+    // 050 (T044, G01): lo que se escribe acá es una dirección ⇒ Mono.
+    class: "obs-mono-values",
     prompt: {
       model: "",
       isValid: (val) => isValidEmail(val),
