@@ -39,6 +39,14 @@ def notify_error(msg: str) -> Response:
     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
 
+def notify_denied(msg: str) -> Response:
+    # Feature 052: una denegación NO es un error de payload. El cuerpo de la
+    # petición puede ser impecable y aun así no corresponder que esa persona la
+    # haga. Devolver 400 confundiría "te falta un campo" con "no te toca", y
+    # quien audita necesita distinguirlas.
+    return Response(msg, status=status.HTTP_403_FORBIDDEN)
+
+
 def get_nats_ports() -> tuple[int, int]:
     """
     Returns: tuple[nats_standard_port: int, nats_websocket_port: int]

@@ -3,9 +3,16 @@ from unittest.mock import patch
 from django.test import override_settings
 from model_bakery import baker, seq
 
-from accounts.models import APIKey, User
+from accounts.models import APIKey, Role, User
 from accounts.serializers import APIKeySerializer
-from observerrmm.constants import AgentDblClick, AgentTableTabs, ClientTreeSort
+from accounts.utils import can_assign_role, can_manage_user
+from logs.models import AuditLog
+from observerrmm.constants import (
+    AgentDblClick,
+    AgentTableTabs,
+    AuditActionType,
+    ClientTreeSort,
+)
 from observerrmm.test import ObserverTestCase, missing_pk
 
 
@@ -486,3 +493,289 @@ class TestAPIAuthentication(ObserverTestCase):
         self.client.credentials(HTTP_X_API_KEY="123456")
         r = self.client.get(url, format="json")
         self.assertEqual(r.status_code, 200)
+
+
+class TestRoleDelegation(ObserverTestCase):
+    """Feature 052: delegación restringida de la administración de usuarios.
+
+    El escenario de base es el que pidió el cliente: un perfil que administra
+    cuentas y solo puede repartir UN perfil, el de soporte.
+    """
+
+    def setUp(self):
+        self.authenticate()  # john y alice, superusuarios
+        self.setup_coresettings()
+
+        # Perfil de soporte: el único que el delegado puede otorgar.
+        self.soporte = Role.objects.create(
+            name="Soporte de prueba",
+            can_list_agents=True,
+            can_list_accounts=True,
+        )
+        # Perfil del delegado: superconjunto estricto del de soporte, para que
+        # el invariante de no-elevación no sea quien bloquee en los casos donde
+        # lo que se prueba es la lista.
+        self.delegado_role = Role.objects.create(
+            name="Delegado de prueba",
+            can_list_agents=True,
+            can_list_accounts=True,
+            can_manage_accounts=True,
+            can_list_roles=True,
+        )
+        self.delegado_role.assignable_roles.add(self.soporte)
+
+        # Perfil fuera de la lista y con un permiso que el delegado NO tiene:
+        # sirve para separar el rechazo por lista del rechazo por invariante.
+        self.potente = Role.objects.create(
+            name="Potente de prueba",
+            can_list_agents=True,
+            can_run_scripts=True,
+        )
+        self.rol_super = Role.objects.create(name="Super de prueba", is_superuser=True)
+
+        self.delegado = User.objects.create_user(  # type: ignore
+            username="delegado", password="hunter2delegado"
+        )
+        self.delegado.role = self.delegado_role
+        self.delegado.save()
+
+        self.subordinado = User.objects.create_user(  # type: ignore
+            username="subordinado", password="hunter2subordinado"
+        )
+        self.subordinado.role = self.soporte
+        self.subordinado.save()
+
+        self.ajeno = User.objects.create_user(  # type: ignore
+            username="ajeno", password="hunter2ajeno"
+        )
+        self.ajeno.role = self.potente
+        self.ajeno.save()
+
+        self.jefe = User.objects.create_user(  # type: ignore
+            username="jefe", password="hunter2jefe"
+        )
+        self.jefe.role = self.rol_super
+        self.jefe.save()
+
+    def as_delegado(self) -> None:
+        self.client.force_authenticate(user=self.delegado)
+
+    # --- T006: el M2M en sí -------------------------------------------------
+
+    def test_assignable_roles_no_es_simetrico(self):
+        # 🔑 La trampa de ManyToManyField("self"): sin symmetrical=False, habilitar
+        # A → B habilitaría B → A y el perfil de soporte podría repartir el que lo
+        # administra. Es un error que no da error, por eso se afirma explícitamente.
+        self.assertIn(self.soporte, self.delegado_role.assignable_roles.all())
+        self.assertNotIn(self.delegado_role, self.soporte.assignable_roles.all())
+
+    def test_borrar_un_rol_lo_saca_de_las_listas(self):
+        self.soporte.delete()
+        self.delegado_role.refresh_from_db()
+        self.assertEqual(self.delegado_role.assignable_roles.count(), 0)
+
+    # --- T007: can_assign_role() -------------------------------------------
+
+    def test_can_assign_role_permite_lo_que_esta_en_la_lista(self):
+        ok, _ = can_assign_role(self.delegado, self.soporte)
+        self.assertTrue(ok)
+
+    def test_can_assign_role_rechaza_lo_que_no_esta_en_la_lista(self):
+        ok, motivo = can_assign_role(self.delegado, self.potente)
+        self.assertFalse(ok)
+        self.assertIn("Potente de prueba", motivo)
+
+    def test_can_assign_role_rechaza_por_invariante_aunque_este_en_la_lista(self):
+        # El caso que define RN-02: la lista solo restringe, nunca amplía.
+        self.delegado_role.assignable_roles.add(self.potente)
+        ok, motivo = can_assign_role(self.delegado, self.potente)
+        self.assertFalse(ok)
+        self.assertIn("permisos", motivo)
+
+    def test_can_assign_role_rechaza_rol_superusuario(self):
+        self.delegado_role.assignable_roles.add(self.rol_super)
+        ok, _ = can_assign_role(self.delegado, self.rol_super)
+        self.assertFalse(ok)
+
+    def test_can_assign_role_superusuario_puede_todo(self):
+        ok, _ = can_assign_role(self.john, self.rol_super)
+        self.assertTrue(ok)
+
+    def test_can_assign_role_lista_vacia_no_asigna_nada(self):
+        self.delegado_role.assignable_roles.clear()
+        ok, _ = can_assign_role(self.delegado, self.soporte)
+        self.assertFalse(ok)
+
+    # --- T008: can_manage_user() -------------------------------------------
+
+    def test_can_manage_user_rechaza_cuenta_superusuario(self):
+        ok, motivo = can_manage_user(self.delegado, self.jefe)
+        self.assertFalse(ok)
+        self.assertIn("superusuario", motivo.lower())
+
+    def test_can_manage_user_rechaza_rol_fuera_de_la_lista(self):
+        ok, _ = can_manage_user(self.delegado, self.ajeno)
+        self.assertFalse(ok)
+
+    def test_can_manage_user_permite_rol_en_la_lista(self):
+        ok, _ = can_manage_user(self.delegado, self.subordinado)
+        self.assertTrue(ok)
+
+    def test_can_manage_user_permite_la_propia_cuenta(self):
+        # Los datos propios sí; el propio ROL lo corta RN-03 en la vista.
+        ok, _ = can_manage_user(self.delegado, self.delegado)
+        self.assertTrue(ok)
+
+    def test_can_manage_user_superusuario_puede_todo(self):
+        ok, _ = can_manage_user(self.john, self.jefe)
+        self.assertTrue(ok)
+
+    # --- T009: los cinco puntos de escritura --------------------------------
+
+    def test_los_cinco_puntos_de_escritura_rechazan(self):
+        self.as_delegado()
+        casos = [
+            (
+                "POST /accounts/users/ con rol no asignable",
+                lambda: self.client.post(
+                    "/accounts/users/",
+                    {
+                        "username": "colado",
+                        "email": "c@ej.cl",
+                        "password": "hunter2colado",
+                        "role": self.potente.pk,
+                    },
+                    format="json",
+                ),
+            ),
+            (
+                "PUT sobre una cuenta superusuario",
+                lambda: self.client.put(
+                    f"/accounts/{self.jefe.pk}/users/",
+                    {"id": self.jefe.pk, "username": "jefe", "first_name": "X"},
+                    format="json",
+                ),
+            ),
+            (
+                "DELETE sobre una cuenta superusuario",
+                lambda: self.client.delete(f"/accounts/{self.jefe.pk}/users/"),
+            ),
+            (
+                "reset de contraseña de una cuenta superusuario",
+                lambda: self.client.post(
+                    "/accounts/users/reset/",
+                    {"id": self.jefe.pk, "password": "hunter2nuevo"},
+                    format="json",
+                ),
+            ),
+            (
+                "reset de MFA de una cuenta superusuario",
+                lambda: self.client.put(
+                    "/accounts/users/reset_totp/", {"id": self.jefe.pk}, format="json"
+                ),
+            ),
+        ]
+        for nombre, llamada in casos:
+            with self.subTest(caso=nombre):
+                r = llamada()
+                self.assertEqual(r.status_code, 403, msg=nombre)
+
+        # Ninguna de las cinco dejó rastro: la cuenta del jefe sigue igual.
+        self.jefe.refresh_from_db()
+        self.assertEqual(self.jefe.role, self.rol_super)
+        self.assertFalse(User.objects.filter(username="colado").exists())
+
+    def test_el_delegado_si_puede_crear_con_el_rol_asignable(self):
+        self.as_delegado()
+        r = self.client.post(
+            "/accounts/users/",
+            {
+                "username": "nuevo",
+                "email": "n@ej.cl",
+                "password": "hunter2nuevo",
+                "role": self.soporte.pk,
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(User.objects.get(username="nuevo").role, self.soporte)
+
+    # --- T010: el listado de roles se filtra --------------------------------
+
+    def test_listado_de_roles_filtrado(self):
+        r = self.client.get("/accounts/roles/")
+        self.assertEqual(r.status_code, 200)
+        todos = Role.objects.count()
+        self.assertEqual(len(r.json()), todos)
+
+        self.as_delegado()
+        r = self.client.get("/accounts/roles/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual([x["name"] for x in r.json()], ["Soporte de prueba"])
+
+        self.delegado_role.assignable_roles.clear()
+        r = self.client.get("/accounts/roles/")
+        self.assertEqual(r.json(), [])
+
+    def test_listado_de_usuarios_no_se_filtra(self):
+        # RN-09: visibles aunque no sean editables, para conservar la
+        # trazabilidad y evitar colisiones de nombre de usuario.
+        self.as_delegado()
+        r = self.client.get("/accounts/users/")
+        self.assertEqual(r.status_code, 200)
+        nombres = [u["username"] for u in r.json()]
+        self.assertIn("jefe", nombres)
+        self.assertIn("ajeno", nombres)
+
+    # --- T011: nadie se cambia su propio rol --------------------------------
+
+    def test_no_puede_cambiarse_el_propio_rol(self):
+        self.as_delegado()
+        r = self.client.put(
+            f"/accounts/{self.delegado.pk}/users/",
+            {"id": self.delegado.pk, "username": "delegado", "role": self.rol_super.pk},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 403)
+        self.delegado.refresh_from_db()
+        self.assertEqual(self.delegado.role, self.delegado_role)
+
+    def test_si_puede_cambiar_sus_propios_datos(self):
+        self.as_delegado()
+        r = self.client.put(
+            f"/accounts/{self.delegado.pk}/users/",
+            {"id": self.delegado.pk, "username": "delegado", "first_name": "Dele"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200)
+        self.delegado.refresh_from_db()
+        self.assertEqual(self.delegado.first_name, "Dele")
+
+    # --- T012: el rechazo queda auditado ------------------------------------
+
+    def test_el_rechazo_queda_en_auditoria(self):
+        # 🪤 pytest-randomly: se cuenta sobre un queryset filtrado por acción y
+        # autor, nunca sobre la tabla entera, para no depender del orden.
+        antes = AuditLog.objects.filter(
+            action=AuditActionType.DELEGATION_DENIED, username="delegado"
+        ).count()
+
+        self.as_delegado()
+        r = self.client.post(
+            "/accounts/users/",
+            {
+                "username": "colado",
+                "email": "c@ej.cl",
+                "password": "hunter2colado",
+                "role": self.potente.pk,
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, 403)
+
+        filas = AuditLog.objects.filter(
+            action=AuditActionType.DELEGATION_DENIED, username="delegado"
+        )
+        self.assertEqual(filas.count(), antes + 1)
+        fila = filas.last()
+        self.assertIn("Potente de prueba", fila.after_value)

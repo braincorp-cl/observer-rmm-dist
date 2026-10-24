@@ -244,6 +244,36 @@ class AuditLog(models.Model):
         )
 
     @staticmethod
+    def audit_delegation_denied(
+        username: str,
+        target: str,
+        reason: str,
+        attempted_role: str = "",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 052: un intento de delegación que NO prosperó.
+        #
+        # Categoría propia, no MODIFY: lo que se quiere poder responder es
+        # "¿cuántas veces alguien intentó otorgar lo que no le toca?", y eso se
+        # cuenta filtrando por acción, sin leer el cuerpo de cada fila. Mismo
+        # criterio que audit_endpoint_response (028) y audit_lost_mode (030).
+        #
+        # El perfil pretendido va en `after_value` porque es el valor que la
+        # operación habría escrito si no se la hubiera rechazado: es el campo
+        # que ya usan audit_lost_mode para el motivo y audit_raw_command para el
+        # comando.
+        detail = f"{username} fue rechazado al administrar a {target}: {reason}"
+
+        AuditLog.objects.create(
+            username=username,
+            object_type=AuditObjType.USER,
+            action=AuditActionType.DELEGATION_DENIED,
+            message=detail,
+            after_value=attempted_role or reason,
+            debug_info=debug_info,
+        )
+
+    @staticmethod
     def audit_object_changed(
         username: str,
         object_type: str,

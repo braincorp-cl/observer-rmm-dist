@@ -103,6 +103,10 @@ class User(AbstractUser, BaseAuditModel):
                 [self.role],
                 "can_view_clients",
                 "can_view_sites",
+                # Feature 052: la lista de perfiles asignables viaja en el mismo
+                # objeto cacheado, así que validar una asignación no agrega
+                # ninguna consulta por request.
+                "assignable_roles",
             )
 
             cache.set(f"{ROLE_CACHE_PREFIX}{self.role}", self.role, 600)
@@ -251,6 +255,29 @@ class Role(BaseAuditModel):
     can_manage_accounts = models.BooleanField(default=False)
     can_list_roles = models.BooleanField(default=False)
     can_manage_roles = models.BooleanField(default=False)
+
+    # Feature 052: qué perfiles puede otorgar quien porta este rol.
+    #
+    # `can_manage_accounts` responde "¿puede administrar cuentas?" pero nunca
+    # "¿puede otorgar ESTE perfil?". Sin esta lista, cualquiera que administre
+    # cuentas y pueda listar perfiles otorga el de superusuario, a terceros o a
+    # sí mismo.
+    #
+    # Lista vacía NO significa "sin configurar": significa que no otorga ningún
+    # perfil, y es el valor por omisión a propósito (RN-08), para que ninguna
+    # instancia cambie de comportamiento al migrar.
+    #
+    # 🔑 `symmetrical=False` es obligatorio. Un ManyToManyField("self") es
+    # simétrico por omisión, así que sin esta línea habilitar A → B habilitaría
+    # también B → A: el perfil de soporte podría repartir el perfil que lo
+    # administra. Es un error que no da error —la migración corre y el camino
+    # feliz pasa— y abre exactamente el hueco que la feature viene a cerrar.
+    #
+    # La lista solo RESTRINGE: nunca habilita un perfil que el invariante de
+    # no-elevación (`can_assign_role` en utils.py) prohíba.
+    assignable_roles = models.ManyToManyField(
+        "self", symmetrical=False, blank=True, related_name="assignable_by"
+    )
 
     # authentication
     can_list_api_keys = models.BooleanField(default=False)

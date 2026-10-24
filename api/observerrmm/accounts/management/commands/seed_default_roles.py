@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from accounts.models import Role
-from accounts.role_catalog import MANAGED_PERMS, STANDARD_ROLES
+from accounts.role_catalog import ASSIGNABLE_BY_ROLE, MANAGED_PERMS, STANDARD_ROLES
 
 
 class Command(BaseCommand):
@@ -26,6 +26,12 @@ class Command(BaseCommand):
     #                            gestionada en False. `is_superuser` nunca se toca.
     #   --only "<nombre>"     -> acota la corrida (y el --force) a un solo rol
     #   --dry-run             -> informa qué haría, sin escribir nada
+    #
+    # La lista de perfiles asignables (feature 052) se resuelve en una SEGUNDA
+    # pasada, después de crear todos los roles: un rol no puede apuntar a otro que
+    # todavía no existe, y en el catálogo los que otorgan vienen antes que los
+    # otorgados. Sigue la misma regla de no-pisado: se siembra al crear, y en un rol
+    # que ya existía solo la toca --force.
     #
     # is_superuser va SIEMPRE en False en la creación: son roles granulares; el
     # bypass total es del superusuario, no de estos. El superusuario conserva todos
@@ -66,8 +72,12 @@ class Command(BaseCommand):
             definitions = [r for r in STANDARD_ROLES if r["name"] == only]
             if not definitions:
                 names = ", ".join(sorted(r["name"] for r in STANDARD_ROLES))
-                self.stderr.write(f"No existe en el catálogo el rol '{only}'. Hay: {names}")
+                self.stderr.write(
+                    f"No existe en el catálogo el rol '{only}'. Hay: {names}"
+                )
                 return
+
+        created, existing = set(), set()
 
         for definition in definitions:
             name = definition["name"]
@@ -83,7 +93,9 @@ class Command(BaseCommand):
                 role.save()
                 # Marca legible para que Ansible detecte 'changed' (changed_when).
                 self.stdout.write(f"SEEDED role: {name}")
+                created.add(name)
             elif force:
+                existing.add(name)
                 drift = self._drift(role, perms)
                 if not drift:
                     self.stdout.write(f"ALIGNED role: {name}")
@@ -96,6 +108,51 @@ class Command(BaseCommand):
                 self.stdout.write(f"FORCED role: {name} ({', '.join(drift)})")
             else:
                 self.stdout.write(f"SKIP existing role: {name}")
+                existing.add(name)
+
+        self._seed_assignables(definitions, created, existing, force, dry_run)
+
+    def _seed_assignables(self, definitions, created, existing, force, dry_run):
+        for definition in definitions:
+            name = definition["name"]
+            wanted_names = ASSIGNABLE_BY_ROLE.get(name)
+            if not wanted_names:
+                continue
+
+            # Un rol preexistente conserva su lista: puede que el cliente la haya
+            # ajustado a su organización, que es justamente el punto de la feature.
+            if name in existing and not force:
+                continue
+
+            role = Role.objects.filter(name=name).first()
+            if role is None:
+                continue
+
+            wanted = list(Role.objects.filter(name__in=wanted_names))
+            faltan = sorted(set(wanted_names) - {r.name for r in wanted})
+            if faltan:
+                # No es un error: el cliente pudo borrar un perfil del catálogo.
+                # Se siembra lo que existe y se deja constancia del resto.
+                self.stdout.write(
+                    f"MISSING assignable roles for {name}: {', '.join(faltan)}"
+                )
+
+            actuales = {r.name for r in role.assignable_roles.all()}
+            objetivo = {r.name for r in wanted}
+            if actuales == objetivo:
+                self.stdout.write(f"ALIGNED assignable roles: {name}")
+                continue
+
+            if dry_run:
+                self.stdout.write(
+                    f"WOULD SET assignable roles: {name} -> {', '.join(sorted(objetivo))}"
+                )
+                continue
+
+            role.assignable_roles.set(wanted)
+            self.stdout.write(
+                f"SET assignable roles: {name} -> {', '.join(sorted(objetivo))}"
+            )
 
     @staticmethod
     def _apply(role, perms):

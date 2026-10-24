@@ -36,6 +36,14 @@ Formato de cada entrada
 ``perms``    permisos en True. Todo lo que no esté acá queda en False.
 ``sensitive`` marca los perfiles que otorgan capacidades de alto impacto y que
              conviene revisar en cada auditoría de accesos.
+``assignable`` nombres de los perfiles que quien porta este rol puede otorgar a
+             otras personas (feature 052). Ausente o vacío = ninguno.
+
+             Solo RESTRINGE: el invariante de no-elevación bloquea igual cualquier
+             perfil con permisos que el rol no tenga, así que poner uno de más en
+             esta lista no lo habilita. Por eso ningún perfil de custodia puede
+             figurar acá con efecto: nombrar custodios es del superusuario, que es
+             justamente lo que ADR-025/ADR-029 persiguen.
 """
 
 FAMILY_GOVERNANCE = "gobierno"
@@ -188,15 +196,26 @@ STANDARD_ROLES = [
             "can_manage_winupdates",
             "can_list_accounts",
             "can_manage_accounts",
-            # «Ver roles» queda deliberadamente FUERA hasta la feature 052. Con
-            # `can_manage_accounts` al lado, `can_list_roles` deja ver y otorgar
-            # *cualquier* rol de la instancia —el de superusuario incluido— porque el
-            # motor no sabe restringir qué rol se puede asignar. Mientras no exista la
-            # lista de roles asignables, este perfil da de alta cuentas pero no reparte
-            # roles. La 052 lo repone junto con el filtrado del listado.
+            # Feature 052: «Ver roles» vuelve, y ahora es seguro. El listado que
+            # devuelve la API está filtrado a los perfiles asignables, así que este
+            # permiso ya no muestra la instancia entera: muestra lo que la lista de
+            # abajo autoriza. Entre la 052 y su predecesora este permiso estuvo
+            # retirado a propósito, porque sin el filtro dejaba otorgar cualquier
+            # perfil, el de superusuario incluido.
+            "can_list_roles",
             "can_use_mcp",
             "can_view_reports",
             "can_manage_reports",
+        ],
+        # Los cuatro perfiles que este rol puede repartir. No es una elección
+        # estética: son los únicos del catálogo cuyos permisos están contenidos en
+        # los suyos, así que cualquier otro lo bloquearía el invariante de todos
+        # modos. Ninguno es de gobierno ni de custodia (RF-11).
+        "assignable": [
+            "Técnico de Soporte Nivel 1",
+            "Operador de Monitoreo",
+            "Analista de Informes",
+            "Integración de Solo Lectura",
         ],
     },
     # ----------------------------------------------------------------- operación
@@ -692,3 +711,10 @@ STANDARD_ROLES = [
 MANAGED_PERMS = sorted({perm for role in STANDARD_ROLES for perm in role["perms"]})
 
 ROLES_BY_NAME = {role["name"]: role for role in STANDARD_ROLES}
+
+# Feature 052: qué perfiles otorga cada rol. Solo los que lo declaran aparecen.
+ASSIGNABLE_BY_ROLE = {
+    role["name"]: role["assignable"]
+    for role in STANDARD_ROLES
+    if role.get("assignable")
+}

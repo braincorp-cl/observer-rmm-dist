@@ -265,6 +265,15 @@ class AuditActionType(models.TextChoices):
     # con los bloqueos y las alarmas.
     LOST_MODE = "lost_mode", "Lost Mode"
     AGENT_UNINSTALL = "agent_uninstall", "Agent Uninstall"
+    # Feature 052: categoría propia, NO se reusa MODIFY. Un intento de otorgar
+    # un perfil que no corresponde, o de escribir sobre una cuenta protegida, no
+    # es una modificación: es una modificación que NO ocurrió. Mezclarla con las
+    # exitosas obliga a leer el cuerpo de cada fila para contarlas, y contarlas
+    # es justo lo que pide una delegación que se quiere auditar.
+    #
+    # Mismo criterio que ENDPOINT_RESPONSE (028) y LOST_MODE (030): una clase de
+    # acción con significado propio se filtra sola.
+    DELEGATION_DENIED = "delegation_denied", "Delegation Denied"
 
 
 class AuditObjType(models.TextChoices):

@@ -22,10 +22,15 @@ from rest_framework.serializers import (
 )
 from rest_framework.views import APIView
 
-from accounts.utils import is_root_user
+from accounts.utils import (
+    can_assign_role,
+    can_manage_user,
+    is_root_user,
+    is_superuser,
+)
 from core.tasks import sync_mesh_perms_task
 from logs.models import AuditLog
-from observerrmm.helpers import notify_error
+from observerrmm.helpers import notify_denied, notify_error
 from observerrmm.mixins import GenericPermsViewMixin
 from observerrmm.throttles import (
     CheckCredsDayThrottle,
@@ -274,6 +279,26 @@ class GetAddUsers(APIView):
         except ValidationError as e:
             return notify_error(str(e))
 
+        # Feature 052: el perfil se valida ANTES de crear la cuenta. Hacerlo
+        # después dejaría un usuario a medio crear —sin perfil, pero existente y
+        # con el nombre ocupado— cada vez que alguien intenta otorgar de más.
+        #
+        # 🔑 Este es el único de los cinco puntos de escritura que no llama a
+        # `is_root_user`: no aparece al buscarlo, y es justo el que permite
+        # fabricarse un superusuario nuevo en vez de modificar uno existente.
+        requested_role = None
+        if "role" in request.data.keys() and isinstance(request.data["role"], int):
+            requested_role = get_object_or_404(Role, pk=request.data["role"])
+            allowed, reason = can_assign_role(request.user, requested_role)
+            if not allowed:
+                AuditLog.audit_delegation_denied(
+                    username=request.user.username,
+                    target=request.data["username"],
+                    reason=reason,
+                    attempted_role=requested_role.name,
+                )
+                return notify_denied(reason)
+
         try:
             user = User.objects.create_user(  # type: ignore
                 request.data["username"],
@@ -289,9 +314,8 @@ class GetAddUsers(APIView):
             user.first_name = request.data["first_name"]
         if "last_name" in request.data.keys():
             user.last_name = request.data["last_name"]
-        if "role" in request.data.keys() and isinstance(request.data["role"], int):
-            role = get_object_or_404(Role, pk=request.data["role"])
-            user.role = role
+        if requested_role is not None:
+            user.role = requested_role
 
         user.save()
         sync_mesh_perms_task.delay()
@@ -312,6 +336,44 @@ class GetUpdateDeleteUser(APIView):
         if is_root_user(request=request, user=user):
             return notify_error("The root user cannot be modified from the UI")
 
+        # Feature 052, RN-04 y RN-09: sobre quién se puede escribir.
+        allowed, reason = can_manage_user(request.user, user)
+        if not allowed:
+            AuditLog.audit_delegation_denied(
+                username=request.user.username, target=user.username, reason=reason
+            )
+            return notify_denied(reason)
+
+        if "role" in request.data.keys():
+            new_role = request.data["role"]
+            current_role_pk = user.role.pk if user.role else None
+
+            if new_role != current_role_pk:
+                # RN-03: nadie se cambia su propio rol. Va antes que el resto
+                # porque cambiarse el rol a uno mismo es la elevación directa, y
+                # `can_manage_user` deja pasar la propia cuenta a propósito
+                # —para el auto-servicio— así que acá no hay quien lo frene.
+                if user.pk == request.user.pk:
+                    reason = "No puedes cambiar tu propio perfil."
+                    AuditLog.audit_delegation_denied(
+                        username=request.user.username,
+                        target=user.username,
+                        reason=reason,
+                    )
+                    return notify_denied(reason)
+
+                if new_role is not None:
+                    target_role = get_object_or_404(Role, pk=new_role)
+                    allowed, reason = can_assign_role(request.user, target_role)
+                    if not allowed:
+                        AuditLog.audit_delegation_denied(
+                            username=request.user.username,
+                            target=user.username,
+                            reason=reason,
+                            attempted_role=target_role.name,
+                        )
+                        return notify_denied(reason)
+
         serializer = UserSerializer(instance=user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -323,6 +385,13 @@ class GetUpdateDeleteUser(APIView):
         user = get_object_or_404(User, pk=pk)
         if is_root_user(request=request, user=user):
             return notify_error("The root user cannot be deleted from the UI")
+
+        allowed, reason = can_manage_user(request.user, user)
+        if not allowed:
+            AuditLog.audit_delegation_denied(
+                username=request.user.username, target=user.username, reason=reason
+            )
+            return notify_denied(reason)
 
         user.delete()
         sync_mesh_perms_task.delay()
@@ -338,6 +407,16 @@ class UserActions(APIView):
         if is_root_user(request=request, user=user):
             return notify_error("The root user cannot be modified from the UI")
 
+        # Feature 052: resetear la contraseña de otra persona es tomar su cuenta.
+        # `can_manage_user` deja pasar la propia, con lo que la excepción de
+        # auto-servicio del issue #686 que vive en `AccountsPerms` sigue intacta.
+        allowed, reason = can_manage_user(request.user, user)
+        if not allowed:
+            AuditLog.audit_delegation_denied(
+                username=request.user.username, target=user.username, reason=reason
+            )
+            return notify_denied(reason)
+
         user.set_password(request.data["password"])
         user.save()
 
@@ -348,6 +427,16 @@ class UserActions(APIView):
         user = get_object_or_404(User, pk=request.data["id"])
         if is_root_user(request=request, user=user):
             return notify_error("The root user cannot be modified from the UI")
+
+        # Feature 052: borrar el segundo factor de otra persona deja su cuenta a
+        # merced de quien tenga la contraseña. Misma regla que el reset de
+        # contraseña, y el auto-servicio del #686 se conserva igual.
+        allowed, reason = can_manage_user(request.user, user)
+        if not allowed:
+            AuditLog.audit_delegation_denied(
+                username=request.user.username, target=user.username, reason=reason
+            )
+            return notify_denied(reason)
 
         user.totp_key = ""
         user.save()
@@ -384,7 +473,21 @@ class GetAddRoles(APIView):
     permission_classes = [IsAuthenticated, RolesPerms]
 
     def get(self, request):
-        roles = Role.objects.all()
+        # Feature 052, RF-06: un no superusuario solo ve los perfiles que puede
+        # otorgar. Así el selector de la consola se acota sin lógica propia en el
+        # frontend —ya pinta tal cual lo que llega de acá— y el backend sigue
+        # siendo la única autoridad.
+        #
+        # Nótese el contraste deliberado con el listado de USUARIOS, que no se
+        # filtra (RN-09): ocultar perfiles evita otorgarlos por error, ocultar
+        # cuentas rompería la trazabilidad y provocaría colisiones de nombre.
+        if request.user.is_superuser or is_superuser(request.user):
+            roles = Role.objects.all()
+        elif request.user.role:
+            roles = request.user.role.assignable_roles.all()
+        else:
+            roles = Role.objects.none()
+
         return Response(RoleSerializer(roles, many=True).data)
 
     def post(self, request):

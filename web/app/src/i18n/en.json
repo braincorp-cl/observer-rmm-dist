@@ -954,6 +954,8 @@
     "manageSites": "Manage Sites",
     "listDeployments": "List Deployments",
     "manageDeployments": "Manage Deployments",
+    "assignableRoles": "Roles it can grant",
+    "assignableRolesHint": "Empty means it cannot grant any role. It will never be able to grant one with permissions this role lacks.",
     "allowedClients": "Allowed Clients",
     "allowedClientsHint": "Empty means all clients are allowed",
     "allowedSites": "Allowed Sites",

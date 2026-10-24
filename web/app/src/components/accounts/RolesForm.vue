@@ -69,6 +69,20 @@
               />
             </div>
           </q-card-section>
+          <!-- Feature 052: qué perfiles puede repartir quien porta este rol. -->
+          <q-card-section class="row">
+            <observer-dropdown
+              class="col-6"
+              :label="$t('rolesForm.assignableRoles')"
+              :options="assignableRoleOptions"
+              v-model="localRole.assignable_roles"
+              :hint="$t('rolesForm.assignableRolesHint')"
+              outlined
+              mapOptions
+              multiple
+              filterable
+            />
+          </q-card-section>
 
           <div class="text-subtitle2">{{ $t("rolesForm.secAgents") }}</div>
           <q-separator />
@@ -522,6 +536,7 @@ import { useStore } from "vuex";
 import { useDialogPluginComponent } from "quasar";
 import { saveRole, editRole } from "@/api/accounts";
 import { useClientDropdown, useSiteDropdown } from "@/composables/clients";
+import { useRoleDropdown } from "@/composables/accounts";
 import { notifySuccess } from "@/utils/notify";
 
 // ui imports
@@ -543,6 +558,14 @@ export default {
     // dropdown setup
     const { clientOptions } = useClientDropdown(true);
     const { siteOptions } = useSiteDropdown(true);
+
+    // Feature 052: un perfil no puede estar entre los que él mismo otorga, así
+    // que se excluye de sus propias opciones. El backend lo rechaza igual
+    // (RoleSerializer.validate_assignable_roles); acá solo se evita ofrecerlo.
+    const { roleOptions } = useRoleDropdown({ onMount: true });
+    const assignableRoleOptions = computed(() =>
+      roleOptions.value.filter((opt) => opt.value !== props.role?.id),
+    );
 
     const role = props.role
       ? ref(Object.assign({}, props.role))
@@ -629,6 +652,9 @@ export default {
           can_manage_roles: false,
           can_view_clients: [],
           can_view_sites: [],
+          // Feature 052: vacío significa «no otorga ningún perfil», no «sin
+          // configurar». Es el valor correcto por omisión.
+          assignable_roles: [],
           // server scripts and web terminal
           can_run_server_scripts: false,
           can_use_webterm: false,
@@ -689,6 +715,7 @@ export default {
       loading,
       clientOptions,
       siteOptions,
+      assignableRoleOptions,
       hosted,
 
       onSubmit,

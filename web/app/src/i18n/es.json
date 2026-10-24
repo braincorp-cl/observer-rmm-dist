@@ -954,6 +954,8 @@
     "manageSites": "Gestionar sitios",
     "listDeployments": "Listar despliegues",
     "manageDeployments": "Gestionar despliegues",
+    "assignableRoles": "Perfiles que puede otorgar",
+    "assignableRolesHint": "Vacío significa que no puede otorgar ningún perfil. Nunca podrá otorgar uno con permisos que este perfil no tenga.",
     "allowedClients": "Clientes permitidos",
     "allowedClientsHint": "Vacío significa que se permiten todos los clientes",
     "allowedSites": "Sitios permitidos",
