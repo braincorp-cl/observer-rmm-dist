@@ -80,13 +80,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://docs.observer.cl/administracion/</loc>
+    <loc>https://docs.observer.cl/functions/user_management/</loc>
     <lastmod>2026-10-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://docs.observer.cl/administracion/roles/</loc>
+    <loc>https://docs.observer.cl/functions/role_catalog/</loc>
     <lastmod>2026-10-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera el catálogo público de perfiles en docs-site/administracion/roles/index.html.
+"""Genera el catálogo público de perfiles en docs-site/functions/role_catalog/index.html.
 
 La fuente es `api/observerrmm/accounts/role_catalog.py` —el mismo módulo que usa
 el sembrador `seed_default_roles`—, de modo que la página publicada no pueda
@@ -17,7 +17,7 @@ un permiso nuevo sin traducir, y la página quedaría mostrando el nombre intern
 
 Solo stdlib. Uso:
     python3 scripts/docs/build_roles_page.py [salida]
-    (por defecto: docs-site/administracion/roles/index.html)
+    (por defecto: docs-site/functions/role_catalog/index.html)
 """
 from __future__ import annotations
 
@@ -103,7 +103,7 @@ def rail() -> str:
     inner = re.search(r'<nav class="rail"[^>]*>(.*?)</nav>', html, re.S).group(1)
     inner = inner.replace(' class="active"', "")
     inner = inner.replace(
-        '<a href="/administracion/roles/">', '<a href="/administracion/roles/" class="active">'
+        '<a href="/functions/role_catalog/">', '<a href="/functions/role_catalog/" class="active">'
     )
     return inner.strip("\n")
 
@@ -131,7 +131,7 @@ def anchor(name: str) -> str:
 
 
 def main(argv: list[str]) -> int:
-    out = Path(argv[1]) if len(argv) > 1 else ROOT / "docs-site/administracion/roles/index.html"
+    out = Path(argv[1]) if len(argv) > 1 else ROOT / "docs-site/functions/role_catalog/index.html"
     cat = load_catalog()
     labels = perm_labels()
 

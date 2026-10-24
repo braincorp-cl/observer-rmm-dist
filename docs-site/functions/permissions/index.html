@@ -78,8 +78,8 @@
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
     <a href="/functions/permissions/" class="active"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
-    <a href="/administracion/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
-    <a href="/administracion/roles/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
     <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
@@ -107,8 +107,8 @@
       </figure>
 
       <h2 id="modelo-de-roles"><span class="lang-es">El modelo de roles</span><span class="lang-en">The role model</span></h2>
-      <p class="lang-es">El acceso se asigna con <strong>roles</strong>. Un rol es un conjunto de permisos; a cada usuario se le asigna uno o más roles, y su acceso efectivo es la suma de ellos. Los permisos cubren dos dimensiones:</p>
-      <p class="lang-en">Access is granted through <strong>roles</strong>. A role is a set of permissions; each user is assigned one or more roles, and their effective access is the sum of them. Permissions cover two dimensions:</p>
+      <p class="lang-es">El acceso se asigna con <strong>perfiles</strong> (roles). Un perfil es un conjunto de permisos, y <strong>cada usuario tiene exactamente uno</strong>: su acceso efectivo es el de ese perfil, ni más ni menos. Los permisos cubren dos dimensiones:</p>
+      <p class="lang-en">Access is granted through <strong>roles</strong>. A role is a set of permissions, and <strong>each user has exactly one</strong>: their effective access is that role's, no more and no less. Permissions cover two dimensions:</p>
       <ul class="lang-es">
         <li><strong>Qué puede hacer</strong> — acciones sobre agentes, scripts, tareas, alertas, informes, usuarios, etc. (ver, crear, editar, eliminar, ejecutar).</li>
         <li><strong>Sobre qué puede hacerlo</strong> — el alcance: todos los agentes, o solo determinados clientes y sitios.</li>
@@ -122,12 +122,20 @@
 
       <div class="callout note lang-es">
         <span class="tag">Recomendación</span>
-        <p>Crea roles por función (por ejemplo, "Soporte nivel 1", "Administrador de flota", "Solo lectura") en lugar de dar permisos totales a cada persona. Es más fácil de auditar y de revocar.</p>
+        <p>No hace falta inventar perfiles: Observer RMM trae <strong>18 definidos de fábrica</strong> —de soporte, de operación, de especialista y de custodia— con los permisos ya repartidos por función. Parte de uno de ellos en vez de dar permisos totales a cada persona, y ajústalo si tu operación lo necesita. Están todos, permiso por permiso, en el <a href="/functions/role_catalog/">catálogo de perfiles</a>.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">Recommendation</span>
-        <p>Create roles by function (for example, "Tier 1 support", "Fleet administrator", "Read only") instead of granting full permissions to each person. It's easier to audit and to revoke.</p>
+        <p>There is no need to invent roles: Observer RMM ships <strong>18 built-in ones</strong> — support, operations, specialist and custody — with permissions already assigned by job. Start from one of those instead of granting full permissions to each person, and adjust if your operation needs it. They are all listed, permission by permission, in the <a href="/functions/role_catalog/">role catalogue</a>.</p>
       </div>
+
+      <h3 id="quien-otorga-que-perfil"><span class="lang-es">Quién puede otorgar qué perfil</span><span class="lang-en">Who can grant which role</span></h3>
+      <p class="lang-es">Poder administrar cuentas no es lo mismo que poder repartir cualquier perfil. Cada perfil declara <strong>qué otros perfiles puede otorgar</strong> quien lo porta, y el selector al crear un usuario muestra exactamente esos. Una lista vacía significa que esa persona administra cuentas pero no asigna perfiles.</p>
+      <p class="lang-en">Being able to administer accounts is not the same as being able to hand out any role. Each role declares <strong>which other roles its holder may grant</strong>, and the role selector when creating a user shows exactly those. An empty list means that person administers accounts but assigns no roles.</p>
+      <p class="lang-es">Por encima de esa lista hay una regla que no se puede desactivar: <strong>nadie otorga un perfil con permisos que él mismo no tenga</strong>, ni un perfil de superusuario. La lista solo restringe; agregarle un perfil más privilegiado no lo habilita. De ahí se desprende que los <strong>permisos de custodia</strong> —borrado remoto, recuperación de archivos, evidencia, equipos perdidos y actividad laboral— <strong>solo los asigna un superusuario</strong>: ningún perfil administrativo los lleva, así que ninguno puede repartirlos.</p>
+      <p class="lang-en">Above that list sits a rule that cannot be switched off: <strong>nobody grants a role with permissions they do not themselves hold</strong>, nor a superuser role. The list only restricts; adding a more privileged role to it does not enable it. It follows that <strong>custody permissions</strong> — remote wipe, file retrieval, evidence, lost devices and workplace activity — <strong>are assigned by a superuser only</strong>: no administrative role carries them, so none can hand them out.</p>
+      <p class="lang-es">Un administrador delegado tampoco puede cambiarse su propio perfil ni tocar una cuenta de superusuario. Cada intento rechazado queda en <strong>Herramientas → Registros de auditoría</strong> bajo «Delegación rechazada». El detalle está en <a href="/functions/user_management/#delegacion">administración de usuarios</a>.</p>
+      <p class="lang-en">A delegated administrator also cannot change their own role or touch a superuser account. Every rejected attempt lands in <strong>Tools → Audit logs</strong> under "Delegation Denied". The details are in <a href="/functions/user_management/#delegacion">user management</a>.</p>
 
       <h2 id="permisos-con-implicancias-de-seguridad"><span class="lang-es">Permisos con implicancias de seguridad</span><span class="lang-en">Security-sensitive permissions</span></h2>
       <p class="lang-es">Algunos permisos y ajustes otorgan capacidades que, mal usadas o en manos equivocadas, pueden comprometer los equipos administrados o el propio servidor. Trátalos como privilegios excepcionales: concédelos solo a administradores de confianza y revísalos periódicamente.</p>
@@ -155,8 +163,16 @@
       <p class="lang-en">The web terminal opens an interactive shell to the server from the browser. It's convenient for administrative tasks, but it grants direct command-line access. Enable it only if needed and restrict it to administrators; treat it as equivalent to giving SSH access to the server.</p>
 
       <h3 id="gestion-de-usuarios-y-roles"><span class="lang-es">Gestión de usuarios y roles</span><span class="lang-en">User and role management</span></h3>
-      <p class="lang-es">Quien puede crear o editar usuarios y roles puede, indirectamente, <strong>elevarse a sí mismo o a otros</strong> a permisos totales. Este permiso debe quedar reservado a los administradores de la plataforma.</p>
-      <p class="lang-en">Whoever can create or edit users and roles can indirectly <strong>elevate themselves or others</strong> to full permissions. This permission should be reserved for platform administrators.</p>
+      <p class="lang-es">Hay que distinguir dos permisos que suenan parecido y hoy pesan muy distinto:</p>
+      <p class="lang-en">Two permissions sound alike and now carry very different weight:</p>
+      <ul class="lang-es">
+        <li><strong>Gestionar cuentas de usuario</strong> ya <em>no</em> es una vía de elevación: quien lo tiene solo puede otorgar los perfiles que su propio perfil declara asignables, y nunca uno con permisos que él no tenga. Es lo que permite delegar el alta de personal sin regalar la plataforma.</li>
+        <li><strong>Gestionar roles</strong> sigue siendo un permiso de administrador de plataforma. Quien puede editar perfiles puede editar <em>el suyo</em> y darse permisos totales. No hay restricción que lo frene, porque es el permiso con el que se configuran todas las demás.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Manage user accounts</strong> is no longer an escalation path: its holder can only grant the roles their own role declares assignable, and never one with permissions they lack. This is what makes it safe to delegate onboarding without handing over the platform.</li>
+        <li><strong>Manage roles</strong> is still a platform-administrator permission. Whoever can edit roles can edit <em>their own</em> and grant themselves full permissions. Nothing restricts it, because it is the permission used to configure all the others.</li>
+      </ul>
 
       <h2 id="buenas-practicas"><span class="lang-es">Buenas prácticas</span><span class="lang-en">Best practices</span></h2>
       <ul class="lang-es">
