@@ -26,6 +26,20 @@ Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
 dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"
 espejando la UI).
 
+## Convención de rutas
+
+**En inglés, y las funciones del producto bajo `/functions/`.** Así están `/api/`,
+`/faq/`, `/features/`, `/guide_*` y `/functions/{permissions,email_alerts,mcp,
+user_management,role_catalog}`. Quedan en español `/topologia/`, `/uso_aceptable/` y
+`/videos/`, anteriores a la convención; no son el modelo a seguir.
+
+**Renombrar una ruta ya publicada exige un 301**, no borrarla: el sitio está indexado a
+propósito y un 404 tira el posicionamiento y rompe los enlaces externos. Las reglas van en
+el vhost con `RedirectMatch` (cubre con y sin barra final; la más específica primero,
+porque mod_alias hace match por prefijo). 🪤 Además hay que **borrar el directorio viejo
+del docroot**: mientras exista, Apache sirve el archivo y la redirección nunca dispara.
+Precedente: `/administracion/` → `/functions/user_management/` el 2026-10-24.
+
 ## SEO — el sitio es público y se quiere encontrable
 
 Este sitio es la documentación que consultan los clientes, y además la propiedad
@@ -104,7 +118,9 @@ Servido por Apache en **appserver (`10.20.0.52`)**:
 
 - DocumentRoot: `/var/www/html/observer-docs/`
 - vhost: `/etc/apache2/sites-available/docs.observer.cl.conf` (escucha en `:82`;
-  `Options -Indexes`, sin listado de directorios)
+  `Options -Indexes`, sin listado de directorios). **Está versionado** en
+  `scripts/appserver/docs.observer.cl.conf`: al tocarlo en el servidor hay que
+  traer el cambio al repo, o la próxima lectura del repo miente.
 - TLS y exposición pública: los termina el NPM corporativo
   (`docs.observer.cl` → `10.20.0.52:82`).
 
