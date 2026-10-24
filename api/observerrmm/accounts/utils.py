@@ -97,7 +97,16 @@ def can_assign_role(actor: "User", target_role: "Role") -> "Tuple[bool, str]":
             "incluye permisos que tu propio perfil no tiene.",
         )
 
-    if not role.assignable_roles.filter(pk=target_role.pk).exists():
+    # La pertenencia se resuelve EN MEMORIA sobre .all(), no con
+    # .filter(pk=...).exists(). Un `filter()` sobre el related manager ignora el
+    # prefetch de `get_and_set_role_cache()` y consulta la base en cada llamada,
+    # que es justo lo que el requisito de desempeño prohíbe. Con `.all()` sobre un
+    # rol cacheado la lista ya viene resuelta y esto no toca la base.
+    #
+    # Importa doblemente desde que `GetAddRoles.get` llama a esta función una vez
+    # por rol para filtrar el listado: con `filter().exists()` eso sería N
+    # consultas por cada apertura del selector.
+    if target_role.pk not in {r.pk for r in role.assignable_roles.all()}:
         return (
             False,
             f"No puedes asignar el perfil «{target_role.name}»: "

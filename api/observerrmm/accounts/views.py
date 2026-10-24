@@ -484,7 +484,19 @@ class GetAddRoles(APIView):
         if request.user.is_superuser or is_superuser(request.user):
             roles = Role.objects.all()
         elif request.user.role:
-            roles = request.user.role.assignable_roles.all()
+            # Se filtra con `can_assign_role()`, la MISMA función que valida al
+            # asignar, y no solo por la lista. Si se filtrara solo por la lista, un
+            # rol agregado a mano con permisos que el solicitante no tiene
+            # aparecería en el selector y el backend lo rechazaría recién al
+            # guardar: la consola ofrecería algo imposible.
+            #
+            # Usar la misma función es lo que garantiza que el filtro y la
+            # validación no puedan desincronizarse al cambiar una de las dos.
+            roles = [
+                role
+                for role in request.user.role.assignable_roles.all()
+                if can_assign_role(request.user, role)[0]
+            ]
         else:
             roles = Role.objects.none()
 

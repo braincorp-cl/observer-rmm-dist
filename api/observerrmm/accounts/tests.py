@@ -717,6 +717,23 @@ class TestRoleDelegation(ObserverTestCase):
         r = self.client.get("/accounts/roles/")
         self.assertEqual(r.json(), [])
 
+    def test_listado_de_roles_excluye_lo_que_el_invariante_bloquea(self):
+        # El listado y la validación tienen que decir lo mismo: si un rol está en
+        # la lista pero el invariante lo va a rechazar, ofrecerlo en el selector
+        # sería ofrecer algo imposible de guardar.
+        self.delegado_role.assignable_roles.add(self.potente)
+        self.as_delegado()
+
+        r = self.client.get("/accounts/roles/")
+        self.assertEqual(r.status_code, 200)
+        nombres = [x["name"] for x in r.json()]
+        self.assertIn("Soporte de prueba", nombres)
+        self.assertNotIn("Potente de prueba", nombres)
+
+        # Y lo que no se ofrece, tampoco se puede asignar: las dos caras coinciden.
+        ok, _ = can_assign_role(self.delegado, self.potente)
+        self.assertFalse(ok)
+
     def test_listado_de_usuarios_no_se_filtra(self):
         # RN-09: visibles aunque no sean editables, para conservar la
         # trazabilidad y evitar colisiones de nombre de usuario.
