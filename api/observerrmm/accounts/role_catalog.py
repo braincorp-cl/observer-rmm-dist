@@ -188,7 +188,12 @@ STANDARD_ROLES = [
             "can_manage_winupdates",
             "can_list_accounts",
             "can_manage_accounts",
-            "can_list_roles",
+            # «Ver roles» queda deliberadamente FUERA hasta la feature 052. Con
+            # `can_manage_accounts` al lado, `can_list_roles` deja ver y otorgar
+            # *cualquier* rol de la instancia —el de superusuario incluido— porque el
+            # motor no sabe restringir qué rol se puede asignar. Mientras no exista la
+            # lista de roles asignables, este perfil da de alta cuentas pero no reparte
+            # roles. La 052 lo repone junto con el filtrado del listado.
             "can_use_mcp",
             "can_view_reports",
             "can_manage_reports",
