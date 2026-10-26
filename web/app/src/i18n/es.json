@@ -2896,7 +2896,8 @@
       "colTemplateType": "Tipo de plantilla",
       "colDateCreated": "Fecha de creación",
       "deleteTitle": "¿Eliminar el historial de {name}?",
-      "deleteMessage": "Esto eliminará la entrada del historial permanentemente."
+      "deleteMessage": "Esto eliminará la entrada del historial permanentemente.",
+      "showError": "Ver el error"
     },
     "htmlTemplateForm": {
       "newTitle": "Nueva plantilla base",

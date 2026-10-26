@@ -144,7 +144,11 @@
             <template v-slot:before-options>
               <q-item>
                 <q-item-section>
-                  <q-item-label>{{ $t("scheduleForm.allDays") }}</q-item-label>
+                  <!-- 050 (T046, G01): «Todos los días» es una palabra ⇒ Archivo,
+                       aunque el menú del select de días herede Mono. -->
+                  <q-item-label class="obs-ui-text">{{
+                    $t("scheduleForm.allDays")
+                  }}</q-item-label>
                 </q-item-section>
                 <q-item-section side>
                   <q-checkbox
@@ -161,7 +165,12 @@
             >
               <q-item v-bind="itemProps">
                 <q-item-section>
-                  <q-item-label v-html="opt.label" />
+                  <!-- 050 (T046, G01): «Último día» es una palabra ⇒ Archivo;
+                       los días 1..31 son valores y se quedan en Mono. -->
+                  <q-item-label
+                    :class="{ 'obs-ui-text': opt.value === 32 }"
+                    v-html="opt.label"
+                  />
                 </q-item-section>
                 <q-item-section side>
                   <q-checkbox
@@ -180,8 +189,11 @@
           <div v-if="localSchedule.monthly_type === 'days'" class="col-4"></div>
 
           <!-- week of month select input -->
+          <!-- 050 (T046, G01): las semanas del mes se nombran con palabras
+               («Primera semana»...«Última semana»), no con números: van en
+               Archivo. Los días del mes sí son valores y siguen en Mono. -->
           <q-select
-            class="col-4 q-pa-sm obs-mono-values"
+            class="col-4 q-pa-sm"
             v-if="localSchedule.monthly_type === 'weeks'"
             :rules="[(val) => val.length > 0 || $t('scheduleCommon.required')]"
             filled

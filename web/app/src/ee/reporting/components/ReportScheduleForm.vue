@@ -158,9 +158,8 @@
                   dense
                 >
                   <q-item-section>
-                    <!-- 050 (T044, G01): una dirección de correo es un valor
-                         dedicado ⇒ Mono. -->
-                    <q-item-label class="mono">{{ email }}</q-item-label>
+                    <!-- 050 (T046, G01): un correo es un NOMBRE ⇒ Archivo. -->
+                    <q-item-label>{{ email }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
                     <q-icon
@@ -378,8 +377,6 @@ function openEmailSettings() {
 function toggleAddEmail() {
   $q.dialog({
     title: t("reporting.scheduleForm.addEmailLabel"),
-    // 050 (T044, G01): lo que se escribe acá es una dirección ⇒ Mono.
-    class: "obs-mono-values",
     prompt: {
       model: "",
       isValid: (val) => isValidEmail(val),

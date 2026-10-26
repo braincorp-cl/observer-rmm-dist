@@ -59,11 +59,10 @@
         <div v-if="tree.length === 0">
           {{ $t("reporting.assetSelect.noAssets") }}
         </div>
-        <!-- 050 (T044, G01): los nodos del árbol son nombres de archivo. -->
+        <!-- 050 (T046, G01): los nodos del árbol son NOMBRES de archivo ⇒ Archivo. -->
         <q-tree
           v-else
           ref="qtree"
-          class="mono"
           :nodes="tree"
           v-model:selected="selected"
           node-key="path"

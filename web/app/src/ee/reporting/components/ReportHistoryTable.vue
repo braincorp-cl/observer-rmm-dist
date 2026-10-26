@@ -186,14 +186,25 @@
 
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
               <template v-if="col.name === 'error_data'">
-                <q-icon
+                <!-- 050 (T046, G05): el ícono era el control (handler y cursor
+                     propios) y su única superficie iba en rojo, o sea un color de
+                     estado marcando una acción. Ahora el control es el botón
+                     neutro y el rojo queda en la insignia que lleva dentro, que es
+                     el caso que la enmienda del 2026-10-14 sí ampara. -->
+                <q-btn
                   v-if="props.row.error_data"
-                  class="cursor-pointer"
-                  name="warning"
-                  color="negative"
+                  flat
+                  dense
+                  round
                   size="sm"
+                  :aria-label="$t('reporting.historyTable.showError')"
                   @click="openErrorMessage(props.row.error_data)"
-                ></q-icon>
+                >
+                  <q-icon name="warning" color="negative" size="sm" />
+                  <q-tooltip>{{
+                    $t("reporting.historyTable.showError")
+                  }}</q-tooltip>
+                </q-btn>
               </template>
 
               <template v-else>

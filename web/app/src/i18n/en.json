@@ -2896,7 +2896,8 @@
       "colTemplateType": "Template Type",
       "colDateCreated": "Date Created",
       "deleteTitle": "Delete History for {name}?",
-      "deleteMessage": "This will remove the history entry permanently."
+      "deleteMessage": "This will remove the history entry permanently.",
+      "showError": "Show error"
     },
     "htmlTemplateForm": {
       "newTitle": "New Base Template",
