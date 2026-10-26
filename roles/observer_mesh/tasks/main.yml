@@ -87,6 +87,9 @@
     mode: "0750"
 
 - name: Desplegar mesh.cfg (config.json de MeshCentral)
+  # Tag propio: permite re-renderizar SOLO el config.json y reiniciar MeshCentral,
+  # sin correr el rol entero (install.yml --tags mesh_config --limit observer_mesh).
+  tags: [mesh_config]
   ansible.builtin.template:
     src: mesh.cfg.j2
     # MeshCentral lee su config de meshcentral-data/config.json (NO de la raíz del

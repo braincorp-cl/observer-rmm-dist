@@ -73,3 +73,21 @@ observer_mesh_autobackup_hour: 6
 # Por qué: con ad-hoc, TCC ancla el permiso de pantalla al cdhash y cada update
 # del Mesh deja el escritorio remoto en gris (medido 2026-10-22, macOS 27).
 observer_mesh_macos_signed_tag: ""
+
+# --- Consentimiento del usuario final para "Tomar control" (escritorio) ---
+# true = el agente muestra un cuadro de dialogo y la sesion de escritorio no arranca
+# hasta que el usuario acepte (bit 8 del bitmask `consent` de MeshCentral, nivel
+# dominio = piso que ningun grupo puede bajar). Terminal y archivos siguen sin pedir
+# permiso. Encendido por defecto desde 2026-10-26 (pedido de TNS) para que lo hereden
+# los despliegues y updates futuros de todos los tenants; un tenant que no lo quiera
+# lo apaga en su inventario.
+observer_mesh_consent_desktop_prompt: true
+# Segundos que se muestra el dialogo. Al vencer se DENIEGA (autoAcceptOnTimeout=false
+# fijo en la plantilla): el silencio no es consentimiento.
+observer_mesh_consent_timeout: 30
+# Sin usuario con sesion iniciada no hay quien acepte: en false el soporte se queda
+# afuera de los equipos desatendidos.
+observer_mesh_consent_auto_accept_no_user: true
+observer_mesh_consent_title: "Observer RMM"
+# {0} = nombre real del tecnico, {1} = su usuario.
+observer_mesh_consent_desktop_msg: "{0} ({1}) solicita ver y controlar su pantalla. Acepte solo si usted pidio soporte."

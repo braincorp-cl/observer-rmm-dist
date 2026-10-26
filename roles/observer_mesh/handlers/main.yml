@@ -5,6 +5,9 @@
   listen: systemd daemon-reload
 
 - name: restart meshcentral
+  # tags: always -> el handler no queda filtrado cuando se corre con --tags
+  # (p. ej. --tags mesh_config); igual solo se dispara si algo lo notifica.
+  tags: [always]
   ansible.builtin.systemd:
     name: meshcentral
     state: restarted
