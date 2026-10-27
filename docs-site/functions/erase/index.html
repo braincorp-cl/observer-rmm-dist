@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es" data-title-es="Borrado seguro y certificados · Órdenes, custodia y verificación" data-title-en="Secure erase &amp; certificates · Orders, custody and verification">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Borrado seguro y certificados · Órdenes, custodia y verificación</title>
+<meta name="description" content="Guía de Observer Erase: recuperar archivos antes de borrar, ordenar un borrado con doble confirmación y ventana de arrepentimiento, registrar el ingreso de un activo a baja y verificar un certificado de borrado en la consola.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/erase/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/erase/">
+<meta property="og:title" content="Borrado seguro y certificados · Órdenes, custodia y verificación">
+<meta property="og:description" content="Guía de Observer Erase: recuperar archivos antes de borrar, ordenar un borrado con doble confirmación y ventana de arrepentimiento, registrar el ingreso de un activo a baja y verificar un certificado de borrado en la consola.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=4">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/" class="active"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
+    <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Guía</p>
+      <p class="eyebrow lang-en">Guide</p>
+      <h1><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></h1>
+      <p class="lead lang-es">Observer Erase es el módulo de custodia: recupera archivos de un equipo perdido antes de borrarlo, gobierna la orden de borrado con dos personas y una ventana para arrepentirse, registra el ingreso de un activo a proceso de baja y emite certificados firmados que nadie puede modificar después. Esta guía recorre cada flujo paso a paso, con los nombres exactos que verás en la consola.</p>
+      <p class="lead lang-en">Observer Erase is the custody module: it retrieves files from a lost device before wiping it, governs the wipe order with two people and a window to change your mind, records an asset's intake for disposal, and issues signed certificates that nobody can alter afterwards. This guide walks through each flow step by step, with the exact names you will see in the console.</p>
+
+      <div class="callout danger lang-es">
+        <span class="tag">Estado actual</span>
+        <p>El <strong>borrado destructivo remoto está deshabilitado</strong> en producción. Una orden puede crearse, confirmarse a dos personas y recorrer su ventana de arrepentimiento, pero <strong>al vencer la ventana no se envía nada al equipo</strong>: el despacho está cerrado por el interruptor <code>ERASE_DESTRUCTIVE_DISPATCH_ENABLED</code>, que permanece en <code>False</code> hasta que se complete la aprobación legal y el simulacro en seco sobre un equipo de descarte.</p>
+        <p>Lo que <strong>sí funciona hoy</strong>: la recuperación de archivos (no es destructiva y no pasa por ese interruptor), el registro de ingreso de activos, la certificación de destrucción física y la verificación de certificados.</p>
+      </div>
+      <div class="callout danger lang-en">
+        <span class="tag">Current status</span>
+        <p><strong>Remote destructive wiping is disabled</strong> in production. An order can be created, confirmed by two people and run through its recovery window, but <strong>when the window expires nothing is sent to the machine</strong>: dispatch is closed by the <code>ERASE_DESTRUCTIVE_DISPATCH_ENABLED</code> switch, which stays <code>False</code> until the legal approval and the dry run on a scrap machine are completed.</p>
+        <p>What <strong>does work today</strong>: file retrieval (it is not destructive and does not go through that switch), asset intake, physical-destruction certification, and certificate verification.</p>
+      </div>
+
+      <h2 id="que-hace"><span class="lang-es">Qué hace el módulo</span><span class="lang-en">What the module does</span></h2>
+      <p class="lang-es">Cuatro piezas, con responsabilidades separadas a propósito:</p>
+      <p class="lang-en">Four pieces, with responsibilities deliberately kept apart:</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Pieza</span><span class="lang-en">Piece</span></th>
+          <th><span class="lang-es">Para qué sirve</span><span class="lang-en">What it is for</span></th>
+          <th><span class="lang-es">Dónde está en la consola</span><span class="lang-en">Where it is in the console</span></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><strong><span class="lang-es">Recuperación de archivos</span><span class="lang-en">File retrieval</span></strong></td>
+            <td><span class="lang-es">Traer archivos de un equipo perdido antes de borrarlo. No destruye nada.</span><span class="lang-en">Bring files back from a lost device before wiping it. It destroys nothing.</span></td>
+            <td><em><span class="lang-es">Herramientas → Equipos perdidos</span><span class="lang-en">Tools → Lost devices</span></em></td>
+          </tr>
+          <tr>
+            <td><strong><span class="lang-es">Orden de borrado</span><span class="lang-en">Wipe order</span></strong></td>
+            <td><span class="lang-es">La acción destructiva, gobernada: dos personas, motivo y ventana para cancelar.</span><span class="lang-en">The destructive action, governed: two people, a reason and a window to cancel.</span></td>
+            <td><em><span class="lang-es">Herramientas → Órdenes de borrado</span><span class="lang-en">Tools → Erase orders</span></em></td>
+          </tr>
+          <tr>
+            <td><strong><span class="lang-es">Certificados</span><span class="lang-en">Certificates</span></strong></td>
+            <td><span class="lang-es">La prueba firmada de que el borrado ocurrió, en PDF y JSON.</span><span class="lang-en">The signed proof that the erase happened, in PDF and JSON.</span></td>
+            <td><em><span class="lang-es">Herramientas → Certificados de borrado</span><span class="lang-en">Tools → Erase certificates</span></em></td>
+          </tr>
+          <tr>
+            <td><strong><span class="lang-es">Ingreso de activos</span><span class="lang-en">Asset intake</span></strong></td>
+            <td><span class="lang-es">El acta de recepción del equipo que entra a baja; ancla la cadena de custodia.</span><span class="lang-en">The intake record for a machine entering disposal; it anchors the chain of custody.</span></td>
+            <td><em><span class="lang-es">Herramientas → Certificados de borrado → pestaña «Ingresos de activos»</span><span class="lang-en">Tools → Erase certificates → “Asset intake” tab</span></em></td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <h3><span class="lang-es">Las cuatro acciones de borrado</span><span class="lang-en">The four erase actions</span></h3>
+      <p class="lang-es">Están ordenadas de menor a mayor irreversibilidad, y ese orden es una regla del módulo, no una sugerencia: <strong>recuperar → wipe selectivo → borrado total → restauración de fábrica</strong>.</p>
+      <p class="lang-en">They are ordered from least to most irreversible, and that order is a rule of the module, not a suggestion: <strong>retrieve → selective wipe → full wipe → factory reset</strong>.</p>
+      <ul class="lang-es">
+        <li><strong>Crypto-borrado remoto</strong> — invalida la clave de cifrado del volumen.</li>
+        <li><strong>Wipe selectivo</strong> — borra sólo las rutas que designa la orden.</li>
+        <li><strong>Borrado total del volumen</strong> — borra el volumen de datos completo.</li>
+        <li><strong>Restauración de fábrica</strong> — devuelve el equipo a su estado de fábrica.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Remote crypto-erase</strong> — invalidates the volume's encryption key.</li>
+        <li><strong>Selective wipe</strong> — erases only the paths the order designates.</li>
+        <li><strong>Full volume wipe</strong> — erases the whole data volume.</li>
+        <li><strong>Factory reset</strong> — returns the machine to its factory state.</li>
+      </ul>
+
+      <div class="callout note lang-es">
+        <span class="tag">Qué no hace</span>
+        <p>El módulo <strong>no borra un equipo que no esté declarado perdido o robado</strong>, no borra sin el permiso dedicado, no borra con una sola persona y no borra fuera de un caso abierto. Una orden no se puede crear desde el listado general de equipos: nace dentro de la línea de tiempo de un caso de equipo perdido y queda atada al ciclo vigente de ese caso.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">What it does not do</span>
+        <p>The module <strong>does not wipe a machine that is not declared lost or stolen</strong>, does not wipe without the dedicated permission, does not wipe with a single person, and does not wipe outside an open case. An order cannot be created from the general device list: it is born inside a lost-device case timeline and stays tied to that case's current cycle.</p>
+      </div>
+
+      <h2 id="permisos"><span class="lang-es">1. Los cuatro permisos</span><span class="lang-en">1. The four permissions</span></h2>
+      <p class="lang-es">Los cuatro vienen <strong>apagados de fábrica</strong> y son independientes entre sí: recuperar no es destruir, y ver un certificado no es poder emitirlo. Se activan en <em>Configuración → Gestor de permisos</em>, editando el rol.</p>
+      <p class="lang-en">All four are <strong>off by default</strong> and independent of each other: retrieving is not destroying, and viewing a certificate is not being able to issue one. Turn them on in <em>Settings → Permissions manager</em>, editing the role.</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Permiso en la consola</span><span class="lang-en">Permission in the console</span></th>
+          <th><span class="lang-es">Habilita</span><span class="lang-en">Enables</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong><span class="lang-es">Recuperar archivos (antes de borrar)</span><span class="lang-en">Retrieve files (before wiping)</span></strong></td><td><span class="lang-es">Crear y cancelar órdenes de recuperación y descargar los archivos recuperados.</span><span class="lang-en">Create and cancel retrieval orders and download the retrieved files.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Ordenar borrado de equipos</span><span class="lang-en">Order device wipes</span></strong></td><td><span class="lang-es">Crear, confirmar y cancelar órdenes de borrado. Es la capacidad más destructiva de la plataforma.</span><span class="lang-en">Create, confirm and cancel wipe orders. The most destructive capability in the platform.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Ver certificados de borrado</span><span class="lang-en">View erase certificates</span></strong></td><td><span class="lang-es">Consultar el listado y el detalle de los certificados y descargarlos en PDF y JSON.</span><span class="lang-en">Browse the certificate list and detail and download them as PDF and JSON.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Gestionar ingreso de activos</span><span class="lang-en">Manage asset intake</span></strong></td><td><span class="lang-es">Registrar el ingreso de un equipo a baja y certificar su destrucción física.</span><span class="lang-en">Record a machine's intake for disposal and certify its physical destruction.</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn lang-es">
+        <span class="tag">Sólo un superusuario los reparte</span>
+        <p>Ningún perfil administrativo del <a href="/functions/role_catalog/">catálogo</a> lleva estos permisos, ni siquiera <em>Administrador de Plataforma</em>. Como nadie puede otorgar un permiso que él mismo no tiene, <strong>sólo un superusuario puede asignarlos</strong>. En el catálogo estándar existen dos perfiles de custodia: <a href="/functions/role_catalog/#rol-ordenante-de-borrado">Ordenante de Borrado</a> y <a href="/functions/role_catalog/#rol-auditor-de-custodia">Auditor de Custodia</a>. La recomendación es asignarlos <strong>por caso, no de forma permanente</strong>.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Only a superuser hands them out</span>
+        <p>No administrative role in the <a href="/functions/role_catalog/">catalogue</a> carries these permissions, not even <em>Platform Administrator</em>. Since nobody can grant a permission they do not hold themselves, <strong>only a superuser can assign them</strong>. The standard catalogue has two custody roles: <a href="/functions/role_catalog/#rol-ordenante-de-borrado">Wipe Requester</a> and <a href="/functions/role_catalog/#rol-auditor-de-custodia">Custody Auditor</a>. The recommendation is to assign them <strong>per case, not permanently</strong>.</p>
+      </div>
+      <p class="lang-es">Cada permiso respeta además el <strong>alcance del rol</strong>: quien lo tiene sólo ve y opera los clientes y sitios que su rol le autoriza.</p>
+      <p class="lang-en">Each permission also respects the <strong>role's scope</strong>: whoever holds it only sees and operates the clients and sites their role authorizes.</p>
+
+      <h2 id="recuperar"><span class="lang-es">2. Recuperar archivos antes de borrar</span><span class="lang-en">2. Retrieve files before wiping</span></h2>
+      <p class="lang-es">Es el primer paso del orden de irreversibilidad y conviene hacerlo siempre: lo que se borra no vuelve. La recuperación no es destructiva, así que <strong>no exige dos personas ni ventana de arrepentimiento</strong>, pero sí el permiso propio y un caso de equipo perdido abierto.</p>
+      <p class="lang-en">It is the first step in the irreversibility order and it is worth always doing: what gets erased does not come back. Retrieval is not destructive, so it <strong>requires neither two people nor a recovery window</strong>, but it does require the dedicated permission and an open lost-device case.</p>
+      <ol class="lang-es">
+        <li>Abre <em>Herramientas → Equipos perdidos</em> y entra al caso del equipo.</li>
+        <li>En la línea de tiempo del caso, pulsa <strong>Recuperar archivos</strong>.</li>
+        <li>Escribe las <strong>rutas a recuperar, una por línea</strong>. Las carpetas se recuperan recursivamente.</li>
+        <li>Si quieres ver primero qué traería sin traer nada, marca <strong>Simulacro en seco</strong>: el agente responde el plan y no empaqueta ni sube archivos.</li>
+        <li>Pulsa <strong>Recuperar</strong>. La orden queda <em>En cola</em> hasta que el equipo se conecte.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>Open <em>Tools → Lost devices</em> and enter the device's case.</li>
+        <li>In the case timeline, click <strong>Retrieve files</strong>.</li>
+        <li>Type the <strong>paths to retrieve, one per line</strong>. Folders are retrieved recursively.</li>
+        <li>To see what it would bring without bringing anything, tick <strong>Dry run</strong>: the agent returns the plan and packages or uploads nothing.</li>
+        <li>Click <strong>Retrieve</strong>. The order stays <em>Queued</em> until the device connects.</li>
+      </ol>
+      <p class="lang-es">La orden recorre <em>En cola → Despachada → Subiendo → Completada</em>, y puede terminar en <em>Cancelada</em>, <em>Fallida</em> o <em>Expirada</em>. Expira si el equipo no la toma dentro del plazo (7 días de fábrica): así no quedan órdenes zombis esperando para siempre. Los archivos recuperados se descargan desde <strong>Ver archivos</strong> y se guardan <strong>cifrados en reposo</strong> en el servidor, en el mismo almacén que la evidencia del modo perdido.</p>
+      <p class="lang-en">The order moves through <em>Queued → Dispatched → Uploading → Done</em>, and can end as <em>Cancelled</em>, <em>Failed</em> or <em>Expired</em>. It expires if the device does not pick it up within the deadline (7 days by default), so no zombie orders wait forever. Retrieved files are downloaded from <strong>View files</strong> and stored <strong>encrypted at rest</strong> on the server, in the same store as lost-mode evidence.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Topes de fábrica</span>
+        <p>Cada orden trae un tope de <strong>500 MiB</strong> y <strong>500 archivos</strong>, y los archivos recuperados se conservan al menos <strong>366 días</strong> antes de que la retención los purgue. Los tres valores son configurables en el servidor. La purga borra los adjuntos; <strong>el registro de auditoría de la orden nunca se toca</strong>.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Default limits</span>
+        <p>Each order carries a cap of <strong>500 MiB</strong> and <strong>500 files</strong>, and retrieved files are kept for at least <strong>366 days</strong> before retention purges them. All three values are configurable on the server. Purging removes the attachments; <strong>the order's audit record is never touched</strong>.</p>
+      </div>
+
+      <h2 id="orden"><span class="lang-es">3. El flujo de una orden de borrado</span><span class="lang-en">3. The flow of a wipe order</span></h2>
+      <p class="lang-es">Una orden de borrado no es un botón: es una máquina de estados con dos personas y un tiempo de espera deliberado.</p>
+      <p class="lang-en">A wipe order is not a button: it is a state machine with two people and a deliberate waiting time.</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Estado</span><span class="lang-en">State</span></th>
+          <th><span class="lang-es">Qué significa</span><span class="lang-en">What it means</span></th>
+          <th><span class="lang-es">¿Cancelable?</span><span class="lang-en">Cancellable?</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><span class="lang-es">Pendiente de 2ª confirmación</span><span class="lang-en">Pending second confirmation</span></td><td><span class="lang-es">La orden existe; espera a una persona distinta de quien la creó.</span><span class="lang-en">The order exists; it waits for someone other than its author.</span></td><td><span class="lang-es">Sí</span><span class="lang-en">Yes</span></td></tr>
+          <tr><td><span class="lang-es">En ventana de arrepentimiento</span><span class="lang-en">In recovery window</span></td><td><span class="lang-es">Confirmada. Corre el reloj antes del despacho.</span><span class="lang-en">Confirmed. The clock runs before dispatch.</span></td><td><span class="lang-es">Sí</span><span class="lang-en">Yes</span></td></tr>
+          <tr><td><span class="lang-es">Despachada</span><span class="lang-en">Dispatched</span></td><td><span class="lang-es">Enviada al equipo.</span><span class="lang-en">Sent to the device.</span></td><td><span class="lang-es">No</span><span class="lang-en">No</span></td></tr>
+          <tr><td><span class="lang-es">Ejecutada</span><span class="lang-en">Executed</span></td><td><span class="lang-es">El equipo borró y la relectura confirmó que no queda residuo. Emite certificado.</span><span class="lang-en">The device erased and the re-read confirmed no residue is left. Issues a certificate.</span></td><td><span class="lang-es">No</span><span class="lang-en">No</span></td></tr>
+          <tr><td><span class="lang-es">Ejecutada sin verificar (incompleta)</span><span class="lang-en">Executed without verification (incomplete)</span></td><td><span class="lang-es">Borró, pero la relectura detectó residuo. <strong>No emite certificado.</strong></span><span class="lang-en">It erased, but the re-read found residue. <strong>No certificate is issued.</strong></span></td><td><span class="lang-es">No</span><span class="lang-en">No</span></td></tr>
+          <tr><td><span class="lang-es">Cancelada · Fallida</span><span class="lang-en">Cancelled · Failed</span></td><td><span class="lang-es">Terminó sin borrar.</span><span class="lang-en">It ended without erasing.</span></td><td><span class="lang-es">—</span><span class="lang-en">—</span></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3><span class="lang-es">Paso a paso</span><span class="lang-en">Step by step</span></h3>
+      <ol class="lang-es">
+        <li><strong>Crear la orden.</strong> En la línea de tiempo del caso de equipo perdido, pulsa <strong>Ordenar wipe selectivo</strong>. Si el equipo no tiene ninguna recuperación de archivos registrada, la consola te advierte antes de dejarte seguir.</li>
+        <li><strong>Elegir las rutas.</strong> Parte de una <strong>plantilla de rutas</strong> (la base definida por política o por cliente) y ajústala con <em>Rutas a añadir</em> y <em>Rutas a quitar</em>. La consola muestra en vivo las <strong>rutas resueltas</strong> y su cantidad. Las rutas admiten variables por sistema operativo (<code>%USERPROFILE%</code>, <code>$HOME</code>) que resuelve el agente.</li>
+        <li><strong>Escribir el motivo.</strong> Es obligatorio y queda en la auditoría de la orden.</li>
+        <li><strong>Decidir si es simulacro.</strong> Marcado, el agente sólo enumera el plan y no borra nada.</li>
+        <li><strong>Ordenar wipe.</strong> La orden queda <em>Pendiente de 2ª confirmación</em>.</li>
+        <li><strong>Segunda confirmación.</strong> Otra persona abre <em>Herramientas → Órdenes de borrado</em>, pulsa <strong>Confirmar</strong>, revisa acción, equipo, serie, motivo y simulacro, fija los <strong>segundos de ventana de arrepentimiento</strong> y confirma. <strong>La plataforma rechaza la confirmación si es la misma persona que ordenó.</strong></li>
+        <li><strong>La ventana.</strong> Desde <strong>Ventana</strong> se ve cuánto falta y se puede <strong>Cancelar la orden</strong> indicando el motivo. Al vencer, se despacha.</li>
+      </ol>
+      <ol class="lang-en">
+        <li><strong>Create the order.</strong> In the lost-device case timeline, click <strong>Order selective wipe</strong>. If the device has no recorded file retrieval, the console warns you before letting you continue.</li>
+        <li><strong>Choose the paths.</strong> Start from a <strong>path template</strong> (the baseline defined by policy or per client) and adjust it with <em>Paths to add</em> and <em>Paths to remove</em>. The console shows the <strong>resolved paths</strong> and their count live. Paths accept per-OS variables (<code>%USERPROFILE%</code>, <code>$HOME</code>) that the agent resolves.</li>
+        <li><strong>Write the reason.</strong> It is mandatory and stays in the order's audit trail.</li>
+        <li><strong>Decide whether it is a dry run.</strong> When ticked, the agent only enumerates the plan and erases nothing.</li>
+        <li><strong>Order wipe.</strong> The order becomes <em>Pending second confirmation</em>.</li>
+        <li><strong>Second confirmation.</strong> Another person opens <em>Tools → Erase orders</em>, clicks <strong>Confirm</strong>, reviews action, device, serial, reason and dry-run flag, sets the <strong>recovery-window seconds</strong> and confirms. <strong>The platform rejects the confirmation if it is the same person who ordered it.</strong></li>
+        <li><strong>The window.</strong> From <strong>Window</strong> you see the time left and can <strong>Cancel the order</strong> giving a reason. When it expires, it is dispatched.</li>
+      </ol>
+      <div class="callout note lang-es">
+        <span class="tag">Detalles que conviene saber</span>
+        <p>La ventana de arrepentimiento dura <strong>300 segundos</strong> de fábrica y quien confirma puede ajustarla en esa misma pantalla. Una orden admite como máximo <strong>200 rutas</strong>. Las rutas quedan <strong>congeladas en la orden</strong> al crearla: cambiar la plantilla después no altera órdenes ya emitidas. La vista <em>Órdenes de borrado</em> <strong>sólo gobierna órdenes existentes</strong> —segunda confirmación y ventana—; no se crean órdenes desde ahí.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Details worth knowing</span>
+        <p>The recovery window lasts <strong>300 seconds</strong> by default and whoever confirms can adjust it on that same screen. An order takes at most <strong>200 paths</strong>. Paths are <strong>frozen into the order</strong> when it is created: changing the template later does not alter orders already issued. The <em>Erase orders</em> view <strong>only governs existing orders</strong> —second confirmation and window—; orders are not created there.</p>
+      </div>
+
+      <h2 id="certificado"><span class="lang-es">4. El certificado de borrado</span><span class="lang-en">4. The erase certificate</span></h2>
+      <p class="lang-es">Un certificado se emite solo, sin que nadie lo pida, cuando una orden termina <strong>ejecutada y verificada</strong>. Si la relectura no confirma que las rutas quedaron irrecuperables, la orden queda <em>incompleta</em> y <strong>no hay certificado</strong>: la plataforma prefiere no certificar antes que certificar de más.</p>
+      <p class="lang-en">A certificate is issued on its own, unprompted, when an order ends <strong>executed and verified</strong>. If the re-read does not confirm that the paths are unrecoverable, the order stays <em>incomplete</em> and <strong>there is no certificate</strong>: the platform would rather not certify than over-certify.</p>
+      <p class="lang-es">Cada certificado tiene un identificador propio con el formato <code>OE-AAAAMMDD-XXXXXXXXXX</code> y es de uno de dos tipos: <strong>destrucción remota</strong> (la emite el borrado) o <strong>destrucción física</strong> (la emite una persona al dar de baja el medio). El documento incluye:</p>
+      <p class="lang-en">Each certificate carries its own identifier in the form <code>OE-YYYYMMDD-XXXXXXXXXX</code> and is one of two kinds: <strong>remote destruction</strong> (issued by the wipe) or <strong>physical destruction</strong> (issued by a person when disposing of the media). The document includes:</p>
+      <ul class="lang-es">
+        <li>cliente, etiqueta de activo y ticket de referencia;</li>
+        <li>equipo y número de serie;</li>
+        <li><strong>método aplicado</strong> y <strong>estándar de referencia</strong> — para un wipe remoto, <code>NIST SP 800-88r1 Clear</code>;</li>
+        <li><strong>resultado de la verificación</strong> y su nivel (relectura por-ruta), con el detalle ruta por ruta;</li>
+        <li>operador, inicio y fin, y versión del software del agente;</li>
+        <li>última ubicación conocida del equipo, cuando el caso la tiene.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>client, asset tag and reference ticket;</li>
+        <li>device and serial number;</li>
+        <li><strong>method applied</strong> and <strong>reference standard</strong> — for a remote wipe, <code>NIST SP 800-88r1 Clear</code>;</li>
+        <li><strong>verification result</strong> and its level (per-path re-read), with the path-by-path detail;</li>
+        <li>operator, start and finish, and the agent's software version;</li>
+        <li>the device's last known location, when the case has it.</li>
+      </ul>
+      <div class="callout warn lang-es">
+        <span class="tag">El certificado no miente por omisión</span>
+        <p>Los campos propios del borrado de disco fin-de-vida —método ATA/NVMe, capacidad informada y borrada, detección de HPA/DCO, pasadas y patrones, sectores defectuosos, resumen SMART— se emiten <strong>explícitamente como «N/A»</strong>, no se dejan en blanco. Quien lea el certificado ve de inmediato qué certifica y qué no. Esos campos los llenará la imagen de arranque de borrado de disco cuando exista, con el mismo esquema.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">The certificate does not lie by omission</span>
+        <p>The fields specific to end-of-life disk erasure —ATA/NVMe method, reported and erased capacity, HPA/DCO detection, passes and patterns, bad sectors, SMART summary— are issued <strong>explicitly as “N/A”</strong>, not left blank. Whoever reads the certificate immediately sees what it does and does not certify. Those fields will be filled by the bootable disk-erase image when it exists, under the same schema.</p>
+      </div>
+
+      <h2 id="verificar"><span class="lang-es">5. Cómo se verifica un certificado en la consola</span><span class="lang-en">5. How to verify a certificate in the console</span></h2>
+      <p class="lang-es">Abre <em>Herramientas → Certificados de borrado</em>, filtra por tipo o busca, y pulsa <strong>Ver detalle</strong>. Arriba del detalle verás el veredicto: <strong>Certificado válido</strong> o <strong>Certificado inválido</strong>. Ese veredicto no es una sola comprobación, son tres independientes, y la consola muestra cada una por separado:</p>
+      <p class="lang-en">Open <em>Tools → Erase certificates</em>, filter by kind or search, and click <strong>View detail</strong>. At the top of the detail you will see the verdict: <strong>Valid certificate</strong> or <strong>Invalid certificate</strong>. That verdict is not a single check but three independent ones, and the console shows each separately:</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Comprobación</span><span class="lang-en">Check</span></th>
+          <th><span class="lang-es">Qué prueba</span><span class="lang-en">What it proves</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong><span class="lang-es">Documento íntegro</span><span class="lang-en">Document intact</span></strong></td><td><span class="lang-es">El contenido del certificado es exactamente el que se emitió: su hash recalculado coincide.</span><span class="lang-en">The certificate's content is exactly what was issued: its recomputed hash matches.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Firma válida</span><span class="lang-en">Signature valid</span></strong></td><td><span class="lang-es">La firma criptográfica del documento verifica contra la clave del servidor.</span><span class="lang-en">The document's cryptographic signature verifies against the server's key.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Cadena íntegra</span><span class="lang-en">Chain intact</span></strong></td><td><span class="lang-es">El certificado sigue encadenado en su lugar dentro del repositorio inmutable.</span><span class="lang-en">The certificate is still chained in its place inside the immutable store.</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">El detalle muestra además el <strong>hash del documento</strong>, el <strong>algoritmo de firma</strong> y el <strong>ID de la clave</strong> que firmó, para que un tercero pueda repetir la verificación por su cuenta. Desde la misma pantalla se descarga el certificado en <strong>PDF</strong> (el documento presentable) y en <strong>JSON</strong> (documento + bloque de firma + hashes de la cadena). Ambos salen del mismo documento firmado, así que verificar el JSON verifica también el PDF.</p>
+      <p class="lang-en">The detail also shows the <strong>document hash</strong>, the <strong>signature algorithm</strong> and the <strong>key ID</strong> that signed it, so a third party can repeat the verification on their own. From the same screen you download the certificate as <strong>PDF</strong> (the presentable document) and as <strong>JSON</strong> (document + signature block + chain hashes). Both come from the same signed document, so verifying the JSON verifies the PDF too.</p>
+      <div class="callout note lang-es">
+        <span class="tag">Sin firma</span>
+        <p>Si el servidor no tiene clave de firma configurada, el certificado se emite igual pero <strong>sin firma</strong>, y así lo dice el detalle: <em>Sin firma</em>. No se inventa una firma ni se bloquea la emisión. Un ambiente sin clave es un ambiente de prueba, y se nota en el propio certificado en vez de descubrirse al verificar.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Unsigned</span>
+        <p>If the server has no signing key configured, the certificate is still issued but <strong>unsigned</strong>, and the detail says so: <em>Unsigned</em>. No signature is invented and issuance is not blocked. An environment without a key is a test environment, and that shows on the certificate itself instead of being discovered at verification time.</p>
+      </div>
+      <p class="lang-es">Cada equipo tiene además su propia pestaña <strong>Borrado</strong> en la vista del agente, con los certificados de ese equipo.</p>
+      <p class="lang-en">Each device also has its own <strong>Erase</strong> tab in the agent view, listing that device's certificates.</p>
+
+      <h2 id="custodia"><span class="lang-es">6. El formulario de custodia, paso a paso</span><span class="lang-en">6. The custody form, step by step</span></h2>
+      <p class="lang-es">El ingreso de activo es el acta que formaliza la recepción del equipo <strong>antes</strong> de cualquier operación, y es el que ancla la cadena de custodia. Abre <em>Herramientas → Certificados de borrado</em>, ve a la pestaña <strong>Ingresos de activos</strong> y pulsa <strong>Ingresar activo</strong>.</p>
+      <p class="lang-en">Asset intake is the record that formalizes receiving the machine <strong>before</strong> any operation, and it is what anchors the chain of custody. Open <em>Tools → Erase certificates</em>, go to the <strong>Asset intake</strong> tab and click <strong>Record intake</strong>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Campo</span><span class="lang-en">Field</span></th>
+          <th><span class="lang-es">Qué poner</span><span class="lang-en">What to put</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong><span class="lang-es">Cliente</span><span class="lang-en">Client</span></strong> · <strong><span class="lang-es">Sitio</span><span class="lang-en">Site</span></strong></td><td><span class="lang-es">A quién pertenece el activo. El cliente es obligatorio.</span><span class="lang-en">Who the asset belongs to. The client is mandatory.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Estado del activo</span><span class="lang-en">Asset state</span></strong></td><td><span class="lang-es"><em>Funcional</em>, <em>No funcional</em> o <em>Sin medio detectable</em>. Decide la ruta del proceso.</span><span class="lang-en"><em>Functional</em>, <em>Non-functional</em> or <em>No detectable media</em>. It decides the process route.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Etiqueta de activo</span><span class="lang-en">Asset tag</span></strong></td><td><span class="lang-es">El inventario del cliente. Viaja al certificado.</span><span class="lang-en">The client's inventory tag. It travels to the certificate.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Serie del equipo</span><span class="lang-en">Equipment serial</span></strong> · <strong><span class="lang-es">Serie del medio</span><span class="lang-en">Media serial</span></strong></td><td><span class="lang-es">Dos series distintas: la del equipo y la del disco. Si el disco se separa del equipo, la segunda es la que importa.</span><span class="lang-en">Two different serials: the machine's and the disk's. If the disk is separated from the machine, the second one is what matters.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Ticket</span><span class="lang-en">Ticket</span></strong></td><td><span class="lang-es">La referencia del caso en tu mesa de servicio.</span><span class="lang-en">The case reference in your service desk.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Entregado por</span><span class="lang-en">Delivered by</span></strong></td><td><span class="lang-es">Quién hace la entrega. Quien recibe eres tú y lo registra la plataforma.</span><span class="lang-en">Who hands it over. The receiver is you and the platform records it.</span></td></tr>
+          <tr><td><strong><span class="lang-es">Notas</span><span class="lang-en">Notes</span></strong></td><td><span class="lang-es">Estado físico, accesorios, cualquier observación de la recepción.</span><span class="lang-en">Physical condition, accessories, any remark about the handover.</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">Al guardar, la plataforma devuelve el <strong>identificador de proceso</strong>. Ese identificador acompaña al activo por todo el resto del flujo y es el que después aparece en el certificado de destrucción física.</p>
+      <p class="lang-en">On save, the platform returns the <strong>process identifier</strong>. That identifier follows the asset through the rest of the flow and is the one that later appears on the physical-destruction certificate.</p>
+      <div class="callout note lang-es">
+        <span class="tag">La regla del estado</span>
+        <p>Un activo <strong>no funcional</strong> o <strong>sin medio detectable</strong> se enruta <strong>directo a destrucción física</strong>: no tiene sentido intentar un borrado lógico sobre un equipo que no enciende o cuyo disco no se detecta. El listado lo marca en la columna <em>Ruta</em> con <strong>A destrucción física</strong>.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">The state rule</span>
+        <p>A <strong>non-functional</strong> asset or one with <strong>no detectable media</strong> is routed <strong>straight to physical destruction</strong>: there is no point attempting a logical erase on a machine that will not power on or whose disk is not detected. The list flags it in the <em>Route</em> column with <strong>To physical destruction</strong>.</p>
+      </div>
+
+      <h3 id="destruccion-fisica"><span class="lang-es">Certificar la destrucción física</span><span class="lang-en">Certify the physical destruction</span></h3>
+      <p class="lang-es">Cuando el medio se destruye físicamente, se certifica desde el mismo listado:</p>
+      <p class="lang-en">When the media is physically destroyed, it is certified from the same list:</p>
+      <ol class="lang-es">
+        <li>Busca el ingreso en la pestaña <strong>Ingresos de activos</strong> y pulsa <strong>Certificar destrucción</strong>.</li>
+        <li>La consola te confirma para qué serie y qué proceso se va a emitir.</li>
+        <li>Indica el <strong>método de destrucción</strong> (triturado, desmagnetizado, perforado, lo que corresponda), el <strong>operador</strong> —vacío usa tu usuario— y el <strong>motivo</strong>.</li>
+        <li>Pulsa <strong>Emitir certificado</strong>. La consola te devuelve el identificador del certificado recién emitido.</li>
+      </ol>
+      <ol class="lang-en">
+        <li>Find the intake in the <strong>Asset intake</strong> tab and click <strong>Certify destruction</strong>.</li>
+        <li>The console confirms which serial and which process it will be issued for.</li>
+        <li>State the <strong>destruction method</strong> (shredding, degaussing, punching, whichever applies), the <strong>operator</strong> —blank uses your user— and the <strong>reason</strong>.</li>
+        <li>Click <strong>Issue certificate</strong>. The console returns the identifier of the newly issued certificate.</li>
+      </ol>
+      <p class="lang-es">El certificado aparece de inmediato en la pestaña <strong>Certificados</strong>, como tipo <em>Destrucción física</em>, y se verifica igual que cualquier otro.</p>
+      <p class="lang-en">The certificate appears immediately in the <strong>Certificates</strong> tab, as kind <em>Physical destruction</em>, and is verified like any other.</p>
+
+      <h2 id="inmutable"><span class="lang-es">7. El repositorio inmutable</span><span class="lang-en">7. The immutable store</span></h2>
+      <p class="lang-es">Los certificados y la auditoría del módulo viven en un repositorio <strong>de sólo escritura</strong>: una fila emitida <strong>no se modifica y no se elimina</strong>, y la plataforma rechaza el intento, no lo registra y sigue. Cada fila además <strong>encadena el hash de la anterior</strong>, así que borrar un registro intermedio rompe la continuidad de la cadena y queda a la vista en la verificación de los certificados que vienen después.</p>
+      <p class="lang-en">The module's certificates and audit trail live in a <strong>write-once</strong> store: an issued row <strong>cannot be modified or deleted</strong>, and the platform rejects the attempt rather than logging it and moving on. Each row also <strong>chains the previous row's hash</strong>, so deleting an intermediate record breaks the chain's continuity and shows up when verifying the certificates that come after it.</p>
+      <p class="lang-es">En esa misma cadena queda registrada <strong>cada transición de cada orden</strong> —quién la creó, quién la confirmó, quién la canceló y por qué, cuándo se despachó y qué respondió el equipo— junto con la emisión de cada certificado. Es la auditoría que <strong>sobrevive al borrado</strong>: se guarda la identidad del equipo denormalizada, de modo que la traza conserva sentido aunque después desaparezcan la orden, el agente o el cliente.</p>
+      <p class="lang-en">That same chain records <strong>every transition of every order</strong> —who created it, who confirmed it, who cancelled it and why, when it was dispatched and what the device replied— along with the issuance of each certificate. This is the audit trail that <strong>survives the erase</strong>: the device's identity is stored denormalized, so the trace keeps its meaning even if the order, the agent or the client disappear later.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Separado del log operativo</span>
+        <p>Esta cadena <strong>no entra en la purga del registro de auditoría</strong> de la plataforma, que sí borra en duro. Mezclar el log operativo purgable con la evidencia legal permanente sería exactamente el tipo de falso positivo que este módulo no puede permitirse. La retención purga <strong>adjuntos</strong> vencidos —los archivos recuperados—, nunca una fila ni su hash.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Separate from the operational log</span>
+        <p>This chain is <strong>not part of the platform's audit-log pruning</strong>, which does delete for real. Mixing the purgeable operational log with permanent legal evidence would be exactly the kind of false positive this module cannot afford. Retention purges expired <strong>attachments</strong> —the retrieved files— never a row or its hash.</p>
+      </div>
+
+      <h2 id="configuracion"><span class="lang-es">8. Configuración del servidor</span><span class="lang-en">8. Server configuration</span></h2>
+      <p class="lang-es">Cuatro ajustes gobiernan el módulo. Ninguno viene en la configuración base: se agregan en <code>local_settings.py</code> y requieren reiniciar los servicios para tomar efecto.</p>
+      <p class="lang-en">Four settings govern the module. None ships in the base configuration: they are added in <code>local_settings.py</code> and require restarting the services to take effect.</p>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th><span class="lang-es">Ajuste</span><span class="lang-en">Setting</span></th>
+          <th><span class="lang-es">De fábrica</span><span class="lang-en">Default</span></th>
+          <th><span class="lang-es">Para qué</span><span class="lang-en">What for</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><code>ERASE_DESTRUCTIVE_DISPATCH_ENABLED</code></td><td><code>False</code></td><td><span class="lang-es">El interruptor del borrado real. En <code>False</code> la orden se gobierna y se audita, pero no viaja al equipo.</span><span class="lang-en">The real-wipe switch. At <code>False</code> the order is governed and audited but never travels to the device.</span></td></tr>
+          <tr><td><code>ERASE_SIGNING_KEY</code></td><td><span class="lang-es">vacío</span><span class="lang-en">empty</span></td><td><span class="lang-es">Clave privada en PEM con la que se firman los certificados (RSA-PSS SHA-256). Vacía ⇒ certificados sin firma.</span><span class="lang-en">PEM private key used to sign certificates (RSA-PSS SHA-256). Empty ⇒ unsigned certificates.</span></td></tr>
+          <tr><td><code>ERASE_RECOVERY_SECONDS</code></td><td><code>300</code></td><td><span class="lang-es">Duración de la ventana de arrepentimiento. Quien confirma puede ajustarla por orden.</span><span class="lang-en">Length of the recovery window. Whoever confirms can adjust it per order.</span></td></tr>
+          <tr><td><code>WIPE_MAX_PATHS_PER_ORDER</code></td><td><code>200</code></td><td><span class="lang-es">Tope de rutas por orden de wipe.</span><span class="lang-en">Cap on paths per wipe order.</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="lang-es">La recuperación de archivos tiene los suyos propios: tiempo de vida de la orden en cola (7 días), tope de tamaño (500 MiB), tope de archivos (500) y retención de los archivos recuperados (366 días, el piso legal de 12 meses).</p>
+      <p class="lang-en">File retrieval has its own: queued-order time to live (7 days), size cap (500 MiB), file cap (500) and retention of the retrieved files (366 days, the 12-month legal floor).</p>
+
+      <h2 id="api"><span class="lang-es">9. Desde la API</span><span class="lang-en">9. From the API</span></h2>
+      <p class="lang-es">Todo el módulo está disponible por la <a href="/api/">API REST</a>, bajo la sección <em>Borrado seguro y recuperación de archivos</em>: órdenes (<code>/erase/orders/</code>), recuperación (<code>/erase/fileretrieval/</code>), certificados con su descarga en PDF y JSON (<code>/erase/certificates/</code>) e ingreso de activos (<code>/erase/intake/</code>). Cada ruta exige el mismo permiso que su equivalente en la consola.</p>
+      <p class="lang-en">The whole module is available through the <a href="/api/">REST API</a>, under the <em>Secure erase and file retrieval</em> section: orders (<code>/erase/orders/</code>), retrieval (<code>/erase/fileretrieval/</code>), certificates with their PDF and JSON download (<code>/erase/certificates/</code>) and asset intake (<code>/erase/intake/</code>). Each route requires the same permission as its console counterpart.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Llaves de API</span>
+        <p>Ningún rol de integración debería llevar los permisos de custodia. Si una llave de API los tuviera, un sistema externo podría ordenar un borrado sin pasar por la consola. Revísalo en <a href="/functions/permissions/">Permisos y seguridad</a>.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">API keys</span>
+        <p>No integration role should carry the custody permissions. If an API key held them, an external system could order a wipe without going through the console. Review it in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
+      </div>
+
+      <h2 id="limites"><span class="lang-es">10. Qué queda fuera, por ahora</span><span class="lang-en">10. What is out of scope, for now</span></h2>
+      <ul class="lang-es">
+        <li><strong>El borrado destructivo remoto está deshabilitado</strong> hasta completar la aprobación legal y el simulacro en seco sobre un equipo de descarte.</li>
+        <li><strong>El borrado de disco fin-de-vida</strong> —imagen de arranque, método ATA/NVMe, verificación por sectores, HPA/DCO, SMART— todavía no existe. El certificado deja esos campos explícitos como «N/A» para no prometer lo que no hizo.</li>
+        <li>La verificación del wipe remoto es <strong>por relectura de las rutas borradas</strong>, no por lectura de sectores: certifica el nivel <em>Clear</em> del estándar, no <em>Purge</em>.</li>
+      </ul>
+      <ul class="lang-en">
+        <li><strong>Remote destructive wiping is disabled</strong> until the legal approval and the dry run on a scrap machine are completed.</li>
+        <li><strong>End-of-life disk erasure</strong> —bootable image, ATA/NVMe method, sector-level verification, HPA/DCO, SMART— does not exist yet. The certificate marks those fields explicitly as “N/A” so it does not promise what it did not do.</li>
+        <li>Remote wipe verification is <strong>by re-reading the erased paths</strong>, not by reading sectors: it certifies the standard's <em>Clear</em> level, not <em>Purge</em>.</li>
+      </ul>
+      <p class="lang-es">Lo que el módulo puede y no puede hacer con los datos de las personas está en <a href="/uso_aceptable/">Uso aceptable y privacidad</a>.</p>
+      <p class="lang-en">What the module can and cannot do with people's data is covered in <a href="/uso_aceptable/">Acceptable use &amp; privacy</a>.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>
