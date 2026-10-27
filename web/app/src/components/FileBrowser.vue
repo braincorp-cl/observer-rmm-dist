@@ -166,11 +166,15 @@ const tableColumns = computed<QTableColumn[]>(() => [
     sortable: true,
   },
   {
+    // 050 (T046, G01): un tamaño en su celda es un valor dedicado ⇒ Mono
+    // («conteos y tamaños en su celda o badge»). El nombre y el tipo del
+    // archivo son nombres y se quedan en Archivo.
     name: "size",
     label: t("fileBrowser.colSize"),
     field: "size",
     align: "left",
     sortable: true,
+    classes: "mono obs-nowrap",
   },
 ]);
 
