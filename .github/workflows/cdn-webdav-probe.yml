@@ -1,0 +1,71 @@
+---
+# Sonda manual: ¿puede un runner de GitHub escribir por WebDAV en el appserver?
+#
+# Existe para zanjar una contradicción en la bitácora: en julio la escritura desde CI
+# se validó E2E tras agregar EE.UU. al geo-allowlist del firewall, y en septiembre se
+# anotó lo contrario al mover el changelog al control-plane. De la respuesta depende si
+# docs.observer.cl puede publicarse desde el release en vez de por rsync a mano.
+#
+# Solo workflow_dispatch: nunca corre sola. Sube un marcador a /changelog/, lo verifica
+# por GET y lo borra. SIN continue-on-error a propósito: acá un exit 0 falso es el bug
+# que se está investigando.
+
+name: CDN WebDAV probe
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Comprobar que los secrets estén presentes
+        env:
+          CDN_UPLOAD_USER: ${{ secrets.CDN_UPLOAD_USER }}
+          CDN_UPLOAD_PASSWORD: ${{ secrets.CDN_UPLOAD_PASSWORD }}
+        run: |
+          test -n "$CDN_UPLOAD_USER" || { echo "::error::falta CDN_UPLOAD_USER"; exit 1; }
+          test -n "$CDN_UPLOAD_PASSWORD" || { echo "::error::falta CDN_UPLOAD_PASSWORD"; exit 1; }
+          echo "secrets presentes"
+
+      - name: Salida pública del runner (para el allowlist del firewall)
+        run: curl -s --max-time 20 https://api.ipify.org || echo "(no se pudo averiguar)"
+
+      - name: Alcanzar el host por HTTPS (TCP + TLS, sin auth)
+        run: |
+          curl -sS -o /dev/null -w 'connect=%{time_connect}s tls=%{time_appconnect}s http=%{http_code}\n' \
+            --connect-timeout 30 --max-time 60 https://agents.observer.cl/changelog/
+
+      - name: PUT del marcador por WebDAV
+        env:
+          CDN_UPLOAD_USER: ${{ secrets.CDN_UPLOAD_USER }}
+          CDN_UPLOAD_PASSWORD: ${{ secrets.CDN_UPLOAD_PASSWORD }}
+        run: |
+          echo "probe run ${{ github.run_id }} $(date -u +%FT%TZ)" > probe.txt
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 30 --max-time 60 \
+            -u "$CDN_UPLOAD_USER:$CDN_UPLOAD_PASSWORD" -T probe.txt \
+            "https://agents.observer.cl/changelog/_probe-${{ github.run_id }}.txt")
+          echo "PUT -> $code"
+          case "$code" in 20*) ;; *) echo "::error::PUT devolvió $code"; exit 1 ;; esac
+
+      - name: Verificar POR EFECTO que el marcador quedó servido
+        run: |
+          body=$(curl -sS --connect-timeout 30 --max-time 60 \
+            "https://agents.observer.cl/changelog/_probe-${{ github.run_id }}.txt")
+          echo "GET -> $body"
+          echo "$body" | grep -q "probe run ${{ github.run_id }}" \
+            || { echo "::error::el contenido servido no es el que se subió"; exit 1; }
+
+      - name: Limpiar el marcador
+        if: always()
+        env:
+          CDN_UPLOAD_USER: ${{ secrets.CDN_UPLOAD_USER }}
+          CDN_UPLOAD_PASSWORD: ${{ secrets.CDN_UPLOAD_PASSWORD }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 30 --max-time 60 \
+            -u "$CDN_UPLOAD_USER:$CDN_UPLOAD_PASSWORD" -X DELETE \
+            "https://agents.observer.cl/changelog/_probe-${{ github.run_id }}.txt")
+          echo "DELETE -> $code"
+          case "$code" in 20*|404) echo "marcador removido" ;;
+            *) echo "::warning::DELETE devolvió $code — el marcador puede haber quedado" ;; esac
