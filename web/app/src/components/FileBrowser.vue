@@ -88,7 +88,11 @@
                 />{{ slotProps.row.name }}
               </q-td>
               <q-td>{{ slotProps.row.type }}</q-td>
-              <q-td>{{ slotProps.row.size }}</q-td>
+              <!-- 050 (T046, G01): un tamaño en su celda es un valor dedicado
+                   ⇒ Mono. 🪤 el `classes` de la columna NO sirve acá: este
+                   `#body` pinta `q-td` sin `:props`, así que Quasar no aplica
+                   lo que declara la columna; la clase va en el `q-td`. -->
+              <q-td class="mono obs-nowrap">{{ slotProps.row.size }}</q-td>
             </q-tr>
           </template>
         </q-table>
@@ -166,15 +170,11 @@ const tableColumns = computed<QTableColumn[]>(() => [
     sortable: true,
   },
   {
-    // 050 (T046, G01): un tamaño en su celda es un valor dedicado ⇒ Mono
-    // («conteos y tamaños en su celda o badge»). El nombre y el tipo del
-    // archivo son nombres y se quedan en Archivo.
     name: "size",
     label: t("fileBrowser.colSize"),
     field: "size",
     align: "left",
     sortable: true,
-    classes: "mono obs-nowrap",
   },
 ]);
 
