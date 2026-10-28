@@ -1,7 +1,11 @@
+import os
+
+from django.conf import settings
 from rest_framework import serializers
 
 from erase.models import (
     AssetIntake,
+    DestructionVerification,
     EraseAuditRecord,
     EraseCertificate,
     FileRetrievalOrder,
@@ -9,6 +13,12 @@ from erase.models import (
     WipeOrder,
     WipePathTemplate,
 )
+
+# Tope y tipos del adjunto que acredita una destrucción física. Es la foto que
+# saca un técnico con el teléfono, no un informe: 15 MiB sobra y evita que un
+# video de varios minutos entre por este camino. Configurable por settings.
+DEFAULT_DESTRUCTION_EVIDENCE_MAX_BYTES = 15 * 2**20
+DESTRUCTION_EVIDENCE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".heic", ".webp", ".pdf")
 
 
 class EraseAuditRecordSerializer(serializers.ModelSerializer):
@@ -112,9 +122,83 @@ class AssetIntakeSerializer(serializers.ModelSerializer):
 
 
 class CertifyDestructionSerializer(serializers.Serializer):
+    """Datos con los que se certifica una destrucción física (C7).
+
+    Lo que acredita la destrucción es **declarativo** (L-03): método, nota y
+    testigo, más una fotografía OPCIONAL. La foto no se exige a propósito —
+    exigirla bloquearía la destrucción en planta de un tercero, donde el operador
+    no siempre puede fotografiar, y empujaría a subir fotos de relleno para pasar
+    la validación. Lo que el módulo garantiza no es que haya evidencia, sino que
+    el certificado **diga la verdad sobre si la hay**: sin método acreditado y sin
+    testigo nombrado el veredicto es `NOT_VERIFIED`, no `PASS`.
+    """
+
     method = serializers.CharField(required=False, allow_blank=True, default="")
     reason = serializers.CharField(required=False, allow_blank=True, default="")
     operator = serializers.CharField(required=False, allow_blank=True, default="")
+
+    # Segunda persona que da fe (Concurrence del Apéndice C).
+    concurrence_name = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=255
+    )
+    concurrence_role = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=255
+    )
+    concurrence_contact = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=255
+    )
+
+    # Cómo se acreditó. `none` es un valor legítimo y explícito, no un hueco.
+    verification_method = serializers.ChoiceField(
+        choices=DestructionVerification.choices,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    verification_evidence = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=1000
+    )
+    evidence_file = serializers.FileField(required=False, allow_null=True)
+
+    def validate_evidence_file(self, archivo):
+        if archivo is None:
+            return archivo
+        tope = getattr(
+            settings,
+            "DESTRUCTION_EVIDENCE_MAX_BYTES",
+            DEFAULT_DESTRUCTION_EVIDENCE_MAX_BYTES,
+        )
+        if archivo.size > tope:
+            raise serializers.ValidationError(
+                f"el adjunto supera el tope de {tope // 2**20} MiB"
+            )
+        ext = os.path.splitext(archivo.name or "")[1].lower()
+        if ext not in DESTRUCTION_EVIDENCE_EXTENSIONS:
+            raise serializers.ValidationError(
+                "formato no aceptado; se admiten "
+                + ", ".join(DESTRUCTION_EVIDENCE_EXTENSIONS)
+            )
+        return archivo
+
+    def validate(self, data):
+        """Un método presenciado exige nombrar a quien presenció.
+
+        Es la única combinación incoherente: declarar `witnessed` sin decir quién
+        es afirmar que alguien dio fe y no poder decir su nombre. El resto de las
+        combinaciones son válidas, incluida la de no acreditar nada — eso el
+        certificado lo declara, no lo rechaza.
+        """
+        if (
+            data.get("verification_method") == DestructionVerification.WITNESSED
+            and not (data.get("concurrence_name") or "").strip()
+        ):
+            raise serializers.ValidationError(
+                {
+                    "concurrence_name": "una destrucción presenciada tiene que "
+                    "nombrar a quien la presenció"
+                }
+            )
+        return data
 
 
 # --- fileretrieval (feature 042) --------------------------------------------
