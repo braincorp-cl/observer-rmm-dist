@@ -473,7 +473,34 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
     result = order.result or {}
     paths_result = {k: v for k, v in result.items() if k != "_"}
     started = order.dispatched_at or order.confirmed_at or order.ordered_at
-    operator = order.confirmed_by or order.ordered_by
+
+    # 🔑 El operador es quien ORDENÓ, no `confirmed_by or ordered_by`. Con la
+    # expresión anterior, una orden confirmada mostraba a la misma persona como
+    # operador y como quien da fe: justo el "ok falso" que la separación de
+    # deberes existe para evitar. Quien confirmó va al bloque de concurrencia.
+    operator = order.ordered_by
+    concurrence = (
+        {
+            "name": order.confirmed_by,
+            "role": "Segunda confirmación de la orden (RF-G02)",
+            "at": order.confirmed_at.isoformat() if order.confirmed_at else "",
+        }
+        if order.confirmed_by
+        else None
+    )
+
+    # Fabricante y modelo: el snapshot que se congeló al crear la orden (RF-04).
+    # Si la orden es anterior a la feature 053 la columna está vacía, así que se
+    # cae al agente en vivo — que puede no existir (`SET_NULL`) y puede devolver
+    # un centinela de error, de ahí el mismo filtro.
+    make_model = order.agent_make_model or clean_make_model(
+        getattr(order.agent, "make_model", "")
+    )
+
+    # Destino del medio: sólo si la orden cuelga de un acta de ingreso. Anclada a
+    # un caso de equipo perdido el campo viaja presente y VACÍO, que es la verdad
+    # —el medio sigue en el equipo, dondequiera que esté—, no un dato ausente.
+    intake = order.intake
     try:
         certificate.issue_certificate(
             kind=CertificateKind.REMOTE_DESTRUCTION,
@@ -481,16 +508,32 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
             site=order.site,
             agent=order.agent,
             order=order,
-            actor=operator,
+            intake=intake,
+            # El actor de la auditoría es quien autorizó, que no es lo mismo que
+            # el operador del documento: la emisión la dispara el reporte del
+            # agente, no una persona.
+            actor=order.confirmed_by or order.ordered_by,
             method_applied=order.method_applied,
-            standard_ref="NIST SP 800-88r1 Clear",
-            verification_result="PASS",
+            standard_ref=certificate.STANDARD_REF_CLEAR,
+            verification_result=certificate.VERIFICATION_PASS,
+            verification_method="Relectura por-ruta informada por el agente (RN-08)",
             operator=operator,
+            concurrence=concurrence,
+            media_disposition=getattr(intake, "media_disposition", "") or "",
+            media_disposition_detail=(
+                getattr(intake, "media_disposition_detail", "") or ""
+            ),
             started_at=started.isoformat() if started else "",
             finished_at=order.executed_at.isoformat() if order.executed_at else "",
+            # 🐞 Antes esto ponía `model = agent_hostname`: el documento que se
+            # entrega a un tercero llevaba el nombre de red como si fuera el
+            # modelo del equipo. Ahora cada dato va en su casilla.
             equipment={
-                "model": order.agent_hostname or "",
+                "make_model": make_model,
+                "make": getattr(intake, "equipment_make", "") or "",
+                "model": getattr(intake, "equipment_model", "") or "",
                 "serial": order.agent_serial or "",
+                "hostname": order.agent_hostname or "",
             },
             software_version=getattr(order.agent, "version", "") or "",
             extra={
