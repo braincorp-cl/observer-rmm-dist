@@ -3377,7 +3377,8 @@
       "colRoutes": "Ruta",
       "colCreatedAt": "Ingresado",
       "colActions": "Acciones",
-      "certifyDestruction": "Certificar destrucción"
+      "certifyDestruction": "Certificar destrucción",
+      "colDisposition": "Destino del medio"
     },
     "intakeForm": {
       "title": "Ingreso de activo a baja",

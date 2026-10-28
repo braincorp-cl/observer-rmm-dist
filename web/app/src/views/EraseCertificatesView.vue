@@ -170,11 +170,86 @@
             :label="$t('erase.certify.operator')"
             :hint="$t('erase.certify.operatorHint')"
           />
+
+          <!-- Feature 053 · RF-05: lo que se acredita decide el veredicto. El
+               aviso de abajo no es decorativo: sin metodo y sin testigo el
+               certificado va a DECLARAR que no hubo verificacion. -->
+          <q-select
+            dense
+            filled
+            clearable
+            emit-value
+            map-options
+            class="q-mb-sm"
+            v-model="certifyForm.verification_method"
+            :options="verificationMethodOptions"
+            :label="$t('erase.certify.verificationMethod')"
+          />
+          <q-input
+            dense
+            filled
+            class="q-mb-sm"
+            v-model="certifyForm.verification_evidence"
+            :label="$t('erase.certify.verificationEvidence')"
+            :hint="$t('erase.certify.verificationEvidenceHint')"
+          />
+          <q-file
+            dense
+            filled
+            clearable
+            class="q-mb-sm"
+            accept=".jpg,.jpeg,.png,.heic,.webp,.pdf"
+            v-model="certifyForm.evidence_file"
+            :label="$t('erase.certify.evidenceFile')"
+            :hint="$t('erase.certify.evidenceFileHint')"
+          >
+            <template v-slot:prepend>
+              <q-icon name="attach_file" />
+            </template>
+          </q-file>
+
+          <div class="text-caption text-weight-medium q-mt-md">
+            {{ $t("erase.certify.concurrenceSection") }}
+          </div>
+          <div class="row q-col-gutter-sm q-mb-sm">
+            <q-input
+              class="col-12 col-sm-4"
+              dense
+              filled
+              v-model="certifyForm.concurrence_name"
+              :label="$t('erase.certify.concurrenceName')"
+              :error="witnessMissing"
+              :error-message="$t('erase.certify.witnessRequired')"
+            />
+            <q-input
+              class="col-12 col-sm-4"
+              dense
+              filled
+              v-model="certifyForm.concurrence_role"
+              :label="$t('erase.certify.concurrenceRole')"
+            />
+            <q-input
+              class="col-12 col-sm-4"
+              dense
+              filled
+              v-model="certifyForm.concurrence_contact"
+              :label="$t('erase.certify.concurrenceContact')"
+            />
+          </div>
+
+          <q-banner v-if="!accredited" dense class="bg-orange-1 text-orange-9">
+            <template v-slot:avatar>
+              <q-icon name="gpp_maybe" color="warning" />
+            </template>
+            {{ $t("erase.certify.noVerificationNotice") }}
+          </q-banner>
+
           <q-input
             dense
             filled
             type="textarea"
             autogrow
+            class="q-mt-sm"
             v-model="certifyForm.reason"
             :label="$t('erase.certify.reason')"
           />
@@ -184,6 +259,7 @@
           <q-btn
             color="deep-orange"
             :loading="certifying"
+            :disable="witnessMissing"
             :label="$t('erase.certify.emit')"
             @click="doCertify"
           />
@@ -216,6 +292,7 @@ import {
   certifyAssetDestruction,
 } from "@/api/erase";
 import { fetchClients } from "@/api/clients";
+import { labelDisposition } from "@/utils/erase";
 import { formatDate } from "@/utils/format";
 import { notifySuccess, notifyError } from "@/utils/notify";
 
@@ -295,6 +372,17 @@ export default {
         sortable: true,
       },
       {
+        // RF-03: el destino se ve en el listado, no solo dentro del acta — es
+        // lo que permite revisar de un golpe qué activos ya tienen su destino
+        // declarado y cuáles no.
+        name: "media_disposition",
+        label: t("erase.view.colDisposition"),
+        field: "media_disposition",
+        align: "left",
+        sortable: true,
+        format: (val) => labelDisposition(val) || dash,
+      },
+      {
         name: "routes",
         label: t("erase.view.colRoutes"),
         field: "routes_to_physical_destruction",
@@ -365,11 +453,53 @@ export default {
     const certifyDialog = ref(false);
     const certifying = ref(false);
     const certifyTarget = ref(null);
-    const certifyForm = ref({ method: "", operator: "", reason: "" });
+    function certifyFormVacio() {
+      return {
+      method: "",
+      operator: "",
+      reason: "",
+      verification_method: "",
+      verification_evidence: "",
+      concurrence_name: "",
+      concurrence_role: "",
+      concurrence_contact: "",
+      evidence_file: null,
+    };
+    }
+
+    const certifyForm = ref(certifyFormVacio());
+
+    // Mismo orden que `DestructionVerification` en el modelo. `none` entra como
+    // opcion EXPLICITA: declarar que no se acredito nada es un acto consciente,
+    // no un campo que se quedo sin llenar.
+    const verificationMethodOptions = [
+      "none",
+      "witnessed",
+      "photographic",
+      "weighed",
+      "vendor_certificate",
+    ].map((value) => ({ value, label: t(`erase.verificationMethod.${value}`) }));
+
+    // Lo mismo que decide el backend (T008): metodo distinto de "ninguno" Y
+    // testigo nombrado. Se replica aca solo para avisar, no para autorizar: el
+    // veredicto lo pone el servidor.
+    const accredited = computed(() => {
+      const m = certifyForm.value.verification_method;
+      return !!(
+        m && m !== "none" && (certifyForm.value.concurrence_name || "").trim()
+      );
+    });
+
+    // La unica combinacion que el serializer rechaza con 400.
+    const witnessMissing = computed(
+      () =>
+        certifyForm.value.verification_method === "witnessed" &&
+        !(certifyForm.value.concurrence_name || "").trim(),
+    );
 
     function askCertify(row) {
       certifyTarget.value = row;
-      certifyForm.value = { method: "", operator: "", reason: "" };
+      certifyForm.value = certifyFormVacio();
       certifyDialog.value = true;
     }
 
@@ -406,6 +536,9 @@ export default {
       kindOptions,
       filteredCerts,
       intakeColumns,
+      verificationMethodOptions,
+      accredited,
+      witnessMissing,
       clientName,
       intakeStateColor,
       reload,

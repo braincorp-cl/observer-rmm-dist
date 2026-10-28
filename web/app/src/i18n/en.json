@@ -3377,7 +3377,8 @@
       "colRoutes": "Route",
       "colCreatedAt": "Received",
       "colActions": "Actions",
-      "certifyDestruction": "Certify destruction"
+      "certifyDestruction": "Certify destruction",
+      "colDisposition": "Media disposition"
     },
     "intakeForm": {
       "title": "Asset intake for disposal",
