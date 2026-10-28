@@ -1,13 +1,12 @@
 import uuid
 
-from django.db.models import Max
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from agents.models import Agent, LostModeEvidence, LostModeState
+from agents.models import Agent
 from erase import certificate as cert_mod
 from erase import services
 from erase.models import (
@@ -55,9 +54,12 @@ class WipeOrderList(APIView):
 class WipeOrderCreate(APIView):
     """Ordena un borrado sobre un equipo. Nace pendiente de segunda confirmación.
 
-    Se ancla a un caso perdido abierto (RF-G06): el `lost_mode_cycle` vigente. La
-    orden no viaja al equipo por sí sola — exige una segunda persona y la ventana
-    de arrepentimiento, y el despacho sigue GATED por ADR-029.
+    Cuelga de un expediente, nunca del listado general (RF-12): un caso de equipo
+    perdido ABIERTO o un acta de ingreso a baja. Lo resuelve el servidor con
+    `services.resolve_order_anchor`, así que la guardia no depende de la consola y
+    cubre por igual la API y la llave de integración. La orden no viaja al equipo
+    por sí sola — exige una segunda persona y la ventana de arrepentimiento, y el
+    despacho sigue GATED por ADR-029.
     """
 
     permission_classes = [IsAuthenticated, WipeDevicePerms]
@@ -91,6 +93,15 @@ class WipeOrderCreate(APIView):
                 return Response({"detail": str(e)}, status=422)
             scope = {**scope, "paths": paths}
 
+        # RF-12: el expediente lo decide el servidor. El `lost_mode_cycle` que
+        # venga en el payload se acepta e IGNORA (el serializer lo sigue
+        # aceptando para no romper el diálogo de la consola): es un contador de
+        # capturas de evidencia, no la prueba de que el caso esté abierto.
+        try:
+            anchor = services.resolve_order_anchor(agent=agent)
+        except services.OrderAnchorError as e:
+            return Response({"detail": str(e)}, status=409)
+
         order = services.create_order(
             agent=agent,
             client=agent.site.client,
@@ -100,7 +111,8 @@ class WipeOrderCreate(APIView):
             scope=scope,
             dry_run=s.validated_data.get("dry_run", True),
             reason=s.validated_data["reason"],
-            lost_mode_cycle=s.validated_data.get("lost_mode_cycle"),
+            lost_mode_cycle=anchor.lost_mode_cycle,
+            intake=anchor.intake,
         )
         return Response(WipeOrderSerializer(order).data, status=201)
 
@@ -198,8 +210,9 @@ class FileRetrievalOrderList(APIView):
 class FileRetrievalOrderCreate(APIView):
     """Ordena recuperar archivos de un equipo (fileretrieval).
 
-    Anclada a un caso perdido ABIERTO (RF-G06/RN-01): exige un `LostModeState`
-    activo para el equipo — imposible ordenar desde el listado general. No es
+    Mismo expediente que el camino destructivo (RF-12): caso de equipo perdido
+    abierto o acta de ingreso. El ancla es idéntica a propósito, para que no se
+    pueda borrar un activo en baja sin poder antes rescatar sus archivos. No es
     destructiva: no hay doble confirmación ni ventana; el permiso liviano
     `can_retrieve_files` la gobierna.
     """
@@ -209,24 +222,17 @@ class FileRetrievalOrderCreate(APIView):
     def post(self, request, agent_id):
         agent = get_object_or_404(Agent, agent_id=agent_id)
 
-        # RF-G06: sólo desde un caso perdido abierto.
-        if not LostModeState.objects.filter(agent=agent, active=True).exists():
-            return Response(
-                {
-                    "detail": "no hay un caso perdido abierto para este equipo; "
-                    "fileretrieval se ordena desde el caso, no desde el listado "
-                    "general (RF-G06)"
-                },
-                status=409,
-            )
+        # RF-12: el mismo helper que el camino destructivo. Antes esto era un
+        # bloque inline que exigía caso perdido y coaccionaba el ciclo a 0; el 0
+        # inventaba un ciclo para el caso recién denunciado, que no tiene ninguno.
+        try:
+            anchor = services.resolve_order_anchor(agent=agent)
+        except services.OrderAnchorError as e:
+            return Response({"detail": str(e)}, status=409)
 
         s = FileRetrievalOrderCreateSerializer(data=request.data)
         s.is_valid(raise_exception=True)
 
-        cycle = (
-            LostModeEvidence.objects.filter(agent=agent).aggregate(m=Max("cycle"))["m"]
-            or 0
-        )
         try:
             order = services.create_retrieval_order(
                 agent=agent,
@@ -235,7 +241,8 @@ class FileRetrievalOrderCreate(APIView):
                 paths=s.validated_data["paths"],
                 requested_by=request.user.username,
                 dry_run=s.validated_data.get("dry_run", False),
-                lost_mode_cycle=cycle,
+                lost_mode_cycle=anchor.lost_mode_cycle,
+                intake=anchor.intake,
             )
         except services.OrderStateError as e:
             return Response({"detail": str(e)}, status=400)

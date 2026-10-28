@@ -9,13 +9,17 @@ está GATED por ADR-029 y por `settings.ERASE_DESTRUCTIVE_DISPATCH_ENABLED`
 
 import asyncio
 import json
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
+from django.db.models import Max
 from django.utils import timezone
 
+from agents.models import LostModeEvidence, LostModeState
 from erase.models import (
+    AssetIntake,
     CertificateKind,
     EraseAuditRecord,
     FileRetrievalOrder,
@@ -41,8 +45,78 @@ DEFAULT_WIPE_MAX_PATHS_PER_ORDER = 200
 DEFAULT_WIPE_MAX_BYTES_PER_ORDER = 5 * 2**30  # 5 GiB
 
 
+# Lo que `Agent.make_model` devuelve cuando el WMI no alcanza (agents/models.py).
+# Son mensajes de diagnóstico, no modelos: un certificado que se entrega a un
+# tercero no publica "error getting make/model" en la casilla del modelo.
+MAKE_MODEL_SENTINELS = ("error getting make/model", "unknown make/model")
+
+
+def clean_make_model(value: Optional[str]) -> str:
+    """Devuelve el fabricante y modelo, o "" si lo que vino es un centinela."""
+    text = (value or "").strip()
+    return "" if text.lower() in MAKE_MODEL_SENTINELS else text
+
+
 class OrderStateError(Exception):
     """Transición inválida de una orden (ej. confirmar una ya cancelada)."""
+
+
+class OrderAnchorError(Exception):
+    """El equipo no tiene expediente del cual colgar la orden (RF-12).
+
+    NO hereda de `OrderStateError` a propósito: `WipeOrderCreate` ya captura ese
+    tipo y responde 400, y heredar haría que esto cayera ahí por accidente. Esto
+    es un 409 —conflicto con el estado del equipo, no una transición inválida—,
+    el mismo código que fileretrieval ya devolvía antes de unificarse.
+    """
+
+
+@dataclass(frozen=True)
+class OrderAnchor:
+    """Expediente que autoriza una orden, resuelto por el servidor.
+
+    `source` dice de cuál de los dos vino; los otros dos campos son lo que se
+    congela en la orden. `lost_mode_cycle` puede ser `None` con `source`
+    `"lost_mode"`: es el caso recién denunciado, que todavía no capturó
+    evidencia (CA-09), y coaccionarlo a 0 inventaría un ciclo que no existe.
+    """
+
+    source: str
+    lost_mode_cycle: Optional[int] = None
+    intake: Optional[AssetIntake] = None
+
+
+def resolve_order_anchor(*, agent) -> OrderAnchor:
+    """Resuelve el expediente de un equipo: caso perdido abierto > acta de ingreso.
+
+    Único punto de verdad para las dos vistas que crean órdenes (RF-12). Todo se
+    deriva en el servidor: lo que mande el cliente en el payload se ignora, para
+    que la guardia no dependa de la consola.
+
+    🔑 Se filtra SIEMPRE por `active=True`. La fila de `LostModeState` sobrevive
+    al cierre del caso por diseño (guarda la configuración del equipo), así que
+    un `filter(agent=agent)` suelto sería una no-guardia: dejaría pasar cualquier
+    equipo que alguna vez estuvo perdido.
+
+    No se usa `lost_mode_cycle` del payload ni para detectar el caso: es un
+    contador de capturas de evidencia y el diálogo de la consola manda `null`
+    cuando el caso todavía no capturó nada, justo el equipo recién denunciado.
+    """
+    if LostModeState.objects.filter(agent=agent, active=True).exists():
+        cycle = LostModeEvidence.objects.filter(agent=agent).aggregate(m=Max("cycle"))[
+            "m"
+        ]
+        return OrderAnchor(source="lost_mode", lost_mode_cycle=cycle)
+
+    intake = AssetIntake.objects.filter(agent=agent).order_by("-created_at").first()
+    if intake is not None:
+        return OrderAnchor(source="intake", intake=intake)
+
+    raise OrderAnchorError(
+        "este equipo no tiene expediente abierto: una orden cuelga de un caso de "
+        "equipo perdido abierto o de un acta de ingreso a baja, nunca del listado "
+        "general (RF-12)"
+    )
 
 
 def record_event(
@@ -77,6 +151,7 @@ def create_order(
     dry_run: bool = True,
     reason: str = "",
     lost_mode_cycle: Optional[int] = None,
+    intake: Optional[AssetIntake] = None,
 ) -> WipeOrder:
     order = WipeOrder.objects.create(
         agent=agent,
@@ -84,11 +159,16 @@ def create_order(
         site=site,
         agent_hostname=getattr(agent, "hostname", "") or "",
         agent_serial=getattr(agent, "serial_number", "") or "",
+        # Snapshot de fabricante y modelo (RF-04): el agente es `SET_NULL` y puede
+        # no existir al emitir el certificado. Se guarda ya limpio de centinelas
+        # para que la columna no llegue a contener un mensaje de error.
+        agent_make_model=clean_make_model(getattr(agent, "make_model", "")),
         action=action,
         scope=scope or {},
         dry_run=dry_run,
         reason=reason,
         lost_mode_cycle=lost_mode_cycle,
+        intake=intake,
         status=WipeOrderStatus.PENDING_CONFIRMATION,
         ordered_by=ordered_by,
     )
@@ -479,6 +559,7 @@ def create_retrieval_order(
     requested_by: str,
     dry_run: bool = False,
     lost_mode_cycle: Optional[int] = None,
+    intake: Optional[AssetIntake] = None,
 ) -> FileRetrievalOrder:
     """Crea una orden de recuperación y la despacha (best-effort).
 
@@ -511,6 +592,7 @@ def create_retrieval_order(
         paths=list(paths),
         dry_run=dry_run,
         lost_mode_cycle=lost_mode_cycle,
+        intake=intake,
         size_limit_bytes=size_limit,
         file_limit=file_limit,
         status=FileRetrievalStatus.PENDING,

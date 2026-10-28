@@ -7,6 +7,7 @@ la emisión del certificado de destrucción física de punta a punta.
 
 from model_bakery import baker
 
+from agents.models import LostModeState
 from erase.models import EraseCertificate, WipeOrderStatus
 from observerrmm.test import ObserverTestCase
 
@@ -20,6 +21,12 @@ class WipeOrderApiTests(ObserverTestCase):
         self.agent = baker.make(
             "agents.Agent", site=self.site, hostname="BOX-API", agent_id="aid-api"
         )
+        # RF-12 (feature 053): una orden destructiva cuelga de un expediente. Estos
+        # tests son sobre OTRA cosa —el flujo de dos personas, las plantillas de
+        # rutas—, así que se les abre el caso perdido en el setUp; sin esto la
+        # creación devuelve 409 y el archivo entero sale rojo. Que la guardia
+        # funcione lo prueba test_destructive_anchor.py, no estos.
+        LostModeState.objects.create(agent=self.agent, active=True, reason="robado")
 
     def _crear_orden(self):
         return self.client.post(
