@@ -3340,7 +3340,19 @@
       "documentHash": "Hash del documento",
       "signatureAlg": "Algoritmo de firma",
       "signingKeyId": "ID de clave de firma",
-      "loadError": "No se pudo cargar el certificado"
+      "loadError": "No se pudo cargar el certificado",
+      "make": "Fabricante",
+      "model": "Modelo",
+      "hostname": "Nombre de red del equipo",
+      "verificationMethod": "Cómo se verificó",
+      "verificationEvidence": "Constancia de la verificación",
+      "disposition": "Destino final del medio",
+      "dispositionDetail": "Detalle del destino",
+      "concurrenceName": "Da fe (segunda persona)",
+      "concurrenceRole": "Cargo de quien da fe",
+      "concurrenceContact": "Contacto de quien da fe",
+      "concurrenceAt": "Fecha en que dio fe",
+      "notVerifiedNotice": "Este certificado declara que la destrucción no fue presenciada ni registrada."
     },
     "tab": {
       "title": "Certificados de borrado",
@@ -3382,7 +3394,14 @@
       "required": "Obligatorio",
       "physicalRouteNotice": "Un activo no funcional o sin medio detectable se enruta directo a destrucción física.",
       "save": "Registrar ingreso",
-      "created": "Ingreso registrado ({id})"
+      "created": "Ingreso registrado ({id})",
+      "equipment": "Equipo enrolado",
+      "equipmentHint": "Opcional. Un disco suelto no tiene equipo asociado.",
+      "equipmentMake": "Fabricante",
+      "equipmentModel": "Modelo",
+      "disposition": "Destino final del medio",
+      "dispositionHint": "Vacío = todavía no consta",
+      "dispositionDetail": "Detalle del destino"
     },
     "certify": {
       "title": "Certificar destrucción física",
@@ -3394,7 +3413,18 @@
       "cancel": "Cancelar",
       "emit": "Emitir certificado",
       "emitted": "Certificado emitido ({id})",
-      "error": "No se pudo emitir el certificado"
+      "error": "No se pudo emitir el certificado",
+      "concurrenceSection": "Quien da fe (segunda persona)",
+      "concurrenceName": "Nombre",
+      "concurrenceRole": "Cargo",
+      "concurrenceContact": "Contacto",
+      "verificationMethod": "Cómo se verificó la destrucción",
+      "verificationEvidence": "Constancia de la verificación",
+      "verificationEvidenceHint": "Lo que quede por escrito: peso, folio del gestor, lo que haya.",
+      "evidenceFile": "Fotografía (opcional)",
+      "evidenceFileHint": "Imagen o PDF, hasta 15 MB. No es obligatoria.",
+      "noVerificationNotice": "Sin un método acreditado y una segunda persona nombrada, el certificado va a declarar que la destrucción NO fue verificada. Es correcto emitirlo así: lo que no corresponde es afirmar lo contrario.",
+      "witnessRequired": "Una destrucción presenciada tiene que nombrar a quien la presenció."
     },
     "confirmOrder": {
       "title": "Confirmar orden de borrado",
@@ -3438,6 +3468,26 @@
       "colOrderedAt": "Ordenada",
       "colDryRun": "Simulacro",
       "colActions": "Acciones"
+    },
+    "disposition": {
+      "internal_reuse": "Reutilización interna",
+      "external_reuse": "Reutilización externa o donación",
+      "returned": "Devuelto al propietario o arrendador",
+      "recycled": "Reciclaje por gestor autorizado",
+      "destroyed": "Destruido físicamente",
+      "retained": "Retenido en custodia",
+      "other": "Otro (ver detalle)"
+    },
+    "verificationMethod": {
+      "none": "Sin verificación acreditada",
+      "witnessed": "Presenciada por un testigo",
+      "photographic": "Registro fotográfico",
+      "weighed": "Pesaje del material destruido",
+      "vendor_certificate": "Certificado del gestor autorizado"
+    },
+    "verificationResult": {
+      "PASS": "Verificado",
+      "NOT_VERIFIED": "Sin verificación acreditada"
     }
   },
   "agentActivity": {

@@ -3340,7 +3340,19 @@
       "documentHash": "Document hash",
       "signatureAlg": "Signature algorithm",
       "signingKeyId": "Signing key ID",
-      "loadError": "Could not load the certificate"
+      "loadError": "Could not load the certificate",
+      "make": "Manufacturer",
+      "model": "Model",
+      "hostname": "Device network name",
+      "verificationMethod": "How it was verified",
+      "verificationEvidence": "Verification record",
+      "disposition": "Final media disposition",
+      "dispositionDetail": "Disposition detail",
+      "concurrenceName": "Concurrence (second person)",
+      "concurrenceRole": "Concurrence role",
+      "concurrenceContact": "Concurrence contact",
+      "concurrenceAt": "Concurrence date",
+      "notVerifiedNotice": "This certificate states that the destruction was neither witnessed nor recorded."
     },
     "tab": {
       "title": "Erase certificates",
@@ -3382,7 +3394,14 @@
       "required": "Required",
       "physicalRouteNotice": "A non-functional asset or one with no detectable media is routed straight to physical destruction.",
       "save": "Register intake",
-      "created": "Intake recorded ({id})"
+      "created": "Intake recorded ({id})",
+      "equipment": "Enrolled device",
+      "equipmentHint": "Optional. A loose drive has no device attached.",
+      "equipmentMake": "Manufacturer",
+      "equipmentModel": "Model",
+      "disposition": "Final media disposition",
+      "dispositionHint": "Empty = not on record yet",
+      "dispositionDetail": "Disposition detail"
     },
     "certify": {
       "title": "Certify physical destruction",
@@ -3394,7 +3413,18 @@
       "cancel": "Cancel",
       "emit": "Issue certificate",
       "emitted": "Certificate issued ({id})",
-      "error": "Could not issue the certificate"
+      "error": "Could not issue the certificate",
+      "concurrenceSection": "Concurrence (second person)",
+      "concurrenceName": "Name",
+      "concurrenceRole": "Role",
+      "concurrenceContact": "Contact",
+      "verificationMethod": "How the destruction was verified",
+      "verificationEvidence": "Verification record",
+      "verificationEvidenceHint": "Whatever is on record: weight, processor reference, anything available.",
+      "evidenceFile": "Photograph (optional)",
+      "evidenceFileHint": "Image or PDF, up to 15 MB. Not required.",
+      "noVerificationNotice": "Without an accredited method and a named second person, the certificate will state that the destruction was NOT verified. Issuing it that way is correct: what is not acceptable is claiming otherwise.",
+      "witnessRequired": "A witnessed destruction must name who witnessed it."
     },
     "confirmOrder": {
       "title": "Confirm wipe order",
@@ -3438,6 +3468,26 @@
       "colOrderedAt": "Ordered",
       "colDryRun": "Dry run",
       "colActions": "Actions"
+    },
+    "disposition": {
+      "internal_reuse": "Internal reuse",
+      "external_reuse": "External reuse or donation",
+      "returned": "Returned to owner or lessor",
+      "recycled": "Recycled by an authorized processor",
+      "destroyed": "Physically destroyed",
+      "retained": "Retained in custody",
+      "other": "Other (see detail)"
+    },
+    "verificationMethod": {
+      "none": "No accredited verification",
+      "witnessed": "Witnessed",
+      "photographic": "Photographic record",
+      "weighed": "Destroyed material weighed",
+      "vendor_certificate": "Certificate from the authorized processor"
+    },
+    "verificationResult": {
+      "PASS": "Verified",
+      "NOT_VERIFIED": "No accredited verification"
     }
   },
   "agentActivity": {
