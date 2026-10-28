@@ -39,6 +39,27 @@
               :label="$t('erase.intakeForm.site')"
               :disable="!intake.client"
             />
+            <!-- Feature 053 · RF-12: el equipo es lo que permite que esta acta
+                 sirva de expediente para una orden de borrado o de rescate. Es
+                 OPCIONAL a propósito — un disco suelto no tiene equipo— y se
+                 filtra por el cliente (o el sitio, si ya se eligió). -->
+            <q-select
+              class="col-12 col-sm-6"
+              dense
+              filled
+              clearable
+              use-input
+              input-debounce="200"
+              emit-value
+              map-options
+              v-model="intake.agent"
+              :options="agentOptionsFiltered"
+              :label="$t('erase.intakeForm.equipment')"
+              :hint="$t('erase.intakeForm.equipmentHint')"
+              :disable="!intake.client"
+              :loading="loadingAgents"
+              @filter="filterAgents"
+            />
             <q-select
               class="col-12 col-sm-6"
               dense
@@ -55,6 +76,23 @@
               filled
               v-model="intake.asset_tag"
               :label="$t('erase.intakeForm.assetTag')"
+            />
+            <!-- RF-04: el técnico los teclea al recibir. No se leen del
+                 inventario porque un disco suelto o un equipo nunca enrolado
+                 no tiene de dónde leerlos, y el certificado los necesita. -->
+            <q-input
+              class="col-12 col-sm-6"
+              dense
+              filled
+              v-model="intake.equipment_make"
+              :label="$t('erase.intakeForm.equipmentMake')"
+            />
+            <q-input
+              class="col-12 col-sm-6"
+              dense
+              filled
+              v-model="intake.equipment_model"
+              :label="$t('erase.intakeForm.equipmentModel')"
             />
             <q-input
               class="col-12 col-sm-6"
@@ -83,6 +121,28 @@
               filled
               v-model="intake.delivered_by"
               :label="$t('erase.intakeForm.deliveredBy')"
+            />
+            <!-- RF-03: el mínimo del Apéndice C exige declarar dónde quedó el
+                 medio. Vacío es válido: significa que todavía no consta. -->
+            <q-select
+              class="col-12 col-sm-6"
+              dense
+              filled
+              clearable
+              emit-value
+              map-options
+              v-model="intake.media_disposition"
+              :options="dispositionOptions"
+              :label="$t('erase.intakeForm.disposition')"
+              :hint="$t('erase.intakeForm.dispositionHint')"
+            />
+            <q-input
+              v-if="intake.media_disposition === 'other'"
+              class="col-12 col-sm-6"
+              dense
+              filled
+              v-model="intake.media_disposition_detail"
+              :label="$t('erase.intakeForm.dispositionDetail')"
             />
             <q-input
               class="col-12"
@@ -139,6 +199,7 @@ import { onMounted, ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDialogPluginComponent } from "quasar";
 
+import { fetchAgents } from "@/api/agents";
 import { fetchClients } from "@/api/clients";
 import { createAssetIntake } from "@/api/erase";
 import { notifySuccess } from "@/utils/notify";
@@ -153,15 +214,25 @@ export default {
     const clients = ref([]);
     const clientOptions = ref([]);
     const siteOptions = ref([]);
+    const agentOptions = ref([]);
+    const agentOptionsFiltered = ref([]);
+    const loadingAgents = ref(false);
     const loading = ref(false);
 
     const intake = ref({
       client: null,
       site: null,
+      // Feature 053: el equipo es el que convierte esta acta en expediente
+      // (RF-12). Opcional — un disco suelto no tiene equipo.
+      agent: null,
       state: "functional",
       asset_tag: "",
+      equipment_make: "",
+      equipment_model: "",
       equipment_serial: "",
       media_serial: "",
+      media_disposition: "",
+      media_disposition_detail: "",
       ticket_ref: "",
       delivered_by: "",
       notes: "",
@@ -172,6 +243,17 @@ export default {
       { value: "non_functional", label: t("erase.intake.state.non_functional") },
       { value: "no_media", label: t("erase.intake.state.no_media") },
     ];
+
+    // Mismo orden que `MediaDisposition` en el modelo.
+    const dispositionOptions = [
+      "internal_reuse",
+      "external_reuse",
+      "returned",
+      "recycled",
+      "destroyed",
+      "retained",
+      "other",
+    ].map((value) => ({ value, label: t(`erase.disposition.${value}`) }));
 
     const routesToPhysical = computed(
       () =>
@@ -192,12 +274,59 @@ export default {
         value: s.id,
         label: s.name,
       }));
+      loadAgents();
+    }
+
+    async function loadAgents() {
+      intake.value.agent = null;
+      agentOptions.value = [];
+      agentOptionsFiltered.value = [];
+      if (!intake.value.client) return;
+      loadingAgents.value = true;
+      try {
+        // `detail: false` no es un ahorro, es un requisito: el serializer de la
+        // tabla NO devuelve el `id`, y la FK del acta se guarda por pk.
+        const data =
+          (await fetchAgents({ client: intake.value.client, detail: false })) ??
+          [];
+        agentOptions.value = data.map((a) => ({
+          value: a.id,
+          label: a.site ? `${a.hostname} · ${a.site}` : a.hostname,
+        }));
+        agentOptionsFiltered.value = agentOptions.value;
+      } finally {
+        loadingAgents.value = false;
+      }
+    }
+
+    function filterAgents(texto, update) {
+      update(() => {
+        const aguja = (texto ?? "").toLowerCase();
+        agentOptionsFiltered.value = aguja
+          ? agentOptions.value.filter((o) =>
+              o.label.toLowerCase().includes(aguja),
+            )
+          : agentOptions.value;
+      });
     }
 
     async function onSubmit() {
       loading.value = true;
       try {
-        const created = await createAssetIntake(intake.value);
+        // Los `q-select` con `clearable` dejan `null` al limpiarse, y los campos
+        // de texto del acta son `blank=True` pero NO `null=True`: mandar `null`
+        // los rechaza con "This field may not be null". El `agent` sí admite
+        // null, porque su FK lo permite.
+        const payload = { ...intake.value };
+        for (const campo of ["media_disposition", "media_disposition_detail"]) {
+          payload[campo] = payload[campo] ?? "";
+        }
+        // El detalle sólo tiene sentido con destino "otro"; si se cambió el
+        // destino después de escribirlo, no se arrastra.
+        if (payload.media_disposition !== "other") {
+          payload.media_disposition_detail = "";
+        }
+        const created = await createAssetIntake(payload);
         notifySuccess(
           t("erase.intakeForm.created", { id: created.process_id }),
         );
@@ -217,10 +346,14 @@ export default {
       intake,
       clientOptions,
       siteOptions,
+      agentOptionsFiltered,
       stateOptions,
+      dispositionOptions,
       routesToPhysical,
       loading,
+      loadingAgents,
       onClientChange,
+      filterAgents,
       onSubmit,
     };
   },
