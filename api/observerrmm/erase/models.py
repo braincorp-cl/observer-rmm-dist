@@ -79,6 +79,38 @@ class AssetIntakeState(models.TextChoices):
     NO_MEDIA = "no_media", "Sin medio detectable"
 
 
+class MediaDisposition(models.TextChoices):
+    """Destino final del medio (Apéndice C de NIST SP 800-88 Rev. 2).
+
+    El mínimo de la norma no se conforma con decir que el medio se saneó: exige
+    declarar dónde quedó. Es el dato que distingue un disco reutilizado dentro de
+    la organización de uno que salió por la puerta a manos de un tercero.
+    """
+
+    INTERNAL_REUSE = "internal_reuse", "Reutilización interna"
+    EXTERNAL_REUSE = "external_reuse", "Reutilización externa o donación"
+    RETURNED = "returned", "Devuelto al propietario o arrendador"
+    RECYCLED = "recycled", "Reciclaje por gestor autorizado"
+    DESTROYED = "destroyed", "Destruido físicamente"
+    RETAINED = "retained", "Retenido en custodia"
+    OTHER = "other", "Otro (ver detalle)"
+
+
+class DestructionVerification(models.TextChoices):
+    """Cómo se acreditó la destrucción física (C7).
+
+    `NONE` es un valor legítimo y explícito, no un hueco: una destrucción en
+    planta de un tercero puede no dejar testigo ni fotografía. El certificado
+    entonces lo declara en lugar de afirmar un `PASS` que nadie comprobó.
+    """
+
+    NONE = "none", "Sin verificación acreditada"
+    WITNESSED = "witnessed", "Presenciada por un testigo"
+    PHOTOGRAPHIC = "photographic", "Registro fotográfico"
+    WEIGHED = "weighed", "Pesaje del material destruido"
+    VENDOR_CERTIFICATE = "vendor_certificate", "Certificado del gestor autorizado"
+
+
 class EraseQuerySet(models.QuerySet):
     """Filtrado por rol equivalente a la rama `Client` de `PermissionQuerySet`.
 
@@ -204,15 +236,34 @@ class WipeOrder(models.Model):
     )
     agent_hostname = models.CharField(max_length=255, blank=True, default="")
     agent_serial = models.CharField(max_length=255, blank=True, default="")
+    # Fabricante y modelo al crear la orden (feature 053 · RF-04). Se snapshotea
+    # por el mismo motivo que el hostname: el agente es `SET_NULL` y puede no
+    # existir cuando se emita el certificado, que sí tiene que nombrar el equipo.
+    agent_make_model = models.CharField(max_length=255, blank=True, default="")
 
     action = models.CharField(max_length=32, choices=EraseAction.choices)
     scope = models.JSONField(default=dict, blank=True)
     dry_run = models.BooleanField(default=True)
     reason = models.TextField(blank=True, default="")
 
-    # Ancla al caso perdido abierto (RF-G06): el ciclo del modo perdido vigente al
-    # crear la orden. No se ordena un borrado desde el listado general.
+    # Expediente del que cuelga la orden (RF-12, feature 053). Son dos anclas
+    # posibles y excluyentes, ninguna opcional: o un caso de modo perdido abierto
+    # —`lost_mode_cycle`, el ciclo vigente al crear la orden— o un acta de ingreso
+    # a baja. Nunca se ordena un borrado desde el listado general.
+    #
+    # `intake` es FK y no un derivado: "el acta más reciente del equipo" se
+    # recalcularía en cada lectura y mañana le atribuiría la orden a un expediente
+    # que no la autorizó. La FK congela cuál fue. Del lado perdido el congelado
+    # sigue siendo el ciclo y no una FK, porque `LostModeState` es `OneToOne` y se
+    # reusa en cada caso: apuntarlo identificaría al equipo, no al caso.
     lost_mode_cycle = models.PositiveIntegerField(null=True, blank=True)
+    intake = models.ForeignKey(
+        "erase.AssetIntake",
+        related_name="wipe_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     status = models.CharField(
         max_length=32,
@@ -408,8 +459,20 @@ class AssetIntake(models.Model):
         blank=True,
     )
 
+    # Fabricante y modelo tecleados al recibir (feature 053 · RF-04): un disco
+    # suelto o un equipo nunca enrolado no tiene inventario del cual leerlos.
+    equipment_make = models.CharField(max_length=255, blank=True, default="")
+    equipment_model = models.CharField(max_length=255, blank=True, default="")
     equipment_serial = models.CharField(max_length=255, blank=True, default="")
     media_serial = models.CharField(max_length=255, blank=True, default="")
+
+    # Destino final del medio (RF-03). Vacío = no consta todavía; el certificado
+    # emite el campo igual, vacío, porque un campo ausente es ambiguo y uno vacío
+    # declara "no consta".
+    media_disposition = models.CharField(
+        max_length=32, choices=MediaDisposition.choices, blank=True, default=""
+    )
+    media_disposition_detail = models.CharField(max_length=255, blank=True, default="")
     asset_tag = models.CharField(max_length=255, blank=True, default="")
     ticket_ref = models.CharField(max_length=255, blank=True, default="")
 
@@ -437,6 +500,54 @@ class AssetIntake(models.Model):
             AssetIntakeState.NON_FUNCTIONAL,
             AssetIntakeState.NO_MEDIA,
         )
+
+
+def destruction_evidence_path(instance: "DestructionEvidence", filename: str) -> str:
+    """Ruta relativa dentro de LOST_MODE_EVIDENCE_BASE_PATH (storage cifrado).
+
+    Una carpeta por acta, al molde de `retrieval_file_path`: purgar la evidencia
+    de un proceso vencido es un `rm -r` y no un recorrido de filas.
+    """
+    return f"destruction/{instance.intake.process_id}/{filename}"
+
+
+class DestructionEvidence(models.Model):
+    """Adjunto que acredita una destrucción física (feature 053 · L-03).
+
+    Vive en tabla propia y no en el certificado a propósito (decisión de L-04):
+    el certificado es permanente e inmutable, la evidencia es purgable. Así la
+    retención puede borrar una fotografía de 4 MB sin tocar —ni invalidar— el
+    documento que la citó: el certificado guarda el hash, no el archivo.
+
+    Reusa el almacén cifrado en reposo del modo perdido, igual que
+    `RetrievedFile`.
+    """
+
+    intake = models.ForeignKey(
+        AssetIntake,
+        related_name="destruction_evidence",
+        on_delete=models.CASCADE,
+    )
+    asset = models.FileField(
+        storage=get_lost_mode_evidence_fs,
+        upload_to=destruction_evidence_path,
+        null=True,
+        blank=True,
+    )
+    original_name = models.CharField(max_length=255, blank=True, default="")
+    size = models.PositiveBigIntegerField(default=0)
+    # SHA-256 del archivo tal como se subió. Es lo que viaja al documento firmado:
+    # sobrevive a la purga del adjunto y permite comprobar, si alguien conserva
+    # una copia, que es la misma que el certificado citó.
+    sha256 = models.CharField(max_length=64, blank=True, default="")
+    uploaded_by = models.CharField(max_length=255, blank=True, default="")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self) -> str:
+        return f"DestructionEvidence<{self.pk}> {self.original_name}"
 
 
 class WipePathTemplate(models.Model):
@@ -564,9 +675,17 @@ class FileRetrievalOrder(models.Model):
     paths = models.JSONField(default=list, blank=True)
     dry_run = models.BooleanField(default=False)
 
-    # Ancla al caso perdido abierto (RF-G06): imposible ordenar desde el listado
-    # general. Espeja la semántica de `WipeOrder.lost_mode_cycle`.
+    # Mismo expediente doble que `WipeOrder` (RF-12, feature 053): caso de modo
+    # perdido abierto o acta de ingreso. El ancla es idéntica a propósito, para que
+    # no se pueda borrar un activo en baja sin poder antes rescatar sus archivos.
     lost_mode_cycle = models.PositiveIntegerField(null=True, blank=True)
+    intake = models.ForeignKey(
+        "erase.AssetIntake",
+        related_name="fileretrieval_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     # Topes efectivos aplicados (RF-08); 0 = usar el default de settings al validar.
     size_limit_bytes = models.PositiveBigIntegerField(default=0)
