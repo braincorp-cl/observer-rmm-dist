@@ -1,7 +1,9 @@
+import hashlib
 import uuid
 
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +14,8 @@ from erase import services
 from erase.models import (
     AssetIntake,
     CertificateKind,
+    DestructionEvidence,
+    DestructionVerification,
     EraseAction,
     EraseCertificate,
     FileRetrievalOrder,
@@ -365,11 +369,31 @@ class AssetIntakeList(APIView):
         return Response(AssetIntakeSerializer(intake).data, status=201)
 
 
+def _sha256_archivo(archivo) -> str:
+    """SHA-256 del adjunto, leído por bloques y dejando el puntero al inicio.
+
+    Por bloques y no de un `read()`: el tope son 15 MiB, pero cargarlo entero en
+    memoria por cada certificación es gratuito de evitar. El `seek(0)` del final
+    es obligatorio — sin él el `FileField` guardaría un archivo de 0 bytes.
+    """
+    h = hashlib.sha256()
+    for bloque in archivo.chunks(64 * 1024):
+        h.update(bloque)
+    archivo.seek(0)
+    return h.hexdigest()
+
+
 class AssetIntakeCertifyDestruction(APIView):
     """Emite el certificado de destrucción física (C7) para un activo ingresado.
 
     Es el flujo de valor inmediato: no necesita el Bloque A ni el Bloque B —
     certifica la destrucción física manual que hoy ya se hace sin certificado.
+
+    🔑 El veredicto se DERIVA de lo acreditado, no se asume. Hasta la feature 053
+    esta vista emitía `verification_result="PASS"` fijo en el código: era el único
+    punto del módulo que atestiguaba algo que no había verificado. Ahora `PASS`
+    exige método acreditado Y testigo nombrado; si no, el documento declara
+    `NOT_VERIFIED` y lo dice con todas las letras en el PDF.
     """
 
     permission_classes = [IsAuthenticated, ManageAssetIntakePerms]
@@ -380,6 +404,41 @@ class AssetIntakeCertifyDestruction(APIView):
         )
         s = CertifyDestructionSerializer(data=request.data)
         s.is_valid(raise_exception=True)
+        datos = s.validated_data
+
+        metodo_verif = datos.get("verification_method") or ""
+        testigo = (datos.get("concurrence_name") or "").strip()
+        # Acreditado = declaró un método distinto de "ninguno" Y nombró a alguien
+        # que da fe. Una sola de las dos no alcanza: un método sin testigo no
+        # tiene quién lo sostenga, y un testigo sin método no dice qué presenció.
+        acreditado = bool(
+            metodo_verif and metodo_verif != DestructionVerification.NONE and testigo
+        )
+
+        # La evidencia se guarda ANTES de emitir, para poder citar su hash dentro
+        # del documento firmado. Vive en tabla propia y es purgable: el
+        # certificado conserva el hash, no el archivo, así que la retención puede
+        # borrar la foto sin invalidar —ni tocar— el documento inmutable.
+        evidencia = None
+        archivo = datos.get("evidence_file")
+        if archivo is not None:
+            evidencia = DestructionEvidence(
+                intake=intake,
+                original_name=(archivo.name or "")[:255],
+                size=archivo.size or 0,
+                sha256=_sha256_archivo(archivo),
+                uploaded_by=request.user.username,
+            )
+            evidencia.asset = archivo
+            evidencia.save()
+
+        concurrence = {
+            "name": testigo,
+            "role": datos.get("concurrence_role") or "",
+            "contact": datos.get("concurrence_contact") or "",
+            "at": timezone.now().isoformat() if testigo else "",
+        }
+
         cert = cert_mod.issue_certificate(
             kind=CertificateKind.PHYSICAL_DESTRUCTION,
             client=intake.client,
@@ -389,15 +448,40 @@ class AssetIntakeCertifyDestruction(APIView):
             tenant=intake.client.name,
             asset_tag=intake.asset_tag,
             ticket_ref=intake.ticket_ref,
+            # Acá no hay agente del cual leer inventario —una destrucción física
+            # puede ser de un disco suelto—, así que el equipo sale de lo que el
+            # técnico tecleó al recibirlo.
             equipment={
+                "make": intake.equipment_make,
+                "model": intake.equipment_model,
+                "make_model": " ".join(
+                    x for x in (intake.equipment_make, intake.equipment_model) if x
+                ),
                 "serial": intake.equipment_serial,
                 "media_serial": intake.media_serial,
+                "hostname": getattr(intake.agent, "hostname", "") or "",
             },
-            method_applied=s.validated_data.get("method") or "destrucción física",
-            standard_ref="NIST 800-88 Rev.1 Destroy",
-            verification_result="PASS",
-            operator=s.validated_data.get("operator") or request.user.username,
+            method_applied=datos.get("method") or "destrucción física",
+            standard_ref=cert_mod.STANDARD_REF_DESTROY,
+            verification_result=(
+                cert_mod.VERIFICATION_PASS
+                if acreditado
+                else cert_mod.VERIFICATION_NOT_VERIFIED
+            ),
+            verification_method=metodo_verif,
+            verification_evidence=datos.get("verification_evidence") or "",
+            operator=datos.get("operator") or request.user.username,
+            concurrence=concurrence,
+            media_disposition=intake.media_disposition,
+            media_disposition_detail=intake.media_disposition_detail,
             actor=request.user.username,
-            extra={"destruction_reason": s.validated_data.get("reason", "")},
+            extra={
+                "destruction_reason": datos.get("reason", ""),
+                # El hash viaja DENTRO del documento firmado: sobrevive a la purga
+                # del adjunto y permite comprobar, si alguien conserva una copia,
+                # que es la misma que el certificado citó.
+                "evidence_sha256": evidencia.sha256 if evidencia else "",
+                "evidence_filename": evidencia.original_name if evidencia else "",
+            },
         )
         return Response(EraseCertificateDetailSerializer(cert).data, status=201)
