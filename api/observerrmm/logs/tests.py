@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.utils import timezone as djangotime
 from model_bakery import baker, seq
 
+from logs.models import AuditLog
 from observerrmm.constants import DebugLogLevel, DebugLogType, PAAction, PAStatus
 from observerrmm.test import ObserverTestCase
 
@@ -16,6 +17,20 @@ class TestAuditViews(ObserverTestCase):
         self.setup_coresettings()
 
     def create_audit_records(self):
+        # 🪤 Las aserciones de más abajo son CONTEOS ABSOLUTOS (86 filas en total,
+        # 26 de objetos, 12 de login...), y eso las vuelve frágiles: el CI corre
+        # con `pytest-randomly`, que baraja el orden en cada corrida, y basta una
+        # fila incidental de `AuditLog` para que el número deje de calzar. Paso el
+        # 2026-10-28 en `main` con 99 contra 86 esperadas, en un commit que sólo
+        # tocaba HTML — o sea verde/rojo según la semilla, no según el código.
+        #
+        # Se vacía la tabla antes de sembrar para que contenga EXACTAMENTE lo que
+        # este fixture crea. Es lo que el test quiere medir: cómo filtra el
+        # endpoint sobre un conjunto conocido, no cuántas filas hay en el mundo.
+        # El `delete()` vive dentro de la transacción del `TestCase`, así que se
+        # revierte al terminar y no afecta a ningún otro test.
+        AuditLog.objects.all().delete()
+
         # create clients for client filter
         site = baker.make("clients.Site")
         agent1 = baker.make_recipe("agents.agent", site=site, hostname="AgentHostname1")
