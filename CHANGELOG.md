@@ -8,6 +8,14 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.38 — 2026-10-29
+
+- **La retención de los adjuntos ahora ocurre de verdad, y el plazo es por cliente.** La purga de adjuntos vencidos existía en el código pero **no estaba agendada**: ni la fotografía de una destrucción física ni los archivos recuperados de un equipo perdido caducaban nunca, aunque la política de uso aceptable dijera que sí. Ahora corre sola cada hora, y cada cliente puede fijar su propio plazo en su ficha —vacío significa heredar el del servidor, no cero días—. Subirlo es libre; bajarlo tiene un piso de 366 días que el servidor aplica también al leer, así que no se puede esquivar escribiéndolo por la API.
+- **La purga nace apagada y, mientras lo está, mide.** El interruptor en *Ajustes del servidor* decide si borra o sólo registra cuánto borraría, por cliente. Así, cuando se encienda, el plazo se elige con el número a la vista y no a ciegas. El **certificado nunca caduca**: lo único que vence es el archivo adjunto, y el certificado conserva su hash, de modo que una copia guardada sigue siendo comprobable.
+- **Corregido: la auditoría podía registrar a la persona equivocada.** Al descargar un archivo —el instalador, un informe, el PDF de un certificado de borrado— el usuario de esa descarga quedaba pegado en el proceso, y desde ahí la auditoría le atribuía a esa persona cualquier cambio posterior registrado por el servidor. Era visible en cualquier ambiente con descargas. La cadena de los certificados de borrado **no estaba afectada**: lleva su propio actor, puesto por el servidor.
+- **Corregido: el acta de ingreso aceptaba un cliente que no era el del equipo.** Nada comprobaba que coincidieran, y como el alcance por rol se calcula a partir del cliente, un acta mal grabada quedaba visible para quien no debía verla. Ahora se rechaza al guardar. Un activo **sin** equipo asociado —un disco suelto— se sigue ingresando igual: eso es deliberado.
+- **El acta se puede llenar con un lector de código de barras.** En los tres campos de serie, el lector escribe el código y pasa al siguiente campo **sin enviar el formulario a medio llenar**, que es lo que hacía antes.
+
 ## v1.4.37 — 2026-10-29
 
 - **La reconciliación pagina, y sus totales salen de la base.** El informe devolvía **todos** los activos sin certificar en una sola respuesta: con unos pocos miles de actas eso son miles de filas por consulta, y además cargaba en memoria todas las actas del período para contar. Ahora los tres números se agregan en la base de datos sobre el período completo —así que **no dependen de la página**— y del listado de faltantes viaja sólo la página pedida, con cuántos hay en total para que la consola sepa que hay más. La tabla de faltantes pagina contra el servidor.
