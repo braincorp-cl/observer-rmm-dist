@@ -33,7 +33,7 @@ import json
 import uuid
 from typing import TYPE_CHECKING, Any, Dict
 
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.utils import timezone
 
 from agents.lostmode_storage import get_lost_mode_evidence_fs
@@ -111,6 +111,43 @@ class DestructionVerification(models.TextChoices):
     VENDOR_CERTIFICATE = "vendor_certificate", "Certificado del gestor autorizado"
 
 
+class MediaType(models.TextChoices):
+    """Tipo de medio (Apéndice C de NIST SP 800-88 Rev. 2, feature 053 · RF-09).
+
+    Lo teclea quien recibe el activo: un disco suelto o un equipo que nunca se
+    enroló no tiene inventario del cual leerlo. Vacío = no consta, igual que
+    `MediaDisposition`.
+    """
+
+    HDD = "hdd", "Disco magnético (HDD)"
+    SSD = "ssd", "Estado sólido (SSD)"
+    NVME = "nvme", "Estado sólido NVMe"
+    OPTICAL = "optical", "Óptico (CD/DVD/Blu-ray)"
+    TAPE = "tape", "Cinta magnética"
+    MOBILE = "mobile", "Dispositivo móvil"
+    OTHER = "other", "Otro"
+
+
+class CustodyEventKind(models.TextChoices):
+    """Lo que le pasa al activo entre el acta y el certificado (RF-06).
+
+    Vocabulario **cerrado** a propósito: es lo que hace contable la
+    reconciliación. Texto libre daría un informe que nadie puede agrupar; lo que
+    no cabe en el tipo va al `detail`, nunca al revés.
+
+    `RECEIVED` lo escribe el servidor al crear el acta y no se duplica: si fuera
+    opcional, la cadena arrancaría en el aire.
+    """
+
+    RECEIVED = "received", "Recibido en custodia"
+    RELOCATED = "relocated", "Trasladado"
+    STORED = "stored", "Almacenado a la espera de disposición"
+    HANDED_TO_PROCESSOR = "handed_to_processor", "Enviado a gestor externo"
+    SANITIZED = "sanitized", "Medio saneado"
+    DESTROYED = "destroyed", "Destruido físicamente"
+    RETURNED = "returned", "Devuelto a su propietario o arrendador"
+
+
 class EraseQuerySet(models.QuerySet):
     """Filtrado por rol equivalente a la rama `Client` de `PermissionQuerySet`.
 
@@ -155,8 +192,10 @@ class ImmutableChainRecord(models.Model):
     - No se elimina: `delete()` lanza `ImmutableRecordError`.
     - Al insertar, toma el `record_hash` del último registro de SU MISMA clase como
       `prev_hash`, y calcula `record_hash = sha256(prev_hash + contenido canónico)`.
-      La lectura del último registro va bajo `select_for_update()` dentro de una
-      transacción para serializar inserciones concurrentes (Postgres).
+      Las inserciones concurrentes se serializan con un **advisory lock por
+      cadena** (ver `_lock_chain`), no con `select_for_update()` sobre el último
+      registro: eso no protege de dos escritores simultáneos y deja la cadena
+      ramificada sin que nada falle.
 
     Verificar la cadena = recorrer por id ascendente comprobando que cada fila
     encadena el hash de la anterior y que su `record_hash` recomputa. Un borrado
@@ -190,12 +229,39 @@ class ImmutableChainRecord(models.Model):
             )
 
         with transaction.atomic():
-            last = type(self)._base_manager.select_for_update().order_by("-id").first()
+            self._lock_chain()
+            last = type(self)._base_manager.order_by("-id").first()
             self.prev_hash = last.record_hash if last else ""
             if not self.created_at:
                 self.created_at = timezone.now()
             self.record_hash = self.compute_record_hash(self.prev_hash)
             super().save(*args, **kwargs)
+
+    def _lock_chain(self) -> None:
+        """Serializa las inserciones de ESTA cadena hasta el fin de la transacción.
+
+        🔴 `select_for_update()` sobre el último registro **no alcanza**, y se
+        comprobó con ocho escrituras simultáneas: en READ COMMITTED, la
+        transacción que espera el candado re-evalúa el predicado sobre la *fila
+        bloqueada*, pero no descubre las filas que la otra insertó mientras
+        tanto, así que vuelve a leer el mismo "último" y dos eslabones terminan
+        colgando del mismo `prev_hash`. La cadena se ramifica sin que nada falle.
+
+        Un advisory lock por clase no tiene ese problema porque no cuelga de
+        ninguna fila: lo toma el primero que llega y lo suelta el commit. El
+        alcance es la tabla de la subclase, así que la custodia no espera por la
+        auditoría ni al revés.
+        """
+
+        cursor_vendor = connection.vendor
+        if cursor_vendor != "postgresql":  # pragma: no cover - solo Postgres en prod
+            return
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                [f"observer_erase_chain:{type(self)._meta.db_table}"],
+            )
 
     def delete(self, *args: Any, **kwargs: Any) -> None:
         raise ImmutableRecordError(
@@ -473,6 +539,12 @@ class AssetIntake(models.Model):
         max_length=32, choices=MediaDisposition.choices, blank=True, default=""
     )
     media_disposition_detail = models.CharField(max_length=255, blank=True, default="")
+    # Tipo de medio del minimo del Apendice C (RF-09). Lo teclea quien recibe:
+    # un equipo nunca enrolado no tiene inventario del cual leerlo. Vacio = no
+    # consta, igual que `media_disposition`.
+    media_type = models.CharField(
+        max_length=32, choices=MediaType.choices, blank=True, default=""
+    )
     asset_tag = models.CharField(max_length=255, blank=True, default="")
     ticket_ref = models.CharField(max_length=255, blank=True, default="")
 
@@ -489,6 +561,13 @@ class AssetIntake(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            # El agrupado de la reconciliacion (RF-07) por cliente y periodo.
+            # Sin el, decenas de miles de actas se recorren con seq scan.
+            models.Index(
+                fields=["client", "created_at"], name="erase_intake_client_idx"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"AssetIntake<{self.process_id}> {self.equipment_serial}"
@@ -758,3 +837,71 @@ class RetrievedFile(models.Model):
 
     def __str__(self) -> str:
         return f"RetrievedFile<{self.pk}> {self.source_path}"
+
+
+class CustodyEvent(ImmutableChainRecord):
+    """Un eslabón de la cadena de custodia del activo (feature 053 · RF-06).
+
+    Entre el acta de ingreso y el certificado, la custodia tenía dos extremos y
+    nada en medio. Cada cosa que le pasa al activo —traslado, almacenamiento,
+    salida al gestor, destrucción— es un evento append-only encadenado, con lo
+    que la plataforma puede responder dónde se detuvo un activo que no llegó a
+    certificarse.
+
+    Cadena **propia**: `ImmutableChainRecord` es abstracta y `save()` busca el
+    eslabón anterior en la tabla de su propia subclase, así que esta cadena no
+    toca la de auditoría ni la de certificados.
+
+    🔴 La FK al acta es `SET_NULL`, NUNCA `CASCADE`: un `CASCADE` no pasa por
+    `Model.delete()` —el collector de Django borra en bloque— y eliminaría
+    eslabones sin disparar `ImmutableRecordError`, dejando la cadena con el
+    `prev_hash` descolgado y sin forma de distinguir una purga administrativa de
+    una manipulación. Por eso la identidad del expediente va denormalizada, al
+    mismo criterio que `EraseAuditRecord.agent_id`/`hostname`: un eslabón
+    huérfano sigue diciendo qué pasó y con qué activo.
+    """
+
+    intake = models.ForeignKey(
+        AssetIntake,
+        related_name="custody_events",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    # Identidad del expediente y del activo, congelada al registrar el evento.
+    intake_process_id = models.CharField(max_length=64, blank=True, default="")
+    equipment_serial = models.CharField(max_length=255, blank=True, default="")
+
+    kind = models.CharField(max_length=32, choices=CustodyEventKind.choices)
+    # Cuándo OCURRIÓ, que no es cuándo se registró (`created_at`). Confundirlas
+    # falsearía la cadena.
+    at = models.DateTimeField()
+    # Username como texto, no FK: la traza sobrevive a que la cuenta se elimine,
+    # igual que `WipeOrder.ordered_by`.
+    actor = models.CharField(max_length=255, blank=True, default="")
+    location = models.CharField(max_length=255, blank=True, default="")
+    # Datos del evento (guía de despacho, gestor…). NO para el tipo: eso es `kind`.
+    detail = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        # El orden de la cadena es el de inserción, no el de `at`: un evento
+        # registrado tarde sobre un hecho antiguo no reordena los eslabones.
+        ordering = ["id"]
+        indexes = [
+            models.Index(fields=["intake", "id"], name="erase_custody_intake_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"CustodyEvent<{self.pk}> {self.kind} {self.intake_process_id}"
+
+    def canonical_content(self) -> Dict[str, Any]:
+        return {
+            "created_at": self.created_at.isoformat() if self.created_at else "",
+            "intake_process_id": self.intake_process_id,
+            "equipment_serial": self.equipment_serial,
+            "kind": self.kind,
+            "at": self.at.isoformat() if self.at else "",
+            "actor": self.actor,
+            "location": self.location,
+            "detail": self.detail,
+        }

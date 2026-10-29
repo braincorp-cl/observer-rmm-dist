@@ -382,3 +382,62 @@ class EvidenciaPurgableTests(_Base):
         cert = EraseCertificate.objects.get(pk=self._certificar_c7().json()["id"])
         self.assertEqual(DestructionEvidence.objects.count() - antes, 0)
         self.assertEqual(cert.data["evidence_sha256"], "")
+
+
+class TablaDelCertificadoCongeladaTests(ObserverTestCase):
+    """La ola 2 no toca `erase_erasecertificate`, y esto lo vigila.
+
+    El hash congelado de `_v1()` prueba que `canonical_bytes` sigue produciendo
+    los mismos bytes. Este test cubre el otro flanco: que el **esquema** de la
+    tabla del certificado no cambió. Si una migración futura le agrega, quita o
+    renombra una columna, acá se entera alguien.
+
+    🪤 Si este test cae, la pregunta NO es "actualizo la lista". Es por qué se
+    está migrando una tabla que guarda documentos inmutables ya firmados.
+    """
+
+    COLUMNAS = {
+        "agent_id",
+        "asset_tag",
+        "certificate_id",
+        "client_id",
+        "created_at",
+        "data",
+        "document_hash",
+        "finished_at",
+        "id",
+        "intake_id",
+        "kind",
+        "method_applied",
+        "operator",
+        "order_id",
+        "prev_hash",
+        "record_hash",
+        "signature",
+        "signature_alg",
+        "signing_key_id",
+        "site_id",
+        "software_version",
+        "standard_ref",
+        "started_at",
+        "tenant",
+        "verification_result",
+    }
+
+    def test_el_esquema_del_certificado_no_cambio(self):
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            columnas = {
+                c.name
+                for c in connection.introspection.get_table_description(
+                    cursor, "erase_erasecertificate"
+                )
+            }
+        self.assertEqual(columnas, self.COLUMNAS)
+
+    def test_la_cadena_de_custodia_no_vive_en_la_tabla_del_certificado(self):
+        """Control: los eventos nuevos tienen tabla propia, no columnas acá."""
+        from django.db import connection
+
+        self.assertIn("erase_custodyevent", connection.introspection.table_names())
