@@ -33,20 +33,29 @@ class TestSanitizeClientHeader(ObserverTestCase):
 
 
 class TestMiddlewareClientHeader(ObserverTestCase):
-    # El middleware limpia request_local al final de cada respuesta DRF
-    # (process_template_response); se neutraliza esa limpieza para poder leer lo
-    # que quedó durante el request.
+    # El middleware limpia request_local al terminar cada request
+    # (`limpiar_request_local`, llamada desde el `finally` de `__call__` y desde
+    # los dos hooks); se neutraliza esa limpieza para poder leer lo que quedó
+    # durante el request.
     def setUp(self):
         self.authenticate()
-        request_local.debug_info = None
-        request_local.username = None
+        self._limpiar()
+        # 🪤 Al neutralizar la limpieza del middleware, este test queda a cargo
+        # de hacerla él. `request_local` es estado de PROCESO y no se revierte
+        # con la transacción: dejarlo puesto hace que `BaseAuditModel.save()`
+        # audite los saves de los tests SIGUIENTES y les descuadre cualquier
+        # conteo de `AuditLog`. Es exactamente la fuga de
+        # `observerrmm/test_audit_request_local.py`.
+        self.addCleanup(self._limpiar)
         patcher = patch.object(
-            AuditMiddleware,
-            "process_template_response",
-            lambda self, request, response: response,
+            AuditMiddleware, "limpiar_request_local", lambda *_: None
         )
         patcher.start()
         self.addCleanup(patcher.stop)
+
+    def _limpiar(self):
+        request_local.debug_info = None
+        request_local.username = None
 
     def test_header_presente_queda_en_debug_info(self):
         r = self.client.get(
