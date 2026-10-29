@@ -70,12 +70,21 @@
               :options="stateOptions"
               :label="$t('erase.intakeForm.state')"
             />
+            <!-- RF-10: un lector USB de codigo de barras ES un teclado
+                 (HID): teclea el codigo en el campo con foco y manda Enter. Lo
+                 unico que hay que construir es que ese Enter NO envie el acta a
+                 medio llenar y pase al siguiente campo de serie, que es el
+                 gesto que el operador espera: escanear, escanear, escanear.
+                 Sin camara y sin dependencias nuevas. -->
             <q-input
+              ref="campoAssetTag"
               class="col-12 col-sm-6"
               dense
               filled
               v-model="intake.asset_tag"
               :label="$t('erase.intakeForm.assetTag')"
+              :hint="$t('erase.intakeScanHint')"
+              @keydown.enter.prevent="enfocarSerie('campoEquipmentSerial')"
             />
             <!-- RF-04: el técnico los teclea al recibir. No se leen del
                  inventario porque un disco suelto o un equipo nunca enrolado
@@ -95,18 +104,24 @@
               :label="$t('erase.intakeForm.equipmentModel')"
             />
             <q-input
+              ref="campoEquipmentSerial"
               class="col-12 col-sm-6"
               dense
               filled
               v-model="intake.equipment_serial"
               :label="$t('erase.intakeForm.equipmentSerial')"
+              :hint="$t('erase.intakeScanHint')"
+              @keydown.enter.prevent="enfocarSerie('campoMediaSerial')"
             />
             <q-input
+              ref="campoMediaSerial"
               class="col-12 col-sm-6"
               dense
               filled
               v-model="intake.media_serial"
               :label="$t('erase.intakeForm.mediaSerial')"
+              :hint="$t('erase.intakeScanHint')"
+              @keydown.enter.prevent="enfocarSerie(null)"
             />
             <q-input
               class="col-12 col-sm-6"
@@ -186,11 +201,7 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn
-            flat
-            :label="$t('erase.intakeForm.cancel')"
-            v-close-popup
-          />
+          <q-btn flat :label="$t('erase.intakeForm.cancel')" v-close-popup />
           <q-btn
             :loading="loading"
             color="primary"
@@ -234,6 +245,26 @@ export default {
     const loadingAgents = ref(false);
     const loading = ref(false);
 
+    // RF-10: refs de los tres campos de serie, para que el Enter del lector
+    // mueva el foco en vez de enviar el acta.
+    const campoAssetTag = ref(null);
+    const campoEquipmentSerial = ref(null);
+    const campoMediaSerial = ref(null);
+    const camposDeSerie = {
+      campoAssetTag,
+      campoEquipmentSerial,
+      campoMediaSerial,
+    };
+
+    function enfocarSerie(siguiente) {
+      // `null` = ultimo campo de la cadena: se suelta el foco y NO se envia.
+      // Enviar acá seria justo el defecto que RF-10 arregla, porque el operador
+      // todavia tiene que elegir destino del medio y quien entrega.
+      if (!siguiente) return;
+      const campo = camposDeSerie[siguiente];
+      if (campo && campo.value) campo.value.focus();
+    }
+
     const intake = ref({
       client: null,
       site: null,
@@ -256,7 +287,10 @@ export default {
 
     const stateOptions = [
       { value: "functional", label: t("erase.intake.state.functional") },
-      { value: "non_functional", label: t("erase.intake.state.non_functional") },
+      {
+        value: "non_functional",
+        label: t("erase.intake.state.non_functional"),
+      },
       { value: "no_media", label: t("erase.intake.state.no_media") },
     ];
 
@@ -375,6 +409,10 @@ export default {
       dialogRef,
       onDialogHide,
       intake,
+      campoAssetTag,
+      campoEquipmentSerial,
+      campoMediaSerial,
+      enfocarSerie,
       clientOptions,
       siteOptions,
       agentOptionsFiltered,

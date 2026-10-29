@@ -440,6 +440,28 @@ LOST_MODE_EVIDENCE_DEFAULT_PRUNE_DAYS = 90
 LOST_MODE_EVIDENCE_MAX_CLOSED_CASE_DAYS = 365
 LOST_MODE_EVIDENCE_DEFAULT_CLOSED_CASE_DAYS = 7
 
+# Piso legal de la retención de los ADJUNTOS del módulo de borrado seguro
+# (feature 053 · ola 3, RNF-06/L-04): mínimo 12 meses (RF-D5). Alcanza tanto al
+# registro fotográfico de una destrucción física (`DestructionEvidence`) como a
+# los archivos recuperados de un equipo perdido (`RetrievedFile`).
+#
+# Vive acá, en UNA constante, porque hasta esta ola el piso estaba escrito en
+# tres lugares con DOS valores distintos: el 366 de
+# `erase.services.DEFAULT_FILERETRIEVAL_RETENTION_DAYS` y el `default=365` con
+# `MinValueValidator(365)` de `CoreSettings.erase_attachment_retention_days`. Un
+# día de diferencia, sin razón documentada en ninguna parte.
+#
+# Se unifica en 366, que es el que cumple ">= 12 meses" incluso en año bisiesto.
+# El `default=365` del campo global NO se mueve: es un valor ya desplegado, y
+# moverlo cambiaría el plazo efectivo de las instancias vivas sin que nadie lo
+# pidiera. En su lugar, `erase.services.resolve_attachment_retention()` aplica
+# este piso AL LEER, que es donde la obligación legal se vuelve efectiva.
+#
+# Vive en `constants.py` y no en `erase/services.py` porque `clients.models` lo
+# necesita para su validador, y un import `clients -> erase.services` cerraría
+# un ciclo (`erase.services` importa `erase.models`, que apunta a `clients`).
+ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS = 366
+
 
 # Tipos de evidencia del modo perdido/robado (feature 030, ADR-025). El código va
 # en inglés y la etiqueta traducida vive en el catálogo i18n del frontend, igual

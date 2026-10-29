@@ -140,6 +140,13 @@ class ClientSerializer(ModelSerializer):
             "agent_count",
             "maintenance_mode",
             "failing_checks",
+            # Feature 053 · ola 3 (RNF-06/L-04). 🪤 Esta tupla es EXPLÍCITA, a
+            # diferencia de `CoreSettingsSerializer`, que usa `fields = "__all__"`
+            # y por eso expone el ajuste global desde que se creó. Sin esta línea
+            # la columna existe, la consola la manda y el servidor la DESCARTA EN
+            # SILENCIO: ni error, ni efecto, y la purga seguiría aplicando el
+            # plazo global sin que nadie lo notara.
+            "erase_attachment_retention_days",
         )
 
     def validate(self, val):

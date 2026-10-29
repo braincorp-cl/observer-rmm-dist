@@ -19,6 +19,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from agents.models import LostModeEvidence, LostModeState
+from observerrmm.constants import ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS
 from erase.models import (
     AssetIntake,
     CertificateKind,
@@ -1042,3 +1043,47 @@ def reconciliation(
             "returned": len(faltantes),
         },
     }
+
+
+# --- retención de adjuntos (feature 053 · ola 3 — RNF-06/L-04) ----------------
+
+
+def resolve_attachment_retention(*, client=None, core=None) -> int:
+    """Días que sobrevive un ADJUNTO de borrado. Precedencia **cliente > global**.
+
+    - Global: `CoreSettings.erase_attachment_retention_days`, siempre presente.
+    - Cliente: `Client.erase_attachment_retention_days`. Un valor no-nulo pisa al
+      global; `None` es **«sin decidir» y hereda**, nunca «cero días».
+    - Sobre el resultado se aplica el piso legal
+      `ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS` (RF-D5, ≥ 12 meses).
+
+    Regla única y central: **nadie más resuelve esta precedencia. Vive acá.** Al
+    molde de `agents.utils.resolve_lost_mode_cascade`, y por la misma razón: para
+    que la consola, la API y la purga entreguen exactamente el mismo número. Si se
+    resolviera en dos lugares, la consola mostraría 400 días y la purga aplicaría
+    366, y nadie se enteraría hasta que faltara un archivo.
+
+    🔑 El piso se aplica **al leer**, no sólo en el validador del campo: un
+    `loaddata`, un `queryset.update()` o una fila escrita antes de que el validador
+    existiera **no pasan por él**. Dos guardas a propósito, porque un piso que se
+    puede esquivar no es un piso.
+
+    🔒 Este plazo **nunca** alcanza al certificado, que es permanente e inmutable
+    (RNF-01 / RN-E07). Sólo al binario del adjunto.
+    """
+    if core is None:
+        from core.utils import get_core_settings
+
+        core = get_core_settings()
+
+    dias = getattr(core, "erase_attachment_retention_days", None)
+    if client is not None:
+        propio = getattr(client, "erase_attachment_retention_days", None)
+        if propio is not None:
+            dias = propio
+
+    if dias is None:
+        # Sin ajuste global legible (instancia a medio migrar): el piso manda.
+        return ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS
+
+    return max(int(dias), ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS)

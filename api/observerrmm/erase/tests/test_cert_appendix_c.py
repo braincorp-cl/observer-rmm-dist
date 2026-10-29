@@ -34,6 +34,7 @@ from erase.models import (
     AssetIntake,
     CertificateKind,
     DestructionEvidence,
+    EraseAuditRecord,
     EraseCertificate,
     ImmutableRecordError,
     WipeOrderStatus,
@@ -441,3 +442,82 @@ class TablaDelCertificadoCongeladaTests(ObserverTestCase):
         from django.db import connection
 
         self.assertIn("erase_custodyevent", connection.introspection.table_names())
+
+
+@override_settings(LOST_MODE_EVIDENCE_BASE_PATH=TMP, LOST_MODE_EVIDENCE_KEY=LLAVE)
+class LaRetencionNoTocaElCertificadoTests(_Base):
+    """Ola 3 (RNF-06/L-04): la purga borra el adjunto y NADA más.
+
+    🔴 Este control no se puede saltar, y no alcanza con comprobar que no se
+    lance `ImmutableRecordError`: la ola 2 demostró que un borrado en cascada
+    **se lleva filas append-only sin dispararlo**. Hay que contar filas y
+    re-verificar el documento.
+    """
+
+    CONTENIDO = b"JPEGFAKE" * 64
+
+    def _con_foto(self):
+        r = self._certificar_c7(
+            verification_method="photographic",
+            concurrence_name="Ana Soto",
+            evidence_file=SimpleUploadedFile(
+                "destruccion.jpg", self.CONTENIDO, content_type="image/jpeg"
+            ),
+        )
+        self.assertEqual(r.status_code, 201)
+        return EraseCertificate.objects.get(pk=r.json()["id"])
+
+    def test_purgar_el_adjunto_deja_el_certificado_intacto_y_verificable(self):
+        from django.utils import timezone
+
+        from erase.tasks import prune_erase_attachments
+
+        cert = self._con_foto()
+        sha_citado = cert.data["evidence_sha256"]
+        certs_antes = EraseCertificate.objects.count()
+        audit_antes = EraseAuditRecord.objects.count()
+
+        # Envejecer el adjunto más allá de cualquier plazo posible.
+        DestructionEvidence.objects.update(
+            uploaded_at=timezone.now() - timezone.timedelta(days=4000)
+        )
+        prune_erase_attachments()
+
+        # 1. El binario se fue.
+        ev = DestructionEvidence.objects.get()
+        self.assertFalse(ev.asset)
+
+        # 2. Delta 0 en las dos tablas append-only. Contando filas, no esperando
+        #    una excepción que un CASCADE no lanzaría.
+        self.assertEqual(EraseCertificate.objects.count() - certs_antes, 0)
+        self.assertEqual(EraseAuditRecord.objects.count() - audit_antes, 0)
+
+        # 3. El documento sigue verificando en las TRES comprobaciones.
+        cert.refresh_from_db()
+        v = cert_mod.verify_certificate(cert)
+        self.assertTrue(v["document_intact"])
+        self.assertTrue(v["chain_intact"])
+        self.assertTrue(v["valid"])
+
+        # 4. El hash citado sobrevive: es lo que hace defendible la purga.
+        self.assertEqual(cert.data["evidence_sha256"], sha_citado)
+        self.assertEqual(ev.sha256, sha_citado)
+
+    def test_la_purga_no_mueve_el_hash_congelado_de_la_ola_1(self):
+        """🔒 Si esto cae, se tocó `canonical_bytes` o la tabla del certificado.
+
+        El hash congelado es el `document_hash` **almacenado** del v1, y
+        `verify_certificate` lo recomputa sobre `data` y los compara: por eso
+        `document_intact is True` **es** la comprobación del congelado, y no hace
+        falta recalcularlo acá a mano.
+        """
+        from erase.tasks import prune_erase_attachments
+
+        v1 = CompatibilidadV1Tests._v1(self)
+        self.assertEqual(v1.document_hash, HASH_V1_CONGELADO)
+
+        prune_erase_attachments()
+
+        v1.refresh_from_db()
+        self.assertEqual(v1.document_hash, HASH_V1_CONGELADO)
+        self.assertTrue(cert_mod.verify_certificate(v1)["document_intact"])

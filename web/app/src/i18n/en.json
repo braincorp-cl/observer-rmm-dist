@@ -3559,7 +3559,15 @@
       "empty": "No assets without a certificate in this period.",
       "loadError": "The reconciliation could not be calculated.",
       "byClient": "By client"
-    }
+    },
+    "retention": {
+      "label": "Attachment retention (days)",
+      "hint": "Days the destruction photo and this client's retrieved files are kept. The certificate is permanent and never expires.",
+      "inherited": "Inherits from server: {days} days",
+      "inheritedHint": "Empty = inherits the server-wide period. It does not mean zero days.",
+      "floorError": "The legal minimum is {days} days"
+    },
+    "intakeScanHint": "You can scan the code with a reader; reading it does not submit the form."
   },
   "agentActivity": {
     "noAgent": "Select a machine to see its activity.",
