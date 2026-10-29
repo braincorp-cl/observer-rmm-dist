@@ -19,6 +19,7 @@ import json
 import uuid
 from typing import Any, Dict, Optional
 
+from django.conf import settings
 from django.utils import timezone
 
 from erase import signing
@@ -63,6 +64,29 @@ B_ONLY_NA = {
     "smart_summary": None,
     "environment_hash": None,
 }
+
+
+# Ruta del recurso que publica la clave pública de firma (feature 053 · RF-08).
+SIGNING_KEY_PATH = "/erase/signing-key/"
+
+
+def signing_key_url() -> str:
+    """URL absoluta donde el destinatario obtiene la clave para verificar.
+
+    Viaja DENTRO del documento, así que queda cubierta por la firma: un
+    certificado alterado no puede apuntar a la clave de otro. Es lo que convierte
+    la firma en algo verificable por un tercero — sin esto el destinatario tiene
+    la firma y ninguna llave contra la cual probarla.
+
+    Si el ambiente no declara dominio, se emite la ruta relativa en lugar de
+    inventar un host: un `https://None/...` sería peor que decir menos.
+    """
+    hosts = getattr(settings, "ALLOWED_HOSTS", None) or []
+    host = hosts[0] if hosts else ""
+    if not host or host == "*":
+        return SIGNING_KEY_PATH
+    proto = getattr(settings, "ORMM_PROTO", "https")
+    return f"{proto}://{host}{SIGNING_KEY_PATH}"
 
 
 def new_certificate_id() -> str:
@@ -128,6 +152,9 @@ def build_document(
         "finished_at": finished_at,
         "last_known_location": last_known_location,
         "software_version": software_version,
+        # Dónde se obtiene la clave para verificar la firma de este documento
+        # (RF-08). Va firmada junto al resto para que no se pueda sustituir.
+        "signing_key_url": signing_key_url(),
     }
     document.update(B_ONLY_NA)
     if extra:

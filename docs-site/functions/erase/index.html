@@ -314,6 +314,37 @@
       <p class="lang-es">Cada equipo tiene además su propia pestaña <strong>Borrado</strong> en la vista del agente, con los certificados de ese equipo.</p>
       <p class="lang-en">Each device also has its own <strong>Erase</strong> tab in the agent view, listing that device's certificates.</p>
 
+      <h2 id="verificar-fuera"><span class="lang-es">5.b Cómo lo verifica alguien que no tiene la consola</span><span class="lang-en">5.b How someone without the console verifies it</span></h2>
+      <p class="lang-es">El destinatario de un certificado —un cliente, un auditor, un tribunal— no tiene cuenta en la consola, y verificar «en la consola del que emitió» no prueba gran cosa. Por eso la clave <strong>pública</strong> de firma se publica en un recurso abierto, <code>/erase/signing-key/</code>, que no exige autenticación: una clave pública no es un secreto, y publicarla es justamente su función. La clave privada nunca sale del servidor.</p>
+      <p class="lang-en">The recipient of a certificate —a client, an auditor, a court— has no console account, and verifying "in the issuer's own console" does not prove much. That is why the <strong>public</strong> signing key is published at an open resource, <code>/erase/signing-key/</code>, with no authentication: a public key is not a secret, and publishing it is precisely its purpose. The private key never leaves the server.</p>
+      <p class="lang-es">La URL de ese recurso <strong>viaja dentro del documento firmado</strong> (<code>signing_key_url</code>), así que un certificado alterado no puede apuntar a la clave de otro: cambiarla rompe el hash y la firma.</p>
+      <p class="lang-en">That resource's URL <strong>travels inside the signed document</strong> (<code>signing_key_url</code>), so an altered certificate cannot point at someone else's key: changing it breaks the hash and the signature.</p>
+      <p class="lang-es">Con el JSON descargado del certificado y la clave, la verificación se hace sin Observer y sin red:</p>
+      <p class="lang-en">With the certificate JSON and the key, verification runs without Observer and without network access:</p>
+      <pre><code>python3 -c "import json,sys; d=json.load(open('certificado.json')); \
+  open('doc.bin','wb').write(json.dumps(d['document'], sort_keys=True, \
+  separators=(',',':'), ensure_ascii=False).encode())"
+
+python3 -c "import base64,json; d=json.load(open('certificado.json')); \
+  open('firma.bin','wb').write(base64.b64decode(d['signature']['value']))"
+
+sha256sum doc.bin          # debe coincidir con el document_hash del JSON
+
+openssl dgst -sha256 -verify clave.pem \
+  -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2 \
+  -signature firma.bin doc.bin
+# Verified OK</code></pre>
+      <div class="callout warn lang-es">
+        <span class="tag">El salt del PSS es el máximo, no el del digest</span>
+        <p>La firma usa RSA-PSS con MGF1-SHA256 y el salt <strong>más largo que admite la clave</strong> (222 bytes con RSA-2048). Al verificar hay que decírselo a OpenSSL con <code>rsa_pss_saltlen:-2</code> (auto) o <code>max</code>. Con <code>-1</code> —el largo del digest, que es lo que uno escribiría por defecto— OpenSSL <strong>rechaza una firma perfectamente válida</strong> con <em>salt length check failed</em>. No es un problema del certificado: es el parámetro equivocado.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">The PSS salt is the maximum, not the digest length</span>
+        <p>The signature uses RSA-PSS with MGF1-SHA256 and the <strong>longest salt the key allows</strong> (222 bytes with RSA-2048). When verifying you must tell OpenSSL so, with <code>rsa_pss_saltlen:-2</code> (auto) or <code>max</code>. With <code>-1</code> —the digest length, which is what one would write by default— OpenSSL <strong>rejects a perfectly valid signature</strong> with <em>salt length check failed</em>. It is not a problem with the certificate: it is the wrong parameter.</p>
+      </div>
+      <p class="lang-es">Si la instancia que emitió no tenía clave configurada, el recurso lo <strong>dice</strong> (<code>"available": false</code>) en lugar de responder un 404 ambiguo, y los certificados que emitió lo declaran en su propio bloque de firma. Un certificado sin firma es un certificado que vale menos, no un certificado inválido: el encadenamiento y el hash siguen comprobándose.</p>
+      <p class="lang-en">If the issuing instance had no key configured, the resource <strong>says so</strong> (<code>"available": false</code>) instead of returning an ambiguous 404, and the certificates it issued declare it in their own signature block. An unsigned certificate is a certificate worth less, not an invalid one: the chain and the hash still check out.</p>
+
       <h2 id="custodia"><span class="lang-es">6. El formulario de custodia, paso a paso</span><span class="lang-en">6. The custody form, step by step</span></h2>
       <p class="lang-es">El ingreso de activo es el acta que formaliza la recepción del equipo <strong>antes</strong> de cualquier operación, y es el que ancla la cadena de custodia. Abre <em>Herramientas → Certificados de borrado</em>, ve a la pestaña <strong>Ingresos de activos</strong> y pulsa <strong>Ingresar activo</strong>.</p>
       <p class="lang-en">Asset intake is the record that formalizes receiving the machine <strong>before</strong> any operation, and it is what anchors the chain of custody. Open <em>Tools → Erase certificates</em>, go to the <strong>Asset intake</strong> tab and click <strong>Record intake</strong>.</p>

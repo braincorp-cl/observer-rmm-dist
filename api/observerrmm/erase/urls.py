@@ -28,6 +28,9 @@ urlpatterns = [
     path("certificates/<int:pk>/", views.EraseCertificateDetail.as_view()),
     path("certificates/<int:pk>/pdf/", views.EraseCertificatePDF.as_view()),
     path("certificates/<int:pk>/json/", views.EraseCertificateJSON.as_view()),
+    # La clave PUBLICA de firma — sin auth: el destinatario de un certificado es
+    # un tercero sin cuenta en la consola, y una clave publica no es un secreto.
+    path("signing-key/", views.EraseSigningKey.as_view()),
     # Custodia (D)
     path("intake/", views.AssetIntakeList.as_view()),
     path(

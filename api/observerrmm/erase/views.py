@@ -4,13 +4,13 @@ import uuid
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from agents.models import Agent
 from erase import certificate as cert_mod
-from erase import services
+from erase import services, signing
 from erase.models import (
     AssetIntake,
     CertificateKind,
@@ -350,6 +350,67 @@ class EraseCertificateJSON(APIView):
             EraseCertificate.objects.filter_by_role(request.user), pk=pk
         )
         return Response(cert_mod.certificate_json(cert))
+
+
+class EraseSigningKey(APIView):
+    """Publica la clave PÚBLICA con la que se firman los certificados.
+
+    🔑 Sin esto la firma es decorativa fuera de Observer. Quien recibe un
+    certificado tiene `signature.value`, `algorithm` y `key_id`, pero **ninguna
+    llave contra la cual verificar**: lo único que puede comprobar solo —recalcular
+    el `document_hash`— prueba consistencia interna, no autoría. `public_key_pem()`
+    existía en las dos implementaciones de `Signer` desde la 039 y **no se llamaba
+    desde ninguna parte**.
+
+    Sin autenticación a propósito: el destinatario de un certificado es un tercero
+    —un cliente, un auditor, un tribunal— que no tiene cuenta en la consola. Lo que
+    se expone es una clave pública, que no es un secreto; publicarla es justamente
+    su función. La clave privada vive en `ERASE_SIGNING_KEY` y no sale de acá.
+
+    Si la instancia no tiene clave configurada, lo **dice** en lugar de devolver un
+    404 ambiguo o una respuesta vacía: es el mismo criterio con el que ya se emite
+    un certificado sin firma declarándolo.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        signer = signing.get_signer()
+        if signer is None:
+            return Response(
+                {
+                    "available": False,
+                    "detail": "esta instancia no tiene clave de firma configurada; "
+                    "los certificados que emite no van firmados y lo declaran en "
+                    "su propio bloque de firma",
+                    "key_id": "",
+                    "algorithm": "",
+                    "public_key_pem": "",
+                }
+            )
+        return Response(
+            {
+                "available": True,
+                "key_id": signer.key_id(),
+                "algorithm": signer.alg,
+                "public_key_pem": signer.public_key_pem(),
+                "verification": (
+                    "El campo firmado es el JSON canónico del documento: "
+                    "json.dumps(document, sort_keys=True, separators=(',', ':'), "
+                    "ensure_ascii=False).encode('utf-8'). `document_hash` es su "
+                    "SHA-256 en hexadecimal y `signature.value` es la firma RSA-PSS "
+                    "(MGF1-SHA256) de esos mismos bytes, en base64. El salt es el "
+                    "MÁXIMO que admite la clave, no el largo del digest: con "
+                    "openssl hay que verificar con 'rsa_pss_saltlen:-2' (auto) o "
+                    "'max'; con '-1' falla una firma válida."
+                ),
+                "verification_openssl": (
+                    "openssl dgst -sha256 -verify clave.pem "
+                    "-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2 "
+                    "-signature firma.bin documento-canonico.bin"
+                ),
+            }
+        )
 
 
 class AssetIntakeList(APIView):
