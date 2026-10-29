@@ -702,6 +702,8 @@ class ReconciliationReport(APIView):
                 desde=parse_datetime_param(p.get("from")),
                 hasta=parse_datetime_param(p.get("to")),
                 stalled_days=int(p["stalled_days"]) if p.get("stalled_days") else None,
+                limit=int(p["limit"]) if p.get("limit") else None,
+                offset=int(p["offset"]) if p.get("offset") else 0,
             )
         except (services.CustodyEventError, ValueError) as e:
             return Response({"detail": str(e)}, status=400)

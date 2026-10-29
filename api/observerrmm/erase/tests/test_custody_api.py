@@ -223,3 +223,50 @@ class ReconciliationApiTests(ObserverTestCase):
         self.assertEqual(
             [f["process_id"] for f in cuerpo["missing_items"]], ["OE-IN-SN-ALFA"]
         )
+
+    def test_los_faltantes_vienen_paginados(self):
+        """El contrato prometía paginar y la primera versión devolvía todo.
+
+        Con tres actas da lo mismo, que es justo por lo que no se notó: hay que
+        sembrar más que la página para que la diferencia exista.
+        """
+        for n in range(7):
+            self._acta(self.uno, f"SN-PAG-{n:02d}")
+
+        r = self.client.get("/erase/reconciliation/?limit=3")
+        cuerpo = r.json()
+        self.assertEqual(len(cuerpo["missing_items"]), 3)
+        self.assertEqual(cuerpo["missing_page"]["total"], 7)
+        self.assertEqual(cuerpo["missing_page"]["limit"], 3)
+        self.assertEqual(cuerpo["missing_page"]["returned"], 3)
+        # 🔑 El total NO es el tamaño de la página: es lo que la consola necesita
+        # para saber que hay más.
+        self.assertEqual(cuerpo["totals"]["missing"], 7)
+
+    def test_la_segunda_pagina_no_repite_ni_salta(self):
+        for n in range(7):
+            self._acta(self.uno, f"SN-PAG-{n:02d}")
+
+        una = self.client.get("/erase/reconciliation/?limit=3&offset=0").json()
+        dos = self.client.get("/erase/reconciliation/?limit=3&offset=3").json()
+        tres = self.client.get("/erase/reconciliation/?limit=3&offset=6").json()
+
+        ids = [i["intake_id"] for i in una["missing_items"] + dos["missing_items"]]
+        self.assertEqual(len(set(ids)), 6, "las páginas se solapan")
+        self.assertEqual(len(tres["missing_items"]), 1)
+        todos = ids + [i["intake_id"] for i in tres["missing_items"]]
+        self.assertEqual(len(set(todos)), 7, "falta algún faltante entre páginas")
+
+    def test_el_limite_tiene_tope(self):
+        """Un `limit` enorme no es una forma de pedir todo."""
+        self._acta(self.uno, "SN-TOPE")
+        r = self.client.get("/erase/reconciliation/?limit=99999")
+        self.assertEqual(r.json()["missing_page"]["limit"], 500)
+
+    def test_los_totales_no_dependen_de_la_pagina(self):
+        """Control: paginar cuenta lo mismo que no paginar."""
+        for n in range(5):
+            self._acta(self.uno, f"SN-TOT-{n:02d}")
+        completo = self.client.get("/erase/reconciliation/").json()["totals"]
+        pagina = self.client.get("/erase/reconciliation/?limit=2").json()["totals"]
+        self.assertEqual(completo, pagina)

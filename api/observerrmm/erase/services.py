@@ -14,7 +14,8 @@ from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
-from django.db.models import Count, Max
+from django.db.models import Count, Exists, F, Max, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from agents.models import LostModeEvidence, LostModeState
@@ -24,6 +25,7 @@ from erase.models import (
     CustodyEvent,
     CustodyEventKind,
     EraseAuditRecord,
+    EraseCertificate,
     FileRetrievalOrder,
     FileRetrievalStatus,
     WipeOrder,
@@ -884,6 +886,10 @@ def compose_media_origin(intake: Optional[AssetIntake]) -> str:
     return "; ".join(partes)
 
 
+MISSING_PAGE_LIMIT_DEFAULT = 100
+MISSING_PAGE_LIMIT_MAX = 500
+
+
 def reconciliation(
     *,
     qs,
@@ -891,6 +897,8 @@ def reconciliation(
     desde=None,
     hasta=None,
     stalled_days: Optional[int] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
 ) -> Dict[str, Any]:
     """Ingresados, certificados y faltantes, por cliente y período (RF-07).
 
@@ -901,6 +909,12 @@ def reconciliation(
     🔑 **Faltante = acta sin certificado**, no "acta vieja". Definirlo por
     antigüedad inventaría un plazo que la plataforma no conoce. `stalled_days`
     sólo **marca** un faltante como detenido; no cambia quién es faltante.
+
+    🔴 **Los totales se agregan en la base, no recorriendo filas en Python**, y
+    de `missing_items` se materializa **sólo la página pedida**. La primera
+    versión traía todas las actas del período a memoria y devolvía todos los
+    faltantes de una vez: con 6.000 actas eran 4.000 ítems en una respuesta, y
+    ni los tests ni la prueba manual lo notaban porque con tres actas da igual.
 
     Los parámetros se llaman `desde`/`hasta` porque `from` es reservada en
     Python; la vista traduce los `from`/`to` del contrato HTTP.
@@ -915,21 +929,80 @@ def reconciliation(
     if hasta:
         qs = qs.filter(created_at__lte=hasta)
 
-    actas = list(
-        qs.select_related("client").annotate(
-            emitidos=Count("certificates", distinct=True)
-        )
+    ahora = timezone.now()
+    corte = (
+        ahora - timedelta(days=stalled_days) if stalled_days not in (None, "") else None
     )
 
-    # El último eslabón de cada faltante, en DOS consultas y no en una por acta.
-    # 🔴 Medido el 29-oct sobre 6.000 actas: la versión con una consulta por acta
-    # tardaba 5,4 s, que es justo lo que RNF-05 prohíbe. Con esto son 2 consultas
-    # fijas, sin importar cuántos faltantes haya.
-    sin_certificar = [a.pk for a in actas if not a.emitidos]
+    # Fecha contra la que se mide "detenido": la del último eslabón, y si el
+    # acta no tiene ninguno, la de su ingreso — un acta sin movimientos es
+    # justamente la que lleva más tiempo quieta.
+    ultimo_at = Subquery(
+        CustodyEvent.objects.filter(intake=OuterRef("pk"))
+        .order_by("-id")
+        .values("at")[:1]
+    )
+    base = qs.annotate(
+        certificado=Exists(EraseCertificate.objects.filter(intake=OuterRef("pk"))),
+        referencia=Coalesce(ultimo_at, F("created_at")),
+    )
+
+    def agregados() -> Dict[str, Any]:
+        """Instancias NUEVAS en cada uso: una expresión de agregación se resuelve
+        contra el queryset donde se usa, así que no se comparten entre el
+        `aggregate()` y el `annotate()`.
+
+        🪤 Sin umbral, `stalled` **no se consulta**: se resuelve a 0 después. Un
+        `Q(pk__in=[])` como filtro vacío parece lo natural y colapsa el
+        `aggregate` entero a ceros —todas las claves, sin error—, porque Django
+        propaga `EmptyResultSet` a la consulta completa.
+        """
+        cuentas = {
+            "intakes": Count("pk"),
+            "certified": Count("pk", filter=Q(certificado=True)),
+            "missing": Count("pk", filter=Q(certificado=False)),
+        }
+        if corte is not None:
+            cuentas["stalled"] = Count(
+                "pk", filter=Q(certificado=False) & Q(referencia__lt=corte)
+            )
+        return cuentas
+
+    def con_stalled(fila: Dict[str, Any]) -> Dict[str, Any]:
+        # Sin umbral nadie está detenido: detenido es otra cosa que faltante.
+        fila.setdefault("stalled", 0)
+        return fila
+
+    totales = con_stalled(base.aggregate(**agregados()))
+    por_cliente = [
+        con_stalled(
+            {
+                "client_id": fila["client_id"],
+                "client": fila["client__name"],
+                "intakes": fila["intakes"],
+                "certified": fila["certified"],
+                "missing": fila["missing"],
+                **({"stalled": fila["stalled"]} if "stalled" in fila else {}),
+            }
+        )
+        for fila in base.values("client_id", "client__name")
+        .annotate(**agregados())
+        .order_by("client__name")
+    ]
+
+    # --- la página de faltantes, y sólo la página ---
+    limite = limit if limit is not None else MISSING_PAGE_LIMIT_DEFAULT
+    limite = max(1, min(int(limite), MISSING_PAGE_LIMIT_MAX))
+    desplazamiento = max(0, int(offset))
+
+    faltantes_qs = base.filter(certificado=False).order_by("created_at", "pk")
+    pagina = list(faltantes_qs[desplazamiento : desplazamiento + limite])
+
+    # El último eslabón de los de ESTA página, en dos consultas fijas.
     ultimos: Dict[int, CustodyEvent] = {}
-    if sin_certificar:
+    if pagina:
         ids = (
-            CustodyEvent.objects.filter(intake_id__in=sin_certificar)
+            CustodyEvent.objects.filter(intake_id__in=[a.pk for a in pagina])
             .values("intake_id")
             .annotate(ultimo=Max("id"))
             .values_list("ultimo", flat=True)
@@ -938,48 +1011,10 @@ def reconciliation(
             ev.intake_id: ev for ev in CustodyEvent.objects.filter(id__in=list(ids))
         }
 
-    ahora = timezone.now()
-    corte = (
-        ahora - timedelta(days=stalled_days) if stalled_days not in (None, "") else None
-    )
-
-    por_cliente: Dict[int, Dict[str, Any]] = {}
-    faltantes: List[Dict[str, Any]] = []
-    totales = {"intakes": 0, "certified": 0, "missing": 0, "stalled": 0}
-
-    for acta in actas:
-        fila = por_cliente.setdefault(
-            acta.client_id,
-            {
-                "client_id": acta.client_id,
-                "client": acta.client.name,
-                "intakes": 0,
-                "certified": 0,
-                "missing": 0,
-                "stalled": 0,
-            },
-        )
-        fila["intakes"] += 1
-        totales["intakes"] += 1
-
-        if acta.emitidos:
-            fila["certified"] += 1
-            totales["certified"] += 1
-            continue
-
-        fila["missing"] += 1
-        totales["missing"] += 1
-
+    faltantes = []
+    for acta in pagina:
         ultimo = ultimos.get(acta.pk)
-        # Detenido se mide contra el último eslabón, y si no hay ninguno, contra
-        # el ingreso: un acta sin movimientos es justamente la que lleva más
-        # tiempo quieta.
         referencia = ultimo.at if ultimo is not None else acta.created_at
-        detenido = bool(corte and referencia < corte)
-        if detenido:
-            fila["stalled"] += 1
-            totales["stalled"] += 1
-
         faltantes.append(
             {
                 "intake_id": acta.pk,
@@ -990,13 +1025,20 @@ def reconciliation(
                 "last_event": (
                     {"kind": ultimo.kind, "at": ultimo.at} if ultimo else None
                 ),
-                "stalled": detenido,
+                "stalled": bool(corte and referencia < corte),
             }
         )
 
     return {
         "period": {"from": desde, "to": hasta},
         "totals": totales,
-        "by_client": sorted(por_cliente.values(), key=lambda f: f["client"]),
-        "missing_items": sorted(faltantes, key=lambda f: -f["days_open"]),
+        "by_client": por_cliente,
+        "missing_items": faltantes,
+        # Lo que la consola necesita para paginar sin adivinar.
+        "missing_page": {
+            "limit": limite,
+            "offset": desplazamiento,
+            "total": totales["missing"],
+            "returned": len(faltantes),
+        },
     }

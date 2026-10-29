@@ -8,6 +8,14 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.37 — 2026-10-29
+
+- **La reconciliación pagina, y sus totales salen de la base.** El informe devolvía **todos** los activos sin certificar en una sola respuesta: con unos pocos miles de actas eso son miles de filas por consulta, y además cargaba en memoria todas las actas del período para contar. Ahora los tres números se agregan en la base de datos sobre el período completo —así que **no dependen de la página**— y del listado de faltantes viaja sólo la página pedida, con cuántos hay en total para que la consola sepa que hay más. La tabla de faltantes pagina contra el servidor.
+- **El informe responde casi diez veces más rápido.** Sobre 6.000 activos con sus eventos de custodia, la reconciliación tardaba 5,4 s porque consultaba el último eslabón **activo por activo**; ahora resuelve todos los de la página en dos consultas fijas y responde en 0,6 s.
+- **Un certificado ya no se borra al eliminar su cliente.** La relación con el cliente arrastraba el certificado en la eliminación, **sin pasar por la protección** que impide borrar un documento emitido: desaparecía en silencio. Ahora el certificado sobrevive y conserva el nombre del cliente, que viaja dentro del documento firmado.
+- **La cadena de hashes resiste escrituras simultáneas.** Dos registros creados a la vez podían colgar del mismo eslabón anterior y ramificar la cadena sin error visible. El mecanismo que debía serializarlos no lo hacía; se reemplazó por uno que sí, con una prueba que lo fuerza con ocho escrituras en paralelo. Alcanzaba también a las cadenas de auditoría y de certificados.
+- **Los certificados emitidos antes siguen verificando**, sin tocarse: la migración de esta versión no modifica el contenido de ninguno.
+
 ## v1.4.36 — 2026-10-29
 
 - **La cadena de custodia del activo (053).** Entre el acta de ingreso y el certificado había dos extremos y nada en medio, así que la plataforma no podía responder dónde se detuvo un activo que no llegó a certificarse. Ahora cada traslado, almacenamiento, salida a gestor externo, saneamiento, destrucción o devolución se registra como un **eslabón** en la ficha del activo, con quién lo registró, cuándo ocurrió y dónde quedó. Se abre con **Ver custodia** desde la pestaña *Ingresos de activos*. El primer eslabón, «Recibido en custodia», **lo escribe la plataforma** al crear el acta: nadie lo teclea y no se puede duplicar.

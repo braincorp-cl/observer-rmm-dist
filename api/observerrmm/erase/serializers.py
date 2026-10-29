@@ -310,4 +310,8 @@ class ReconciliationSerializer(serializers.Serializer):
     period = serializers.DictField()
     totals = serializers.DictField()
     by_client = ReconciliationFilaSerializer(many=True)
+    # 🔑 `missing_items` trae SOLO la página pedida; `missing_page` dice cuántos
+    # hay en total para que la consola pagine sin adivinar. Devolverlos todos
+    # era una respuesta de miles de ítems que ningún test veía.
     missing_items = ReconciliationFaltanteSerializer(many=True)
+    missing_page = serializers.DictField()

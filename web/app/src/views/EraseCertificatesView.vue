@@ -250,7 +250,9 @@
         :columns="recMissingColumns"
         :loading="recLoading"
         :no-data-label="$t('erase.reconciliation.empty')"
-        :rows-per-page-options="[25, 50, 0]"
+        :rows-per-page-options="[25, 50, 100]"
+        v-model:pagination="recPagination"
+        @request="onRecRequest"
       >
         <template v-slot:body-cell-last_event="props">
           <q-td :props="props">
@@ -589,6 +591,15 @@ export default {
       stalled_days: null,
     });
 
+    // 🔑 Paginación del SERVIDOR, no de la tabla: el informe puede tener miles
+    // de faltantes y la respuesta trae sólo la página pedida. `rowsNumber` sale
+    // de `missing_page.total`, que es lo que deja a la tabla saber que hay más.
+    const recPagination = ref({
+      page: 1,
+      rowsPerPage: 25,
+      rowsNumber: 0,
+    });
+
     const clientOptions = computed(() =>
       Object.entries(clientsById.value).map(([value, label]) => ({
         value: Number(value),
@@ -708,11 +719,22 @@ export default {
       { name: "actions", label: "", field: "actions", align: "right" },
     ];
 
+    async function onRecRequest(props) {
+      const { page, rowsPerPage } = props.pagination;
+      recPagination.value.page = page;
+      recPagination.value.rowsPerPage = rowsPerPage;
+      await loadReconciliation();
+    }
+
     async function loadReconciliation() {
       recLoading.value = true;
       try {
         // Sólo se mandan los filtros con valor: un `from` vacío daría 400.
-        const params = {};
+        const params = {
+          limit: recPagination.value.rowsPerPage,
+          offset:
+            (recPagination.value.page - 1) * recPagination.value.rowsPerPage,
+        };
         if (recFilters.value.client) params.client = recFilters.value.client;
         if (recFilters.value.from) params.from = recFilters.value.from;
         if (recFilters.value.to) params.to = recFilters.value.to;
@@ -720,6 +742,7 @@ export default {
           params.stalled_days = recFilters.value.stalled_days;
         }
         recReport.value = await fetchReconciliation(params);
+        recPagination.value.rowsNumber = recReport.value.missing_page?.total ?? 0;
       } catch (e) {
         notifyError(t("erase.reconciliation.loadError"));
       } finally {
@@ -881,6 +904,8 @@ export default {
       recClientColumns,
       recMissingColumns,
       clientOptions,
+      recPagination,
+      onRecRequest,
       loadReconciliation,
     };
   },
