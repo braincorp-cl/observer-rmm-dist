@@ -915,9 +915,28 @@ def reconciliation(
     if hasta:
         qs = qs.filter(created_at__lte=hasta)
 
-    actas = qs.select_related("client").annotate(
-        emitidos=Count("certificates", distinct=True)
+    actas = list(
+        qs.select_related("client").annotate(
+            emitidos=Count("certificates", distinct=True)
+        )
     )
+
+    # El último eslabón de cada faltante, en DOS consultas y no en una por acta.
+    # 🔴 Medido el 29-oct sobre 6.000 actas: la versión con una consulta por acta
+    # tardaba 5,4 s, que es justo lo que RNF-05 prohíbe. Con esto son 2 consultas
+    # fijas, sin importar cuántos faltantes haya.
+    sin_certificar = [a.pk for a in actas if not a.emitidos]
+    ultimos: Dict[int, CustodyEvent] = {}
+    if sin_certificar:
+        ids = (
+            CustodyEvent.objects.filter(intake_id__in=sin_certificar)
+            .values("intake_id")
+            .annotate(ultimo=Max("id"))
+            .values_list("ultimo", flat=True)
+        )
+        ultimos = {
+            ev.intake_id: ev for ev in CustodyEvent.objects.filter(id__in=list(ids))
+        }
 
     ahora = timezone.now()
     corte = (
@@ -951,7 +970,7 @@ def reconciliation(
         fila["missing"] += 1
         totales["missing"] += 1
 
-        ultimo = CustodyEvent.objects.filter(intake=acta).order_by("-id").first()
+        ultimo = ultimos.get(acta.pk)
         # Detenido se mide contra el último eslabón, y si no hay ninguno, contra
         # el ingreso: un acta sin movimientos es justamente la que lleva más
         # tiempo quieta.
