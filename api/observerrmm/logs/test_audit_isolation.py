@@ -1,23 +1,48 @@
 """Un `TestCase` que crea `AuditLog` no deja filas commiteadas detrás.
 
-Es la invariante que se rompió el 2026-10-28: `test_get_audit_logs` contó 99
-filas donde esperaba 86, trece de más, en un commit que sólo tocaba HTML.
+Es la invariante que se SOSPECHÓ rota el 2026-10-28, cuando
+`test_get_audit_logs` contó 99 filas donde esperaba 86, trece de más, en un
+commit que sólo tocaba HTML. No era ésta: ver abajo.
 
-⚠️ Hoy la fuga NO se reproduce, y está medido, no supuesto. Un barrido de los
-1260 tests contando `logs_auditlog` por una conexión aparte después de CADA test
-—o sea leyendo sólo lo commiteado, que es exactamente lo que sobrevive a un
-rollback— da cero filas en todos. Y quitando la mitigación de
-`create_audit_records()` (el `delete()` de la tabla antes de sembrar), el test
-sigue dando 86 con 6 semillas distintas corriendo solo y con 5 semillas
-corriendo `logs/` entero. Es decir: esa mitigación hoy no tapa nada, porque no
-hay nada que tapar. Lo que sí hace es volver el test independiente del estado
-de la tabla, y por eso conviene que se quede.
+⚠️ ESTE TEST NO ES EL QUE CAZA EL INCIDENTE DEL 2026-10-28, y conviene saberlo
+antes de confiar en él. El barrido que lo motivó —los 1260 tests contando
+`logs_auditlog` por una conexión aparte después de CADA test, o sea leyendo sólo
+lo commiteado— da cero filas en todos, y eso está bien medido. La conclusión que
+se sacó de ahí era la equivocada: que entonces no había nada que tapar. Lo que
+mostraba era que las trece filas NUNCA estuvieron commiteadas.
 
-Este archivo no acompaña un arreglo entonces: fija la invariante para que, si
-alguien vuelve a introducir una escritura fuera de la transacción del test, se
-vea acá y no tres archivos más allá en una aserción de conteo absoluto. Está
-comprobado que detecta el caso: creando las mismas filas desde un hilo —que abre
-su propia conexión, fuera del bloque atómico— falla con `13 != 0`.
+La causa real no es una fila que sobrevive a un rollback sino estado de PROCESO:
+`AuditMiddleware.process_view` deja el usuario autenticado en `request_local`
+(un `threading.local()` de módulo) y hasta el arreglo sólo lo limpiaba en
+`process_template_response`/`process_exception` —hooks que no corren si la
+respuesta no se renderiza, como una `FileResponse` o un `HttpResponse` plano—,
+así que cualquier test que bajara un archivo dejaba el usuario pegado. Con el
+usuario puesto, `BaseAuditModel.save()` audita CADA save de un modelo auditado,
+y entonces el propio fixture de `test_get_audit_logs` se fabricaba sus filas de
+más, dentro de su transacción: cuatro en `setUp` (tres `User` y un
+`CoreSettings`) y nueve en `create_audit_records()` (`Client`/`Site`/`Agent`).
+Cuatro más nueve, trece. Reproducible y con el número exacto del incidente:
+
+    GHACTIONS=yes pytest -p no:randomly \
+      observerrmm/test_observer_client_header.py::TestMiddlewareClientHeader \
+      logs/tests.py::TestAuditViews::test_get_audit_logs
+
+El arreglo vive en `observerrmm/middleware.py` y lo fija
+`observerrmm/test_audit_request_local.py`. Acá no, porque lo que se mide acá es
+otra cosa.
+
+Y la mitigación de `create_audit_records()` (el `delete()` de la tabla antes de
+sembrar) sí tapaba parte del síntoma: borra las cuatro filas de `setUp`, así que
+con ella puesta el test falla con 95 y sin ella con las 99 del incidente. Tapa
+cuatro de trece. Conviene que se quede igual, pero porque vuelve al test
+independiente del estado de la tabla, no porque arregle nada.
+
+Lo que este archivo sí fija es la invariante de aislamiento, para que si alguien
+introduce una escritura fuera de la transacción del test —el otro mecanismo
+posible, el que sí commitea— se vea acá y no tres archivos más allá en una
+aserción de conteo absoluto. Está comprobado que detecta el caso: creando las
+mismas filas desde un hilo —que abre su propia conexión, fuera del bloque
+atómico— falla con `13 != 0`.
 
 Lo que se afirma acá es el invariante en sí, y por eso el envoltorio es un
 `TransactionTestCase`: hay que poder leer lo COMMITEADO. Dentro de la

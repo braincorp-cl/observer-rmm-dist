@@ -29,6 +29,12 @@ class TestAuditViews(ObserverTestCase):
         # endpoint sobre un conjunto conocido, no cuántas filas hay en el mundo.
         # El `delete()` vive dentro de la transacción del `TestCase`, así que se
         # revierte al terminar y no afecta a ningún otro test.
+        #
+        # OJO: esto NO arreglaba el 99 contra 86, sólo tapaba cuatro de las trece
+        # filas (las que `setUp` audita de más; las otras nueve las crea este
+        # fixture DESPUÉS del `delete()`). La causa era `request_local` sin
+        # limpiar en `AuditMiddleware`, arreglada en `observerrmm/middleware.py`
+        # y fijada en `observerrmm/test_audit_request_local.py`.
         AuditLog.objects.all().delete()
 
         # create clients for client filter
