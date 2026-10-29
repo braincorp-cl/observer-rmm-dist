@@ -143,11 +143,11 @@
 
       <div class="callout note lang-es">
         <span class="tag">Qué no hace</span>
-        <p>El módulo <strong>no borra un equipo que no esté declarado perdido o robado</strong>, no borra sin el permiso dedicado, no borra con una sola persona y no borra fuera de un caso abierto. Una orden no se puede crear desde el listado general de equipos: nace dentro de la línea de tiempo de un caso de equipo perdido y queda atada al ciclo vigente de ese caso.</p>
+        <p>El módulo <strong>no borra un equipo sin un expediente abierto</strong>, no borra sin el permiso dedicado, no borra con una sola persona y no borra desde el listado general de equipos. Un expediente es una de dos cosas: un <strong>caso de equipo perdido abierto</strong> —y entonces la orden nace en la línea de tiempo del caso y queda atada a su ciclo vigente— o un <strong>acta de ingreso a baja</strong>, para el activo que se retira de servicio y cuyos datos hay que destruir aunque nunca se haya perdido. Lo decide el servidor, no la consola.</p>
       </div>
       <div class="callout note lang-en">
         <span class="tag">What it does not do</span>
-        <p>The module <strong>does not wipe a machine that is not declared lost or stolen</strong>, does not wipe without the dedicated permission, does not wipe with a single person, and does not wipe outside an open case. An order cannot be created from the general device list: it is born inside a lost-device case timeline and stays tied to that case's current cycle.</p>
+        <p>The module <strong>does not wipe a machine without an open file</strong>, does not wipe without the dedicated permission, does not wipe with a single person, and does not wipe from the general device list. A file is one of two things: an <strong>open lost-device case</strong> —and then the order is born in the case timeline and stays tied to its current cycle— or an <strong>asset intake record</strong>, for an asset being retired from service whose data must be destroyed even though it was never lost. The server decides this, not the console.</p>
       </div>
 
       <h2 id="permisos"><span class="lang-es">1. Los cuatro permisos</span><span class="lang-en">1. The four permissions</span></h2>
@@ -259,16 +259,22 @@
       <ul class="lang-es">
         <li>cliente, etiqueta de activo y ticket de referencia;</li>
         <li>equipo y número de serie;</li>
-        <li><strong>método aplicado</strong> y <strong>estándar de referencia</strong> — para un wipe remoto, <code>NIST SP 800-88r1 Clear</code>;</li>
-        <li><strong>resultado de la verificación</strong> y su nivel (relectura por-ruta), con el detalle ruta por ruta;</li>
+        <li><strong>método aplicado</strong> y <strong>estándar de referencia</strong> — para un wipe remoto, <code>NIST SP 800-88 Rev. 2 (Clear)</code> e <code>IEEE 2883-2022</code>;</li>
+        <li><strong>resultado de la verificación</strong>, <strong>cómo se verificó</strong> y su constancia, con el detalle ruta por ruta cuando es un wipe. Si no hubo un método acreditado y una segunda persona que diera fe, el certificado <strong>declara que la destrucción no fue verificada</strong> en lugar de afirmar que sí;</li>
+        <li><strong>fabricante, modelo y nombre de red</strong> del equipo, cada dato en su casilla;</li>
+        <li><strong>destino final del medio</strong> —reutilización, devolución, reciclaje, destrucción, custodia— con su detalle. La norma no se conforma con decir que el medio se saneó: exige declarar dónde quedó;</li>
+        <li><strong>quien da fe</strong> de la operación: nombre, cargo, contacto y fecha de la segunda persona, separada del operador;</li>
         <li>operador, inicio y fin, y versión del software del agente;</li>
         <li>última ubicación conocida del equipo, cuando el caso la tiene.</li>
       </ul>
       <ul class="lang-en">
         <li>client, asset tag and reference ticket;</li>
         <li>device and serial number;</li>
-        <li><strong>method applied</strong> and <strong>reference standard</strong> — for a remote wipe, <code>NIST SP 800-88r1 Clear</code>;</li>
-        <li><strong>verification result</strong> and its level (per-path re-read), with the path-by-path detail;</li>
+        <li><strong>method applied</strong> and <strong>reference standard</strong> — for a remote wipe, <code>NIST SP 800-88 Rev. 2 (Clear)</code> and <code>IEEE 2883-2022</code>;</li>
+        <li><strong>verification result</strong>, <strong>how it was verified</strong> and the record of it, with the path-by-path detail when it is a wipe. If there was no accredited method and no second person to attest, the certificate <strong>states that the destruction was not verified</strong> instead of claiming it was;</li>
+        <li>the device's <strong>manufacturer, model and network name</strong>, each in its own field;</li>
+        <li>the <strong>final media disposition</strong> —reuse, return, recycling, destruction, custody— with its detail. The standard is not satisfied by saying the media was sanitized: it requires declaring where it ended up;</li>
+        <li><strong>who attests</strong> to the operation: name, role, contact and date of the second person, separate from the operator;</li>
         <li>operator, start and finish, and the agent's software version;</li>
         <li>the device's last known location, when the case has it.</li>
       </ul>
