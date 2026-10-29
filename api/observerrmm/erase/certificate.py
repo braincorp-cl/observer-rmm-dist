@@ -256,7 +256,10 @@ def verify_certificate(cert: EraseCertificate) -> Dict[str, Any]:
     """Verifica documento (hash), firma y encadenado del certificado."""
     canonical = canonical_bytes(cert.data)
     doc_ok = hashlib.sha256(canonical).hexdigest() == cert.document_hash
-    sig_ok = signing.verify_document(canonical, cert.signature)
+    # Con el `key_id` del PROPIO certificado: se verifica con la clave que lo
+    # firmó, no con la activa. Si no, retirar una clave invalidaría de golpe
+    # todo lo que firmó, incluido el chip «firma válida» de la consola.
+    sig_ok = signing.verify_document(canonical, cert.signature, cert.signing_key_id)
     chain_ok = cert.record_hash == cert.compute_record_hash(cert.prev_hash)
     return {
         "certificate_id": cert.certificate_id,

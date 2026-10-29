@@ -5,24 +5,36 @@
   listen: systemd daemon-reload
 
 - name: restart rmm
+  # tags: always -> el handler no queda filtrado cuando se corre con --tags
+  # (p. ej. --tags api_config); igual solo se dispara si algo lo notifica.
+  tags: [always]
   ansible.builtin.systemd:
     name: rmm
     state: restarted
   listen: restart rmm
 
 - name: restart daphne
+  # tags: always -> el handler no queda filtrado cuando se corre con --tags
+  # (p. ej. --tags api_config); igual solo se dispara si algo lo notifica.
+  tags: [always]
   ansible.builtin.systemd:
     name: daphne
     state: restarted
   listen: restart daphne
 
 - name: restart celery
+  # tags: always -> el handler no queda filtrado cuando se corre con --tags
+  # (p. ej. --tags api_config); igual solo se dispara si algo lo notifica.
+  tags: [always]
   ansible.builtin.systemd:
     name: celery
     state: restarted
   listen: restart celery
 
 - name: restart celerybeat
+  # tags: always -> el handler no queda filtrado cuando se corre con --tags
+  # (p. ej. --tags api_config); igual solo se dispara si algo lo notifica.
+  tags: [always]
   ansible.builtin.systemd:
     name: celerybeat
     state: restarted

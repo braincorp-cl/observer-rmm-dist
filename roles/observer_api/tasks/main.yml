@@ -103,6 +103,11 @@
 # {{ observer_app_name }}/{{ observer_app_name }}/. Si se deja afuera, el import falla,
 # suppress(ImportError) lo traga y ALLOWED_HOSTS queda [] -> IndexError en settings.py:170.
 - name: Desplegar local_settings.py
+  # Tag propio, al molde de `mesh_config`: permite re-renderizar SOLO este archivo y
+  # reiniciar los servicios de Django, sin correr el rol entero. Es la via para
+  # desplegar la clave de firma a un ambiente ya instalado (053 · T017).
+  # 🪤 deploy-api.yml NO renderiza este archivo: la clave llega por install.yml.
+  tags: [api_config]
   ansible.builtin.template:
     src: local_settings.j2
     dest: "{{ observer_root }}/api/{{ observer_app_name }}/{{ observer_app_name }}/local_settings.py"

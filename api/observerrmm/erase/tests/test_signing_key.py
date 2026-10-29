@@ -29,12 +29,27 @@ from erase import certificate as cert_mod
 from erase.models import CertificateKind
 from observerrmm.test import ObserverTestCase
 
-_llave = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-CLAVE_PRIVADA = _llave.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.PKCS8,
-    encryption_algorithm=serialization.NoEncryption(),
-).decode()
+
+def _par_de_claves():
+    k = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    priv = k.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode()
+    pub = (
+        k.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
+    return priv, pub
+
+
+CLAVE_PRIVADA, CLAVE_PUBLICA = _par_de_claves()
+CLAVE_NUEVA, CLAVE_NUEVA_PUB = _par_de_claves()
 
 
 @override_settings(
@@ -162,3 +177,87 @@ class SigningKeyTests(ObserverTestCase):
                 "  openssl con un byte alterado:", (r2.stdout + r2.stderr).strip()[:60]
             )
             self.assertNotEqual(r2.returncode, 0)
+
+
+@override_settings(ALLOWED_HOSTS=["api.tenant.observer.cl", "testserver"])
+class RotacionTests(ObserverTestCase):
+    """Retirar una clave NO invalida lo que esa clave firmó (decisión 29-oct).
+
+    Es el punto entero de verificar por `key_id` en vez de por «la clave actual».
+    Una clave pública no caduca: un certificado firmado hoy se verifica dentro de
+    diez años mientras su pública siga publicada. Lo que se retira es la privada.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.client_obj = baker.make("clients.Client", name="Cliente X")
+
+    def _emitir(self):
+        return cert_mod.issue_certificate(
+            kind=CertificateKind.PHYSICAL_DESTRUCTION,
+            client=self.client_obj,
+            tenant="Cliente X",
+        )
+
+    def test_lo_firmado_con_la_clave_vieja_sigue_verificando_tras_rotar(self):
+        with override_settings(ERASE_SIGNING_KEY=CLAVE_PRIVADA):
+            viejo = self._emitir()
+            key_id_viejo = viejo.signing_key_id
+            self.assertTrue(cert_mod.verify_certificate(viejo)["signature_valid"])
+
+        # Se rota: la privada vieja desaparece, su PÚBLICA queda publicada.
+        with override_settings(
+            ERASE_SIGNING_KEY=CLAVE_NUEVA,
+            ERASE_SIGNING_KEYS_RETIRED=[CLAVE_PUBLICA],
+        ):
+            nuevo = self._emitir()
+            self.assertNotEqual(nuevo.signing_key_id, key_id_viejo)
+            # 🔑 lo que importa: el viejo NO se cae
+            v = cert_mod.verify_certificate(viejo)
+            self.assertTrue(v["signature_valid"], "rotar invalidó un certificado")
+            self.assertTrue(v["valid"])
+            self.assertTrue(cert_mod.verify_certificate(nuevo)["signature_valid"])
+
+    def test_control_negativo_sin_publicar_la_retirada_el_viejo_se_cae(self):
+        """Prueba que el test de arriba no pasa por casualidad."""
+        with override_settings(ERASE_SIGNING_KEY=CLAVE_PRIVADA):
+            viejo = self._emitir()
+        with override_settings(
+            ERASE_SIGNING_KEY=CLAVE_NUEVA, ERASE_SIGNING_KEYS_RETIRED=[]
+        ):
+            self.assertFalse(cert_mod.verify_certificate(viejo)["signature_valid"])
+
+    def test_el_endpoint_publica_las_dos_con_su_estado(self):
+        with override_settings(
+            ERASE_SIGNING_KEY=CLAVE_NUEVA,
+            ERASE_SIGNING_KEYS_RETIRED=[CLAVE_PUBLICA],
+        ):
+            self.client.logout()
+            d = self.client.get("/erase/signing-key/").json()
+            estados = {k["key_id"]: k["status"] for k in d["keys"]}
+            print("\n  claves publicadas:", estados)
+            self.assertEqual(len(d["keys"]), 2)
+            self.assertEqual(sorted(estados.values()), ["active", "retired"])
+            # la activa es la primera y la que describen los campos sueltos
+            self.assertEqual(d["keys"][0]["status"], "active")
+            self.assertEqual(d["key_id"], d["keys"][0]["key_id"])
+            # ninguna lleva la privada
+            for k in d["keys"]:
+                self.assertIn("BEGIN PUBLIC KEY", k["public_key_pem"])
+                self.assertNotIn("PRIVATE", k["public_key_pem"])
+
+    def test_una_clave_retirada_no_puede_firmar(self):
+        from erase import signing
+
+        with override_settings(ERASE_SIGNING_KEYS_RETIRED=[CLAVE_PUBLICA]):
+            retirada = signing.retired_verifiers()[0]
+            with self.assertRaises(signing.SignerError):
+                retirada.sign(b"x")
+
+    def test_un_key_id_desconocido_no_afirma_nada(self):
+        from erase import signing
+
+        with override_settings(ERASE_SIGNING_KEY=CLAVE_PRIVADA):
+            self.assertIsNone(signing.get_verifier("0000000000000000"))
+            self.assertFalse(signing.verify_document(b"x", "QUJD", "0000000000000000"))

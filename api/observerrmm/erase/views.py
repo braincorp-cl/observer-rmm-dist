@@ -375,8 +375,8 @@ class EraseSigningKey(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        signer = signing.get_signer()
-        if signer is None:
+        claves = signing.public_keys()
+        if not claves:
             return Response(
                 {
                     "available": False,
@@ -386,14 +386,22 @@ class EraseSigningKey(APIView):
                     "key_id": "",
                     "algorithm": "",
                     "public_key_pem": "",
+                    "keys": [],
                 }
             )
+        activa = claves[0]
         return Response(
             {
                 "available": True,
-                "key_id": signer.key_id(),
-                "algorithm": signer.alg,
-                "public_key_pem": signer.public_key_pem(),
+                # `keys` es el contrato nuevo: TODAS las claves publicables, con su
+                # `key_id` y si está activa o retirada. El destinatario toma la que
+                # declara el `signature.key_id` de su certificado. Los tres campos
+                # sueltos de abajo describen la ACTIVA y se mantienen para no romper
+                # a quien ya los consuma.
+                "keys": claves,
+                "key_id": activa["key_id"],
+                "algorithm": activa["algorithm"],
+                "public_key_pem": activa["public_key_pem"],
                 "verification": (
                     "El campo firmado es el JSON canónico del documento: "
                     "json.dumps(document, sort_keys=True, separators=(',', ':'), "

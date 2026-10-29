@@ -104,3 +104,17 @@ observer_open_ai_temperature: ""
 # posterior no pisa el valor que el cliente cambie en Ajustes. Vacío = default del modelo
 # (America/Santiago). La fija install.sh con la zona confirmada del cliente.
 observer_default_time_zone: ""
+
+# --- Firma de los certificados de borrado (053 · T017) ---------------------
+# La clave ACTIVA la genera install.yml por ambiente y vive cifrada en
+# group_vars/observer_api/vault_erase_signing.yml (gitignored), como
+# vault_lost_mode_evidence_key. Acá solo van las RETIRADAS.
+#
+# Claves retiradas, en PEM PUBLICO. Rotar NO invalida lo ya firmado —una clave
+# publica no caduca— pero SOLO si la saliente se publica acá: el verificador
+# elige por el `key_id` que el propio certificado declara, y una clave que no
+# esta publicada deja sin verificar todo lo que firmo.
+#
+# Rotar es RESPUESTA A INCIDENTE, no rutina: no hay CA ni certificado que venza,
+# y la unica razon real para retirar una clave es que la privada se comprometa.
+observer_erase_signing_keys_retired: []

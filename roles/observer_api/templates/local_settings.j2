@@ -76,6 +76,27 @@ GOOGLE_GEOLOCATION_API_KEY = '{{ observer_google_geolocation_api_key }}'
 # ⚠️ ESTE ARCHIVO SE RE-RENDERIZA EN CADA install.yml: una llave puesta a mano acá se
 # perdería en el próximo deploy y dejaría ilegible toda la evidencia cifrada con ella.
 # ⚠️ deploy-api.yml NO renderiza este archivo: la llave llega con install.yml.
+{% if vault_erase_signing_key | default('') | length > 0 %}
+# Clave de firma de los certificados de borrado (053 · T017). UNA POR TENANT: el
+# `key_id` identifica al emisor y cada cliente verifica contra la de su instancia.
+# Va entre comillas triples porque es un PEM MULTILINEA; con comillas simples
+# Django leeria una clave truncada y LocalRSASigner reventaria al arrancar.
+ERASE_SIGNING_KEY = """
+{{ vault_erase_signing_key }}
+"""
+{% endif %}
+{% if observer_erase_signing_keys_retired | default([]) | length > 0 %}
+# Claves RETIRADAS, en PEM PUBLICO. Verifican, no firman: tras un compromiso la
+# privada no debe quedar en ninguna parte. Publicarlas es lo que mantiene
+# verificables los certificados que firmaron — quitarlas de aca los invalida.
+ERASE_SIGNING_KEYS_RETIRED = [
+{% for pem in observer_erase_signing_keys_retired %}
+    """
+{{ pem }}
+""",
+{% endfor %}
+]
+{% endif %}
 {% if vault_lost_mode_evidence_key | default('') | length > 0 %}
 LOST_MODE_EVIDENCE_KEY = "{{ vault_lost_mode_evidence_key }}"
 {% endif %}
