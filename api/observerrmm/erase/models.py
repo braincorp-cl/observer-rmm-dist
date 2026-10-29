@@ -439,8 +439,19 @@ class EraseCertificate(ImmutableChainRecord):
         blank=True,
     )
 
+    # 🔴 SET_NULL, no CASCADE. Un CASCADE no pasa por `Model.delete()` —el
+    # collector de Django borra en bloque— asi que borrar un cliente eliminaba
+    # sus certificados SIN disparar `ImmutableRecordError`: evidencia permanente
+    # destruida en silencio por una operacion administrativa corriente.
+    # Verificado antes de corregirlo: al borrar el cliente sobrevivian 0.
+    # El certificado no queda sin identidad: `tenant` guarda el nombre del
+    # cliente, va dentro del documento firmado y entra en `canonical_content`.
     client = models.ForeignKey(
-        "clients.Client", related_name="erase_certificates", on_delete=models.CASCADE
+        "clients.Client",
+        related_name="erase_certificates",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     site = models.ForeignKey(
         "clients.Site",

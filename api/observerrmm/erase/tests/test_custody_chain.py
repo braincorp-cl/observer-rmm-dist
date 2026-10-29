@@ -141,3 +141,45 @@ class CustodyChainTests(ObserverTestCase):
         self.client_obj.delete()
         self.assertEqual(CustodyEvent.objects.filter(pk=ev.pk).count(), 1)
         self.assertEqual(AssetIntake.objects.filter(pk=self.intake.pk).count(), 0)
+
+
+class CertificadoSobreviveAlClienteTests(ObserverTestCase):
+    """Deuda A003 del cross-check, cerrada.
+
+    `EraseCertificate.client` era `CASCADE`: borrar un cliente eliminaba sus
+    certificados sin disparar `ImmutableRecordError`, porque el collector de
+    Django borra en bloque y no llama a `Model.delete()`.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.client_obj = baker.make("clients.Client", name="Cliente Que Se Borra")
+
+    def _cert(self):
+        return EraseCertificate.objects.create(
+            certificate_id="CERT-SOBREVIVE-1",
+            kind="physical_destruction",
+            client=self.client_obj,
+            tenant=self.client_obj.name,
+            data={"x": 1},
+            document_hash="c" * 64,
+        )
+
+    def test_el_delete_de_instancia_sigue_protegido(self):
+        """Control: la proteccion que SI funcionaba no se perdio."""
+        cert = self._cert()
+        with self.assertRaises(ImmutableRecordError):
+            cert.delete()
+
+    def test_borrar_el_cliente_no_borra_el_certificado(self):
+        cert = self._cert()
+        self.client_obj.delete()
+
+        cert.refresh_from_db()
+        self.assertIsNone(cert.client_id)
+        # No queda sin identidad: el nombre del cliente va dentro del documento
+        # firmado, no solo en la FK.
+        self.assertEqual(cert.tenant, "Cliente Que Se Borra")
+        # Y sigue verificando: la migracion no toco el contenido.
+        self.assertEqual(cert.compute_record_hash(cert.prev_hash), cert.record_hash)
