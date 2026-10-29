@@ -213,3 +213,48 @@ class InmutabilidadTests(_Base):
 
         self.assertEqual(EraseCertificate.objects.count() - certs_antes, 0)
         self.assertEqual(EraseAuditRecord.objects.count() - audit_antes, 0)
+
+
+class ElEngancheTests(_Base):
+    """🔴 Que la tarea esté AGENDADA. Es lo que faltaba durante dos olas.
+
+    `prune_erase_attachments` existía desde la 042, bien escrita y con la cita
+    normativa correcta, y **no la llamaba nadie**: el único `grep` del nombre en
+    todo el repo era su propio `def`. Pasaba los tests porque los tests la
+    invocaban a mano. Este enganche es lo que la vuelve efecto, y estos dos tests
+    son lo que impide que vuelva a desaparecer en silencio.
+    """
+
+    def test_el_mantenimiento_la_encola_siempre(self):
+        """SIN guard `> 0`, al molde de `prune_lost_mode_evidence` (ADR-025)."""
+        from unittest.mock import patch
+
+        from core.tasks import core_maintenance_tasks
+
+        with patch("core.tasks.prune_erase_attachments") as tarea:
+            core_maintenance_tasks()
+
+        tarea.delay.assert_called_once()
+
+    def test_apagada_se_encola_en_ensayo_y_no_con_dientes(self):
+        """El ajuste gobierna si BORRA, no si CORRE."""
+        from unittest.mock import patch
+
+        from core.tasks import core_maintenance_tasks
+        from core.utils import get_core_settings
+
+        core = get_core_settings()
+        self.assertFalse(
+            core.erase_attachment_prune_enabled,
+            "control: nace apagada",
+        )
+
+        with patch("core.tasks.prune_erase_attachments") as tarea:
+            core_maintenance_tasks()
+        tarea.delay.assert_called_once_with(dry_run=True)
+
+        core.erase_attachment_prune_enabled = True
+        core.save()
+        with patch("core.tasks.prune_erase_attachments") as tarea:
+            core_maintenance_tasks()
+        tarea.delay.assert_called_once_with(dry_run=False)

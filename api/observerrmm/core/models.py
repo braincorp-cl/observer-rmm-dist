@@ -134,12 +134,37 @@ class CoreSettings(BaseAuditModel):
     # operativas de arriba. IMPORTANTE: esto NUNCA borra el certificado ni su hash
     # —la fila de EraseCertificate/EraseAuditRecord es append-only y permanente—;
     # a lo sumo purga adjuntos pesados vencidos (ej. registro fotográfico de C7),
-    # preservando el encadenamiento C3. Global por ambiente en este incremento; el
-    # override por-tenant del RF queda como paso siguiente.
+    # preservando el encadenamiento C3.
+    #
+    # Es el PISO HEREDABLE, no un tope: desde la ola 3 de la 053 cada cliente
+    # puede pedir MÁS con `Client.erase_attachment_retention_days`, nunca menos.
+    # La precedencia la resuelve `erase.services.resolve_attachment_retention()`,
+    # que además aplica `ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS` (366) al leer:
+    # este `default=365` no se movió porque es un valor ya desplegado en
+    # instancias vivas, y moverlo cambiaría el plazo efectivo sin que nadie lo
+    # pidiera.
     erase_attachment_retention_days = models.PositiveIntegerField(
         default=365,
         validators=[MinValueValidator(365)],
     )
+    # ¿La purga de adjuntos BORRA, o sólo cuenta lo que borraría?
+    #
+    # 🔑 Esto NO gobierna si la tarea corre: la tarea se agenda siempre, desde
+    # `core_maintenance_tasks`. Gobierna si tiene DIENTES. Apagada, cada corrida
+    # registra cuántos adjuntos y cuántos bytes purgaría, por cliente, sobre
+    # datos reales — así que cuando alguien la encienda no decide a ciegas.
+    #
+    # Nace apagada a propósito, y el motivo no es el día del despliegue: hoy el
+    # adjunto más viejo que puede existir tiene ~60 días y el piso son 366, así
+    # que la purga no puede borrar nada hasta agosto de 2027. El riesgo real es
+    # que para entonces empiece a borrar sola, con un plazo que nadie eligió, y
+    # meses después de que se decidiera.
+    #
+    # 🪤 Agendar la tarea igual es deliberado: el defecto que originó la ola 3
+    # fue una tarea que EXISTÍA y NO CORRÍA, invisible durante dos olas porque
+    # pasaba los tests. Entregarla apagada *y* sin agendar reproduciría ese mismo
+    # estado.
+    erase_attachment_prune_enabled = models.BooleanField(default=False)
     # Días que sobrevive la evidencia DESPUÉS de marcar el equipo recuperado.
     # El 0 es válido y significa la lectura literal del ADR (borrar en la
     # próxima corrida del beat); el default de 7 existe porque la denuncia se

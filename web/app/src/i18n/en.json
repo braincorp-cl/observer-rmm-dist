@@ -475,7 +475,11 @@
     "weekday3": "Thursday",
     "weekday4": "Friday",
     "weekday5": "Saturday",
-    "weekday6": "Sunday"
+    "weekday6": "Sunday",
+    "eraseAttachmentRetentionDays": "Erase attachment retention (days)",
+    "eraseAttachmentRetentionDaysHint": "Inheritable floor: each client may ask for more, never less. Legal minimum 366 days. The certificate is permanent and never expires.",
+    "eraseAttachmentPruneEnabled": "Purge expired attachments",
+    "eraseAttachmentPruneEnabledHint": "When off, the purge still runs hourly but only RECORDS how much it would delete, deleting nothing. When on, it deletes the file and keeps the row with its hash. This is irreversible."
   },
   "bulkAction": {
     "close": "Close",

@@ -17,6 +17,7 @@ from packaging import version as pyver
 from accounts.models import User
 from accounts.utils import is_superuser
 from agents.models import Agent
+from erase.tasks import prune_erase_attachments
 from agents.tasks import (
     clear_faults_task,
     prune_agent_history,
@@ -151,6 +152,24 @@ def core_maintenance_tasks() -> None:
         core.lost_mode_evidence_prune_days,
         core.lost_mode_evidence_closed_case_days,
     )
+
+    # Retención de los ADJUNTOS del módulo de borrado seguro (053 ola 3,
+    # RNF-06/L-04). También SIN el guard `> 0`, por el mismo criterio que la
+    # poda de arriba: el plazo no se desactiva desde un campo, se ajusta.
+    #
+    # 🔴 Esta línea es la que faltaba. `prune_erase_attachments` existía desde
+    # la 042, estaba bien escrita, citaba la norma correcta y pasaba los tests —
+    # y NO estaba agendada en ninguna parte: el único `grep` del nombre en todo
+    # el repo era su propio `def`. Durante dos olas, ningún adjunto del módulo
+    # caducó, ni la fotografía de una destrucción física ni los archivos
+    # recuperados, mientras la política de uso aceptable afirmaba por escrito
+    # que sí caducaban.
+    #
+    # Se agenda SIEMPRE, y el ajuste decide si borra o sólo mide: apagada, la
+    # corrida deja registrado cuánto purgaría sobre datos reales. Agendarla sólo
+    # cuando está encendida reproduciría el defecto de arriba —una tarea que
+    # existe y no corre— y volvería inverificable que siga agendada.
+    prune_erase_attachments.delay(dry_run=not core.erase_attachment_prune_enabled)
 
 
 @app.task

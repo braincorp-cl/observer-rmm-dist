@@ -475,7 +475,11 @@
     "weekday3": "Jueves",
     "weekday4": "Viernes",
     "weekday5": "Sábado",
-    "weekday6": "Domingo"
+    "weekday6": "Domingo",
+    "eraseAttachmentRetentionDays": "Retención de adjuntos de borrado (días)",
+    "eraseAttachmentRetentionDaysHint": "Piso heredable: cada cliente puede pedir más, nunca menos. Mínimo legal 366 días. El certificado es permanente y no caduca.",
+    "eraseAttachmentPruneEnabled": "Purgar los adjuntos vencidos",
+    "eraseAttachmentPruneEnabledHint": "Apagado, la purga corre igual cada hora pero sólo REGISTRA cuánto borraría, sin borrar nada. Encendido, borra el archivo y conserva la fila con su hash. Es irreversible."
   },
   "bulkAction": {
     "close": "Cerrar",
