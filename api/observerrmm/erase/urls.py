@@ -33,8 +33,15 @@ urlpatterns = [
     path("signing-key/", views.EraseSigningKey.as_view()),
     # Custodia (D)
     path("intake/", views.AssetIntakeList.as_view()),
+    path("intake/<int:pk>/", views.AssetIntakeDetail.as_view()),
     path(
         "intake/<int:pk>/certify-destruction/",
         views.AssetIntakeCertifyDestruction.as_view(),
     ),
+    # Cadena de custodia del activo (feature 053 · ola 2 · RF-06). Sin PUT,
+    # PATCH ni DELETE: un eslabon es inmutable y se corrige anadiendo otro.
+    path("intake/<int:pk>/custody/", views.IntakeCustodyEvents.as_view()),
+    # Reconciliacion (RF-07). Autenticada SIEMPRE: enumerar bajas de un cliente
+    # es justo lo que L-02 prohibio para el verificador publico.
+    path("reconciliation/", views.ReconciliationReport.as_view()),
 ]

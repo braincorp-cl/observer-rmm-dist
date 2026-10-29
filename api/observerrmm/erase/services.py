@@ -14,13 +14,15 @@ from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
-from django.db.models import Max
+from django.db.models import Count, Max
 from django.utils import timezone
 
 from agents.models import LostModeEvidence, LostModeState
 from erase.models import (
     AssetIntake,
     CertificateKind,
+    CustodyEvent,
+    CustodyEventKind,
     EraseAuditRecord,
     FileRetrievalOrder,
     FileRetrievalStatus,
@@ -523,6 +525,10 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
             media_disposition_detail=(
                 getattr(intake, "media_disposition_detail", "") or ""
             ),
+            # RF-09. Sin acta los dos viajan vacíos: el medio sigue en el equipo
+            # y su procedencia no consta en ninguna parte que podamos citar.
+            media_type=getattr(intake, "media_type", "") or "",
+            media_origin=compose_media_origin(intake),
             started_at=started.isoformat() if started else "",
             finished_at=order.executed_at.isoformat() if order.executed_at else "",
             # 🐞 Antes esto ponía `model = agent_hostname`: el documento que se
@@ -744,3 +750,234 @@ def expire_stale_retrieval_orders() -> int:
         )
         count += 1
     return count
+
+
+# ============================================================================
+# Custodia por eventos (feature 053 · ola 2 · RF-06, RF-07, RF-09)
+# ============================================================================
+
+
+class CustodyEventError(Exception):
+    """Un eslabón que no se puede registrar.
+
+    NO hereda de `OrderStateError`: esa excepción la traducen las vistas de
+    órdenes a 400, y el duplicado de `received` tiene que salir como 409. Son
+    dos errores distintos y mezclarlos los haría indistinguibles para el cliente.
+    """
+
+
+def record_custody_event(
+    *,
+    intake: AssetIntake,
+    kind: str,
+    actor: str,
+    at=None,
+    location: str = "",
+    detail: Optional[Dict[str, Any]] = None,
+) -> CustodyEvent:
+    """Único punto de escritura de la cadena de custodia.
+
+    Valida lo que no puede validar el modelo:
+
+    - `kind` dentro del vocabulario cerrado (lo que hace contable el informe);
+    - `at` no en el futuro: un eslabón fechado mañana no es un hecho;
+    - `received` una sola vez, porque lo escribe el servidor al crear el acta.
+
+    La identidad del expediente se congela en el eslabón: la FK es `SET_NULL` y
+    el eslabón tiene que seguir valiendo si el acta desaparece.
+    """
+    if kind not in CustodyEventKind.values:
+        raise CustodyEventError(
+            f"'{kind}' no es un evento de custodia conocido; el vocabulario es "
+            "cerrado a propósito, porque es lo que hace contable la reconciliación"
+        )
+
+    ahora = timezone.now()
+    at = at or ahora
+    if at > ahora:
+        raise CustodyEventError(
+            "un evento de custodia registra cuándo OCURRIÓ, así que no puede "
+            "estar en el futuro"
+        )
+
+    if kind == CustodyEventKind.RECEIVED:
+        ya_existe = CustodyEvent.objects.filter(
+            intake=intake, kind=CustodyEventKind.RECEIVED
+        ).exists()
+        if ya_existe:
+            raise CustodyEventError(
+                "el acta ya tiene su eslabón de recepción: lo escribe el servidor "
+                "al crearla y no se duplica"
+            )
+
+    return CustodyEvent.objects.create(
+        intake=intake,
+        intake_process_id=intake.process_id,
+        equipment_serial=intake.equipment_serial,
+        kind=kind,
+        at=at,
+        actor=actor,
+        location=location,
+        detail=detail or {},
+    )
+
+
+def verify_custody_chain(intake: AssetIntake) -> bool:
+    """¿Encadena y recomputa la cadena de custodia de este acta?
+
+    Misma comprobación que el detalle del certificado hace sobre su cadena, pero
+    acotada a los eslabones del acta: se recorre por `id` ascendente —el orden de
+    inserción, no el de `at`— verificando que cada uno encadene el `record_hash`
+    del anterior y que su propio hash recompute.
+
+    🪤 El primer eslabón del acta NO tiene por qué traer `prev_hash` vacío: la
+    cadena es global por tabla y otro acta pudo escribir antes. Lo que se
+    comprueba acá es la continuidad entre los eslabones de ESTE expediente.
+    """
+    eslabones = list(CustodyEvent.objects.filter(intake=intake).order_by("id"))
+    anterior: Optional[CustodyEvent] = None
+    for ev in eslabones:
+        if ev.compute_record_hash(ev.prev_hash) != ev.record_hash:
+            return False
+        if anterior is not None and ev.prev_hash != anterior.record_hash:
+            return False
+        anterior = ev
+    return True
+
+
+def first_custody_event(intake: AssetIntake) -> Optional[CustodyEvent]:
+    """El eslabón de recepción del acta, si lo tiene."""
+    return (
+        CustodyEvent.objects.filter(intake=intake, kind=CustodyEventKind.RECEIVED)
+        .order_by("id")
+        .first()
+    )
+
+
+def compose_media_origin(intake: Optional[AssetIntake]) -> str:
+    """El *Media Source* del Apéndice C: de dónde provino el medio.
+
+    🔑 No es dónde se almacenó. El dato vive en el acta —equipo enrolado, serie y
+    quién lo entregó— y la cadena aporta la fecha de entrada a custodia. Si el
+    acta no tiene nada de eso, se devuelve vacío: el certificado declara "no
+    consta" antes que inventar una procedencia (ADR-032).
+    """
+    if intake is None:
+        return ""
+
+    partes: List[str] = []
+    hostname = getattr(getattr(intake, "agent", None), "hostname", "") or ""
+    if hostname:
+        partes.append(f"equipo {hostname}")
+    if intake.equipment_serial:
+        partes.append(f"serie {intake.equipment_serial}")
+    if intake.delivered_by:
+        partes.append(f"entregado por {intake.delivered_by}")
+
+    if not partes:
+        return ""
+
+    recibido = first_custody_event(intake)
+    if recibido is not None:
+        partes.append(f"en custodia desde {recibido.at.date().isoformat()}")
+
+    return "; ".join(partes)
+
+
+def reconciliation(
+    *,
+    qs,
+    client=None,
+    desde=None,
+    hasta=None,
+    stalled_days: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Ingresados, certificados y faltantes, por cliente y período (RF-07).
+
+    `qs` llega **ya filtrado por el alcance de rol**: los totales se calculan
+    después de recortar, nunca antes, para que un usuario de alcance limitado vea
+    números que cuadran con lo que puede abrir.
+
+    🔑 **Faltante = acta sin certificado**, no "acta vieja". Definirlo por
+    antigüedad inventaría un plazo que la plataforma no conoce. `stalled_days`
+    sólo **marca** un faltante como detenido; no cambia quién es faltante.
+
+    Los parámetros se llaman `desde`/`hasta` porque `from` es reservada en
+    Python; la vista traduce los `from`/`to` del contrato HTTP.
+    """
+    if desde and hasta and desde > hasta:
+        raise CustodyEventError("el inicio del período es posterior a su fin")
+
+    if client is not None:
+        qs = qs.filter(client=client)
+    if desde:
+        qs = qs.filter(created_at__gte=desde)
+    if hasta:
+        qs = qs.filter(created_at__lte=hasta)
+
+    actas = qs.select_related("client").annotate(
+        emitidos=Count("certificates", distinct=True)
+    )
+
+    ahora = timezone.now()
+    corte = (
+        ahora - timedelta(days=stalled_days) if stalled_days not in (None, "") else None
+    )
+
+    por_cliente: Dict[int, Dict[str, Any]] = {}
+    faltantes: List[Dict[str, Any]] = []
+    totales = {"intakes": 0, "certified": 0, "missing": 0, "stalled": 0}
+
+    for acta in actas:
+        fila = por_cliente.setdefault(
+            acta.client_id,
+            {
+                "client_id": acta.client_id,
+                "client": acta.client.name,
+                "intakes": 0,
+                "certified": 0,
+                "missing": 0,
+                "stalled": 0,
+            },
+        )
+        fila["intakes"] += 1
+        totales["intakes"] += 1
+
+        if acta.emitidos:
+            fila["certified"] += 1
+            totales["certified"] += 1
+            continue
+
+        fila["missing"] += 1
+        totales["missing"] += 1
+
+        ultimo = CustodyEvent.objects.filter(intake=acta).order_by("-id").first()
+        # Detenido se mide contra el último eslabón, y si no hay ninguno, contra
+        # el ingreso: un acta sin movimientos es justamente la que lleva más
+        # tiempo quieta.
+        referencia = ultimo.at if ultimo is not None else acta.created_at
+        detenido = bool(corte and referencia < corte)
+        if detenido:
+            fila["stalled"] += 1
+            totales["stalled"] += 1
+
+        faltantes.append(
+            {
+                "intake_id": acta.pk,
+                "process_id": acta.process_id,
+                "equipment_serial": acta.equipment_serial,
+                "received_at": acta.created_at,
+                "days_open": (ahora - acta.created_at).days,
+                "last_event": (
+                    {"kind": ultimo.kind, "at": ultimo.at} if ultimo else None
+                ),
+                "stalled": detenido,
+            }
+        )
+
+    return {
+        "period": {"from": desde, "to": hasta},
+        "totals": totales,
+        "by_client": sorted(por_cliente.values(), key=lambda f: f["client"]),
+        "missing_items": sorted(faltantes, key=lambda f: -f["days_open"]),
+    }

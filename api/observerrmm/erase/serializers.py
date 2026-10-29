@@ -5,6 +5,8 @@ from rest_framework import serializers
 
 from erase.models import (
     AssetIntake,
+    CustodyEvent,
+    CustodyEventKind,
     DestructionVerification,
     EraseAuditRecord,
     EraseCertificate,
@@ -228,3 +230,84 @@ class FileRetrievalOrderCreateSerializer(serializers.Serializer):
     )
     dry_run = serializers.BooleanField(required=False, default=False)
     lost_mode_cycle = serializers.IntegerField(required=False, allow_null=True)
+
+
+class CustodyEventSerializer(serializers.ModelSerializer):
+    """Un eslabón de la cadena de custodia (RF-06).
+
+    `kind_label` viaja resuelto por el servidor: la consola no tiene por qué
+    conocer el vocabulario, y un token nuevo se pinta igual sin tocar el
+    frontend. Mismo criterio que los helpers de `utils/erase.ts`.
+
+    `actor` es de sólo lectura: lo pone el servidor desde la sesión. Aceptarlo
+    del cliente permitiría firmar un traslado a nombre de otro.
+    """
+
+    kind_label = serializers.CharField(source="get_kind_display", read_only=True)
+
+    class Meta:
+        model = CustodyEvent
+        fields = [
+            "id",
+            "kind",
+            "kind_label",
+            "at",
+            "actor",
+            "location",
+            "detail",
+            "created_at",
+            "prev_hash",
+            "record_hash",
+        ]
+        read_only_fields = [
+            "id",
+            "actor",
+            "created_at",
+            "prev_hash",
+            "record_hash",
+        ]
+
+
+class CustodyEventCreateSerializer(serializers.Serializer):
+    """Lo que el cliente PUEDE mandar al registrar un eslabón.
+
+    Deliberadamente no es un `ModelSerializer`: `actor`, los hashes y la
+    identidad denormalizada del expediente **no se aceptan del cliente**, y un
+    `ModelSerializer` con `exclude` dejaría la puerta abierta a que un campo
+    nuevo entre por omisión.
+    """
+
+    kind = serializers.ChoiceField(choices=CustodyEventKind.choices)
+    at = serializers.DateTimeField(required=False, allow_null=True)
+    location = serializers.CharField(
+        required=False, allow_blank=True, max_length=255, default=""
+    )
+    detail = serializers.JSONField(required=False, default=dict)
+
+
+class ReconciliationFilaSerializer(serializers.Serializer):
+    client_id = serializers.IntegerField()
+    client = serializers.CharField()
+    intakes = serializers.IntegerField()
+    certified = serializers.IntegerField()
+    missing = serializers.IntegerField()
+    stalled = serializers.IntegerField()
+
+
+class ReconciliationFaltanteSerializer(serializers.Serializer):
+    intake_id = serializers.IntegerField()
+    process_id = serializers.CharField()
+    equipment_serial = serializers.CharField()
+    received_at = serializers.DateTimeField()
+    days_open = serializers.IntegerField()
+    # Dónde se detuvo el activo. 🔑 Es lo que convierte el número en una acción;
+    # sin RF-06 esta clave no existiría.
+    last_event = serializers.DictField(allow_null=True)
+    stalled = serializers.BooleanField()
+
+
+class ReconciliationSerializer(serializers.Serializer):
+    period = serializers.DictField()
+    totals = serializers.DictField()
+    by_client = ReconciliationFilaSerializer(many=True)
+    missing_items = ReconciliationFaltanteSerializer(many=True)

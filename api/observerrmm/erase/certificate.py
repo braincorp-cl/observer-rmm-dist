@@ -118,6 +118,8 @@ def build_document(
     concurrence: Optional[Dict[str, Any]] = None,
     media_disposition: str = "",
     media_disposition_detail: str = "",
+    media_type: str = "",
+    media_origin: str = "",
     started_at: str = "",
     finished_at: str = "",
     last_known_location: Optional[Dict[str, Any]] = None,
@@ -148,6 +150,12 @@ def build_document(
         # que se saneó, exige declarar dónde quedó.
         "media_disposition": media_disposition,
         "media_disposition_detail": media_disposition_detail,
+        # Tipo y origen del medio: los dos campos del mínimo del Apéndice C que
+        # la ola 1 no emitió (RF-09). El origen es el *Media Source* de la norma
+        # —de dónde provino el medio, no dónde se almacenó—, así que se compone
+        # del acta y no del lugar donde se lo recibió. Vacío = no consta.
+        "media_type": media_type,
+        "media_origin": media_origin,
         "started_at": started_at,
         "finished_at": finished_at,
         "last_known_location": last_known_location,
@@ -370,6 +378,8 @@ def render_html(cert: EraseCertificate) -> str:
             f"<tr><th>Resultado de verificación</th><td>{verif_html}</td></tr>",
             _row("Cómo se verificó", d.get("verification_method")),
             _row("Constancia de la verificación", d.get("verification_evidence")),
+            _row("Tipo de medio", d.get("media_type")),
+            _row("Origen del medio", d.get("media_origin")),
             _row("Destino final del medio", d.get("media_disposition")),
             _row("Detalle del destino", d.get("media_disposition_detail")),
             _row("Operador responsable", d.get("operator")),

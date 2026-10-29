@@ -1,9 +1,13 @@
 import hashlib
 import uuid
 
+from datetime import datetime, time
+
+from django.db import transaction
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_datetime
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +18,8 @@ from erase import services, signing
 from erase.models import (
     AssetIntake,
     CertificateKind,
+    CustodyEvent,
+    CustodyEventKind,
     DestructionEvidence,
     DestructionVerification,
     EraseAction,
@@ -31,11 +37,14 @@ from erase.permissions import (
 from erase.serializers import (
     AssetIntakeSerializer,
     CertifyDestructionSerializer,
+    CustodyEventCreateSerializer,
+    CustodyEventSerializer,
     EraseAuditRecordSerializer,
     EraseCertificateDetailSerializer,
     EraseCertificateListSerializer,
     FileRetrievalOrderCreateSerializer,
     FileRetrievalOrderSerializer,
+    ReconciliationSerializer,
     RetrievedFileSerializer,
     WipeOrderCancelSerializer,
     WipeOrderConfirmSerializer,
@@ -431,10 +440,22 @@ class AssetIntakeList(APIView):
     def post(self, request):
         s = AssetIntakeSerializer(data=request.data)
         s.is_valid(raise_exception=True)
-        intake = s.save(
-            process_id=f"OE-IN-{uuid.uuid4().hex[:10].upper()}",
-            received_by=request.user.username,
-        )
+        # El acta y su primer eslabón nacen juntos o no nacen (RF-06). Si el
+        # `received` fuera opcional, la cadena de custodia arrancaría en el aire
+        # y el origen del medio (RF-09) no tendría de dónde salir.
+        with transaction.atomic():
+            intake = s.save(
+                process_id=f"OE-IN-{uuid.uuid4().hex[:10].upper()}",
+                received_by=request.user.username,
+            )
+            services.record_custody_event(
+                intake=intake,
+                kind=CustodyEventKind.RECEIVED,
+                actor=request.user.username,
+                # Cuándo entró a custodia, que puede ser anterior a cuándo se
+                # tecleó el acta.
+                at=intake.received_at or intake.created_at,
+            )
         return Response(AssetIntakeSerializer(intake).data, status=201)
 
 
@@ -543,6 +564,10 @@ class AssetIntakeCertifyDestruction(APIView):
             concurrence=concurrence,
             media_disposition=intake.media_disposition,
             media_disposition_detail=intake.media_disposition_detail,
+            # RF-09: el tipo lo tecleó quien recibió; el origen se compone del
+            # acta, no del lugar donde se almacenó el activo.
+            media_type=intake.media_type,
+            media_origin=services.compose_media_origin(intake),
             actor=request.user.username,
             extra={
                 "destruction_reason": datos.get("reason", ""),
@@ -554,3 +579,131 @@ class AssetIntakeCertifyDestruction(APIView):
             },
         )
         return Response(EraseCertificateDetailSerializer(cert).data, status=201)
+
+
+def parse_datetime_param(valor):
+    """Un `from`/`to` del contrato HTTP a datetime con zona.
+
+    Acepta fecha sola (`2026-07-01`) y fecha con hora. Una cadena que no es
+    ninguna de las dos lanza `ValueError`, que la vista traduce a 400: un filtro
+    ilegible que se ignora en silencio daría un informe que no es el pedido.
+    """
+    if not valor:
+        return None
+
+    dt = parse_datetime(valor)
+    if dt is None:
+        fecha = parse_date(valor)
+        if fecha is None:
+            raise ValueError(f"'{valor}' no es una fecha válida (AAAA-MM-DD)")
+        dt = datetime.combine(fecha, time.min)
+
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt
+
+
+class AssetIntakeDetail(APIView):
+    """El expediente de un activo (feature 053 · ola 2).
+
+    No existía: la consola sólo podía listar actas, así que no había desde dónde
+    abrir una para ver su línea de tiempo.
+    """
+
+    permission_classes = [IsAuthenticated, ManageAssetIntakePerms]
+
+    def get(self, request, pk):
+        intake = get_object_or_404(
+            AssetIntake.objects.filter_by_role(request.user), pk=pk
+        )
+        return Response(AssetIntakeSerializer(intake).data)
+
+
+class IntakeCustodyEvents(APIView):
+    """La cadena de custodia de un acta: leerla y agregarle un eslabón (RF-06).
+
+    🔒 No hay `PUT`, `PATCH` ni `DELETE`, y no es un olvido: un eslabón es
+    inmutable. Corregir un error se hace **añadiendo** un evento, no
+    reescribiendo el anterior.
+
+    Autenticado y con el mismo permiso que gobierna el acta. No hay variante
+    pública: enumerar la custodia de un cliente es justamente lo que L-02
+    prohibió para el verificador.
+    """
+
+    permission_classes = [IsAuthenticated, ManageAssetIntakePerms]
+
+    def _acta(self, request, pk) -> AssetIntake:
+        # 404 y no 403 fuera del alcance de rol: que exista un acta ajena no es
+        # información que esta vista deba filtrar.
+        return get_object_or_404(
+            AssetIntake.objects.filter_by_role(request.user), pk=pk
+        )
+
+    def get(self, request, pk):
+        intake = self._acta(request, pk)
+        eventos = CustodyEvent.objects.filter(intake=intake).order_by("id")
+        return Response(
+            {
+                "intake": {
+                    "id": intake.pk,
+                    "process_id": intake.process_id,
+                    "equipment_serial": intake.equipment_serial,
+                },
+                "chain_intact": services.verify_custody_chain(intake),
+                "events": CustodyEventSerializer(eventos, many=True).data,
+            }
+        )
+
+    def post(self, request, pk):
+        intake = self._acta(request, pk)
+        s = CustodyEventCreateSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        datos = s.validated_data
+
+        try:
+            evento = services.record_custody_event(
+                intake=intake,
+                kind=datos["kind"],
+                # El actor lo pone el servidor: aceptarlo del cliente permitiría
+                # firmar un traslado a nombre de otro.
+                actor=request.user.username,
+                at=datos.get("at"),
+                location=datos.get("location", ""),
+                detail=datos.get("detail") or {},
+            )
+        except services.CustodyEventError as e:
+            # 409 y no 400: el cuerpo es válido, lo que choca es el estado del
+            # expediente. Mismo código que ya usa la guardia de fileretrieval.
+            return Response({"detail": str(e)}, status=409)
+
+        return Response(CustodyEventSerializer(evento).data, status=201)
+
+
+class ReconciliationReport(APIView):
+    """Ingresados, certificados y faltantes por cliente y período (RF-07).
+
+    🔒 **Nunca público.** Responder esto sin cuenta permitiría armar el
+    inventario de bajas de un cliente — la misma razón por la que L-02 recortó
+    el verificador público al mínimo.
+
+    El alcance de rol se aplica **antes** de agregar, para que los totales
+    cuadren con lo que el usuario puede abrir.
+    """
+
+    permission_classes = [IsAuthenticated, ViewEraseCertificatesPerms]
+
+    def get(self, request):
+        p = request.query_params
+        try:
+            informe = services.reconciliation(
+                qs=AssetIntake.objects.filter_by_role(request.user),
+                client=p.get("client") or None,
+                desde=parse_datetime_param(p.get("from")),
+                hasta=parse_datetime_param(p.get("to")),
+                stalled_days=int(p["stalled_days"]) if p.get("stalled_days") else None,
+            )
+        except (services.CustodyEventError, ValueError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        return Response(ReconciliationSerializer(informe).data)
