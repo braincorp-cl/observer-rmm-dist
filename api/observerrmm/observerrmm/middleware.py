@@ -58,8 +58,40 @@ class AuditMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        return response
+        # El `finally` es la ÚNICA limpieza garantizada, y tiene que estar.
+        #
+        # `process_view` deja el usuario del request en `request_local`, que es
+        # estado de PROCESO: un `threading.local()` de módulo, creado al
+        # importar. No se reinicia solo entre requests. Y mientras siga puesto,
+        # `BaseAuditModel.save()` (logs/models.py) escribe un `AuditLog` por
+        # CADA save de un modelo auditado —Agent, Client, Site, User,
+        # CoreSettings…— aunque ya no haya ningún request en curso.
+        #
+        # Los dos hooks de abajo no alcanzan a cubrir todas las respuestas:
+        # `process_template_response` sólo corre si la respuesta sabe
+        # renderizarse (las `Response` de DRF, sí; una `FileResponse` o un
+        # `HttpResponse` plano, no) y `process_exception` sólo si la vista
+        # revienta. O sea que todo endpoint de descarga dejaba el usuario
+        # pegado: el instalador .ps1, el XLSX de actividad, el PDF del informe
+        # de extravío, los certificados de borrado, los assets de reportería.
+        #
+        # En producción eso le atribuye al último usuario que bajó un archivo
+        # los audit de cualquier save posterior del worker. En la suite se ve
+        # como filas de `AuditLog` que aparecen de la nada en tests que no
+        # tienen nada que ver: el 2026-10-28, `logs/tests.py` contó 99 filas
+        # donde esperaba 86. Las trece de más no sobrevivían a ningún rollback,
+        # las creaba el propio fixture del test al arrancar con el usuario de
+        # otro test todavía puesto. Ver `logs/test_audit_isolation.py` y
+        # `observerrmm/test_audit_request_local.py`.
+        try:
+            return self.get_response(request)
+        finally:
+            self.limpiar_request_local()
+
+    @staticmethod
+    def limpiar_request_local():
+        request_local.debug_info = None
+        request_local.username = None
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if not request.path.startswith(EXCLUDE_PATHS):
@@ -109,13 +141,16 @@ class AuditMiddleware:
                     # get authenticated user after request
                     request_local.username = request.user.username
 
+    # Estos dos quedan por una razón: limpian ANTES de que la respuesta se
+    # renderice, que es el momento en que lo hacían hasta ahora. El `finally`
+    # de `__call__` corre DESPUÉS del render, así que sacarlos cambiaría que
+    # `AuditLog.save()` alcance a ver el `debug_info` durante el render. No
+    # reemplazan al `finally`: no cubren las respuestas que no se renderizan.
     def process_exception(self, request, exception):
-        request_local.debug_info = None
-        request_local.username = None
+        self.limpiar_request_local()
 
     def process_template_response(self, request, response):
-        request_local.debug_info = None
-        request_local.username = None
+        self.limpiar_request_local()
         return response
 
 
