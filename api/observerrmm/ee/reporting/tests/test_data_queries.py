@@ -212,7 +212,13 @@ class TestBuildingQueryset:
 
         result = build_queryset(data_source=data_source)
 
-        assert result["hostname"] == setup_agents[0].hostname
+        # `first` sobre un queryset SIN orden: cual fila es "la primera" no esta
+        # definido. `Agent.Meta` no declara `ordering` y `build_queryset` solo
+        # agrega `order_by` si el data source lo pide, asi que fijar
+        # `setup_agents[0]` dependia de que PostgreSQL devolviera el orden de
+        # insercion. Lo que el test comprueba es que `first` devuelve UNA fila
+        # del modelo, no una lista.
+        assert result["hostname"] in {a.hostname for a in setup_agents}
 
     def test_build_queryset_count_operation(self, mock, setup_agents):
         data_source = {"model": Agent, "count": True}
@@ -238,7 +244,13 @@ class TestBuildingQueryset:
         result = build_queryset(data_source=data_source)
         # Deserializing the result to check the content.
         result_data = json.loads(result)
-        assert result_data[0]["hostname"] == setup_agents[0].hostname
+        # Mismo caso que `first_operation`: este data source no pide orden, asi
+        # que la posicion de las filas no esta definida. Es el test que fallo en
+        # el CI de la 1.4.38 con `assert 'Agent2' == 'ZAgent1'`. Lo que se
+        # comprueba es que el JSON trae los dos agentes serializados.
+        assert {r["hostname"] for r in result_data} == {
+            a.hostname for a in setup_agents
+        }
 
     def test_build_queryset_csv_presentation(self, mock, setup_agents):
         data_source = {
