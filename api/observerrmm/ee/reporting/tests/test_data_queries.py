@@ -194,7 +194,18 @@ class TestBuildingQueryset:
         result = build_queryset(data_source=data_source)
         assert "wmi_detail" not in result[0]
         assert "services" not in result[0]
-        assert result[0]["hostname"] == setup_agents[0].hostname
+        # Sin `filter` ni `sort`, este data source NO pide orden: `Agent.Meta` no
+        # define `ordering` y `build_queryset` no agrega `order_by`, asi que el
+        # orden de las filas lo decide PostgreSQL y no esta garantizado. Afirmar
+        # `result[0] == setup_agents[0]` dependia de que la base devolviera el
+        # orden de insercion, y el 2026-10-29 dejo de hacerlo: el CI fallo con
+        # `assert 'Agent2' == 'ZAgent1'` al cambiar el orden de la suite.
+        #
+        # Lo que este test comprueba es que `defer` quito esos dos campos y que
+        # `hostname` sigue estando; cual fila viene primero es incidental. Los
+        # tests de `sort` de mas abajo SI afirman posiciones, y pueden hacerlo
+        # porque ahi el data source pide el orden explicitamente.
+        assert {r["hostname"] for r in result} == {a.hostname for a in setup_agents}
 
     def test_build_queryset_first_operation(self, mock, setup_agents):
         data_source = {"model": Agent, "first": True}
