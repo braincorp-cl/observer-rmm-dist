@@ -122,6 +122,47 @@ class AssetIntakeSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["process_id", "created_at", "received_by"]
 
+    def validate(self, data):
+        """El `client` del acta tiene que ser el del equipo, cuando hay equipo.
+
+        🔑 No es cosmético: `EraseQuerySet.filter_by_role` recorta por
+        `client`/`site`, así que un acta grabada con el cliente equivocado queda
+        visible para quien no debería verla (y oculta para quien sí). El modelo
+        no lo impide — `client`, `site` y `agent` son tres FKs independientes —,
+        así que se comprueba acá, que es el único punto por donde entra un acta.
+
+        ⚠️ Sin `agent` NO se valida nada, y es deliberado: un disco suelto, o un
+        equipo que nunca se enroló, se ingresa igual. Es el caso que el módulo
+        existe para cubrir (ver `EraseQuerySet`), no un hueco.
+
+        `Agent.client` es una @property que resuelve `self.site.client`: sirve
+        como atributo, pero no se puede usar en un `filter(agent__client=...)`.
+        """
+        agent = data.get("agent", getattr(self.instance, "agent", None))
+        if agent is None:
+            return data
+
+        cliente_del_equipo = agent.client
+        client = data.get("client", getattr(self.instance, "client", None))
+        if client is not None and client.pk != cliente_del_equipo.pk:
+            raise serializers.ValidationError(
+                {
+                    "client": "el cliente del acta no es el del equipo: "
+                    f"{agent.hostname} pertenece a {cliente_del_equipo}"
+                }
+            )
+
+        site = data.get("site", getattr(self.instance, "site", None))
+        if site is not None and site.pk != agent.site_id:
+            raise serializers.ValidationError(
+                {
+                    "site": "el sitio del acta no es el del equipo: "
+                    f"{agent.hostname} está en {agent.site}"
+                }
+            )
+
+        return data
+
 
 class CertifyDestructionSerializer(serializers.Serializer):
     """Datos con los que se certifica una destrucción física (C7).
