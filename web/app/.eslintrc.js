@@ -173,6 +173,7 @@ module.exports = {
         "src/components/agents/EraseCertificatesTable.vue",
         "src/components/agents/EraseCertificateDetailDialog.vue",
         "src/components/agents/AssetIntakeForm.vue",
+        "src/components/agents/AssetCustodyTimeline.vue",
         "src/components/agents/ConfirmWipeOrderDialog.vue",
         "src/components/agents/RecoveryWindowDialog.vue",
         "src/components/modals/admin/UserForm.vue",

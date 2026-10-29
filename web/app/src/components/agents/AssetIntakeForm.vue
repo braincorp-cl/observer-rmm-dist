@@ -122,6 +122,21 @@
               v-model="intake.delivered_by"
               :label="$t('erase.intakeForm.deliveredBy')"
             />
+            <!-- RF-09: tipo de medio. Lo teclea quien recibe, porque un disco
+                 suelto o un equipo nunca enrolado no tiene inventario del cual
+                 leerlo. Vacío = no consta. -->
+            <q-select
+              class="col-12 col-sm-6"
+              dense
+              filled
+              clearable
+              emit-value
+              map-options
+              v-model="intake.media_type"
+              :options="mediaTypeOptions"
+              :label="$t('erase.intakeForm.mediaType')"
+              :hint="$t('erase.intakeForm.mediaTypeHint')"
+            />
             <!-- RF-03: el mínimo del Apéndice C exige declarar dónde quedó el
                  medio. Vacío es válido: significa que todavía no consta. -->
             <q-select
@@ -231,6 +246,7 @@ export default {
       equipment_model: "",
       equipment_serial: "",
       media_serial: "",
+      media_type: "",
       media_disposition: "",
       media_disposition_detail: "",
       ticket_ref: "",
@@ -243,6 +259,17 @@ export default {
       { value: "non_functional", label: t("erase.intake.state.non_functional") },
       { value: "no_media", label: t("erase.intake.state.no_media") },
     ];
+
+    // Mismo orden que `MediaType` en el modelo.
+    const mediaTypeOptions = [
+      "hdd",
+      "ssd",
+      "nvme",
+      "optical",
+      "tape",
+      "mobile",
+      "other",
+    ].map((value) => ({ value, label: t(`erase.mediaType.${value}`) }));
 
     // Mismo orden que `MediaDisposition` en el modelo.
     const dispositionOptions = [
@@ -318,7 +345,11 @@ export default {
         // los rechaza con "This field may not be null". El `agent` sí admite
         // null, porque su FK lo permite.
         const payload = { ...intake.value };
-        for (const campo of ["media_disposition", "media_disposition_detail"]) {
+        for (const campo of [
+          "media_type",
+          "media_disposition",
+          "media_disposition_detail",
+        ]) {
           payload[campo] = payload[campo] ?? "";
         }
         // El detalle sólo tiene sentido con destino "otro"; si se cambió el
@@ -348,6 +379,7 @@ export default {
       siteOptions,
       agentOptionsFiltered,
       stateOptions,
+      mediaTypeOptions,
       dispositionOptions,
       routesToPhysical,
       loading,

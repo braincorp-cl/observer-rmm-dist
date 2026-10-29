@@ -147,6 +147,7 @@ import { onMounted, ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   labelDisposition,
+  labelMediaType,
   labelVerificationMethod,
   labelVerificationResult,
 } from "@/utils/erase";
@@ -200,6 +201,10 @@ export default {
         { key: "equipment_make", label: t("erase.detail.make"), value: eq.make || dash },
         { key: "equipment_model", label: t("erase.detail.model"), value: eq.model || eq.make_model || dash },
         { key: "equipment_hostname", label: t("erase.detail.hostname"), value: eq.hostname || dash },
+        // RF-09. El origen es de DONDE VINO el medio, no donde se almacenó: lo
+        // compone el servidor desde el acta, y queda vacío si no consta.
+        { key: "media_type", label: t("erase.detail.mediaType"), value: labelMediaType(d.media_type) || dash },
+        { key: "media_origin", label: t("erase.detail.mediaOrigin"), value: d.media_origin || dash },
         { key: "media_disposition", label: t("erase.detail.disposition"), value: labelDisposition(d.media_disposition) || dash },
         { key: "media_disposition_detail", label: t("erase.detail.dispositionDetail"), value: d.media_disposition_detail || dash },
         { key: "method_applied", label: t("erase.detail.method"), value: c.method_applied || dash },

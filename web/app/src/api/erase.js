@@ -174,3 +174,25 @@ export async function downloadRetrievedFile(pk, fileId) {
     { responseType: "blob" },
   );
 }
+
+// --- Cadena de custodia y reconciliación (feature 053 · ola 2) ---------------
+
+export async function fetchCustodyEvents(intakeId) {
+  const { data } = await axios.get(`${baseUrl}/intake/${intakeId}/custody/`);
+  return data;
+}
+
+// No es idempotente a propósito: dos traslados reales al mismo lugar son dos
+// hechos. El servidor protege el único eslabón que sí lo es, `received`.
+export async function createCustodyEvent(intakeId, payload) {
+  const { data } = await axios.post(
+    `${baseUrl}/intake/${intakeId}/custody/`,
+    payload,
+  );
+  return data;
+}
+
+export async function fetchReconciliation(params) {
+  const { data } = await axios.get(`${baseUrl}/reconciliation/`, { params });
+  return data;
+}

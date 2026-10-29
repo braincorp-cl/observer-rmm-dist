@@ -27,6 +27,7 @@
     >
       <q-tab name="certificates" :label="$t('erase.view.tabCertificates')" />
       <q-tab name="intake" :label="$t('erase.view.tabIntake')" />
+      <q-tab name="reconciliation" :label="$t('erase.reconciliation.title')" />
     </q-tabs>
     <q-separator class="q-mb-md" />
 
@@ -128,10 +129,166 @@
               flat
               no-caps
               size="sm"
+              icon="timeline"
+              :label="$t('erase.custody.view')"
+              @click="openCustody(props.row)"
+            />
+            <q-btn
+              dense
+              flat
+              no-caps
+              size="sm"
               color="deep-orange"
               icon="delete_forever"
               :label="$t('erase.view.certifyDestruction')"
               @click="askCertify(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
+    </div>
+
+    <!-- Reconciliación (RF-07) · qué entró, qué se certificó y qué falta -->
+    <div v-show="tab === 'reconciliation'">
+      <div class="text-caption text-grey-7 q-mb-sm">
+        {{ $t("erase.reconciliation.subtitle") }}
+      </div>
+
+      <div class="row q-col-gutter-md q-mb-md items-end">
+        <div class="col-12 col-sm-3">
+          <q-select
+            dense
+            filled
+            clearable
+            emit-value
+            map-options
+            v-model="recFilters.client"
+            :options="clientOptions"
+            :label="$t('erase.reconciliation.client')"
+          />
+        </div>
+        <div class="col-6 col-sm-2">
+          <q-input
+            dense
+            filled
+            type="date"
+            v-model="recFilters.from"
+            :label="$t('erase.reconciliation.from')"
+          />
+        </div>
+        <div class="col-6 col-sm-2">
+          <q-input
+            dense
+            filled
+            type="date"
+            v-model="recFilters.to"
+            :label="$t('erase.reconciliation.to')"
+          />
+        </div>
+        <div class="col-6 col-sm-3">
+          <q-input
+            dense
+            filled
+            type="number"
+            v-model.number="recFilters.stalled_days"
+            :label="$t('erase.reconciliation.stalledDays')"
+            :hint="$t('erase.reconciliation.stalledHint')"
+          />
+        </div>
+        <div class="col-6 col-sm-2">
+          <q-btn
+            color="primary"
+            no-caps
+            :loading="recLoading"
+            :label="$t('erase.reconciliation.run')"
+            @click="loadReconciliation"
+          />
+        </div>
+      </div>
+
+      <div class="row q-col-gutter-md q-mb-md">
+        <div
+          v-for="m in recMetrics"
+          :key="m.key"
+          class="col-6 col-sm-3"
+        >
+          <q-card flat bordered>
+            <q-card-section class="text-center">
+              <div class="text-h5" :class="m.clase">{{ m.valor }}</div>
+              <div class="text-caption text-grey-7">{{ m.label }}</div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <q-table
+        dense
+        flat
+        bordered
+        class="q-mb-md"
+        row-key="client_id"
+        :title="$t('erase.reconciliation.byClient')"
+        :rows="recReport.by_client || []"
+        :columns="recClientColumns"
+        :loading="recLoading"
+        hide-pagination
+        :rows-per-page-options="[0]"
+      />
+
+      <!-- 🔑 El listado es el producto: el número dice cuántos faltan, esta
+           tabla dice DÓNDE se detuvo cada uno. -->
+      <div class="text-caption text-grey-7 q-mb-xs">
+        {{ $t("erase.reconciliation.missingDefinition") }}
+      </div>
+      <q-table
+        dense
+        flat
+        bordered
+        row-key="intake_id"
+        :title="$t('erase.reconciliation.missingTitle')"
+        :rows="recReport.missing_items || []"
+        :columns="recMissingColumns"
+        :loading="recLoading"
+        :no-data-label="$t('erase.reconciliation.empty')"
+        :rows-per-page-options="[25, 50, 0]"
+      >
+        <template v-slot:body-cell-last_event="props">
+          <q-td :props="props">
+            <span v-if="props.row.last_event">
+              {{ labelCustodyKind(props.row.last_event.kind) }}
+              <span class="text-grey-7">
+                {{ sep }} {{ formatDate(props.row.last_event.at) }}
+              </span>
+            </span>
+            <span v-else class="text-grey-7">
+              {{ $t("erase.reconciliation.noEvents") }}
+            </span>
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-stalled="props">
+          <q-td :props="props">
+            <q-badge v-if="props.row.stalled" color="deep-orange">
+              {{ $t("erase.reconciliation.stalled") }}
+            </q-badge>
+            <span v-else>{{ dash }}</span>
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-received_at="props">
+          <q-td :props="props">{{ formatDate(props.row.received_at) }}</q-td>
+        </template>
+
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props" auto-width>
+            <q-btn
+              dense
+              flat
+              no-caps
+              size="sm"
+              icon="timeline"
+              :label="$t('erase.custody.view')"
+              @click="openCustody({ id: props.row.intake_id })"
             />
           </q-td>
         </template>
@@ -286,13 +443,15 @@ import { useQuasar } from "quasar";
 import EraseCertificatesTable from "@/components/agents/EraseCertificatesTable.vue";
 import EraseCertificateDetailDialog from "@/components/agents/EraseCertificateDetailDialog.vue";
 import AssetIntakeForm from "@/components/agents/AssetIntakeForm.vue";
+import AssetCustodyTimeline from "@/components/agents/AssetCustodyTimeline.vue";
 import {
   fetchEraseCertificates,
   fetchAssetIntakes,
   certifyAssetDestruction,
+  fetchReconciliation,
 } from "@/api/erase";
 import { fetchClients } from "@/api/clients";
-import { labelDisposition } from "@/utils/erase";
+import { labelDisposition, labelCustodyKind } from "@/utils/erase";
 import { formatDate } from "@/utils/format";
 import { notifySuccess, notifyError } from "@/utils/notify";
 
@@ -304,6 +463,9 @@ export default {
     const $q = useQuasar();
 
     const dash = "—";
+    // Separador de texto: va por variable y no literal en la plantilla, porque
+    // el gate `lint:i18n` trata cualquier texto crudo como falta de traducción.
+    const sep = "·";
     const tab = ref("certificates");
     const loading = ref(false);
 
@@ -405,6 +567,164 @@ export default {
 
     function clientName(id) {
       return clientsById.value[id] ?? dash;
+    }
+
+    // --- Cadena de custodia (RF-06) -----------------------------------------
+
+    function openCustody(row) {
+      $q.dialog({
+        component: AssetCustodyTimeline,
+        componentProps: { intakeId: row.id },
+      });
+    }
+
+    // --- Reconciliación (RF-07) ---------------------------------------------
+
+    const recLoading = ref(false);
+    const recReport = ref({});
+    const recFilters = ref({
+      client: null,
+      from: "",
+      to: "",
+      stalled_days: null,
+    });
+
+    const clientOptions = computed(() =>
+      Object.entries(clientsById.value).map(([value, label]) => ({
+        value: Number(value),
+        label,
+      })),
+    );
+
+    const recMetrics = computed(() => {
+      const t0 = recReport.value.totals ?? {};
+      return [
+        {
+          key: "intakes",
+          label: t("erase.reconciliation.intakes"),
+          valor: t0.intakes ?? 0,
+          clase: "",
+        },
+        {
+          key: "certified",
+          label: t("erase.reconciliation.certified"),
+          valor: t0.certified ?? 0,
+          clase: "text-positive",
+        },
+        {
+          key: "missing",
+          label: t("erase.reconciliation.missing"),
+          valor: t0.missing ?? 0,
+          clase: "text-deep-orange",
+        },
+        {
+          key: "stalled",
+          label: t("erase.reconciliation.stalled"),
+          valor: t0.stalled ?? 0,
+          clase: "text-negative",
+        },
+      ];
+    });
+
+    const recClientColumns = [
+      {
+        name: "client",
+        label: t("erase.reconciliation.client"),
+        field: "client",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "intakes",
+        label: t("erase.reconciliation.intakes"),
+        field: "intakes",
+        align: "right",
+        sortable: true,
+      },
+      {
+        name: "certified",
+        label: t("erase.reconciliation.certified"),
+        field: "certified",
+        align: "right",
+        sortable: true,
+      },
+      {
+        name: "missing",
+        label: t("erase.reconciliation.missing"),
+        field: "missing",
+        align: "right",
+        sortable: true,
+      },
+      {
+        name: "stalled",
+        label: t("erase.reconciliation.stalled"),
+        field: "stalled",
+        align: "right",
+        sortable: true,
+      },
+    ];
+
+    const recMissingColumns = [
+      {
+        name: "process_id",
+        label: t("erase.reconciliation.processId"),
+        field: "process_id",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "equipment_serial",
+        label: t("erase.reconciliation.equipmentSerial"),
+        field: "equipment_serial",
+        align: "left",
+      },
+      {
+        name: "received_at",
+        label: t("erase.reconciliation.receivedAt"),
+        field: "received_at",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "days_open",
+        label: t("erase.reconciliation.daysOpen"),
+        field: "days_open",
+        align: "right",
+        sortable: true,
+      },
+      {
+        // 🔑 Esta columna es la que convierte el número en una acción.
+        name: "last_event",
+        label: t("erase.reconciliation.lastEvent"),
+        field: "last_event",
+        align: "left",
+      },
+      {
+        name: "stalled",
+        label: t("erase.reconciliation.stalled"),
+        field: "stalled",
+        align: "left",
+      },
+      { name: "actions", label: "", field: "actions", align: "right" },
+    ];
+
+    async function loadReconciliation() {
+      recLoading.value = true;
+      try {
+        // Sólo se mandan los filtros con valor: un `from` vacío daría 400.
+        const params = {};
+        if (recFilters.value.client) params.client = recFilters.value.client;
+        if (recFilters.value.from) params.from = recFilters.value.from;
+        if (recFilters.value.to) params.to = recFilters.value.to;
+        if (recFilters.value.stalled_days) {
+          params.stalled_days = recFilters.value.stalled_days;
+        }
+        recReport.value = await fetchReconciliation(params);
+      } catch (e) {
+        notifyError(t("erase.reconciliation.loadError"));
+      } finally {
+        recLoading.value = false;
+      }
     }
 
     function intakeStateColor(state) {
@@ -527,6 +847,7 @@ export default {
 
     return {
       dash,
+      sep,
       tab,
       loading,
       certs,
@@ -551,6 +872,16 @@ export default {
       askCertify,
       doCertify,
       formatDate,
+      openCustody,
+      labelCustodyKind,
+      recLoading,
+      recReport,
+      recFilters,
+      recMetrics,
+      recClientColumns,
+      recMissingColumns,
+      clientOptions,
+      loadReconciliation,
     };
   },
 };

@@ -3352,7 +3352,9 @@
       "concurrenceRole": "Cargo de quien da fe",
       "concurrenceContact": "Contacto de quien da fe",
       "concurrenceAt": "Fecha en que dio fe",
-      "notVerifiedNotice": "Este certificado declara que la destrucción no fue presenciada ni registrada."
+      "notVerifiedNotice": "Este certificado declara que la destrucción no fue presenciada ni registrada.",
+      "mediaType": "Tipo de medio",
+      "mediaOrigin": "Origen del medio"
     },
     "tab": {
       "title": "Certificados de borrado",
@@ -3402,7 +3404,9 @@
       "equipmentModel": "Modelo",
       "disposition": "Destino final del medio",
       "dispositionHint": "Vacío = todavía no consta",
-      "dispositionDetail": "Detalle del destino"
+      "dispositionDetail": "Detalle del destino",
+      "mediaType": "Tipo de medio",
+      "mediaTypeHint": "El medio que se va a sanear o destruir."
     },
     "certify": {
       "title": "Certificar destrucción física",
@@ -3489,6 +3493,72 @@
     "verificationResult": {
       "PASS": "Verificado",
       "NOT_VERIFIED": "Sin verificación acreditada"
+    },
+    "mediaType": {
+      "hdd": "Disco magnético (HDD)",
+      "ssd": "Estado sólido (SSD)",
+      "nvme": "Estado sólido NVMe",
+      "optical": "Óptico (CD/DVD/Blu-ray)",
+      "tape": "Cinta magnética",
+      "mobile": "Dispositivo móvil",
+      "other": "Otro"
+    },
+    "custody": {
+      "title": "Cadena de custodia",
+      "subtitle": "Lo que le pasó al activo entre el ingreso y el certificado",
+      "empty": "Este expediente todavía no tiene eslabones.",
+      "emptyLegacy": "Las actas anteriores a esta versión nacieron sin eslabones; no se inventa uno con fecha falsa.",
+      "chainIntact": "Cadena íntegra",
+      "chainBroken": "Cadena rota",
+      "immutableNotice": "Un eslabón no se edita ni se borra. Para corregir un error, se agrega otro evento.",
+      "add": "Registrar evento",
+      "adding": "Registrando…",
+      "added": "Evento registrado",
+      "kind": "Qué pasó",
+      "at": "Cuándo ocurrió",
+      "atHint": "Cuándo ocurrió el hecho, que puede ser anterior a cuándo lo registras.",
+      "actor": "Registrado por",
+      "location": "Dónde quedó",
+      "detail": "Detalle",
+      "recordHash": "Hash del eslabón",
+      "prevHash": "Encadena con",
+      "createdAt": "Registrado el",
+      "view": "Ver custodia",
+      "kinds": {
+        "received": "Recibido en custodia",
+        "relocated": "Trasladado",
+        "stored": "Almacenado a la espera de disposición",
+        "handed_to_processor": "Enviado a gestor externo",
+        "sanitized": "Medio saneado",
+        "destroyed": "Destruido físicamente",
+        "returned": "Devuelto a su propietario o arrendador"
+      }
+    },
+    "reconciliation": {
+      "title": "Reconciliación",
+      "subtitle": "Qué ingresó, qué se certificó y qué falta, por cliente y período",
+      "client": "Cliente",
+      "allClients": "Todos los clientes a mi alcance",
+      "from": "Desde",
+      "to": "Hasta",
+      "stalledDays": "Marcar como detenido tras (días)",
+      "stalledHint": "Solo marca un faltante como detenido; no cambia quién es faltante.",
+      "run": "Calcular",
+      "intakes": "Ingresados",
+      "certified": "Certificados",
+      "missing": "Faltantes",
+      "stalled": "Detenidos",
+      "missingTitle": "Activos sin certificar",
+      "missingDefinition": "Faltante es un acta sin certificado, no un acta vieja.",
+      "processId": "Expediente",
+      "equipmentSerial": "Serie",
+      "receivedAt": "Ingresado el",
+      "daysOpen": "Días abierto",
+      "lastEvent": "Se detuvo en",
+      "noEvents": "Sin eslabones",
+      "empty": "No hay activos sin certificar en este período.",
+      "loadError": "No se pudo calcular la reconciliación.",
+      "byClient": "Por cliente"
     }
   },
   "agentActivity": {

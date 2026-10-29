@@ -36,3 +36,13 @@ export function labelVerificationMethod(valor?: string | null): string {
 export function labelVerificationResult(valor?: string | null): string {
   return traducir("verificationResult", valor);
 }
+
+/** Tipo de medio (`MediaType`). Un certificado v1 lo trae vacío. */
+export function labelMediaType(valor?: string | null): string {
+  return traducir("mediaType", valor);
+}
+
+/** Evento de la cadena de custodia (`CustodyEventKind`). */
+export function labelCustodyKind(valor?: string | null): string {
+  return traducir("custody.kinds", valor);
+}

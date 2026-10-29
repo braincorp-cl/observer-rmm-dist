@@ -3352,7 +3352,9 @@
       "concurrenceRole": "Concurrence role",
       "concurrenceContact": "Concurrence contact",
       "concurrenceAt": "Concurrence date",
-      "notVerifiedNotice": "This certificate states that the destruction was neither witnessed nor recorded."
+      "notVerifiedNotice": "This certificate states that the destruction was neither witnessed nor recorded.",
+      "mediaType": "Media type",
+      "mediaOrigin": "Media source"
     },
     "tab": {
       "title": "Erase certificates",
@@ -3402,7 +3404,9 @@
       "equipmentModel": "Model",
       "disposition": "Final media disposition",
       "dispositionHint": "Empty = not on record yet",
-      "dispositionDetail": "Disposition detail"
+      "dispositionDetail": "Disposition detail",
+      "mediaType": "Media type",
+      "mediaTypeHint": "The media to be sanitized or destroyed."
     },
     "certify": {
       "title": "Certify physical destruction",
@@ -3489,6 +3493,72 @@
     "verificationResult": {
       "PASS": "Verified",
       "NOT_VERIFIED": "No accredited verification"
+    },
+    "mediaType": {
+      "hdd": "Magnetic disk (HDD)",
+      "ssd": "Solid state (SSD)",
+      "nvme": "Solid state NVMe",
+      "optical": "Optical (CD/DVD/Blu-ray)",
+      "tape": "Magnetic tape",
+      "mobile": "Mobile device",
+      "other": "Other"
+    },
+    "custody": {
+      "title": "Chain of custody",
+      "subtitle": "What happened to the asset between intake and certificate",
+      "empty": "This record has no links yet.",
+      "emptyLegacy": "Records created before this version were born without links; no link with a false date is invented.",
+      "chainIntact": "Chain intact",
+      "chainBroken": "Chain broken",
+      "immutableNotice": "A link cannot be edited or deleted. To correct a mistake, add another event.",
+      "add": "Record event",
+      "adding": "Recording…",
+      "added": "Event recorded",
+      "kind": "What happened",
+      "at": "When it happened",
+      "atHint": "When the event occurred, which may be earlier than when you record it.",
+      "actor": "Recorded by",
+      "location": "Where it ended up",
+      "detail": "Detail",
+      "recordHash": "Link hash",
+      "prevHash": "Chains with",
+      "createdAt": "Recorded on",
+      "view": "View custody",
+      "kinds": {
+        "received": "Received into custody",
+        "relocated": "Relocated",
+        "stored": "Stored awaiting disposition",
+        "handed_to_processor": "Handed to external processor",
+        "sanitized": "Media sanitized",
+        "destroyed": "Physically destroyed",
+        "returned": "Returned to owner or lessor"
+      }
+    },
+    "reconciliation": {
+      "title": "Reconciliation",
+      "subtitle": "What came in, what was certified and what is missing, by client and period",
+      "client": "Client",
+      "allClients": "All clients in my scope",
+      "from": "From",
+      "to": "To",
+      "stalledDays": "Flag as stalled after (days)",
+      "stalledHint": "It only flags a missing asset as stalled; it does not change who is missing.",
+      "run": "Calculate",
+      "intakes": "Intakes",
+      "certified": "Certified",
+      "missing": "Missing",
+      "stalled": "Stalled",
+      "missingTitle": "Assets without a certificate",
+      "missingDefinition": "Missing means a record without a certificate, not an old record.",
+      "processId": "Record",
+      "equipmentSerial": "Serial",
+      "receivedAt": "Received on",
+      "daysOpen": "Days open",
+      "lastEvent": "Stopped at",
+      "noEvents": "No links",
+      "empty": "No assets without a certificate in this period.",
+      "loadError": "The reconciliation could not be calculated.",
+      "byClient": "By client"
     }
   },
   "agentActivity": {
