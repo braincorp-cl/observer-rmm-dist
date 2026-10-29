@@ -52,6 +52,20 @@
         <q-separator />
 
         <q-card-section class="scroll" style="max-height: 55vh">
+          <!-- Feature 053: que el documento declare que NO se verificó la
+               destrucción tiene que verse arriba, no perdido como una celda
+               más de la tabla. -->
+          <q-banner
+            v-if="notVerified"
+            dense
+            class="bg-orange-1 text-orange-9 q-mb-md"
+          >
+            <template v-slot:avatar>
+              <q-icon name="gpp_maybe" color="warning" />
+            </template>
+            {{ $t("erase.detail.notVerifiedNotice") }}
+          </q-banner>
+
           <table class="oe-detail-table">
             <tbody>
               <tr v-for="field in fields" :key="field.key">
@@ -131,6 +145,11 @@
 
 import { onMounted, ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import {
+  labelDisposition,
+  labelVerificationMethod,
+  labelVerificationResult,
+} from "@/utils/erase";
 import { useDialogPluginComponent } from "quasar";
 
 import {
@@ -165,15 +184,35 @@ export default {
     const fields = computed(() => {
       const c = cert.value;
       if (!c) return [];
+      // Feature 053: todo lo nuevo se lee con `?.` y cae a `dash`, para que un
+      // certificado v1 —emitido antes de esta feature— muestre guion en esas
+      // filas sin que el diálogo tenga que ramificar por versión del esquema.
+      const d = c.data ?? {};
+      const eq = d.equipment ?? {};
+      const conc = d.concurrence ?? {};
       return [
         { key: "certificate_id", label: t("erase.detail.certificateId"), value: c.certificate_id || dash },
         { key: "kind", label: t("erase.detail.kind"), value: c.kind ? t(`erase.kind.${c.kind}`) : dash },
         { key: "tenant", label: t("erase.detail.tenant"), value: c.tenant || dash },
         { key: "asset_tag", label: t("erase.detail.assetTag"), value: c.asset_tag || dash },
+        // El equipo, cada dato en su casilla: hasta esta feature el hostname
+        // viajaba en el lugar del modelo.
+        { key: "equipment_make", label: t("erase.detail.make"), value: eq.make || dash },
+        { key: "equipment_model", label: t("erase.detail.model"), value: eq.model || eq.make_model || dash },
+        { key: "equipment_hostname", label: t("erase.detail.hostname"), value: eq.hostname || dash },
+        { key: "media_disposition", label: t("erase.detail.disposition"), value: labelDisposition(d.media_disposition) || dash },
+        { key: "media_disposition_detail", label: t("erase.detail.dispositionDetail"), value: d.media_disposition_detail || dash },
         { key: "method_applied", label: t("erase.detail.method"), value: c.method_applied || dash },
         { key: "standard_ref", label: t("erase.detail.standard"), value: c.standard_ref || dash },
-        { key: "verification_result", label: t("erase.detail.result"), value: c.verification_result || dash },
+        { key: "verification_result", label: t("erase.detail.result"), value: labelVerificationResult(c.verification_result) || dash },
+        { key: "verification_method", label: t("erase.detail.verificationMethod"), value: labelVerificationMethod(d.verification_method) || dash },
+        { key: "verification_evidence", label: t("erase.detail.verificationEvidence"), value: d.verification_evidence || dash },
         { key: "operator", label: t("erase.detail.operator"), value: c.operator || dash },
+        // Apéndice C: quien da fe va en su propio bloque, separado del operador.
+        { key: "concurrence_name", label: t("erase.detail.concurrenceName"), value: conc.name || dash },
+        { key: "concurrence_role", label: t("erase.detail.concurrenceRole"), value: conc.role || dash },
+        { key: "concurrence_contact", label: t("erase.detail.concurrenceContact"), value: conc.contact || dash },
+        { key: "concurrence_at", label: t("erase.detail.concurrenceAt"), value: conc.at ? formatDate(conc.at) : dash },
         { key: "started_at", label: t("erase.detail.startedAt"), value: c.started_at ? formatDate(c.started_at) : dash },
         { key: "finished_at", label: t("erase.detail.finishedAt"), value: c.finished_at ? formatDate(c.finished_at) : dash },
         { key: "software_version", label: t("erase.detail.softwareVersion"), value: c.software_version || dash },
@@ -199,6 +238,13 @@ export default {
 
     const verificationLevel = computed(
       () => cert.value?.data?.verification_level ?? "",
+    );
+
+    // Que el documento declare `NOT_VERIFIED` tiene que verse, no quedar como
+    // una celda más de la tabla: es lo que distingue un certificado que
+    // comprobó la destrucción de uno que solo la registra.
+    const notVerified = computed(
+      () => cert.value?.verification_result === "NOT_VERIFIED",
     );
 
     function chipColor(ok) {
@@ -270,6 +316,7 @@ export default {
       fields,
       pathRows,
       verificationLevel,
+      notVerified,
       downloading,
       chipColor,
       signatureChipColor,
