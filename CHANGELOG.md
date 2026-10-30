@@ -8,6 +8,17 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.39 — 2026-10-30
+
+- **Corregido: la auditoría podía registrar a la persona equivocada.** Al descargar cualquier archivo —el instalador, un informe, el PDF de un certificado— el usuario de esa descarga quedaba retenido en el servidor, y desde ahí el registro de auditoría le atribuía a esa persona cualquier cambio posterior: ediciones de cliente, de sitio, de usuario o de ajustes. ⚠️ Los registros **anteriores a esta versión** pueden tener el nombre equivocado en esos casos, y no se pueden corregir retroactivamente.
+- **Corregido: el registro de auditoría mostraba actividad de otros clientes.** Los movimientos administrativos que no cuelgan de un equipo —cambios de perfil, altas de usuario, ediciones de cliente— eran visibles para **cualquier** cuenta con permiso de auditoría, sin importar a qué clientes alcanza su perfil. Ahora una cuenta con alcance recortado ve sus propias acciones administrativas y ninguna ajena. ⚠️ **Cambio visible**: un administrador delegado va a ver menos de lo que veía.
+- **Corregido: una cuenta con alcance por sitio y por cliente a la vez perdía el recorte por sitio** en el registro de auditoría, sin aviso.
+- **Bajarse los documentos de una persona ahora deja traza.** Descargar un archivo recuperado de un equipo o el certificado de un borrado —en PDF o en JSON— queda registrado con quién lo hizo. Antes, tomar control del equipo dejaba rastro y bajarse sus documentos no. El registro dice **quién bajó qué**, nunca el contenido ni la ruta del archivo.
+- **Corregido: una recuperación de archivos pedida con el equipo apagado quedaba pendiente para siempre.** Nadie la reintentaba al reconectar y nadie la vencía, así que tampoco figuraba como vencida en la línea de custodia. El plazo de 7 días estaba configurado pero ningún proceso lo aplicaba.
+- **Corregido: un borrado administrativo dejaba la auditoría del borrado seguro ilegible.** Al eliminar una orden —o el cliente que la contiene— el registro sobrevivía, pero su sello de integridad dejaba de validar: la fila quedaba indistinguible de una adulterada. Los registros ya emitidos siguen validando.
+- **Las listas de la consola ya no se reordenan solas.** Plantillas de alertas, perfiles, llaves de API, campos personalizados, scripts, informes, despliegues, notas y el selector de equipos salían en un orden que cambiaba entre consultas. Catorce listados pasan a tener un orden fijo y con sentido: por nombre, o por lo más reciente cuando es un historial.
+- **La evidencia de borrado no se puede eliminar en bloque.** Un borrado masivo por consola de administración se llevaba certificados y auditorías sin que la protección de solo-escritura se activara.
+
 ## v1.4.38 — 2026-10-29
 
 - **La retención de los adjuntos ahora ocurre de verdad, y el plazo es por cliente.** La purga de adjuntos vencidos existía en el código pero **no estaba agendada**: ni la fotografía de una destrucción física ni los archivos recuperados de un equipo perdido caducaban nunca, aunque la política de uso aceptable dijera que sí. Ahora corre sola cada hora, y cada cliente puede fijar su propio plazo en su ficha —vacío significa heredar el del servidor, no cero días—. Subirlo es libre; bajarlo tiene un piso de 366 días que el servidor aplica también al leer, así que no se puede esquivar escribiéndolo por la API.
