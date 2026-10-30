@@ -29,16 +29,30 @@ def congelar_la_orden(apps, schema_editor):
     migradas = EraseAuditRecord.objects.filter(order_id__isnull=False).update(
         order_pk=models.F("order_id")
     )
-    huerfanas = EraseAuditRecord.objects.filter(order_id__isnull=True).count()
+    sin_orden = EraseAuditRecord.objects.filter(order_id__isnull=True).count()
 
     print(f"\n    auditorías con orden viva, congeladas: {migradas}")
-    if huerfanas:
+    if sin_orden:
+        # 🪤 No se puede distinguir desde los datos entre "nunca tuvo orden" y
+        # "su orden se borró". `EraseAuditRecord.order` es anulable a propósito:
+        # un certificado emitido desde un acta de ingreso nace SIN orden, y esa
+        # fila está perfectamente sana. Sólo la segunda clase tiene el hash roto.
+        #
+        # Decir "N filas con la orden borrada" sería alarmar con un número que
+        # en su mayoría son filas sanas: en staging, las 19 filas dieron 18 sin
+        # orden y CERO hashes rotos.
         print(
-            f"    🔴 {huerfanas} fila(s) con la orden YA borrada: su hash quedó "
-            "roto antes de esta migración y no se puede recomputar."
+            f"    ℹ️  {sin_orden} fila(s) sin orden. Pueden ser emisiones desde "
+            "un acta (nacen así y están sanas) o filas cuya orden se borró antes "
+            "de esta migración (ésas sí tienen el hash roto, y no se puede "
+            "recomputar). Para separarlas, recomputar y comparar:"
+        )
+        print(
+            "      EraseAuditRecord.objects.all() -> "
+            "compute_record_hash(prev_hash) != record_hash"
         )
     else:
-        print("    ✅ ninguna fila tenía la orden borrada: el histórico queda íntegro.")
+        print("    ✅ todas las filas tenían su orden viva: el histórico queda íntegro.")
 
 
 def revertir(apps, schema_editor):
