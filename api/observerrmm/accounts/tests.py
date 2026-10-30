@@ -383,9 +383,10 @@ class TestAPIKeyViews(ObserverTestCase):
 
     def test_get_api_keys(self):
         url = "/accounts/apikeys/"
-        apikeys = baker.make("accounts.APIKey", key=seq("APIKEY"), _quantity=3)
+        baker.make("accounts.APIKey", key=seq("APIKEY"), _quantity=3)
 
-        serializer = APIKeySerializer(apikeys, many=True)
+        # Espeja el orden del endpoint, no el de creacion.
+        serializer = APIKeySerializer(APIKey.objects.order_by("name"), many=True)
         resp = self.client.get(url, format="json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(serializer.data, resp.data)

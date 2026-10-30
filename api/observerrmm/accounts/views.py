@@ -481,8 +481,12 @@ class GetAddRoles(APIView):
         # Nótese el contraste deliberado con el listado de USUARIOS, que no se
         # filtra (RN-09): ocultar perfiles evita otorgarlos por error, ocultar
         # cuentas rompería la trazabilidad y provocaría colisiones de nombre.
+        # Las dos ramas ordenan por `name` (unico) porque esto alimenta un
+        # selector: si cada peticion lo devolviera en otro orden, la lista
+        # saltaria sola en pantalla. Ordenar en ambas ademas evita que el
+        # selector cambie de criterio segun quien lo abra.
         if request.user.is_superuser or is_superuser(request.user):
-            roles = Role.objects.all()
+            roles = Role.objects.order_by("name")
         elif request.user.role:
             # Se filtra con `can_assign_role()`, la MISMA función que valida al
             # asignar, y no solo por la lista. Si se filtrara solo por la lista, un
@@ -494,7 +498,7 @@ class GetAddRoles(APIView):
             # validación no puedan desincronizarse al cambiar una de las dos.
             roles = [
                 role
-                for role in request.user.role.assignable_roles.all()
+                for role in request.user.role.assignable_roles.order_by("name")
                 if can_assign_role(request.user, role)[0]
             ]
         else:
@@ -535,7 +539,9 @@ class GetAddAPIKeys(APIView):
     permission_classes = [IsAuthenticated, APIKeyPerms]
 
     def get(self, request):
-        apikeys = APIKey.objects.all()
+        # `name` es unico, asi que ordenar por el deja el listado estable sin
+        # necesidad de desempate.
+        apikeys = APIKey.objects.order_by("name")
         return Response(APIKeySerializer(apikeys, many=True).data)
 
     def post(self, request):

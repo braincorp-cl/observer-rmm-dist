@@ -37,8 +37,15 @@ class GetAddScripts(APIView):
         if not showHiddenScripts or showHiddenScripts != "true":
             scripts = scripts.filter(hidden=False)
 
+        # `category` sola no alcanza: varios scripts comparten categoria y
+        # dentro de cada grupo las filas quedaban al azar. `name` es el criterio
+        # con el que la lee una persona, e `id` cierra el caso de dos scripts con
+        # igual categoria y nombre (ninguno de los dos campos es unico), para que
+        # el orden quede TOTALMENTE determinado y no solo casi.
         return Response(
-            ScriptTableSerializer(scripts.order_by("category"), many=True).data
+            ScriptTableSerializer(
+                scripts.order_by("category", "name", "id"), many=True
+            ).data
         )
 
     def post(self, request):
@@ -101,7 +108,9 @@ class GetAddScriptSnippets(APIView):
     permission_classes = [IsAuthenticated, ScriptsPerms]
 
     def get(self, request):
-        snippets = ScriptSnippet.objects.all()
+        # `name` es unico en ScriptSnippet, asi que alcanza para que el
+        # desplegable de la consola salga siempre en el mismo orden.
+        snippets = ScriptSnippet.objects.order_by("name")
         return Response(ScriptSnippetSerializer(snippets, many=True).data)
 
     def post(self, request):

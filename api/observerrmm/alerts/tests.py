@@ -256,9 +256,15 @@ class TestAlertsViews(ObserverTestCase):
     def test_get_alert_templates(self):
         url = "/alerts/templates/"
 
-        alert_templates = baker.make("alerts.AlertTemplate", _quantity=3)
+        baker.make("alerts.AlertTemplate", _quantity=3)
         resp = self.client.get(url, format="json")
-        serializer = AlertTemplateSerializer(alert_templates, many=True)
+        # Se compara contra el MISMO orden que pide el endpoint
+        # (GetAddAlertTemplates.get), no contra el orden en que baker creo las
+        # filas: ese orden no lo garantiza PostgreSQL y el test fallaba al azar
+        # segun como pytest-randomly barajara la suite.
+        serializer = AlertTemplateSerializer(
+            AlertTemplate.objects.order_by("name", "id"), many=True
+        )
 
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data, serializer.data)

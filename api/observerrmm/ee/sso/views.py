@@ -68,7 +68,10 @@ class GetAddSSOProvider(APIView):
             ),
             "frontend_url": settings.CORS_ORIGIN_WHITELIST[0],
         }
-        providers = SocialApp.objects.all()
+        # SocialApp viene de allauth y no declara `Meta.ordering`, ni podemos
+        # agregarselo: el orden se fija aca. `name` es lo que se ve en la
+        # consola e `id` desempata porque allauth no lo pide unico.
+        providers = SocialApp.objects.order_by("name", "id")
         return Response(SocialAppSerializer(providers, many=True, context=ctx).data)
 
     class InputSerializer(ModelSerializer):

@@ -317,13 +317,20 @@ class TestBuildingQueryset:
 
         result = build_queryset(data_source=data_source)
 
-        # check agent 1
-        assert result[0]["custom_fields"]["custom1"] == "Agent1"
-        assert result[0]["custom_fields"]["custom2"] == default_value
+        # Mismo caso que `defer_operation` y `json_presentation`: este data
+        # source no pide orden, asi que fijar `result[0]` al primer agente
+        # sembrado dependia de que PostgreSQL devolviera el orden de insercion.
+        # El fixture siembra `ZAgent1` y `Agent2` justamente para que alfabetico
+        # e insercion no coincidan, asi que un `order_by` no sirve de espejo
+        # aca: lo que el test comprueba es que a CADA agente le llega su propio
+        # valor de `custom1` y el default de `custom2`, no en que fila viene.
+        por_hostname = {r["hostname"]: r["custom_fields"] for r in result}
 
-        # check agent 2
-        assert result[1]["custom_fields"]["custom1"] == "Agent2"
-        assert result[1]["custom_fields"]["custom2"] == default_value
+        assert por_hostname[setup_agents[0].hostname]["custom1"] == "Agent1"
+        assert por_hostname[setup_agents[1].hostname]["custom1"] == "Agent2"
+
+        assert por_hostname[setup_agents[0].hostname]["custom2"] == default_value
+        assert por_hostname[setup_agents[1].hostname]["custom2"] == default_value
 
     def test_build_queryset_filter_only_json_combination(self, mock, setup_agents):
         import json

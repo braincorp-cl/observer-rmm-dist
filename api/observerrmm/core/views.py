@@ -283,10 +283,18 @@ class GetAddCustomFields(APIView):
     permission_classes = [IsAuthenticated, CustomFieldPerms]
 
     def get(self, request):
+        # `CustomField.order` existe justamente para decidir en que posicion se
+        # pinta cada campo en la ficha; sin `order_by` ese valor se ignoraba y la
+        # ficha salia en el orden que devolvia PostgreSQL. `name` desempata entre
+        # campos con el mismo `order`, que es lo normal porque el default es 0, e
+        # `id` cierra el empate restante: `unique_together` es (model, name), asi
+        # que la rama sin filtro puede traer el mismo nombre para dos modelos.
         if "model" in request.query_params.keys():
-            fields = CustomField.objects.filter(model=request.query_params["model"])
+            fields = CustomField.objects.filter(
+                model=request.query_params["model"]
+            ).order_by("order", "name", "id")
         else:
-            fields = CustomField.objects.all()
+            fields = CustomField.objects.order_by("order", "name", "id")
         return Response(CustomFieldSerializer(fields, many=True).data)
 
     def patch(self, request):
@@ -399,7 +407,8 @@ class GetAddKeyStore(APIView):
     permission_classes = [IsAuthenticated, GlobalKeyStorePerms]
 
     def get(self, request):
-        keys = GlobalKVStore.objects.all()
+        # `name` no es unico en GlobalKVStore, de ahi el desempate por `id`.
+        keys = GlobalKVStore.objects.order_by("name", "id")
         return Response(KeyStoreSerializer(keys, many=True).data)
 
     def post(self, request):
@@ -432,7 +441,7 @@ class GetAddURLAction(APIView):
     permission_classes = [IsAuthenticated, URLActionPerms]
 
     def get(self, request):
-        actions = URLAction.objects.all()
+        actions = URLAction.objects.order_by("name", "id")
         return Response(URLActionSerializer(actions, many=True).data)
 
     def post(self, request):
@@ -575,7 +584,7 @@ class GetAddSchedule(APIView):
     permission_classes = [IsAuthenticated, SchedulePerms]
 
     def get(self, request):
-        schedules = Schedule.objects.all()
+        schedules = Schedule.objects.order_by("name", "id")
         return Response(ScheduleSerializer(schedules, many=True).data)
 
     def post(self, request):

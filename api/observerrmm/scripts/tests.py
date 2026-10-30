@@ -28,10 +28,12 @@ class TestScriptViews(ObserverTestCase):
         url = "/scripts/"
         baker.make("scripts.Script", _quantity=3)
 
-        # Mirror the endpoint ordering (GetAddScripts.get -> order_by("category"))
-        # so the assertion no longer depends on the random creation order.
+        # Espeja el orden del endpoint (GetAddScripts.get). Hace falta la
+        # terna completa porque ni `category` ni `name` son unicos: ante un
+        # empate, cada una de las dos consultas —la del endpoint y la de aca—
+        # puede devolver las filas en distinto orden.
         serializer = ScriptTableSerializer(
-            Script.objects.order_by("category"), many=True
+            Script.objects.order_by("category", "name", "id"), many=True
         )
         resp = self.client.get(url, format="json")
         self.assertEqual(resp.status_code, 200)
@@ -583,9 +585,13 @@ class TestScriptSnippetViews(ObserverTestCase):
 
     def test_get_script_snippets(self):
         url = "/scripts/snippets/"
-        snippets = baker.make("scripts.ScriptSnippet", _quantity=3)
+        baker.make("scripts.ScriptSnippet", _quantity=3)
 
-        serializer = ScriptSnippetSerializer(snippets, many=True)
+        # Espeja el orden del endpoint en vez del orden de creacion, que la
+        # base no garantiza.
+        serializer = ScriptSnippetSerializer(
+            ScriptSnippet.objects.order_by("name"), many=True
+        )
         resp = self.client.get(url, format="json")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(serializer.data, resp.data)
