@@ -17,7 +17,11 @@ from packaging import version as pyver
 from accounts.models import User
 from accounts.utils import is_superuser
 from agents.models import Agent
-from erase.tasks import prune_erase_attachments
+from erase.tasks import (
+    expire_stale_retrieval_orders,
+    prune_erase_attachments,
+    redispatch_pending_retrieval_orders,
+)
 from agents.tasks import (
     clear_faults_task,
     prune_agent_history,
@@ -170,6 +174,33 @@ def core_maintenance_tasks() -> None:
     # cuando está encendida reproduciría el defecto de arriba —una tarea que
     # existe y no corre— y volvería inverificable que siga agendada.
     prune_erase_attachments.delay(dry_run=not core.erase_attachment_prune_enabled)
+
+    # Órdenes de recuperación de archivos (042). Las dos tareas de abajo estaban
+    # ESCRITAS Y SIN AGENDAR, el mismo defecto que la poda de adjuntos de arriba:
+    # el único `grep` de cada nombre en todo el repo era su propio `def`.
+    #
+    # 🔴 Y acá el código no sólo las omitía: las PROMETÍA. El docstring de
+    # `erase.services.dispatch_retrieval_order` dice, sobre un equipo offline,
+    # que "la orden queda `pending` y la reintenta el beat
+    # `redispatch_pending_retrieval_orders` hasta `expires_at`". Ese beat no
+    # existía. Una orden pedida mientras el equipo estaba apagado se quedaba en
+    # `pending` para siempre: nadie la reintentaba al reconectar y nadie la
+    # vencía, así que tampoco pasaba a `expired` ni dejaba el evento
+    # `retrieval_expired` en la custodia. El TTL de 7 días era un campo que
+    # ningún proceso hacía cumplir.
+    #
+    # Van acá y no en entradas propias del `beat_schedule` porque este es el
+    # molde del producto para el mantenimiento periódico, y porque la cadencia
+    # horaria alcanza de sobra para las dos: la ventana de la orden son 7 días
+    # (`DEFAULT_FILERETRIEVAL_TTL_SECONDS`), o sea hasta 168 reintentos antes de
+    # vencer, y el vencimiento se aplica a lo más una hora después del plazo.
+    #
+    # Con `.delay()`, igual que las podas: `dispatch_retrieval_order` habla por
+    # NATS con 15 s de timeout por orden, y encadenar eso dentro de esta tarea
+    # haría que una flota con varias órdenes en cola bloquee todo el
+    # mantenimiento horario.
+    redispatch_pending_retrieval_orders.delay()
+    expire_stale_retrieval_orders.delay()
 
 
 @app.task
