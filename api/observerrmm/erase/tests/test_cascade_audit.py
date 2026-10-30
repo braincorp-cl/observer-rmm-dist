@@ -61,7 +61,6 @@ Ninguno de los tres es una cascada de FK que alcance una tabla append-only: de
 esas no quedó ninguna. Son los agujeros del costado.
 """
 
-import pytest
 from django.apps import apps
 from django.db import connection, models
 from django.db.models.deletion import CASCADE, RestrictedError
@@ -80,6 +79,7 @@ from erase.models import (
     EraseAuditRecord,
     EraseCertificate,
     ImmutableChainRecord,
+    ImmutableRecordError,
     WipeOrder,
     WipePathTemplate,
 )
@@ -667,21 +667,19 @@ class RutasQueSiBorranTests(CensoMixin, ObserverTestCase):
         self.setup_coresettings()
         self.cliente = baker.make("clients.Client", name="Cliente Hueco")
 
-    def test_el_delete_de_queryset_elude_la_guarda_append_only(self):
-        """🔴 `QuerySet.delete()` borra la evidencia sin disparar nada.
+    def test_el_delete_de_queryset_tambien_esta_guardado(self):
+        """El hueco que este test medía, CERRADO.
 
-        `ImmutableChainRecord` sobrecarga `Model.delete()`, pero NO
+        `ImmutableChainRecord` sobrecargaba `Model.delete()` pero NO
         `QuerySet.delete()`, que es otro camino de código: un
         `EraseCertificate.objects.filter(...).delete()` en un shell, una tarea o
-        una migración de datos se lleva la fila en silencio. Es el MISMO mecanismo
-        del defecto que motiva este archivo —el borrado en bloque no pasa por
-        `Model.delete()`— sólo que invocado a mano en vez de por una FK.
+        una migración de datos se llevaba la fila en silencio. Era el MISMO
+        mecanismo del defecto que motiva este archivo —el borrado en bloque no
+        pasa por `Model.delete()`— sólo que invocado a mano en vez de por una FK.
 
-        Propuesta (no aplicada, no toca el esquema): un manager propio con
-        `QuerySet.delete()` sobrecargado que lance `ImmutableRecordError`, igual
-        que la guarda de instancia, y que la purga de adjuntos (D5) siga usando su
-        propio camino porque borra archivos, nunca filas. Queda fuera de esta
-        tarea: cambia una API pública del modelo y merece su propia decisión.
+        Cerrado con el mixin `_GuardaDeBorradoEnBloque`, que las tres cadenas
+        heredan por su manager. La purga de adjuntos (D5) no se ve afectada:
+        borra archivos, nunca filas.
         """
         cert = EraseCertificate.objects.create(
             certificate_id="CERT-HUECO-1",
@@ -692,15 +690,27 @@ class RutasQueSiBorranTests(CensoMixin, ObserverTestCase):
             document_hash="f" * 64,
         )
 
-        borradas, _ = EraseCertificate.objects.filter(pk=cert.pk).delete()
+        for modelo in APPEND_ONLY:
+            with self.assertRaises(ImmutableRecordError, msg=modelo.__name__):
+                modelo.objects.all().delete()
 
-        self.assertEqual(borradas, 1)
         self.assertEqual(
             EraseCertificate._base_manager.filter(pk=cert.pk).count(),
-            0,
-            "Si esto falla, se agregó la guarda de QuerySet: actualizar el test "
-            "y cerrar la propuesta del docstring.",
+            1,
+            "la fila tiene que seguir ahí",
         )
+
+    def test_la_purga_de_adjuntos_sigue_pudiendo_trabajar(self):
+        """🔑 Control de que la guarda no rompió la retención (D5).
+
+        La purga vacía el `FileField` y hace `save(update_fields=["asset"])`
+        sobre filas MUTABLES; nunca borra una fila de las cadenas. Si la guarda
+        hubiera alcanzado ese camino, la retención habría dejado de funcionar en
+        silencio — y es lo que la ola 3 acaba de conseguir que funcione.
+        """
+        from erase.tasks import prune_erase_attachments
+
+        self.assertIn("ok:", prune_erase_attachments(dry_run=True))
 
 
 class HashAtadoAUnaFkAnulableTests(CensoMixin, ObserverTestCase):
@@ -769,128 +779,72 @@ class HashAtadoAUnaFkAnulableTests(CensoMixin, ObserverTestCase):
             actor="john",
         )
 
-    def test_el_cascade_rompe_la_verificacion_del_audit_record(self):
-        """La medición del hallazgo: la fila queda, la prueba no.
+    def test_el_cascade_ya_no_rompe_la_verificacion_del_audit_record(self):
+        """El hallazgo de este archivo, CERRADO.
 
-        Fija el comportamiento de HOY. Si falla, se aplicó la propuesta del
-        docstring de la clase y hay que cerrarla acá.
+        `EraseAuditRecord` congela la PK de la orden en `order_pk` al insertar
+        (migración `0008`), así que anular la FK ya no mueve el contenido
+        canónico. La fila sobrevive al borrado **y sigue verificando**.
         """
         rec = self._auditoria()
         self.assertEqual(rec.compute_record_hash(rec.prev_hash), rec.record_hash)
         antes = self.censo()
-        order_id_original = self.orden.pk
 
         self.cliente.delete()  # arrastra la orden por CASCADE
 
-        # La fila sobrevivió: la auditoría de cascada hace su trabajo.
         self.assertDeltaCero(
             antes,
-            "Borrar el cliente (hallazgo del hash)",
+            "Borrar el cliente (hallazgo del hash, ya cerrado)",
             pobladas=("EraseAuditRecord",),
         )
         rec.refresh_from_db()
-        self.assertIsNone(rec.order_id)
-
-        # 🟠 Pero su hash ya no recomputa, sin que nadie haya tocado la fila.
-        self.assertNotEqual(
-            rec.compute_record_hash(rec.prev_hash),
-            rec.record_hash,
-            "El hash volvió a recomputar: se aplicó la propuesta de sacar "
-            "`order_id` del contenido canónico. Cerrar el hallazgo.",
-        )
-
-        # Y la causa es exactamente `order_id`, no otra cosa: devolviéndolo en
-        # memoria, la fila verifica de nuevo. Sin este control, el test sólo
-        # diría "algo cambió".
-        rec.order_id = order_id_original
+        self.assertIsNone(rec.order_id, "control: el SET_NULL anuló la FK")
+        self.assertIsNotNone(rec.order_pk, "la PK quedó congelada")
         self.assertEqual(
             rec.compute_record_hash(rec.prev_hash),
             rec.record_hash,
-            "La ruptura no viene de `order_id`: hay otra causa que investigar.",
+            "la fila sobrevivió al borrado Y su prueba sigue en pie",
         )
 
-    def test_las_otras_dos_cadenas_no_hashean_una_fk(self):
-        """El contraste que señala el arreglo: ellas hashean la identidad, no la FK."""
-        cert = EraseCertificate.objects.create(
-            certificate_id="CERT-HASH-1",
-            kind=CertificateKind.PHYSICAL_DESTRUCTION,
-            order=self.orden,
-            client=self.cliente,
-            tenant="Cliente Hash",
-            data={"x": 1},
-            document_hash="b" * 64,
-        )
-        acta = AssetIntake.objects.create(
-            process_id="OE-IN-HASH",
-            client=self.cliente,
-            equipment_serial="SN-HASH",
-            received_by="bodega",
-        )
-        eslabon = CustodyEvent.objects.create(
-            intake=acta,
-            intake_process_id="OE-IN-HASH",
-            equipment_serial="SN-HASH",
-            kind=CustodyEventKind.RECEIVED,
-            at=timezone.now(),
-            actor="bodega",
-        )
-        # Ninguna FK de las dos entra al contenido canónico.
-        self.assertNotIn("order_id", cert.canonical_content())
-        self.assertNotIn("client_id", cert.canonical_content())
-        self.assertNotIn("intake_id", eslabon.canonical_content())
-        # Y por eso sobreviven al borrado VERIFICANDO, no sólo existiendo.
-        self.cliente.delete()
-        cert.refresh_from_db()
-        eslabon.refresh_from_db()
-        self.assertIsNone(cert.client_id)
-        self.assertIsNone(eslabon.intake_id)
-        self.assertEqual(cert.compute_record_hash(cert.prev_hash), cert.record_hash)
-        self.assertEqual(
-            eslabon.compute_record_hash(eslabon.prev_hash), eslabon.record_hash
-        )
+    def test_anular_una_fk_no_mueve_el_contenido_canonico(self):
+        """El invariante CORRECTO, y ahora en verde.
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Hallazgo abierto: EraseAuditRecord.canonical_content() hashea "
-            "`order_id`, una FK SET_NULL, así que un borrado administrativo "
-            "corriente deja la fila sin poder verificarse. El arreglo cambia el "
-            "hash de las filas ya emitidas y necesita versionar el contenido "
-            "canónico: es esquema y migración, fuera del alcance de esta "
-            "auditoría. Ver el docstring de HashAtadoAUnaFkAnulableTests."
-        ),
-    )
-    def test_el_contenido_canonico_no_depende_de_ninguna_fk_anulable(self):
-        """El invariante CORRECTO, afirmado como tal y marcado fallo esperado.
+        🔑 Se afirma por COMPORTAMIENTO y no por nombre de clave, que es como
+        estaba antes y ya no sirve: el arreglo conserva la clave `order_id` a
+        propósito —renombrarla habría cambiado el hash de cada fila ya emitida—
+        y toma su valor de `order_pk`, una columna congelada. Un detector por
+        nombre seguiría acusando una cadena que está bien.
 
-        Se afirma en genérico sobre las tres cadenas a propósito: así cubre la
-        cuarta que nazca mañana. Un `record_hash` sólo puede cubrir columnas que
-        una cascada no pueda mover; si cubre una FK anulable, el `SET_NULL` que
-        protege la fila le arruina la prueba.
-
-        Está como `xfail(strict=True)` y no como aserción invertida porque esto NO
-        es comportamiento a bendecir: es un defecto que esta tarea tiene prohibido
-        arreglar (toca esquema). En `strict`, el día que alguien lo arregle este
-        test pasa a verde y el `xfail` falla, que es el aviso de que hay que
-        cerrar el hallazgo.
+        Lo que hay que garantizar es que **anular cualquier FK anulable no mueva
+        el contenido canónico**. Eso vale para las tres cadenas de hoy y para la
+        cuarta que nazca mañana, sin que nadie tenga que acordarse de este
+        archivo.
         """
-        atados = []
+        rotas = []
         for modelo in APPEND_ONLY:
-            anulables = {
-                campo.attname for campo in _fks_concretas(modelo) if campo.null
-            }
-            # `canonical_content()` se inspecciona sobre una instancia vacía: las
-            # claves no dependen de los valores.
-            claves = set(modelo().canonical_content().keys())
-            for attname in sorted(anulables & claves):
-                atados.append(f"{modelo._meta.label}.canonical_content()[{attname}]")
+            anulables = [c for c in _fks_concretas(modelo) if c.null]
+            if not anulables:
+                continue
+            fila = modelo()
+            # Un valor cualquiera: lo que importa es si anularlo mueve el hash.
+            for campo in anulables:
+                setattr(fila, campo.attname, 4242)
+            antes = fila.canonical_content()
+
+            for campo in anulables:
+                setattr(fila, campo.attname, None)
+            despues = fila.canonical_content()
+
+            if antes != despues:
+                movidas = sorted(k for k in antes if antes[k] != despues.get(k))
+                rotas.append(f"{modelo._meta.label}: {movidas}")
 
         self.assertEqual(
-            atados,
+            rotas,
             [],
-            "El contenido canónico depende de una FK anulable: un SET_NULL deja "
-            f"la fila sin poder verificarse -> {atados}. Corresponde hashear la "
-            "identidad denormalizada (texto congelado al insertar), no el id.",
+            "Anular una FK movió el contenido canónico, así que un `SET_NULL` "
+            f"deja la fila sin poder verificarse -> {rotas}. Corresponde hashear "
+            "una copia congelada al insertar, no la referencia.",
         )
 
 
@@ -1002,3 +956,78 @@ class LostModeEvidenceCascadaTests(CensoMixin, ObserverTestCase):
         self.certificado.refresh_from_db()
         self.assertIsNone(self.certificado.agent_id)
         self.assertEqual(self.certificado.tenant, "Cliente Perdido")
+
+
+class HashYaNoCuelgaDeLaFkTests(ObserverTestCase):
+    """El hallazgo que `HashAtadoAUnaFkAnulableTests` dejó abierto, cerrado.
+
+    `EraseAuditRecord` congela la PK de la orden en `order_pk` al insertar, así
+    que borrar la orden ya no mueve el contenido canónico. El `xfail` estricto de
+    arriba es lo que avisa si alguien lo desarma.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.cliente = baker.make("clients.Client")
+        self.site = baker.make("clients.Site", client=self.cliente)
+        self.agent = baker.make("agents.Agent", site=self.site)
+
+    def _auditoria(self):
+        order = WipeOrder.objects.create(
+            agent=self.agent,
+            client=self.cliente,
+            site=self.site,
+            action="crypto_erase",
+            ordered_by="john",
+        )
+        fila = EraseAuditRecord.objects.create(
+            order=order,
+            agent_id=self.agent.agent_id,
+            hostname=self.agent.hostname,
+            event="created",
+            actor="john",
+            detail={},
+        )
+        return order, fila
+
+    def test_borrar_la_orden_ya_no_rompe_el_hash(self):
+        order, fila = self._auditoria()
+        guardado = fila.record_hash
+        self.assertEqual(
+            fila.compute_record_hash(fila.prev_hash),
+            guardado,
+            "control: la fila verifica al nacer",
+        )
+
+        order.delete()
+
+        fila.refresh_from_db()
+        self.assertIsNone(fila.order_id, "control: el SET_NULL salvó la fila")
+        self.assertIsNotNone(fila.order_pk, "la PK quedó congelada")
+        self.assertEqual(
+            fila.compute_record_hash(fila.prev_hash),
+            guardado,
+            "la fila sobrevivió al borrado Y sigue verificando",
+        )
+
+    def test_el_contenido_canonico_emite_el_mismo_entero_que_antes(self):
+        """🔒 Lo que mantiene verificable el histórico.
+
+        `order_pk` es un entero y no un texto congelado justamente para esto: si
+        emitiera `"5"` donde antes iba `5`, cada fila ya emitida cambiaría de
+        hash y la cadena histórica entera quedaría inválida.
+        """
+        order, fila = self._auditoria()
+        self.assertEqual(fila.canonical_content()["order_id"], order.pk)
+        self.assertIsInstance(fila.canonical_content()["order_id"], int)
+
+    def test_el_borrado_en_bloque_por_queryset_tampoco_pasa(self):
+        """La otra mitad: `QuerySet.delete()` eludía la guarda de instancia."""
+        _, fila = self._auditoria()
+
+        for modelo in (EraseAuditRecord, EraseCertificate, CustodyEvent):
+            with self.assertRaises(ImmutableRecordError, msg=modelo.__name__):
+                modelo.objects.all().delete()
+
+        self.assertTrue(EraseAuditRecord.objects.filter(pk=fila.pk).exists())

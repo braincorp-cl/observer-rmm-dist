@@ -185,6 +185,36 @@ class EraseQuerySet(models.QuerySet):
         return self.filter(scope)
 
 
+class _GuardaDeBorradoEnBloque:
+    """Mixin que niega el `delete()` de un `QuerySet`.
+
+    🔴 `ImmutableChainRecord` sobrecargaba `Model.delete()` y **no** el del
+    queryset, así que `EraseCertificate.objects.filter(...).delete()` borraba
+    evidencia legal sin disparar nada. Es el MISMO mecanismo del defecto del
+    `CASCADE` —saltarse `Model.delete()`— sólo que invocado a mano en vez de por
+    una FK, y por eso la guarda de instancia no lo veía.
+
+    Va como mixin y no en cada queryset porque las tres cadenas no comparten
+    manager: `EraseCertificate` necesita además el `filter_by_role` de
+    `EraseQuerySet`, y las otras dos no deben heredarlo —`filter_by_role` recorta
+    por `client`/`site`, campos que `CustodyEvent` no tiene—.
+    """
+
+    def delete(self):
+        raise ImmutableRecordError(
+            f"{self.model.__name__} es append-only: no se puede borrar en "
+            "bloque. La retención (D5) purga adjuntos, nunca la fila ni su hash."
+        )
+
+
+class _AppendOnlyQuerySet(_GuardaDeBorradoEnBloque, models.QuerySet):
+    """Para las cadenas sin recorte por rol."""
+
+
+class _AppendOnlyEraseQuerySet(_GuardaDeBorradoEnBloque, EraseQuerySet):
+    """Para las cadenas que además recortan por alcance."""
+
+
 class ImmutableChainRecord(models.Model):
     """Base append-only con encadenamiento de hash (write-once, C3 / RF-G04).
 
@@ -201,6 +231,8 @@ class ImmutableChainRecord(models.Model):
     encadena el hash de la anterior y que su `record_hash` recomputa. Un borrado
     intermedio rompe la continuidad de `prev_hash` y queda en evidencia.
     """
+
+    objects = _AppendOnlyQuerySet.as_manager()
 
     created_at = models.DateTimeField(editable=False)
     prev_hash = models.CharField(max_length=64, blank=True, default="", editable=False)
@@ -382,6 +414,25 @@ class EraseAuditRecord(ImmutableChainRecord):
         null=True,
         blank=True,
     )
+    # 🔑 Copia CONGELADA de la PK de la orden, tomada al insertar.
+    #
+    # `order` es `SET_NULL`, y eso salva la fila cuando se borra la orden —que es
+    # el punto— pero `canonical_content()` hashea esa referencia: al anularse, el
+    # `record_hash` guardado deja de recomputar y la fila se lee como
+    # ADULTERADA. Un trámite administrativo corriente producía exactamente la
+    # señal que el módulo usa para denunciar manipulación, y desde ahí dejaba de
+    # poder distinguirse de una adulteración real.
+    #
+    # Las otras dos cadenas no lo tienen porque hashean TEXTO congelado:
+    # `EraseCertificate` el `tenant`, `CustodyEvent` el `intake_process_id`. Esta
+    # columna le da lo mismo a la auditoría.
+    #
+    # 🔒 Por qué un entero y no texto: para que los hashes YA EMITIDOS no
+    # cambien. La migración `0008` copia `order_id` en `order_pk`, así que el
+    # valor que entra al hash es el mismo entero de siempre y el histórico sigue
+    # verificando. Un `order_ref` de texto habría serializado `"5"` donde antes
+    # iba `5`, invalidando toda la cadena.
+    order_pk = models.PositiveIntegerField(null=True, blank=True, editable=False)
     agent_id = models.CharField(max_length=255, blank=True, default="")
     hostname = models.CharField(max_length=255, blank=True, default="")
     event = models.CharField(max_length=64)
@@ -394,10 +445,28 @@ class EraseAuditRecord(ImmutableChainRecord):
     def __str__(self) -> str:
         return f"EraseAuditRecord<{self.pk}> {self.event} {self.actor}"
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # Congelar ANTES de que la base calcule el hash. Sólo al insertar: en una
+        # fila ya emitida `save()` lanza `ImmutableRecordError` de todas formas.
+        if self.pk is None and self.order_pk is None:
+            self.order_pk = self.order_id
+        super().save(*args, **kwargs)
+
     def canonical_content(self) -> Dict[str, Any]:
         return {
             "created_at": self.created_at.isoformat() if self.created_at else "",
-            "order_id": self.order_id,
+            # 🔒 SÓLO `order_pk`, sin respaldo a `order_id`. Un respaldo
+            # parecía prudente —"por si la migración no corrió"— y era justo lo
+            # que reintroducía el defecto: con el respaldo puesto, anular la FK
+            # volvía a mover el contenido canónico. Lo cazó el invariante de
+            # comportamiento de `test_anular_una_fk_no_mueve_el_contenido_canonico`.
+            #
+            # No hace falta porque el esquema y el código viajan juntos:
+            # `deploy-api.yml` corre `migrate` en el mismo despliegue, y la
+            # migración `0008` copia `order_id` en `order_pk` para todas las
+            # filas con la orden viva. El valor que entra al hash es el mismo
+            # entero de siempre, así que el histórico sigue verificando.
+            "order_id": self.order_pk,
             "agent_id": self.agent_id,
             "hostname": self.hostname,
             "event": self.event,
@@ -419,7 +488,7 @@ class EraseCertificate(ImmutableChainRecord):
     certificado dentro del repositorio inmutable.
     """
 
-    objects = EraseQuerySet.as_manager()
+    objects = _AppendOnlyEraseQuerySet.as_manager()
 
     certificate_id = models.CharField(max_length=64, unique=True)
     kind = models.CharField(max_length=32, choices=CertificateKind.choices)
