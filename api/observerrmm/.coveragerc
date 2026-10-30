@@ -10,6 +10,12 @@ omit =
     /usr/local/lib/*
     **/migrations/*
     **/test*.py
+    # Herramienta de desarrollo, no codigo de producto: su cobertura no dice
+    # nada y, sobre todo, instrumentarla cuesta carisimo. El gate de
+    # core/test_cableado_declarado.py la hace recorrer linea por linea todo el
+    # Python del repo, y con el trazador encima eso pasa de 2 s a casi un
+    # minuto. Un gate lento es un gate que alguien termina desactivando.
+    */scripts/auditar_cableado_declarado.py
     
 [report]
 show_missing = True
