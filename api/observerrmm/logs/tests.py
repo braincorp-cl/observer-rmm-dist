@@ -5,7 +5,14 @@ from django.utils import timezone as djangotime
 from model_bakery import baker, seq
 
 from logs.models import AuditLog
-from observerrmm.constants import DebugLogLevel, DebugLogType, PAAction, PAStatus
+from observerrmm.constants import (
+    AuditActionType,
+    AuditObjType,
+    DebugLogLevel,
+    DebugLogType,
+    PAAction,
+    PAStatus,
+)
 from observerrmm.test import ObserverTestCase
 
 base_url = "/logs"
@@ -336,12 +343,38 @@ class TestAuditViews(ObserverTestCase):
         user.role.can_view_sites.set([site])
 
         response = self.check_authorized("patch", url, data)
-        self.assertEqual(len(response.data["audit_logs"]), 63)
+        # 63 → 22. Las 86 filas sembradas son 45 con agente y 41 sin agente, y de
+        # las 45 sólo 22 cuelgan del agente que vive en `site`.
+        #
+        # Las 41 sin agente las escribieron OTROS usuarios (`create_audit_records`
+        # les pone nombres de baker), y hasta ahora entraban igual: el filtro las
+        # sumaba con un `Q(agent_id=None)` sin ninguna condición más, así que un
+        # rol recortado a un sitio veía la actividad administrativa de TODA la
+        # instalación —cambios de rol, altas de usuario, ediciones de cliente—,
+        # también la de los otros clientes del servidor. Ahora de las filas sin
+        # agente sólo ve las PROPIAS, y este usuario no tiene ninguna.
+        #
+        # Que no sea un recorte ciego lo prueba el bloque de abajo y
+        # `logs/test_audit_scope.py`.
+        self.assertEqual(len(response.data["audit_logs"]), 22)
+
+        # Su propia actividad sin agente sí la ve: el recorte le quita lo ajeno,
+        # no su trazabilidad.
+        propia = AuditLog.objects.create(
+            username=user.username,
+            object_type=AuditObjType.CLIENT,
+            action=AuditActionType.MODIFY,
+            message=f"{user.username} modified client",
+        )
+        response = self.check_authorized("patch", url, data)
+        self.assertEqual(len(response.data["audit_logs"]), 23)
+        self.assertIn(propia.id, {f["id"] for f in response.data["audit_logs"]})
+        propia.delete()
 
         # limit user to client if agent check
         user.role.can_view_clients.set([site.client])
         response = self.check_authorized("patch", url, data)
-        self.assertEqual(len(response.data["audit_logs"]), 63)
+        self.assertEqual(len(response.data["audit_logs"]), 22)
 
     def test_debuglog_permissions(self):
         # create data
