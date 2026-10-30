@@ -52,6 +52,8 @@ from erase.serializers import (
     WipeOrderSerializer,
     WipePathTemplateSerializer,
 )
+from logs.models import AuditLog
+from observerrmm.middleware import get_debug_info
 
 
 class WipeOrderList(APIView):
@@ -306,6 +308,18 @@ class RetrievedFileDownload(APIView):
         rf = get_object_or_404(order.files, pk=file_id)
         if not rf.asset:
             return Response({"detail": "el archivo no tiene contenido"}, status=404)
+        # La traza se escribe ANTES de abrir el archivo y entregar la respuesta:
+        # `FileResponse` se consume fuera de la vista (el WSGI itera el cuerpo
+        # después del return) y `AuditMiddleware` ya limpió `request_local` para
+        # entonces, así que una fila escrita más tarde perdería el `debug_info`
+        # —y, si el streaming falla, no quedaría fila de un archivo que el
+        # servidor sí abrió y empezó a mandar.
+        AuditLog.audit_retrieved_file_download(
+            username=request.user.username,
+            order=order,
+            retrieved_file=rf,
+            debug_info=get_debug_info(),
+        )
         resp = FileResponse(rf.asset.open("rb"), as_attachment=True)
         return resp
 
@@ -344,6 +358,13 @@ class EraseCertificatePDF(APIView):
             EraseCertificate.objects.filter_by_role(request.user), pk=pk
         )
         pdf = cert_mod.render_pdf(cert)
+        # Mismo motivo que en la descarga del archivo recuperado: la fila se
+        # escribe acá, con el `debug_info` del request todavía puesto.
+        AuditLog.audit_erase_certificate_pdf(
+            username=request.user.username,
+            certificate=cert,
+            debug_info=get_debug_info(),
+        )
         resp = FileResponse(iter([pdf]), content_type="application/pdf")
         resp["Content-Disposition"] = (
             f'attachment; filename="{cert.certificate_id}.pdf"'

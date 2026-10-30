@@ -170,3 +170,134 @@ class WipeCertificateHookTests(TestCase):
         # Un segundo intento de emisión no duplica el certificado.
         services.issue_wipe_certificate(order=o)
         self.assertEqual(EraseCertificate.objects.filter(order=o).count(), 1)
+
+
+class EraseNoFiltraAlAuditPurgableTests(TestCase):
+    """Ni rutas ni series de `erase` en los JSON purgables de `AuditLog`.
+
+    El mecanismo existe: `AuditLog` tiene `before_value`, `after_value` y
+    `debug_info` como `JSONField`, y `prune_audit_log` borra esas filas al vencer
+    el plazo. Si una ruta de borrado, una serie de equipo o el contenido de
+    `scope`/`paths` terminara ahí, la evidencia quedaría bajo el régimen
+    equivocado — exactamente la mezcla que el docstring de `erase/models.py`
+    declara que este módulo no puede permitirse.
+
+    Medido sobre el flujo real: crear la orden con rutas, confirmarla, reportar
+    la ejecución y emitir el certificado deja CERO filas de `AuditLog`; las rutas
+    viven en `WipeOrder.scope` y la traza en `EraseAuditRecord`, que no se poda.
+    O sea que hoy no ocurre.
+
+    Este test está igual porque la separación es frágil por construcción: desde
+    que la descarga de archivos recuperados y la del PDF del certificado SÍ
+    escriben `AuditLog` (`audit_retrieved_file_download`,
+    `audit_erase_certificate_pdf`), `erase` tiene por primera vez un camino hacia
+    la tabla purgable. Lo que se fija es que ese camino lleve el QUIÉN y no el
+    QUÉ.
+    """
+
+    RUTAS = [
+        "C:/Users/jperez/Mis documentos/nomina",
+        "D:/respaldos/sueldos-2026.xlsx",
+    ]
+    SERIE = "SN-SERIE-SECRETA-42"
+
+    def test_el_flujo_de_wipe_no_escribe_nada_en_el_audit_purgable(self):
+        from logs.models import AuditLog
+
+        agent = baker.make(
+            "agents.Agent",
+            agent_id="aid-sin-fuga",
+            hostname="BOX-SIN-FUGA",
+            wmi_detail={"bios": [[{"SerialNumber": self.SERIE}]]},
+        )
+        client = baker.make("clients.Client")
+        site = baker.make("clients.Site", client=client)
+
+        antes = AuditLog.objects.count()
+
+        order = services.create_order(
+            agent=agent,
+            client=client,
+            site=site,
+            action=EraseAction.WIPE,
+            ordered_by="john",
+            scope={"paths": self.RUTAS},
+            dry_run=False,
+            reason="baja de equipo",
+        )
+        services.confirm_order(order=order, confirmed_by="alice")
+        order.refresh_from_db()
+        order.status = WipeOrderStatus.DISPATCHED
+        order.save(update_fields=["status"])
+        services.apply_wipe_report(
+            order=order,
+            result={r: "borrado+verificado" for r in self.RUTAS},
+            verified=True,
+            method_applied="overwrite-fsync-unlink/1pass",
+        )
+
+        # Delta, no conteo absoluto: pytest-randomly baraja el orden y hay
+        # fixtures que dejan filas incidentales.
+        self.assertEqual(
+            AuditLog.objects.count(),
+            antes,
+            "el flujo de wipe escribió en el audit operativo purgable",
+        )
+        # La traza sí existe, en la cadena que no se poda.
+        self.assertTrue(order.audit_records.exists())
+        self.assertTrue(EraseCertificate.objects.filter(order=order).exists())
+        self.assertEqual(order.scope["paths"], self.RUTAS)
+
+    def test_ninguna_fila_de_auditlog_contiene_rutas_ni_series(self):
+        """Barrido sobre los tres JSON de TODAS las filas, venga de donde venga.
+
+        No se mira sólo lo que escribe `erase`: se mira la tabla entera después
+        de ejercitar el flujo, que es la pregunta que importa ("¿hay una ruta de
+        borrado en el audit purgable?") y no la que es cómoda de responder.
+        """
+        import json
+
+        from logs.models import AuditLog
+
+        agent = baker.make(
+            "agents.Agent",
+            agent_id="aid-barrido",
+            hostname="BOX-BARRIDO",
+            wmi_detail={"bios": [[{"SerialNumber": self.SERIE}]]},
+        )
+        client = baker.make("clients.Client")
+        site = baker.make("clients.Site", client=client)
+
+        order = services.create_order(
+            agent=agent,
+            client=client,
+            site=site,
+            action=EraseAction.WIPE,
+            ordered_by="john",
+            scope={"paths": self.RUTAS},
+            dry_run=False,
+            reason="baja de equipo",
+        )
+        services.confirm_order(order=order, confirmed_by="alice")
+        order.refresh_from_db()
+        order.status = WipeOrderStatus.DISPATCHED
+        order.save(update_fields=["status"])
+        services.apply_wipe_report(
+            order=order,
+            result={r: "borrado+verificado" for r in self.RUTAS},
+            verified=True,
+            method_applied="overwrite-fsync-unlink/1pass",
+        )
+
+        prohibido = [*self.RUTAS, self.SERIE, "C:/Users", "D:/respaldos"]
+        for fila in AuditLog.objects.all():
+            volcado = json.dumps(
+                [fila.before_value, fila.after_value, fila.debug_info], default=str
+            )
+            for aguja in prohibido:
+                self.assertNotIn(
+                    aguja,
+                    volcado,
+                    f"AuditLog#{fila.pk} ({fila.action}/{fila.object_type}) "
+                    f"lleva «{aguja}» en un JSON purgable",
+                )
