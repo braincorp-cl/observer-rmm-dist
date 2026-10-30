@@ -208,12 +208,25 @@ class GetAgents(APIView):
 
         # if detail=false
         else:
+            # `hostname` es como una persona busca un equipo en el selector que
+            # alimenta esta rama, y el `id` desempata porque el hostname NO es
+            # unico entre sitios. Sin orden, PostgreSQL devuelve las filas como
+            # le conviene y la lista se reacomoda entre peticiones.
+            #
+            # `hostname` no tiene indice y `Agent` es la tabla grande del
+            # producto (29k filas en la instalacion mas grande), asi que el
+            # orden cuesta. Se agrega igual: esta rama YA trae y serializa el
+            # conjunto filtrado completo, de modo que ordenar lo que de todas
+            # formas se esta materializando es despreciable al lado de eso. Si
+            # el endpoint llega a doler, lo que hay que arreglar es que no
+            # pagina, no el orden.
             agents = (
                 Agent.objects.filter_by_role(request.user)  # type: ignore
                 .defer(*AGENT_DEFER)
                 .select_related("site__client")
                 .filter(monitoring_type_filter)
                 .filter(client_site_filter)
+                .order_by("hostname", "id")
             )
             serializer = AgentHostnameSerializer(agents, many=True)
 
@@ -1751,11 +1764,18 @@ class GetAddNotes(APIView):
     permission_classes = [IsAuthenticated, AgentNotesPerms]
 
     def get(self, request, agent_id=None):
+        # Las notas se leen como una bitacora: lo mas reciente primero. `id`
+        # desempata porque `entry_time` puede repetir instante entre dos notas
+        # creadas en la misma peticion. Las dos ramas usan el mismo criterio
+        # para que abrir un equipo y ver el listado general no muestren el
+        # mismo historial en ordenes distintos.
         if agent_id:
             agent = get_object_or_404(Agent, agent_id=agent_id)
-            notes = Note.objects.filter(agent=agent)
+            notes = Note.objects.filter(agent=agent).order_by("-entry_time", "-id")
         else:
-            notes = Note.objects.filter_by_role(request.user)  # type: ignore
+            notes = Note.objects.filter_by_role(request.user).order_by(  # type: ignore
+                "-entry_time", "-id"
+            )
 
         return Response(AgentNoteSerializer(notes, many=True).data)
 

@@ -379,6 +379,21 @@ class EraseCertificateJSON(APIView):
         cert = get_object_or_404(
             EraseCertificate.objects.filter_by_role(request.user), pk=pk
         )
+        # 🔑 Entrega EL MISMO documento firmado que el PDF, en otro formato. Si
+        # sólo auditara el PDF, bajarse el certificado sin dejar traza sería
+        # cambiar de botón: la consola llama este endpoint desde
+        # `web/app/src/api/erase.js:46`, así que el hueco estaba al alcance de
+        # cualquiera, no era teórico.
+        #
+        # Se reusa `audit_erase_certificate_pdf` a propósito en vez de abrir un
+        # método gemelo: lo que importa auditar es **el acceso al certificado**,
+        # no el formato en que salió. Distinguirlos pediría una categoría nueva
+        # en `AuditActionType`, que es un `AlterField` sobre `choices`.
+        AuditLog.audit_erase_certificate_pdf(
+            username=request.user.username,
+            certificate=cert,
+            debug_info=get_debug_info(),
+        )
         return Response(cert_mod.certificate_json(cert))
 
 

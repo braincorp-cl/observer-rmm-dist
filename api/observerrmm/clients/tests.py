@@ -389,9 +389,13 @@ class TestClientViews(ObserverTestCase):
         # setup data
         deployments = baker.make("clients.Deployment", _quantity=5)
 
+        # Mismo criterio que el endpoint (`-created, -id`): el espejo no puede
+        # apoyarse en el orden de insercion, que PostgreSQL no garantiza.
+        esperados = sorted(deployments, key=lambda d: (d.created, d.id), reverse=True)
+
         url = f"{base_url}/deployments/"
         r = self.client.get(url)
-        serializer = DeploymentSerializer(deployments, many=True)
+        serializer = DeploymentSerializer(esperados, many=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data, serializer.data)
 

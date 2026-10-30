@@ -836,8 +836,14 @@ class TestAgentViews(ObserverTestCase):
         agent = baker.make_recipe("agents.agent")
         notes = baker.make("agents.Note", agent=agent, _quantity=4)
 
+        # El endpoint ordena por `-entry_time, -id` (una bitacora se lee por lo
+        # mas reciente). El espejo tiene que usar el MISMO criterio: comparar
+        # contra el orden en que baker las creo hacia pasar el test solo mientras
+        # PostgreSQL devolviera las filas en orden de insercion, que no garantiza.
+        esperadas = sorted(notes, key=lambda n: (n.entry_time, n.id), reverse=True)
+
         r = self.client.get(url)
-        serializer = AgentNoteSerializer(notes, many=True)
+        serializer = AgentNoteSerializer(esperadas, many=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.data), 4)
         self.assertEqual(r.data, serializer.data)
@@ -846,7 +852,7 @@ class TestAgentViews(ObserverTestCase):
         url = f"{base_url}/{agent.agent_id}/notes/"
 
         r = self.client.get(url)
-        serializer = AgentNoteSerializer(notes, many=True)
+        serializer = AgentNoteSerializer(esperadas, many=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.data), 4)
         self.assertEqual(r.data, serializer.data)

@@ -263,21 +263,47 @@ class EraseCertificatePDFAuditTests(ObserverTestCase):
         self.assertNotIn("trituracion", volcado)
         self.assertNotIn("op-terreno", volcado)
 
-    def test_el_json_del_certificado_sigue_sin_dejar_traza(self):
-        """⚠️ Hueco CONOCIDO y acotado a propósito, no una decisión de diseño.
+    def test_el_json_del_certificado_tambien_deja_traza(self):
+        """El hueco que este archivo documentaba, cerrado.
 
         `/erase/certificates/<pk>/json/` entrega el MISMO documento firmado en
-        otro formato y tampoco audita. Este cambio cubre el PDF porque es lo que
-        se pidió; el JSON queda registrado acá como pendiente en vez de
-        justificado, para que la próxima lectura de este archivo lo encuentre y
-        no lo confunda con una exclusión deliberada.
+        otro formato. Mientras sólo auditara el PDF, bajarse el certificado sin
+        dejar traza era cambiar de botón — y no era teórico: la consola llama
+        este endpoint desde `web/app/src/api/erase.js:46`.
+
+        🪤 La revisión que lo encontró había concluido que no existía UI de
+        `erase` porque miró `web/src/` en vez de `web/app/src/`. La conclusión
+        de dejarlo anotado fue correcta; la razón, equivocada, y por eso el
+        hueco quedó clasificado como menor de lo que era.
         """
         antes = AuditLog.objects.count()
 
         r = self.client.get(f"/erase/certificates/{self.cert.pk}/json/")
 
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(AuditLog.objects.count(), antes)
+        self.assertEqual(AuditLog.objects.count() - antes, 1)
+
+        fila = AuditLog.objects.order_by("-id").first()
+        self.assertEqual(fila.username, "john")
+        self.assertEqual(fila.after_value["certificate_id"], self.cert.certificate_id)
+        # El documento firmado NO entra en el audit purgable: va el
+        # identificador, no el `data` ni el `document_hash`.
+        self.assertNotIn("data", fila.after_value)
+        self.assertNotIn("document_hash", fila.after_value)
+
+    def test_las_dos_vias_del_certificado_auditan_igual(self):
+        """PDF y JSON son el mismo acceso: la traza no debe depender del botón."""
+        antes = AuditLog.objects.count()
+
+        self.client.get(f"/erase/certificates/{self.cert.pk}/pdf/")
+        self.client.get(f"/erase/certificates/{self.cert.pk}/json/")
+
+        self.assertEqual(AuditLog.objects.count() - antes, 2)
+        filas = list(AuditLog.objects.order_by("-id")[:2])
+        self.assertEqual(
+            {f.after_value["certificate_id"] for f in filas},
+            {self.cert.certificate_id},
+        )
 
 
 def _volcado(fila: AuditLog) -> str:
