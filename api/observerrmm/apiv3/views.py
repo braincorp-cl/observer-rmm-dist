@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import json
 import os
 from datetime import datetime, timezone as dt_timezone
 
@@ -1394,9 +1395,28 @@ class WipeReport(APIView):
         if verified is not None:
             verified = str(verified) in ("1", "true", "True")
 
+        # El envelope del agente es `map[string]string`: TODO llega como texto, igual
+        # que `verified` acá arriba. El mapa por-ruta viaja serializado
+        # (`agent/wipe.go`, `datos["result"] = string(b)`), así que sin este parseo
+        # `order.result` queda como str dentro del JSONField y la emisión del
+        # certificado —que lo recorre con `.items()`— revienta DESPUÉS de que el
+        # borrado ya ocurrió: la orden queda `verified=true` y sin documento.
+        result = request.data.get("result")
+        if isinstance(result, str):
+            try:
+                result = json.loads(result)
+            except ValueError:
+                # Texto que no es JSON: se conserva bajo la clave de nota del
+                # resultado en vez de perderlo. `_` es la clave que el propio
+                # agente usa para lo que no es una ruta, y la que el panel y el
+                # certificado ya saben descartar.
+                result = {"_": result}
+        if result is not None and not isinstance(result, dict):
+            result = {"_": str(result)}
+
         apply_wipe_report(
             order=order,
-            result=request.data.get("result"),
+            result=result,
             verified=verified,
             method_applied=request.data.get("method_applied", ""),
             plan=request.data.get("plan"),

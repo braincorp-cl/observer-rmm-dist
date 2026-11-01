@@ -453,8 +453,23 @@ def apply_wipe_report(
     )
     # Enganche al certificado C (RF-10 / T016): SOLO con `verified=True`. Una orden
     # `incomplete` (verificación por relectura fallida, RN-08) nunca lo emite.
+    #
+    # 🔑 Blindado, y no por simetría con el resto: el borrado YA OCURRIÓ y es
+    # irreversible. Sin este `except`, un fallo al emitir sube como 500 al agente,
+    # que reintenta, recibe el 409 del estado terminal y deja de insistir — y la
+    # orden queda `executed` con `verified=true`, sin certificado y SIN UN SOLO
+    # RASTRO de por qué. Un ok falso perfecto. El fallo va a la cadena inmutable
+    # para que la falta del documento sea visible y la emisión se pueda reintentar.
     if order.verified:
-        issue_wipe_certificate(order=order)
+        try:
+            issue_wipe_certificate(order=order)
+        except Exception as e:  # noqa: BLE001 — emitir no puede tumbar el reporte
+            record_event(
+                order=order,
+                event="certificate_error",
+                actor="system",
+                detail={"error": f"{type(e).__name__}: {e}"[:500]},
+            )
     return order
 
 
