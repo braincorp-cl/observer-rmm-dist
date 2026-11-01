@@ -479,7 +479,9 @@
     "eraseAttachmentRetentionDays": "Erase attachment retention (days)",
     "eraseAttachmentRetentionDaysHint": "Inheritable floor: each client may ask for more, never less. Legal minimum 366 days. The certificate is permanent and never expires.",
     "eraseAttachmentPruneEnabled": "Purge expired attachments",
-    "eraseAttachmentPruneEnabledHint": "When off, the purge still runs hourly but only RECORDS how much it would delete, deleting nothing. When on, it deletes the file and keeps the row with its hash. This is irreversible."
+    "eraseAttachmentPruneEnabledHint": "When off, the purge still runs hourly but only RECORDS how much it would delete, deleting nothing. When on, it deletes the file and keeps the row with its hash. This is irreversible.",
+    "erasePublicVerifyEnabled": "Expose public certificate verification",
+    "erasePublicVerifyEnabledHint": "Opens a public page at /verificar/, with no authentication, where a third party checks a certificate by its identifier. It shows no customer, device or serial. Tell the customer before turning it on."
   },
   "bulkAction": {
     "close": "Close",
@@ -3571,7 +3573,25 @@
       "inheritedHint": "Empty = inherits the server-wide period. It does not mean zero days.",
       "floorError": "The legal minimum is {days} days"
     },
-    "intakeScanHint": "You can scan the code with a reader; reading it does not submit the form."
+    "intakeScanHint": "You can scan the code with a reader; reading it does not submit the form.",
+    "verify": {
+      "title": "Erasure certificate verification",
+      "subtitle": "Paste the identifier printed on the certificate to check that it is authentic.",
+      "inputLabel": "Certificate identifier",
+      "inputHint": "In the form OE-YYYYMMDD-XXXXXXXXXX",
+      "submit": "Verify",
+      "documentIntact": "Document intact",
+      "signatureValid": "Signature valid",
+      "chainIntact": "Chain intact",
+      "verdictValid": "This certificate is authentic and has not been altered.",
+      "verdictInvalid": "This certificate does not pass verification.",
+      "notFound": "No certificate with that identifier exists on this installation.",
+      "throttled": "Too many requests in a row. Wait a moment and try again.",
+      "offlineNotice": "The signature can also be verified without this site, using the installation's public key:",
+      "offlineLink": "public signing key",
+      "issuedAtLine": "Issued: {value}",
+      "kindLine": "Type: {value}"
+    }
   },
   "agentActivity": {
     "noAgent": "Select a machine to see its activity.",

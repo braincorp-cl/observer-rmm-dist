@@ -165,6 +165,20 @@ class CoreSettings(BaseAuditModel):
     # pasaba los tests. Entregarla apagada *y* sin agendar reproduciría ese mismo
     # estado.
     erase_attachment_prune_enabled = models.BooleanField(default=False)
+    # ¿Esta instalación expone la verificación pública de certificados?
+    #
+    # Nace apagado porque enciende una ruta SIN autenticación en una instalación
+    # de producción, y porque no todo cliente quiere una página pública colgando
+    # de su propio dominio. Encenderlo es una decisión por tenant, con el cliente
+    # avisado; apagarlo después de que publicó la URL en sus actas, no.
+    #
+    # 🔑 Apagado, la URL NO EXISTE: la vista levanta Http404, igual que si la ruta
+    # nunca se hubiera definido. Eso es distinto de existir y negar: un 403
+    # confirmaría que el producto tiene la función y que este tenant la tiene
+    # apagada, y la ausencia no confirma nada. Es el mismo criterio con el que el
+    # endpoint público responde 200 a un identificador inexistente (CA-08): no
+    # entregar oráculos.
+    erase_public_verify_enabled = models.BooleanField(default=False)
     # Días que sobrevive la evidencia DESPUÉS de marcar el equipo recuperado.
     # El 0 es válido y significa la lectura literal del ADR (borrar en la
     # próxima corrida del beat); el default de 7 existe porque la denuncia se

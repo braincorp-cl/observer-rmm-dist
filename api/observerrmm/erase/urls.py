@@ -31,6 +31,13 @@ urlpatterns = [
     # La clave PUBLICA de firma — sin auth: el destinatario de un certificado es
     # un tercero sin cuenta en la consola, y una clave publica no es un secreto.
     path("signing-key/", views.EraseSigningKey.as_view()),
+    # Portal PUBLICO de verificación — la segunda y última ruta sin auth del
+    # módulo, acá al lado de la clave a propósito: son las dos que un tercero
+    # puede tocar. 🪤 `<str:>` y no `<slug:>`: un identificador con formato
+    # inválido TIENE que llegar a la vista para que responda 200. Un conversor
+    # que rebotara en el router daría 404 y volvería a ser el oráculo de
+    # existencia que CA-08 prohíbe, por la puerta de atrás.
+    path("verify/<str:certificate_id>/", views.EraseCertificateVerify.as_view()),
     # Custodia (D)
     path("intake/", views.AssetIntakeList.as_view()),
     path("intake/<int:pk>/", views.AssetIntakeDetail.as_view()),

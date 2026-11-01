@@ -1039,6 +1039,26 @@
                     </div>
                   </div>
                 </q-card-section>
+
+                <!-- Feature 053 ola 4 (RF-08). Nace apagado: enciende una ruta
+                     SIN autenticacion en el dominio de esta instalacion. -->
+                <q-card-section class="row">
+                  <div class="col-4">
+                    {{ $t("editCoreSettings.erasePublicVerifyEnabled") }}
+                  </div>
+                  <div class="col-2"></div>
+                  <div class="col-6">
+                    <q-toggle
+                      v-model="settings.erase_public_verify_enabled"
+                      :label="$t('editCoreSettings.erasePublicVerifyEnabled')"
+                    />
+                    <div class="text-caption text-grey">
+                      {{
+                        $t("editCoreSettings.erasePublicVerifyEnabledHint")
+                      }}
+                    </div>
+                  </div>
+                </q-card-section>
               </q-tab-panel>
 
               <q-tab-panel name="apikeys">

@@ -521,3 +521,45 @@ class LaRetencionNoTocaElCertificadoTests(_Base):
         v1.refresh_from_db()
         self.assertEqual(v1.document_hash, HASH_V1_CONGELADO)
         self.assertTrue(cert_mod.verify_certificate(v1)["document_intact"])
+
+
+class EntropiaDelIdentificadorTests(ObserverTestCase):
+    """El identificador es la defensa principal del portal público (053 · ola 4).
+
+    `GET /erase/verify/<certificate_id>/` es público y responde lo mismo exista o
+    no el certificado, así que lo único que separa a un curioso del inventario de
+    bajas de un cliente es **no poder adivinar un identificador**.
+
+    ⚠️ Es una defensa que puede desfondarse sin que nadie lo note: si mañana
+    alguien acorta el sufijo «porque es muy largo para imprimirlo en el acta», la
+    protección cae varios órdenes de magnitud y el portal pasa a ser enumerable,
+    sin que falle ningún otro test. Por eso el largo está fijado acá, con el
+    cálculo al lado.
+    """
+
+    def test_el_sufijo_aleatorio_mantiene_sus_40_bits(self):
+        ident = cert_mod.new_certificate_id()
+        prefijo, fecha, sufijo = ident.split("-")
+        print("\n  identificador =", ident, "| sufijo =", len(sufijo), "hex")
+        self.assertEqual(prefijo, "OE")
+        self.assertEqual(len(fecha), 8)
+        # 10 hex = 40 bits ≈ 1,1 × 10¹² combinaciones POR CADA FECHA. Con el
+        # límite de tasa del portal (20/minuto por IP) barrer un solo día tomaría
+        # del orden de 10⁵ años. Si este número baja, revisar el portal ANTES de
+        # actualizar el test.
+        self.assertGreaterEqual(
+            len(sufijo),
+            10,
+            "se acortó el identificador: el portal público pasa a ser enumerable",
+        )
+        self.assertEqual(int(sufijo, 16).bit_length() > 0, True)
+
+    def test_dos_identificadores_seguidos_no_se_parecen(self):
+        """Control negativo: un contador o un timestamp pasarían el test de largo."""
+        a = cert_mod.new_certificate_id().split("-")[2]
+        b = cert_mod.new_certificate_id().split("-")[2]
+        self.assertNotEqual(a, b)
+        # Ni siquiera el primer carácter debería coincidir sistemáticamente; con
+        # un solo par esto es débil a propósito: lo que caza es un prefijo fijo.
+        distintos = sum(1 for x, y in zip(a, b) if x != y)
+        self.assertGreaterEqual(distintos, 5, f"{a} y {b} se parecen demasiado")

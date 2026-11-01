@@ -43,7 +43,7 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.39"
+ORMM_VERSION = "1.4.40"
 
 WEB_VERSION = "0.2.15"
 
@@ -199,6 +199,13 @@ ORMM_CHECK_CREDS_MIN_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_MIN_THROTTLE", 5
 ORMM_CHECK_CREDS_DAY_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_DAY_THROTTLE", 1000))
 ORMM_LOGIN_MIN_THROTTLE = int(os.getenv("ORMM_LOGIN_MIN_THROTTLE", 50))
 ORMM_LOGIN_DAY_THROTTLE = int(os.getenv("ORMM_LOGIN_DAY_THROTTLE", 1000))
+# Rate limiting del portal PÚBLICO de verificación de certificados (053 ola 4).
+# Defaults bajos a propósito: quien verifica un certificado hace una o dos
+# consultas, no veinte. 🔑 No es la defensa principal contra un barrido del
+# espacio de identificadores —lo son los 40 bits de `new_certificate_id()` y que
+# un acierto no diga de quién es el certificado—; esto sólo encarece el intento.
+ORMM_VERIFY_MIN_THROTTLE = int(os.getenv("ORMM_VERIFY_MIN_THROTTLE", 20))
+ORMM_VERIFY_DAY_THROTTLE = int(os.getenv("ORMM_VERIFY_DAY_THROTTLE", 500))
 
 if not DOCKER_BUILD:
     ALLOWED_HOSTS = []
@@ -271,6 +278,8 @@ REST_FRAMEWORK = {
         "login_min": f"{ORMM_LOGIN_MIN_THROTTLE}/minute",
         "check_creds_day": f"{ORMM_CHECK_CREDS_DAY_THROTTLE}/day",
         "login_day": f"{ORMM_LOGIN_DAY_THROTTLE}/day",
+        "verify_min": f"{ORMM_VERIFY_MIN_THROTTLE}/minute",
+        "verify_day": f"{ORMM_VERIFY_DAY_THROTTLE}/day",
     },
 }
 

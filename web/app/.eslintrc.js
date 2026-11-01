@@ -168,6 +168,7 @@ module.exports = {
         // manda el enum crudo y la consola lo lee, igual que diskEncryption.* con
         // los códigos de WMI.
         "src/views/EraseCertificatesView.vue",
+        "src/views/VerifyCertificateView.vue",
         "src/views/WipeOrdersView.vue",
         "src/components/agents/EraseCertificatesTab.vue",
         "src/components/agents/EraseCertificatesTable.vue",

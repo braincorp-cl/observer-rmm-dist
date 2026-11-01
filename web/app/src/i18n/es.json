@@ -479,7 +479,9 @@
     "eraseAttachmentRetentionDays": "Retención de adjuntos de borrado (días)",
     "eraseAttachmentRetentionDaysHint": "Piso heredable: cada cliente puede pedir más, nunca menos. Mínimo legal 366 días. El certificado es permanente y no caduca.",
     "eraseAttachmentPruneEnabled": "Purgar los adjuntos vencidos",
-    "eraseAttachmentPruneEnabledHint": "Apagado, la purga corre igual cada hora pero sólo REGISTRA cuánto borraría, sin borrar nada. Encendido, borra el archivo y conserva la fila con su hash. Es irreversible."
+    "eraseAttachmentPruneEnabledHint": "Apagado, la purga corre igual cada hora pero sólo REGISTRA cuánto borraría, sin borrar nada. Encendido, borra el archivo y conserva la fila con su hash. Es irreversible.",
+    "erasePublicVerifyEnabled": "Exponer la verificación pública de certificados",
+    "erasePublicVerifyEnabledHint": "Abre una página pública en /verificar/, sin autenticación, donde un tercero comprueba un certificado con su identificador. No muestra cliente, equipo ni serie. Avise al cliente antes de encenderla."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -3571,7 +3573,25 @@
       "inheritedHint": "Vacío = hereda el plazo global del servidor. No significa cero días.",
       "floorError": "El mínimo legal es {days} días"
     },
-    "intakeScanHint": "Puedes escanear el código con un lector; no se envía el formulario al leer."
+    "intakeScanHint": "Puedes escanear el código con un lector; no se envía el formulario al leer.",
+    "verify": {
+      "title": "Verificación de certificado de borrado",
+      "subtitle": "Pegue el identificador impreso en el certificado para comprobar su autenticidad.",
+      "inputLabel": "Identificador del certificado",
+      "inputHint": "Con el formato OE-AAAAMMDD-XXXXXXXXXX",
+      "submit": "Verificar",
+      "documentIntact": "Documento íntegro",
+      "signatureValid": "Firma válida",
+      "chainIntact": "Cadena íntegra",
+      "verdictValid": "Este certificado es auténtico y no fue alterado.",
+      "verdictInvalid": "Este certificado no supera la verificación.",
+      "notFound": "No hay un certificado con ese identificador en esta instalación.",
+      "throttled": "Demasiadas consultas seguidas. Espere un momento y vuelva a intentar.",
+      "offlineNotice": "La firma también puede verificarse sin este sitio, con la clave pública de la instalación:",
+      "offlineLink": "clave pública de firma",
+      "issuedAtLine": "Emitido: {value}",
+      "kindLine": "Tipo: {value}"
+    }
   },
   "agentActivity": {
     "noAgent": "Seleccione un equipo para ver su actividad.",

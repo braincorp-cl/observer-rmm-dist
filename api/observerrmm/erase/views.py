@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, time
 
 from django.db import transaction
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from agents.models import Agent
+from core.utils import get_core_settings
 from erase import certificate as cert_mod
 from erase import services, signing
 from erase.models import (
@@ -54,6 +55,7 @@ from erase.serializers import (
 )
 from logs.models import AuditLog
 from observerrmm.middleware import get_debug_info
+from observerrmm.throttles import VerifyDayThrottle, VerifyMinThrottle
 
 
 class WipeOrderList(APIView):
@@ -464,6 +466,76 @@ class EraseSigningKey(APIView):
                 ),
             }
         )
+
+
+class EraseCertificateVerify(APIView):
+    """Verificación PÚBLICA de un certificado (053 · ola 4 · RF-08 · CA-08).
+
+    La vía offline —`GET /erase/signing-key/`, entregada en la ola 1— ya permite
+    a un tercero probar la **autoría** de la firma sin preguntarle nada a nadie.
+    Lo que no puede comprobar solo es el **encadenamiento**: que el certificado
+    siga siendo el eslabón que fue dentro del repositorio inmutable de este
+    tenant. Eso es lo único que agrega este endpoint, y de ahí su forma.
+
+    🔒 **No hay 404 ni 400 por el identificador.** Exista o no, tenga o no la
+    forma correcta, la respuesta es 200 con **las mismas claves**: dos códigos de
+    estado distintos convierten el endpoint en un oráculo de existencia y
+    permiten barrer el espacio de identificadores contando respuestas, sin leer
+    un solo cuerpo (CA-08).
+
+    🔒 **La respuesta es mínima y cerrada** (L-02): identificador, tipo, fecha y
+    los tres veredictos. Ni cliente, ni equipo, ni serial, ni operador, ni
+    testigo, ni el documento. Quien verifica **ya tiene el certificado en la
+    mano**; el portal sólo confirma que es auténtico. Si respondiera más,
+    enumerar identificadores permitiría armar el inventario de bajas de un
+    cliente.
+
+    🔑 La defensa principal **no** es el límite de tasa: son los 40 bits de
+    `new_certificate_id()` y el hecho de que acertar uno no diga de quién es.
+
+    Apagado el interruptor (`CoreSettings.erase_public_verify_enabled`, que nace
+    en `False`), la ruta responde 404 y no nombra la función. El matiz honesto:
+    `/erase/signing-key/` es público e incondicional, así que la presencia del
+    módulo ya es observable; lo que este 404 protege es que esta instalación no
+    participe del portal, no la existencia del producto.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [VerifyMinThrottle, VerifyDayThrottle]
+
+    def get(self, request, certificate_id):
+        if not get_core_settings().erase_public_verify_enabled:
+            raise Http404
+
+        # `certificate_id` es unique: una búsqueda por índice, no un recorrido.
+        cert = EraseCertificate.objects.filter(certificate_id=certificate_id).first()
+
+        # El MISMO diccionario con y sin resultado. No se arma en dos ramas a
+        # propósito: dos ramas divergen, y acá divergir es filtrar.
+        respuesta = {
+            "found": cert is not None,
+            "certificate_id": certificate_id,
+            "kind": cert.kind if cert else "",
+            "issued_at": cert.created_at if cert else None,
+            "document_intact": False,
+            "signature_valid": False,
+            "signature_present": False,
+            "chain_intact": False,
+            "valid": False,
+        }
+        if cert is not None:
+            # La MISMA función que usa la consola. Una verificación «ligera»
+            # propia del portal sería el peor lugar posible para que divergiera.
+            veredicto = cert_mod.verify_certificate(cert)
+            for clave in (
+                "document_intact",
+                "signature_valid",
+                "signature_present",
+                "chain_intact",
+                "valid",
+            ):
+                respuesta[clave] = veredicto[clave]
+        return Response(respuesta)
 
 
 class AssetIntakeList(APIView):

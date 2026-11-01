@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.40 — 2026-11-01
+
+- **Un tercero puede comprobar un certificado de borrado sin tener cuenta.** Cada instalación puede exponer una página pública en `/verificar/`: se pega el identificador impreso en el certificado y responde si el documento está íntegro, si la firma es válida y si la cadena sigue entera. Esto último es lo que nadie podía comprobar por su cuenta —la firma ya se verificaba sin conexión con la clave pública publicada—, porque el encadenamiento vive en la base de quien emitió.
+- **La página no dice de quién es el certificado, y es a propósito.** Responde sólo el identificador, el tipo, la fecha y los tres veredictos: ni cliente, ni equipo, ni número de serie, ni quién operó. Quien verifica ya tiene el certificado en la mano; si la página dijera más, probar identificadores uno tras otro permitiría reconstruir las bajas de un cliente. Por lo mismo no se puede buscar ni listar, y un identificador que no existe devuelve una respuesta **idéntica en forma** a uno válido.
+- **Nace apagada.** Se enciende por instalación desde *Ajustes del servidor*, con el cliente avisado de que tendrá una página pública en su dominio. Apagada, la dirección sencillamente no existe. Que una instalación no la exponga no dice nada sobre sus certificados: la verificación sin conexión sigue funcionando igual.
+
 ## v1.4.39 — 2026-10-30
 
 - **Corregido: la auditoría podía registrar a la persona equivocada.** Al descargar cualquier archivo —el instalador, un informe, el PDF de un certificado— el usuario de esa descarga quedaba retenido en el servidor, y desde ahí el registro de auditoría le atribuía a esa persona cualquier cambio posterior: ediciones de cliente, de sitio, de usuario o de ajustes. ⚠️ Los registros **anteriores a esta versión** pueden tener el nombre equivocado en esos casos, y no se pueden corregir retroactivamente.

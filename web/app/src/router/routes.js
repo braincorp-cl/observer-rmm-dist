@@ -171,6 +171,16 @@ const routes = [
     },
   },
   {
+    // Portal PÚBLICO de verificación de certificados (053 · ola 4). Fuera de
+    // MainLayout y SIN `requireAuth`: el destinatario de un certificado es un
+    // tercero —un cliente, un auditor, un tribunal— que no tiene cuenta acá.
+    // La guardia del router sólo actúa sobre `meta.requireAuth` (index.js:36),
+    // así que omitirlo es lo que vuelve pública la ruta.
+    path: "/verificar/:certificate_id?",
+    name: "VerifyCertificate",
+    component: () => import("@/views/VerifyCertificateView.vue"),
+  },
+  {
     path: "/expired",
     name: "SessionExpired",
     component: () => import("@/views/SessionExpired.vue"),
