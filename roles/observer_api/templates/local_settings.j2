@@ -85,6 +85,15 @@ ERASE_SIGNING_KEY = """
 {{ vault_erase_signing_key }}
 """
 {% endif %}
+# Gate legal del Bloque A destructivo (043 · ADR-029). Se emite SIEMPRE, tambien
+# cuando esta apagado: un settings ausente y uno en False se comportan igual, pero
+# solo el escrito deja ver de un vistazo en que ambiente esta encendido.
+# 🪤 Este flag gatea TODO despacho, incluido el simulacro en seco: `dispatch_order`
+# lo evalua antes de mirar `dry_run`.
+# 🪤 `to_json` NO sirve aca: emite `true` en minuscula y esto es Python, no JSON —
+# el import revienta con NameError y celery entra en crash-loop.
+ERASE_DESTRUCTIVE_DISPATCH_ENABLED = {{ 'True' if (observer_erase_destructive_dispatch_enabled | default(false) | bool) else 'False' }}
+
 {% if observer_erase_signing_keys_retired | default([]) | length > 0 %}
 # Claves RETIRADAS, en PEM PUBLICO. Verifican, no firman: tras un compromiso la
 # privada no debe quedar en ninguna parte. Publicarlas es lo que mantiene

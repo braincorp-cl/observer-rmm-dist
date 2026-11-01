@@ -118,3 +118,17 @@ observer_default_time_zone: ""
 # Rotar es RESPUESTA A INCIDENTE, no rutina: no hay CA ni certificado que venza,
 # y la unica razon real para retirar una clave es que la privada se comprometa.
 observer_erase_signing_keys_retired: []
+
+# --- Despacho destructivo de Observer Erase (043 · ADR-029) -----------------
+# Gate legal del Bloque A: con `false` la orden se gobierna (se crea, se confirma
+# entre dos personas y vence su ventana) pero NO VIAJA al equipo; queda el evento
+# `dispatch_gated_adr029` y nada mas.
+#
+# 🔑 El flag NO es el permiso para borrar: es el permiso para que la orden viaje.
+# Lo que decide si se borra o solo se enumera es `dry_run` de la propia orden, y
+# `dispatch_order` (erase/services.py:313) evalua este flag ANTES de mirarlo ⇒
+# con el flag apagado TAMPOCO corre el simulacro en seco (RF-G05 / T023).
+#
+# Apagado de fabrica y en los 5 PROD. Se enciende por ambiente, aca y no a mano:
+# local_settings.py se re-renderiza en cada install.yml.
+observer_erase_destructive_dispatch_enabled: false
