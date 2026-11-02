@@ -734,6 +734,37 @@ class MedioEnElCertificadoTests(_Base):
         self.assertFalse(cert.data["media"]["is_virtual"])
         self.assertEqual(cert.data["media_type_measured"], "Magnético (platos)")
 
+    def test_la_destruccion_fisica_publica_el_medio_cuando_el_acta_trae_equipo(self):
+        """🔴 En un certificado de destrucción física el medio pesa MÁS que en uno
+        de borrado remoto: lo que se destruyó es el medio.
+
+        La vista nacía sin él —la 053 asumió que una destrucción física nunca
+        tiene agente del cual leer—, pero el acta puede enlazarlo desde esa misma
+        ola. Medido en terreno el 2026-11-02: el documento salía con `media` en
+        nulo sobre un equipo que sí tenía inventario.
+        """
+        self._inventario()
+        acta = self._acta(agent=self.agent)
+        self.assertEqual(self._certificar_c7(acta).status_code, 201)
+        cert = EraseCertificate.objects.get(intake=acta)
+
+        self.assertIsNotNone(cert.data["media"])
+        self.assertEqual(cert.data["media"]["model"], "WD PC SN5000S")
+        self.assertEqual(cert.data["media"]["serial"], "SN-MEDIO-9977")
+        self.assertEqual(cert.data["capacity_reported"], 512_110_190_592)
+        self.assertEqual(cert.data["media_type_measured"], "Estado sólido")
+
+    def test_la_destruccion_fisica_de_un_disco_suelto_no_inventa_medio(self):
+        """Control negativo: sin equipo enlazado, los campos van vacíos."""
+        self._inventario()
+        acta = self._acta(agent=None)
+        self.assertEqual(self._certificar_c7(acta).status_code, 201)
+        cert = EraseCertificate.objects.get(intake=acta)
+
+        self.assertIsNone(cert.data["media"])
+        self.assertIsNone(cert.data["capacity_reported"])
+        self.assertEqual(cert.data["media_type_measured"], "")
+
     def test_sin_desacuerdo_no_se_anuncia_ninguna_discrepancia(self):
         """Control negativo: que uno falte NO es una discrepancia."""
         self._inventario()

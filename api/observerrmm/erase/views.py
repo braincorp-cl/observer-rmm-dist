@@ -661,6 +661,20 @@ class AssetIntakeCertifyDestruction(APIView):
             "at": timezone.now().isoformat() if testigo else "",
         }
 
+        # Feature 055 · si el acta enlaza un equipo, el inventario sabe qué medio
+        # tiene y el documento lo publica. Devuelve vacío cuando no hay equipo
+        # —una destrucción física puede ser de un disco suelto— y eso es «no
+        # consta», no un dato inventado.
+        #
+        # 🔑 Acá el medio pesa MÁS que en el certificado de borrado remoto: lo que
+        # se destruyó es el medio, no el equipo. Esta vista nacía sin él porque la
+        # 053 asumió que una destrucción física nunca tiene agente del cual leer;
+        # el acta sí puede enlazarlo desde esa misma ola, y entonces el dato está
+        # y callarlo es perderlo.
+        media_snapshot, capacity_reported, media_type_measured = (
+            services.snapshot_del_medio(intake.agent)
+        )
+
         cert = cert_mod.issue_certificate(
             kind=CertificateKind.PHYSICAL_DESTRUCTION,
             client=intake.client,
@@ -670,9 +684,12 @@ class AssetIntakeCertifyDestruction(APIView):
             tenant=intake.client.name,
             asset_tag=intake.asset_tag,
             ticket_ref=intake.ticket_ref,
-            # Acá no hay agente del cual leer inventario —una destrucción física
-            # puede ser de un disco suelto—, así que el equipo sale de lo que el
-            # técnico tecleó al recibirlo.
+            media=media_snapshot,
+            capacity_reported=capacity_reported,
+            media_type_measured=media_type_measured,
+            # El EQUIPO sale de lo que el técnico tecleó al recibirlo, no del
+            # inventario: el documento describe el activo que entró en custodia,
+            # y esa es la descripción que la persona firmó en el acta.
             equipment={
                 "make": intake.equipment_make,
                 "model": intake.equipment_model,
