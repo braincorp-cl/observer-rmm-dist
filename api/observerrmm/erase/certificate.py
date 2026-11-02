@@ -29,14 +29,43 @@ from erase.models import (
     EraseCertificate,
 )
 
-SCHEMA_VERSION = "observer-erase-cert/2"
+SCHEMA_VERSION = "observer-erase-cert/3"
 
 # Referencias de la norma VIGENTE. La Rev. 1 de NIST SP 800-88 quedó retirada al
 # publicarse la Rev. 2 (sept-2025), e IEEE 2883-2022 es la que define hoy las
 # técnicas por tipo de medio. Un certificado que cita una norma retirada es
 # atacable justo por donde tiene que sostenerse.
-STANDARD_REF_CLEAR = "NIST SP 800-88 Rev. 2 (Clear) · IEEE 2883-2022"
+#
+# 🔑 El wipe NO cita la categoría «Clear», y la razón es la definición literal del
+# glosario del r2: *clear* sanitiza «all user-addressable storage locations» — el
+# MEDIO COMPLETO. Borrar rutas es la sanitización **selectiva/parcial** de la §4.2,
+# donde el propio estándar advierte que es difícil verificar que el dato no se
+# derramó (bloques remapeados, overprovisioning), prefiere sanitizar el medio
+# entero siempre que se pueda, y da como único ejemplo de vía selectiva el
+# cryptographic erase, no la sobrescritura.
+#
+# Declarar la técnica y el alcance, en vez de una categoría que no corresponde, es
+# lo que mantiene creíble el resto del documento: un certificado que sobredeclara
+# pierde todo su valor el día que alguien lo audita.
+STANDARD_REF_SELECTIVE = (
+    "Sanitización selectiva por sobrescritura "
+    "(NIST SP 800-88 Rev. 2, §4.2) · IEEE 2883-2022"
+)
 STANDARD_REF_DESTROY = "NIST SP 800-88 Rev. 2 (Destroy) · IEEE 2883-2022"
+
+# Alias retirado. `STANDARD_REF_CLEAR` nombraba una categoría que el wipe nunca
+# alcanzó; se conserva apuntando al texto correcto para que nada que lo importe
+# quede roto, pero no debe usarse en código nuevo.
+STANDARD_REF_CLEAR = STANDARD_REF_SELECTIVE
+
+# Lo que el documento dice que NO es. Va junto al alcance porque el límite es
+# parte del dato: sin esta línea, «sanitización» invita a leer «el disco quedó
+# limpio», que es justamente lo que no ocurrió.
+SCOPE_DISCLAIMER_SELECTIVE = (
+    "Alcance limitado a las rutas indicadas. NO constituye sanitización del "
+    "medio (Clear/Purge/Destruct según NIST SP 800-88 Rev. 2 e IEEE 2883-2022): "
+    "el resto del medio no fue alterado y puede conservar datos."
+)
 
 # Veredicto de verificación. `NOT_VERIFIED` tiene 12 caracteres y cabe en el
 # `max_length=16` de `EraseCertificate.verification_result`, así que no hace falta
@@ -111,6 +140,10 @@ def build_document(
     equipment: Optional[Dict[str, Any]] = None,
     method_applied: str = "",
     standard_ref: str = "",
+    # Lo que el certificado NO acredita. Se emite SIEMPRE, vacío cuando no aplica,
+    # por el mismo criterio que el bloque de concurrencia: un campo vacío declara
+    # "no consta", uno ausente deja al lector adivinando.
+    scope_note: str = "",
     verification_result: str = "",
     verification_method: str = "",
     verification_evidence: str = "",
@@ -136,6 +169,7 @@ def build_document(
         "equipment": equipment or {},
         "method_applied": method_applied,
         "standard_ref": standard_ref,
+        "scope_note": scope_note,
         "verification_result": verification_result,
         # CÓMO se verificó, no solo el veredicto: un "PASS" sin método acreditado
         # no es verificación, es una afirmación.
@@ -375,6 +409,7 @@ def render_html(cert: EraseCertificate) -> str:
             _row("Nombre de red del equipo", equipment.get("hostname")),
             _row("Método aplicado", d.get("method_applied")),
             _row("Estándar de referencia", d.get("standard_ref")),
+            _row("Alcance de la sanitización", d.get("scope_note")),
             f"<tr><th>Resultado de verificación</th><td>{verif_html}</td></tr>",
             _row("Cómo se verificó", d.get("verification_method")),
             _row("Constancia de la verificación", d.get("verification_evidence")),

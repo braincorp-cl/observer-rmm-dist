@@ -201,6 +201,39 @@ class NormaVigenteTests(_Base):
         self.assertIn("IEEE 2883", d["standard_ref"])
         self.assertNotIn("800-88r1", d["standard_ref"])
 
+    def test_el_wipe_NO_declara_la_categoria_clear(self):
+        """La deuda que cerró T024: borrar rutas no es Clear.
+
+        El glosario del r2 define *clear* sobre «all user-addressable storage
+        locations» — el medio completo. Un wipe por rutas es la sanitización
+        selectiva de la §4.2, y declarar la categoría equivocada en un documento
+        que se entrega a terceros es lo que lo vuelve atacable.
+        """
+        d = self._wipe_certificado().data
+        self.assertNotIn("Clear", d["standard_ref"])
+        self.assertIn("selectiva", d["standard_ref"].lower())
+        self.assertIn("4.2", d["standard_ref"])
+
+    def test_el_wipe_declara_lo_que_NO_acredita(self):
+        """El límite es parte del dato, no una nota al pie."""
+        cert = self._wipe_certificado()
+        nota = cert.data["scope_note"]
+        self.assertIn("NO constituye sanitización del medio", nota)
+        self.assertIn("Clear/Purge/Destruct", nota)
+        # Y tiene que verse en el documento que el cliente abre, no sólo en el JSON.
+        self.assertIn("Alcance de la sanitización", cert_mod.render_html(cert))
+
+    def test_la_destruccion_fisica_SI_conserva_su_categoria(self):
+        """Destruct sí es la categoría correcta: el medio queda inutilizable.
+
+        Control de que el cambio de la etiqueta del wipe no se llevó por delante
+        la vía C7, que es la única que sí puede nombrar una categoría del estándar.
+        """
+        r = self._certificar_c7()
+        self.assertEqual(r.status_code, 201)
+        d = EraseCertificate.objects.get(pk=r.json()["id"]).data
+        self.assertIn("Destroy", d["standard_ref"])
+
     def test_destruccion_fisica_cita_rev_2(self):
         r = self._certificar_c7()
         self.assertEqual(r.status_code, 201)

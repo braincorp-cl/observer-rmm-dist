@@ -534,7 +534,8 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
             # agente, no una persona.
             actor=order.confirmed_by or order.ordered_by,
             method_applied=order.method_applied,
-            standard_ref=certificate.STANDARD_REF_CLEAR,
+            standard_ref=certificate.STANDARD_REF_SELECTIVE,
+            scope_note=certificate.SCOPE_DISCLAIMER_SELECTIVE,
             verification_result=certificate.VERIFICATION_PASS,
             verification_method="Relectura por-ruta informada por el agente (RN-08)",
             operator=operator,
