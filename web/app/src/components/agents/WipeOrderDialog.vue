@@ -264,6 +264,7 @@ import {
   fetchFileRetrievalOrders,
 } from "@/api/erase";
 import { fetchStorageMediaDetail } from "@/api/storagemedia";
+import { overwriteIsDefensible } from "@/utils/storageMedia";
 import { notifySuccess, notifyError } from "@/utils/notify";
 
 // Estados en los que una orden aún se puede cancelar desde la consola (antes de
@@ -424,13 +425,9 @@ export default {
       try {
         const data = await fetchStorageMediaDetail(props.agentId);
         const sistema = (data?.media ?? []).find((d) => d.is_system_disk);
-        if (!sistema || sistema.media_type_code == null) {
-          overwriteDefensible.value = null;
-          return;
-        }
-        // 3 = magnético (platos). Es el único medio sobre el que la
-        // sobrescritura constituye sanitización defendible.
-        overwriteDefensible.value = sistema.media_type_code === 3;
+        // La regla vive en `utils/storageMedia.js`, en un solo lugar. Acá
+        // estaba copiada, y la copia se quedó atrás.
+        overwriteDefensible.value = overwriteIsDefensible(sistema);
       } catch (e) {
         // Que no se pueda leer el inventario no autoriza a afirmar nada: se
         // queda en "no se sabe", con su aviso propio.

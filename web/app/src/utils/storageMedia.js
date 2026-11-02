@@ -62,10 +62,22 @@ export function capacityLabel(bytes) {
 // 🔑 La señal que decide si la consola puede advertir sobre una sobrescritura.
 // Tres respuestas, no dos: sí, no, y no se sabe. La tercera es la que impide
 // que el silencio se lea como aprobación (RN-02).
-export function overwriteIsDefensible(fila) {
-  const disco = fila?.system_disk;
+//
+// Recibe el DISCO de sistema, no la fila: la vista de flota lo trae como
+// `fila.system_disk` y el detalle del equipo dentro de `media[]`, y haciéndola
+// pedir la fila sólo servía para uno de los dos. Tenerla en un solo lugar es el
+// punto — el diálogo de borrado traía su propia copia de esta regla, con el
+// mismo defecto, y una copia que nadie mira no se arregla cuando la otra sí.
+//
+// 🪤 No alcanza con el código del medio: un disco de hipervisor se declara «de
+// platos» ante el sistema operativo —VMware llega con medio 3 y bus de disco
+// real, medido el 2026-11-02— y sobrescribirlo no toca el medio real, que está
+// en otra parte. `is_virtual` viene DERIVADO del servidor (bus + identidad del
+// dispositivo); acá sólo se traduce el código, que es lo que a la consola le
+// toca (RN-04).
+export function overwriteIsDefensible(disco) {
   if (!disco || disco.media_type_code === null || disco.media_type_code === undefined) {
     return null;
   }
-  return disco.media_type_code === 3;
+  return disco.media_type_code === 3 && disco.is_virtual === false;
 }
