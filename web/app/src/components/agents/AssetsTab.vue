@@ -40,6 +40,7 @@
       />
       <!-- Feature 037 · el cifrado es un activo del equipo, junto al resto. -->
       <q-tab name="encryption" :label="$t('agentTabs.assets.encryption')" />
+      <q-tab name="storage_media" :label="$t('agentTabs.assets.storageMedia')" />
     </q-tabs>
 
     <q-separator />
@@ -91,6 +92,9 @@
           :status="agentStatus"
         />
       </q-tab-panel>
+      <q-tab-panel name="storage_media">
+        <StorageMediaDetail v-if="selectedAgent" :agent-id="selectedAgent" />
+      </q-tab-panel>
     </q-tab-panels>
   </div>
 </template>
@@ -104,10 +108,11 @@ import { fetchAgent } from "@/api/agents";
 // ui imports
 import WmiDetail from "@/components/agents/WmiDetail.vue";
 import DiskEncryptionDetail from "@/components/agents/DiskEncryptionDetail.vue";
+import StorageMediaDetail from "@/components/agents/StorageMediaDetail.vue";
 
 export default {
   name: "AssetsTab",
-  components: { WmiDetail, DiskEncryptionDetail },
+  components: { WmiDetail, DiskEncryptionDetail, StorageMediaDetail },
   setup() {
     // setup vuex
     const store = useStore();

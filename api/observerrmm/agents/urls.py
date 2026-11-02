@@ -93,6 +93,9 @@ urlpatterns = [
     # habría duplicado el camino del `func: wmi` con otro nombre.
     path("diskencryption/", views.DiskEncryptionFleet.as_view()),
     path("<agent:agent_id>/diskencryption/", views.DiskEncryptionDetail.as_view()),
+    # Feature 055 · inventario de medios y categoría de sanitización alcanzable.
+    path("storagemedia/", views.StorageMediaFleet.as_view()),
+    path("<agent:agent_id>/storagemedia/", views.StorageMediaDetail.as_view()),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

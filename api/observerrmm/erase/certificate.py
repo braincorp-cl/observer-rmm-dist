@@ -81,9 +81,17 @@ EMPTY_CONCURRENCE = {"name": "", "role": "", "contact": "", "at": ""}
 
 # Campos que sólo el Bloque B (imagen live de borrado de disco) puede llenar. Se
 # emiten explícitos como N/A para que el certificado no mienta por omisión.
+#
+# 🔑 Feature 055 — `media` y `capacity_reported` SALIERON de acá. La afirmación
+# era falsa para esos dos: son **inventario del medio**, no medición del
+# borrado, y el agente los puede leer con el sistema operativo vivo. Lo que sí
+# sigue exigiendo el Bloque B es todo lo que describe la OPERACIÓN sobre el
+# medio completo: cuánto se borró de verdad, si había áreas ocultas, cuántas
+# pasadas, qué patrones, qué sectores fallaron y en qué entorno corrió.
+#
+# `smart_summary` se queda acá por decisión y no por olvido: los contadores de
+# fiabilidad son otra fuente, con otra latencia y otra discusión de retención.
 B_ONLY_NA = {
-    "media": None,
-    "capacity_reported": None,
     "capacity_erased": None,
     "hpa_dco_detected": "N/A (requiere Bloque B — imagen live)",
     "passes": None,
@@ -153,6 +161,12 @@ def build_document(
     media_disposition_detail: str = "",
     media_type: str = "",
     media_origin: str = "",
+    # Feature 055 · inventario del MEDIO, no del equipo. Nulo es "no consta",
+    # que es lo que corresponde cuando no hay inventario: el certificado no
+    # inventa un disco que nadie midió.
+    media: Optional[Dict[str, Any]] = None,
+    capacity_reported: Optional[int] = None,
+    media_type_measured: str = "",
     started_at: str = "",
     finished_at: str = "",
     last_known_location: Optional[Dict[str, Any]] = None,
@@ -188,8 +202,16 @@ def build_document(
         # la ola 1 no emitió (RF-09). El origen es el *Media Source* de la norma
         # —de dónde provino el medio, no dónde se almacenó—, así que se compone
         # del acta y no del lugar donde se lo recibió. Vacío = no consta.
+        # Lo que DECLARÓ el acta, tecleado por una persona.
         "media_type": media_type,
         "media_origin": media_origin,
+        # Lo que MIDIÓ el agente. Se emite aparte y nunca pisa lo declarado:
+        # cuando los dos existen y difieren, el documento muestra ambos. Esa
+        # discrepancia es justo lo que un certificado defendible tiene que
+        # exponer, no resolver en silencio.
+        "media_type_measured": media_type_measured,
+        "media": media,
+        "capacity_reported": capacity_reported,
         "started_at": started_at,
         "finished_at": finished_at,
         "last_known_location": last_known_location,
@@ -358,6 +380,42 @@ def _row(label: str, value: Any) -> str:
     return f"<tr><th>{label}</th><td>{html.escape(str(value))}</td></tr>"
 
 
+def _discrepancia_de_medio(d: Dict[str, Any]) -> str:
+    """Lo que el acta declaró frente a lo que el agente midió.
+
+    🔑 Sólo habla cuando los DOS existen y no coinciden. Que uno falte no es
+    discrepancia: es que no consta, y para eso ya está su propia fila vacía.
+
+    El documento expone el desacuerdo en vez de elegir un ganador. Un
+    certificado que silenciosamente prefiere una de las dos fuentes le quita al
+    lector la única señal de que alguien se equivocó — y esa señal es
+    exactamente lo que hace al documento defendible.
+    """
+    declarado = (d.get("media_type") or "").strip()
+    medido = (d.get("media_type_measured") or "").strip()
+    if not declarado or not medido:
+        return ""
+    if declarado.casefold() == medido.casefold():
+        return ""
+    return (
+        f"El acta declara «{declarado}» y la medición del equipo indica "
+        f"«{medido}». Ambos se conservan tal como se registraron."
+    )
+
+
+def _capacidad_legible(d: Dict[str, Any]) -> str:
+    """La capacidad en bytes, con su equivalente aproximado al lado.
+
+    Los bytes van primero porque son el dato exacto que se firmó; el redondeo
+    es una cortesía para el lector, no la fuente.
+    """
+    bytes_ = d.get("capacity_reported")
+    if not isinstance(bytes_, int) or bytes_ <= 0:
+        return ""
+    gb = bytes_ / 1_000_000_000
+    return f"{bytes_:,} bytes (~{gb:,.0f} GB)".replace(",", ".")
+
+
 def render_html(cert: EraseCertificate) -> str:
     d = cert.data
     equipment = d.get("equipment") or {}
@@ -413,7 +471,14 @@ def render_html(cert: EraseCertificate) -> str:
             f"<tr><th>Resultado de verificación</th><td>{verif_html}</td></tr>",
             _row("Cómo se verificó", d.get("verification_method")),
             _row("Constancia de la verificación", d.get("verification_evidence")),
-            _row("Tipo de medio", d.get("media_type")),
+            _row("Tipo de medio (declarado en el acta)", d.get("media_type")),
+            _row("Tipo de medio (medido por el agente)", d.get("media_type_measured")),
+            _row("Discrepancia del tipo de medio", _discrepancia_de_medio(d)),
+            _row("Modelo del medio", (d.get("media") or {}).get("model")),
+            _row("Fabricante del medio", (d.get("media") or {}).get("manufacturer")),
+            _row("Serie del medio", (d.get("media") or {}).get("serial")),
+            _row("Firmware del medio", (d.get("media") or {}).get("firmware")),
+            _row("Capacidad declarada del medio", _capacidad_legible(d)),
             _row("Origen del medio", d.get("media_origin")),
             _row("Destino final del medio", d.get("media_disposition")),
             _row("Detalle del destino", d.get("media_disposition_detail")),

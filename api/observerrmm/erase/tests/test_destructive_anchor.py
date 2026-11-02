@@ -58,7 +58,12 @@ class DestructiveAnchorTests(ObserverTestCase):
         )
 
     def _ordenar_wipe(self, **body):
-        payload = {"action": "crypto_erase", "reason": "baja del activo"}
+        # 🪤 La acción NO puede ser `crypto_erase`: desde la feature 055 la vista
+        # la rechaza con 409 ANTES de mirar el expediente (RF-10). Con ella, los
+        # casos que esperan 201 fallarían y —peor— los que esperan 409 pasarían
+        # por la razón equivocada, verificando un bloqueo distinto del que este
+        # archivo existe para probar.
+        payload = {"action": "fullwipe", "reason": "baja del activo"}
         payload.update(body)
         return self.client.post(
             f"/erase/agents/{self.agent.agent_id}/orders/", payload, format="json"
@@ -184,3 +189,60 @@ class DestructiveAnchorTests(ObserverTestCase):
         self.assertEqual(r.status_code, 201)
         order = FileRetrievalOrder.objects.get(pk=r.json()["id"])
         self.assertIsNone(order.lost_mode_cycle)
+
+
+class CryptoEraseNoSeOfreceTests(ObserverTestCase):
+    """Feature 055 · RF-10 — una promesa que no se puede cumplir se retira.
+
+    `crypto_erase` está en el enum desde la feature 039 y nunca tuvo
+    implementación posible. Se midió en staging el 2026-11-01 que la vía
+    aparente —quitar los protectores del cifrado del sistema operativo— deja la
+    clave maestra del volumen EN CLARO y el dato legible: no sólo no borra,
+    empeora la seguridad del equipo.
+
+    Se bloquea en la puerta HTTP y NO retirando el valor del enum: hay órdenes
+    históricas que lo referencian, y una columna no puede dejar de admitir lo
+    que ya guardó.
+    """
+
+    def setUp(self):
+        self.authenticate()
+        self.setup_coresettings()
+        self.client_obj = baker.make("clients.Client")
+        self.site = baker.make("clients.Site", client=self.client_obj)
+        self.agent = baker.make(
+            "agents.Agent", site=self.site, hostname="BOX-CE", agent_id="aid-ce"
+        )
+        LostModeState.objects.create(agent=self.agent, active=True, reason="robado")
+
+    def _ordenar(self, action):
+        return self.client.post(
+            f"/erase/agents/{self.agent.agent_id}/orders/",
+            {"action": action, "reason": "baja del activo"},
+            format="json",
+        )
+
+    def test_crypto_erase_se_rechaza_con_motivo_y_no_crea_orden(self):
+        antes = WipeOrder.objects.count()
+
+        r = self._ordenar("crypto_erase")
+
+        self.assertEqual(r.status_code, 409)
+        self.assertIn("crypto-erase", r.data["detail"].lower())
+        self.assertEqual(WipeOrder.objects.count(), antes)
+
+    def test_el_rechazo_gana_aunque_el_expediente_este_en_regla(self):
+        """El bloqueo no es un efecto secundario de otra guarda.
+
+        Este equipo tiene caso abierto, así que la guardia de expediente lo
+        dejaría pasar. Si el 409 desapareciera al arreglar el expediente, el
+        bloqueo estaría colgando de la guarda equivocada.
+        """
+        r = self._ordenar("crypto_erase")
+        self.assertEqual(r.status_code, 409)
+        self.assertNotIn("expediente", r.data["detail"].lower())
+
+    def test_las_demas_acciones_destructivas_siguen_pasando(self):
+        """🔑 El control que impide que el bloqueo se lleve puesto al resto."""
+        r = self._ordenar("fullwipe")
+        self.assertEqual(r.status_code, 201)

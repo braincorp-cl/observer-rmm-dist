@@ -78,11 +78,12 @@ from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
 from .diskencryption import filtro_por_estado
+from .mediosalmacenamiento import derivar_veredicto, filtro_por_veredicto
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
-    AgentActivityScreenshot,
     Agent,
     AgentActivityDaily,
+    AgentActivityScreenshot,
     AgentCustomField,
     AgentHistory,
     DiskEncryptionVolume,
@@ -90,6 +91,7 @@ from .models import (
     LostModePolicy,
     LostModeState,
     Note,
+    StorageMedium,
 )
 from .permissions import (
     AgentHistoryPerms,
@@ -125,6 +127,8 @@ from .serializers import (
     AgentSerializer,
     AgentTableSerializer,
     DiskEncryptionFleetSerializer,
+    StorageMediaFleetSerializer,
+    StorageMediumSerializer,
     DiskEncryptionHistorySerializer,
     DiskEncryptionVolumeSerializer,
     LostModeEvidenceSerializer,
@@ -3238,5 +3242,105 @@ class ActivityMonitoringOverview(APIView):
                 "global_enabled": core.activity_monitoring_enabled,
                 "monitored_agents": monitoreados,
                 "rules": reglas,
+            }
+        )
+
+
+class StorageMediaFleet(APIView):
+    """Feature 055 · el panel de categoría de sanitización alcanzable (RF-06).
+
+    Sin `agent_id` en la ruta: el alcance lo recorta `filter_by_role`, igual que
+    el resto de los listados. El inventario del medio lo ve quien ya puede ver
+    el agente, sin permiso nuevo — agregar uno propio para un dato de inventario
+    sólo serviría para que alguien se olvide de asignarlo.
+
+    🔑 El sujeto de la consulta es el AGENTE, no la tabla de medios, y esa
+    inversión es lo que hace posible el estado «sin dato»: un equipo sin reporte
+    no existiría en un listado que saliera de `StorageMedium`. Justo el que más
+    importa ver, además: el que nunca contestó.
+
+    Sólo agentes Windows. Esta fase no lee macOS ni Linux, y mostrarlos todos en
+    «sin dato» convertiría el panel en una lista de falsos desconocidos.
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request):
+        qs = (
+            Agent.objects.filter_by_role(request.user)  # type: ignore
+            .filter(plat=AgentPlat.WINDOWS)
+            .select_related("storage_media", "site__client")
+            .prefetch_related(
+                # El disco de sistema es lo único que el panel necesita de la
+                # tabla de medios. Sin este Prefetch, `derivar_veredicto` hace
+                # una consulta POR FILA: el N+1 clásico, y en una flota grande
+                # es la diferencia entre una pantalla y un tiempo de espera
+                # agotado.
+                Prefetch(
+                    "storage_media_devices",
+                    queryset=StorageMedium.objects.filter(
+                        is_system_disk=True, removable=False
+                    ),
+                    to_attr="system_disks",
+                )
+            )
+        )
+
+        if veredicto := request.query_params.get("verdict"):
+            filtro = filtro_por_veredicto(veredicto)
+            if filtro is None:
+                # Un filtro desconocido NO puede devolver la flota completa como
+                # si se hubiera aplicado: en un panel que informa decisiones de
+                # baja eso se lee como "todos tienen vía".
+                return notify_error(f"Unknown verdict filter: {veredicto}")
+            qs = qs.filter(filtro)
+
+        if client := request.query_params.get("client"):
+            qs = qs.filter(site__client_id=client)
+
+        if site := request.query_params.get("site"):
+            qs = qs.filter(site_id=site)
+
+        # distinct() porque los filtros por veredicto cruzan la tabla de medios:
+        # un agente con dos filas que matchean saldría dos veces.
+        return Response(
+            StorageMediaFleetSerializer(
+                qs.distinct().order_by("hostname"), many=True
+            ).data
+        )
+
+
+class StorageMediaDetail(APIView):
+    """Feature 055 · el detalle de un equipo (RF-01 y RF-09).
+
+    Devuelve TODOS los discos fijos, no sólo el de sistema: el veredicto del
+    equipo sale del de sistema (RN-03), pero un segundo disco sin vía de
+    sanitización es información que el operador quiere ver antes de prometer
+    algo, y esconderla sería decidir por él.
+
+    `query_error` viaja como CAUSA, no como ausencia: es la diferencia entre
+    «no pudimos leer este disco» y «este disco no puede sanitizarse» (RN-02).
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        discos = agent.storage_media_devices.filter(removable=False).order_by(
+            "-is_system_disk", "device_index", "pnp_device_id"
+        )
+        estado = getattr(agent, "storage_media", None)
+
+        return Response(
+            {
+                "agent_id": agent.agent_id,
+                "hostname": agent.hostname,
+                "verdict": derivar_veredicto(agent),
+                "supported": estado.supported if estado else None,
+                "query_error": estado.query_error if estado else None,
+                "capabilities_probed": (estado.capabilities_probed if estado else None),
+                "measured_at": estado.measured_at if estado else None,
+                "media": StorageMediumSerializer(discos, many=True).data,
             }
         )

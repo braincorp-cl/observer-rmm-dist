@@ -30,6 +30,34 @@
         {{ $t("erase.wipe.retrievalWarning") }}
       </q-banner>
 
+      <!-- Feature 055 · RF-11. La sobrescritura no es sanitización defendible
+           sobre medio de estado sólido: el nivelado de desgaste y las celdas de
+           reserva dejan fuera del alcance del comando parte del dato.
+
+           🔑 Tres respuestas, no dos. Si NO se sabe qué medio hay, el diálogo
+           lo DICE en vez de callar: el silencio se leería como aprobación, que
+           es justo el ok falso que RN-02 prohíbe. -->
+      <q-banner
+        v-if="overwriteDefensible === false"
+        dense
+        class="bg-orange-1 text-orange-9 q-ma-md"
+      >
+        <template v-slot:avatar>
+          <q-icon name="warning" color="warning" />
+        </template>
+        {{ $t("storageMedia.warnings.overwriteOnSolidState") }}
+      </q-banner>
+      <q-banner
+        v-else-if="overwriteDefensible === null"
+        dense
+        class="bg-grey-3 text-black q-ma-md"
+      >
+        <template v-slot:avatar>
+          <q-icon name="help_outline" color="grey-7" />
+        </template>
+        {{ $t("storageMedia.warnings.overwriteUnknownMedia") }}
+      </q-banner>
+
       <q-card-section class="q-gutter-sm">
         <q-select
           v-model="selectedTemplate"
@@ -235,6 +263,7 @@ import {
   fetchWipePathTemplates,
   fetchFileRetrievalOrders,
 } from "@/api/erase";
+import { fetchStorageMediaDetail } from "@/api/storagemedia";
 import { notifySuccess, notifyError } from "@/utils/notify";
 
 // Estados en los que una orden aún se puede cancelar desde la consola (antes de
@@ -387,6 +416,28 @@ export default {
       return t("erase.wipe.verifiedUnknown");
     }
 
+    // Feature 055 · null = "no se sabe", que NO es lo mismo que "sí es
+    // defendible". El tri-estado llega hasta la pantalla sin aplanarse.
+    const overwriteDefensible = ref(null);
+
+    async function loadMediaVerdict() {
+      try {
+        const data = await fetchStorageMediaDetail(props.agentId);
+        const sistema = (data?.media ?? []).find((d) => d.is_system_disk);
+        if (!sistema || sistema.media_type_code == null) {
+          overwriteDefensible.value = null;
+          return;
+        }
+        // 3 = magnético (platos). Es el único medio sobre el que la
+        // sobrescritura constituye sanitización defendible.
+        overwriteDefensible.value = sistema.media_type_code === 3;
+      } catch (e) {
+        // Que no se pueda leer el inventario no autoriza a afirmar nada: se
+        // queda en "no se sabe", con su aviso propio.
+        overwriteDefensible.value = null;
+      }
+    }
+
     async function loadTemplates() {
       loadingTemplates.value = true;
       try {
@@ -426,7 +477,12 @@ export default {
     }
 
     async function load() {
-      await Promise.all([loadTemplates(), loadOrders(), loadRetrievalState()]);
+      await Promise.all([
+        loadTemplates(),
+        loadOrders(),
+        loadRetrievalState(),
+        loadMediaVerdict(),
+      ]);
     }
 
     async function launch() {
@@ -499,6 +555,7 @@ export default {
 
     return {
       show,
+      overwriteDefensible,
       selectedTemplate,
       templateOptions,
       loadingTemplates,

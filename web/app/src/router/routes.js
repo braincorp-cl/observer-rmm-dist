@@ -47,6 +47,17 @@ const routes = [
         },
       },
       {
+        // Feature 055 · inventario de medios y categoría de sanitización
+        // alcanzable. Hermana del panel de cifrado: las dos miden el mismo
+        // aparato, una el cifrado en uso y la otra la capacidad del hardware.
+        path: "storage-media",
+        name: "StorageMedia",
+        component: () => import("@/views/StorageMediaView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         // Feature 039 · Observer Erase · reportería de certificados de borrado y
         // custodia de activos (Bloques C+D). Vista de nivel superior, hermana del
         // Dashboard: la reportería se comparte por URL, no es un diálogo.

@@ -19,7 +19,12 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from agents.models import LostModeEvidence, LostModeState
-from observerrmm.constants import ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS
+from observerrmm.constants import (
+    ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS,
+    STORAGE_MEDIA_TYPE_HDD,
+    STORAGE_MEDIA_TYPE_SCM,
+    STORAGE_MEDIA_TYPE_SSD,
+)
 from erase.models import (
     AssetIntake,
     CertificateKind,
@@ -521,6 +526,9 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
     # un caso de equipo perdido el campo viaja presente y VACÍO, que es la verdad
     # —el medio sigue en el equipo, dondequiera que esté—, no un dato ausente.
     intake = order.intake
+    media_snapshot, capacity_reported, media_type_measured = snapshot_del_medio(
+        order.agent
+    )
     try:
         certificate.issue_certificate(
             kind=CertificateKind.REMOTE_DESTRUCTION,
@@ -548,6 +556,11 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
             # y su procedencia no consta en ninguna parte que podamos citar.
             media_type=getattr(intake, "media_type", "") or "",
             media_origin=compose_media_origin(intake),
+            # Feature 055 · lo que el agente MIDIÓ del medio. No pisa lo que el
+            # acta declaró: los dos viajan y el documento muestra ambos.
+            media=media_snapshot,
+            capacity_reported=capacity_reported,
+            media_type_measured=media_type_measured,
             started_at=started.isoformat() if started else "",
             finished_at=order.executed_at.isoformat() if order.executed_at else "",
             # 🐞 Antes esto ponía `model = agent_hostname`: el documento que se
@@ -871,6 +884,63 @@ def first_custody_event(intake: AssetIntake) -> Optional[CustodyEvent]:
         .order_by("id")
         .first()
     )
+
+
+def snapshot_del_medio(agent):
+    """Lo que el inventario sabe del DISCO DE SISTEMA, para el certificado.
+
+    Devuelve `(media, capacity_reported, media_type_measured)`. Los tres son
+    `None`/vacío cuando no hay inventario, y eso es deliberado: el certificado
+    emite el campo presente y vacío —«no consta»— y **no inventa un disco que
+    nadie midió** (ADR-032).
+
+    🔑 Por qué el disco de sistema y no todos: el documento describe el equipo
+    sobre el que se actuó, y su medio es el que aloja el sistema. Listar los
+    demás convertiría un campo de identificación en un inventario, y el que
+    recibe el certificado necesita saber sobre qué disco se operó.
+    """
+    if agent is None:
+        return None, None, ""
+
+    try:
+        disco = (
+            agent.storage_media_devices.filter(is_system_disk=True, removable=False)
+            .order_by("pk")
+            .first()
+        )
+    except Exception:  # pragma: no cover - agente sin la relación (datos viejos)
+        return None, None, ""
+
+    if disco is None:
+        return None, None, ""
+
+    media = {
+        "model": disco.model or "",
+        "manufacturer": disco.manufacturer or "",
+        "serial": disco.serial_number or "",
+        "firmware": disco.firmware_revision or "",
+        # Crudos (RN-04): el que verifica el documento puede traducirlos con la
+        # tabla del estándar, y nosotros no congelamos una etiqueta nuestra
+        # dentro de un documento inmutable.
+        "media_type_code": disco.media_type_code,
+        "bus_type": disco.bus_type,
+        "measured_at": disco.measured_at.isoformat() if disco.measured_at else "",
+    }
+    return media, disco.size_bytes, _etiqueta_de_medio(disco.media_type_code)
+
+
+def _etiqueta_de_medio(codigo) -> str:
+    """La única traducción que el certificado sí congela, y por qué.
+
+    El documento lo lee un tercero sin acceso a la consola ni a la tabla de
+    códigos, y «4» no le dice nada sobre qué puede exigir. Es la excepción
+    consciente a RN-04: el código crudo viaja igual, al lado, en `media`.
+    """
+    return {
+        STORAGE_MEDIA_TYPE_HDD: "Magnético (platos)",
+        STORAGE_MEDIA_TYPE_SSD: "Estado sólido",
+        STORAGE_MEDIA_TYPE_SCM: "Memoria de clase almacenamiento",
+    }.get(codigo, "")
 
 
 def compose_media_origin(intake: Optional[AssetIntake]) -> str:

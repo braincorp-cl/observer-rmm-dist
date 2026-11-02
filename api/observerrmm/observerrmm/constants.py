@@ -792,3 +792,94 @@ class DiskEncryptionStatus(models.TextChoices):
 
 
 ALL_TIMEZONES = sorted(zoneinfo.available_timezones())
+
+
+# ---------------------------------------------------------------------------
+# Feature 055 · inventario de medios de almacenamiento
+# ---------------------------------------------------------------------------
+#
+# 🪤 Espejo: `natsapi/mediosalmacenamiento.go` escribe estas columnas sin
+# interpretar ninguno de estos códigos (RN-04). Si acá se agrega un valor, el
+# que tiene que enterarse es el frontend, no el microservicio Go.
+#
+# Los valores son los que entrega `MSFT_PhysicalDisk` del espacio de nombres
+# `root\Microsoft\Windows\Storage`. Se guardan CRUDOS y se traducen sólo en la
+# consola.
+
+# `MediaType`: lo único que distingue un plato de una memoria de estado sólido.
+# `Win32_DiskDrive.MediaType` NO sirve para esto — devuelve "Fixed hard disk
+# media" tanto para un NVMe como para un disco de platos, medido sobre los cinco
+# tenants PROD el 2026-11-01.
+STORAGE_MEDIA_TYPE_UNSPECIFIED = 0
+STORAGE_MEDIA_TYPE_HDD = 3
+STORAGE_MEDIA_TYPE_SSD = 4
+STORAGE_MEDIA_TYPE_SCM = 5
+
+# `BusType`. Sólo se nombran los que el veredicto necesita; el resto viaja igual
+# y la consola lo muestra como código.
+STORAGE_BUS_TYPE_UNKNOWN = 0
+STORAGE_BUS_TYPE_ATA = 3
+STORAGE_BUS_TYPE_USB = 7
+STORAGE_BUS_TYPE_RAID = 8
+STORAGE_BUS_TYPE_SAS = 10
+STORAGE_BUS_TYPE_SATA = 11
+# 🔑 Los dos buses que delatan un disco virtualizado: el medio real está en otra
+# parte y ninguna categoría del estándar aplica al disco que el SO ve.
+STORAGE_BUS_TYPE_FILE_BACKED_VIRTUAL = 15
+STORAGE_BUS_TYPE_STORAGE_SPACES = 16
+STORAGE_BUS_TYPE_NVME = 17
+
+STORAGE_VIRTUAL_BUS_TYPES = (
+    STORAGE_BUS_TYPE_FILE_BACKED_VIRTUAL,
+    STORAGE_BUS_TYPE_STORAGE_SPACES,
+)
+
+# 🪤 `SpindleSpeed` tiene un centinela traicionero: 0xFFFFFFFF significa
+# "rotativo de velocidad desconocida", y es lo que reporta un disco presentado
+# por un controlador RAID. Tomarlo por una velocidad real haría pasar por plato
+# a cualquier cosa detrás de un RAID — y declarar defendible una sobrescritura
+# que no lo es. Por eso la velocidad CONFIRMA un magnético y nunca lo decide.
+STORAGE_SPINDLE_SPEED_NON_ROTATIONAL = 0
+STORAGE_SPINDLE_SPEED_UNKNOWN_ROTATIONAL = 0xFFFFFFFF
+
+
+class StorageSelfEncryption(models.IntegerChoices):
+    """Tri-estado del autocifrado del medio.
+
+    «Capaz» y «habilitado» son cosas distintas y de la diferencia depende que el
+    crypto-erase sea posible. El NULO de la columna es un cuarto estado que no
+    vive acá: «no se determinó», que es lo que vale mientras la lectura de
+    capacidades no esté habilitada (RN-02).
+    """
+
+    NOT_CAPABLE = 0, "No capaz"
+    CAPABLE = 1, "Capaz, no habilitado"
+    ENABLED = 2, "Habilitado"
+
+
+class StorageSanitizationVerdict(models.TextChoices):
+    """Qué categoría del estándar es alcanzable sobre un equipo (RF-05).
+
+    No es una columna: se DERIVA del disco de sistema (RN-03), igual que el
+    veredicto de cifrado se deriva del volumen de sistema. Existe como
+    enumeración porque es el vocabulario del filtro del panel.
+
+    🔑 `NO_DATA` y `NO_CATEGORY` son dos cosas distintas y no se funden jamás
+    (RN-02): el primero es «no sabemos» y el segundo es «lo medimos y no hay
+    ninguna». Fusionarlos mostraría como irrecuperable un disco perfectamente
+    purgable, o —peor— al revés.
+    """
+
+    # Autocifrado disponible: sanitización en segundos, sin tocar el equipo.
+    PURGE_REMOTE = "purge_remote", "Purge remoto"
+    # El firmware acepta un comando de sanitización, pero exige el SO fuera.
+    PURGE_LIVE_IMAGE = "purge_live_image", "Purge con imagen live"
+    # Medio magnético: la sobrescritura sí es defendible como Clear.
+    CLEAR_REMOTE = "clear_remote", "Clear remoto"
+    # El medio real está en otra parte. Ninguna categoría aplica al disco que el
+    # sistema operativo ve.
+    VIRTUAL_MEDIA = "virtual_media", "Medio virtualizado"
+    # Se midió y no hay categoría alcanzable: sólo queda sanitización parcial.
+    NO_CATEGORY = "no_category", "Sin categoría alcanzable"
+    # Nunca reportó, la consulta falló, o el reporte no trae disco de sistema.
+    NO_DATA = "no_data", "Sin dato"

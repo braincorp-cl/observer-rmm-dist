@@ -7,12 +7,12 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/braincorp-cl/observer-rmm-dist/natsapi/shared"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	nats "github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/ugorji/go/codec"
-	"github.com/braincorp-cl/observer-rmm-dist/natsapi/shared"
 )
 
 // geoCheckHistoryID: centinela de check_id para las filas de geolocalización en
@@ -269,6 +269,17 @@ func Svc(logger *logrus.Logger, cfg string) {
 						return
 					}
 					guardarDiskEncryption(db, logger, r.Agentid, d.WMI.DiskEncryption)
+
+					// Feature 055 · el inventario de medios sigue el mismo camino y por
+					// la misma razón: los punteros del sobre distinguen "no se leyó" de
+					// un cero legítimo, y el mapa de arriba los aplasta. Decoder nuevo
+					// otra vez, porque cada uno consume los bytes.
+					var sm shared.WinWMIStorageMediaNats
+					if err := codec.NewDecoderBytes(msg.Data, &mh).Decode(&sm); err != nil {
+						logger.Debugln("Medios: no se pudo decodificar el bloque:", err)
+						return
+					}
+					guardarMediosAlmacenamiento(db, logger, r.Agentid, sm.WMI.StorageMedia)
 				}
 			}()
 

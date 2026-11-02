@@ -11,6 +11,7 @@ from observerrmm.constants import (
 from winupdate.serializers import WinUpdatePolicySerializer
 
 from .diskencryption import derivar_estado, volumen_de_sistema
+from .mediosalmacenamiento import derivar_veredicto, disco_de_sistema
 from .models import (
     AgentActivityDaily,
     Agent,
@@ -22,6 +23,7 @@ from .models import (
     LostModePolicy,
     LostModeState,
     Note,
+    StorageMedium,
 )
 
 
@@ -442,3 +444,97 @@ class AgentActivityDailySerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentActivityDaily
         fields = ["date", "data", "partial", "updated"]
+
+
+class StorageMediumSerializer(serializers.ModelSerializer):
+    """Feature 055 · un disco físico del detalle del equipo (RF-01).
+
+    Los códigos van crudos (RN-04): la consola traduce. `measured_at` viaja por
+    disco porque es lo que contesta «¿qué tan viejo es esto?», y en un panel que
+    informa decisiones de baja la edad del dato es parte del dato.
+    """
+
+    class Meta:
+        model = StorageMedium
+        fields = (
+            "pnp_device_id",
+            "device_index",
+            "model",
+            "manufacturer",
+            "serial_number",
+            "firmware_revision",
+            "size_bytes",
+            "bus_type",
+            "media_type_code",
+            "spindle_speed",
+            "is_system_disk",
+            "is_virtual",
+            "self_encrypting",
+            "sanitize_capabilities",
+            "measured_at",
+        )
+
+
+class StorageMediaFleetSerializer(serializers.ModelSerializer):
+    """Feature 055 · una fila del panel de flota (RF-06).
+
+    El sujeto es el AGENTE y no el disco, y ahí está la decisión: un equipo
+    ocupa una línea con el veredicto de su disco de sistema (RN-03). Si la fila
+    fuera el disco, un equipo con tres unidades aparecería tres veces y el
+    conteo —«cuántos equipos no tienen vía de sanitización»— dejaría de ser
+    legible.
+
+    `verdict` NO es una columna: se deriva en `mediosalmacenamiento.py`, que es
+    también donde vive la versión SQL que usa el filtro.
+    """
+
+    hostname = serializers.ReadOnlyField()
+    client_name = serializers.ReadOnlyField(source="client.name")
+    site_name = serializers.ReadOnlyField(source="site.name")
+    verdict = serializers.SerializerMethodField()
+    supported = serializers.SerializerMethodField()
+    query_error = serializers.SerializerMethodField()
+    capabilities_probed = serializers.SerializerMethodField()
+    measured_at = serializers.SerializerMethodField()
+    system_disk = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Agent
+        fields = (
+            "agent_id",
+            "hostname",
+            "plat",
+            "client_name",
+            "site_name",
+            "verdict",
+            "supported",
+            "query_error",
+            "capabilities_probed",
+            "measured_at",
+            "system_disk",
+        )
+
+    def get_verdict(self, obj) -> str:
+        return derivar_veredicto(obj)
+
+    def get_supported(self, obj) -> Optional[bool]:
+        # Un equipo que nunca reportó no es "soportado" ni "no soportado": no
+        # sabemos. El nulo lo dice; un `True` por omisión afirmaría de más.
+        estado = getattr(obj, "storage_media", None)
+        return estado.supported if estado else None
+
+    def get_query_error(self, obj):
+        estado = getattr(obj, "storage_media", None)
+        return estado.query_error if estado else None
+
+    def get_capabilities_probed(self, obj) -> Optional[bool]:
+        estado = getattr(obj, "storage_media", None)
+        return estado.capabilities_probed if estado else None
+
+    def get_measured_at(self, obj):
+        estado = getattr(obj, "storage_media", None)
+        return estado.measured_at if estado else None
+
+    def get_system_disk(self, obj):
+        disco = disco_de_sistema(obj)
+        return StorageMediumSerializer(disco).data if disco else None

@@ -88,7 +88,8 @@
     "bulkStopAlarm": "Detener alarma en masa",
     "eraseCertificates": "Certificados de borrado",
     "eraseOrders": "Órdenes de borrado",
-    "activityLive": "Monitoreo en vivo"
+    "activityLive": "Monitoreo en vivo",
+    "storageMedia": "Medios de almacenamiento"
   },
   "setup": {
     "gettingStarted": "Primeros pasos",
@@ -733,7 +734,8 @@
       "graphics": "Gráficos",
       "desktopMonitor": "Monitores",
       "networkAdapter": "Adaptadores de red",
-      "encryption": "Cifrado"
+      "encryption": "Cifrado",
+      "storageMedia": "Medios"
     },
     "debug": "Depuración",
     "audit": "Auditoría",
@@ -3691,5 +3693,85 @@
     "state_timeout": "El equipo no respondió",
     "state_espera": "Espera unos segundos antes de pedir otra",
     "state_offline": "El equipo está sin conexión"
+  },
+  "storageMedia": {
+    "title": "Medios de almacenamiento",
+    "refresh": "Actualizar",
+    "loading": "Cargando…",
+    "noData": "No hay equipos que mostrar.",
+    "windowsOnlyNotice": "Este panel cubre sólo equipos Windows: es la única plataforma que reporta el medio en esta fase. Los equipos macOS y Linux no aparecen acá.",
+    "filterVerdict": "Categoría alcanzable",
+    "filterClient": "Cliente",
+    "filterSite": "Sitio",
+    "colHostname": "Equipo",
+    "colClient": "Cliente",
+    "colSite": "Sitio",
+    "colVerdict": "Categoría alcanzable",
+    "colMedia": "Medio del sistema",
+    "colMeasuredAt": "Última medición",
+    "verdict": {
+      "purge_remote": "Purge remoto",
+      "purge_live_image": "Purge con imagen live",
+      "clear_remote": "Clear remoto",
+      "virtual_media": "Medio virtualizado",
+      "no_category": "Sin categoría alcanzable",
+      "no_data": "Sin dato"
+    },
+    "verdictHelp": {
+      "purge_remote": "El disco es autocifrado y su clave está en uso: la sanitización toma segundos y no exige tocar el equipo.",
+      "purge_live_image": "El firmware acepta un comando de sanitización, pero exige arrancar el equipo fuera de su sistema operativo.",
+      "clear_remote": "Medio magnético: la sobrescritura sí constituye sanitización defendible.",
+      "virtual_media": "El medio real está en otra parte. Ninguna categoría del estándar aplica al disco que el sistema operativo ve.",
+      "no_category": "Se midió y no hay categoría alcanzable: sólo queda sanitización parcial por rutas.",
+      "no_data": "No se sabe. No es lo mismo que «no hay vía»: este equipo no reportó, o la consulta falló."
+    },
+    "mediaType": {
+      "0": "Sin especificar",
+      "3": "Magnético (platos)",
+      "4": "Estado sólido",
+      "5": "Memoria de clase almacenamiento",
+      "unknown": "Desconocido"
+    },
+    "busType": {
+      "3": "ATA",
+      "7": "USB",
+      "8": "RAID",
+      "10": "SAS",
+      "11": "SATA",
+      "15": "Virtual (respaldado por archivo)",
+      "16": "Espacios de almacenamiento",
+      "17": "NVMe",
+      "unknown": "Desconocido"
+    },
+    "selfEncrypting": {
+      "0": "No capaz",
+      "1": "Capaz, no habilitado",
+      "2": "Habilitado",
+      "unknown": "No se determinó"
+    },
+    "detail": {
+      "title": "Discos del equipo",
+      "systemDisk": "Disco de sistema",
+      "model": "Modelo",
+      "manufacturer": "Fabricante",
+      "serial": "Número de serie",
+      "firmware": "Firmware",
+      "capacity": "Capacidad",
+      "bus": "Bus",
+      "mediaType": "Tipo de medio",
+      "spindleSpeed": "Velocidad de giro",
+      "selfEncrypting": "Autocifrado",
+      "sanitizeCapabilities": "Comandos de sanitización",
+      "measuredAt": "Medido",
+      "notProbed": "No se sondearon las capacidades de este disco.",
+      "queryError": "No se pudo leer el inventario de medios de este equipo.",
+      "noMedia": "Este equipo todavía no reportó sus discos.",
+      "pair": "{label}: {value}"
+    },
+    "warnings": {
+      "overwriteOnSolidState": "Este equipo tiene un disco de estado sólido: la sobrescritura NO constituye sanitización defendible sobre ese medio. El certificado declarará el alcance real.",
+      "overwriteUnknownMedia": "No se sabe qué medio tiene este equipo, así que no se puede afirmar que la sobrescritura sea defendible sobre él.",
+      "cryptoEraseUnavailable": "El crypto-erase remoto no está disponible: ningún medio inventariado lo sostiene."
+    }
   }
 }

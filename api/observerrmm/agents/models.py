@@ -1787,3 +1787,114 @@ class AgentActivityScreenshot(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agent.hostname} - captura {self.captured_at:%Y-%m-%d %H:%M}"
+
+
+class StorageMediaState(models.Model):
+    """Lo que sabemos del ALMACENAMIENTO de un equipo en su último reporte.
+
+    Molde literal de `DiskEncryptionState` (feature 037), y por el mismo motivo:
+    la fila separa «no sabemos» de «no hay». Su ausencia es el estado «sin dato»
+    del panel y por eso no se crea nunca por adelantado ni con backfill — un
+    agente que no manda el bloque no tiene fila (RN-02).
+
+    Los tres estados que esta fila distingue:
+
+    * `supported=False` → el sistema operativo no expone la fuente de
+      almacenamiento. No es incumplimiento.
+    * `query_error` con texto → no sabemos. **Jamás se muestra como «sin
+      categoría alcanzable»**.
+    * `supported=True` y sin error → el veredicto sale de los discos.
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    agent = models.OneToOneField(
+        Agent,
+        related_name="storage_media",
+        on_delete=models.CASCADE,
+    )
+    supported = models.BooleanField(default=True)
+    query_error = models.TextField(null=True, blank=True)
+    # 🔑 Campo propio de esta feature, sin equivalente en el molde de la 037.
+    #
+    # El inventario llega en dos mitades que se despliegan por separado: la de
+    # WMI (identidad y tipo de medio) y la de capacidades de sanitización. Sin
+    # este campo, un agente que trae la primera y no la segunda —porque la sonda
+    # de estabilidad la dejó fuera, o porque el equipo es de 32 bits— sería
+    # indistinguible de un disco que de verdad no soporta ningún comando de
+    # sanitización. Es RN-02 aplicada al caso que el despliegue por fases hace
+    # inevitable.
+    capabilities_probed = models.BooleanField(default=False)
+    # Fecha del REPORTE, no del cambio. Es la "edad del dato" que el panel tiene
+    # que mostrar: un tablero de cumplimiento sin ella induce a error.
+    measured_at = models.DateTimeField()
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {'soportado' if self.supported else 'no soportado'}"
+
+
+class StorageMedium(models.Model):
+    """Un DISCO FÍSICO FIJO del equipo (RF-01).
+
+    Los medios extraíbles no entran (RN-09), y la exclusión no puede apoyarse en
+    el bus: medido el 2026-11-01 sobre los cinco tenants PROD, 29 de 1.305
+    discos se declaran extraíbles y llegan igual con bus `SCSI`. El filtro
+    `InterfaceType == "USB"` de `Agent.physical_disks` no atrapa ninguno.
+
+    Los códigos se guardan **crudos**, como los entrega el sistema (RN-04): la
+    traducción a etiqueta vive en la consola.
+
+    Los nulos son datos, no huecos: `size_bytes` nulo es «no se leyó» y **no**
+    cero; `self_encrypting` nulo es «no se determinó» y **no** «no capaz»;
+    `sanitize_capabilities` nulo es «no se intentó» mientras que `{}` es «se
+    intentó y no declara ninguna».
+    """
+
+    objects = PermissionQuerySet.as_manager()
+
+    agent = models.ForeignKey(
+        Agent,
+        related_name="storage_media_devices",
+        on_delete=models.CASCADE,
+    )
+    # Clave del upsert junto con el agente. Es el identificador del dispositivo
+    # en el árbol de hardware: estable entre reportes, a diferencia de
+    # `\\.\PHYSICALDRIVE0`, que depende del orden de enumeración.
+    pnp_device_id = models.CharField(max_length=512)
+    # El índice de enumeración, informativo. No es clave justamente porque
+    # cambia de orden entre arranques.
+    device_index = models.PositiveSmallIntegerField(null=True, blank=True)
+    model = models.CharField(max_length=255, blank=True, default="")
+    manufacturer = models.CharField(max_length=255, blank=True, default="")
+    # Vacío es DATO, no fallo: 1 de 1.305 discos del parque no lo trae.
+    serial_number = models.CharField(max_length=255, blank=True, default="")
+    firmware_revision = models.CharField(max_length=64, blank=True, default="")
+    size_bytes = models.BigIntegerField(null=True, blank=True)
+    bus_type = models.PositiveSmallIntegerField(null=True, blank=True)
+    media_type_code = models.PositiveSmallIntegerField(null=True, blank=True)
+    # 🪤 0xFFFFFFFF es "rotativo de velocidad desconocida" y lo reporta un disco
+    # detrás de un RAID. Por eso este campo CONFIRMA un magnético y nunca lo
+    # decide solo. `BigIntegerField` porque el centinela no cabe en `Integer`.
+    spindle_speed = models.BigIntegerField(null=True, blank=True)
+    # Lo decide el AGENTE (RN-03), único que sabe cuál aloja el sistema. La
+    # consola no lo recalcula.
+    is_system_disk = models.BooleanField(default=False)
+    is_virtual = models.BooleanField(default=False)
+    # Defensa en profundidad: si un extraíble se cuela pese al filtro del
+    # agente, la consulta del panel lo excluye igual.
+    removable = models.BooleanField(default=False)
+    self_encrypting = models.PositiveSmallIntegerField(null=True, blank=True)
+    sanitize_capabilities = models.JSONField(null=True, blank=True)
+    measured_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = (("agent", "pnp_device_id"),)
+        indexes = [
+            # El panel filtra por veredicto sobre el disco de sistema. Sin este
+            # índice, la vista de flota recorre la tabla entera — la misma
+            # lección que `DiskEncryptionVolume` ya pagó.
+            models.Index(fields=["is_system_disk", "media_type_code"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.agent.hostname} - {self.model or self.pnp_device_id}"

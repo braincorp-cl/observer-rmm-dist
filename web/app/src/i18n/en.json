@@ -88,7 +88,8 @@
     "bulkStopAlarm": "Bulk stop alarm",
     "eraseCertificates": "Erase certificates",
     "eraseOrders": "Erase orders",
-    "activityLive": "Live monitoring"
+    "activityLive": "Live monitoring",
+    "storageMedia": "Storage media"
   },
   "setup": {
     "gettingStarted": "Getting Started",
@@ -733,7 +734,8 @@
       "graphics": "Graphics",
       "desktopMonitor": "Monitors",
       "networkAdapter": "Network Adapters",
-      "encryption": "Encryption"
+      "encryption": "Encryption",
+      "storageMedia": "Media"
     },
     "debug": "Debug",
     "audit": "Audit",
@@ -3691,5 +3693,85 @@
     "state_timeout": "The device did not respond",
     "state_espera": "Wait a few seconds before requesting another",
     "state_offline": "The device is offline"
+  },
+  "storageMedia": {
+    "title": "Storage media",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "noData": "No devices to show.",
+    "windowsOnlyNotice": "This panel covers Windows devices only: it is the only platform reporting media in this phase. macOS and Linux devices do not appear here.",
+    "filterVerdict": "Reachable category",
+    "filterClient": "Client",
+    "filterSite": "Site",
+    "colHostname": "Device",
+    "colClient": "Client",
+    "colSite": "Site",
+    "colVerdict": "Reachable category",
+    "colMedia": "System media",
+    "colMeasuredAt": "Last measured",
+    "verdict": {
+      "purge_remote": "Remote purge",
+      "purge_live_image": "Purge via live image",
+      "clear_remote": "Remote clear",
+      "virtual_media": "Virtualized media",
+      "no_category": "No reachable category",
+      "no_data": "No data"
+    },
+    "verdictHelp": {
+      "purge_remote": "The disk is self-encrypting with its key in use: sanitization takes seconds and does not require touching the device.",
+      "purge_live_image": "The firmware accepts a sanitize command, but it requires booting the device outside its operating system.",
+      "clear_remote": "Magnetic media: overwriting does constitute defensible sanitization.",
+      "virtual_media": "The real medium is elsewhere. No category of the standard applies to the disk the operating system sees.",
+      "no_category": "Measured, and no category is reachable: only partial path-based sanitization remains.",
+      "no_data": "Unknown. This is not the same as «no path available»: this device has not reported, or the query failed."
+    },
+    "mediaType": {
+      "0": "Unspecified",
+      "3": "Magnetic (platters)",
+      "4": "Solid state",
+      "5": "Storage class memory",
+      "unknown": "Unknown"
+    },
+    "busType": {
+      "3": "ATA",
+      "7": "USB",
+      "8": "RAID",
+      "10": "SAS",
+      "11": "SATA",
+      "15": "Virtual (file backed)",
+      "16": "Storage Spaces",
+      "17": "NVMe",
+      "unknown": "Unknown"
+    },
+    "selfEncrypting": {
+      "0": "Not capable",
+      "1": "Capable, not enabled",
+      "2": "Enabled",
+      "unknown": "Not determined"
+    },
+    "detail": {
+      "title": "Device disks",
+      "systemDisk": "System disk",
+      "model": "Model",
+      "manufacturer": "Manufacturer",
+      "serial": "Serial number",
+      "firmware": "Firmware",
+      "capacity": "Capacity",
+      "bus": "Bus",
+      "mediaType": "Media type",
+      "spindleSpeed": "Spindle speed",
+      "selfEncrypting": "Self-encryption",
+      "sanitizeCapabilities": "Sanitize commands",
+      "measuredAt": "Measured",
+      "notProbed": "Capabilities were not probed for this disk.",
+      "queryError": "The storage media inventory for this device could not be read.",
+      "noMedia": "This device has not reported its disks yet.",
+      "pair": "{label}: {value}"
+    },
+    "warnings": {
+      "overwriteOnSolidState": "This device has a solid state disk: overwriting does NOT constitute defensible sanitization on that medium. The certificate will state the real scope.",
+      "overwriteUnknownMedia": "The medium of this device is unknown, so overwriting cannot be claimed to be defensible on it.",
+      "cryptoEraseUnavailable": "Remote crypto-erase is not available: no inventoried medium supports it."
+    }
   }
 }

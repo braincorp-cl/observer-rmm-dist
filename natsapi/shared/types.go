@@ -134,3 +134,60 @@ type WinWMIDiskEncryptionNats struct {
 		DiskEncryption *DiskEncryption `json:"disk_encryption"`
 	} `json:"wmi"`
 }
+
+// ---------------------------------------------------------------------------
+// Feature 055 · inventario de medios de almacenamiento
+// ---------------------------------------------------------------------------
+
+// MedioAlmacenamiento es un disco fisico fijo tal como lo manda el agente.
+//
+// Los punteros se conservan por la misma razon que en DiskEncryptionVolume: un
+// nulo y un cero se vuelven indistinguibles en cuanto pasan por interface{}, y
+// aca la diferencia es el dato. SizeBytes nulo es "no se leyo" y NO cero.
+// SelfEncrypting nulo es "no se determino" y NO "no capaz". SanitizeCapabilities
+// nulo es "no se intento"; un mapa vacio es "se intento y no declara ninguna".
+type MedioAlmacenamiento struct {
+	PnpDeviceID      string  `json:"pnp_device_id"`
+	DeviceIndex      *uint16 `json:"device_index"`
+	Model            string  `json:"model"`
+	Manufacturer     string  `json:"manufacturer"`
+	SerialNumber     string  `json:"serial_number"`
+	FirmwareRevision string  `json:"firmware_revision"`
+	SizeBytes        *uint64 `json:"size_bytes"`
+	BusType          *uint16 `json:"bus_type"`
+	MediaTypeCode    *uint16 `json:"media_type_code"`
+	SpindleSpeed     *uint32 `json:"spindle_speed"`
+	IsSystemDisk     bool    `json:"is_system_disk"`
+	IsVirtual        bool    `json:"is_virtual"`
+	Removable        bool    `json:"removable"`
+
+	SelfEncrypting       *uint16                `json:"self_encrypting"`
+	SanitizeCapabilities map[string]interface{} `json:"sanitize_capabilities"`
+}
+
+// MediosAlmacenamiento es el sobre que viaja bajo la clave "storage_media".
+//
+// Tres campos para tres estados que se parecen y no lo son: el sistema no
+// expone la fuente de almacenamiento (Soportado=false), la consulta fallo
+// (Error != nil) o no hay discos fijos (Discos vacio, resultado legitimo).
+// Ninguno se persiste como "sin categoria alcanzable".
+type MediosAlmacenamiento struct {
+	Soportado            bool                  `json:"soportado"`
+	Error                *string               `json:"error"`
+	CapacidadesSondeadas bool                  `json:"capacidades_sondeadas"`
+	Discos               []MedioAlmacenamiento `json:"discos"`
+}
+
+// WinWMIStorageMediaNats es el MISMO mensaje "agent-wmi", decodificado una
+// segunda vez para sacar el bloque de medios tipado.
+//
+// El puntero nulo es la senal de "sin dato" y no un caso de borde: un agente
+// anterior a esta feature no manda la clave, y ahi "sin dato" tiene que ser
+// ausencia de fila, no una fila que afirme que el equipo no tiene medio
+// sanitizable.
+type WinWMIStorageMediaNats struct {
+	Agentid string `json:"agent_id"`
+	WMI     struct {
+		StorageMedia *MediosAlmacenamiento `json:"storage_media"`
+	} `json:"wmi"`
+}

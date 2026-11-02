@@ -31,7 +31,9 @@ class WipeOrderApiTests(ObserverTestCase):
     def _crear_orden(self):
         return self.client.post(
             f"/erase/agents/{self.agent.agent_id}/orders/",
-            {"action": "crypto_erase", "reason": "equipo robado"},
+            # `fullwipe` y no `crypto_erase`: la vista rechaza esta última con
+            # 409 desde la feature 055 (RF-10), y acá se prueba otra cosa.
+            {"action": "fullwipe", "reason": "equipo robado"},
             format="json",
         )
 

@@ -88,6 +88,30 @@ class WipeOrderCreate(APIView):
         action = s.validated_data["action"]
         scope = s.validated_data.get("scope") or {}
 
+        # Feature 055 · RF-10. `crypto_erase` existe en el enum desde la 039 y
+        # HOY ES INCUMPLIBLE: no hay vía remota que destruya la clave de un
+        # medio. Se midió en staging el 2026-11-01 que quitar el único
+        # protector del cifrado del sistema operativo deja la clave maestra del
+        # volumen EN CLARO y el dato legible — implementarlo así no sólo no
+        # borra: empeora la seguridad del equipo.
+        #
+        # 🔑 Se bloquea acá, en la puerta HTTP, y no retirando el valor del
+        # enum: hay órdenes históricas que lo referencian y una columna no
+        # puede dejar de admitir lo que ya guardó. La vista cubre consola, API
+        # y llave de integración, que son las tres puertas que existen.
+        if action == EraseAction.CRYPTO_ERASE:
+            return Response(
+                {
+                    "detail": (
+                        "El crypto-erase remoto no está disponible: ningún medio "
+                        "inventariado lo sostiene. Exige un disco autocifrado y "
+                        "una vía que destruya su clave, que el endpoint con el "
+                        "sistema operativo vivo no puede ofrecer."
+                    )
+                },
+                status=409,
+            )
+
         # wipe (feature 043): materializa las rutas = plantilla + ajustes (RN-07) y
         # valida el tope por orden (RF-07) ANTES de crear. Las órdenes ya emitidas no
         # se alteran si la plantilla cambia después: se congela en `scope`.

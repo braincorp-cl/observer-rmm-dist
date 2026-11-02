@@ -596,3 +596,136 @@ class EntropiaDelIdentificadorTests(ObserverTestCase):
         # un solo par esto es débil a propósito: lo que caza es un prefijo fijo.
         distintos = sum(1 for x, y in zip(a, b) if x != y)
         self.assertGreaterEqual(distintos, 5, f"{a} y {b} se parecen demasiado")
+
+
+class MedioEnElCertificadoTests(_Base):
+    """Feature 055 · el documento publica el MEDIO cuando lo sabe, y sólo ahí.
+
+    Tres campos del Apéndice C —`media`, `capacity_reported` y el modelo/serie
+    del medio— salían en blanco porque `B_ONLY_NA` los declaraba exclusivos del
+    Bloque B. Para esos tres la afirmación era falsa: son inventario, no
+    medición del borrado, y el agente los lee con el sistema operativo vivo.
+    """
+
+    def _inventario(self, **kw):
+        from agents.models import StorageMediaState, StorageMedium
+        from django.utils import timezone as djangotime
+
+        StorageMediaState.objects.get_or_create(
+            agent=self.agent,
+            defaults={
+                "supported": True,
+                "capabilities_probed": False,
+                "measured_at": djangotime.now(),
+            },
+        )
+        datos = dict(
+            pnp_device_id="PNP-SISTEMA",
+            model="WD PC SN5000S",
+            manufacturer="Western Digital",
+            serial_number="SN-MEDIO-9977",
+            firmware_revision="21150000",
+            size_bytes=512_110_190_592,
+            media_type_code=4,
+            bus_type=17,
+            is_system_disk=True,
+            removable=False,
+            measured_at=djangotime.now(),
+        )
+        datos.update(kw)
+        return StorageMedium.objects.create(agent=self.agent, **datos)
+
+    def test_con_inventario_el_documento_publica_el_medio(self):
+        self._inventario()
+        cert = self._wipe_certificado()
+        d = cert.data
+
+        self.assertEqual(d["media"]["model"], "WD PC SN5000S")
+        self.assertEqual(d["media"]["serial"], "SN-MEDIO-9977")
+        self.assertEqual(d["media"]["firmware"], "21150000")
+        self.assertEqual(d["capacity_reported"], 512_110_190_592)
+
+    def test_sin_inventario_los_campos_del_medio_van_vacios_y_no_se_inventan(self):
+        """El control que impide que el certificado rellene lo que no midió."""
+        cert = self._wipe_certificado()
+        d = cert.data
+
+        self.assertIn("media", d)
+        self.assertIsNone(d["media"])
+        self.assertIsNone(d["capacity_reported"])
+        self.assertEqual(d["media_type_measured"], "")
+
+    def test_el_medio_que_viaja_es_el_del_disco_de_SISTEMA(self):
+        """Un disco de datos no puede ocupar la casilla del medio del equipo."""
+        self._inventario(
+            pnp_device_id="PNP-DATOS",
+            is_system_disk=False,
+            model="Disco de datos",
+            serial_number="SN-DATOS",
+        )
+        self._inventario()  # el de sistema
+
+        cert = self._wipe_certificado()
+        self.assertEqual(cert.data["media"]["serial"], "SN-MEDIO-9977")
+
+    def test_un_disco_extraible_nunca_llega_al_certificado(self):
+        self._inventario(
+            pnp_device_id="PNP-USB",
+            removable=True,
+            model="Disco externo",
+            serial_number="SN-USB",
+        )
+        cert = self._wipe_certificado()
+        self.assertIsNone(cert.data["media"])
+
+    def test_lo_declarado_y_lo_medido_conviven_sin_pisarse(self):
+        """🔑 El documento expone el desacuerdo en vez de elegir un ganador."""
+        self._inventario(media_type_code=4)  # el agente mide: estado sólido
+        acta = self._acta(
+            media_type="Disco duro magnético"
+        )  # el acta declara otra cosa
+
+        cert = self._wipe_certificado(intake=acta)
+        d = cert.data
+
+        self.assertEqual(d["media_type"], "Disco duro magnético")
+        self.assertEqual(d["media_type_measured"], "Estado sólido")
+
+        html = cert_mod.render_html(cert)
+        self.assertIn("Disco duro magnético", html)
+        self.assertIn("Estado sólido", html)
+        self.assertIn("Discrepancia", html)
+
+    def test_sin_desacuerdo_no_se_anuncia_ninguna_discrepancia(self):
+        """Control negativo: que uno falte NO es una discrepancia."""
+        self._inventario()
+        cert = self._wipe_certificado()
+
+        self.assertEqual(cert_mod._discrepancia_de_medio(cert.data), "")
+
+    def test_el_esquema_no_cambio(self):
+        """Llenar campos que ya existían no es una versión nueva del documento.
+
+        Si esto cambia, los certificados ya emitidos dejan de ser comparables y
+        el portal público tendría que ramificar por versión.
+        """
+        self._inventario()
+        cert = self._wipe_certificado()
+        self.assertEqual(cert.data["schema"], "observer-erase-cert/3")
+
+    def test_un_certificado_anterior_al_cambio_sigue_verificando(self):
+        """El control de compatibilidad, con un documento SIN los campos nuevos."""
+        self._inventario()
+        cert = self._wipe_certificado()
+
+        # Un documento emitido antes de la 055 no tiene `media` ni
+        # `capacity_reported` como claves pobladas, y su hash se calculó sobre
+        # ESE contenido. Verificar recomputa sobre `data` tal como está
+        # almacenado, así que sigue dando válido.
+        veredicto = cert_mod.verify_certificate(cert)
+        self.assertTrue(veredicto["document_intact"])
+
+    def test_el_pdf_no_revienta_sin_inventario(self):
+        cert = self._wipe_certificado()
+        html = cert_mod.render_html(cert)
+        self.assertIn("N/A", html)

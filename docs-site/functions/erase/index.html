@@ -259,9 +259,11 @@
       <ul class="lang-es">
         <li>cliente, etiqueta de activo y ticket de referencia;</li>
         <li>equipo y número de serie;</li>
-        <li><strong>método aplicado</strong> y <strong>estándar de referencia</strong> — para un wipe remoto, <code>NIST SP 800-88 Rev. 2 (Clear)</code> e <code>IEEE 2883-2022</code>;</li>
+        <li><strong>método aplicado</strong> y <strong>estándar de referencia</strong> — para un wipe remoto, <code>Sanitización selectiva por sobrescritura (NIST SP 800-88 Rev. 2, §4.2)</code> e <code>IEEE 2883-2022</code>;</li>
         <li><strong>resultado de la verificación</strong>, <strong>cómo se verificó</strong> y su constancia, con el detalle ruta por ruta cuando es un wipe. Si no hubo un método acreditado y una segunda persona que diera fe, el certificado <strong>declara que la destrucción no fue verificada</strong> en lugar de afirmar que sí;</li>
         <li><strong>fabricante, modelo y nombre de red</strong> del equipo, cada dato en su casilla;</li>
+        <li><strong>modelo, número de serie, firmware y capacidad del medio</strong> —del disco, no del equipo— cuando el inventario los midió. Si no hay inventario, el certificado los deja explícitamente en blanco en vez de inventarlos;</li>
+        <li><strong>el tipo de medio declarado y el medido</strong>. Cuando el acta de ingreso dice una cosa y la medición del equipo dice otra, el documento muestra <em>las dos</em>: resolver la discrepancia en silencio le quitaría al lector la única señal de que alguien se equivocó;</li>
         <li><strong>destino final del medio</strong> —reutilización, devolución, reciclaje, destrucción, custodia— con su detalle. La norma no se conforma con decir que el medio se saneó: exige declarar dónde quedó;</li>
         <li><strong>quien da fe</strong> de la operación: nombre, cargo, contacto y fecha de la segunda persona, separada del operador;</li>
         <li>operador, inicio y fin, y versión del software del agente;</li>
@@ -270,7 +272,7 @@
       <ul class="lang-en">
         <li>client, asset tag and reference ticket;</li>
         <li>device and serial number;</li>
-        <li><strong>method applied</strong> and <strong>reference standard</strong> — for a remote wipe, <code>NIST SP 800-88 Rev. 2 (Clear)</code> and <code>IEEE 2883-2022</code>;</li>
+        <li><strong>method applied</strong> and <strong>reference standard</strong> — for a remote wipe, <code>Selective sanitization by overwriting (NIST SP 800-88 Rev. 2, §4.2)</code> and <code>IEEE 2883-2022</code>;</li>
         <li><strong>verification result</strong>, <strong>how it was verified</strong> and the record of it, with the path-by-path detail when it is a wipe. If there was no accredited method and no second person to attest, the certificate <strong>states that the destruction was not verified</strong> instead of claiming it was;</li>
         <li>the device's <strong>manufacturer, model and network name</strong>, each in its own field;</li>
         <li>the <strong>final media disposition</strong> —reuse, return, recycling, destruction, custody— with its detail. The standard is not satisfied by saying the media was sanitized: it requires declaring where it ended up;</li>

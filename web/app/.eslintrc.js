@@ -160,8 +160,10 @@ module.exports = {
         // (method.<n>, conversion.<n>, ...): el agente manda el número y la
         // consola lo lee, igual que endpointResponse.codes con la 028.
         "src/views/DiskEncryptionView.vue",
+        "src/views/StorageMediaView.vue",
         "src/views/ActivityLiveView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
+        "src/components/agents/StorageMediaDetail.vue",
         // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
         // consola nace traducida, con namespace propio (erase.*) y los códigos
         // (kind, action, status, intake.state) redactados por clave: el servidor

@@ -8,6 +8,16 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.41 — 2026-11-01
+
+- **Observer ahora sabe qué disco tiene cada equipo, y qué se puede prometer sobre él.** Un panel nuevo —*Medios de almacenamiento*— levanta, disco por disco, de qué medio se trata (magnético, estado sólido, NVMe), su modelo, número de serie, firmware y capacidad, y deriva de eso qué categoría del estándar de sanitización es alcanzable sobre ese equipo. Es **sólo lectura**: no borra, no sanitiza y no cambia nada del disco.
+- **Por qué importa:** la sobrescritura sólo constituye sanitización defendible sobre medio magnético. Sobre un disco de estado sólido, el nivelado de desgaste y las celdas de reserva dejan parte del dato fuera del alcance del comando. Hasta ahora el producto no podía distinguir un caso del otro, así que no podía advertirlo.
+- **El certificado de borrado ya no deja en blanco los datos del medio.** Modelo, número de serie, firmware y capacidad **del disco** —no del equipo— pasan a imprimirse cuando el inventario los midió. Si no hay inventario, el documento los deja explícitamente en blanco en vez de inventarlos. Los certificados ya emitidos **siguen verificando igual**: el formato del documento no cambió.
+- **Cuando el acta declara un tipo de medio y la medición dice otro, el certificado muestra los dos.** Exponer el desacuerdo es justamente lo que hace al documento defendible; resolverlo en silencio le quitaría al lector la única señal de que alguien se equivocó.
+- **Al ordenar un borrado por sobrescritura, la consola avisa si el medio no lo sostiene.** Y si no se sabe qué medio tiene el equipo, **lo dice**: el silencio se leería como aprobación.
+- **Retirado el «crypto-erase remoto».** Figuraba como acción ordenable desde la versión 1.4.18 y nunca tuvo forma de cumplirse: no hay vía remota que destruya la clave de un medio. Se midió que el camino aparente —quitar los protectores del cifrado del sistema operativo— deja la clave maestra del volumen en claro y el dato legible, es decir, **empeora la seguridad en vez de borrar**. Pedirlo ahora responde con el motivo en lugar de crear una orden que no iba a poder cumplirse. Las órdenes históricas no se tocan.
+- **Un disco externo conectado ya no se cuenta como disco del equipo.** El filtro anterior no atrapaba ninguno: se apoyaba en el tipo de bus, y los discos externos modernos se presentan con el mismo bus que los internos.
+
 ## v1.4.40 — 2026-11-01
 
 - **Un tercero puede comprobar un certificado de borrado sin tener cuenta.** Cada instalación puede exponer una página pública en `/verificar/`: se pega el identificador impreso en el certificado y responde si el documento está íntegro, si la firma es válida y si la cadena sigue entera. Esto último es lo que nadie podía comprobar por su cuenta —la firma ya se verificaba sin conexión con la clave pública publicada—, porque el encadenamiento vive en la base de quien emitió.
