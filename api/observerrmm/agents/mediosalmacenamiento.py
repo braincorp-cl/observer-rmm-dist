@@ -36,6 +36,69 @@ from observerrmm.constants import (
 # las celdas de reserva dejan fuera del alcance del comando parte del dato.
 _MEDIOS_NO_MAGNETICOS = (STORAGE_MEDIA_TYPE_SSD, STORAGE_MEDIA_TYPE_SCM)
 
+# Marcas que delatan un medio virtualizado cuando el BUS no lo hace.
+#
+# 🪤 Medido en terreno el 2026-11-02 sobre `DESKTOP-8I6R7NF`: el disco de una
+# máquina VMware llega con bus **10 (SAS)** y medio **3 (platos)**, no con el bus
+# 15 «respaldado por archivo» que el agente usa para marcar `is_virtual`. Por el
+# bus es indistinguible de un disco SAS real, así que caía en la guarda 8 y
+# recibía `clear_remote`: la consola prometía sobrescritura sobre un disco cuyo
+# medio real está en otra parte. Sobrescribirlo escribe dentro del archivo del
+# hipervisor, que puede tener aprovisionamiento delgado o instantáneas — la
+# promesa falsa que RN-02 prohíbe, y la razón de ser de esta feature.
+#
+# 🔑 «virtual disk» entra a propósito aunque también la usen las controladoras
+# RAID por hardware («PERC H730 Virtual Disk»). No es un falso positivo: en un
+# volumen RAID el medio real tampoco es el que el sistema operativo ve —hay
+# caché, franjas y discos de reserva fuera del alcance de la escritura—, así que
+# el veredicto correcto para él es el mismo.
+#
+# ⚠️ La velocidad de giro NO se usa como criterio, aunque el disco de VMware
+# llegue con `4294967295` (`0xFFFFFFFF`, «desconocida») junto a medio de platos.
+# Es una señal que corrobora, no que decide: discos reales también la declaran
+# desconocida, y usarla clasificaría como virtualizado a un plato de verdad —
+# que es el error opuesto y peor, porque deja a un disco magnético sin su
+# `clear_remote` legítimo.
+MARCAS_DE_MEDIO_VIRTUALIZADO = (
+    "vmware",
+    "virtual disk",
+    "virtual_disk",
+    "msft virtual",
+    "vbox",
+    "qemu",
+    "xensrc",
+    "parallels",
+    "virtio",
+    "amazon elastic block store",
+    "google persistentdisk",
+    "nutanix",
+)
+
+# Los dos campos de identidad donde se buscan las marcas. Se miran POR SEPARADO,
+# nunca concatenados: la versión SQL compara campo por campo, y concatenarlos acá
+# haría que una marca partida entre los dos (por ejemplo «virtual» en el modelo y
+# «disk» en el identificador) se encontrara en Python y no en SQL. Dos copias que
+# divergen es justo lo que este archivo existe para evitar.
+_CAMPOS_DE_IDENTIDAD = ("model", "pnp_device_id")
+
+
+def es_virtual(disco) -> bool:
+    """Si el medio real del disco está en otra parte (RN-03, guarda 5).
+
+    Es la regla completa: lo que el agente detectó por bus **más** lo que delata
+    la identidad del dispositivo. La columna `is_virtual` sola no alcanza —sólo
+    registra el bus—, y por eso nadie debería leerla directo para decidir.
+    """
+    if disco.is_virtual:
+        return True
+
+    for campo in _CAMPOS_DE_IDENTIDAD:
+        valor = (getattr(disco, campo, "") or "").lower()
+        if any(marca in valor for marca in MARCAS_DE_MEDIO_VIRTUALIZADO):
+            return True
+
+    return False
+
 
 def disco_de_sistema(agent):
     """El disco que decide el veredicto, o None si no hay.
@@ -68,7 +131,9 @@ def derivar_veredicto(agent) -> str:
     5. Disco virtualizado: el medio real está en otra parte. Ninguna categoría
        del estándar aplica al disco que el sistema operativo ve, y decir «sin
        categoría alcanzable» sería afirmar algo sobre un medio que no estamos
-       mirando.
+       mirando. La virtualidad se decide con `es_virtual()`, NO con la columna
+       `is_virtual`: esa sólo registra el bus, y un disco de hipervisor puede
+       llegar con un bus de disco real.
     6. Autocifrado **habilitado**: purge remoto. «Capaz pero no habilitado» no
        sirve — sin clave en uso no hay nada que destruir.
     7. El firmware declara un comando de sanitización: purge con imagen live.
@@ -99,7 +164,7 @@ def derivar_veredicto(agent) -> str:
     if disco is None:
         return StorageSanitizationVerdict.NO_DATA
 
-    if disco.is_virtual:
+    if es_virtual(disco):
         return StorageSanitizationVerdict.VIRTUAL_MEDIA
 
     if disco.self_encrypting == StorageSelfEncryption.ENABLED:
@@ -159,10 +224,34 @@ def _sistema(**extra):
     )
 
 
-_VIRTUAL = _sistema(is_virtual=True)
-_AUTOCIFRADO = _sistema(is_virtual=False, self_encrypting=StorageSelfEncryption.ENABLED)
-_CON_COMANDO = _sistema(is_virtual=False, sanitize_capabilities__supported=True) & ~Q(
-    storage_media_devices__self_encrypting=StorageSelfEncryption.ENABLED
+# El espejo SQL de `es_virtual()`: el bus que el agente marcó, O cualquiera de
+# las marcas en cualquiera de los dos campos de identidad.
+#
+# 🪤 Cada rama es un `_sistema(...)` COMPLETO y no una condición suelta unida por
+# `|`. El motivo es el mismo que explica `_sistema`: las condiciones sobre una
+# relación a muchos tienen que viajar juntas dentro de un `Q`, o Django las
+# resuelve contra filas distintas y una marca de un disco externo terminaría
+# decidiendo el veredicto del disco de sistema.
+def _virtual_q():
+    q = _sistema(is_virtual=True)
+    for campo in _CAMPOS_DE_IDENTIDAD:
+        for marca in MARCAS_DE_MEDIO_VIRTUALIZADO:
+            q |= _sistema(**{f"{campo}__icontains": marca})
+    return q
+
+
+_VIRTUAL = _virtual_q()
+
+# Las guardas 6 a 10 corren DESPUÉS de la 5, así que todas excluyen lo virtual.
+# Antes esto se escribía `is_virtual=False` dentro de cada `_sistema`; ya no
+# alcanza, porque la virtualidad dejó de ser una sola columna.
+_NO_VIRTUAL = ~_VIRTUAL
+
+_AUTOCIFRADO = _sistema(self_encrypting=StorageSelfEncryption.ENABLED) & _NO_VIRTUAL
+_CON_COMANDO = (
+    _sistema(sanitize_capabilities__supported=True)
+    & _NO_VIRTUAL
+    & ~Q(storage_media_devices__self_encrypting=StorageSelfEncryption.ENABLED)
 )
 
 # Las guardas 6 y 7 ya se llevaron a los que tienen autocifrado o comando, así
@@ -172,12 +261,12 @@ _SIN_VIA_DE_PURGE = ~Q(
 ) & ~Q(storage_media_devices__sanitize_capabilities__supported=True)
 
 _MAGNETICO = (
-    _sistema(is_virtual=False, media_type_code=STORAGE_MEDIA_TYPE_HDD)
-    & _SIN_VIA_DE_PURGE
+    _sistema(media_type_code=STORAGE_MEDIA_TYPE_HDD) & _NO_VIRTUAL & _SIN_VIA_DE_PURGE
 )
 
 _NO_MAGNETICO = (
-    _sistema(is_virtual=False, media_type_code__in=_MEDIOS_NO_MAGNETICOS)
+    _sistema(media_type_code__in=_MEDIOS_NO_MAGNETICOS)
+    & _NO_VIRTUAL
     & _SIN_VIA_DE_PURGE
 )
 

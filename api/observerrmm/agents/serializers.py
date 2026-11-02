@@ -11,7 +11,7 @@ from observerrmm.constants import (
 from winupdate.serializers import WinUpdatePolicySerializer
 
 from .diskencryption import derivar_estado, volumen_de_sistema
-from .mediosalmacenamiento import derivar_veredicto, disco_de_sistema
+from .mediosalmacenamiento import derivar_veredicto, disco_de_sistema, es_virtual
 from .models import (
     AgentActivityDaily,
     Agent,
@@ -452,7 +452,19 @@ class StorageMediumSerializer(serializers.ModelSerializer):
     Los códigos van crudos (RN-04): la consola traduce. `measured_at` viaja por
     disco porque es lo que contesta «¿qué tan viejo es esto?», y en un panel que
     informa decisiones de baja la edad del dato es parte del dato.
+
+    🔑 `is_virtual` sale DERIVADO, no de la columna. La columna sólo registra el
+    bus que el agente marcó, y un disco de hipervisor llega con bus de disco real
+    (medido el 2026-11-02 sobre VMware). Exponerla cruda haría que el detalle
+    dijera «no es virtual» junto a un veredicto «medio virtualizado»: el mismo
+    disco contradiciéndose en la misma pantalla. Las señales de las que sale la
+    derivación —`model`, `pnp_device_id`, `bus_type`— viajan igual, acá al lado.
     """
+
+    is_virtual = serializers.SerializerMethodField()
+
+    def get_is_virtual(self, obj) -> bool:
+        return es_virtual(obj)
 
     class Meta:
         model = StorageMedium

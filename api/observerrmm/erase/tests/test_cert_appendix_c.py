@@ -696,6 +696,44 @@ class MedioEnElCertificadoTests(_Base):
         self.assertIn("Estado sólido", html)
         self.assertIn("Discrepancia", html)
 
+    def test_un_disco_de_hipervisor_no_se_congela_como_magnetico(self):
+        """🔴 El documento es inmutable: la etiqueta del medio no se corrige después.
+
+        VMware llega con medio 3 (platos) y `is_virtual` en False, porque el
+        agente decide por el bus. Congelar «Magnético (platos)» le diría al que
+        recibe el certificado que puede exigir una sobrescritura que nunca tocó
+        el medio real.
+        """
+        self._inventario(
+            pnp_device_id=r"SCSI\DISK&VEN_VMWARE&PROD_VIRTUAL_DISK\4&1",
+            model="VMware Virtual disk SCSI Disk Device",
+            media_type_code=3,
+            bus_type=10,
+            is_virtual=False,
+        )
+        cert = self._wipe_certificado()
+        d = cert.data
+
+        self.assertTrue(d["media"]["is_virtual"])
+        self.assertEqual(
+            d["media_type_measured"], "Virtualizado (el medio real está en otra parte)"
+        )
+        self.assertNotIn("Magnético (platos)", cert_mod.render_html(cert))
+
+    def test_un_magnetico_de_verdad_si_se_declara_magnetico(self):
+        """Control negativo: la regla no se come a los platos legítimos."""
+        self._inventario(
+            pnp_device_id=r"SCSI\DISK&VEN_ATA&PROD_ST1000LM048\4&2",
+            model="ST1000LM048-2E7172 ATA Device",
+            media_type_code=3,
+            bus_type=11,
+            is_virtual=False,
+        )
+        cert = self._wipe_certificado()
+
+        self.assertFalse(cert.data["media"]["is_virtual"])
+        self.assertEqual(cert.data["media_type_measured"], "Magnético (platos)")
+
     def test_sin_desacuerdo_no_se_anuncia_ninguna_discrepancia(self):
         """Control negativo: que uno falte NO es una discrepancia."""
         self._inventario()

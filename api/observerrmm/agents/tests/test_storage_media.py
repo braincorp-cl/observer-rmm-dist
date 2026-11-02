@@ -24,6 +24,8 @@ from observerrmm.constants import (
     STORAGE_BUS_TYPE_FILE_BACKED_VIRTUAL,
     AgentPlat,
     STORAGE_BUS_TYPE_NVME,
+    STORAGE_BUS_TYPE_RAID,
+    STORAGE_BUS_TYPE_SAS,
     STORAGE_BUS_TYPE_SATA,
     STORAGE_MEDIA_TYPE_HDD,
     STORAGE_MEDIA_TYPE_SSD,
@@ -185,6 +187,96 @@ class TestVeredictoDeSanitizacion(ObserverTestCase):
         )
         self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.VIRTUAL_MEDIA)
 
+    def test_el_disco_de_vmware_es_virtualizado_aunque_el_bus_diga_sas(self):
+        """🪤 El caso REAL medido el 2026-11-02 en `DESKTOP-8I6R7NF`.
+
+        VMware no usa el bus 15: su disco llega con bus 10 (SAS) y medio 3
+        (platos), y `is_virtual` en `False` porque el agente decide por el bus.
+        Antes de la regla por identidad esto caía en la guarda 8 y la consola
+        prometía sobrescritura sobre un disco cuyo medio real está en otra parte.
+        """
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_VMWARE&PROD_VIRTUAL_DISK\4&1656F219&0&000000",
+            model="VMware Virtual disk SCSI Disk Device",
+            is_virtual=False,
+            bus_type=STORAGE_BUS_TYPE_SAS,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+            spindle_speed=4294967295,
+        )
+        self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.VIRTUAL_MEDIA)
+
+    def test_un_volumen_de_raid_por_hardware_tambien_es_medio_virtualizado(self):
+        """No es un falso positivo: el medio real son los discos miembros."""
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_DELL&PROD_PERC_H730\4&2",
+            model="DELL PERC H730 Virtual Disk SCSI Disk Device",
+            is_virtual=False,
+            bus_type=STORAGE_BUS_TYPE_RAID,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
+        self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.VIRTUAL_MEDIA)
+
+    def test_la_marca_en_el_identificador_basta_aunque_el_modelo_calle(self):
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_&PROD_QEMU_HARDDISK\4&3",
+            model="",
+            is_virtual=False,
+            bus_type=STORAGE_BUS_TYPE_SAS,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
+        self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.VIRTUAL_MEDIA)
+
+    def test_un_magnetico_de_verdad_sigue_siendo_clear_remoto(self):
+        """🔑 Control negativo de la regla por identidad, y el error que importa.
+
+        Clasificar de más es peor que clasificar de menos acá: un plato real que
+        cayera en «medio virtualizado» perdería su `clear_remote` legítimo, que
+        es el único veredicto accionable hoy. Este disco trae la velocidad de
+        giro desconocida —la señal que NO se usa como criterio— justamente para
+        fijar que sola no alcanza para declararlo virtual.
+        """
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_ATA&PROD_ST1000LM048-2E71\4&4",
+            model="ST1000LM048-2E7172 ATA Device",
+            is_virtual=False,
+            bus_type=STORAGE_BUS_TYPE_SATA,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+            spindle_speed=4294967295,
+        )
+        self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.CLEAR_REMOTE)
+
+    def test_una_marca_en_el_disco_de_datos_no_virtualiza_al_equipo(self):
+        """La marca tiene que estar en el disco de SISTEMA (RN-03)."""
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id="DISCO-SISTEMA",
+            model="ST1000LM048-2E7172 ATA Device",
+            is_system_disk=True,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
+        _disco(
+            a,
+            pnp_device_id="DISCO-DATOS",
+            model="VMware Virtual disk SCSI Disk Device",
+            is_system_disk=False,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
+        self.assertEqual(self._veredicto(a), StorageSanitizationVerdict.CLEAR_REMOTE)
+
     # -- el disco que manda ----------------------------------------------
 
     def test_el_veredicto_sale_del_disco_de_sistema_y_no_del_otro(self):
@@ -274,6 +366,42 @@ class TestLasDosFormasDeLaRegla(ObserverTestCase):
         a = self._agente()
         _estado(a, capabilities_probed=True)
         _disco(a, is_virtual=True, bus_type=STORAGE_BUS_TYPE_FILE_BACKED_VIRTUAL)
+        agentes.append(a)
+
+        # El disco de VMware: bus de disco real, `is_virtual` en False.
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_VMWARE&PROD_VIRTUAL_DISK\4&9",
+            model="VMware Virtual disk SCSI Disk Device",
+            bus_type=STORAGE_BUS_TYPE_SAS,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
+        agentes.append(a)
+
+        # Marca sólo en el identificador, con el modelo vacío.
+        a = self._agente()
+        _estado(a, capabilities_probed=True)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_&PROD_QEMU_HARDDISK\4&10",
+            model="",
+            bus_type=STORAGE_BUS_TYPE_SAS,
+            media_type_code=STORAGE_MEDIA_TYPE_SSD,
+        )
+        agentes.append(a)
+
+        # Control negativo: magnético de verdad, sin marca.
+        a = self._agente()
+        _estado(a, capabilities_probed=False)
+        _disco(
+            a,
+            pnp_device_id=r"SCSI\DISK&VEN_ATA&PROD_ST1000LM048\4&11",
+            model="ST1000LM048-2E7172 ATA Device",
+            bus_type=STORAGE_BUS_TYPE_SATA,
+            media_type_code=STORAGE_MEDIA_TYPE_HDD,
+        )
         agentes.append(a)
 
         a = self._agente()

@@ -18,6 +18,7 @@ from django.db.models import Count, Exists, F, Max, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from agents.mediosalmacenamiento import es_virtual
 from agents.models import LostModeEvidence, LostModeState
 from observerrmm.constants import (
     ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS,
@@ -919,6 +920,11 @@ def snapshot_del_medio(agent):
         "manufacturer": disco.manufacturer or "",
         "serial": disco.serial_number or "",
         "firmware": disco.firmware_revision or "",
+        # 🔑 Derivado, NO la columna `is_virtual`: esa sólo registra el bus, y un
+        # disco de hipervisor llega con bus de disco real (medido el 2026-11-02).
+        # Sin esto el documento declaraba «Magnético (platos)» sobre un disco
+        # VMware y prometía, por omisión, que la sobrescritura lo alcanzaba.
+        "is_virtual": es_virtual(disco),
         # Crudos (RN-04): el que verifica el documento puede traducirlos con la
         # tabla del estándar, y nosotros no congelamos una etiqueta nuestra
         # dentro de un documento inmutable.
@@ -926,21 +932,30 @@ def snapshot_del_medio(agent):
         "bus_type": disco.bus_type,
         "measured_at": disco.measured_at.isoformat() if disco.measured_at else "",
     }
-    return media, disco.size_bytes, _etiqueta_de_medio(disco.media_type_code)
+    return media, disco.size_bytes, _etiqueta_de_medio(disco)
 
 
-def _etiqueta_de_medio(codigo) -> str:
+def _etiqueta_de_medio(disco) -> str:
     """La única traducción que el certificado sí congela, y por qué.
 
     El documento lo lee un tercero sin acceso a la consola ni a la tabla de
     códigos, y «4» no le dice nada sobre qué puede exigir. Es la excepción
     consciente a RN-04: el código crudo viaja igual, al lado, en `media`.
+
+    🔑 Lo virtualizado gana sobre el código del medio, y no es cosmético: en un
+    disco de hipervisor el código describe lo que el sistema operativo cree ver
+    —platos, en el caso de VMware—, no lo que hay debajo. Congelar «Magnético
+    (platos)» en un documento inmutable le diría al que lo recibe que puede
+    exigir una sobrescritura que nunca tocó el medio real.
     """
+    if es_virtual(disco):
+        return "Virtualizado (el medio real está en otra parte)"
+
     return {
         STORAGE_MEDIA_TYPE_HDD: "Magnético (platos)",
         STORAGE_MEDIA_TYPE_SSD: "Estado sólido",
         STORAGE_MEDIA_TYPE_SCM: "Memoria de clase almacenamiento",
-    }.get(codigo, "")
+    }.get(disco.media_type_code, "")
 
 
 def compose_media_origin(intake: Optional[AssetIntake]) -> str:
