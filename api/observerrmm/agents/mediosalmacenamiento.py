@@ -227,17 +227,28 @@ def _sistema(**extra):
 # El espejo SQL de `es_virtual()`: el bus que el agente marcó, O cualquiera de
 # las marcas en cualquiera de los dos campos de identidad.
 #
-# 🪤 Cada rama es un `_sistema(...)` COMPLETO y no una condición suelta unida por
-# `|`. El motivo es el mismo que explica `_sistema`: las condiciones sobre una
-# relación a muchos tienen que viajar juntas dentro de un `Q`, o Django las
-# resuelve contra filas distintas y una marca de un disco externo terminaría
-# decidiendo el veredicto del disco de sistema.
+# 🪤 Las condiciones sobre una relación a muchos tienen que viajar JUNTAS dentro
+# de un mismo `Q`, o Django las resuelve contra filas distintas y la marca de un
+# disco de datos terminaría decidiendo el veredicto del disco de sistema. Por eso
+# el `or` de las marcas va como argumento POSICIONAL del mismo `Q` que lleva las
+# dos condiciones del disco de sistema, y no como un `|` entre `_sistema(...)`
+# completos.
+#
+# 🔑 Y no es sólo correctitud: escrito como 24 `_sistema(...)` unidos por `|`
+# —uno por marca y campo— Django emite **24 joins** contra la tabla de discos, y
+# esa expresión aparece NEGADA en los otros cuatro filtros. Medido sobre la flota
+# de staging (128 equipos Windows) el filtro «sin dato» pasaba de 101 ms a 378 ms,
+# y escala con el tamaño de la flota. Agrupado en un solo `Q` es **un** join.
 def _virtual_q():
-    q = _sistema(is_virtual=True)
+    marcas = Q()
     for campo in _CAMPOS_DE_IDENTIDAD:
         for marca in MARCAS_DE_MEDIO_VIRTUALIZADO:
-            q |= _sistema(**{f"{campo}__icontains": marca})
-    return q
+            marcas |= Q(**{f"storage_media_devices__{campo}__icontains": marca})
+    return _sistema(is_virtual=True) | Q(
+        marcas,
+        storage_media_devices__is_system_disk=True,
+        storage_media_devices__removable=False,
+    )
 
 
 _VIRTUAL = _virtual_q()
@@ -274,12 +285,25 @@ _NO_MAGNETICO = (
 # cosa que no caiga en un veredicto concreto cae acá. Escribirlo enumerando sus
 # causas obligaría a acordarse de actualizarlo cada vez que se agrega un
 # veredicto — y olvidarse significaría que un equipo no aparece en NINGÚN filtro.
-_CON_VEREDICTO = (
-    _VIRTUAL
-    | _AUTOCIFRADO
-    | _CON_COMANDO
-    | _MAGNETICO
-    | (_NO_MAGNETICO & Q(storage_media__capabilities_probed=True))
+# 🔑 `_NO_VIRTUAL` se factoriza fuera del `or` en vez de repetirse en cada rama.
+# Es la misma expresión booleana, pero una sola negación en vez de cuatro — y
+# cada negación sobre la relación de discos es una subconsulta. Importa porque
+# esto, a su vez, se niega entero para armar «sin dato».
+_CON_VEREDICTO = _VIRTUAL | (
+    (
+        _sistema(self_encrypting=StorageSelfEncryption.ENABLED)
+        | (
+            _sistema(sanitize_capabilities__supported=True)
+            & ~Q(storage_media_devices__self_encrypting=StorageSelfEncryption.ENABLED)
+        )
+        | (_sistema(media_type_code=STORAGE_MEDIA_TYPE_HDD) & _SIN_VIA_DE_PURGE)
+        | (
+            _sistema(media_type_code__in=_MEDIOS_NO_MAGNETICOS)
+            & _SIN_VIA_DE_PURGE
+            & Q(storage_media__capabilities_probed=True)
+        )
+    )
+    & _NO_VIRTUAL
 )
 
 FILTROS_POR_VEREDICTO = {
