@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.42 — 2026-11-02
+
+- **La consola ya no promete sobrescritura sobre un disco de máquina virtual.** El aviso del diálogo de borrado decidía sólo por el tipo de medio que declara el sistema operativo, y un disco de VMware se declara «de platos»: el resultado era que la consola daba por defendible una sobrescritura que no alcanza al medio real. Ahora consulta también si el medio está virtualizado, igual que lo hace el servidor. El panel y el certificado ya lo sabían desde la 1.4.41; faltaba el diálogo.
+- **El certificado de destrucción física publica los datos del medio.** Cuando la baja se certifica desde un acta de ingreso —sin orden de borrado de por medio— el documento salía con modelo, número de serie, firmware y capacidad en blanco aunque el equipo los hubiera reportado. Era el único camino de emisión que no leía el inventario.
+- **El filtro por veredicto del panel de medios responde casi tres veces más rápido.** La consulta que atiende los filtros se armaba con una unión por cada marca de virtualización reconocida, lo que multiplicaba los cruces contra la base. Mismo resultado, una sola condición.
+
 ## v1.4.41 — 2026-11-02
 
 - **Observer ahora sabe qué disco tiene cada equipo, y qué se puede prometer sobre él.** Un panel nuevo —*Medios de almacenamiento*— levanta, disco por disco, de qué medio se trata (magnético, estado sólido, NVMe), su modelo, número de serie, firmware y capacidad, y deriva de eso qué categoría del estándar de sanitización es alcanzable sobre ese equipo. Es **sólo lectura**: no borra, no sanitiza y no cambia nada del disco.
