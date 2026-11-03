@@ -63,7 +63,6 @@
     <a href="/features/" class="active"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
@@ -161,7 +160,7 @@
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Ejecución remota de comandos y scripts</span><span class="lang-en">Remote command &amp; script execution</span></h3>
-          <p><span class="lang-es">Corre comandos y scripts en varios lenguajes: <strong>bash, batch, PowerShell, Python, Nushell y Deno</strong>.</span><span class="lang-en">Run commands and scripts in several languages: <strong>bash, batch, PowerShell, Python, Nushell, and Deno</strong>.</span></p>
+          <p><span class="lang-es">Corre comandos y scripts en el intérprete que prefieras: <strong>shell del sistema, PowerShell, Python</strong> y otros intérpretes instalables. Cuáles quedan disponibles se define en el servidor.</span><span class="lang-en">Run commands and scripts in whichever interpreter you prefer: <strong>system shell, PowerShell, Python</strong> and other installable interpreters. Which ones are available is set on the server.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Tu propia biblioteca de scripts</span><span class="lang-en">Your own script library</span></h3>
@@ -370,7 +369,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">Posición por redes WiFi vecinas</span><span class="lang-en">Positioning from nearby WiFi networks</span></h3>
-          <p><span class="lang-es">El agente lista las antenas WiFi que alcanza y el servidor las resuelve contra un servicio de geolocalización de redes. Es lo que baja el error de cientos de kilómetros a unas decenas de metros, sin GPS. En macOS se usa la ubicación nativa del sistema operativo.</span><span class="lang-en">The agent lists the WiFi access points it can see and the server resolves them against a network geolocation service. That's what brings the error down from hundreds of kilometres to tens of metres, with no GPS involved. On macOS the operating system's native location is used instead.</span></p>
+          <p><span class="lang-es">El agente lista las antenas WiFi que alcanza y el servidor las resuelve contra un <strong>servicio de geolocalización de redes de un tercero</strong>. Es lo que baja el error de cientos de kilómetros a unas decenas de metros, sin GPS. <strong>Esa consulta sale del servidor hacia internet</strong> y lleva los identificadores de las antenas vecinas, no datos de la persona ni del equipo; es la única parte de la ubicación que se resuelve fuera de su instalación. <strong>Sólo ocurre si se configura la clave de ese servicio en el servidor</strong>: sin clave, Observer no consulta nada afuera y la ubicación se resuelve con lo que el propio equipo reporta, con menos precisión. Si su organización exige que ningún dato salga del país, deje esa clave sin configurar. En macOS se usa la ubicación nativa del sistema operativo.</span><span class="lang-en">The agent lists the WiFi access points it can see and the server resolves them against a <strong>third-party network geolocation service</strong>. <strong>That query leaves the server for the internet</strong> and carries the identifiers of the neighbouring access points, not the person's or the machine's data; it is the only part of positioning resolved outside your installation. <strong>It only happens if that service's key is configured on the server</strong>: with no key, Observer queries nothing externally and positioning falls back to what the machine itself reports, with lower accuracy. If your organization requires that no data leave the country, leave that key unset. That's what brings the error down from hundreds of kilometres to tens of metres, with no GPS involved. On macOS the operating system's native location is used instead.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Histórico de posiciones</span><span class="lang-en">Location history</span></h3>
@@ -494,7 +493,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">La evidencia se borra sola, y está cifrada</span><span class="lang-en">Evidence deletes itself, and it's encrypted</span></h3>
-          <p><span class="lang-es">Las capturas y los puntos de un caso se borran a los 90 días, y también unos días después de marcar el equipo recuperado —lo que ocurra primero—. No es una tarea que alguien tenga que acordarse de hacer: el servidor la corre solo, borra el archivo del disco además de la fila, y los dos plazos se ajustan desde la configuración. Mientras tanto, lo capturado se guarda cifrado con una llave propia de cada instalación: quien lea el disco del servidor no ve las imágenes. La línea de tiempo del caso muestra ambas cosas a la vista.</span><span class="lang-en">A case's captures and location points are deleted after 90 days, and also a few days after the machine is marked recovered —whichever comes first—. It isn't a chore anyone has to remember: the server runs it on its own, deletes the file from disk as well as the row, and both windows are configurable. Meanwhile, what was captured is stored encrypted with a key unique to each installation: whoever reads the server's disk does not see the images. The case timeline shows both facts up front.</span></p>
+          <p><span class="lang-es">Las capturas y los puntos de un caso se borran a los 90 días, y también a los 7 días de marcar el equipo recuperado —lo que ocurra primero—. No es una tarea que alguien tenga que acordarse de hacer: el servidor la corre solo, borra el archivo del disco además de la fila, y los dos plazos se ajustan desde la configuración. Mientras tanto, lo capturado se guarda cifrado con una llave propia de cada instalación: quien lea el disco del servidor no ve las imágenes. La línea de tiempo del caso muestra ambas cosas a la vista.</span><span class="lang-en">A case's captures and location points are deleted after 90 days, and also 7 days after the machine is marked recovered —whichever comes first—. It isn't a chore anyone has to remember: the server runs it on its own, deletes the file from disk as well as the row, and both windows are configurable. Meanwhile, what was captured is stored encrypted with a key unique to each installation: whoever reads the server's disk does not see the images. The case timeline shows both facts up front.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Motivo obligatorio</span><span class="lang-en">Reason is mandatory</span></h3>
@@ -658,7 +657,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">Los secretos de la configuración no se pueden leer</span><span class="lang-en">Configuration secrets cannot be read back</span></h3>
-          <p><span class="lang-es">La contraseña del servidor SMTP, los tokens de Twilio y de MeshCentral y la clave del asistente de IA <strong>no vuelven a la consola una vez guardados</strong>: sólo se pueden reemplazar o borrar. La consola indica si hay algo configurado, sin conocer el valor, y tampoco aparecen en el registro de auditoría.</span><span class="lang-en">The SMTP server password, the Twilio and MeshCentral tokens, and the AI assistant key <strong>never come back to the console once saved</strong>: they can only be replaced or cleared. The console shows whether something is configured without knowing the value, and they don't appear in the audit log either.</span></p>
+          <p><span class="lang-es">La contraseña del servidor SMTP, los tokens del proveedor de SMS y del componente de control remoto, y la clave del asistente de IA <strong>no vuelven a la consola una vez guardados</strong>: sólo se pueden reemplazar o borrar. La consola indica si hay algo configurado, sin conocer el valor, y tampoco aparecen en el registro de auditoría.</span><span class="lang-en">The SMTP server password, the SMS provider and remote-control component tokens, and the AI assistant key <strong>never come back to the console once saved</strong>: they can only be replaced or cleared. The console shows whether something is configured without knowing the value, and they don't appear in the audit log either.</span></p>
         </div>
         <div class="feature">
           <h3><span class="lang-es">Aviso si desinstalan el agente a mano</span><span class="lang-en">Alert when the agent is uninstalled by hand</span></h3>
@@ -710,7 +709,7 @@
         </div>
         <div class="feature">
           <h3><span class="lang-es">API REST con clave de API</span><span class="lang-en">REST API with API keys</span></h3>
-          <p><span class="lang-es">Integra Observer RMM con su ITSM, CMDB o automatizaciones mediante la API REST autenticada con clave de API, con los mismos permisos del usuario dueño de la clave. Ver la <a href="/api/">referencia de la API</a>.</span><span class="lang-en">Integrate Observer RMM with your ITSM, CMDB, or automations through the REST API authenticated with API keys, with the same permissions as the key's owner. See the <a href="/api/">API reference</a>.</span></p>
+          <p><span class="lang-es">Integra Observer RMM con su ITSM, CMDB o automatizaciones mediante la API REST autenticada con clave de API, con los mismos permisos del usuario dueño de la clave. La referencia de los endpoints se entrega con el contrato: las integraciones las acompaña nuestro equipo.</span><span class="lang-en">Integrate Observer RMM with your ITSM, CMDB, or automations through the REST API authenticated with API keys, with the same permissions as the key's owner. The endpoint reference is provided with the contract: our team accompanies every integration.</span></p>
         </div>
       </div>
 
@@ -787,10 +786,12 @@
         <div class="platform">
           <h3><span class="lang-es">Agente Linux</span><span class="lang-en">Linux agent</span></h3>
           <ul class="lang-es">
-            <li>Cualquier distribución con <strong>systemd</strong>, incluyendo (sin limitarse a): Debian (10, 11), Ubuntu x86_64 (18.04, 20.04, 22.04), Synology 7, CentOS, FreePBX, Raspberry Pi con Raspbian, y más.</li>
+            <li>Distribuciones de 64 bits con <strong>systemd</strong>: Debian 11 y 12, Ubuntu 20.04, 22.04 y 24.04, Rocky y AlmaLinux 8 y 9, openSUSE Leap. En ARM, Raspberry Pi OS de 64 bits.</li>
+            <li>Si su distribución usa systemd y no aparece en la lista, lo más probable es que funcione: comprobarlo cuesta un comando.</li>
           </ul>
           <ul class="lang-en">
-            <li>Any distribution with <strong>systemd</strong>, including but not limited to: Debian (10, 11), Ubuntu x86_64 (18.04, 20.04, 22.04), Synology 7, CentOS, FreePBX, Raspberry Pi with Raspbian, and more.</li>
+            <li>64-bit distributions with <strong>systemd</strong>: Debian 11 and 12, Ubuntu 20.04, 22.04 and 24.04, Rocky and AlmaLinux 8 and 9, openSUSE Leap. On ARM, 64-bit Raspberry Pi OS.</li>
+            <li>If your distribution uses systemd and is not listed, it will most likely work: checking costs one command.</li>
           </ul>
           <p class="platform-note"><span class="lang-es">¿Usa systemd? Verifícalo con </span><span class="lang-en">Check for systemd with </span><code>ps --no-headers -o comm 1</code></p>
         </div>

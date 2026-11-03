@@ -5206,7 +5206,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="consola" data-edge-to="api" data-edge-label="genera reporte" data-edge-key="0" data-edge-id="c-gen" data-composition-points="215,140;239,140;239,158;321,158;321,142;345,142" d="M 215 140 L 231 140 Q 239 140 239 148 L 239 150 Q 239 158 247 158 L 313 158 Q 321 158 321 150 L 321 150 Q 321 142 329 142 L 345 142" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="agente" data-edge-to="api" data-edge-label="apiv3 (HTTP)" data-edge-key="1" data-edge-id="c-apiv3" data-composition-points="220,367;244,367;244,198;432.5,198;432.5,174" d="M 220 367 L 236 367 Q 244 367 244 359 L 244 206 Q 244 198 252 198 L 424.5 198 Q 432.5 198 432.5 190 L 432.5 174" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="agente" data-edge-to="api" data-edge-label="Canal de equipos (HTTP)" data-edge-key="1" data-edge-id="c-el canal de equipos" data-composition-points="220,367;244,367;244,198;432.5,198;432.5,174" d="M 220 367 L 236 367 Q 244 367 244 359 L 244 206 Q 244 198 252 198 L 424.5 198 Q 432.5 198 432.5 190 L 432.5 174" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="agente" data-edge-to="nats" data-edge-label="check-in (NATS)" data-edge-key="2" data-edge-id="c-checkin" data-composition-points="220,367;244,367;244,383;321,383;321,365;345,365" d="M 220 367 L 236 367 Q 244 367 244 375 L 244 375 Q 244 383 252 383 L 313 383 Q 321 383 321 375 L 321 373 Q 321 365 329 365 L 345 365" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="nats" data-edge-to="db" data-edge-label="escribe Agent" data-edge-key="3" data-edge-id="c-nats-db" data-composition-points="520,365;544,365;544,383;591,383;591,367;615,367" d="M 520 365 L 536 365 Q 544 365 544 373 L 544 375 Q 544 383 552 383 L 583 383 Q 591 383 591 375 L 591 375 Q 591 367 599 367 L 615 367" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="api" data-edge-to="db" data-edge-label="puebla inventario" data-edge-key="4" data-edge-id="c-api-db" data-composition-points="425.5,174;425.5,252;695,252;695,330" d="M 425.5 174 L 425.5 244 Q 425.5 252 433.5 252 L 687 252 Q 695 252 695 260 L 695 330" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -5245,19 +5245,19 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="130" y="381" class="t-muted" font-size="7.7" text-anchor="middle">chequeos · software · WU · inventario</text>
         </g>
 
-        <g id="node-api" data-node-id="api" data-node-label="API Django (rmm)" tabindex="0" role="button" aria-label="Enfocar API Django (rmm), apiv3 + REST de reportería, Servidor Observer RMM" aria-pressed="false" data-node-kind="backend" data-node-sublabel="apiv3 + REST de reportería" data-node-context="Servidor Observer RMM">
-          <title>API Django (rmm) · apiv3 + REST de reportería · Servidor Observer RMM</title>
+        <g id="node-api" data-node-id="api" data-node-label="API del servidor" tabindex="0" role="button" aria-label="Enfocar API del servidor, Canal de equipos + REST de reportería, Servidor Observer RMM" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Canal de equipos + REST de reportería" data-node-context="Servidor Observer RMM">
+          <title>API del servidor · Canal de equipos + REST de reportería · Servidor Observer RMM</title>
           <rect x="345" y="110" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="345" y="110" width="175" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(351 116) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="432.5" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API Django (rmm)</text>
-        <text data-detail="context" x="432.5" y="156" class="t-muted" font-size="9" text-anchor="middle">apiv3 + REST de reportería</text>
+          <text data-node-label="" data-detail-anchor="" x="432.5" y="140" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">API del servidor</text>
+        <text data-detail="context" x="432.5" y="156" class="t-muted" font-size="9" text-anchor="middle">Canal de equipos + REST de reportería</text>
         </g>
 
-        <g id="node-nats" data-node-id="nats" data-node-label="NATS + natsapi" tabindex="0" role="button" aria-label="Enfocar NATS + natsapi, check-in de la flota, Servidor Observer RMM" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="check-in de la flota" data-node-context="Servidor Observer RMM">
-          <title>NATS + natsapi · check-in de la flota · Servidor Observer RMM</title>
+        <g id="node-nats" data-node-id="nats" data-node-label="Bus de mensajes" tabindex="0" role="button" aria-label="Enfocar Bus de mensajes, check-in de la flota, Servidor Observer RMM" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="check-in de la flota" data-node-context="Servidor Observer RMM">
+          <title>Bus de mensajes · check-in de la flota · Servidor Observer RMM</title>
           <rect x="345" y="335" width="175" height="60" rx="6" class="c-mask"/>
           <rect x="345" y="335" width="175" height="60" rx="6" class="c-messagebus" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(351 341) scale(0.6875)">
@@ -5266,7 +5266,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
             <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
           </g>
-          <text data-node-label="" data-detail-anchor="" x="432.5" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">NATS + natsapi</text>
+          <text data-node-label="" data-detail-anchor="" x="432.5" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Bus de mensajes</text>
         <text data-detail="context" x="432.5" y="379" class="t-muted" font-size="9" text-anchor="middle">check-in de la flota</text>
         </g>
 
@@ -5282,15 +5282,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="695" y="381" class="t-muted" font-size="9" text-anchor="middle">observerrmm</text>
         </g>
 
-        <g id="node-reporting" data-node-id="reporting" data-node-label="Motor de reportería" tabindex="0" role="button" aria-label="Enfocar Motor de reportería, ee.reporting · ORM · Jinja · WeasyPrint, Servidor Observer RMM" aria-pressed="false" data-node-kind="backend" data-node-sublabel="ee.reporting · ORM · Jinja · WeasyPrint" data-node-context="Servidor Observer RMM">
-          <title>Motor de reportería · ee.reporting · ORM · Jinja · WeasyPrint · Servidor Observer RMM</title>
+        <g id="node-reporting" data-node-id="reporting" data-node-label="Motor de reportería" tabindex="0" role="button" aria-label="Enfocar Motor de reportería, Motor de plantillas y salida PDF, Servidor Observer RMM" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Motor de plantillas y salida PDF" data-node-context="Servidor Observer RMM">
+          <title>Motor de reportería · Motor de plantillas y salida PDF · Servidor Observer RMM</title>
           <rect x="860" y="330" width="205" height="78" rx="6" class="c-mask"/>
           <rect x="860" y="330" width="205" height="78" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(866 336) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="962.5" y="367" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Motor de reportería</text>
-        <text data-detail="context" x="962.5" y="383" class="t-muted" font-size="8.4" text-anchor="middle">ee.reporting · ORM · Jinja · WeasyPrint</text>
+        <text data-detail="context" x="962.5" y="383" class="t-muted" font-size="8.4" text-anchor="middle">Motor de plantillas y salida PDF</text>
         </g>
 
         <g id="node-salida" data-node-id="salida" data-node-label="Reportes PDF / HTML" tabindex="0" role="button" aria-label="Enfocar Reportes PDF / HTML, abrir · descargar, Componente de arquitectura" aria-pressed="false" data-node-kind="external" data-node-sublabel="abrir · descargar" data-node-context="Componente de arquitectura">
@@ -5356,9 +5356,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="200.4" y="174" width="77.2" height="14" rx="3" class="c-mask"/>
           <text x="239" y="184" class="t-edge-default" font-size="8" text-anchor="middle">genera reporte</text>
         </g>
-        <g data-detail="context" data-edge-from="agente" data-edge-to="api" data-edge-label="apiv3 (HTTP)" data-edge-key="1" data-edge-id="c-apiv3">
+        <g data-detail="context" data-edge-from="agente" data-edge-to="api" data-edge-label="Canal de equipos (HTTP)" data-edge-key="1" data-edge-id="c-el canal de equipos">
           <rect x="249.2" y="240" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="283" y="250" class="t-edge-default" font-size="8" text-anchor="middle">apiv3 (HTTP)</text>
+          <text x="283" y="250" class="t-edge-default" font-size="8" text-anchor="middle">Canal de equipos (HTTP)</text>
         </g>
         <g data-detail="context" data-edge-from="agente" data-edge-to="nats" data-edge-label="check-in (NATS)" data-edge-key="2" data-edge-id="c-checkin">
           <rect x="249" y="353" width="82" height="14" rx="3" class="c-mask"/>
@@ -5634,8 +5634,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>Recolección de la flota</h3>
         </div>
         <ul>
-          <li>&bull; NATS + natsapi escriben el modelo Agent en Postgres</li>
-          <li>&bull; apiv3 (HTTP) puebla WinUpdate, InstalledSoftware, CheckResult, Alert y AuditLog</li>
+          <li>&bull; Bus de mensajes escriben el modelo Agent en Postgres</li>
+          <li>&bull; Canal de equipos (HTTP) puebla WinUpdate, InstalledSoftware, CheckResult, Alert y AuditLog</li>
         </ul>
       </div>
 

@@ -58,7 +58,6 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
@@ -475,8 +474,8 @@ openssl dgst -sha256 -verify clave.pem \
       <p class="lang-en">Attachment retention is set <strong>per client</strong> on the client record, on top of the server-wide period: empty means <em>inherit</em>, not zero days. Raising it is free; lowering it has a <strong>366-day</strong> floor that the server also applies on read, so it cannot be bypassed by writing the value through the API. The <strong>certificate never expires</strong>: only the attachment does.</p>
 
       <h2 id="api"><span class="lang-es">9. Desde la API</span><span class="lang-en">9. From the API</span></h2>
-      <p class="lang-es">Todo el módulo está disponible por la <a href="/api/">API REST</a>, bajo la sección <em>Borrado seguro y recuperación de archivos</em>: órdenes (<code>/erase/orders/</code>), recuperación (<code>/erase/fileretrieval/</code>), certificados con su descarga en PDF y JSON (<code>/erase/certificates/</code>) e ingreso de activos (<code>/erase/intake/</code>). Cada ruta exige el mismo permiso que su equivalente en la consola.</p>
-      <p class="lang-en">The whole module is available through the <a href="/api/">REST API</a>, under the <em>Secure erase and file retrieval</em> section: orders (<code>/erase/orders/</code>), retrieval (<code>/erase/fileretrieval/</code>), certificates with their PDF and JSON download (<code>/erase/certificates/</code>) and asset intake (<code>/erase/intake/</code>). Each route requires the same permission as its console counterpart.</p>
+      <p class="lang-es">Todo el módulo está disponible por la API REST, bajo la sección <em>Borrado seguro y recuperación de archivos</em>: órdenes (<code>/erase/orders/</code>), recuperación (<code>/erase/fileretrieval/</code>), certificados con su descarga en PDF y JSON (<code>/erase/certificates/</code>) e ingreso de activos (<code>/erase/intake/</code>). Cada ruta exige el mismo permiso que su equivalente en la consola.</p>
+      <p class="lang-en">The whole module is available through the REST API, under the <em>Secure erase and file retrieval</em> section: orders (<code>/erase/orders/</code>), retrieval (<code>/erase/fileretrieval/</code>), certificates with their PDF and JSON download (<code>/erase/certificates/</code>) and asset intake (<code>/erase/intake/</code>). Each route requires the same permission as its console counterpart.</p>
       <div class="callout warn lang-es">
         <span class="tag">Llaves de API</span>
         <p>Ningún rol de integración debería llevar los permisos de custodia. Si una llave de API los tuviera, un sistema externo podría ordenar un borrado sin pasar por la consola. Revísalo en <a href="/functions/permissions/">Permisos y seguridad</a>.</p>

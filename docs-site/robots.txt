@@ -6,7 +6,7 @@
 # ⚠️ Corolario para las capturas: al ser un sitio indexado, no se publican datos
 # que identifiquen el equipo de una persona (hostname + ubicación + IP). Las
 # capturas de ubicación se toman sobre VMs del datacenter y se les recorta el
-# bloque de serial e IPs. Ver docs-site/README.md.
+# bloque de serial e IPs.
 
 User-agent: *
 Allow: /

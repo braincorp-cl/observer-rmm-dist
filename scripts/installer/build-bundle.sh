@@ -84,7 +84,9 @@ test -s "$SRC/web/dist/index.html" || die "el build del frontend no dejo index.h
 rm -rf "$SRC/web/app"
 
 # Lo que no se instala en el servidor.
-rm -rf "$SRC/.github" "$SRC/molecule" "$SRC/docs-site" "$SRC/installer-dist"
+# 🔑 `docs/` tambien sale: es documentacion INTERNA (PROVENANCE, arquitectura,
+# baseline de pytest) que no se instala y que el cliente no debe recibir.
+rm -rf "$SRC/.github" "$SRC/molecule" "$SRC/docs-site" "$SRC/installer-dist" "$SRC/docs"
 
 echo "==> colecciones Ansible"
 mkdir -p "$SRC/vendor/collections"

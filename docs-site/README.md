@@ -20,15 +20,27 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
 | `/functions/user_management/` | Guía independiente (no enlazada desde la UI): administración de usuarios —alta, perfil, alcance por cliente/sitio, doble factor, llaves de API, baja y delegación al cliente | 
 | `/functions/role_catalog/` | Catálogo de los perfiles que la plataforma siembra de fábrica. **Generada**: `python3 scripts/docs/build_roles_page.py` (perfiles y permisos salen de `api/observerrmm/accounts/role_catalog.py`, el mismo módulo que usa `seed_default_roles`; las etiquetas de cada permiso, de `RolesForm.vue` + `i18n/{es,en}.json`; el rail se copia de `/functions/permissions/`) |
-| `/api/` | Referencia pública de la API REST para integraciones de terceros (ITSM/CMDB) con API key. **Generada**: `python3 scripts/docs/build_api_page.py` (rutas y métodos extraídos de `urls.py` + vistas; descripciones en `scripts/docs/api_catalog.py`; falla si una ruta nueva no está descrita) |
 
 Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
 dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"
 espejando la UI).
 
+## La referencia de la API no se publica
+
+`docs/api-reference/index.html` (fuera de `docs-site/`, documentacion interna que
+tampoco viaja en el bundle del cliente) la genera
+`python3 scripts/docs/build_api_page.py`.
+
+**Por que dejo de ser publica (2-nov-2026):** publicaba 180+ rutas, y los nombres
+de endpoint son el ADN de un backend — varios son irrepetibles y una sola busqueda
+los traza hasta el proyecto del que deriva el producto. Las integraciones las
+orquesta BrainCorp y la referencia se entrega con el contrato, asi que publicar el
+mapa completo no compraba nada. No se renombro ninguna ruta: eso habria roto las
+llaves de API ya emitidas y el canal de check-in de la flota.
+
 ## Convención de rutas
 
-**En inglés, y las funciones del producto bajo `/functions/`.** Así están `/api/`,
+**En inglés, y las funciones del producto bajo `/functions/`.** Así están
 `/faq/`, `/features/`, `/guide_*` y `/functions/{permissions,email_alerts,mcp,
 user_management,role_catalog}`. Quedan en español `/topologia/`, `/uso_aceptable/` y
 `/videos/`, anteriores a la convención; no son el modelo a seguir.

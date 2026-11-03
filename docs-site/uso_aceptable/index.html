@@ -63,7 +63,6 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
@@ -197,13 +196,13 @@
       <p class="lang-en">Case evidence —locations, screenshots and photos— is stored <strong>encrypted at rest</strong> on the server and deleted automatically. Both periods are configurable per environment; the defaults are:</p>
       <ul class="lang-es">
         <li><strong>90 días</strong> desde la captura de cada pieza.</li>
-        <li><strong>30 días</strong> desde que el equipo se da por recuperado, lo que ocurra primero.</li>
+        <li><strong>7 días</strong> desde que el equipo se da por recuperado, lo que ocurra primero.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>90 days</strong> from the capture of each piece.</li>
-        <li><strong>30 days</strong> from the moment the device is marked as recovered, whichever comes first.</li>
+        <li><strong>7 days</strong> from the moment the device is marked as recovered, whichever comes first.</li>
       </ul>
-      <p class="lang-es">Los <strong>archivos recuperados</strong> de un equipo perdido son un caso aparte: como pueden ser registros de la propia organización con valor legal o administrativo, se conservan <strong>al menos 12 meses</strong> —un piso configurable, alineado con la Ley 19.628— y <strong>no</strong> siguen los plazos de 90/30 días de las capturas y fotos. Los adjuntos vencidos se purgan; el registro de auditoría nunca.</p>
+      <p class="lang-es">Los <strong>archivos recuperados</strong> de un equipo perdido son un caso aparte: como pueden ser registros de la propia organización con valor legal o administrativo, se conservan <strong>al menos 12 meses</strong> —un piso configurable, alineado con la Ley 19.628— y <strong>no</strong> siguen los plazos de 90/7 días de las capturas y fotos. Los adjuntos vencidos se purgan; el registro de auditoría nunca.</p>
       <p class="lang-en">The <strong>recovered files</strong> from a lost device are a separate case: because they may be the organization's own records with legal or administrative value, they are kept for <strong>at least 12 months</strong> —a configurable floor, aligned with Law 19.628— and do <strong>not</strong> follow the 90/30-day periods of screenshots and photos. Expired attachments are purged; the audit log never is.</p>
       <p class="lang-es">La separación de permisos es deliberada y conviene respetarla al asignar roles: <strong>operar el caso</strong> (marcar, seguir el recorrido, bloquear, exportar el expediente) y <strong>mirar lo que la pantalla o la cámara registraron</strong> son dos capacidades distintas. La segunda expone a una persona, que además puede ser el propio dueño del equipo y no un ladrón. Concédalas por separado y reserve la segunda a un grupo reducido y nominado.</p>
       <p class="lang-en">The permission separation is deliberate and worth respecting when assigning roles: <strong>operating the case</strong> (marking, following the trail, locking, exporting the file) and <strong>looking at what the screen or camera recorded</strong> are two distinct capabilities. The second exposes a person, who may well be the device's own owner rather than a thief. Grant them separately and reserve the second for a small, named group.</p>
@@ -216,11 +215,11 @@
 
       <div class="callout danger lang-es">
         <span class="tag">Adáptelo, no lo copie a ciegas</span>
-        <p>Los plazos del texto (90 y 30 días para capturas y fotos; al menos 12 meses para archivos recuperados) son los valores por omisión del producto. Si su organización configuró otros, o si la normativa que le aplica fija otros, corrija el texto: una política que declara un plazo distinto del que el sistema aplica es peor que no tener política.</p>
+        <p>Los plazos del texto (90 y 7 días para capturas y fotos; al menos 12 meses para archivos recuperados) son los valores por omisión del producto. Verifique en <em>Ajustes del servidor</em> los que rigen en su instalación antes de publicar su política: si los cambió, el texto tiene que decir los suyos. Si su organización configuró otros, o si la normativa que le aplica fija otros, corrija el texto: una política que declara un plazo distinto del que el sistema aplica es peor que no tener política.</p>
       </div>
       <div class="callout danger lang-en">
         <span class="tag">Adapt it, don't copy it blindly</span>
-        <p>The periods in the text (90 and 30 days for screenshots and photos; at least 12 months for recovered files) are the product's defaults. If your organization configured different ones, or if the regulations that apply to you set different ones, correct the text: a policy that states a period different from the one the system enforces is worse than having no policy.</p>
+        <p>The periods in the text (90 and 7 days for screenshots and photos; at least 12 months for recovered files) are the product's defaults. Check the ones in force on your installation under <em>Server settings</em> before publishing your policy: if you changed them, the text has to state yours. If your organization configured different ones, or if the regulations that apply to you set different ones, correct the text: a policy that states a period different from the one the system enforces is worse than having no policy.</p>
       </div>
 
       <pre class="lang-es"><code>Administración remota de los equipos entregados
@@ -249,7 +248,7 @@ Esa declaración exige un motivo escrito, la ejerce sólo personal
 autorizado y queda registrada en la auditoría del sistema. El material
 recolectado se guarda cifrado, es accesible únicamente para los roles
 autorizados y se elimina automáticamente a los 90 días de su captura, o a
-los 30 días de darse el equipo por recuperado. Los archivos recuperados
+los 7 días de darse el equipo por recuperado. Los archivos recuperados
 se conservan por un plazo mayor, de al menos 12 meses, por su posible
 valor legal o administrativo para la organización.
 
@@ -289,7 +288,7 @@ and only while that declaration is in force:
 That declaration requires a written reason, is exercised only by
 authorized personnel and is recorded in the system's audit log. The
 material collected is stored encrypted, is accessible only to authorized
-roles, and is deleted automatically 90 days after capture, or 30 days
+roles, and is deleted automatically 90 days after capture, or 7 days
 after the device is marked as recovered. Recovered files are kept for a
 longer period, at least 12 months, given their possible legal or
 administrative value to the organization.

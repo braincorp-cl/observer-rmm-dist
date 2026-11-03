@@ -99,3 +99,32 @@ jobs:
           fi
 
           echo "::notice::No new legacy upstream strings detected."
+
+      # 🔑 El scan de arriba excluye `migrations`, `test_data` y `docs` — y esos
+      # tres son exactamente los directorios por los que los literales salian en
+      # el TARBALL que se entrega al cliente on-premise. El gate quedaba verde y
+      # la fuga existia (detectado el 2-nov-2026, con el bundle del primer
+      # cliente on-premise ya en puertas).
+      #
+      # Este paso no escanea el arbol: comprueba que el constructor del bundle
+      # EXCLUYA los directorios de la allowlist. Es el control que ata las dos
+      # cosas, y cuesta tres greps.
+      - name: El bundle entregable no puede llevar los directorios de la allowlist
+        run: |
+          set -uo pipefail
+          BS=scripts/installer/build-bundle.sh
+          FALTAN=""
+          for d in docs; do
+            grep -qE "rm -rf .*\\\$SRC/$d\"" "$BS" || FALTAN="$FALTAN $d"
+          done
+          if [ -n "$FALTAN" ]; then
+            echo "::error::$BS no excluye del bundle:$FALTAN — esos directorios estan en la allowlist del scan y sus literales viajarian al cliente."
+            exit 1
+          fi
+          # `test_data` SI viaja (lo lee demo_views.py), asi que su contenido
+          # tiene que estar limpio aunque el scan general lo excluya.
+          SUCIO=$(grep -rniE 'tacticalrmm|tacticalagent|tacticalmesh|tactical([^a-z]|$)|amidaware|trmm' api/observerrmm/observerrmm/test_data/ || true)
+          if [ -n "$SUCIO" ]; then
+            echo "::error::test_data viaja en el bundle y tiene cadenas heredadas:"; echo "$SUCIO"; exit 1
+          fi
+          echo "::notice::El bundle entregable no lleva los directorios de la allowlist, y test_data esta limpio."

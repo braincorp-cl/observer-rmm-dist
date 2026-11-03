@@ -61,7 +61,6 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
@@ -122,8 +121,8 @@
       <p class="lang-en">Permissions say <em>what</em> someone can do; scope says <em>to what</em>. The same role —Tier 1 Support Technician, say— can be given to ten people, each seeing only the machines of their client or site. It is the cheapest way to apply least privilege without multiplying roles.</p>
 
       <h2 id="llaves-api"><span class="lang-es">Llaves de API</span><span class="lang-en">API keys</span></h2>
-      <p class="lang-es">Una integración externa (un ITSM, una CMDB, un tablero) se conecta con una <strong>llave de API</strong>, no con la cuenta de una persona. La llave se asocia a un usuario y hereda su perfil, así que conviene crear un usuario dedicado con el perfil <em>Integración de Solo Lectura</em> y emitir la llave sobre él. Así la integración no puede ejecutar nada, y revocarla no afecta a ninguna persona. El detalle de los endpoints está en la <a href="/api/">referencia de la API REST</a>.</p>
-      <p class="lang-en">An external integration (an ITSM, a CMDB, a dashboard) connects with an <strong>API key</strong>, not with a person's account. The key is tied to a user and inherits their role, so create a dedicated user with the <em>Read-only Integration</em> role and issue the key on it. That way the integration cannot execute anything, and revoking it affects nobody. Endpoint details are in the <a href="/api/">REST API reference</a>.</p>
+      <p class="lang-es">Una integración externa (un ITSM, una CMDB, un tablero) se conecta con una <strong>llave de API</strong>, no con la cuenta de una persona. La llave se asocia a un usuario y hereda su perfil, así que conviene crear un usuario dedicado con el perfil <em>Integración de Solo Lectura</em> y emitir la llave sobre él. Así la integración no puede ejecutar nada, y revocarla no afecta a ninguna persona. El detalle de los endpoints se entrega con el contrato.</p>
+      <p class="lang-en">An external integration (an ITSM, a CMDB, a dashboard) connects with an <strong>API key</strong>, not with a person's account. The key is tied to a user and inherits their role, so create a dedicated user with the <em>Read-only Integration</em> role and issue the key on it. That way the integration cannot execute anything, and revoking it affects nobody. Endpoint details are provided with the contract.</p>
 
       <h2 id="delegacion"><span class="lang-es">Delegar la administración al cliente</span><span class="lang-en">Delegating administration to the customer</span></h2>
       <p class="lang-es">En instalaciones dedicadas a un solo cliente es habitual que su propio responsable de TI dé de alta y de baja a su gente sin pasar por el proveedor. Para eso está el perfil <strong>Administrador de Organización</strong>: administra la flota, los sitios y las cuentas de su equipo, pero <strong>no puede crear ni editar perfiles</strong> ni tocar la configuración del servidor.</p>
