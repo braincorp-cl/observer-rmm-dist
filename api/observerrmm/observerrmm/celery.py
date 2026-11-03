@@ -11,13 +11,29 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "observerrmm.settings")
 
 redis_host = f"redis://{settings.REDIS_HOST}"
 app = Celery("observerrmm", backend=redis_host, broker=redis_host)
-app.accept_content = ["application/json"]
-app.result_serializer = "json"
-app.task_serializer = "json"
+# estos tres van en app.conf: asignarlos sobre app deja un atributo muerto
+app.conf.accept_content = ["application/json"]
+app.conf.result_serializer = "json"
+app.conf.task_serializer = "json"
 app.conf.task_track_started = True
 app.conf.worker_proc_alive_timeout = 30
-app.conf.worker_max_tasks_per_child = 2
+# reciclar el proceso hijo por memoria y no cada N tareas: con flota grande,
+# recrearlo cada dos tareas es un fork() + import de Django casi continuo
+app.conf.worker_max_memory_per_child = 250_000  # KB
 app.conf.broker_connection_retry_on_startup = True
+# sin estos limites, un corte con Redis deja al worker esperando sin tope
+app.conf.broker_transport_options = {
+    "socket_timeout": 30,
+    "socket_connect_timeout": 10,
+    "socket_keepalive": True,
+    "retry_on_timeout": True,
+}
+app.conf.redis_socket_timeout = 30
+app.conf.redis_socket_connect_timeout = 10
+app.conf.redis_socket_keepalive = True
+app.conf.redis_retry_on_timeout = True
+app.conf.redis_backend_health_check_interval = 30
+app.conf.result_expires = 3600
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {

@@ -610,7 +610,9 @@ class Agent(BaseAuditModel):
 
         for task in tasks:
             for result in results:
-                if result.task.id == task.pk:
+                # la FK ya viene en la fila: tocar result.task dispara una
+                # consulta por resultado sin precargar
+                if result.task_id == task.pk:
                     task.task_result = result
                     break
 
@@ -621,7 +623,8 @@ class Agent(BaseAuditModel):
 
         for check in checks:
             for result in results:
-                if result.assigned_check.id == check.pk:
+                # idem: comparar el id de la FK, no el objeto relacionado
+                if result.assigned_check_id == check.pk:
                     check.check_result = result
                     break
 

@@ -66,6 +66,7 @@ from observerrmm.constants import (
     PAStatus,
 )
 from observerrmm.helpers import date_is_in_past, notify_error
+from observerrmm.pagination import StandardResultsSetPagination
 from observerrmm.permissions import (
     _has_perm,
     _has_perm_on_agent,
@@ -2082,6 +2083,14 @@ class WMI(APIView):
 
 
 class AgentHistoryView(APIView):
+    """Historial sin tope. En desuso: devuelve la tabla entera.
+
+    Se mantiene montada por compatibilidad con clientes que ya la usan. Lo nuevo
+    debe ir a AgentHistoryViewV2, que pagina. Sin agent_id esta vista serializa
+    el historial de toda la flota de una sola vez y puede dejar al servidor sin
+    memoria.
+    """
+
     permission_classes = [IsAuthenticated, AgentHistoryPerms]
 
     def get(self, request, agent_id=None):
@@ -2092,6 +2101,34 @@ class AgentHistoryView(APIView):
             history = AgentHistory.objects.filter_by_role(request.user)  # type: ignore
         ctx = {"default_tz": get_default_timezone()}
         return Response(AgentHistorySerializer(history, many=True, context=ctx).data)
+
+
+class AgentHistoryViewV2(APIView):
+    """Historial paginado, con orden acotado a una lista blanca."""
+
+    permission_classes = [IsAuthenticated, AgentHistoryPerms]
+    ordering_fields = ("time", "type", "command", "username")
+
+    def get(self, request, agent_id=None):
+        if agent_id:
+            agent = get_object_or_404(Agent, agent_id=agent_id)
+            history = AgentHistory.objects.filter(agent=agent)
+        else:
+            history = AgentHistory.objects.filter_by_role(request.user)  # type: ignore
+
+        ordering = request.query_params.get("ordering", "-time")
+        if ordering.lstrip("-") not in self.ordering_fields:
+            ordering = "-time"
+
+        # el id desempata: sin el, dos filas del mismo instante pueden cambiar
+        # de pagina entre peticiones y el cliente veria duplicados o huecos
+        history = history.select_related("script").order_by(ordering, "-id")
+
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(history, request, view=self)
+        ctx = {"default_tz": get_default_timezone()}
+        serializer = AgentHistorySerializer(page, many=True, context=ctx)
+        return paginator.get_paginated_response(serializer.data)
 
 
 def _geo_visible(agent: "Agent") -> bool:

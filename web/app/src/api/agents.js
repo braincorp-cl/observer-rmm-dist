@@ -87,12 +87,25 @@ export async function removeAgent(agent_id) {
   return data;
 }
 
+// Trae el historial por paginas en vez de pedir la tabla entera de una vez.
+// El endpoint sin paginar serializa todas las filas en una sola respuesta y en
+// equipos con mucho historial eso se come la memoria del servidor.
+const HISTORY_PAGE_SIZE = 1000;
+const HISTORY_MAX_PAGES = 50;
+
 export async function fetchAgentHistory(agent_id, params = {}) {
   try {
-    const { data } = await axios.get(`${baseUrl}/${agent_id}/history/`, {
-      params: params,
-    });
-    return data;
+    const rows = [];
+    let page = 1;
+    while (page <= HISTORY_MAX_PAGES) {
+      const { data } = await axios.get(`${baseUrl}/v2/${agent_id}/history/`, {
+        params: { ...params, page, page_size: HISTORY_PAGE_SIZE },
+      });
+      rows.push(...data.results);
+      if (!data.next) break;
+      page++;
+    }
+    return rows;
   } catch (e) {
     console.error(e);
   }

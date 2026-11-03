@@ -238,6 +238,19 @@ if "GHACTIONS" in os.environ:
     MESH_TOKEN_KEY = "bd65e957a1e70c622d32523f61508400d6cd0937001a7ac12042227eba0b9ed625233851a316d4f489f02994145f74537a331415d00047dbbf13d940f556806dffe7a8ce1de216dc49edbad0c1a7399c"
     REDIS_HOST = "localhost"
 
+# Conexiones persistentes a Postgres, solo dentro de uWSGI: ahi el proceso
+# atiende muchas peticiones seguidas y reabrir la conexion en cada una se nota.
+# En celery y en los comandos de manage.py no aporta y quedarian colgando.
+# setdefault para que local_settings siga mandando si lo define.
+try:
+    import uwsgi  # noqa: F401
+except ImportError:
+    pass
+else:
+    with suppress(NameError, KeyError):
+        DATABASES["default"].setdefault("CONN_MAX_AGE", 600)  # noqa: F405
+        DATABASES["default"].setdefault("CONN_HEALTH_CHECKS", True)  # noqa: F405
+
 if not DOCKER_BUILD:
 
     ORMM_ROOT_DOMAIN = get_root_domain(ALLOWED_HOSTS[0])

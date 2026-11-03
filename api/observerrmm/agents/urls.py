@@ -55,8 +55,11 @@ urlpatterns = [
     path("<agent:agent_id>/processes/<int:pid>/", views.AgentProcesses.as_view()),
     path("<agent:agent_id>/eventlog/<str:logtype>/<int:days>/", views.get_event_log),
     # agent history
+    # las dos primeras quedan en desuso: no paginan
     path("history/", views.AgentHistoryView.as_view()),
     path("<agent:agent_id>/history/", views.AgentHistoryView.as_view()),
+    path("v2/history/", views.AgentHistoryViewV2.as_view()),
+    path("v2/<agent:agent_id>/history/", views.AgentHistoryViewV2.as_view()),
     # respuesta rápida de endpoint (feature 028)
     path("<agent:agent_id>/lock/", views.LockAgent.as_view()),
     path("<agent:agent_id>/alert/", views.SendAlert.as_view()),

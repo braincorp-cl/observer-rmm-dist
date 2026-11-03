@@ -8,7 +8,7 @@ from rest_framework.serializers import BaseSerializer
 from agents.models import Agent
 from agents.permissions import AgentPerms
 from beta.v1.agent.filter import AgentFilter
-from beta.v1.pagination import StandardResultsSetPagination
+from observerrmm.pagination import StandardResultsSetPagination
 from ..serializers import DetailAgentSerializer, ListAgentSerializer
 
 
