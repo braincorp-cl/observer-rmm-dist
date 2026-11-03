@@ -22,7 +22,7 @@
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
 (function () {
@@ -78,8 +78,8 @@
       <p class="eyebrow lang-es">Guía</p>
       <p class="eyebrow lang-en">Guide</p>
       <h1><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></h1>
-      <p class="lead lang-es">Observer Erase es el módulo de custodia: recupera archivos de un equipo perdido antes de borrarlo, gobierna la orden de borrado con dos personas y una ventana para arrepentirse, registra el ingreso de un activo a proceso de baja y emite certificados firmados que nadie puede modificar después. Esta guía recorre cada flujo paso a paso, con los nombres exactos que verás en la consola.</p>
-      <p class="lead lang-en">Observer Erase is the custody module: it retrieves files from a lost device before wiping it, governs the wipe order with two people and a window to change your mind, records an asset's intake for disposal, and issues signed certificates that nobody can alter afterwards. This guide walks through each flow step by step, with the exact names you will see in the console.</p>
+      <p class="lead lang-es">Observer Erase es el módulo de custodia: recupera archivos de un equipo perdido antes de borrarlo, gobierna la orden de borrado con dos personas y una ventana para arrepentirse, registra el ingreso de un activo a proceso de baja y emite certificados que nadie puede modificar después —firmados cuando la instalación tiene clave, y diciéndolo cuando no la tiene. Esta guía recorre cada flujo paso a paso, con los nombres exactos que verás en la consola.</p>
+      <p class="lead lang-en">Observer Erase is the custody module: it retrieves files from a lost device before wiping it, governs the wipe order with two people and a window to change your mind, records an asset's intake for disposal, and issues certificates that nobody can alter afterwards —signed when the installation has a key, and saying so when it does not. This guide walks through each flow step by step, with the exact names you will see in the console.</p>
 
       <div class="callout danger lang-es">
         <span class="tag">Estado actual</span>
@@ -267,7 +267,8 @@
         <li><strong>destino final del medio</strong> —reutilización, devolución, reciclaje, destrucción, custodia— con su detalle. La norma no se conforma con decir que el medio se saneó: exige declarar dónde quedó;</li>
         <li><strong>quien da fe</strong> de la operación: nombre, cargo, contacto y fecha de la segunda persona, separada del operador;</li>
         <li>operador, inicio y fin, y versión del software del agente;</li>
-        <li>última ubicación conocida del equipo, cuando el caso la tiene.</li>
+        <li>última ubicación conocida del equipo, cuando el caso la tiene;</li>
+        <li>una <strong>nota de alcance</strong>, impresa en el documento, que dice literalmente que borrar las rutas designadas <strong>no constituye sanitización del medio</strong> y que el resto del disco puede conservar datos. Es la línea que parece restarle valor al certificado y es la que se lo da: un documento que sobredeclara pierde todo su valor el día que alguien lo audita.</li>
       </ul>
       <ul class="lang-en">
         <li>client, asset tag and reference ticket;</li>
@@ -347,7 +348,7 @@ openssl dgst -sha256 -verify clave.pem \
       <p class="lang-es">Si la instancia que emitió no tenía clave configurada, el recurso lo <strong>dice</strong> (<code>"available": false</code>) en lugar de responder un 404 ambiguo, y los certificados que emitió lo declaran en su propio bloque de firma. Un certificado sin firma es un certificado que vale menos, no un certificado inválido: el encadenamiento y el hash siguen comprobándose.</p>
       <p class="lang-en">If the issuing instance had no key configured, the resource <strong>says so</strong> (<code>"available": false</code>) instead of returning an ambiguous 404, and the certificates it issued declare it in their own signature block. An unsigned certificate is a certificate worth less, not an invalid one: the chain and the hash still check out.</p>
 
-      <h2 id="verificar-portal"><span class="lang-es">5.c El portal público de verificación</span><span class="lang-en">5.c The public verification portal</span></h2>
+      <h2 id="verificar-portal"><span class="lang-es">5.c El portal público de verificación</span><span class="lang-en">5.c The public verification portal</span><span class="status policy"><span class="lang-es">Deshabilitado por política</span><span class="lang-en">Disabled by policy</span></span></h2>
       <p class="lang-es">La vía de arriba prueba la <strong>autoría</strong> de la firma sin preguntarle nada a nadie, y es la que vale ante un tercero. Lo que no se puede comprobar a solas es el <strong>encadenamiento</strong>: que el certificado siga siendo el eslabón que fue dentro del repositorio inmutable de quien lo emitió. Para eso cada instalación puede exponer una página pública en <code>/verificar/</code>, donde se pega el identificador impreso en el certificado y se obtienen los tres veredictos: documento íntegro, firma válida y cadena íntegra.</p>
       <p class="lang-en">The method above proves the <strong>authorship</strong> of the signature without asking anyone anything, and it is the one that counts before a third party. What cannot be checked alone is the <strong>chaining</strong>: that the certificate is still the link it was inside the issuer's immutable repository. For that, each installation can expose a public page at <code>/verificar/</code>, where you paste the identifier printed on the certificate and get the three verdicts: document intact, signature valid, chain intact.</p>
       <p class="lang-es">El portal responde <strong>sólo eso</strong>: identificador, tipo, fecha y los tres veredictos. Ni cliente, ni equipo, ni número de serie, ni quién operó, ni quién dio fe. No es una omisión: quien verifica <strong>ya tiene el certificado en la mano</strong>, y si el portal respondiera más, probar identificadores uno tras otro permitiría armar el inventario de bajas de un cliente. Por la misma razón un identificador inexistente devuelve una respuesta <strong>idéntica en forma</strong> a uno válido —nunca un 404— y no hay forma de buscar ni de listar.</p>
@@ -487,14 +488,14 @@ openssl dgst -sha256 -verify clave.pem \
 
       <h2 id="limites"><span class="lang-es">10. Qué queda fuera, por ahora</span><span class="lang-en">10. What is out of scope, for now</span></h2>
       <ul class="lang-es">
-        <li><strong>El borrado destructivo remoto está deshabilitado</strong> hasta completar la aprobación legal y el simulacro en seco sobre un equipo de descarte.</li>
+        <li><strong>El borrado destructivo remoto nace deshabilitado</strong> y hoy lo está en todas las instalaciones de producción. El simulacro en seco y el borrado real sobre un equipo de descarte <strong>ya se ejecutaron y quedaron verificados</strong>; lo que resta es la decisión de encenderlo, que se toma por cliente.</li>
         <li><strong>El borrado de disco fin-de-vida</strong> —imagen de arranque, método ATA/NVMe, verificación por sectores, HPA/DCO, SMART— todavía no existe. El certificado deja esos campos explícitos como «N/A» para no prometer lo que no hizo.</li>
-        <li>La verificación del wipe remoto es <strong>por relectura de las rutas borradas</strong>, no por lectura de sectores: certifica el nivel <em>Clear</em> del estándar, no <em>Purge</em>.</li>
+        <li>La verificación del wipe remoto es <strong>por relectura de las rutas borradas</strong>, no por lectura de sectores. El certificado no reclama ninguna categoría del estándar: declara <strong>la técnica y su alcance</strong> —«sanitización selectiva por sobrescritura (NIST SP 800-88 Rev. 2, §4.2)»—. No es <em>Clear</em> ni <em>Purge</em>: esas dos categorías se definen sobre <strong>todo</strong> el espacio direccionable del medio, y lo que hace un wipe selectivo es la vía parcial de la §4.2, donde el propio estándar advierte que cuesta verificar que el dato no se derramó a bloques remapeados.</li>
       </ul>
       <ul class="lang-en">
-        <li><strong>Remote destructive wiping is disabled</strong> until the legal approval and the dry run on a scrap machine are completed.</li>
+        <li><strong>Remote destructive wiping ships disabled</strong> and is disabled today on every production install. The dry run and the real erase on a scrap machine <strong>have already been executed and verified</strong>; what remains is the decision to turn it on, taken per customer.</li>
         <li><strong>End-of-life disk erasure</strong> —bootable image, ATA/NVMe method, sector-level verification, HPA/DCO, SMART— does not exist yet. The certificate marks those fields explicitly as “N/A” so it does not promise what it did not do.</li>
-        <li>Remote wipe verification is <strong>by re-reading the erased paths</strong>, not by reading sectors: it certifies the standard's <em>Clear</em> level, not <em>Purge</em>.</li>
+        <li>Remote wipe verification is <strong>by re-reading the erased paths</strong>, not by reading sectors. The certificate claims no category of the standard: it states <strong>the technique and its scope</strong> —"selective sanitization by overwriting (NIST SP 800-88 Rev. 2, §4.2)"—. It is neither <em>Clear</em> nor <em>Purge</em>: both categories are defined over <strong>all</strong> user-addressable locations on the media, and a selective wipe is the partial path of §4.2, where the standard itself warns that it is hard to verify the data did not spill into remapped blocks.</li>
       </ul>
       <p class="lang-es">Lo que el módulo puede y no puede hacer con los datos de las personas está en <a href="/uso_aceptable/">Uso aceptable y privacidad</a>.</p>
       <p class="lang-en">What the module can and cannot do with people's data is covered in <a href="/uso_aceptable/">Acceptable use &amp; privacy</a>.</p>

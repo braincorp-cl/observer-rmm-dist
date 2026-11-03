@@ -257,7 +257,7 @@ HEAD = """<!DOCTYPE html>
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <style>
   .rn-tracks{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:1.2rem 0}
