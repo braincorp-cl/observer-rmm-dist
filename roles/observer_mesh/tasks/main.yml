@@ -168,19 +168,22 @@
 - name: "Mesh — esperar a que el HTTP server escuche en el puerto {{ observer_mesh_port }}"
   # Tambien en api_config: sin esta espera, `--logintokenkey` puede correr contra un
   # MeshCentral que aun no abrio el puerto y devolver vacio.
-  tags: [api_config]
+  tags: [api_config, api]
   ansible.builtin.wait_for:
     host: 127.0.0.1
     port: "{{ observer_mesh_port }}"
     timeout: 180
 
 - name: "Mesh — obtener el login token key (idempotente: persiste en la DB mesh)"
-  # tag api_config ADEMAS del normal: `local_settings.j2` del rol observer_api
+  # tags api_config Y api ADEMAS del normal: `local_settings.j2` del rol observer_api
   # renderiza MESH_TOKEN_KEY desde el fact que estas tres tareas producen, asi que
-  # sin ellas la rebanada `--tags api_config` muere con
+  # sin ellas la rebanada muere con
   # "'HostVarsVars' has no attribute 'observer_mesh_login_token_key'".
-  # Son autocontenidas y de solo lectura (changed_when: false).
-  tags: [api_config]
+  # Faltaba `api`: el play de mesh lleva `tags: [mesh]`, de modo que `--tags api`
+  # no recogia ninguna de las tres y la rebanada de API quedaba inservible pese a
+  # existir. Son autocontenidas y de solo lectura (changed_when: false), asi que
+  # entrar en la corrida de API no reinstala ni reinicia MeshCentral.
+  tags: [api_config, api]
   ansible.builtin.command:
     cmd: "/usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey"
     chdir: /meshcentral
@@ -195,12 +198,12 @@
   check_mode: false
 
 - name: "Mesh — extraer el hex y publicarlo como fact para observer_api"
-  tags: [api_config]
+  tags: [api_config, api]
   ansible.builtin.set_fact:
     observer_mesh_login_token_key: "{{ observer_mesh_ltk.stdout | regex_search('[0-9a-fA-F]{160,}') }}"
 
 - name: "Mesh — validar que el login token key es hex >=160 (si no, el bring-up está roto)"
-  tags: [api_config]
+  tags: [api_config, api]
   ansible.builtin.assert:
     that:
       - observer_mesh_login_token_key is string
