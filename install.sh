@@ -155,20 +155,19 @@ if [ "$CERT_MODE" = "byo" ]; then
   if command -v openssl >/dev/null 2>&1; then
     openssl x509 -in "$OWN_CERT" -noout >/dev/null 2>&1 \
       || { echo "ERROR: $OWN_CERT no es un certificado PEM valido" >&2; exit 1; }
-    # Pareja cert/clave: se comparan los modulos. Si no coinciden, nginx arranca igual y
-    # el error aparece recien en el handshake, cuando ya nadie lo asocia al instalador.
-    c_mod=$(openssl x509 -in "$OWN_CERT" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
-    k_mod=$(openssl rsa  -in "$OWN_KEY"  -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
-    if [ -z "$k_mod" ]; then
-      # Clave EC o Ed25519: no tiene modulo. Se compara la llave publica.
-      c_pub=$(openssl x509 -in "$OWN_CERT" -noout -pubkey 2>/dev/null | openssl md5 2>/dev/null)
-      k_pub=$(openssl pkey -in "$OWN_KEY" -pubout 2>/dev/null | openssl md5 2>/dev/null)
-      [ -n "$k_pub" ] && [ "$c_pub" = "$k_pub" ] \
-        || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
-    else
-      [ "$c_mod" = "$k_mod" ] \
-        || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
-    fi
+    # Pareja cert/clave: si no coinciden, nginx arranca igual y el error aparece recien en
+    # el handshake, cuando ya nadie lo asocia al instalador.
+    #
+    # Se comparan las llaves PUBLICAS y no los modulos: el modulo solo existe en RSA, y
+    # `openssl x509 -modulus` sobre un certificado EC falla. Con `set -o pipefail` ese
+    # fallo mataba el pipeline, y con `set -e` mataba el script entero antes de evaluar
+    # nada — los certificados de Let's Encrypt de este producto son EC, asi que el camino
+    # roto era justamente el normal. `-pubkey`/`-pubout` sirven para RSA, EC y Ed25519.
+    # Los `|| true` son necesarios: sin ellos un openssl que falle vuelve a matar el script.
+    c_pub=$( { openssl x509 -in "$OWN_CERT" -noout -pubkey 2>/dev/null || true; } | openssl md5 2>/dev/null || true)
+    k_pub=$( { openssl pkey -in "$OWN_KEY"  -pubout       2>/dev/null || true; } | openssl md5 2>/dev/null || true)
+    [ -n "$c_pub" ] && [ -n "$k_pub" ] && [ "$c_pub" = "$k_pub" ] \
+      || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
     # Aviso, no error: un cert vencido instala igual y el operador puede estar
     # reemplazandolo a proposito en medio de una recuperacion.
     openssl x509 -in "$OWN_CERT" -noout -checkend 0 >/dev/null 2>&1 \
