@@ -71,6 +71,9 @@ WANT_VERSION=""
 CERT_MODE="acme"   # "byo" con --use-own-cert
 OWN_CERT=""
 OWN_KEY=""
+# En modo byo nunca se pregunta el email de ACME, y `set -u` hacia fallar
+# save_answers al escribirlo. Se declara vacia para que exista siempre.
+OBS_ACME_EMAIL="${OBS_ACME_EMAIL:-}"
 LOCAL_BUNDLE=""
 ANSWERS_FILE=""
 ASSUME_YES=0
