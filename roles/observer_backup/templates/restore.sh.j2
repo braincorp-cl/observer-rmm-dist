@@ -241,6 +241,28 @@ if [ -f "$W/meshcentral/mesh.tar.gz" ]; then
     [ -d "$MESH_DIR/node_modules" ] || rojo "  AVISO: faltan los node_modules de Mesh. Corra: cd $MESH_DIR && npm install"
 fi
 
+# nats-api.conf: se REGENERA, no se restaura.
+#
+# Ese archivo lleva la clave de PostgreSQL horneada y backup.sh NO lo respalda (solo
+# respalda la unit de systemd). Como el restore realinea la clave del rol a la del
+# respaldo, el nats-api.conf que dejo la instalacion queda con OTRA clave y el servicio
+# entra en crash-loop con "password authentication failed", reintentando para siempre.
+#
+# No se agrega al respaldo a proposito: es un archivo DERIVADO del local_settings.py, que
+# si viaja. Respaldar lo derivado duplica el secreto y abre la puerta a que las dos copias
+# se desincronicen. Regenerarlo es la operacion correcta.
+#
+# Encontrado restaurando sobre una instalacion nueva: en una restauracion sobre el MISMO
+# servidor no se ve, porque ahi la clave ya es la del respaldo.
+if [ -x "$VENV_PY" ] && [ -f "$MANAGE" ]; then
+    if sudo -u {{ observer_user }} "$VENV_PY" "$MANAGE" create_natsapi_conf >/dev/null 2>&1; then
+        echo "  nats-api.conf regenerado desde el local_settings restaurado"
+    else
+        rojo "  AVISO: no se pudo regenerar nats-api.conf. nats-api quedara en crash-loop."
+        rojo "  Corra a mano: sudo -u {{ observer_user }} $VENV_PY $MANAGE create_natsapi_conf"
+    fi
+fi
+
 # units systemd
 if ls "$W/systemd/"*.service >/dev/null 2>&1; then
     cp -a "$W/systemd/"*.service "$SYSD/"
