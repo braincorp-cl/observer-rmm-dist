@@ -286,8 +286,15 @@ bootstrap() {
   ln -sfn "$NEW_REL" "$BASE_DIR/current"
   save_token
   # Continua el mismo script, ya dentro del bundle (sin --bundle/--token: ya no hacen falta).
+  #
+  # 🪤 Esta lista hay que ampliarla con CADA opcion nueva que afecte la instalacion. Al
+  # agregar --use-own-cert se olvido, y el efecto fue desconcertante: el script re-exec
+  # arrancaba en modo acme, pedia el email de Let's Encrypt y moria por "email invalido"
+  # — sin una sola mencion del certificado propio que se le habia pasado. El sintoma no
+  # apunta a la causa.
   local pass=()
   [ -n "$ANSWERS_FILE" ] && pass+=(--answers "$ANSWERS_FILE")
+  [ "$CERT_MODE" = "byo" ] && pass+=(--use-own-cert "$OWN_CERT" "$OWN_KEY")
   [ "$ASSUME_YES" = 1 ] && pass+=(--yes)
   [ "$VERIFY_ONLY" = 1 ] && pass+=(--verify)
   exec bash "$NEW_REL/install.sh" "${pass[@]}"
