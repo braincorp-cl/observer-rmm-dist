@@ -309,8 +309,13 @@
           changed_when: true
           no_log: true
 
-    - name: Cifrar GoDaddy (observer_proxy/vault.yml) si el humano lo dejó en claro
-      when: observer_cert_mode | default('acme') == 'acme'
+    # El cifrado corre en los DOS modos de certificado. En acme el archivo trae las
+    # credenciales de GoDaddy; en byo trae el certificado y su CLAVE PRIVADA, que
+    # install.sh escribe en claro para que el playbook las recoja. Gatillar todo el
+    # bloque sobre acme dejaba esa clave privada SIN CIFRAR en el disco, contra lo que
+    # dice el propio encabezado del archivo. Lo que sigue siendo exclusivo de acme es
+    # EXIGIR el archivo: en byo las credenciales de DNS no hacen falta.
+    - name: Cifrar observer_proxy/vault.yml si el humano lo dejó en claro
       block:
         - name: ¿Existe observer_proxy/vault.yml?
           ansible.builtin.stat:
@@ -323,19 +328,24 @@
               Falta group_vars/observer_proxy/vault.yml con las credenciales de GoDaddy.
               Cópielo de la plantilla y ponga su API key/secret:
               cp group_vars/observer_proxy/vault.yml.example group_vars/observer_proxy/vault.yml
-          when: not _proxy_vault.stat.exists
+          when:
+            - observer_cert_mode | default('acme') == 'acme'
+            - not _proxy_vault.stat.exists
 
         - name: Leer cabecera de observer_proxy/vault.yml
           ansible.builtin.slurp:
             src: "{{ _gv }}/observer_proxy/vault.yml"
           register: _proxy_raw
           no_log: true
+          when: _proxy_vault.stat.exists
 
         - name: Cifrar observer_proxy/vault.yml si aún está en claro
           ansible.builtin.command:
             cmd: ansible-vault encrypt group_vars/observer_proxy/vault.yml
             chdir: "{{ playbook_dir }}"
-          when: "'$ANSIBLE_VAULT' not in (_proxy_raw.content | b64decode)"
+          when:
+            - _proxy_vault.stat.exists
+            - "'$ANSIBLE_VAULT' not in (_proxy_raw.content | default('') | b64decode)"
           changed_when: true
           no_log: true
 
