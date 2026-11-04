@@ -56,6 +56,7 @@ from observerrmm.constants import (
     AGENT_STATUS_ONLINE,
     AGENT_STATUS_OVERDUE,
     CACHE_DB_FIELDS_TASK_LOCK,
+    CELERY_HEARTBEAT_CACHE_KEY,
     RESOLVE_ALERTS_LOCK,
     SYNC_MESH_PERMS_TASK_LOCK,
     SYNC_SCHED_TASK_LOCK,
@@ -105,6 +106,12 @@ def remove_orphaned_history_results() -> int:
     except Exception as e:
         logger.error(str(e))
         return 0
+
+
+@app.task(ignore_result=True)
+def celery_heartbeat_task() -> None:
+    """Sella la hora en que un worker proceso una tarea de verdad."""
+    cache.set(CELERY_HEARTBEAT_CACHE_KEY, int(djangotime.now().timestamp()), None)
 
 
 @app.task

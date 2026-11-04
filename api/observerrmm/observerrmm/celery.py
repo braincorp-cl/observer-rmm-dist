@@ -37,6 +37,12 @@ app.conf.result_expires = 3600
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
+    # el latido vale justamente por correr seguido: si se enfria, el monitoreo
+    # se entera de que las tareas de fondo dejaron de procesarse
+    "celery-heartbeat": {
+        "task": "core.tasks.celery_heartbeat_task",
+        "schedule": crontab(minute="*"),
+    },
     "auto-approve-win-updates": {
         "task": "winupdate.tasks.auto_approve_updates_task",
         "schedule": crontab(minute=2, hour="*/8"),

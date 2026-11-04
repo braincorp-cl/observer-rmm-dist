@@ -38,6 +38,15 @@ AGENT_STATUS_ONLINE = "online"
 AGENT_STATUS_OFFLINE = "offline"
 AGENT_STATUS_OVERDUE = "overdue"
 
+# Latido de los workers: una tarea de beat lo reescribe cada minuto. Si se pone
+# rancio, o beat no esta programando o los workers no estan consumiendo. Es la
+# diferencia entre "el servicio esta levantado" y "el servicio esta trabajando",
+# que es lo que el monitoreo necesita saber.
+CELERY_HEARTBEAT_CACHE_KEY = "celery_heartbeat"
+CELERY_HEARTBEAT_MAX_AGE = getattr(
+    settings, "CELERY_HEARTBEAT_MAX_AGE", 300
+)  # segundos
+
 REDIS_LOCK_EXPIRE = 60 * 60 * 2  # Lock expires in 2 hours
 RESOLVE_ALERTS_LOCK = "resolve-alerts-lock-key"
 SYNC_SCHED_TASK_LOCK = "sync-sched-tasks-lock-key"

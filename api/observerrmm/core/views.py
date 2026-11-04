@@ -7,6 +7,7 @@ import requests
 import validators
 from cryptography import x509
 from django.conf import settings
+from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -33,7 +34,12 @@ from core.utils import (
     token_is_valid,
 )
 from logs.models import AuditLog
-from observerrmm.constants import AuditActionType, PAStatus
+from observerrmm.constants import (
+    CELERY_HEARTBEAT_CACHE_KEY,
+    CELERY_HEARTBEAT_MAX_AGE,
+    AuditActionType,
+    PAStatus,
+)
 from observerrmm.helpers import get_certs, notify_error
 from observerrmm.logger import logger
 from observerrmm.permissions import (
@@ -730,6 +736,16 @@ def status_v2(request):
         celery_queue_health = "unhealthy"
         logger.error(f"Error getting celery queue length: {e}")
 
+    # -1 = nunca se registro un latido, o redis no responde
+    celery_heartbeat_age = -1
+    celery_heartbeat_health = "unhealthy"
+    with suppress(Exception):
+        last_heartbeat = cache.get(CELERY_HEARTBEAT_CACHE_KEY)
+        if last_heartbeat is not None:
+            celery_heartbeat_age = int(djangotime.now().timestamp()) - last_heartbeat
+            if celery_heartbeat_age <= CELERY_HEARTBEAT_MAX_AGE:
+                celery_heartbeat_health = "healthy"
+
     nats_std_port, nats_ws_port = get_nats_ports()
     mesh_port = getattr(settings, "MESH_PORT", 4430)
 
@@ -746,6 +762,8 @@ def status_v2(request):
         "redis_ping": redis_ping,
         "celery_queue_len": queue_len,
         "celery_queue_health": celery_queue_health,
+        "celery_heartbeat_age": celery_heartbeat_age,
+        "celery_heartbeat_health": celery_heartbeat_health,
         "nats_std_ping": localhost_port_is_open(nats_std_port),
         "nats_ws_ping": localhost_port_is_open(nats_ws_port),
         "mesh_ping": localhost_port_is_open(mesh_port),

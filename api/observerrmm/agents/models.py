@@ -53,6 +53,7 @@ from observerrmm.constants import (
 from observerrmm.helpers import has_script_actions, has_webhook, setup_nats_options
 from observerrmm.middleware import get_username
 from observerrmm.models import PermissionQuerySet
+from observerrmm.nats_utils import nats_request
 
 if TYPE_CHECKING:
     from alerts.models import Alert, AlertTemplate
@@ -980,8 +981,11 @@ class Agent(BaseAuditModel):
 
         if wait:
             try:
-                msg = await nc.request(
-                    self.agent_id, msgpack.dumps(data), timeout=timeout
+                msg = await nats_request(
+                    nc=nc,
+                    subject=self.agent_id,
+                    payload=msgpack.dumps(data),
+                    timeout=timeout,
                 )
             except TimeoutError:
                 ret = "timeout"
