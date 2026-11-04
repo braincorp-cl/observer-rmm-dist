@@ -95,7 +95,14 @@ class TestAgentsList(ObserverTestCase):
         self.assertEqual(len(r.data), 11)
 
         # make sure data is returned with the AgentHostnameSerializer
-        agents = Agent.objects.filter(site=site3)
+        #
+        # El order_by replica el de la vista (GetAgents, rama detail=false). Sin el,
+        # el esperado sale sin ORDER BY y Postgres entrega las filas en el orden que
+        # quiera: los 11 agentes de la receta comparten hostname, asi que lo unico
+        # que los desempata es el id. Coincidia casi siempre con el de insercion, de
+        # ahi que el test pasara el 99 % de las veces y fallara sin razon aparente
+        # comparando dos listas de contenido identico en distinto orden.
+        agents = Agent.objects.filter(site=site3).order_by("hostname", "id")
         serializer = AgentHostnameSerializer(agents, many=True)
         self.assertEqual(r.data, serializer.data)
 
