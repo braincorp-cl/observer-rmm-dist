@@ -78,4 +78,3 @@
          else ('conservado del cluster que ya existe en el host'
                if (_pg_existentes | length) == 1
                else 'instalado de cero: el host no tenia PostgreSQL') }}
-

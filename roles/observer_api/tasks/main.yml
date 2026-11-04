@@ -135,13 +135,13 @@
 # tarea de `migrate`, que no menciona ni el vault ni el rol ni como arreglarlo. La
 # comprobacion va aca, pegada al render, para que cubra tambien la rebanada api_config,
 # que es justo la que reescribe el archivo sin tocar nada mas.
-- name: "local_settings — ¿esta el entorno Django listo para comprobar la conexion?"
+- name: "Comprobar si el entorno Django ya existe para probar la conexion"
   tags: [api_config]
   ansible.builtin.stat:
     path: "{{ observer_root }}/api/env/bin/python"
   register: _api_venv
 
-- name: "local_settings — comprobar que las credenciales escritas abren la base"
+- name: "Comprobar que las credenciales de local_settings.py abren la base"
   tags: [api_config]
   when: _api_venv.stat.exists
   ansible.builtin.command:
@@ -163,14 +163,14 @@
   # simulacion, el ensayo del deploy daria verde sobre credenciales que no sirven.
   check_mode: false
 
-- name: "local_settings — fallar explicando por que la base rechaza las credenciales"
+- name: "Explicar que PostgreSQL rechaza la contrasena escrita en local_settings.py"
   tags: [api_config]
   when:
     - _api_venv.stat.exists
     - (_db_conn.rc | default(0)) != 0
+    - "'password authentication failed' in (_db_conn.stderr | default(''))"
   ansible.builtin.fail:
     msg: >-
-      {%- if 'password authentication failed' in (_db_conn.stderr | default('')) %}
       PostgreSQL rechazo la contrasena de '{{ observer_db_user }}' (28P01) que se acaba
       de escribir en local_settings.py desde vault_observer_db_password. El vault y el
       rol de PostgreSQL estan separados: el rol tiene otra contrasena. Alinearlos
@@ -180,13 +180,23 @@
       ALTER ROLE {{ observer_db_user }} WITH PASSWORD '<vault_observer_db_password>'.
       El local_settings.py anterior quedo respaldado al lado, con fecha, por si hacia
       falta comparar.
-      {%- else %}
+
+# Dos tareas en vez de un mensaje con ramas Jinja: los remedios son distintos --una
+# credencial separada del vault no se arregla mirando pg_hba-- y asi cada una lleva su
+# condicion explicita, sin {% if %} dentro de un texto.
+- name: "Explicar que la base no abre por una razon distinta de la contrasena"
+  tags: [api_config]
+  when:
+    - _api_venv.stat.exists
+    - (_db_conn.rc | default(0)) != 0
+    - "'password authentication failed' not in (_db_conn.stderr | default(''))"
+  ansible.builtin.fail:
+    msg: >-
       No se pudo abrir la base con lo que se acaba de escribir en local_settings.py.
       Revisar que PostgreSQL este arriba y alcanzable en
       {{ observer_db_host }}:{{ observer_db_port | default(5432) }} y que pg_hba.conf
       acepte al usuario '{{ observer_db_user }}'. Error crudo:
       {{ _db_conn.stderr | default(_db_conn.msg) | default('sin detalle') }}
-      {%- endif %}
 
 # NATS Server — instalar el binario ANTES del setup de Django: reload_nats (dentro de
 # django_deploy) ejecuta `nats-server -signal reload`; si el binario no existe,
