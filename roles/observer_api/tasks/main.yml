@@ -114,11 +114,79 @@
     owner: "{{ observer_user }}"
     group: "{{ observer_group }}"
     mode: "0640"
+    # Guarda una copia con fecha del archivo anterior ANTES de pisarlo. Este archivo
+    # es el unico lugar del servidor donde viven las credenciales en claro, y la
+    # plantilla lo reescribe entero en cada corrida: sin respaldo, un deploy que
+    # introduzca una credencial equivocada destruye al mismo tiempo el servicio y la
+    # evidencia de con que credencial funcionaba. Paso exactamente eso al desplegar
+    # sobre una base restaurada, y no quedo con que comparar.
+    backup: true
   notify:
     - restart rmm
     - restart daphne
     - restart celery
     - restart celerybeat
+
+# 🪤 La plantilla de arriba reescribe local_settings.py desde el vault en CADA corrida,
+# incluida la rebanada `--tags api_config`, y nadie comprobaba que las credenciales que
+# acaba de escribir abran la base. Si la contrasena del vault y la del rol de PostgreSQL
+# se separan alguna vez, el archivo queda sintacticamente perfecto y la API muerta; el
+# primer sintoma era un traceback de psycopg con 28P01 cuarenta lineas mas abajo, en la
+# tarea de `migrate`, que no menciona ni el vault ni el rol ni como arreglarlo. La
+# comprobacion va aca, pegada al render, para que cubra tambien la rebanada api_config,
+# que es justo la que reescribe el archivo sin tocar nada mas.
+- name: "local_settings — ¿esta el entorno Django listo para comprobar la conexion?"
+  tags: [api_config]
+  ansible.builtin.stat:
+    path: "{{ observer_root }}/api/env/bin/python"
+  register: _api_venv
+
+- name: "local_settings — comprobar que las credenciales escritas abren la base"
+  tags: [api_config]
+  when: _api_venv.stat.exists
+  ansible.builtin.command:
+    cmd: >-
+      {{ observer_root }}/api/env/bin/python -c
+      "import os, django;
+      os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ observer_app_name }}.settings');
+      django.setup();
+      from django.db import connection;
+      connection.ensure_connection()"
+    chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
+  become: true
+  become_user: "{{ observer_user }}"
+  register: _db_conn
+  changed_when: false
+  # No falla aca: el mensaje util lo arma la tarea siguiente a partir del error.
+  failed_when: false
+  # De solo lectura, asi que corre tambien en --check: si Ansible la saltara en modo
+  # simulacion, el ensayo del deploy daria verde sobre credenciales que no sirven.
+  check_mode: false
+
+- name: "local_settings — fallar explicando por que la base rechaza las credenciales"
+  tags: [api_config]
+  when:
+    - _api_venv.stat.exists
+    - (_db_conn.rc | default(0)) != 0
+  ansible.builtin.fail:
+    msg: >-
+      {%- if 'password authentication failed' in (_db_conn.stderr | default('')) %}
+      PostgreSQL rechazo la contrasena de '{{ observer_db_user }}' (28P01) que se acaba
+      de escribir en local_settings.py desde vault_observer_db_password. El vault y el
+      rol de PostgreSQL estan separados: el rol tiene otra contrasena. Alinearlos
+      corriendo el play de base de datos, que fija la del rol desde el mismo vault:
+      ansible-playbook install.yml -i <inventario> --tags db
+      Si no se quiere tocar PostgreSQL entero, la tarea equivalente es
+      ALTER ROLE {{ observer_db_user }} WITH PASSWORD '<vault_observer_db_password>'.
+      El local_settings.py anterior quedo respaldado al lado, con fecha, por si hacia
+      falta comparar.
+      {%- else %}
+      No se pudo abrir la base con lo que se acaba de escribir en local_settings.py.
+      Revisar que PostgreSQL este arriba y alcanzable en
+      {{ observer_db_host }}:{{ observer_db_port | default(5432) }} y que pg_hba.conf
+      acepte al usuario '{{ observer_db_user }}'. Error crudo:
+      {{ _db_conn.stderr | default(_db_conn.msg) | default('sin detalle') }}
+      {%- endif %}
 
 # NATS Server — instalar el binario ANTES del setup de Django: reload_nats (dentro de
 # django_deploy) ejecuta `nats-server -signal reload`; si el binario no existe,
