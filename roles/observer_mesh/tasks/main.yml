@@ -220,7 +220,7 @@
       vault_observer_mesh_db_password; si el play de base de datos corrio despues de
       la ultima escritura de ese config, el rol de PostgreSQL tiene la del vault y el
       config quedo con la vieja. Comprobarlo a mano:
-      sudo -u postgres psql -c "\\du meshcentral"
+      sudo -u postgres psql -c "\du meshcentral"
       y revisar /var/log/postgresql/ por 28P01 del usuario meshcentral.
 
 - name: "Mesh — explicar cualquier otro fallo de --logintokenkey"
