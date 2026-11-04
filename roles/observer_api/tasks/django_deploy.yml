@@ -250,7 +250,7 @@
   ansible.builtin.command:
     cmd: >-
       {{ observer_root }}/api/env/bin/python manage.py createsuperuser --noinput
-      --username {{ observer_admin_user }} --email {{ observer_acme_email }}
+      --username {{ observer_admin_user }} --email {{ observer_admin_email }}
     chdir: "{{ observer_root }}/api/{{ observer_app_name }}"
   become: true
   become_user: "{{ observer_user }}"

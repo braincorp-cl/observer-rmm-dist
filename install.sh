@@ -39,6 +39,8 @@
 # Claves de --answers (los secretos NUNCA van en el archivo: se leen de variables de
 # entorno OBS_GODADDY_KEY / OBS_GODADDY_SECRET o se preguntan):
 #   OBS_SLUG, OBS_API_FQDN, OBS_RMM_FQDN, OBS_MESH_FQDN, OBS_ACME_EMAIL,
+#   OBS_ADMIN_EMAIL (opcional: email del administrador de la consola; por omision el de
+#                    ACME, y con --use-own-cert admin@<dominio base>),
 #   OBS_PROXY_IP (vacio = sin proxy reverso), OBS_TIMEZONE, OBS_AGENT_VER,
 #   OBS_HUGEPAGES (s/n), OBS_REBOOT (s/n)
 #
@@ -74,6 +76,9 @@ OWN_KEY=""
 # En modo byo nunca se pregunta el email de ACME, y `set -u` hacia fallar
 # save_answers al escribirlo. Se declara vacia para que exista siempre.
 OBS_ACME_EMAIL="${OBS_ACME_EMAIL:-}"
+# Email del administrador de la consola. Distinto del de ACME aunque suela coincidir:
+# con certificado propio no hay email de ACME del que heredarlo.
+OBS_ADMIN_EMAIL="${OBS_ADMIN_EMAIL:-}"
 LOCAL_BUNDLE=""
 ANSWERS_FILE=""
 ASSUME_YES=0
@@ -426,7 +431,8 @@ load_answers() {
     val="${val%\"}"; val="${val#\"}"
     case "$key" in
       OBS_SLUG|OBS_API_FQDN|OBS_RMM_FQDN|OBS_MESH_FQDN|OBS_ACME_EMAIL|OBS_PROXY_IP|\
-      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE) printf -v "$key" '%s' "$val" ;;
+      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE|\
+      OBS_ADMIN_EMAIL) printf -v "$key" '%s' "$val" ;;
       # OBS_CERT_MODE lo escribe save_answers; sin esta rama, --update muere releyendo
       # el answers.env que escribio el propio install.sh.
       OBS_CERT_MODE) CERT_MODE="$val" ;;
@@ -501,6 +507,16 @@ collect_answers() {
     echo "Certificado: aportado por usted (--use-own-cert). Sin ACME y sin tocar el DNS."
     info "certificado: $OWN_CERT"
     info "clave:       $OWN_KEY"
+    # Sin email de ACME hay que saber cual es el del administrador de la consola. Si no
+    # lo dieron, se deriva del dominio base en vez de frenar la instalacion.
+    if [ -z "$OBS_ADMIN_EMAIL" ]; then
+      if [ -n "$ANSWERS_FILE" ]; then
+        OBS_ADMIN_EMAIL="admin@$OBS_BASE_DOMAIN"
+        info "email del administrador (derivado): $OBS_ADMIN_EMAIL"
+      else
+        ask OBS_ADMIN_EMAIL "Email del administrador de la consola" "admin@$OBS_BASE_DOMAIN" _email "email invalido"
+      fi
+    fi
   else
     ask OBS_ACME_EMAIL "Email de registro Let's Encrypt" "" _email "email invalido"
 
@@ -690,6 +706,7 @@ all:
 
     observer_cert_mode: $CERT_MODE
 $(if [ "$CERT_MODE" = "acme" ]; then echo "    observer_acme_email: $OBS_ACME_EMAIL"; fi)
+$(if [ -n "$OBS_ADMIN_EMAIL" ]; then echo "    observer_admin_email: $OBS_ADMIN_EMAIL"; fi)
 
     # IP LAN del proxy reverso (real_ip). Tambien relaja el pin de hash del Mesh.
 $proxy_line
@@ -745,6 +762,7 @@ OBS_API_FQDN=$OBS_API_FQDN
 OBS_RMM_FQDN=$OBS_RMM_FQDN
 OBS_MESH_FQDN=$OBS_MESH_FQDN
 OBS_ACME_EMAIL=$OBS_ACME_EMAIL
+OBS_ADMIN_EMAIL=$OBS_ADMIN_EMAIL
 OBS_CERT_MODE=$CERT_MODE
 OBS_PROXY_IP=$OBS_PROXY_IP
 OBS_TIMEZONE=$OBS_TIMEZONE

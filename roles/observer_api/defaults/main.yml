@@ -1,5 +1,20 @@
 ---
 observer_python_version: "3.11"
+
+# Email del superusuario Django. Es un concepto distinto del email de registro de ACME,
+# aunque hoy compartan valor cuando el certificado se emite por ACME: uno identifica al
+# administrador de la consola, el otro a quien registra el certificado.
+#
+# Estaban acoplados y el acoplamiento se rompia solo: `django_deploy.yml` usaba
+# `observer_acme_email` directo, que vive en los defaults de observer_proxy — otro rol, y
+# que corre DESPUES. Andaba nada mas porque install.sh siempre lo escribia en el
+# inventario. Al instalar con certificado propio (observer_cert_mode: byo) deja de haber
+# email de ACME, y la creacion del superusuario fallaba con 'observer_acme_email' is
+# undefined tras doce minutos de instalacion, con todo lo demas ya puesto.
+#
+# El `or` de Jinja y no `| default()`: default solo actua sobre una variable INDEFINIDA, y
+# aca el valor puede llegar definido pero vacio (es el default de observer_proxy).
+observer_admin_email: "{{ (observer_acme_email | default('')) or ('admin@' + (observer_base_domain | default('localhost'))) }}"
 observer_nats_version: "2.15.1"
 # SHA256 de los tarballs de la release, tomados del SHA256SUMS que publica nats-io.
 # Van por arquitectura porque el tarball es distinto en cada una. Al subir el pin hay

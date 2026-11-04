@@ -29,7 +29,11 @@ observer_mesh_ignore_agent_hash_check: "{{ (observer_trusted_proxy_ip | default(
 # porque get_mesh_ws_url mina el token de auth para ESTE usuario. La contraseña vive en
 # vault (vault_observer_mesh_password) y NO es el MESH_TOKEN_KEY (ese es el login token key).
 observer_mesh_user: meshcentral_admin
-observer_mesh_admin_email: "{{ observer_acme_email | default('admin@' + (observer_base_domain | default('localhost'))) }}"
+# El `or` y no `| default()`: default solo actua si la variable esta INDEFINIDA, y
+# observer_proxy la declara como cadena vacia — con lo que el fallback no se aplicaba y
+# el email del admin de mesh quedaba en blanco. Se nota recien al instalar con
+# certificado propio, donde no hay email de ACME que heredar.
+observer_mesh_admin_email: "{{ (observer_acme_email | default('')) or ('admin@' + (observer_base_domain | default('localhost'))) }}"
 
 # --- Mantenimiento de la DB de MeshCentral (fix issue #7787 + retención) ---
 # Toggle global del bloque de mantenimiento (índice + LZ4 + purga nocturna).
