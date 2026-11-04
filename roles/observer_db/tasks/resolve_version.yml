@@ -1,0 +1,81 @@
+---
+# Resolucion de la version de PostgreSQL POR HOST.
+#
+# Vive en su propio archivo --y no dentro de main.yml-- para poder ejecutarse aislada:
+# son tareas de solo lectura, asi que sirven tanto como paso del rol como para
+# preguntarle a un servidor en que version quedaria ANTES de tocarlo, sin instalar
+# nada. Las pruebas de los cuatro casos usan este archivo, no una copia.
+
+- name: "PostgreSQL — anotar el pin explicito, si el operador puso uno"
+  ansible.builtin.set_fact:
+    _pg_pedido: "{{ observer_postgresql_version | default('') | string | trim }}"
+
+- name: "PostgreSQL — ¿hay pg_lsclusters? (lo trae postgresql-common)"
+  ansible.builtin.stat:
+    path: /usr/bin/pg_lsclusters
+  register: _pg_lsclusters
+
+# De solo lectura. check_mode: false a proposito: si Ansible la saltara en --check, la
+# resolucion caeria al valor de maquina limpia y un ensayo del playbook sobre un
+# servidor con datos mostraria que va a instalar una version que en realidad no toca.
+- name: "PostgreSQL — inventariar los clusters 'main' ya presentes"
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      pg_lsclusters --no-header | awk '$2 == "main" { print $1 }'
+    executable: /bin/bash
+  register: _pg_clusters_raw
+  changed_when: false
+  check_mode: false
+  when: _pg_lsclusters.stat.exists
+
+- name: "PostgreSQL — reunir lo encontrado"
+  ansible.builtin.set_fact:
+    _pg_existentes: "{{ _pg_clusters_raw.stdout_lines | default([]) }}"
+
+- name: "PostgreSQL — no seguir con mas de un cluster 'main' en el host"
+  ansible.builtin.fail:
+    msg: >-
+      El host tiene {{ _pg_existentes | length }} clusters 'main'
+      ({{ _pg_existentes | join(', ') }}) y el rol no puede adivinar cual guarda los
+      datos de Observer. Decidirlo a mano y declararlo como
+      observer_postgresql_version en el inventario del host. Antes de eso conviene
+      mirar que cluster escucha en el {{ observer_db_port }} y cual tiene la base
+      {{ observer_db_name }}:
+      pg_lsclusters
+  when: (_pg_existentes | length) > 1
+
+- name: "PostgreSQL — no instalar un segundo cluster al lado del que tiene los datos"
+  ansible.builtin.fail:
+    msg: >-
+      Se pidio PostgreSQL {{ _pg_pedido }} pero el host ya corre un cluster
+      {{ _pg_existentes[0] }}/main. Instalar el pedido NO migraria los datos: dejaria
+      dos clusters en paralelo, el nuevo vacio, y Observer seguiria usando el viejo.
+      Para quedarse en {{ _pg_existentes[0] }}, dejar observer_postgresql_version
+      vacio y el host se resuelve solo. Para subir de mayor de verdad, el camino es
+      respaldar y restaurar en una maquina nueva instalada en
+      {{ observer_postgresql_version_new_install }}, no cambiar este pin. Si de verdad
+      se quieren dos clusters en este host, declarar
+      observer_postgresql_allow_second_cluster: true.
+  when:
+    - _pg_pedido != ''
+    - (_pg_existentes | length) == 1
+    - _pg_pedido != _pg_existentes[0]
+    - not (observer_postgresql_allow_second_cluster | bool)
+
+- name: "PostgreSQL — fijar la version efectiva de este host"
+  ansible.builtin.set_fact:
+    observer_postgresql_version: >-
+      {{ _pg_pedido if _pg_pedido != ''
+         else (_pg_existentes[0] if (_pg_existentes | length) == 1
+               else observer_postgresql_version_new_install) }}
+
+- name: "PostgreSQL — dejar dicho de donde salio la version"
+  ansible.builtin.debug:
+    msg: >-
+      PostgreSQL {{ observer_postgresql_version | trim }}
+      {{ 'declarado en el inventario' if _pg_pedido != ''
+         else ('conservado del cluster que ya existe en el host'
+               if (_pg_existentes | length) == 1
+               else 'instalado de cero: el host no tenia PostgreSQL') }}
+

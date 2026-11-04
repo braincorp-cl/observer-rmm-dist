@@ -1,9 +1,27 @@
 ---
 # Valores por defecto — sobreescribir en group_vars/observer_db.yml
 
-# PostgreSQL 15 explícito vía PGDG (estándar BrainCorp, igual que el install.sh
-# upstream): NO se usa el postgres de la distribución.
-observer_postgresql_version: "15"
+# PostgreSQL explícito vía PGDG: NO se usa el postgres de la distribución.
+#
+# Vacío = resolver por host (lo normal). El rol inventaría los clusters que el
+# servidor ya tiene y, si hay uno, manda ese; sólo en una máquina sin PostgreSQL se
+# instala observer_postgresql_version_new_install. Poner acá un número lo convierte en
+# un pin EXPLÍCITO, que choca a propósito con un cluster distinto ya presente en vez de
+# instalar un segundo en silencio.
+observer_postgresql_version: ""
+
+# Versión que se instala en una máquina SIN PostgreSQL. Subir este número NO migra
+# ningún servidor existente: de mayor a mayor se migra con respaldo y restauración en
+# una máquina nueva, no cambiando un pin. PG 18 validado punta a punta el 4-nov-2026
+# (instalación, tuning, 428 migraciones y restauración de un volcado de PG 15).
+# Verificado contra el índice real de PGDG, con control negativo: jammy, noble y
+# resolute publican postgresql-18, así que las tres versiones de Ubuntu soportadas
+# pueden arrancar en 18.
+observer_postgresql_version_new_install: "18"
+
+# Escape para el caso raro de querer DOS clusters en el mismo host a propósito.
+# Apagado: lo que parece un cambio de pin es casi siempre un error de inventario.
+observer_postgresql_allow_second_cluster: false
 observer_db_name: observerrmm
 observer_db_user: observerrmm
 observer_db_port: 5432

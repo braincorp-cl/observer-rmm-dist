@@ -1,9 +1,12 @@
 ---
 # PostgreSQL — observer_db host
 
-# PostgreSQL 15 explícito vía PGDG (estándar BrainCorp, igual que el install.sh
-# upstream): NO se usa el postgres de la distribución.
-observer_postgresql_version: "15"
+# Vacío a propósito: la versión de PostgreSQL se resuelve por host en el rol
+# observer_db. Un servidor que ya tiene un cluster conserva el suyo; una máquina
+# limpia arranca en observer_postgresql_version_new_install (hoy 18). Volver a poner un
+# número acá reinstaura el pin fijo y, con él, el riesgo de levantar un segundo cluster
+# al lado del que tiene los datos.
+observer_postgresql_version: ""
 observer_db_name: observerrmm
 observer_db_user: observerrmm
 observer_db_port: 5432
