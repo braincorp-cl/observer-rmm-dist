@@ -383,21 +383,25 @@
 
 - name: Base de datos PostgreSQL
   hosts: observer_db
+  tags: [db]
   roles:
     - observer_db
 
 - name: Cache Redis
   hosts: observer_redis
+  tags: [redis]
   roles:
     - observer_redis
 
 - name: MeshCentral
   hosts: observer_mesh
+  tags: [mesh]
   roles:
     - observer_mesh
 
 - name: API Django + NATS + Celery
   hosts: observer_api
+  tags: [api]
   roles:
     - observer_api
 

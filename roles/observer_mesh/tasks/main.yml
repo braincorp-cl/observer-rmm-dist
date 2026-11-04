@@ -47,10 +47,18 @@
       ansible.builtin.command: bash /var/tmp/nodesource_setup.sh
       changed_when: true
 
+    # state: latest y NO present. Con `present` y nodejs YA instalado, apt considera la
+    # dependencia satisfecha y no actualiza nada: la tarea reporta `ok`, el playbook da
+    # verde y Node se queda en la major vieja. Medido el 4-nov-2026 subiendo el pin de 20
+    # a 24 en staging — MeshCentral paso a 1.3.1 y Node siguio en v20.20.2.
+    #
+    # `latest` aqui no trae sorpresas: este bloque entero esta guardado por
+    # `observer_node_major != observer_nodejs_version`, asi que solo corre cuando la major
+    # cambia de verdad, no en cada ejecucion.
     - name: Instalar Node.js {{ observer_nodejs_version }}
       ansible.builtin.apt:
         name: nodejs
-        state: present
+        state: latest  # noqa: package-latest
         update_cache: true
 
 - name: Informar que Node ya está en la versión pedida
@@ -180,6 +188,11 @@
   become_user: "{{ observer_user }}"
   register: observer_mesh_ltk
   changed_when: false
+  # De solo lectura, asi que corre tambien en --check. Sin esto Ansible la salta en modo
+  # simulacion, el fact queda vacio y el assert de abajo falla con "no devolvio un hex
+  # valido" — un falso negativo que hace parecer roto el bring-up y deja el play de mesh
+  # imposible de ensayar antes de aplicarlo.
+  check_mode: false
 
 - name: "Mesh — extraer el hex y publicarlo como fact para observer_api"
   tags: [api_config]
