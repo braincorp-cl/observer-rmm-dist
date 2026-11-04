@@ -3,23 +3,58 @@
   ansible.builtin.set_fact:
     nats_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
 
-- name: Descargar NATS Server v{{ observer_nats_version }}
-  ansible.builtin.get_url:
-    url: "https://github.com/nats-io/nats-server/releases/download/v{{ observer_nats_version }}/nats-server-v{{ observer_nats_version }}-linux-{{ nats_arch }}.tar.gz"
-    dest: "/tmp/nats-server-v{{ observer_nats_version }}.tar.gz"
-    checksum: ""
-    mode: "0644"
+# La version instalada se consulta ANTES de bajar nada: si ya coincide con el pin,
+# el bloque entero se salta y no se toca el binario en uso.
+#
+# Antes este archivo traia `creates: /usr/local/bin/nats-server` en el unarchive, que
+# es una guarda por EXISTENCIA, no por version: en cualquier servidor ya instalado la
+# tarea se saltaba y subir el pin no actualizaba nada. El playbook daba verde y NATS
+# se quedaba en la version vieja para siempre.
+- name: Consultar la version de NATS instalada
+  ansible.builtin.command: nats-server --version
+  register: observer_nats_installed
+  changed_when: false
+  failed_when: false
 
-- name: Descomprimir e instalar NATS Server
-  ansible.builtin.unarchive:
-    src: "/tmp/nats-server-v{{ observer_nats_version }}.tar.gz"
-    dest: /usr/local/bin/
-    remote_src: true
-    extra_opts:
-      - --strip-components=1
-      - --wildcards
-      - "*/nats-server"
-    creates: /usr/local/bin/nats-server
+- name: Instalar o actualizar NATS Server a v{{ observer_nats_version }}
+  when: "'v' + observer_nats_version not in (observer_nats_installed.stdout | default(''))"
+  block:
+    # /var/tmp y no /tmp: desde Ubuntu 24.10 (y en Debian 13) /tmp es tmpfs, o sea RAM.
+    # Un tarball de decenas de MB ahi le compite memoria a Postgres y a los workers.
+    - name: Descargar NATS Server v{{ observer_nats_version }}
+      ansible.builtin.get_url:
+        url: "https://github.com/nats-io/nats-server/releases/download/\
+          v{{ observer_nats_version }}/nats-server-v{{ observer_nats_version }}-linux-{{ nats_arch }}.tar.gz"
+        dest: "/var/tmp/nats-server-v{{ observer_nats_version }}-{{ nats_arch }}.tar.gz"
+        # Verificado contra el SHA256SUMS que publica nats-io en la misma release.
+        # Antes este campo iba vacio (`checksum: ""`), que para get_url equivale a no
+        # verificar: cualquier cosa que devolviera 200 se instalaba como nats-server.
+        checksum: "sha256:{{ observer_nats_sha256[nats_arch] }}"
+        mode: "0644"
+
+    - name: Descomprimir e instalar NATS Server
+      ansible.builtin.unarchive:
+        src: "/var/tmp/nats-server-v{{ observer_nats_version }}-{{ nats_arch }}.tar.gz"
+        dest: /usr/local/bin/
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+          - --wildcards
+          - "*/nats-server"
+
+    - name: Limpiar el tarball de NATS
+      ansible.builtin.file:
+        path: "/var/tmp/nats-server-v{{ observer_nats_version }}-{{ nats_arch }}.tar.gz"
+        state: absent
+
+    # Reiniciar solo cuando el binario cambio de verdad. Si el pin ya coincidia, este
+    # bloque no corre y el servicio no se interrumpe.
+    - name: Reiniciar nats si estaba corriendo
+      ansible.builtin.systemd_service:
+        name: nats
+        state: restarted
+      when: not ansible_check_mode
+      failed_when: false
 
 - name: Asegurar permisos en nats-server
   ansible.builtin.file:

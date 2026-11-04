@@ -23,7 +23,10 @@
         name:
           - build-essential
           - zlib1g-dev
-          - libncurses5-dev
+          # libncurses-dev y NO libncurses5-dev: el nombre con el 5 desaparecio en
+          # Ubuntu 26.04 (verificado: no esta en resolute). El sin numero existe en
+          # las tres (jammy 6.3, noble 6.4, resolute 6.6), asi que sirve para todas.
+          - libncurses-dev
           - libgdbm-dev
           - libnss3-dev
           - libssl-dev
@@ -34,27 +37,31 @@
         state: present
         update_cache: true
 
+    # /var/tmp y no /tmp: desde Ubuntu 24.10 (y en Debian 13) /tmp es tmpfs, o sea RAM.
+    # Aca no es un detalle: el arbol de compilacion de CPython con --enable-optimizations
+    # pasa de 1 GB, y en un servidor chico eso es la diferencia entre compilar y que el
+    # OOM killer se lleve algo. /var/tmp es disco y sobrevive reinicios.
     - name: Descargar fuente de Python {{ observer_python_full_version }}
       ansible.builtin.get_url:
         url: "https://www.python.org/ftp/python/{{ observer_python_full_version }}/Python-{{ observer_python_full_version }}.tgz"
-        dest: "/tmp/Python-{{ observer_python_full_version }}.tgz"
+        dest: "/var/tmp/Python-{{ observer_python_full_version }}.tgz"
         mode: "0644"
 
     - name: Extraer fuente
       ansible.builtin.unarchive:
-        src: "/tmp/Python-{{ observer_python_full_version }}.tgz"
-        dest: /tmp
+        src: "/var/tmp/Python-{{ observer_python_full_version }}.tgz"
+        dest: /var/tmp
         remote_src: true
 
     - name: Compilar e instalar (make altinstall)
       ansible.builtin.shell:
         cmd: "./configure --enable-optimizations && make -j $(nproc) && make altinstall"
-        chdir: "/tmp/Python-{{ observer_python_full_version }}"
+        chdir: "/var/tmp/Python-{{ observer_python_full_version }}"
 
     - name: Limpiar fuentes de build
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
-        - "/tmp/Python-{{ observer_python_full_version }}"
-        - "/tmp/Python-{{ observer_python_full_version }}.tgz"
+        - "/var/tmp/Python-{{ observer_python_full_version }}"
+        - "/var/tmp/Python-{{ observer_python_full_version }}.tgz"

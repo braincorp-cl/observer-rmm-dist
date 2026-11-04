@@ -1,6 +1,13 @@
 ---
 observer_python_version: "3.11"
-observer_nats_version: "2.14.0"
+observer_nats_version: "2.15.1"
+# SHA256 de los tarballs de la release, tomados del SHA256SUMS que publica nats-io.
+# Van por arquitectura porque el tarball es distinto en cada una. Al subir el pin hay
+# que reemplazar los dos: un checksum viejo con un pin nuevo falla la descarga, que es
+# el comportamiento que se quiere (falla ruidosa, no instalacion silenciosa).
+observer_nats_sha256:
+  amd64: "bf5edc7b1ce98e885c368cb43a886eb148dc5d0551d99f3cf6141fb5e1954c70"
+  arm64: "e2fbab4cad7d3c76e3052eb959570393c9d73ba756b70bf8e9eea61e9ae6d49c"
 observer_nats_port: 4222
 observer_nats_ws_port: 9235
 observer_nats_host: "127.0.0.1"

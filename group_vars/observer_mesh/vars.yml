@@ -2,7 +2,7 @@
 # MeshCentral — observer_mesh host
 
 observer_mesh_port: 4430
-observer_nodejs_version: "20"
+observer_nodejs_version: "24"
 # 1.2.1 (2026-06-24): primer release que empaqueta el core mac con soporte
 # de captura para macOS 26 "Tahoe" (audit session #344 + KVM LaunchAgent #349).
 # El core anterior (ago-2022) daba pantalla negra en "Tomar control" en macOS 26.
@@ -14,7 +14,7 @@ observer_nodejs_version: "20"
 # (bug conocido del core upstream, seguido aparte). NO es bloqueante para
 # estandarizar: el core anterior tampoco servía KVM en macOS 26 (pantalla negra),
 # así que no hay regresión de capacidad útil. El "hold macOS" previo queda LEVANTADO.
-observer_meshcentral_version: "1.2.1"
+observer_meshcentral_version: "1.3.1"
 
 # Base de datos PostgreSQL para MeshCentral
 # MeshCentral usa PostgreSQL (NO MongoDB)

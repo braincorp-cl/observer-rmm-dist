@@ -40,11 +40,11 @@
     - name: Descargar script de instalación nodesource
       ansible.builtin.get_url:
         url: "https://deb.nodesource.com/setup_{{ observer_nodejs_version }}.x"
-        dest: /tmp/nodesource_setup.sh
+        dest: /var/tmp/nodesource_setup.sh
         mode: "0755"
 
     - name: Ejecutar script nodesource
-      ansible.builtin.command: bash /tmp/nodesource_setup.sh
+      ansible.builtin.command: bash /var/tmp/nodesource_setup.sh
       changed_when: true
 
     - name: Instalar Node.js {{ observer_nodejs_version }}

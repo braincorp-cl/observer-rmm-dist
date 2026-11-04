@@ -73,5 +73,5 @@
 | D-02 | ansible-vault para secretos — nativo, versionable |
 | D-03 | PostgreSQL single-node v1 — Patroni HA reservado para v2 |
 | D-04 | Un rol por grupo de servicio |
-| D-08 | Ubuntu 22.04/24.04 LTS — Debian excluido |
+| D-08 | Ubuntu 22.04/24.04/26.04 LTS — Debian excluido |
 | D-09 | CHECKIN_SYNCMESH 3600-7200s (upstream 200-400s causó crash en MINSAL) |

@@ -3,7 +3,7 @@
 ## 1. Prerrequisitos
 
 - **Nodo de control** (donde se ejecuta Ansible): Python 3.11+, acceso SSH a los hosts target
-- **Hosts target**: Ubuntu 22.04 LTS (primario) o Ubuntu 24.04 LTS. Debian NO soportado.
+- **Hosts target**: Ubuntu 22.04 LTS (primario), 24.04 LTS o 26.04 LTS. Debian NO soportado.
 - **DNS o /etc/hosts**: los hosts deben resolverse entre sí por nombre o IP
 - **Acceso SSH con clave pública** instalada en todos los hosts target con usuario `observer`
 

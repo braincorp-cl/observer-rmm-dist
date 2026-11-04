@@ -3,7 +3,7 @@
 # Observer RMM - instalador interactivo (greenfield, all-in-one, en el propio servidor)
 # =============================================================================
 #
-# Corre EN el servidor del cliente (Ubuntu 22.04/24.04 recien instalado). Pregunta los
+# Corre EN el servidor del cliente (Ubuntu 22.04/24.04/26.04 recien instalado). Pregunta los
 # datos del cliente, deriva lo derivable, valida, arma el inventario y ejecuta los MISMOS
 # playbooks Ansible del dist en modo local. Al final informa las cuentas de acceso.
 # No requiere un clon de GitHub ni un control-plane: el bundle se descarga del CDN.
@@ -52,6 +52,7 @@ CDN_BASE="${OBS_CDN_BASE:-https://agents.observer.cl/installer}"
 BASE_DIR="${OBS_BASE_DIR:-/opt/observer-installer}"
 LOG_FILE="${OBS_LOG_FILE:-/var/log/observer-install.log}"
 PY_BUILD_VERSION="3.12.15"     # solo si el python3 del sistema es < 3.12 (Ubuntu 22.04)
+                               # 24.04 trae 3.12 y 26.04 trae 3.14: en ambos no se compila nada
 MIN_RAM_KB=7500000             # ~8 GB
 MIN_DISK_GB=40
 
@@ -295,8 +296,8 @@ preflight() {
   info "preflight del servidor"
   # shellcheck disable=SC1091
   . /etc/os-release
-  [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?} (requiere Ubuntu 22.04 o 24.04)"
-  case "${VERSION_ID:-}" in 22.04|24.04) ;; *) die "Ubuntu ${VERSION_ID:-?} no soportado (22.04 o 24.04)";; esac
+  [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?} (requiere Ubuntu 22.04, 24.04 o 26.04)"
+  case "${VERSION_ID:-}" in 22.04|24.04|26.04) ;; *) die "Ubuntu ${VERSION_ID:-?} no soportado (22.04, 24.04 o 26.04)";; esac
   case "$(uname -m)" in
     x86_64) ;; aarch64) warn "arquitectura arm64: soportada, pero menos probada que x86_64" ;;
     *) die "arquitectura $(uname -m) no soportada" ;;
@@ -521,10 +522,13 @@ python_for_ansible() {
   PYBIN="$BASE_DIR/python/bin/python3.12"
   [ -x "$PYBIN" ] && return
   info "compilando Python $PY_BUILD_VERSION para Ansible (solo Ubuntu 22.04, ~5 min)"
-  run_root apt-get install -y -qq build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
+  run_root apt-get install -y -qq build-essential zlib1g-dev libncurses-dev libgdbm-dev libnss3-dev \
     libssl-dev libreadline-dev libffi-dev libsqlite3-dev libbz2-dev >/dev/null
   local src
-  src="$(mktemp -d)"
+  # -p /var/tmp y no el default de mktemp (/tmp): desde Ubuntu 24.10 /tmp es tmpfs, o
+  # sea RAM, y el arbol de compilacion de CPython pasa de 1 GB. En un servidor chico
+  # eso se lo lleva el OOM killer en medio del make.
+  src="$(mktemp -d -p /var/tmp)"
   tar -xzf "$REL/vendor/Python-$PY_BUILD_VERSION.tgz" -C "$src"
   # La salida del compilador (miles de lineas de avisos) va a un log aparte; solo se
   # muestra su cola si el build falla.
