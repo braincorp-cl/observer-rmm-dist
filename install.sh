@@ -362,6 +362,15 @@ preflight() {
   info "preflight del servidor"
   # shellcheck disable=SC1091
   . /etc/os-release
+  # DECISION 2026-11-04 (usuario): las TRES versiones se quedan. Se evaluo cerrar la
+  # compuerta a 26.04 para que toda instalacion nueva naciera ahi, y se descarto: el
+  # argumento era llegar a PostgreSQL 18, y PG 18 NO depende del SO. Verificado contra
+  # el indice real de PGDG, con control negativo --una suite inventada da 404--:
+  # jammy, noble y resolute publican postgresql-18, y hay un servidor propio con
+  # Ubuntu 22.04 corriendo PostgreSQL 18.6 (18.6-1.pgdg22.04+2). Cerrar la compuerta
+  # solo habria rechazado a un cliente que estandariza en 24.04 LTS --lo normal en
+  # infra corporativa-- sin ganar nada en la base de datos. La version que se instala
+  # en una maquina limpia la fija observer_postgresql_version_new_install, no el SO.
   [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?} (requiere Ubuntu 22.04, 24.04 o 26.04)"
   case "${VERSION_ID:-}" in 22.04|24.04|26.04) ;; *) die "Ubuntu ${VERSION_ID:-?} no soportado (22.04, 24.04 o 26.04)";; esac
   case "$(uname -m)" in
