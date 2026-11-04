@@ -48,6 +48,18 @@
     mode: "0750"
   when: observer_backup_enabled | bool
 
+# El restore se despliega junto al backup y no por separado a proposito: un respaldo sin
+# procedimiento de vuelta probado no es un respaldo. Va con el mismo modo 0750 y el mismo
+# dueno. No lo invoca ningun cron: lo corre una persona, y pide escribir RESTAURAR.
+- name: Desplegar script de restauracion
+  ansible.builtin.template:
+    src: restore.sh.j2
+    dest: "{{ observer_backup_script_dir }}/restore.sh"
+    owner: "{{ observer_user }}"
+    group: "{{ observer_group }}"
+    mode: "0750"
+  when: observer_backup_enabled | bool
+
 - name: Instalar cron job diario (/etc/cron.d/observer-backup)
   ansible.builtin.template:
     src: observer-backup.cron.j2

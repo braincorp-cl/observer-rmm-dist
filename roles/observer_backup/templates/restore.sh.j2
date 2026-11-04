@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# {{ observer_app_name }} — restauracion completa desde un tarball de backup.sh.
+# Espejo exacto de backup.sh. Gestionado por Ansible (rol observer_backup) — NO editar a mano.
+#
+# Uso:
+#   restore.sh <tarball>              restaura todo
+#   restore.sh <tarball> --solo-bd    restaura solo las dos bases de datos
+#   restore.sh <tarball> --dry-run    inspecciona el tarball y no cambia nada
+#
+# QUE ASUME, y por que importa:
+#
+#   backup.sh NO respalda el codigo de la aplicacion, solo `local_settings.py`. Asi que
+#   este script asume que `install.sh` ya dejo instalada **la misma version** que estaba
+#   corriendo cuando se tomo el respaldo. Si la version instalada es MAS NUEVA, el estado
+#   de migraciones del dump queda atras y hay que correr `migrate` despues; si es mas
+#   vieja, el dump trae tablas que el codigo no conoce y la aplicacion falla. El script
+#   compara las dos cosas y avisa, pero no adivina.
+#
+#   backup.sh tampoco respalda los ROLES de Postgres: el dump va con `--no-owner
+#   --no-privileges`. Los roles se recrean aca leyendo las credenciales de
+#   `local_settings.py` (base principal) y del `config.json` de Mesh, que si viajan en el
+#   tarball. Sin eso, un restore sobre un Postgres recien instalado deja las bases sin
+#   dueno y la aplicacion no conecta.
+#
+#   Los `node_modules` de Mesh estan excluidos del respaldo a proposito (pesan y se
+#   reconstruyen). Hay que correr `npm install` despues, y el script lo recuerda.
+#
+# TRAMPA del formato: el dump es SQL plano y su cabecera trae la meta-instruccion
+# `\restrict` de psql. Eso obliga a restaurar con `psql`, NO con `pg_restore`, y exige un
+# psql al menos tan nuevo como el que genero el dump. El script verifica las dos cosas
+# antes de tocar nada.
+set -uo pipefail
+
+TARBALL="${1:-}"
+MODO="${2:-completo}"
+
+APP_DIR="{{ observer_root }}/api/{{ observer_app_name }}"
+VENV_PY="{{ observer_root }}/api/env/bin/python"
+MANAGE="${APP_DIR}/manage.py"
+MESH_DIR="{{ observer_backup_meshcentral_dir }}"
+MESH_DB="meshcentral"
+REPORTING_DIR="{{ observer_backup_reporting_dir }}"
+CERT_DIR="{{ observer_backup_cert_dir }}"
+SYSD="/etc/systemd/system"
+SERVICIOS="rmm daphne celery celerybeat nats nats-api meshcentral"
+
+rojo() { printf '\033[0;31m%s\033[0m\n' "$*" >&2; }
+verde() { printf '\033[0;32m%s\033[0m\n' "$*"; }
+info() { printf '\033[0;36m%s\033[0m\n' "$*"; }
+die() { rojo "ERROR: $*"; exit 1; }
+
+[ -n "$TARBALL" ] || die "falta el tarball. Uso: restore.sh <tarball> [--solo-bd|--dry-run]"
+[ -f "$TARBALL" ] || die "no existe el tarball: $TARBALL"
+[ "$(id -u)" -eq 0 ] || die "correr como root (sudo), igual que backup.sh"
+
+# `sudo -u postgres` hereda el directorio actual, y postgres no puede leer el home del
+# invocador: cada psql escupia "could not change directory to /home/observer". Es ruido,
+# pero ruido que tapa los errores de verdad. Se corrige pasando a un directorio neutro.
+cd / || die "no se pudo cambiar a /"
+
+# ----------------------------------------------------------------- desempaquetar
+W=$(mktemp -d -t observer-restore-XXXXXXXX)   # /var/tmp via TMPDIR si se quiere; mktemp -t usa /tmp
+trap 'rm -rf "$W"' EXIT
+info "desempaquetando en $W"
+tar -xf "$TARBALL" -C "$W" || die "el tarball no se pudo desempaquetar"
+
+DUMP_MAIN=$(find "$W/postgres" -name 'db-*.psql.gz' 2>/dev/null | head -1)
+DUMP_MESH=$(find "$W/postgres" -name 'mesh-db-*.psql.gz' 2>/dev/null | head -1)
+[ -n "$DUMP_MAIN" ] || die "el tarball no trae dump de la base principal"
+
+# ----------------------------------------------------------------- verificaciones previas
+info "== verificaciones previas =="
+
+# 1. version de psql contra la que genero el dump
+PSQL_VER=$(psql --version | grep -oE '[0-9]+' | head -1)
+DUMP_VER=$(zcat "$DUMP_MAIN" | grep -m1 'Dumped by pg_dump version' | grep -oE '[0-9]+' | head -1)
+printf '  psql local: %s   dump generado por: %s\n' "$PSQL_VER" "${DUMP_VER:-?}"
+if [ -n "$DUMP_VER" ] && [ "$PSQL_VER" -lt "$DUMP_VER" ]; then
+    die "el psql local ($PSQL_VER) es mas viejo que el que genero el dump ($DUMP_VER).
+     La cabecera trae \\restrict y un psql viejo no la entiende. Instale postgresql-client-$DUMP_VER."
+fi
+
+# 2. estado de migraciones del dump contra el codigo instalado
+MIG_DUMP=$(zcat "$DUMP_MAIN" | grep -cE "^INSERT INTO .*django_migrations|^[0-9]+\s+\|" 2>/dev/null || echo 0)
+if [ -f "$APP_DIR/{{ observer_app_name }}/settings.py" ]; then
+    VER_CODIGO=$(grep -m1 'ORMM_VERSION' "$APP_DIR/{{ observer_app_name }}/settings.py" | cut -d'"' -f2)
+    printf '  version instalada: %s\n' "${VER_CODIGO:-?}"
+else
+    rojo "  AVISO: no hay aplicacion instalada en $APP_DIR."
+    rojo "  Este script restaura datos y configuracion, NO el codigo. Corra install.sh primero."
+fi
+
+# 3. credenciales: del local_settings del TARBALL, que es el que corresponde a estos datos
+LS_TAR="$W/rmm/local_settings.py"
+[ -f "$LS_TAR" ] || die "el tarball no trae local_settings.py: sin el no se pueden recrear los roles"
+# Se parsea con python y no con grep/cut: el archivo es Python y las claves pueden ir con
+# comilla simple o doble. Un `cut -d"'"` se rompe solo con el otro estilo, y una clave con
+# un caracter raro se corta a la mitad sin avisar.
+CREDS=$(python3 - "$LS_TAR" <<'PYEOF'
+import re, sys
+s = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+m = re.search(r"DATABASES\s*=\s*\{(.*?)\n\}", s, re.S)
+blk = m.group(1) if m else s
+def g(k):
+    mm = re.search(r"""['"]%s['"]\s*:\s*['"]([^'"]*)['"]""" % k, blk)
+    return mm.group(1) if mm else ""
+print("\t".join(g(k) for k in ("NAME", "USER", "PASSWORD", "HOST", "PORT")))
+PYEOF
+)
+IFS=$'\t' read -r DBNAME DBUSER DBPW DBHOST DBPORT <<<"$CREDS"
+[ -n "$DBNAME" ] && [ -n "$DBUSER" ] || die "no se pudieron leer NAME/USER del local_settings del tarball"
+printf '  base principal: %s  usuario: %s  en %s:%s\n' "$DBNAME" "$DBUSER" "${DBHOST:-localhost}" "${DBPORT:-5432}"
+
+if [ -f "$W/meshcentral/mesh.tar.gz" ]; then
+    MCFG=$(tar -xzOf "$W/meshcentral/mesh.tar.gz" --wildcards '*/meshcentral-data/config.json' 2>/dev/null | head -c 40000)
+    M_USER=$(echo "$MCFG" | jq -r '.settings.postgres.user // empty' 2>/dev/null)
+    M_PW=$(echo "$MCFG" | jq -r '.settings.postgres.password // empty' 2>/dev/null)
+    [ -n "$M_USER" ] && printf '  base de mesh:   %s  usuario: %s\n' "$MESH_DB" "$M_USER"
+fi
+
+if [ "$MODO" = "--dry-run" ]; then
+    echo
+    info "== dry-run: contenido del tarball =="
+    tar -tf "$TARBALL" | sed 's|^\./||' | grep -v '/$' | sort | sed 's/^/  /'
+    echo
+    verde "dry-run terminado. No se cambio nada."
+    exit 0
+fi
+
+# ----------------------------------------------------------------- confirmacion
+echo
+rojo "Esto DESTRUYE las bases '$DBNAME' y '$MESH_DB' de este servidor y las reemplaza"
+rojo "por el contenido de $(basename "$TARBALL")."
+if [ "${OBSERVER_RESTORE_ASSUME_YES:-0}" != "1" ]; then
+    read -rp "Escriba RESTAURAR para continuar: " c
+    [ "$c" = "RESTAURAR" ] || { echo "cancelado"; exit 1; }
+fi
+
+# ----------------------------------------------------------------- detener servicios
+info "== deteniendo servicios =="
+for s in $SERVICIOS; do
+    [ -f "$SYSD/$s.service" ] && { systemctl stop "$s" 2>/dev/null; printf '  %s detenido\n' "$s"; }
+done
+
+# ----------------------------------------------------------------- bases de datos
+restaurar_bd() {
+    local base="$1" usuario="$2" clave="$3" dump="$4"
+    info "== restaurando $base =="
+    # El rol primero: el dump no lo trae (--no-owner --no-privileges).
+    if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$usuario'" | grep -q 1; then
+        sudo -u postgres psql -qc "CREATE USER \"$usuario\" WITH PASSWORD '$clave'"
+        printf '  rol %s creado\n' "$usuario"
+    else
+        sudo -u postgres psql -qc "ALTER USER \"$usuario\" WITH PASSWORD '$clave'"
+        printf '  rol %s ya existia, clave realineada con el respaldo\n' "$usuario"
+    fi
+    # Cortar conexiones vivas, o el DROP falla con "database is being accessed".
+    sudo -u postgres psql -qc \
+        "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$base' AND pid<>pg_backend_pid()" >/dev/null
+    sudo -u postgres psql -qc "DROP DATABASE IF EXISTS \"$base\""
+    sudo -u postgres psql -qc "CREATE DATABASE \"$base\" OWNER \"$usuario\""
+    sudo -u postgres psql -qc "ALTER ROLE \"$usuario\" SET client_encoding TO 'utf8'"
+    sudo -u postgres psql -qc "ALTER ROLE \"$usuario\" SET default_transaction_isolation TO 'read committed'"
+    sudo -u postgres psql -qc "ALTER ROLE \"$usuario\" SET timezone TO 'UTC'"
+    sudo -u postgres psql -qc "GRANT USAGE, CREATE ON SCHEMA PUBLIC TO \"$usuario\"" "$base"
+    # psql y no pg_restore: el dump es SQL plano con \restrict en la cabecera.
+    local err="$W/err-$base.txt"
+    zcat "$dump" | sudo -u postgres psql -q -d "$base" -v ON_ERROR_STOP=0 >/dev/null 2>"$err"
+    local n=0
+    # Sin el `|| true`: grep -c imprime 0 y ADEMAS sale con rc!=0 cuando no hay
+    # coincidencias, de modo que un `|| echo 0` agrega un segundo cero y la variable
+    # queda "0\n0" — el [ ] de abajo revienta con "integer expression expected".
+    [ -s "$err" ] && n=$(grep -c '^ERROR' "$err" 2>/dev/null || true)
+    n=${n:-0}
+    if [ "$n" -gt 0 ]; then
+        rojo "  $n errores al restaurar $base (detalle en $err):"
+        grep '^ERROR' "$err" | sort -u | head -5 | sed 's/^/    /'
+        cp "$err" "/var/tmp/observer-restore-err-$base.txt"
+        rojo "  copia del log en /var/tmp/observer-restore-err-$base.txt"
+    else
+        verde "  $base restaurada sin errores"
+    fi
+    # Dueno de los objetos: el dump los creo como postgres porque corrio como postgres.
+    sudo -u postgres psql -qtAc \
+        "SELECT 'ALTER TABLE \"'||tablename||'\" OWNER TO \"$usuario\";' FROM pg_tables WHERE schemaname='public'" "$base" \
+        | sudo -u postgres psql -q -d "$base" >/dev/null 2>&1
+    sudo -u postgres psql -qtAc \
+        "SELECT 'ALTER SEQUENCE \"'||sequencename||'\" OWNER TO \"$usuario\";' FROM pg_sequences WHERE schemaname='public'" "$base" \
+        | sudo -u postgres psql -q -d "$base" >/dev/null 2>&1
+    printf '  objetos reasignados a %s\n' "$usuario"
+}
+
+restaurar_bd "$DBNAME" "$DBUSER" "$DBPW" "$DUMP_MAIN"
+[ -n "${DUMP_MESH:-}" ] && [ -n "${M_USER:-}" ] && restaurar_bd "$MESH_DB" "$M_USER" "$M_PW" "$DUMP_MESH"
+
+if [ "$MODO" = "--solo-bd" ]; then
+    info "== --solo-bd: arrancando servicios y terminando =="
+    for s in $SERVICIOS; do [ -f "$SYSD/$s.service" ] && systemctl start "$s" 2>/dev/null; done
+    verde "restauracion de bases completada"
+    exit 0
+fi
+
+# ----------------------------------------------------------------- archivos
+info "== restaurando configuracion y datos =="
+
+# local_settings.py: lo que ataca la aplicacion a esta base.
+if [ -d "$APP_DIR/{{ observer_app_name }}" ]; then
+    cp -a "$LS_TAR" "$APP_DIR/{{ observer_app_name }}/local_settings.py"
+    chown {{ observer_user }}:{{ observer_group }} "$APP_DIR/{{ observer_app_name }}/local_settings.py" 2>/dev/null
+    echo "  local_settings.py restaurado"
+fi
+
+# nginx
+for d in sites-available sites-enabled; do
+    [ -d "$W/nginx/$d" ] && { cp -a "$W/nginx/$d/." "/etc/nginx/$d/"; printf '  nginx/%s restaurado\n' "$d"; }
+done
+if [ -f "$W/nginx/nginx.conf" ]; then
+    cp -a /etc/nginx/nginx.conf "/etc/nginx/nginx.conf.pre-restore" 2>/dev/null
+    cp -a "$W/nginx/nginx.conf" /etc/nginx/nginx.conf
+    echo "  nginx.conf restaurado (el anterior quedo en nginx.conf.pre-restore)"
+fi
+
+# /etc/conf.d (celery.conf)
+[ -f "$W/confd/etc-confd.tar.gz" ] && { mkdir -p /etc/conf.d; tar -xzf "$W/confd/etc-confd.tar.gz" -C /etc/conf.d; echo "  /etc/conf.d restaurado"; }
+
+# certificados
+[ -f "$W/certs/observer-certs.tar.gz" ] && { mkdir -p "$CERT_DIR"; tar -xzf "$W/certs/observer-certs.tar.gz" -C "$CERT_DIR"; echo "  certificados de $CERT_DIR restaurados"; }
+[ -f "$W/certs/etc-letsencrypt.tar.gz" ] && { mkdir -p /etc/letsencrypt; tar -xzf "$W/certs/etc-letsencrypt.tar.gz" -C /etc/letsencrypt; echo "  /etc/letsencrypt restaurado"; }
+
+# reporting (archivos subidos por usuarios)
+[ -f "$W/opt/reporting.tar.gz" ] && { mkdir -p "$REPORTING_DIR"; tar -xzf "$W/opt/reporting.tar.gz" -C "$REPORTING_DIR"; chown -R {{ observer_user }}:{{ observer_group }} "$REPORTING_DIR" 2>/dev/null; echo "  reporting restaurado"; }
+
+# datos de MeshCentral (sin node_modules: van excluidos del respaldo)
+if [ -f "$W/meshcentral/mesh.tar.gz" ]; then
+    [ -d "$MESH_DIR/node_modules" ] && mv "$MESH_DIR/node_modules" "/var/tmp/mesh-node_modules-$$"
+    tar -xzf "$W/meshcentral/mesh.tar.gz" -C / 2>/dev/null
+    [ -d "/var/tmp/mesh-node_modules-$$" ] && mv "/var/tmp/mesh-node_modules-$$" "$MESH_DIR/node_modules"
+    chown -R meshcentral:meshcentral "$MESH_DIR" 2>/dev/null
+    echo "  datos de MeshCentral restaurados (node_modules preservados)"
+    [ -d "$MESH_DIR/node_modules" ] || rojo "  AVISO: faltan los node_modules de Mesh. Corra: cd $MESH_DIR && npm install"
+fi
+
+# units systemd
+if ls "$W/systemd/"*.service >/dev/null 2>&1; then
+    cp -a "$W/systemd/"*.service "$SYSD/"
+    systemctl daemon-reload
+    echo "  units systemd restauradas"
+fi
+
+# ----------------------------------------------------------------- arrancar
+info "== arrancando servicios =="
+nginx -t >/dev/null 2>&1 || rojo "  AVISO: nginx -t falla. Revise los vhosts ANTES de recargar."
+systemctl reload nginx 2>/dev/null || systemctl restart nginx 2>/dev/null
+for s in $SERVICIOS; do
+    [ -f "$SYSD/$s.service" ] || continue
+    systemctl start "$s" 2>/dev/null
+    printf '  %-14s %s\n' "$s" "$(systemctl is-active "$s" 2>/dev/null)"
+done
+
+# ----------------------------------------------------------------- cierre
+echo
+verde "== restauracion completada =="
+echo "Verifique a mano, en este orden:"
+echo "  1. $VENV_PY $MANAGE check"
+echo "  2. $VENV_PY $MANAGE showmigrations | grep -c '\[X\]'   (debe coincidir con el respaldo)"
+echo "  3. que la consola web cargue y se pueda iniciar sesion"
+echo "  4. que los agentes vuelvan a reportar"
+echo
+echo "Si la version instalada es MAS NUEVA que la del respaldo, corra ademas:"
+echo "  $VENV_PY $MANAGE migrate"
