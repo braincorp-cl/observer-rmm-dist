@@ -184,18 +184,55 @@
   # existir. Son autocontenidas y de solo lectura (changed_when: false), asi que
   # entrar en la corrida de API no reinstala ni reinicia MeshCentral.
   tags: [api_config, api]
+  # 🪤 El `timeout` de coreutils no es decoracion. Si MeshCentral no puede abrir su
+  # base --por ejemplo porque la contrasena de su config.json quedo atras de la del rol
+  # de PostgreSQL-- imprime el stack de pg-protocol con el 28P01 y NO SALE: se queda
+  # colgado. Sin tope, el playbook espera para siempre y el operador ve una corrida
+  # detenida sin un solo mensaje. Medido el 4-nov-2026 en un servidor con esa
+  # divergencia: 25 KB de stack y el proceso vivo indefinidamente. Importa el doble
+  # desde que esta tarea entra tambien en la rebanada de API.
   ansible.builtin.command:
-    cmd: "/usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey"
+    cmd: >-
+      timeout {{ observer_mesh_ltk_timeout }}
+      /usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey
     chdir: /meshcentral
   become: true
   become_user: "{{ observer_user }}"
   register: observer_mesh_ltk
   changed_when: false
+  # El fallo lo explica la tarea siguiente, que distingue el cuelgue del resto.
+  failed_when: false
   # De solo lectura, asi que corre tambien en --check. Sin esto Ansible la salta en modo
   # simulacion, el fact queda vacio y el assert de abajo falla con "no devolvio un hex
   # valido" — un falso negativo que hace parecer roto el bring-up y deja el play de mesh
   # imposible de ensayar antes de aplicarlo.
   check_mode: false
+
+- name: "Mesh — explicar el cuelgue de --logintokenkey en vez de esperar para siempre"
+  tags: [api_config, api]
+  when: observer_mesh_ltk.rc | default(0) == 124
+  ansible.builtin.fail:
+    msg: >-
+      MeshCentral --logintokenkey no respondio en {{ observer_mesh_ltk_timeout }}
+      segundos y se corto. Casi siempre es que MeshCentral no puede abrir su base:
+      ante un error de autenticacion imprime el stack y se queda colgado sin salir.
+      Comparar la contrasena de /meshcentral/meshcentral-data/config.json con
+      vault_observer_mesh_db_password; si el play de base de datos corrio despues de
+      la ultima escritura de ese config, el rol de PostgreSQL tiene la del vault y el
+      config quedo con la vieja. Comprobarlo a mano:
+      sudo -u postgres psql -c "\\du meshcentral"
+      y revisar /var/log/postgresql/ por 28P01 del usuario meshcentral.
+
+- name: "Mesh — explicar cualquier otro fallo de --logintokenkey"
+  tags: [api_config, api]
+  when:
+    - observer_mesh_ltk.rc | default(0) != 0
+    - observer_mesh_ltk.rc | default(0) != 124
+  ansible.builtin.fail:
+    msg: >-
+      MeshCentral --logintokenkey salio con rc={{ observer_mesh_ltk.rc }}.
+      Ultimas lineas del error:
+      {{ (observer_mesh_ltk.stderr | default('') ~ ' ' ~ (observer_mesh_ltk.stdout | default('')))[-600:] }}
 
 - name: "Mesh — extraer el hex y publicarlo como fact para observer_api"
   tags: [api_config, api]

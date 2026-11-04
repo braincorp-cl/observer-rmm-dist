@@ -1,5 +1,10 @@
 ---
 observer_mesh_port: 4430
+
+# Tope para `meshcentral --logintokenkey`. Normalmente responde en 1 o 2 segundos; el
+# tope existe porque ante un error de autenticacion contra su base MeshCentral imprime
+# el stack y NO sale, y sin tope el playbook se queda esperando sin mensaje.
+observer_mesh_ltk_timeout: 120
 observer_nodejs_version: "24"
 # 1.1.44 = igualar producción. <1.1.44 NO respalda PostgreSQL en el autobackup nativo
 # (performBackup solo tenía ramas mongo/mysql; postgres caía a NeDB → zip sin pgdump).
