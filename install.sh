@@ -19,6 +19,12 @@
 #   --version X.Y.Z      version del bundle (default: la publicada como LATEST)
 #   --bundle ARCHIVO     usar un bundle local (.tar.gz) en vez de descargarlo
 #   --answers ARCHIVO    respuestas en formato KEY=valor (modo no interactivo, ver abajo)
+#   --use-own-cert FULLCHAIN PRIVKEY
+#                        instalar con un certificado propio en vez de emitirlo por ACME.
+#                        No pide credenciales de GoDaddy ni toca el DNS publico, y no exige
+#                        salida a Let's Encrypt. Es la via para un cliente on-premise y para
+#                        restaurar en una maquina nueva con el certificado del respaldo.
+#                        El fullchain debe traer la cadena intermedia y cubrir los 3 FQDN
 #   --yes                no pedir confirmacion final (para --answers)
 #   --verify             solo re-ejecutar el healthcheck y mostrar el resumen (post-reboot)
 #
@@ -62,6 +68,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 TOKEN="${OBS_INSTALLER_TOKEN:-}"
 TOKEN_USER="${OBS_INSTALLER_USER:-}"
 WANT_VERSION=""
+CERT_MODE="acme"   # "byo" con --use-own-cert
+OWN_CERT=""
+OWN_KEY=""
 LOCAL_BUNDLE=""
 ANSWERS_FILE=""
 ASSUME_YES=0
@@ -116,6 +125,10 @@ while [ $# -gt 0 ]; do
     --version) WANT_VERSION="${2:-}"; shift 2 ;;
     --bundle)  LOCAL_BUNDLE="${2:-}"; shift 2 ;;
     --answers) ANSWERS_FILE="${2:-}"; shift 2 ;;
+    --use-own-cert) CERT_MODE="byo"; OWN_CERT="${2:-}"; OWN_KEY="${3:-}"
+                    # shift 3 con menos de 3 argumentos falla, y con `set -e` mata el
+                    # script antes de llegar a la validacion que explica que falta.
+                    shift "$(( $# < 3 ? $# : 3 ))" ;;
     --yes)     ASSUME_YES=1; shift ;;
     --verify)  VERIFY_ONLY=1; shift ;;
     --update)  UPDATE_MODE=1; shift ;;
@@ -123,10 +136,49 @@ while [ $# -gt 0 ]; do
     --force)   FORCE=1; shift ;;
     --allow-downgrade) ALLOW_DOWNGRADE=1; shift ;;
     --reapply) REAPPLY=1; shift ;;
-    -h|--help) sed -n '2,48p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) sed -n '2,52p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) die "opcion desconocida: $1 (use --help)" ;;
   esac
 done
+
+# --- validacion de --use-own-cert ------------------------------------------------------
+# Se valida ACA y no al escribir el vault: un error de ruta llegaba hasta el vault y
+# escribia un bloque YAML vacio, que Ansible aceptaba y nginx tambien al arrancar. El
+# fallo aparecia recien en el primer handshake TLS, lejos de la causa.
+if [ "$CERT_MODE" = "byo" ]; then
+  [ -n "$OWN_CERT" ] && [ -n "$OWN_KEY" ] \
+    || { echo "ERROR: --use-own-cert necesita DOS rutas: <fullchain.pem> <privkey.pem>" >&2; exit 1; }
+  for f in "$OWN_CERT" "$OWN_KEY"; do
+    [ -s "$f" ] || { echo "ERROR: no existe o esta vacio: $f" >&2; exit 1; }
+    [ -r "$f" ] || { echo "ERROR: sin permiso de lectura: $f" >&2; exit 1; }
+  done
+  if command -v openssl >/dev/null 2>&1; then
+    openssl x509 -in "$OWN_CERT" -noout >/dev/null 2>&1 \
+      || { echo "ERROR: $OWN_CERT no es un certificado PEM valido" >&2; exit 1; }
+    # Pareja cert/clave: se comparan los modulos. Si no coinciden, nginx arranca igual y
+    # el error aparece recien en el handshake, cuando ya nadie lo asocia al instalador.
+    c_mod=$(openssl x509 -in "$OWN_CERT" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    k_mod=$(openssl rsa  -in "$OWN_KEY"  -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    if [ -z "$k_mod" ]; then
+      # Clave EC o Ed25519: no tiene modulo. Se compara la llave publica.
+      c_pub=$(openssl x509 -in "$OWN_CERT" -noout -pubkey 2>/dev/null | openssl md5 2>/dev/null)
+      k_pub=$(openssl pkey -in "$OWN_KEY" -pubout 2>/dev/null | openssl md5 2>/dev/null)
+      [ -n "$k_pub" ] && [ "$c_pub" = "$k_pub" ] \
+        || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
+    else
+      [ "$c_mod" = "$k_mod" ] \
+        || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
+    fi
+    # Aviso, no error: un cert vencido instala igual y el operador puede estar
+    # reemplazandolo a proposito en medio de una recuperacion.
+    openssl x509 -in "$OWN_CERT" -noout -checkend 0 >/dev/null 2>&1 \
+      || echo "AVISO: el certificado de $OWN_CERT ya esta vencido" >&2
+    # La cadena intermedia: sin ella los agentes y los moviles fallan aunque el navegador
+    # de escritorio pase, porque trae la intermedia en cache.
+    [ "$(grep -c 'BEGIN CERTIFICATE' "$OWN_CERT")" -ge 2 ] \
+      || echo "AVISO: $OWN_CERT trae un solo certificado; falta la cadena intermedia" >&2
+  fi
+fi
 
 if [ -n "$ANSWERS_FILE" ]; then
   [ -r "$ANSWERS_FILE" ] || die "no se puede leer $ANSWERS_FILE"
@@ -325,8 +377,11 @@ check_egress() {
   local hosts=(
     github.com objects.githubusercontent.com pypi.org files.pythonhosted.org
     registry.npmjs.org deb.nodesource.com apt.postgresql.org nginx.org
-    www.python.org acme-v02.api.letsencrypt.org api.godaddy.com
+    www.python.org
   )
+  # Los origenes de emision solo se exigen en modo acme: un servidor on-premise con
+  # certificado propio no tiene por que alcanzarlos, y pedirselo lo frenaba sin motivo.
+  [ "$CERT_MODE" = "acme" ] && hosts+=(acme-v02.api.letsencrypt.org api.godaddy.com)
   local h bad=()
   for h in "${hosts[@]}"; do
     curl -sS -o /dev/null --connect-timeout 8 --max-time 15 "https://$h/" 2>/dev/null || bad+=("$h")
@@ -363,6 +418,9 @@ load_answers() {
     case "$key" in
       OBS_SLUG|OBS_API_FQDN|OBS_RMM_FQDN|OBS_MESH_FQDN|OBS_ACME_EMAIL|OBS_PROXY_IP|\
       OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE) printf -v "$key" '%s' "$val" ;;
+      # OBS_CERT_MODE lo escribe save_answers; sin esta rama, --update muere releyendo
+      # el answers.env que escribio el propio install.sh.
+      OBS_CERT_MODE) CERT_MODE="$val" ;;
       OBS_GODADDY_KEY|OBS_GODADDY_SECRET) die "$key no puede ir en el archivo de respuestas (use variable de entorno)" ;;
       *) warn "clave desconocida en respuestas: $key (ignorada)" ;;
     esac
@@ -429,22 +487,29 @@ collect_answers() {
   [ "$OBS_API_FQDN" != "$OBS_RMM_FQDN" ] && [ "$OBS_API_FQDN" != "$OBS_MESH_FQDN" ] && [ "$OBS_RMM_FQDN" != "$OBS_MESH_FQDN" ] \
     || die "los 3 FQDN deben ser distintos"
 
-  ask OBS_ACME_EMAIL "Email de registro Let's Encrypt" "" _email "email invalido"
+  if [ "$CERT_MODE" = "byo" ]; then
+    echo
+    echo "Certificado: aportado por usted (--use-own-cert). Sin ACME y sin tocar el DNS."
+    info "certificado: $OWN_CERT"
+    info "clave:       $OWN_KEY"
+  else
+    ask OBS_ACME_EMAIL "Email de registro Let's Encrypt" "" _email "email invalido"
 
-  echo
-  echo "Certificado: wildcard *.$OBS_BASE_DOMAIN por DNS de GoDaddy (Let's Encrypt)."
-  if [ -z "${OBS_GODADDY_KEY:-}" ]; then
-    [ -n "$ANSWERS_FILE" ] && die "defina OBS_GODADDY_KEY y OBS_GODADDY_SECRET en el entorno"
-    tty_read OBS_GODADDY_KEY "GoDaddy API key" "" 1
-    tty_read OBS_GODADDY_SECRET "GoDaddy API secret" "" 1
+    echo
+    echo "Certificado: wildcard *.$OBS_BASE_DOMAIN por DNS de GoDaddy (Let's Encrypt)."
+    if [ -z "${OBS_GODADDY_KEY:-}" ]; then
+      [ -n "$ANSWERS_FILE" ] && die "defina OBS_GODADDY_KEY y OBS_GODADDY_SECRET en el entorno"
+      tty_read OBS_GODADDY_KEY "GoDaddy API key" "" 1
+      tty_read OBS_GODADDY_SECRET "GoDaddy API secret" "" 1
+    fi
+    local rc=0
+    OBS_GODADDY_ZONE="$(godaddy_zone "$OBS_BASE_DOMAIN")" || rc=$?
+    case "$rc" in
+      0) info "GoDaddy: credenciales OK, zona '$OBS_GODADDY_ZONE'" ;;
+      2) die "GoDaddy rechazo las credenciales (401/403)" ;;
+      *) die "ninguna zona de la cuenta GoDaddy contiene $OBS_BASE_DOMAIN" ;;
+    esac
   fi
-  local rc=0
-  OBS_GODADDY_ZONE="$(godaddy_zone "$OBS_BASE_DOMAIN")" || rc=$?
-  case "$rc" in
-    0) info "GoDaddy: credenciales OK, zona '$OBS_GODADDY_ZONE'" ;;
-    2) die "GoDaddy rechazo las credenciales (401/403)" ;;
-    *) die "ninguna zona de la cuenta GoDaddy contiene $OBS_BASE_DOMAIN" ;;
-  esac
 
   echo
   echo "Si el servidor se publica detras de un proxy reverso (ej. Nginx Proxy Manager),"
@@ -497,7 +562,7 @@ show_summary_and_confirm() {
   Cliente:            $OBS_SLUG
   Consola / API:      https://$OBS_RMM_FQDN  /  https://$OBS_API_FQDN
   MeshCentral:        https://$OBS_MESH_FQDN
-  Certificado:        *.$OBS_BASE_DOMAIN (Let's Encrypt via GoDaddy, zona $OBS_GODADDY_ZONE)
+  Certificado:        $(if [ "$CERT_MODE" = byo ]; then echo "propio: $OWN_CERT"; else echo "*.$OBS_BASE_DOMAIN (Let's Encrypt via GoDaddy, zona $OBS_GODADDY_ZONE)"; fi)
   Proxy reverso:      ${OBS_PROXY_IP:-ninguno (publicacion directa)}
   Zona horaria:       $OBS_TIMEZONE
   Agente ofrecido:    $OBS_AGENT_VER
@@ -569,12 +634,26 @@ write_secrets_and_inventory() {
   fi
   chmod 0600 "$REL/.vault_pass"
   # En claro a proposito: el play de autovault de install.yml lo cifra en la primera corrida.
-  cat >"$REL/group_vars/observer_proxy/vault.yml" <<EOF
+  if [ "$CERT_MODE" = "byo" ]; then
+    # El cert y la clave van indentados como bloque YAML literal. sed agrega los 2 espacios
+    # a CADA linea: sin eso el YAML se rompe en la segunda y el error apunta al archivo,
+    # no al origen.
+    {
+      echo "---"
+      echo "# Certificado propio - lo escribio install.sh --use-own-cert; install.yml lo cifra."
+      echo "vault_tls_cert: |"
+      sed 's/^/  /' "$OWN_CERT"
+      echo "vault_tls_key: |"
+      sed 's/^/  /' "$OWN_KEY"
+    } >"$REL/group_vars/observer_proxy/vault.yml"
+  else
+    cat >"$REL/group_vars/observer_proxy/vault.yml" <<EOF
 ---
 # Credenciales GoDaddy (zona $OBS_GODADDY_ZONE) - las escribio install.sh; install.yml las cifra.
 vault_godaddy_key: "$OBS_GODADDY_KEY"
 vault_godaddy_secret: "$OBS_GODADDY_SECRET"
 EOF
+  fi
   chmod 0600 "$REL/group_vars/observer_proxy/vault.yml"
   umask 022
   render_inventory "$INV"
@@ -600,8 +679,8 @@ all:
     # DERIVADO de los 3 FQDN: base del wildcard *.$OBS_BASE_DOMAIN (un solo nivel).
     observer_base_domain: $OBS_BASE_DOMAIN
 
-    observer_cert_mode: acme
-    observer_acme_email: $OBS_ACME_EMAIL
+    observer_cert_mode: $CERT_MODE
+$(if [ "$CERT_MODE" = "acme" ]; then echo "    observer_acme_email: $OBS_ACME_EMAIL"; fi)
 
     # IP LAN del proxy reverso (real_ip). Tambien relaja el pin de hash del Mesh.
 $proxy_line
@@ -657,6 +736,7 @@ OBS_API_FQDN=$OBS_API_FQDN
 OBS_RMM_FQDN=$OBS_RMM_FQDN
 OBS_MESH_FQDN=$OBS_MESH_FQDN
 OBS_ACME_EMAIL=$OBS_ACME_EMAIL
+OBS_CERT_MODE=$CERT_MODE
 OBS_PROXY_IP=$OBS_PROXY_IP
 OBS_TIMEZONE=$OBS_TIMEZONE
 OBS_AGENT_VER=$OBS_AGENT_VER
