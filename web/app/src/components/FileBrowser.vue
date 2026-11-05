@@ -75,12 +75,15 @@
                 <q-checkbox v-model="slotProps.selected" dense />
               </q-td>
 
+              <!-- 050 (T046, G05): el ícono NO lleva color. El teal y el
+                   ámbar colgaban de `row.type`, una propiedad de la fila, así
+                   que eran color de estado marcando algo que no es ni acción
+                   ni navegación (el ícono no es el control: hereda el cursor
+                   del `tr`). Lo que distingue carpeta de archivo es el glifo,
+                   y la columna «Tipo» ya lo dice con palabras. -->
               <q-td>
                 <q-icon
                   class="q-mr-sm"
-                  :color="
-                    slotProps.row.type === 'folder' ? 'yellow-9' : 'primary'
-                  "
                   size="sm"
                   :name="
                     slotProps.row.type === 'folder' ? 'folder' : 'description'
