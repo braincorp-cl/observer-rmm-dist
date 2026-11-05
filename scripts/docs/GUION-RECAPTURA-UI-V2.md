@@ -113,11 +113,30 @@ Estado: ✅ = se renderizó y se capturó en la verificación del 5-nov · 🟡 
 | `reportes-programacion.webp` | `/guide_reports/` | `#programaciones` | 1400×758 | Gestor → «Programaciones de reportes» | ✅ renderizada |  |
 | `reportes-historial.webp` | `/guide_reports/` | `#historial` | 1400×758 | Gestor → «Historial de ejecución de reportes» | ✅ renderizada | Con datos reales en staging (Inventario de Agentes, Actividad, Panorama de Parches…). |
 
-### Huérfanas
+### Las 4 huérfanas: cuatro superficies distintas, ninguna duplicada
 
 `reportes-consulta`, `reportes-consultas`, `reportes-editor` y `reportes-recursos` estaban
-publicadas pero **ninguna página las referenciaba**. Se retiraron igual. Si se reponen, que
-sea con un `<figure>` que las use.
+publicadas pero **ninguna página las referenciaba**.
+
+Se sospechó que `consulta`/`consultas` —singular y plural— fueran una **renombrada a
+medias**, con el archivo viejo publicado de más. **No lo son**: se abrieron las cuatro y
+cada una muestra una superficie distinta del módulo de reportes.
+
+| archivo | qué muestra de verdad | ¿sirve para docs? |
+|---|---|---|
+| `reportes-consultas` (plural) | la **lista** de consultas de datos del gestor: 2 filas, botón «Nueva» | flojo: casi vacío |
+| `reportes-consulta` (singular) | el **editor de UNA consulta**: el JSON con `only`, `model: agent`, `filter` y `order_by` | sí, explica el modelo de consulta |
+| `reportes-editor` | el **editor de plantillas**: Jinja + barra de formato, selector HTML/PDF/Depuración, pestañas HTML/CSS/VISTA PREVIA y el panel de Variables | **la más rica de las cuatro** |
+| `reportes-recursos` | **Activos de reporte**: un único archivo, `observer-logo.png` | flojo: casi vacío |
+
+Las cuatro siguen existiendo y son alcanzables en la v2 (pestañas del Administrador de
+reportes, y el editor al abrir una plantilla). Así que son cuatro capturas **que nunca se
+embebieron**, no cuatro archivos muertos — probablemente porque dos de ellas se ven vacías.
+
+**Decisión para T062:** si se reponen, que sea con un `<figure>` que las use. La candidata
+que vale la pena es `reportes-editor`; `consultas` y `recursos` no aportan con los datos de
+staging. Y ninguna vuelve «por si acaso»: un archivo publicado sin `<figure>` es
+exactamente lo que dejó este desorden.
 
 ## Cómo reponer
 
