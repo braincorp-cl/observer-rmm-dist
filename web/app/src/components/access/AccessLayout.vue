@@ -38,14 +38,19 @@
           </div>
         </aside>
 
-        <main class="obs-access__panel">
+        <!-- 🪤 Esto fue un <main> hasta que axe lo cazó: QPage YA renderiza <main>
+             (QPage.js:58), así que había DOS y anidados. Daba tres violaciones de
+             landmark a la vez: main-is-top-level, no-duplicate-main y unique. Un
+             div no quita semántica —el main de la página sigue ahí— y las quita
+             las tres. -->
+        <div class="obs-access__panel">
           <div class="obs-access__form">
             <h1 v-if="heading" class="obs-access__heading">{{ heading }}</h1>
             <slot />
             <p v-if="footnote" class="obs-access__foot">{{ footnote }}</p>
             <slot name="foot" />
           </div>
-        </main>
+        </div>
       </q-page>
     </q-page-container>
   </q-layout>

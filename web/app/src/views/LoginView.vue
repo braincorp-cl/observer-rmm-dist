@@ -21,7 +21,7 @@
           {{ $t("login.username") }}
         </label>
         <q-input
-          id="obs-login-user"
+          for="obs-login-user"
           filled
           dense
           v-model="credentials.username"
@@ -37,7 +37,7 @@
           {{ $t("login.password") }}
         </label>
         <q-input
-          id="obs-login-pass"
+          for="obs-login-pass"
           v-model="credentials.password"
           filled
           dense

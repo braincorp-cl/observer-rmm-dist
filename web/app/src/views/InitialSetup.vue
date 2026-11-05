@@ -16,7 +16,7 @@
           {{ $t("setup.addClient") }}
         </label>
         <q-input
-          id="obs-setup-client"
+          for="obs-setup-client"
           dense
           outlined
           v-model="client.name"
@@ -33,7 +33,7 @@
           {{ $t("setup.addSite") }}
         </label>
         <q-input
-          id="obs-setup-site"
+          for="obs-setup-site"
           dense
           outlined
           v-model="site.name"
@@ -46,10 +46,13 @@
       </div>
 
       <div class="obs-access__field">
-        <label class="obs-access__label">
+        <label class="obs-access__label" for="obs-setup-tz">
           {{ $t("setup.defaultTimezone") }}
         </label>
+        <!-- ObserverDropdown hace v-bind="$attrs" sobre su q-select, así que
+             `for` llega a la prop de QField y fija el id del control real. -->
         <observer-dropdown
+          for="obs-setup-tz"
           filterable
           dense
           options-dense
@@ -72,7 +75,7 @@
             </q-tooltip>
           </q-icon>
         </label>
-        <q-input id="obs-setup-company" dense outlined v-model="companyname" />
+        <q-input for="obs-setup-company" dense outlined v-model="companyname" />
       </div>
 
       <q-btn
