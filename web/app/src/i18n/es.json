@@ -1251,7 +1251,7 @@
     "advancedWin": "Configuración avanzada (solo Windows)",
     "repeatEvery": "Repetir tarea cada",
     "repeatEveryPlaceholder": "p. ej. 30m (30 minutos) o 1h (1 hora)",
-    "timePeriodErr": "Los valores válidos son 1-3 dígitos seguidos de (D|d|H|h|M|m|S|s)",
+    "timePeriodErr": "Los valores válidos son 1-3 dígitos seguidos de (D{'|'}d{'|'}H{'|'}h{'|'}M{'|'}m{'|'}S{'|'}s)",
     "repeatDuration": "Duración de repetición de la tarea",
     "repeatDurationPlaceholder": "p. ej. 6h (6 horas) o 1d (1 día)",
     "durationGtInterval": "La duración de repetición debe ser mayor que el intervalo de repetición",
@@ -1690,7 +1690,7 @@
   "takeControl": {
     "restartConnection": "Reiniciar conexión",
     "recoverConnection": "Recuperar conexión",
-    "metaTitle": "{hostname} - {client} - {site} | Tomar control",
+    "metaTitle": "{hostname} - {client} - {site} {'|'} Tomar control",
     "repairingMesh": "Intentando reparar el agente Mesh",
     "restartingMesh": "Reiniciando el agente Mesh",
     "meshRestarted": "El servicio del agente Mesh se reinició",
@@ -1707,7 +1707,7 @@
     "processes": "Procesos",
     "eventLog": "Registro de eventos",
     "registry": "Registro",
-    "metaTitle": "{hostname} - {client} - {site} | Segundo plano remoto",
+    "metaTitle": "{hostname} - {client} - {site} {'|'} Segundo plano remoto",
     "navLabel": "Secciones del segundo plano remoto",
     "terminalFrame": "Terminal remota del equipo",
     "fileFrame": "Explorador de archivos del equipo"
@@ -3959,7 +3959,7 @@
   "webVNC": {
     "connecting": "Conectando…",
     "frameTitle": "Sesión VNC del equipo",
-    "metaTitle": "{hostname} - {client} - {site} | VNC"
+    "metaTitle": "{hostname} - {client} - {site} {'|'} VNC"
   },
   "webTerminal": {
     "title": "Terminal web del servidor"

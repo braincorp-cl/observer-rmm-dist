@@ -88,3 +88,19 @@ el `peerDependency` de Vite 2 y npm rechaza el árbol entero.
   los parámetros correctos; montar la vista destino pediría API.
 - **El foco visible.** Es el hallazgo #3 de `AUDITORIA-A11Y.md` y vive en CSS
   (`outline` / `box-shadow`): mismo problema que el contraste.
+
+## `i18n-pipe-literal.spec.js` — el `|` literal en un mensaje de i18n
+
+🪤 En vue-i18n el `|` separa **ramas de plural**. Un mensaje que lo lleva como
+carácter (`"X | VNC"`, `"(D|d|H|h)"`) se parte, y `t()` sin contador devuelve
+**sólo la primera rama**. Sin aviso, sin error de consola, sin romper el build:
+el texto aparece cortado y nadie se entera.
+
+Lo encontró el gauntlet de V2-P10 midiendo el `document.title` de la ventana de
+VNC: la v1 lo construía con una plantilla de JS y conservaba el `| VNC`; la v2,
+al pasarlo por `t()`, lo perdía. Afectaba a cuatro mensajes.
+
+El spec vigila las dos mitades del contrato: que los `|` literales se rindan
+completos **y** que los cinco plurales de verdad sigan eligiendo rama por
+contador —escapar uno de esos lo rompería al revés, con el mismo silencio—, más
+un barrido que caza cualquier `|` desnudo nuevo fuera de la lista de plurales.

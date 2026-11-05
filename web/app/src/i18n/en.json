@@ -1251,7 +1251,7 @@
     "advancedWin": "Advanced Settings (Windows only)",
     "repeatEvery": "Repeat task every",
     "repeatEveryPlaceholder": "e.g. 30m (30 minutes) or 1h (1 hour)",
-    "timePeriodErr": "Valid values are 1-3 digits followed by (D|d|H|h|M|m|S|s)",
+    "timePeriodErr": "Valid values are 1-3 digits followed by (D{'|'}d{'|'}H{'|'}h{'|'}M{'|'}m{'|'}S{'|'}s)",
     "repeatDuration": "Task repeat duration",
     "repeatDurationPlaceholder": "e.g. 6h (6 hours) or 1d (1 day)",
     "durationGtInterval": "Repetition duration must be greater than repetition interval",
@@ -1690,7 +1690,7 @@
   "takeControl": {
     "restartConnection": "Restart Connection",
     "recoverConnection": "Recover Connection",
-    "metaTitle": "{hostname} - {client} - {site} | Take Control",
+    "metaTitle": "{hostname} - {client} - {site} {'|'} Take Control",
     "repairingMesh": "Attempting to repair Mesh Agent",
     "restartingMesh": "Restarting Mesh Agent",
     "meshRestarted": "Mesh agent service was restarted",
@@ -1707,7 +1707,7 @@
     "processes": "Processes",
     "eventLog": "Event Log",
     "registry": "Registry",
-    "metaTitle": "{hostname} - {client} - {site} | Remote Background",
+    "metaTitle": "{hostname} - {client} - {site} {'|'} Remote Background",
     "navLabel": "Remote background sections",
     "terminalFrame": "Remote terminal of the endpoint",
     "fileFrame": "File browser of the endpoint"
@@ -3959,7 +3959,7 @@
   "webVNC": {
     "connecting": "Connecting…",
     "frameTitle": "Device VNC session",
-    "metaTitle": "{hostname} - {client} - {site} | VNC"
+    "metaTitle": "{hostname} - {client} - {site} {'|'} VNC"
   },
   "webTerminal": {
     "title": "Server web terminal"
