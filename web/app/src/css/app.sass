@@ -41,6 +41,8 @@ body.body--dark
   // marca. Derivarlo de la misma variable y no copiar el hex es lo que impide
   // que se separen si algun dia se retoca la paleta.
   --obs-focus: #{$obs-d-text}
+  // Y su CONTRARIO, para el anillo de dos tonos (ver V2-G15 más abajo).
+  --obs-focus-alt: #{$obs-l-text}
   --obs-text-2: #{$obs-d-text-2}
   --obs-muted: #{$obs-d-muted}
   --obs-faint: #{$obs-d-faint}
@@ -89,6 +91,8 @@ body.body--light
   // marca. Derivarlo de la misma variable y no copiar el hex es lo que impide
   // que se separen si algun dia se retoca la paleta.
   --obs-focus: #{$obs-l-text}
+  // Y su CONTRARIO, para el anillo de dos tonos (ver V2-G15 más abajo).
+  --obs-focus-alt: #{$obs-d-text}
   --obs-text-2: #{$obs-l-text-2}
   --obs-muted: #{$obs-l-muted}
   --obs-faint: #{$obs-l-faint}
@@ -1006,11 +1010,25 @@ body.body--dark
 // navegar: con :focus a secas aparece un halo que nadie pidio, justo en los
 // dialogos, y se lee como defecto del producto.
 
+// 🔑 ANILLO DE DOS TONOS, y no es decoración: es lo que hace que el criterio se
+// cumpla SIEMPRE. Con un solo color el anillo falla contra los fondos que se le
+// parecen. Medido sobre lo servido: el botón «Ver listado» del banner ÁMBAR de
+// mantenimiento daba 1,36:1 con el neutro claro sobre #FFC15E, muy por debajo
+// del 3:1 de WCAG 2.4.11 — y es un estado alcanzable, no un caso de laboratorio.
+//
+// La salida es la convencional para un anillo sobre fondo arbitrario: dos aros
+// de luminancia opuesta. El box-shadow rellena exactamente el hueco de 2px que
+// deja el outline-offset, así que se ve control | 2px contrario | 2px neutro, y
+// contra cualquier fondo al menos uno de los dos contrasta.
+//
+// La FORMA va por default convencional y quedó anotada como discutible el
+// 4-nov; el COLOR y el disparador NO se tocan.
 \:focus-visible
   outline: 2px solid var(--obs-focus) !important
   // Por fuera del control, para no comerse su propio borde. El outline sigue
   // el border-radius del elemento sin que haya que repetirlo.
   outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
 // `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
@@ -1032,6 +1050,7 @@ body.body--dark
 .q-expansion-item__container > .q-item:focus-visible
   outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
 
@@ -1040,6 +1059,7 @@ body.body--dark
 .q-field__control:has(:focus-visible)
   outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 .q-field__native:focus-visible, .q-field__input:focus-visible
   outline: none
 
@@ -1050,6 +1070,7 @@ body.body--dark
 .q-toggle:has(:focus-visible) .q-toggle__track
   outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 .q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
   outline: none
 
@@ -1057,6 +1078,7 @@ body.body--dark
 .q-field:has(.q-select__focus-target:focus-visible) .q-field__control
   outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // ---------------------------------------------------------------------------
 // obs-notice--warning (tanda del sistema de diseño, 2026-11-05)
