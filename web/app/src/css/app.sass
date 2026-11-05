@@ -1012,6 +1012,22 @@ body.body--dark
   // el border-radius del elemento sin que haya que repetirlo.
   outline-offset: 2px
 
+// 🪤 Quasar resetea el outline de sus propios componentes con la MISMA
+// especificidad que la regla de arriba (QBtn.sass:6 es `.q-btn { outline: 0 }`,
+// 0-1-0 igual que `:focus-visible`), y gana por orden de hoja. Medido: con solo
+// la regla global, un boton enfocado por tabulador daba `outline-style: none`
+// con `:focus-visible` en true. Por eso estos van nombrados: no es redundancia,
+// es la unica forma de ganar la cascada sin recurrir a !important.
+.q-btn:focus-visible,
+.q-item:focus-visible,
+.q-tab:focus-visible,
+.q-chip:focus-visible,
+.q-avatar:focus-visible,
+.q-card:focus-visible,
+.q-expansion-item__container > .q-item:focus-visible
+  outline: 2px solid var(--obs-focus)
+  outline-offset: 2px
+
 // --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
 
 // Campos. El foco va al <input>, que vive DENTRO del control: un anillo ahi
