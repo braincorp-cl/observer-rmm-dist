@@ -14,9 +14,7 @@
         <span class="ellipsis" style="min-width: 0">{{ title }}</span>
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("policyStatus.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("policyStatus.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section>

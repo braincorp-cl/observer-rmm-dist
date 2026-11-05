@@ -17,9 +17,7 @@
           @click="maximized = false"
           :disable="!maximized"
         >
-          <q-tooltip v-if="maximized" class="bg-white text-primary">{{
-            $t("runScript.minimize")
-          }}</q-tooltip>
+          <q-tooltip v-if="maximized">{{ $t("runScript.minimize") }}</q-tooltip>
         </q-btn>
         <q-btn
           dense
@@ -28,14 +26,12 @@
           @click="maximized = true"
           :disable="maximized"
         >
-          <q-tooltip v-if="!maximized" class="bg-white text-primary">{{
+          <q-tooltip v-if="!maximized">{{
             $t("runScript.maximize")
           }}</q-tooltip>
         </q-btn>
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("runScript.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("runScript.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="sendScript">
@@ -51,11 +47,9 @@
           >
             <template v-slot:after>
               <q-btn size="sm" round dense flat icon="info">
-                <q-tooltip
-                  v-if="syntax"
-                  class="bg-white text-primary text-body1"
-                  >{{ syntax }}</q-tooltip
-                >
+                <q-tooltip v-if="syntax" class="text-body1">{{
+                  syntax
+                }}</q-tooltip>
               </q-btn>
             </template>
           </observer-dropdown>

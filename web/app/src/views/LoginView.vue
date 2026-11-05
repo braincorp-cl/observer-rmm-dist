@@ -1,13 +1,16 @@
 <template>
   <q-layout>
     <q-page-container>
-      <q-page class="flex bg-image flex-center">
+      <q-page class="flex flex-center obs-ws obs-login">
         <q-card
           v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
         >
           <q-card-section>
+            <!-- 050 (T049): el título de las tres pantallas de acceso usa la
+                 misma escala que las vistas migradas (`obs-page__title`, el que
+                 pinta ObsPageHead) en vez de tres `text-h*` distintos. -->
             <div class="text-center q-pt-lg">
-              <div class="col text-h4 ellipsis">Observer RMM</div>
+              <h1 class="obs-page__title ellipsis">Observer RMM</h1>
             </div>
           </q-card-section>
           <q-card-section>
@@ -43,10 +46,12 @@
               </q-input>
               <div>
                 <q-btn
+                  unelevated
+                  no-caps
                   :label="$t('login.submit')"
                   type="submit"
                   color="primary"
-                  class="full-width"
+                  class="obs-page__btn full-width"
                 />
               </div>
             </q-form>
@@ -78,8 +83,13 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn flat :label="$t('login.cancel')" v-close-popup />
-                <q-btn flat :label="$t('login.twoFactorSubmit')" type="submit" />
+                <q-btn flat no-caps :label="$t('login.cancel')" v-close-popup />
+                <q-btn
+                  flat
+                  no-caps
+                  :label="$t('login.twoFactorSubmit')"
+                  type="submit"
+                />
               </q-card-actions>
             </q-form>
           </q-card>
@@ -150,13 +160,12 @@ async function onSubmit() {
 }
 </script>
 
-<style>
-.bg-image {
-  background-image: linear-gradient(
-    90deg,
-    rgba(20, 20, 29, 1) 0%,
-    rgba(38, 42, 56, 1) 49%,
-    rgba(15, 18, 20, 1) 100%
-  );
-}
+<style lang="sass" scoped>
+// 050 (T049, V2-G02): el lienzo del acceso venía de tres rgba() literales del
+// tema anterior a la paleta 1c. Queda el mismo gesto — degradado horizontal de
+// tres paradas en las mismas posiciones, bordes hundidos y centro elevado —
+// escrito con tokens: sigue al tema y ningún hex vive fuera de
+// quasar.variables.sass.
+.obs-login
+  background-image: linear-gradient(90deg, var(--obs-deep) 0%, var(--obs-surface) 49%, var(--obs-rail) 100%)
 </style>

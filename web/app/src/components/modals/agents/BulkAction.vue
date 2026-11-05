@@ -5,9 +5,7 @@
         {{ modalTitle }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("bulkAction.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("bulkAction.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submit">
@@ -93,11 +91,9 @@
           >
             <template v-slot:after>
               <q-btn size="sm" round dense flat icon="info">
-                <q-tooltip
-                  v-if="syntax"
-                  class="bg-white text-primary text-body1"
-                  >{{ syntax }}</q-tooltip
-                >
+                <q-tooltip v-if="syntax" class="text-body1">{{
+                  syntax
+                }}</q-tooltip>
               </q-btn>
             </template>
           </observer-dropdown>

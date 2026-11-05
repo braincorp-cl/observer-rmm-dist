@@ -1,11 +1,17 @@
 <template>
-  <div class="q-pa-md">
-    <div class="row">
-      <div class="col"></div>
-      <div class="col">
-        <q-card>
+  <!-- 050 (T049): mismo andamiaje que LoginView — q-layout / q-page-container /
+       q-page centrada — y el mismo ancho responsivo de tarjeta, en vez del `row`
+       con dos columnas vacías. `obs-ws` es el ámbito de tokens de las vistas
+       migradas: re-resuelve los grises internos de Quasar desde --obs-*
+       (V2-G02). -->
+  <q-layout>
+    <q-page-container>
+      <q-page class="flex flex-center obs-ws">
+        <q-card
+          v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
+        >
           <q-card-section class="row items-center">
-            <div class="text-h6">{{ $t("totp.title") }}</div>
+            <h1 class="obs-page__title">{{ $t("totp.title") }}</h1>
           </q-card-section>
           <q-card-section v-if="qrUrl">
             <p>{{ $t("totp.scanInstructions") }}</p>
@@ -13,22 +19,25 @@
           </q-card-section>
           <q-card-section v-if="totpKey">
             <p>{{ $t("totp.manualInstructions") }}</p>
-            <p>{{ totpKey }}</p>
+            <!-- 050 (T049, V2-G01): la clave compartida es un dato que se
+                 transcribe carácter por carácter ⇒ Mono. -->
+            <p class="mono">{{ totpKey }}</p>
           </q-card-section>
           <q-card-actions align="center">
             <q-btn
+              unelevated
+              no-caps
               :label="$t('totp.finish')"
               color="primary"
-              class="full-width"
+              class="obs-page__btn full-width"
               @click="logout"
               :loading="loading"
             />
           </q-card-actions>
         </q-card>
-      </div>
-      <div class="col"></div>
-    </div>
-  </div>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script setup lang="ts">
@@ -82,7 +91,9 @@ async function logout() {
 
 onMounted(() => {
   getQRCodeData();
-  $q.dark.set(false);
+  // 050 (T049): el acceso fuerza oscuro y esta pantalla forzaba claro, así que
+  // el mismo flujo cambiaba de tema a mitad de camino. Ahora las dos van oscuras.
+  $q.dark.set(true);
 });
 
 onBeforeUnmount(async () => {

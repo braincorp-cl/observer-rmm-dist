@@ -5,9 +5,7 @@
         {{ $t("testScriptModal.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("testScriptModal.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("testScriptModal.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section style="height: 70vh" class="scroll">

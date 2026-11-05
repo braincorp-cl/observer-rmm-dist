@@ -1677,13 +1677,17 @@
     "delete": "Eliminar"
   },
   "takeControl": {
-    "agentStatus": "Estado del agente Observer:",
     "restartConnection": "Reiniciar conexión",
     "recoverConnection": "Recuperar conexión",
     "metaTitle": "{hostname} - {client} - {site} | Tomar control",
     "repairingMesh": "Intentando reparar el agente Mesh",
     "restartingMesh": "Reiniciando el agente Mesh",
-    "meshRestarted": "El servicio del agente Mesh se reinició"
+    "meshRestarted": "El servicio del agente Mesh se reinició",
+    "connecting": "Conectando…",
+    "statusOnline": "En línea",
+    "statusOffline": "Fuera de línea",
+    "statusUnknown": "Estado desconocido",
+    "frameTitle": "Escritorio remoto del equipo"
   },
   "remoteBackground": {
     "terminal": "Terminal",
@@ -1692,7 +1696,10 @@
     "processes": "Procesos",
     "eventLog": "Registro de eventos",
     "registry": "Registro",
-    "metaTitle": "{hostname} - {client} - {site} | Segundo plano remoto"
+    "metaTitle": "{hostname} - {client} - {site} | Segundo plano remoto",
+    "navLabel": "Secciones del segundo plano remoto",
+    "terminalFrame": "Terminal remota del equipo",
+    "fileFrame": "Explorador de archivos del equipo"
   },
   "customFields": {
     "title": "Campos personalizados",
