@@ -6,8 +6,11 @@
           v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
         >
           <q-card-section>
+            <!-- 050 (T049): el título de las tres pantallas de acceso usa la
+                 misma escala que las vistas migradas (`obs-page__title`, el que
+                 pinta ObsPageHead) en vez de tres `text-h*` distintos. -->
             <div class="text-center q-pt-lg">
-              <div class="col text-h4 ellipsis">Observer RMM</div>
+              <h1 class="obs-page__title ellipsis">Observer RMM</h1>
             </div>
           </q-card-section>
           <q-card-section>
