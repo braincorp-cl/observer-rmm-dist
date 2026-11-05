@@ -3747,7 +3747,13 @@
       "collapse": "Ocultar lista de equipos",
       "label": "Equipos del sitio",
       "siteLine": "{site} · {count}",
-      "filterFailingN": "Chequeos fallando · {n}"
+      "filterFailingN": "Chequeos fallando · {n}",
+      "status": {
+        "ok": "En línea",
+        "fail": "En línea · chequeos fallando",
+        "overdue": "Sin respuesta",
+        "offline": "Fuera de línea"
+      }
     },
     "navLabel": "Secciones del equipo",
     "units": {

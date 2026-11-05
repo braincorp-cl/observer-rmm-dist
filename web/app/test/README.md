@@ -57,6 +57,14 @@ el `peerDependency` de Vite 2 y npm rechaza el árbol entero.
   CSS y el valor entero queda en `title`. Falla si alguien vuelve al recorte por
   JavaScript (`truncateText`), que deja el texto cortado en el DOM y con eso
   inutiliza también a `src/boot/autotitle.js`.
+- `test/components/color-senal-unica.spec.js` — la regla de que el color no sea
+  la única señal, en tres puntos: el punto de salud por equipo de
+  `ContextColumn` lleva el estado traducido en `aria-label`/`title` (con
+  `role="img"`, porque la ARIA ignora el `aria-label` de un `<span>` genérico);
+  toda clase `.obs-ctx__dot--*` que usa la plantilla tiene regla CSS —`--offline`
+  no la tenía y caía al `--obs-faint` base, idéntico a «sin estado»—; y los
+  cuatro valores de la columna «política» de `WinUpdateTab` usan cuatro glifos
+  distintos, no dos glifos repetidos separados por color.
 - `test/styles/q-tooltip-bg-white.spec.js` — prueba de presencia: ningún
   `<q-tooltip>` nuevo con `bg-white` (hallazgo #3 de `AUDITORIA-COLOR.md`,
   **todavía sin arreglar**: 78 etiquetas en 74 archivos, inventariadas en
