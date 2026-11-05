@@ -88,6 +88,7 @@
 
             <q-card-actions align="center">
               <q-btn
+                unelevated
                 no-caps
                 :label="$t('setup.finish')"
                 color="primary"

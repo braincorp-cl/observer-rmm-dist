@@ -25,6 +25,7 @@
           </q-card-section>
           <q-card-actions align="center">
             <q-btn
+              unelevated
               no-caps
               :label="$t('totp.finish')"
               color="primary"

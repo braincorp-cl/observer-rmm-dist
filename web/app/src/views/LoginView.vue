@@ -46,6 +46,7 @@
               </q-input>
               <div>
                 <q-btn
+                  unelevated
                   no-caps
                   :label="$t('login.submit')"
                   type="submit"
