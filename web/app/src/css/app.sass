@@ -1028,21 +1028,20 @@ body.body--dark
 // 4-nov; el COLOR y el disparador NO se tocan.
 \:focus-visible
   outline: 2px solid var(--obs-focus) !important
-  // 🔑 HACIA ADENTRO, y es la tercera geometría que prueba este anillo. No es
-  // gusto: un anillo dibujado FUERA del control lo recorta cualquier ancestro
-  // con overflow, y enumerar los que recortan ya falló DOS veces — el reparo
-  // nombró tres selectores y la medición en píxeles encontró un CUARTO
-  // (`.obs-fleet__tree`, el árbol de clientes, holgura 0 arriba: su primera
-  // fila perdía el anillo de arriba). Un quinto no se puede descartar leyendo.
-  // Dentro de la caja del control NINGÚN ancestro puede recortarlo, así que el
-  // problema desaparece en vez de tratarse caso por caso — y queda UNA sola
-  // geometría en toda la consola, que es más fuerte para «la misma forma» que
-  // tener dos. El offset -2px pone --obs-focus en los 2px más externos de la
-  // caja y el inset de 4px pone --obs-focus-alt debajo, con el outline tapando
-  // sus 2px de afuera ⇒ de afuera hacia adentro: 2px --obs-focus, 2px
-  // --obs-focus-alt. Lo mismo que se veía por fuera, en el mismo orden.
-  outline-offset: -2px
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
+  // Por FUERA del control, y está medido que es el único lugar donde las dos
+  // bandas salen puras. 🪤 Probé la geometría contraria —el anillo entero hacia
+  // adentro, para que ningún ancestro pudiera recortarlo— y los píxeles la
+  // tumbaron: adentro, la banda interna queda TAPADA. En los controles de
+  // Quasar la tapa `.q-focus-helper`, el velo translúcido que este mismo anillo
+  // vino a reemplazar (medido: #16202E esperado, #414A57 leído en un QBtn del
+  // tablero); en las filas de tabla la tapa el texto de la propia celda, que
+  // empieza en el borde (#555F6E leído donde iba la banda). El `outline` sí se
+  // pinta sobre los descendientes, la sombra interior NO: por eso adentro
+  // sobrevive una banda y no dos, y la técnica de dos tonos necesita las dos.
+  // El offset de 2px deja el hueco que rellena el box-shadow, así que de fuera
+  // hacia adentro se ve: 2px --obs-focus, 2px --obs-focus-alt, control.
+  outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
 // `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
@@ -1063,8 +1062,8 @@ body.body--dark
 .q-card:focus-visible,
 .q-expansion-item__container > .q-item:focus-visible
   outline: 2px solid var(--obs-focus) !important
-  outline-offset: -2px
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
+  outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
 
@@ -1072,8 +1071,8 @@ body.body--dark
 // quedaria encajonado. Se dibuja sobre el control y se quita del nativo.
 .q-field__control:has(:focus-visible)
   outline: 2px solid var(--obs-focus) !important
-  outline-offset: -2px
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
+  outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 // 🪤 El !important hace falta también aquí, y por mi propia culpa: la regla
 // genérica de arriba lo lleva, así que sin él esta excepción NO surte efecto y
 // el <input> nativo conserva su aro ADEMÁS del de .q-field__control. Resultado
@@ -1089,16 +1088,16 @@ body.body--dark
 .q-radio:has(:focus-visible) .q-radio__inner,
 .q-toggle:has(:focus-visible) .q-toggle__track
   outline: 2px solid var(--obs-focus) !important
-  outline-offset: -2px
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
+  outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 .q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
   outline: none
 
 // QSelect pone un target de foco invisible fuera del control (.q-select__focus-target).
 .q-field:has(.q-select__focus-target:focus-visible) .q-field__control
   outline: 2px solid var(--obs-focus) !important
-  outline-offset: -2px
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
+  outline-offset: 2px
+  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
 
 // ---------------------------------------------------------------------------
 // obs-notice--warning (tanda del sistema de diseño, 2026-11-05)
@@ -1124,10 +1123,29 @@ body.body--dark
 .q-field--filled .q-field__control, .q-field--filled .q-field__control:before
   border-radius: 8px
 
-// 🪤 V2-G15: acá vivía la excepción de los contenedores que recortan
-// (.obs-ctx__list, .q-virtual-scroll, .q-scrollarea), que dibujaba el anillo
-// hacia adentro SÓLO ahí. Se borró porque la medición del 5-nov encontró un
-// CUARTO contenedor que no estaba en la lista —`.obs-fleet__tree`, el árbol de
-// clientes, con holgura 0 arriba: la primera fila del árbol perdía el anillo de
-// arriba— y porque un quinto no se puede descartar por lectura. Ahora la
-// geometría hacia adentro es la ÚNICA y global, arriba, y esta excepción sobra.
+// 🔑 V2-G15: CONTENEDORES QUE RECORTAN EL ANILLO. Un anillo dibujado 2px por
+// fuera no existe si un ancestro con overflow lo recorta — y el estilo computado
+// no se enteró: en la corrida r1 decía 13,07 y en los píxeles no había nada.
+// Dentro de estos contenedores el anillo se dibuja HACIA ADENTRO: mismos tonos,
+// mismo grosor, mismo orden, sólo cambia de lado.
+//
+// 🪤 La lista se arma MIDIENDO, no leyendo: el reparo nombró los tres primeros
+// y la re-medición en píxeles encontró el cuarto —`.obs-fleet__tree`, el árbol
+// de clientes, `overflow:auto` con holgura 0 ARRIBA, así que su primera fila
+// perdía la banda de arriba—. Un quinto no se descarta leyendo el CSS, así que
+// quien verifica este ítem corre `medir_g15_recortes.py`, que enumera los
+// ancestros con holgura < 4px de CADA parada del tabulador. La lista de acá es
+// el resultado de esa medición, no una conjetura.
+//
+// 🪤 Y acá adentro la banda interna puede quedar tapada por el contenido de la
+// celda en los lados izquierdo y derecho (medido: #555F6E donde iba #16202E, en
+// una fila de la tabla de equipos). En esos dos lados el indicador se lee como
+// UNA banda de --obs-focus, que contra el relleno de la celda da 13,07 (oscuro)
+// y 15,42 (claro): cumple por adyacencia directa, que es la otra técnica que
+// WCAG 2.4.11 acepta. Está declarado en la vara, no es un descuido.
+.obs-ctx__list :focus-visible,
+.obs-fleet__tree :focus-visible,
+.q-virtual-scroll :focus-visible,
+.q-scrollarea :focus-visible
+  outline-offset: -2px !important
+  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
