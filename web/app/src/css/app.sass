@@ -1007,17 +1007,22 @@ body.body--dark
 // dialogos, y se lee como defecto del producto.
 
 \:focus-visible
-  outline: 2px solid var(--obs-focus)
+  outline: 2px solid var(--obs-focus) !important
   // Por fuera del control, para no comerse su propio borde. El outline sigue
   // el border-radius del elemento sin que haya que repetirlo.
   outline-offset: 2px
 
-// 🪤 Quasar resetea el outline de sus propios componentes con la MISMA
-// especificidad que la regla de arriba (QBtn.sass:6 es `.q-btn { outline: 0 }`,
-// 0-1-0 igual que `:focus-visible`), y gana por orden de hoja. Medido: con solo
-// la regla global, un boton enfocado por tabulador daba `outline-style: none`
-// con `:focus-visible` en true. Por eso estos van nombrados: no es redundancia,
-// es la unica forma de ganar la cascada sin recurrir a !important.
+// 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
+// `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
+// framework dice `.no-outline { outline: 0 !important }`. Ninguna especificidad
+// le gana a un !important: sólo otro !important.
+//
+// Cómo se encontró, porque la primera hipótesis era falsa: medí con tabulador
+// real sobre lo servido y un `.q-btn` enfocado daba `outline-style: none` con
+// `:focus-visible` en true. Supuse que era orden de hoja y nombré los
+// componentes para subir la especificidad; volví a medir y seguía en none. La
+// respuesta estaba en la lista de clases del propio botón —`no-outline` entre
+// ellas—, no en mi CSS. Leer el elemento, no razonar sobre la cascada.
 .q-btn:focus-visible,
 .q-item:focus-visible,
 .q-tab:focus-visible,
@@ -1025,7 +1030,7 @@ body.body--dark
 .q-avatar:focus-visible,
 .q-card:focus-visible,
 .q-expansion-item__container > .q-item:focus-visible
-  outline: 2px solid var(--obs-focus)
+  outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
 
 // --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
@@ -1033,7 +1038,7 @@ body.body--dark
 // Campos. El foco va al <input>, que vive DENTRO del control: un anillo ahi
 // quedaria encajonado. Se dibuja sobre el control y se quita del nativo.
 .q-field__control:has(:focus-visible)
-  outline: 2px solid var(--obs-focus)
+  outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
 .q-field__native:focus-visible, .q-field__input:focus-visible
   outline: none
@@ -1043,14 +1048,14 @@ body.body--dark
 .q-checkbox:has(:focus-visible) .q-checkbox__inner,
 .q-radio:has(:focus-visible) .q-radio__inner,
 .q-toggle:has(:focus-visible) .q-toggle__track
-  outline: 2px solid var(--obs-focus)
+  outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
 .q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
   outline: none
 
 // QSelect pone un target de foco invisible fuera del control (.q-select__focus-target).
 .q-field:has(.q-select__focus-target:focus-visible) .q-field__control
-  outline: 2px solid var(--obs-focus)
+  outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
 
 // ---------------------------------------------------------------------------
