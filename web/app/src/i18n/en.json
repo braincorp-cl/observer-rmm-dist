@@ -3747,7 +3747,13 @@
       "collapse": "Hide device list",
       "label": "Site devices",
       "siteLine": "{site} · {count}",
-      "filterFailingN": "Failing checks · {n}"
+      "filterFailingN": "Failing checks · {n}",
+      "status": {
+        "ok": "Online",
+        "fail": "Online · failing checks",
+        "overdue": "Overdue",
+        "offline": "Offline"
+      }
     },
     "navLabel": "Device sections",
     "units": {

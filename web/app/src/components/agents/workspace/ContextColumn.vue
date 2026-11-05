@@ -81,7 +81,13 @@
           @click="open(item)"
         >
           <q-item-section avatar class="obs-ctx__dotcol">
-            <span class="obs-ctx__dot" :class="`obs-ctx__dot--${dot(item)}`" />
+            <span
+              class="obs-ctx__dot"
+              :class="`obs-ctx__dot--${dot(item)}`"
+              role="img"
+              :aria-label="dotText(item)"
+              :title="dotText(item)"
+            />
           </q-item-section>
           <q-item-section>
             <q-item-label
@@ -129,6 +135,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { fetchAgents } from "@/api/agents";
 
 const props = defineProps({
@@ -137,6 +144,7 @@ const props = defineProps({
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 const agents = ref([]);
 const loading = ref(false);
 const onlyFailing = ref(false);
@@ -163,6 +171,13 @@ function dot(a) {
     return a.status === "overdue" ? "overdue" : "offline";
   if (a.checks && a.checks.failing > 0) return "fail";
   return "ok";
+}
+
+// El punto de salud mide 8 px y no lleva texto: sin rótulo el color era la única
+// señal del estado del equipo. Mismo patrón que AgentHeader (statusText): el
+// estado traducido va al elemento, no sólo al color.
+function dotText(a) {
+  return t(`agentWorkspace.context.status.${dot(a)}`);
 }
 
 function open(a) {
@@ -240,6 +255,10 @@ watch(
 .obs-ctx__dot--fail
   background: var(--q-negative)
 .obs-ctx__dot--overdue
+  background: var(--q-warning)
+// Desconectado tenía clase en el template pero no regla: caía al --obs-faint
+// base, indistinguible de "sin estado". Mismo token que AgentHeader.
+.obs-ctx__dot--offline
   background: var(--q-warning)
 .obs-ctx__host
   font-weight: 600

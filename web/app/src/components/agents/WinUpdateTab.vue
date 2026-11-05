@@ -136,14 +136,14 @@
             </q-icon>
             <q-icon
               v-else-if="props.row.action === 'ignore'"
-              name="fas fa-check"
+              name="fas fa-ban"
               :color="dash_negative_color"
             >
               <q-tooltip>{{ $t("agentTabs.patches.ignore") }}</q-tooltip>
             </q-icon>
             <q-icon
               v-else-if="props.row.action === 'inherit'"
-              name="fiber_manual_record"
+              name="fas fa-sitemap"
               color="accent"
             >
               <q-tooltip>{{ $t("agentTabs.patches.inherit") }}</q-tooltip>
