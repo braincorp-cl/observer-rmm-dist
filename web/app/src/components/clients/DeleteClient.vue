@@ -5,9 +5,7 @@
         {{ $t("deleteClient.title", { name: object.name }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("deleteClient.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("deleteClient.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit="submit">

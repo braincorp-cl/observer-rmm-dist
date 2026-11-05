@@ -13,9 +13,7 @@
         <span class="q-pr-sm">{{ title }}</span>
         <q-space />
         <q-btn dense flat icon="close" @click="closeEditor">
-          <q-tooltip class="bg-white text-primary">{{
-            $t("scriptsCommon.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("scriptsCommon.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-banner

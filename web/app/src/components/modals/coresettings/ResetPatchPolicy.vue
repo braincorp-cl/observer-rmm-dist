@@ -5,9 +5,7 @@
         {{ $t("resetPatchPolicy.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("resetPatchPolicy.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("resetPatchPolicy.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-card-section class="text-subtitle3">

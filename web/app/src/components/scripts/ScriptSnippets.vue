@@ -20,9 +20,7 @@
         />{{ $t("scriptSnippets.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("scriptsCommon.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("scriptsCommon.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table

@@ -5,7 +5,7 @@
         {{ $t("installSoftware.title") }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
+          <q-tooltip>{{
             $t("installSoftware.close")
           }}</q-tooltip>
         </q-btn>
