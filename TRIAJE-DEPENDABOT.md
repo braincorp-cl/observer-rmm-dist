@@ -37,6 +37,12 @@ es salida de herramienta contra los avisos publicados**, consultados hoy.
 | OSV / PyPI | `pip-audit` en `mcp/` y en `requirements.txt` raíz | **0 vulnerabilidades** en ambos |
 | Repo | `grep` dirigido por aviso | si la ruta vulnerable tiene call site en este producto |
 
+> **Actualización 2026-11-05 (segunda pasada):** una de las inferencias de esta lista
+> quedó cerrada con medición. La compatibilidad de DRF con Django 4.2 ya no se infiere:
+> está verificada contra los metadatos de PyPI y contra el resolutor de pip en **§2bis**,
+> y la respuesta es **no** — `3.18.x` exige `django>=5.2`. Eso parte el ítem 1 en dos y
+> sube la prioridad de la migración de Django.
+
 ### Qué parte es inferencia, marcada como tal
 
 1. **La correspondencia con las 172 alertas.** Mi conteo da **170**. El cuadre está
@@ -171,20 +177,23 @@ duro de `pytest-django <4.13` *"mientras los servidores corran Django 4.2 LTS"*,
 lo llaman *"parte de la migración de Django, no un bump suelto"*. Correcto. **La
 migración de Django es un proyecto, y es el que de verdad mueve la aguja.**
 
-Y hay un enganche que importa para el ítem 1: **la corrección de DRF puede exigir
-la de Django primero** *(inferencia, §0)*. DRF 3.16 ya pedía Django ≥4.2; no sé si
-3.18.x todavía soporta una 4.2 en EOL. **Verificar eso es el primer paso del ítem 1,
-antes de tocar el pin.**
+Y hay un enganche que importa para el ítem 1: **la corrección completa de DRF exige
+la migración de Django primero.** Esto ya no es inferencia — está verificado contra
+los metadatos de PyPI y contra el resolutor de pip (§2bis): **DRF 3.18.x declara
+`Requires-Dist: django>=5.2`**, y `pip` se niega a instalarlo junto a Django 4.2.30
+con `ResolutionImpossible`. El detalle, y cómo parte la acción en dos, está en §2bis.
 
 ---
 
-### Ítem 1 — `djangorestframework` · 3 alertas · **la prioridad real**
+### Ítem 1 — `djangorestframework` · 3 alertas · **la prioridad real, y parte en dos**
 
 | | |
 |---|---|
 | **Versión actual** | `3.15.2` (`api/observerrmm/requirements.txt`) |
-| **Versión que corrige** | `3.17.2` para dos; **`3.18.2` para las tres** |
-| **Riesgo de subirla** | **Medio.** Tres versiones menores. Sin cambio mayor, pero los menores de DRF rompen cosas de vez en cuando (negociación de contenido, serializers). **Bloqueante probable: compatibilidad con Django 4.2 EOL.** |
+| **Versión que corrige** | `3.17.2` corrige **una** de las tres · `3.18.2` corrige las tres |
+| **Hasta dónde se puede llegar hoy** | **`3.17.2`, y no más.** Es la última versión que soporta Django 4.2 (§2bis). |
+| **Riesgo de subir a `3.17.2`** | **Bajo-medio.** Dos menores, `django>=4.2` sin cambios, resolución limpia verificada con `pip --dry-run`. Los menores de DRF rompen cosas de vez en cuando (negociación de contenido, serializers), así que la CI es el testigo. |
+| **Riesgo de subir a `3.18.2`** | **Bloqueado, no riesgoso.** `pip` lo rechaza con `ResolutionImpossible` mientras el pin sea Django 4.2.30. No es un bump: es la migración de Django. |
 
 **Por qué importa acá.** DRF es toda la superficie de la API: `apiv3`/`apiv4` son por
 donde entran los agentes, y es la única capa HTTP del producto. Las tres son
@@ -193,14 +202,85 @@ pre-autenticación y **no las tapa el throttling**: `REST_FRAMEWORK` solo define
 servidor RMM expuesto a internet con agentes en endpoints es exactamente el perfil
 que estos tres avisos describen.
 
-| Aviso | Qué es | Por qué es alcanzable |
-|---|---|---|
-| `CVE-2026-114136` (GHSA-3547-9m27-7rxg) | Nombrar un códec de compresión en el `charset` del `Content-Type` evade `DATA_UPLOAD_MAX_MEMORY_SIZE`: 108 bytes de cuerpo → 50 M de caracteres, ×466.033, +97 MiB de RSS por petición | El aviso dice *"No application configuration is required"* y *"unauthenticated attacker"*. Nada que desactivar. |
-| `CVE-2026-114138` (GHSA-33wh-fxxf-88vv) | Parseo cuadrático del header `Accept`: un GET con 780 KB de `Accept` tuvo un worker ocupado 18,87 s | La negociación de contenido corre en cada request antes de los permisos. Sin límite de tokens ni de tamaño. |
-| `PYSEC-2026-3827` (CVE-2026-73228) | `request.data` evade `DATA_UPLOAD_MAX_MEMORY_SIZE` en `application/json` y `x-www-form-urlencoded` | Todas las vistas usan `request.data`. El límite de Django está puesto y no sirve en esa ruta. |
+| Aviso | Qué es | Por qué es alcanzable | Corrige |
+|---|---|---|---|
+| `CVE-2026-114136` (GHSA-3547-9m27-7rxg) | Nombrar un códec de compresión en el `charset` del `Content-Type` evade `DATA_UPLOAD_MAX_MEMORY_SIZE`: 108 bytes de cuerpo → 50 M de caracteres, ×466.033, +97 MiB de RSS por petición | El aviso dice *"No application configuration is required"* y *"unauthenticated attacker"*. Nada que desactivar. | **3.18.2** 🔒 |
+| `CVE-2026-114138` (GHSA-33wh-fxxf-88vv) | Parseo cuadrático del header `Accept`: un GET con 780 KB de `Accept` tuvo un worker ocupado 18,87 s | La negociación de contenido corre en cada request antes de los permisos. Sin límite de tokens ni de tamaño. | **3.18.2** 🔒 |
+| `PYSEC-2026-3827` (CVE-2026-73228) | `request.data` evade `DATA_UPLOAD_MAX_MEMORY_SIZE` en `application/json` y `x-www-form-urlencoded` | Todas las vistas usan `request.data`. El límite de Django está puesto y no sirve en esa ruta. | **3.17.2** ✅ |
+
+🔒 = bloqueado tras la migración de Django · ✅ = alcanzable hoy sin tocar Django.
+
+**Las dos peores son las bloqueadas.** Los dos DoS no autenticados —los que el aviso
+describe sin necesidad de configuración y sin credenciales— se corrigen recién en
+`3.18.2`, que exige Django ≥5.2. La que sí se puede cerrar hoy con `3.17.2` es la
+evasión del límite de carga, que es real pero menos grave. Eso significa que
+**mientras el backend siga en Django 4.2, los dos DoS pre-autenticación se quedan
+abiertos, y la única mitigación disponible es de configuración, no de versión**:
+límites de tamaño de cabecera y de cuerpo en nginx (`large_client_header_buffers`,
+`client_max_body_size`) y throttling global en DRF, que hoy no existe (solo hay
+`DEFAULT_THROTTLE_RATES` para `login` y `check_creds`). Eso es trabajo de
+configuración, no un bump, y queda fuera de este triaje.
 
 **Las otras dos de DRF no son alcanzables** y van en §3 — pero una de ellas,
 `CVE-2026-114137`, es una trampa latente que conviene leer (§3, nota).
+
+---
+
+### §2bis — Verificación: ¿DRF 3.18.2 soporta Django 4.2? **No.**
+
+Esta era la pregunta que el informe dejaba abierta como inferencia. Queda cerrada, y
+medida dos veces: metadatos publicados y resolutor real.
+
+**Metadatos de PyPI** (`https://pypi.org/pypi/djangorestframework/<v>/json`, consultado
+2026-11-05):
+
+| Versión | Requisito de Django | Clasificadores `Framework :: Django ::` | Publicada |
+|---|---|---|---|
+| `3.15.2` ← **actual** | `django>=4.2` | 4.2, 5.0 | 2024-06-19 |
+| `3.16.0` | `django>=4.2` | 4.2, 5.0, 5.1, 5.2 | 2025-03-28 |
+| `3.17.0` | `django>=4.2` | 4.2, 5.0, 5.1, 5.2, 6.0 | 2026-03-18 |
+| `3.17.1` | `django>=4.2` | 4.2, 5.0, 5.1, 5.2, 6.0 | 2026-03-24 |
+| **`3.17.2`** | **`django>=4.2`** | **4.2**, 5.0, 5.1, 5.2, 6.0 | 2026-08-05 |
+| `3.18.0` | **`django>=5.2`** | 5.2, 6.0, 6.1 | 2026-08-07 |
+| `3.18.1` | **`django>=5.2`** | 5.2, 6.0, 6.1 | 2026-09-07 |
+| `3.18.2` | **`django>=5.2`** | 5.2, 6.0, 6.1 | 2026-10-06 |
+| `3.18.3` | **`django>=5.2`** | 5.2, 6.0, 6.1 | 2026-10-06 |
+
+**El soporte de Django 4.2 se cayó en `3.18.0`, dos días después de `3.17.2`.** Y no
+hay backport: **no existe ninguna `3.17.3`**. La rama 3.17 se cerró en `3.17.2`, así
+que las correcciones de `3.18.x` no van a llegar nunca a una versión compatible con
+Django 4.2.
+
+**Confirmación con el resolutor de pip** (no es lectura de metadatos, es el
+comportamiento real de la instalación):
+
+```
+$ pip install --dry-run "djangorestframework==3.18.2" "django==4.2.30"
+ERROR: Cannot install django==4.2.30 and djangorestframework==3.18.2
+       because these package versions have conflicting dependencies.
+ERROR: ResolutionImpossible
+
+$ pip install --dry-run "djangorestframework==3.17.2" "django==4.2.30"
+Would install Django-4.2.30 asgiref-3.13.0 djangorestframework-3.17.2 sqlparse-0.6.1
+```
+
+No es una incompatibilidad blanda que se pueda forzar con `--no-deps` y cruzar los
+dedos: es un piso declarado en los metadatos, y `pip` se niega.
+
+**Qué se sigue de esto, en concreto:**
+
+1. **`3.17.2` se puede poner hoy**, sin tocar Django. Cierra `PYSEC-2026-3827` (de las
+   explotables) y `PYSEC-2026-3828` (de las inalcanzables). Riesgo bajo-medio: dos
+   menores, resolución limpia verificada.
+2. **Los dos DoS no autenticados quedan bloqueados** tras la migración de Django, que
+   es el ítem 0. Mitigación mientras tanto: límites en nginx y throttling global.
+3. **La migración de Django sube de prioridad.** Antes era "deuda estructural por el
+   EOL"; ahora también es la condición para cerrar las dos alertas más graves del
+   backend. Y el mismo salto resuelve el techo de `pytest-django <4.13` que el repo
+   ya documenta.
+4. **Dato suelto útil:** el resolutor trae `sqlparse-0.6.1` por su cuenta, que es la
+   versión que corrige las 6 alertas de `sqlparse` (§3.1). El pin explícito
+   `sqlparse==0.5.3` lo bloquea; soltarlo, o subirlo, cierra esas 6 gratis.
 
 ---
 
@@ -501,10 +581,15 @@ El componente vulnerable **no existe** en este producto.
 
 ## 5. Si solo se van a hacer tres cosas antes de la 2.0.0
 
-1. **Verificar si DRF 3.18.2 soporta Django 4.2** (ítem 1 + ítem 0). Es la pregunta
-   que decide el orden de todo lo demás. Si no lo soporta, las tres alertas de DoS
-   pre-autenticación de DRF quedan bloqueadas tras la migración de Django, y eso hay
-   que saberlo **antes** de poner una fecha a la 2.0.0, no después.
+1. **`djangorestframework` → `3.17.2`, y abrir la migración de Django como proyecto**
+   (ítem 1 + §2bis + ítem 0). La pregunta que este informe dejaba abierta ya está
+   contestada: **DRF 3.18.2 no soporta Django 4.2** (`django>=5.2`, y `pip` lo
+   rechaza). Así que `3.17.2` es el techo de hoy y cierra una de las tres; **los dos
+   DoS no autenticados quedan bloqueados tras la migración de Django**, y mientras
+   tanto se mitigan en nginx y con throttling global, no con un bump. Eso hay que
+   saberlo **antes** de poner fecha a la 2.0.0, no después: si la 2.0.0 sale sobre
+   Django 4.2, sale con esas dos abiertas y conviene que sea una decisión escrita y
+   no un descubrimiento.
 2. **`certifi` → `2026.10.19+` y `urllib3` → `2.8.0`** (ítems 4 y 2). Claves de CA
    comprometidas y dos fallas de streaming con call sites reales, a cambio de un
    bump de datos y un menor drop-in que la CI de esta sesión ya resolvió por su
