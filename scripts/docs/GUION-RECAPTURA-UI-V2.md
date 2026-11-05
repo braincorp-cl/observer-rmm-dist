@@ -50,6 +50,39 @@ document.querySelectorAll('.q-banner').forEach(b => {
 });
 ```
 
+## Las tres cifras, que no son la misma
+
+Se confunden fácil y conviene tenerlas claras antes de empezar:
+
+| cifra | qué es |
+|---|---|
+| **23** | archivos `.webp` que había en `assets/shots/` y que se movieron a `docs-site-fuera-de-linea/assets-shots-v1/` |
+| **21** | bloques `<figure class="doc-shot">` retirados: **17** de `/features/` y **4** de `/guide_reports/` |
+| **19** | superficies distintas de la consola, que son los archivos efectivamente referenciados |
+
+Cuadran así: **19 + 4 huérfanas = 23** archivos, y **19 + 2 repeticiones = 21** figuras.
+Las dos repeticiones son `reportes-preview-html.webp` y `reportes-preview-pdf.webp`, que
+aparecen **en las dos páginas** (`/features/#reporteria` y `/guide_reports/`) con
+figcaption distinto cada vez. Al reponer: **una captura, dos `<figure>`**; no hay que
+capturar dos veces ni duplicar el archivo.
+
+## Lo que la ola 8 NO invalida de este guion
+
+**Ninguna de las 19 superficies es una pantalla de acceso ni una ventana remota.** Las 19
+son: flota; panel, parches y software de agente; biblioteca de scripts, prompt y borrador
+de IA, y ejecución de script; menú de respuesta rápida y mensaje en pantalla; mapa e
+histórico de ubicación; diálogo y lista de modo perdido; y las cinco de reportes (gestor,
+previa HTML, previa PDF, programaciones, historial).
+
+Así que el trabajo de la ola 8 del 5-nov —el `AccessLayout.vue` nuevo que heredan las cinco
+pantallas de acceso (`6139945` + `13ef6f3`), la cabecera que ganaron `WebVNC` y
+`WebTerminal` (`1bb7c9b`) y el arreglo del `|` de i18n que devuelve el sufijo a los títulos
+de las ventanas remotas— **no toca ninguna de estas 19**. La verificación por render se hizo
+contra `254d9f8` y sigue valiendo para este conjunto.
+
+Lo que sí las mueve a todas es la **tanda del sistema de diseño** (`app.sass`), y por eso
+este guion se ejecuta después de ella.
+
 ## Las 21 figuras, con su superficie en la v2
 
 Estado: ✅ = se renderizó y se capturó en la verificación del 5-nov · 🟡 = existe, falta capturarla
