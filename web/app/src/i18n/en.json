@@ -1682,7 +1682,12 @@
     "metaTitle": "{hostname} - {client} - {site} | Take Control",
     "repairingMesh": "Attempting to repair Mesh Agent",
     "restartingMesh": "Restarting Mesh Agent",
-    "meshRestarted": "Mesh agent service was restarted"
+    "meshRestarted": "Mesh agent service was restarted",
+    "connecting": "Connecting…",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "statusUnknown": "Unknown status",
+    "frameTitle": "Remote desktop of the endpoint"
   },
   "remoteBackground": {
     "terminal": "Terminal",
