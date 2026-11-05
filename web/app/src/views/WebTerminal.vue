@@ -1,20 +1,24 @@
 <template>
-  <div class="full-page-terminal">
+  <!--
+    050 (V2-P10): la terminal web del servidor con el chrome de la v2.
+
+    T048 tokenizó el lienzo de xterm pero no le puso cabecera, así que la
+    ventana seguía siendo un rectángulo sin título ni contexto y el `body` se
+    quedaba en `body--light` aunque el usuario tuviera el tema oscuro (faltaba
+    el arranque de tema, que ahora vive en `RemoteWindowChrome`).
+
+    Lo que había dentro del lienzo —la paleta, el minimumContrastRatio, el
+    contrato de `obsToken`— NO se toca: eso ya estaba medido y argumentado.
+  -->
+  <RemoteWindowChrome :title="$t('webTerminal.title')">
     <div ref="xtermContainer" class="xterm-container"></div>
-  </div>
+  </RemoteWindowChrome>
 </template>
 
-<style>
-.full-page-terminal {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--obs-term-bg);
-}
-
+<style scoped>
 .xterm-container {
-  flex-grow: 1;
   overflow: hidden;
+  background: var(--obs-term-bg);
 }
 </style>
 
@@ -25,6 +29,7 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { useResizeObserver, useDebounceFn } from "@vueuse/core";
 import { useCliWSConnection } from "@/websocket/websocket";
+import RemoteWindowChrome from "@/components/remote/RemoteWindowChrome.vue";
 import "@xterm/xterm/css/xterm.css";
 
 const xtermContainer = ref<HTMLElement | null>(null);

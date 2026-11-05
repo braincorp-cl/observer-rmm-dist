@@ -3955,5 +3955,13 @@
       "overwriteUnknownMedia": "The medium of this device is unknown, so overwriting cannot be claimed to be defensible on it.",
       "cryptoEraseUnavailable": "Remote crypto-erase is not available: no inventoried medium supports it."
     }
+  },
+  "webVNC": {
+    "connecting": "Connecting…",
+    "frameTitle": "Device VNC session",
+    "metaTitle": "{hostname} - {client} - {site} | VNC"
+  },
+  "webTerminal": {
+    "title": "Server web terminal"
   }
 }

@@ -3955,5 +3955,13 @@
       "overwriteUnknownMedia": "No se sabe qué medio tiene este equipo, así que no se puede afirmar que la sobrescritura sea defendible sobre él.",
       "cryptoEraseUnavailable": "El crypto-erase remoto no está disponible: ningún medio inventariado lo sostiene."
     }
+  },
+  "webVNC": {
+    "connecting": "Conectando…",
+    "frameTitle": "Sesión VNC del equipo",
+    "metaTitle": "{hostname} - {client} - {site} | VNC"
+  },
+  "webTerminal": {
+    "title": "Terminal web del servidor"
   }
 }
