@@ -197,6 +197,7 @@
   },
   "agentTable": {
     "noAgents": "No Agents",
+    "openAgentAria": "Open agent {hostname}",
     "checksStatus": "Checks Status",
     "patchesPending": "Patches Pending",
     "pendingActions": "Pending Actions",

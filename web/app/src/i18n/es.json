@@ -197,6 +197,7 @@
   },
   "agentTable": {
     "noAgents": "Sin agentes",
+    "openAgentAria": "Abrir el equipo {hostname}",
     "checksStatus": "Estado de chequeos",
     "patchesPending": "Parches pendientes",
     "pendingActions": "Acciones pendientes",

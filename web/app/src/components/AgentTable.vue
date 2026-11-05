@@ -316,7 +316,35 @@
           <q-td key="site_name" :props="props">{{ props.row.site_name }}</q-td>
           <!-- 050: equipo y descripción en una celda (la descripción también es columna elegible) -->
           <q-td key="hostname" :props="props">
-            <div class="obs-agtbl__host">{{ props.row.hostname }}</div>
+            <!-- A11Y (hallazgo #1 de la auditoría): única ruta de teclado para
+                 entrar a un equipo. El <q-tr> no puede ser el control: su rol
+                 implícito es `row` y cambiarlo a `button` dejaría a los <q-td>
+                 como `cell` sin fila contenedora. Así que el control vive en la
+                 celda, con el molde ya correcto del repo
+                 (clients/ClientsManager.vue:116) más Espacio. Al ser enfocable,
+                 la tecla Menú/Shift+F10 emite `contextmenu`, que burbujea hasta
+                 el <q-tr> y abre el AgentActionMenu de :96 sin ratón — el mismo
+                 mecanismo por el que el QTree del tablero ya es operable.
+                 No lleva @click: el clic burbujea al de la fila, así que el
+                 clic y el doble clic (046 F4 / RN-03) quedan intactos. -->
+            <div
+              class="obs-agtbl__host"
+              style="display: inline-block"
+              role="button"
+              tabindex="0"
+              :aria-label="
+                $t('agentTable.openAgentAria', { hostname: props.row.hostname })
+              "
+              @keydown.space.prevent
+              @keyup.enter="
+                openAgentWorkspace(props.row.agent_id, props.row.plat)
+              "
+              @keyup.space="
+                openAgentWorkspace(props.row.agent_id, props.row.plat)
+              "
+            >
+              {{ props.row.hostname }}
+            </div>
             <div
               v-if="props.row.description && !visibleColumns.includes('description')"
               class="obs-agtbl__sub"
@@ -595,8 +623,12 @@ export default {
         : this.dash_info_color;
       this.$axios.put(`/agents/${agent.agent_id}/`, data).then(() => {
         this.$q.notify({
+          // A11Y: sin textColor. `black` lo remapeaba app.sass:327 a
+          // var(--obs-text) —texto de página sobre fondo de marca— y daba
+          // 3,04:1 (positivo) y 2,94:1 (info) en claro, 1,67:1 y 2,60:1 en
+          // oscuro: bajo el 4,5:1 de AA. El `white` por defecto de Notify cae
+          // en los overrides por tema (app.sass:112-116) y da 5,39 a 8,41:1.
           color: alertColor,
-          textColor: "black",
           icon: "fas fa-check-circle",
           message: this.$t("agentTable.alertToggled", {
             category: categoryLabel,
