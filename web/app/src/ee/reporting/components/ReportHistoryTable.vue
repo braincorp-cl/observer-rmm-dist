@@ -186,24 +186,28 @@
 
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
               <template v-if="col.name === 'error_data'">
-                <!-- 050 (T046, G05): el ícono era el control (handler y cursor
-                     propios) y su única superficie iba en rojo, o sea un color de
-                     estado marcando una acción. Ahora el control es el botón
-                     neutro y el rojo queda en la insignia que lleva dentro, que es
-                     el caso que la enmienda del 2026-10-14 sí ampara. -->
+                <!-- 050 (T046, G05): envolver el ícono en un botón `round`
+                     no bastó — sin fondo, sin borde y sin rótulo, la única
+                     superficie propia del control seguía siendo el triángulo
+                     rojo, o sea un color de estado haciendo de rótulo. Ahora el
+                     control lleva su rótulo de acción en teal y el rojo queda
+                     en la insignia de estado que va dentro, el mismo patrón del
+                     botón «Dependencias» (T044). -->
                 <q-btn
                   v-if="props.row.error_data"
                   flat
                   dense
-                  round
-                  size="sm"
-                  :aria-label="$t('reporting.historyTable.showError')"
+                  no-caps
+                  color="primary"
                   @click="openErrorMessage(props.row.error_data)"
                 >
-                  <q-icon name="warning" color="negative" size="sm" />
-                  <q-tooltip>{{
-                    $t("reporting.historyTable.showError")
-                  }}</q-tooltip>
+                  <q-icon
+                    name="warning"
+                    color="negative"
+                    size="xs"
+                    class="q-mr-xs"
+                  />
+                  {{ $t("reporting.historyTable.showError") }}
                 </q-btn>
               </template>
 
