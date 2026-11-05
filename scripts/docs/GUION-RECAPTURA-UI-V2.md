@@ -151,3 +151,23 @@ exactamente lo que dejó este desorden.
    `plantillas-biblioteca` dice «44 plantillas» y hoy son **50**.
 6. La primera imagen de cada página va `loading="eager" fetchpriority="high"` (es la del LCP);
    el resto `loading="lazy" decoding="async"`.
+
+## `/videos/` vuelve — decisión del usuario, 2026-11-05
+
+La sección **no** está dada de baja para siempre: se repone **cuando la UI v2 esté
+operativa**, con los dos videos (antirrobo 25 s, modo perdido 31 s) **regrabados** sobre
+ella. Hoy muestran la consola v1 de punta a punta, y eso —no el corte de versión— es lo
+que bloquea su regreso: regrabarlos es producción audiovisual, no trabajo de la ola 10.
+
+Consecuencias prácticas:
+
+- El `RedirectMatch 302 ^/videos/?$ → /features/` del vhost **tiene fecha de vencimiento**.
+  No debe convertirse en 301 por antigüedad. Al reponer la sección se borra la línea.
+- La página y toda su media siguen en `docs-site-fuera-de-linea/`: `videos/index.html` con
+  su JSON-LD `VideoObject`, y `assets-videos/` con MP4 + WebM 1080p, pósters WebP/JPG y
+  subtítulos VTT ES/EN de ambos. Se reponen con `git mv`, y hay que **reponer también** el
+  enlace del riel en las 17 páginas, las dos tarjetas del inicio, los cuatro párrafos
+  «Míralo en acción» de `/features/` y la entrada del sitemap — el detalle está en
+  `docs-site-fuera-de-linea/README.md`.
+- Los videos nuevos reemplazan los archivos de media, pero el `index.html` y su JSON-LD se
+  reaprovechan salvo por la duración, que hay que corregir si los cortes cambian de largo.
