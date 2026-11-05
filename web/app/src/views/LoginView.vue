@@ -46,6 +46,7 @@
               </q-input>
               <div>
                 <q-btn
+                  no-caps
                   :label="$t('login.submit')"
                   type="submit"
                   color="primary"
@@ -81,8 +82,13 @@
               </q-card-section>
 
               <q-card-actions align="right" class="text-primary">
-                <q-btn flat :label="$t('login.cancel')" v-close-popup />
-                <q-btn flat :label="$t('login.twoFactorSubmit')" type="submit" />
+                <q-btn flat no-caps :label="$t('login.cancel')" v-close-popup />
+                <q-btn
+                  flat
+                  no-caps
+                  :label="$t('login.twoFactorSubmit')"
+                  type="submit"
+                />
               </q-card-actions>
             </q-form>
           </q-card>

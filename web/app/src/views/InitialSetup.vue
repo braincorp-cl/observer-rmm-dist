@@ -20,6 +20,7 @@
                  con la acción principal de la tarjeta. -->
             <q-btn
               outline
+              no-caps
               :label="$t('setup.gettingStarted')"
               class="obs-page__btn full-width"
               href="https://docs.observer.cl/guide_gettingstarted/"
@@ -87,6 +88,7 @@
 
             <q-card-actions align="center">
               <q-btn
+                no-caps
                 :label="$t('setup.finish')"
                 color="primary"
                 class="full-width"
