@@ -1,5 +1,7 @@
 <template>
-  <div class="q-pa-md">
+  <!-- 050 (T049, V2-G02): mismo ámbito de tokens que el resto de las vistas
+       migradas; re-resuelve los grises internos de Quasar sin tocar el layout. -->
+  <div class="q-pa-md obs-ws">
     <div class="row">
       <div class="col"></div>
       <div class="col">
@@ -13,7 +15,9 @@
           </q-card-section>
           <q-card-section v-if="totpKey">
             <p>{{ $t("totp.manualInstructions") }}</p>
-            <p>{{ totpKey }}</p>
+            <!-- 050 (T049, V2-G01): la clave compartida es un dato que se
+                 transcribe carácter por carácter ⇒ Mono. -->
+            <p class="mono">{{ totpKey }}</p>
           </q-card-section>
           <q-card-actions align="center">
             <q-btn

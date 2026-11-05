@@ -1,5 +1,11 @@
 <template>
-  <div class="q-pa-md">
+  <!-- 050 (T049, V2-G02): `obs-ws` es el ámbito de tokens de las vistas ya
+       migradas. Sin él, los grises internos de Quasar (rótulo y marginales del
+       campo, borde del `outlined`, íconos) los pinta la hoja del framework con
+       alfa sobre negro/blanco en vez de los tokens --obs-* del tema. Solo
+       re-resuelve color: no toca el layout (a diferencia de `obs-page`, que trae
+       su propio flex y padding). -->
+  <div class="q-pa-md obs-ws">
     <div class="row">
       <div class="col"></div>
       <div class="col">

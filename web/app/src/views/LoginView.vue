@@ -1,7 +1,7 @@
 <template>
   <q-layout>
     <q-page-container>
-      <q-page class="flex bg-image flex-center">
+      <q-page class="flex flex-center obs-ws obs-login">
         <q-card
           v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
         >
@@ -150,13 +150,12 @@ async function onSubmit() {
 }
 </script>
 
-<style>
-.bg-image {
-  background-image: linear-gradient(
-    90deg,
-    rgba(20, 20, 29, 1) 0%,
-    rgba(38, 42, 56, 1) 49%,
-    rgba(15, 18, 20, 1) 100%
-  );
-}
+<style lang="sass" scoped>
+// 050 (T049, V2-G02): el lienzo del acceso venía de tres rgba() literales del
+// tema anterior a la paleta 1c. Queda el mismo gesto — degradado horizontal de
+// tres paradas en las mismas posiciones, bordes hundidos y centro elevado —
+// escrito con tokens: sigue al tema y ningún hex vive fuera de
+// quasar.variables.sass.
+.obs-login
+  background-image: linear-gradient(90deg, var(--obs-deep) 0%, var(--obs-surface) 49%, var(--obs-rail) 100%)
 </style>
