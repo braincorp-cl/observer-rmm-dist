@@ -50,6 +50,70 @@ document.querySelectorAll('.q-banner').forEach(b => {
 });
 ```
 
+## El anillo de foco y el halo accidental — medido, no supuesto
+
+La tanda del sistema de diseño añade un **anillo de foco** que hoy no existe: `app.sass`
+no tiene **ni una** regla de foco en sus 968 renglones, Quasar hace `outline: 0` y lo
+sustituye por un velo de 1,33–1,46:1. Parámetros ya decididos por el usuario el 4-nov
+(viven en el `ui-watch.md` de la 050):
+
+| | |
+|---|---|
+| token | `--obs-focus`, **neutro propio, no el teal de marca**: `#E6EDF5` en oscuro, `#16202E` en claro — los mismos neutros de texto de cada tema, para que sea inequívocamente «ni color de marca ni de estado» |
+| disparador | `:focus-visible` — se ve al **tabular**, no al hacer clic con el ratón |
+| forma | `outline: 2px solid var(--obs-focus)` + `outline-offset: 2px`, siguiendo el radio del control |
+| dónde | regla global sobre `:focus-visible` en `css/app.sass`, más las excepciones de los componentes que Quasar pinta aparte |
+
+El color y el disparador son decisión expresa; la forma y la ubicación van por default
+convencional y son discutibles si al capturar estorban.
+
+### Lo que esto le hace a las capturas
+
+El arnés **hace clic** para llegar a los diálogos, así que puede dejar el foco puesto sin
+que hoy se note —con `outline: 0` el foco es invisible—. Cuando el anillo exista, esa
+misma captura saldría con un halo de 2 px que nadie pidió, y se leería como **defecto del
+producto** en vez de como artefacto del instrumento.
+
+**Medido el 5-nov sobre las superficies del barrido**, en vez de suponerlo:
+
+| superficie | cómo se llega | `document.activeElement` | `:focus-visible` |
+|---|---|---|---|
+| dashboard, panel de agente | sólo URL | `BODY` | 0 |
+| ubicación, menú de respuesta, mensaje en pantalla, modo perdido | tras 1–3 clics | `DIV` (el contenedor del diálogo, que Quasar enfoca para que ESC funcione) | **0** |
+
+🔑 **El riesgo es menor de lo que parecía, y por una razón concreta:** el foco que deja el
+arnés es **programático**, así que `:focus-visible` **no lo matchea** —son 0 en las cuatro—.
+Un anillo definido sobre `:focus-visible`, como el decidido, **no pinta** sobre esos
+contenedores. El halo no aparece solo.
+
+🪤 **Dónde sí reaparece**, y hay que vigilarlo al capturar:
+
+1. Cualquier **excepción de componente escrita con `:focus` a secas** en vez de
+   `:focus-visible` sí pinta sobre un foco programático. Si la tanda deja alguna, el halo
+   vuelve justo en los diálogos.
+2. Si el arnés **toca el teclado** antes de disparar (el barrido usa `ESC` para cerrar
+   diálogos), el navegador pasa a modalidad teclado y el foco siguiente **sí** cuenta como
+   `:focus-visible`.
+
+### Regla para capturar
+
+Quitar el foco antes de disparar y **probar que se quitó**, en vez de suponerlo — es el
+equivalente de teclado del `mouse_away()` que `console_screenshots.py` ya hace por los
+tooltips:
+
+```python
+# antes de cada captura
+s.js("if (document.activeElement && document.activeElement !== document.body) "
+     "document.activeElement.blur();")
+sonda = s.js("return {es_body: document.activeElement === document.body, "
+             "focus_visible: document.querySelectorAll(':focus-visible').length};")
+assert sonda["es_body"] and sonda["focus_visible"] == 0, sonda
+```
+
+Guardar esa sonda **junto a la captura**: así la ausencia de halo queda **probada y no
+supuesta**, con la misma lógica que la sonda de consola del gauntlet. Verificado que el
+`blur()` devuelve `activeElement` a `BODY` en las cuatro superficies de diálogo.
+
 ## Las tres cifras, que no son la misma
 
 Se confunden fácil y conviene tenerlas claras antes de empezar:
