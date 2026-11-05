@@ -34,7 +34,7 @@
 
         <!-- No hay botones de editar ni borrar, y no están escondidos: el
              servidor los rechaza. Corregir se hace añadiendo un eslabón. -->
-        <q-banner dense class="bg-grey-2 text-grey-8 q-mb-md">
+        <q-banner dense class="obs-notice q-mb-md">
           <template v-slot:avatar><q-icon name="lock" /></template>
           {{ $t("erase.custody.immutableNotice") }}
         </q-banner>

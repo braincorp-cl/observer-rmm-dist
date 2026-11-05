@@ -89,6 +89,10 @@ async function logout() {
   router.push({ name: "Login" });
 }
 
+// 050 (cableado T047): igual que LoginView — el oscuro de esta pantalla no
+// sobrevive a la pantalla. Ver el comentario largo allá.
+const darkPrevio = $q.dark.isActive;
+
 onMounted(() => {
   getQRCodeData();
   // 050 (T049): el acceso fuerza oscuro y esta pantalla forzaba claro, así que
@@ -97,6 +101,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(async () => {
+  $q.dark.set(darkPrevio);
   if (clearToken.value) {
     await auth.logout();
   }

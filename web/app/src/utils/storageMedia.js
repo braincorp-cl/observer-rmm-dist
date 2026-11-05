@@ -28,26 +28,42 @@ export function selfEncryptingLabel(t, codigo) {
   return etiqueta(t, "storageMedia.selfEncrypting", codigo);
 }
 
-// El color del veredicto. Lo que importa acá es que "sin dato" y "sin categoría
-// alcanzable" NO compartan color: son dos cosas distintas (RN-02), y pintarlas
-// igual las fundiría en la pantalla aunque el backend las separe.
+// El color del veredicto. Llegaba del merge con la paleta CRUDA de la v1 —seis
+// colores de Quasar, teal incluido— y en la v2 el teal es el color de la acción
+// (UI-N03/D05): un badge teal se lee como algo que se puede pinchar.
+//
+// 🔑 El color lleva la SEVERIDAD y el rótulo lleva el veredicto concreto, así
+// que no hacen falta seis colores: dos veredictos pueden compartir uno cuando el
+// texto los distingue. "Purga remota" y "Purga con imagen en vivo" comparten
+// `positive` porque la severidad es la misma —la categoría más alta ES
+// alcanzable— y lo que cambia es la vía, que es justo lo que dice el rótulo.
+//
+// Lo que NO puede pasar (RN-02): que "sin dato" y "sin categoría alcanzable"
+// compartan color. Son dos cosas distintas y pintarlas igual las fundiría en
+// pantalla aunque el backend las separe. Acá quedan en los dos extremos — gris
+// neutro contra `negative`.
+//
+// Mismo patrón que `stateColorMap` en DiskEncryptionView: un mapa a los colores
+// semánticos del tema, no un switch con nombres de la paleta de Quasar.
+const verdictColorMap = {
+  // La categoría más alta es alcanzable: sin problema de baja.
+  purge_remote: "positive",
+  purge_live_image: "positive",
+  // Sólo Clear: alcanzable pero de menor garantía, y la decisión lo tiene que
+  // tomar en cuenta.
+  clear_remote: "warning",
+  // Medio virtual: la pregunta no aplica a este disco, el medio real está en
+  // otra parte (ver `overwriteIsDefensible`). Es una nota, no un incumplimiento.
+  virtual_media: "info",
+  // Ninguna categoría alcanzable: el caso que manda a destrucción física.
+  no_category: "negative",
+  // "sin dato": gris, nunca rojo. Un equipo del que no sabemos nada no es un
+  // incumplidor.
+  no_data: "grey",
+};
+
 export function verdictColor(veredicto) {
-  switch (veredicto) {
-    case "purge_remote":
-      return "green";
-    case "purge_live_image":
-      return "teal";
-    case "clear_remote":
-      return "blue";
-    case "virtual_media":
-      return "purple";
-    case "no_category":
-      return "orange";
-    default:
-      // "sin dato": gris, nunca rojo. Un equipo del que no sabemos nada no es
-      // un incumplidor.
-      return "grey";
-  }
+  return verdictColorMap[veredicto] ?? "grey";
 }
 
 // La capacidad legible. Los bytes son el dato; el redondeo es cortesía.

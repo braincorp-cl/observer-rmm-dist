@@ -59,13 +59,9 @@
           <!-- Feature 053: que el documento declare que NO se verificó la
                destrucción tiene que verse arriba, no perdido como una celda
                más de la tabla. -->
-          <q-banner
-            v-if="notVerified"
-            dense
-            class="bg-orange-1 text-orange-9 q-mb-md"
-          >
+          <q-banner v-if="notVerified" dense class="obs-notice q-mb-md">
             <template v-slot:avatar>
-              <q-icon name="gpp_maybe" color="warning" />
+              <q-icon name="gpp_maybe" />
             </template>
             {{ $t("erase.detail.notVerifiedNotice") }}
           </q-banner>
