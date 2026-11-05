@@ -19,11 +19,7 @@
 
       <!-- Aviso no bloqueante "borrar sin recuperar" (D-06 / RN-03): sólo si no
            consta una recuperación completada para este equipo. No impide crear. -->
-      <q-banner
-        v-if="!fileretrievalDone"
-        dense
-        class="obs-notice q-ma-md"
-      >
+      <q-banner v-if="!fileretrievalDone" dense class="obs-notice q-ma-md">
         <template v-slot:avatar>
           <q-icon name="warning" />
         </template>
@@ -37,10 +33,13 @@
            🔑 Tres respuestas, no dos. Si NO se sabe qué medio hay, el diálogo
            lo DICE en vez de callar: el silencio se leería como aprobación, que
            es justo el ok falso que RN-02 prohíbe. -->
+      <!-- 050 (tanda del sistema de diseño): este aviso ES una advertencia, así
+           que lleva el modificador que faltaba. El de abajo NO: «no se sabe qué
+           medio tiene» es ausencia de dato, no una alerta, y se queda neutro. -->
       <q-banner
         v-if="overwriteDefensible === false"
         dense
-        class="obs-notice q-ma-md"
+        class="obs-notice obs-notice--warning q-ma-md"
       >
         <template v-slot:avatar>
           <q-icon name="warning" />
@@ -118,10 +117,7 @@
           :hint="$t('erase.wipe.reasonHint')"
         />
         <div class="row items-center q-gutter-md">
-          <q-toggle
-            v-model="dryRun"
-            :label="$t('erase.wipe.dryRun')"
-          />
+          <q-toggle v-model="dryRun" :label="$t('erase.wipe.dryRun')" />
           <q-space />
           <q-btn
             color="primary"
@@ -150,7 +146,9 @@
             <q-td :props="props">
               <q-badge
                 :color="statusColor(props.row.status)"
-                :class="{ 'obs-chip-neutral': statusColor(props.row.status) === 'grey' }"
+                :class="{
+                  'obs-chip-neutral': statusColor(props.row.status) === 'grey',
+                }"
               >
                 {{ $t("erase.status." + props.row.status) }}
               </q-badge>
@@ -211,7 +209,9 @@
           </div>
           <q-badge
             :color="verifiedColor(detail.verified)"
-            :class="{ 'obs-chip-neutral': verifiedColor(detail.verified) === 'grey' }"
+            :class="{
+              'obs-chip-neutral': verifiedColor(detail.verified) === 'grey',
+            }"
           >
             {{ verifiedLabel(detail.verified) }}
           </q-badge>
@@ -398,7 +398,7 @@ export default {
         .filter(([k]) => k !== "_")
         .map(([path, v]) => ({
           path,
-          status: v && typeof v === "object" ? v.status ?? "—" : String(v),
+          status: v && typeof v === "object" ? (v.status ?? "—") : String(v),
           bytes: v && typeof v === "object" && v.bytes != null ? v.bytes : "—",
         }));
     });
@@ -596,7 +596,7 @@ export default {
   overflow-y: auto;
 }
 .oe-path {
-  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   word-break: break-all;
 }
 </style>

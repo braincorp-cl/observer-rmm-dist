@@ -37,6 +37,10 @@ body.body--dark
   --obs-border: #{$obs-d-border}
   --obs-selected: #{$obs-d-selected}
   --obs-text: #{$obs-d-text}
+  // V2-G15: el anillo de foco es el NEUTRO DE TEXTO del tema, no el teal de
+  // marca. Derivarlo de la misma variable y no copiar el hex es lo que impide
+  // que se separen si algun dia se retoca la paleta.
+  --obs-focus: #{$obs-d-text}
   --obs-text-2: #{$obs-d-text-2}
   --obs-muted: #{$obs-d-muted}
   --obs-faint: #{$obs-d-faint}
@@ -81,6 +85,10 @@ body.body--light
   --obs-border: #{$obs-l-border}
   --obs-selected: #{$obs-l-selected}
   --obs-text: #{$obs-l-text}
+  // V2-G15: el anillo de foco es el NEUTRO DE TEXTO del tema, no el teal de
+  // marca. Derivarlo de la misma variable y no copiar el hex es lo que impide
+  // que se separen si algun dia se retoca la paleta.
+  --obs-focus: #{$obs-l-text}
   --obs-text-2: #{$obs-l-text-2}
   --obs-muted: #{$obs-l-muted}
   --obs-faint: #{$obs-l-faint}
@@ -974,3 +982,81 @@ body.body--dark
 // acción.
 .q-inner-loading__label
   color: var(--obs-text)
+
+// ---------------------------------------------------------------------------
+// V2-G15 — Anillo de foco (tanda del sistema de diseño, 2026-11-05)
+// ---------------------------------------------------------------------------
+// Hasta hoy este archivo no tenia NI UNA regla de foco en 968 renglones.
+// Quasar hace `outline: 0` y lo reemplaza por un velo `currentColor @ .22`
+// (.q-focus-helper) que, compuesto sobre la paleta real, da 1,33-1,46:1 en los
+// dos temas: por debajo del 3:1 que pide WCAG 2.4.11. En la practica, quien
+// navega con el tabulador no sabe donde esta.
+//
+// Parametros decididos por el usuario el 2026-11-04:
+//   color      --obs-focus, el neutro de TEXTO del tema, nunca el teal de marca
+//              ni un color de estado. El anillo dice «aca esta el foco», que no
+//              es ni estado ni accion ⇒ no se re-litiga contra V2-G05.
+//   disparador :focus-visible. Se ve al TABULAR, no al hacer clic con el raton.
+// Forma y lugar van por default convencional, no por decision expresa.
+//
+// 🪤 CRITERIO DE LA TANDA, medido el 2026-11-05 y no negociable: TODA excepcion
+// se escribe con :focus-visible, NUNCA con :focus a secas. :focus-visible no
+// matchea foco PROGRAMATICO; :focus si. Quasar enfoca el contenedor de un
+// dialogo para que ESC funcione, y los arneses de captura dejan foco puesto al
+// navegar: con :focus a secas aparece un halo que nadie pidio, justo en los
+// dialogos, y se lee como defecto del producto.
+
+\:focus-visible
+  outline: 2px solid var(--obs-focus)
+  // Por fuera del control, para no comerse su propio borde. El outline sigue
+  // el border-radius del elemento sin que haya que repetirlo.
+  outline-offset: 2px
+
+// --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
+
+// Campos. El foco va al <input>, que vive DENTRO del control: un anillo ahi
+// quedaria encajonado. Se dibuja sobre el control y se quita del nativo.
+.q-field__control:has(:focus-visible)
+  outline: 2px solid var(--obs-focus)
+  outline-offset: 2px
+.q-field__native:focus-visible, .q-field__input:focus-visible
+  outline: none
+
+// Casillas, radios e interruptores. Su <input> es de 1px y esta oculto: el
+// anillo tiene que ir en la parte visible.
+.q-checkbox:has(:focus-visible) .q-checkbox__inner,
+.q-radio:has(:focus-visible) .q-radio__inner,
+.q-toggle:has(:focus-visible) .q-toggle__track
+  outline: 2px solid var(--obs-focus)
+  outline-offset: 2px
+.q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
+  outline: none
+
+// QSelect pone un target de foco invisible fuera del control (.q-select__focus-target).
+.q-field:has(.q-select__focus-target:focus-visible) .q-field__control
+  outline: 2px solid var(--obs-focus)
+  outline-offset: 2px
+
+// ---------------------------------------------------------------------------
+// obs-notice--warning (tanda del sistema de diseño, 2026-11-05)
+// ---------------------------------------------------------------------------
+// Faltaba el modificador de ADVERTENCIA: solo habia --info y --negative, asi
+// que un aviso como «la sobrescritura NO es sanitizacion defendible sobre
+// estado solido» quedaba neutro o, peor, tentaba a pintarlo de negativo.
+// V2-G05 existe para que el color SIGNIFIQUE lo que dice: usar «negativo» para
+// una advertencia es la mentira semantica que la propia vara persigue, y
+// --q-warning ya existe.
+.obs-notice--warning
+  border-left: 3px solid var(--q-warning) !important
+  .q-icon
+    color: var(--q-warning) !important
+
+// ---------------------------------------------------------------------------
+// Radio de los campos rellenos (tanda del sistema de diseño, 2026-11-05)
+// ---------------------------------------------------------------------------
+// Quasar deja el campo `filled` con 4px arriba y esquinas RECTAS abajo, pensado
+// para su Material. En la maqueta de acceso el boton va a 8px y los campos
+// quedaban cuadrados al lado. Es global a proposito: el radio de un campo es
+// del sistema, no de una pantalla.
+.q-field--filled .q-field__control, .q-field--filled .q-field__control:before
+  border-radius: 8px
