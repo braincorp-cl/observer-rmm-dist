@@ -71,7 +71,6 @@
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
     <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
     <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
-    <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
     <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
@@ -115,16 +114,8 @@
         <p>When a capability is available but part of it is off or pending, the badge says so and the text explains which part. <strong>Today no capability on this page is "in development"</strong>: everything described here is published. The badge exists so that, when the site documents something you cannot contract for yet, you see it up front instead of inferring it.</p>
       </div>
 
-      <figure class="doc-shot">
-        <img src="/assets/shots/dashboard.webp?v=2" width="1400" height="758" loading="eager" fetchpriority="high" alt="Consola principal de Observer RMM">
-        <figcaption><span class="lang-es">La consola principal: flota de equipos por cliente y sitio, con estado en tiempo real.</span><span class="lang-en">The main console: fleet of machines by client and site, with real-time status.</span></figcaption>
-      </figure>
 
       <h2 id="acceso-remoto"><span class="lang-es">Acceso y control remoto</span><span class="lang-en">Remote access &amp; control</span></h2>
-      <figure class="doc-shot">
-        <img src="/assets/shots/agente-panel.webp?v=2" width="1400" height="758" loading="lazy" decoding="async" alt="Panel del agente con control remoto">
-        <figcaption><span class="lang-es">Panel de un equipo: control remoto, resumen de hardware, discos y estado de chequeos.</span><span class="lang-en">A machine's panel: remote control, hardware summary, disks, and check status.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Control remoto de escritorio (tipo TeamViewer)</span><span class="lang-en">Remote desktop control (TeamViewer-like)</span></h3>
@@ -200,22 +191,10 @@
           <p><span class="lang-es">⚠️ <strong>La clave que viene puesta es de cortesía: reemplázala por la tuya.</strong> El producto trae una clave de OpenRouter para que la función se pueda probar sin configurar nada, pero <strong>es una sola clave compartida</strong>: el cupo diario es uno para toda la flota y se agota entre todos. Los modelos gratuitos de esa plataforma suelen condicionarse además a que los textos enviados se usen para entrenar. Para uso real, pon tu propio token en <em>Configuración global → Asistente de IA</em>.</span><span class="lang-en">⚠️ <strong>The key that ships with the product is a courtesy one: replace it with your own.</strong> It ships an OpenRouter key so the feature can be tried without configuring anything, but <strong>it is a single shared key</strong>: the daily quota is one for the whole fleet and everyone draws from it. Free models on that platform also tend to come with the condition that the text you send is used for training. For real use, set your own token under <em>Global settings → AI assistant</em>.</span></p>
         </div>
       </div>
-      <figure class="doc-shot">
-        <img src="/assets/shots/script-ia-prompt.webp?v=3" width="1400" height="583" loading="lazy" decoding="async" alt="Cuadro para pedirle a la IA un borrador de script en lenguaje natural, con ejemplos y contador de caracteres">
-        <figcaption><span class="lang-es">Al crear un script, el botón <em>Generar borrador con IA</em> abre este cuadro: se pide lo que se necesita en lenguaje corriente, con espacio para releer la instrucción antes de mandarla. La consola ya antepone el lenguaje elegido —acá <em>Powershell</em>—, así que basta con describir la tarea; los tres ejemplos se pueden usar tal cual.</span><span class="lang-en">When you create a script, the <em>Generate draft with AI</em> button opens this box: you ask for what you need in everyday language, with room to re-read the instruction before sending it. The console already prefixes the language you picked —here <em>Powershell</em>—, so you only have to describe the task; the three examples work as-is.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/script-ia-borrador.webp?v=3" width="1400" height="583" loading="lazy" decoding="async" alt="Borrador de script PowerShell generado por la IA dentro del editor de la consola">
-        <figcaption><span class="lang-es">El borrador entra directo al editor, listo para revisar, ajustar y probar antes de guardarlo. Es un punto de partida, no un script terminado: la revisión humana sigue siendo tuya.</span><span class="lang-en">The draft lands straight in the editor, ready to review, tweak, and test before saving. It's a starting point, not a finished script: the human review is still yours.</span></figcaption>
-      </figure>
 
       <h2 id="plantillas-scripts"><span class="lang-es">Biblioteca de plantillas de scripts</span><span class="lang-en">Script template library</span></h2>
       <p class="lang-es">La consola no llega vacía: trae <strong>44 plantillas de scripts propias del producto</strong>, escritas para las tareas que un operador repite todas las semanas. Se cargan con el despliegue y se versionan junto al producto, sin clonar ningún repositorio externo.</p>
       <p class="lang-en">The console doesn't arrive empty: it ships <strong>44 script templates of our own</strong>, written for the tasks an operator repeats every week. They load with the deployment and are versioned alongside the product, with no external repository to clone.</p>
-      <figure class="doc-shot">
-        <img src="/assets/shots/plantillas-biblioteca.webp?v=1" width="1400" height="718" loading="lazy" decoding="async" alt="Administrador de scripts de Observer RMM con las 44 plantillas del producto, su shell, plataformas y categoría">
-        <figcaption><span class="lang-es">El Administrador de scripts con las plantillas del producto: shell, plataformas donde corren, argumentos por omisión, categoría y tiempo de espera. El interruptor de la barra las muestra u oculta frente a los scripts que escribe el operador.</span><span class="lang-en">The script manager showing the product templates: shell, platforms they run on, default arguments, category, and timeout. The toolbar switch shows or hides them against the scripts the operator writes.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">37 para Windows y 7 multiplataforma</span><span class="lang-en">37 for Windows and 7 cross-platform</span></h3>
@@ -242,10 +221,6 @@
           <p><span class="lang-es">Las plantillas no comparan texto traducido del sistema operativo: se apoyan en identificadores estables (SID de grupo, enumeraciones, claves de registro), así que el resultado no depende del idioma del equipo.</span><span class="lang-en">The templates never compare translated operating-system text: they rely on stable identifiers (group SIDs, enumerations, registry keys), so the result doesn't depend on the machine's language.</span></p>
         </div>
       </div>
-      <figure class="doc-shot">
-        <img src="/assets/shots/script-ejecucion-windows.webp?v=2" width="1400" height="923" loading="lazy" decoding="async" alt="Ejecución de la plantilla Antivirus - Estado consolidado en un equipo Windows, con la salida devuelta en la consola">
-        <figcaption><span class="lang-es">Una plantilla corriendo en un equipo Windows de la flota: se elige, se espera la salida y el resultado vuelve a la consola —acá el estado consolidado del antivirus, con su veredicto al final—. Cada corrida queda en el historial del equipo y en el registro de auditoría.</span><span class="lang-en">A template running on a Windows machine in the fleet: pick it, wait for the output, and the result comes back to the console —here the consolidated antivirus status, with its verdict at the end—. Every run is recorded in the machine's history and in the audit log.</span></figcaption>
-      </figure>
 
       <h2 id="monitoreo-alertas"><span class="lang-es">Monitoreo y alertas</span><span class="lang-en">Monitoring &amp; alerting</span></h2>
       <div class="feature-grid">
@@ -292,14 +267,6 @@
       </div>
 
       <h2 id="gestion-equipos"><span class="lang-es">Gestión de equipos</span><span class="lang-en">Endpoint management</span></h2>
-      <figure class="doc-shot">
-        <img src="/assets/shots/parches.webp?v=2" width="1400" height="758" loading="lazy" decoding="async" alt="Gestión de parches de Windows">
-        <figcaption><span class="lang-es">Gestión de parches: actualizaciones pendientes por severidad, aprobables desde la consola.</span><span class="lang-en">Patch management: pending updates by severity, approvable from the console.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/software.webp?v=2" width="1400" height="758" loading="lazy" decoding="async" alt="Inventario de software instalado">
-        <figcaption><span class="lang-es">Inventario de software: programas instalados en cada equipo, con versión y editor.</span><span class="lang-en">Software inventory: installed programs on each machine, with version and publisher.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Gestión de servicios</span><span class="lang-en">Services management</span></h3>
@@ -350,14 +317,6 @@
       <h2 id="ubicacion"><span class="lang-es">Ubicación de la flota y geocerca</span><span class="lang-en">Fleet location &amp; geofencing</span></h2>
       <p class="lang-es"><strong>Geolocalización de activos:</strong> cada equipo puede reportar dónde está —notebooks, equipos de terreno, servidores— y la consola avisa cuando uno se sale del perímetro de su sitio. La función viene <strong>desactivada</strong>: se enciende con un interruptor global en la configuración del servidor.</p>
       <p class="lang-en"><strong>Asset location:</strong> every machine can report where it is —laptops, field machines, servers— and the console warns you when one leaves its site's perimeter. The feature ships <strong>disabled</strong>: you turn it on with a global switch in the server settings.</p>
-      <figure class="doc-shot">
-        <img src="/assets/shots/ubicacion-mapa.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Mapa con la ubicación de un equipo">
-        <figcaption><span class="lang-es">El mapa de un equipo, con el origen del dato, la precisión y la hora de la medición. Esta máquina virtual no tiene radio WiFi, así que hereda las coordenadas declaradas de su sitio: el círculo es la incertidumbre de ese dato.</span><span class="lang-en">A machine's map, with the source of the reading, its accuracy, and when it was taken. This virtual machine has no WiFi radio, so it inherits its site's declared coordinates: the circle is that reading's uncertainty.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/ubicacion-historico.webp?v=1" width="1400" height="613" loading="lazy" decoding="async" alt="Trayectoria histórica de un equipo en el mapa">
-        <figcaption><span class="lang-es">Con <em>Histórico</em> aparecen los puntos anteriores y la trayectoria. Acá, un notebook que se movió entre regiones: el mapa se ajusta solo para que quepan todos los puntos.</span><span class="lang-en">With <em>History</em>, the earlier points and the path appear. Here, a laptop that moved across regions: the map zooms out on its own to fit every point.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Ubicación en el mapa</span><span class="lang-en">Location on a map</span></h3>
@@ -408,16 +367,6 @@
       <h2 id="respuesta-endpoint"><span class="lang-es">Respuesta rápida y antirrobo</span><span class="lang-en">Quick response &amp; anti-theft</span></h2>
       <p class="lang-es">Tres acciones que actúan sobre la persona que está frente al equipo, no sobre el sistema: avisarle, dejarlo bloqueado o hacerlo sonar. Sirven para avisar antes de un mantenimiento, y también para reaccionar cuando <strong>un equipo se pierde o lo roban</strong>: bloquearlo a distancia, hacerlo sonar para ubicarlo y dejar un mensaje en pantalla para quien lo tenga, junto con <a href="#ubicacion">su ubicación en el mapa</a>.</p>
       <p class="lang-en">Three actions that address the person sitting at the machine rather than the system: warn them, lock it, or make it sound. Useful to give notice before maintenance, and also to react when <strong>a machine is lost or stolen</strong>: lock it remotely, make it sound so you can find it, and leave an on-screen message for whoever has it, alongside <a href="#ubicacion">its location on the map</a>.</p>
-      <p class="lang-es"><a href="/videos/#antirrobo">Míralo en acción en un video de 25 segundos</a>.</p>
-      <p class="lang-en"><a href="/videos/#antirrobo">See it in action in a 25-second video</a>.</p>
-      <figure class="doc-shot">
-        <img src="/assets/shots/respuesta-menu.webp?v=2" width="1400" height="613" loading="lazy" decoding="async" alt="Menú de respuesta rápida en el menú de acciones del equipo">
-        <figcaption><span class="lang-es">Las cuatro acciones, en el menú de acciones de cada equipo.</span><span class="lang-en">The four actions, in each machine's action menu.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/respuesta-mensaje.webp?v=2" width="1400" height="613" loading="lazy" decoding="async" alt="Diálogo para redactar el mensaje en pantalla">
-        <figcaption><span class="lang-es">El mensaje que verá el usuario se redacta acá; la consola recuerda que el texto se entrega tal cual, sin traducir.</span><span class="lang-en">The message the user will see is written here; the console reminds you that the text is delivered verbatim, untranslated.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Mensaje en pantalla</span><span class="lang-en">On-screen message</span></h3>
@@ -448,8 +397,6 @@
       <h2 id="modo-perdido"><span class="lang-es">Equipo perdido o robado</span><span class="lang-en">Lost or stolen device</span></h2>
       <p class="lang-es">Cuando un equipo sale del control de su dueño deja de ser una fila que se apagó y pasa a ser un <strong>caso</strong>: con motivo, autor, hora y una huella de ubicación que se puede reconstruir. Marcarlo como perdido sube la frecuencia con la que reporta dónde está, y sólo se apaga marcándolo como recuperado.</p>
       <p class="lang-en">When a machine leaves its owner's control it stops being a row that went offline and becomes a <strong>case</strong>: with a reason, an author, a timestamp, and a location trail you can reconstruct. Marking it as lost raises how often it reports where it is, and the only way to turn it off is marking it as recovered.</p>
-      <p class="lang-es"><a href="/videos/#modo-perdido">Míralo en acción en un video de 31 segundos</a>.</p>
-      <p class="lang-en"><a href="/videos/#modo-perdido">See it in action in a 31-second video</a>.</p>
       <div class="callout note lang-es">
         <span class="tag">Alcance de esta versión</span>
         <p>Esta etapa cubre el <strong>estado, la ubicación intensiva, la captura de pantalla y la foto de la cámara</strong>, y la evidencia ya <strong>se borra sola y se guarda cifrada</strong> en el servidor. Y marcar un equipo ahora dispara una <strong>cascada de contramedidas</strong> —bloqueo de pantalla, cámara, alarma y no-hibernación— configurable en tres niveles y reversible al recuperar (el bloqueo y la no-hibernación ya operan en <strong>Windows y Linux</strong>; en macOS, la no-hibernación llega en una fase posterior). La foto de cámara está disponible en <strong>Windows y Linux</strong> sin nada que instalar. En <strong>macOS</strong> depende de un permiso que <a href="#plataformas">sólo puede conceder una persona frente al equipo</a>, y que hay que volver a conceder después de cada actualización del agente. Desde el caso, un operador autorizado puede además <strong>recuperar archivos</strong> del equipo por el canal cifrado y ordenar el <strong>borrado selectivo y seguro</strong> de rutas designadas —con permiso dedicado, confirmación de dos personas, verificación por relectura y certificado—; el <strong>despacho destructivo sigue deshabilitado</strong> en producción hasta el simulacro en seco obligatorio.</p>
@@ -458,14 +405,6 @@
         <span class="tag">Scope of this version</span>
         <p>This stage covers <strong>state, intensive location, screen capture, and the camera photo</strong>, and evidence is now <strong>auto-deleted and stored encrypted</strong> on the server. And marking a device now fires a <strong>countermeasure cascade</strong> —screen lock, camera, alarm, and no-hibernation— configurable on three levels and reversible on recovery (the lock and no-hibernation now run on <strong>Windows and Linux</strong>; on macOS, no-hibernation lands in a later phase). The camera photo is available on <strong>Windows and Linux</strong> with nothing to install. On <strong>macOS</strong> it depends on a permission that <a href="#plataformas">only a person sitting at the machine can grant</a>, and that has to be granted again after every agent update. From the case, an authorized operator can also <strong>retrieve files</strong> from the machine over the encrypted channel and order the <strong>selective, secure erasure</strong> of designated paths —with a dedicated permission, a two-person confirmation, read-back verification, and a certificate—; <strong>destructive dispatch stays disabled</strong> in production until the mandatory dry run.</p>
       </div>
-      <figure class="doc-shot">
-        <img src="/assets/shots/modo-perdido-dialogo.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Diálogo para marcar un equipo como perdido, con el motivo y la cadencia de captura">
-        <figcaption><span class="lang-es">Marcar exige elegir el equipo, escribir el motivo del caso y fijar cada cuántos minutos reportará su ubicación. El aviso recuerda que la cadencia se aplica aunque la geolocalización esté apagada para el resto de la flota.</span><span class="lang-en">Marking requires picking the machine, writing the reason for the case, and setting how often it will report its location. The notice reminds you the cadence applies even if location tracking is off for the rest of the fleet.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/modo-perdido-lista.webp" width="1400" height="758" loading="lazy" decoding="async" alt="Listado de equipos marcados como perdidos, con motivo, autor, fecha y cadencia">
-        <figcaption><span class="lang-es">El caso abierto, con quién lo marcó, cuándo y con qué motivo. <em>Recuperar</em> es el único interruptor de apagado.</span><span class="lang-en">The open case, with who marked it, when, and why. <em>Recover</em> is the only off switch.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Cascada automática de contramedidas</span><span class="lang-en">Automatic countermeasure cascade</span></h3>
@@ -582,18 +521,6 @@
       </div>
 
       <h2 id="reporteria"><span class="lang-es">Reportería</span><span class="lang-en">Reporting</span></h2>
-      <figure class="doc-shot">
-        <img src="/assets/shots/reportes-gestor.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Gestor de reportes con plantillas curadas">
-        <figcaption><span class="lang-es">Gestor de reportes: conjunto curado de plantillas listas para usar, más las que crees.</span><span class="lang-en">Report manager: a curated set of ready-to-use templates, plus the ones you create.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/reportes-preview-html.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Vista previa HTML del reporte Estado de la Flota, con gráficos de estado, plataforma y sistema operativo">
-        <figcaption><span class="lang-es">Vista previa en <strong>HTML</strong> del panel <em>Estado de la Flota</em>: totales arriba y gráficos de estado, plataforma, sistema operativo y cliente, armados con los datos reales de la flota.</span><span class="lang-en">The <em>Fleet Status</em> dashboard previewed as <strong>HTML</strong>: totals up top, then charts by status, platform, operating system, and client, built from your fleet's real data.</span></figcaption>
-      </figure>
-      <figure class="doc-shot">
-        <img src="/assets/shots/reportes-preview-pdf.webp?v=1" width="1400" height="758" loading="lazy" decoding="async" alt="Vista previa PDF del mismo reporte Estado de la Flota, paginado">
-        <figcaption><span class="lang-es">El <strong>mismo</strong> reporte exportado a <strong>PDF</strong>, ya paginado: es el formato que sale adjunto cuando lo programas por correo. Se cambia de uno a otro con el selector HTML/PDF, sin volver a diseñar nada. Paso a paso en <a href="/guide_reports/">Reportes</a>.</span><span class="lang-en">The <strong>same</strong> report exported to <strong>PDF</strong>, already paginated: this is what goes out as an attachment when you schedule it by email. You switch between the two with the HTML/PDF selector, without redesigning anything. Step by step in <a href="/guide_reports/">Reports</a>.</span></figcaption>
-      </figure>
       <div class="feature-grid">
         <div class="feature">
           <h3><span class="lang-es">Plantillas de reportes</span><span class="lang-en">Report templates</span></h3>
