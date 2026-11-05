@@ -1676,7 +1676,6 @@
     "delete": "Delete"
   },
   "takeControl": {
-    "agentStatus": "Observer Agent Status:",
     "restartConnection": "Restart Connection",
     "recoverConnection": "Recover Connection",
     "metaTitle": "{hostname} - {client} - {site} | Take Control",

@@ -1676,7 +1676,6 @@
     "delete": "Eliminar"
   },
   "takeControl": {
-    "agentStatus": "Estado del agente Observer:",
     "restartConnection": "Reiniciar conexión",
     "recoverConnection": "Recuperar conexión",
     "metaTitle": "{hostname} - {client} - {site} | Tomar control",
