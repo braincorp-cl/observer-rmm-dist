@@ -69,6 +69,9 @@ IP_PUBLICABLE = (r"^(192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|100\.64\.|10\.|172
 OCULTAR = [
     # (selector de hoja, regex sobre SU propio texto, selector del ancestro a esconder)
     (".q-banner", r"mantenimiento|maintenance", ".q-banner"),      # servidor en mantenimiento
+    # 🔑 El cliente de andamiaje no es sólo ruido visual: carga DESKTOP-4G49P7G, una
+    # máquina REAL con su IP de salida (207.248.205.50, fluitek). Esconderlo es también
+    # medida de privacidad, no sólo limpieza de la foto.
     ("span", r"^Canario 050", ".q-tree__node"),                    # cliente de andamiaje en el árbol
     ("td, .q-td", r"^Canario 050", "tr"),                          # y si asomara en una tabla
 ]
