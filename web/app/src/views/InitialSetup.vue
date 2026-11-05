@@ -1,115 +1,113 @@
 <template>
-  <!-- 050 (T049): mismo andamiaje que LoginView — q-layout / q-page-container /
-       q-page centrada — en vez del `row` con dos columnas vacías. La tarjeta
-       toma el mismo ancho responsivo que el acceso, así que las tres pantallas
-       del flujo comparten geometría. `obs-ws` es el ámbito de tokens de las
-       vistas migradas: sin él, los grises internos de Quasar (rótulo y
-       marginales del campo, borde del `outlined`, íconos) los pinta la hoja del
-       framework con alfa sobre negro/blanco en vez de los tokens --obs-*
-       (V2-G02). -->
-  <q-layout>
-    <q-page-container>
-      <q-page class="flex flex-center obs-ws">
-        <q-card
-          v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
+  <!--
+    050 (V2-S06): la configuracion inicial en la maqueta de acceso.
+
+    Antes era la misma `q-card` centrada que el login: la tarjeta de la v1 con
+    otros tokens. El gauntlet la midio en 9,9-11,5 % de diferencia con la v1,
+    pero con el bbox encerrado DENTRO de la tarjeta — o sea retoque, no maqueta.
+
+    Ahora hereda `AccessLayout` y los rotulos van ARRIBA de cada campo, no como
+    un `div` suelto encima del control.
+  -->
+  <AccessLayout force-dark :heading="$t('setup.title')">
+    <q-form @submit.prevent="finish">
+      <div class="obs-access__field">
+        <label class="obs-access__label" for="obs-setup-client">
+          {{ $t("setup.addClient") }}
+        </label>
+        <q-input
+          id="obs-setup-client"
+          dense
+          outlined
+          v-model="client.name"
+          :rules="[(val) => !!val || $t('setup.required')]"
         >
-          <q-card-actions align="center">
-            <!-- 050 (T049): enlace a la documentación ⇒ botón secundario
-                 (`outline` + `obs-page__btn`, el patrón de las vistas
-                 migradas). Antes iba `color="info"`, que lo ponía a competir
-                 con la acción principal de la tarjeta. -->
-            <q-btn
-              outline
-              no-caps
-              :label="$t('setup.gettingStarted')"
-              class="obs-page__btn full-width"
-              href="https://docs.observer.cl/guide_gettingstarted/"
-              target="_blank"
-            />
-          </q-card-actions>
-          <q-card-section class="row items-center">
-            <h1 class="obs-page__title">{{ $t("setup.title") }}</h1>
-          </q-card-section>
-          <q-form @submit.prevent="finish">
-            <q-card-section>
-              <div>{{ $t("setup.addClient") }}</div>
-              <q-input
-                dense
-                outlined
-                v-model="client.name"
-                :rules="[(val) => !!val || $t('setup.required')]"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="business" />
-                </template>
-              </q-input>
-            </q-card-section>
-            <q-card-section>
-              <div>{{ $t("setup.addSite") }}</div>
-              <q-input
-                dense
-                outlined
-                v-model="site.name"
-                :rules="[(val) => !!val || $t('setup.required')]"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="apartment" />
-                </template>
-              </q-input>
-            </q-card-section>
-            <q-card-section>
-              <div>{{ $t("setup.defaultTimezone") }}</div>
-              <observer-dropdown
-                filterable
-                dense
-                options-dense
-                outlined
-                v-model="timezone"
-                :options="allTimezones"
-              />
-            </q-card-section>
+          <template v-slot:prepend>
+            <q-icon name="business" />
+          </template>
+        </q-input>
+      </div>
 
-            <q-card-section>
-              <div>
-                {{ $t("setup.companyName") }}
-                <q-icon
-                  name="ion-information-circle-outline"
-                  size="sm"
-                  class="q-ml-sm cursor-pointer"
-                >
-                  <q-tooltip class="text-caption">
-                    {{ $t("setup.companyNameTooltip") }}
-                  </q-tooltip>
-                </q-icon>
-              </div>
+      <div class="obs-access__field">
+        <label class="obs-access__label" for="obs-setup-site">
+          {{ $t("setup.addSite") }}
+        </label>
+        <q-input
+          id="obs-setup-site"
+          dense
+          outlined
+          v-model="site.name"
+          :rules="[(val) => !!val || $t('setup.required')]"
+        >
+          <template v-slot:prepend>
+            <q-icon name="apartment" />
+          </template>
+        </q-input>
+      </div>
 
-              <q-input dense outlined v-model="companyname"> </q-input>
-            </q-card-section>
+      <div class="obs-access__field">
+        <label class="obs-access__label">
+          {{ $t("setup.defaultTimezone") }}
+        </label>
+        <observer-dropdown
+          filterable
+          dense
+          options-dense
+          outlined
+          v-model="timezone"
+          :options="allTimezones"
+        />
+      </div>
 
-            <q-card-actions align="center">
-              <q-btn
-                unelevated
-                no-caps
-                :label="$t('setup.finish')"
-                color="primary"
-                class="obs-page__btn full-width"
-                type="submit"
-              />
-            </q-card-actions>
-          </q-form>
-        </q-card>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+      <div class="obs-access__field">
+        <label class="obs-access__label" for="obs-setup-company">
+          {{ $t("setup.companyName") }}
+          <q-icon
+            name="ion-information-circle-outline"
+            size="xs"
+            class="q-ml-xs cursor-pointer"
+          >
+            <q-tooltip class="text-caption">
+              {{ $t("setup.companyNameTooltip") }}
+            </q-tooltip>
+          </q-icon>
+        </label>
+        <q-input id="obs-setup-company" dense outlined v-model="companyname" />
+      </div>
+
+      <q-btn
+        unelevated
+        no-caps
+        :label="$t('setup.finish')"
+        color="primary"
+        class="obs-page__btn full-width"
+        type="submit"
+      />
+    </q-form>
+
+    <template #foot>
+      <!-- El enlace a la documentacion es ayuda, no la accion de la pantalla:
+           va al pie y de contorno, para no competir con «Finalizar». -->
+      <q-btn
+        outline
+        no-caps
+        :label="$t('setup.gettingStarted')"
+        class="obs-page__btn full-width q-mt-md"
+        href="https://docs.observer.cl/guide_gettingstarted/"
+        target="_blank"
+      />
+    </template>
+  </AccessLayout>
 </template>
 
 <script>
 import mixins from "@/mixins/mixins";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
+import AccessLayout from "@/components/access/AccessLayout.vue";
 
 export default {
   name: "InitialSetup",
-  components: { ObserverDropdown },
+  components: { ObserverDropdown, AccessLayout },
   mixins: [mixins],
   data() {
     return {

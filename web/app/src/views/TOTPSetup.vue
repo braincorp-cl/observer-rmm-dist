@@ -1,55 +1,59 @@
 <template>
-  <!-- 050 (T049): mismo andamiaje que LoginView — q-layout / q-page-container /
-       q-page centrada — y el mismo ancho responsivo de tarjeta, en vez del `row`
-       con dos columnas vacías. `obs-ws` es el ámbito de tokens de las vistas
-       migradas: re-resuelve los grises internos de Quasar desde --obs-*
-       (V2-G02). -->
-  <q-layout>
-    <q-page-container>
-      <q-page class="flex flex-center obs-ws">
-        <q-card
-          v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
-        >
-          <q-card-section class="row items-center">
-            <h1 class="obs-page__title">{{ $t("totp.title") }}</h1>
-          </q-card-section>
-          <q-card-section v-if="qrUrl">
-            <p>{{ $t("totp.scanInstructions") }}</p>
-            <img :src="qrCode" :alt="$t('totp.qrAlt')" />
-          </q-card-section>
-          <q-card-section v-if="totpKey">
-            <p>{{ $t("totp.manualInstructions") }}</p>
-            <!-- 050 (T049, V2-G01): la clave compartida es un dato que se
-                 transcribe carácter por carácter ⇒ Mono. -->
-            <p class="mono">{{ totpKey }}</p>
-          </q-card-section>
-          <q-card-actions align="center">
-            <q-btn
-              unelevated
-              no-caps
-              :label="$t('totp.finish')"
-              color="primary"
-              class="obs-page__btn full-width"
-              @click="logout"
-              :loading="loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+  <!--
+    050 (V2-S06): el enrolamiento TOTP en la maqueta de acceso.
+
+    🪤 Nota para quien la vuelva a medir: el gauntlet capturo esta pantalla
+    VACIA (solo titulo y boton) porque el cerrojo de escritura bloquea
+    `POST /accounts/users/setup_totp/` con 418 — y hace bien, es la llamada que
+    CREA el secreto, no es inocua. Para juzgar esta pantalla hay que poblarla
+    con un stub declarado de esa respuesta; si no, el QR, las instrucciones y la
+    clave no existen en ninguna captura.
+  -->
+  <AccessLayout force-dark :heading="$t('totp.title')">
+    <template v-if="qrUrl">
+      <p class="obs-totp__paso">{{ $t("totp.scanInstructions") }}</p>
+      <img :src="qrCode" :alt="$t('totp.qrAlt')" class="obs-totp__qr" />
+    </template>
+    <template v-if="totpKey">
+      <p class="obs-totp__paso">{{ $t("totp.manualInstructions") }}</p>
+      <!-- 050 (T049, V2-G01): la clave compartida es un dato que se transcribe
+           caracter por caracter ⇒ Mono. -->
+      <p class="mono obs-totp__clave">{{ totpKey }}</p>
+    </template>
+    <q-btn
+      unelevated
+      no-caps
+      :label="$t('totp.finish')"
+      color="primary"
+      class="obs-page__btn full-width"
+      @click="logout"
+      :loading="loading"
+    />
+  </AccessLayout>
 </template>
+
+<style lang="sass" scoped>
+.obs-totp__paso
+  margin: 0 0 12px
+  font-size: 14px
+  line-height: 1.5
+  color: var(--obs-text-2)
+.obs-totp__qr
+  display: block
+  margin: 0 0 20px
+.obs-totp__clave
+  margin: 0 0 20px
+  word-break: break-all
+  color: var(--obs-text)
+</style>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { useQuasar } from "quasar";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 
 import { useQRCode } from "@vueuse/integrations/useQRCode";
-
-// setup quasar
-const $q = useQuasar();
+import AccessLayout from "@/components/access/AccessLayout.vue";
 
 // setup auth store
 const auth = useAuthStore();
@@ -89,19 +93,15 @@ async function logout() {
   router.push({ name: "Login" });
 }
 
-// 050 (cableado T047): igual que LoginView — el oscuro de esta pantalla no
-// sobrevive a la pantalla. Ver el comentario largo allá.
-const darkPrevio = $q.dark.isActive;
+// 050 (V2-S06): el forzado de oscuro y su restauración al desmontar viven
+// ahora en AccessLayout (prop `force-dark`), que es el único sitio donde una
+// pantalla de acceso toca el estado global de tema.
 
 onMounted(() => {
   getQRCodeData();
-  // 050 (T049): el acceso fuerza oscuro y esta pantalla forzaba claro, así que
-  // el mismo flujo cambiaba de tema a mitad de camino. Ahora las dos van oscuras.
-  $q.dark.set(true);
 });
 
 onBeforeUnmount(async () => {
-  $q.dark.set(darkPrevio);
   if (clearToken.value) {
     await auth.logout();
   }

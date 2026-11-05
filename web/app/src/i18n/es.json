@@ -6,7 +6,9 @@
     "fieldRequired": "Este campo es obligatorio",
     "twoFactorTitle": "Token de doble factor",
     "cancel": "Cancelar",
-    "twoFactorSubmit": "Enviar"
+    "twoFactorSubmit": "Enviar",
+    "heading": "Ingresar",
+    "twoStepNote": "Si tu cuenta tiene verificación en dos pasos, el código se pide en el paso siguiente."
   },
   "layout": {
     "language": "Idioma",
@@ -113,12 +115,14 @@
   },
   "session": {
     "expired": "Tu sesión ha expirado",
-    "login": "Ingresar"
+    "login": "Ingresar",
+    "expiredHeading": "Sesión expirada"
   },
   "notFound": {
     "message": "Lo sentimos, no hay nada aquí...",
     "code": "(404)",
-    "goBack": "Volver"
+    "goBack": "Volver",
+    "heading": "Página no encontrada"
   },
   "dashboard": {
     "allClients": "Todos los clientes",
@@ -3963,5 +3967,9 @@
   },
   "webTerminal": {
     "title": "Terminal web del servidor"
+  },
+  "access": {
+    "headline": "Toda la flota, una sola consola.",
+    "subhead": "Monitoreo, parches, scripts y acceso remoto para los equipos de tus clientes."
   }
 }

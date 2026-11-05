@@ -6,7 +6,9 @@
     "fieldRequired": "This field is required",
     "twoFactorTitle": "Two-Factor Token",
     "cancel": "Cancel",
-    "twoFactorSubmit": "Submit"
+    "twoFactorSubmit": "Submit",
+    "heading": "Sign in",
+    "twoStepNote": "If your account has two-step verification, the code is requested in the next step."
   },
   "layout": {
     "language": "Language",
@@ -113,12 +115,14 @@
   },
   "session": {
     "expired": "Your session has expired",
-    "login": "Login"
+    "login": "Login",
+    "expiredHeading": "Session expired"
   },
   "notFound": {
     "message": "Sorry, nothing here...",
     "code": "(404)",
-    "goBack": "Go back"
+    "goBack": "Go back",
+    "heading": "Page not found"
   },
   "dashboard": {
     "allClients": "All Clients",
@@ -3963,5 +3967,9 @@
   },
   "webTerminal": {
     "title": "Server web terminal"
+  },
+  "access": {
+    "headline": "Your whole fleet, one console.",
+    "subhead": "Monitoring, patching, scripts and remote access for your clients' devices."
   }
 }

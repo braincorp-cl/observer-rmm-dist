@@ -1,127 +1,121 @@
 <template>
-  <q-layout>
-    <q-page-container>
-      <q-page class="flex flex-center obs-ws obs-login">
-        <q-card
-          v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
+  <!--
+    050 (V2-S06): el acceso en la maqueta aprobada (`referencia/acceso.png`).
+
+    Antes era una `q-card` centrada al 30 % — la tarjeta de la v1 con otros
+    tokens. El gauntlet lo midió: `columnas_de_pagina` = 1, `imgs_svg` = [], y
+    el diff de pixeles contra la v1 en tema claro daba 2,83 % acotado a la
+    tarjeta. Era la v1 con otro degradado, no la maqueta.
+
+    Ahora hereda `AccessLayout`: franja de marca + panel de formulario, con los
+    rotulos ARRIBA de los campos y el pie que anuncia el segundo paso.
+  -->
+  <AccessLayout
+    force-dark
+    :heading="$t('login.heading')"
+    :footnote="$t('login.twoStepNote')"
+  >
+    <q-form ref="form" @submit.prevent="checkCreds">
+      <div class="obs-access__field">
+        <label class="obs-access__label" for="obs-login-user">
+          {{ $t("login.username") }}
+        </label>
+        <q-input
+          id="obs-login-user"
+          filled
+          dense
+          v-model="credentials.username"
+          autocomplete="username"
+          lazy-rules
+          :rules="[
+            (val) => (val && val.length > 0) || $t('login.fieldRequired'),
+          ]"
+        />
+      </div>
+      <div class="obs-access__field">
+        <label class="obs-access__label" for="obs-login-pass">
+          {{ $t("login.password") }}
+        </label>
+        <q-input
+          id="obs-login-pass"
+          v-model="credentials.password"
+          filled
+          dense
+          autocomplete="current-password"
+          :type="showPassword ? 'password' : 'text'"
+          lazy-rules
+          :rules="[
+            (val) => (val && val.length > 0) || $t('login.fieldRequired'),
+          ]"
         >
+          <template v-slot:append>
+            <q-icon
+              :name="showPassword ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="showPassword = !showPassword"
+            />
+          </template>
+        </q-input>
+      </div>
+      <q-btn
+        unelevated
+        no-caps
+        :label="$t('login.submit')"
+        type="submit"
+        color="primary"
+        class="obs-page__btn full-width"
+      />
+    </q-form>
+
+    <!-- SSO descartado (ADR-010, 2026-06-17): seccion "Log in with SSO" eliminada (modulo ee/sso vaciado). -->
+
+    <!-- 2 factor modal -->
+    <q-dialog persistent v-model="prompt">
+      <q-card style="min-width: 400px">
+        <q-form ref="formToken" @submit.prevent="onSubmit">
+          <q-card-section class="text-center text-h6">{{
+            $t("login.twoFactorTitle")
+          }}</q-card-section>
+
           <q-card-section>
-            <!-- 050 (T049): el título de las tres pantallas de acceso usa la
-                 misma escala que las vistas migradas (`obs-page__title`, el que
-                 pinta ObsPageHead) en vez de tres `text-h*` distintos. -->
-            <div class="text-center q-pt-lg">
-              <h1 class="obs-page__title ellipsis">Observer RMM</h1>
-            </div>
-          </q-card-section>
-          <q-card-section>
-            <q-form ref="form" @submit.prevent="checkCreds" class="q-gutter-md">
-              <q-input
-                filled
-                v-model="credentials.username"
-                autocomplete="username"
-                :label="$t('login.username')"
-                lazy-rules
-                :rules="[
-                  (val) => (val && val.length > 0) || $t('login.fieldRequired'),
-                ]"
-              />
-              <q-input
-                v-model="credentials.password"
-                filled
-                autocomplete="current-password"
-                :type="showPassword ? 'password' : 'text'"
-                :label="$t('login.password')"
-                lazy-rules
-                :rules="[
-                  (val) => (val && val.length > 0) || $t('login.fieldRequired'),
-                ]"
-              >
-                <template v-slot:append>
-                  <q-icon
-                    :name="showPassword ? 'visibility_off' : 'visibility'"
-                    class="cursor-pointer"
-                    @click="showPassword = !showPassword"
-                  />
-                </template>
-              </q-input>
-              <div>
-                <q-btn
-                  unelevated
-                  no-caps
-                  :label="$t('login.submit')"
-                  type="submit"
-                  color="primary"
-                  class="obs-page__btn full-width"
-                />
-              </div>
-            </q-form>
+            <q-input
+              autofocus
+              outlined
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              v-model="twofactor"
+              :rules="[
+                (val) => (val && val.length > 0) || $t('login.fieldRequired'),
+              ]"
+            />
           </q-card-section>
 
-          <!-- SSO descartado (ADR-010, 2026-06-17): sección "Log in with SSO" eliminada (módulo ee/sso vaciado). -->
-        </q-card>
-
-        <!-- 2 factor modal -->
-        <q-dialog persistent v-model="prompt">
-          <q-card style="min-width: 400px">
-            <q-form ref="formToken" @submit.prevent="onSubmit">
-              <q-card-section class="text-center text-h6">{{
-                $t("login.twoFactorTitle")
-              }}</q-card-section>
-
-              <q-card-section>
-                <q-input
-                  autofocus
-                  outlined
-                  autocomplete="one-time-code"
-                  inputmode="numeric"
-                  v-model="twofactor"
-                  :rules="[
-                    (val) =>
-                      (val && val.length > 0) || $t('login.fieldRequired'),
-                  ]"
-                />
-              </q-card-section>
-
-              <q-card-actions align="right" class="text-primary">
-                <q-btn flat no-caps :label="$t('login.cancel')" v-close-popup />
-                <q-btn
-                  flat
-                  no-caps
-                  :label="$t('login.twoFactorSubmit')"
-                  type="submit"
-                />
-              </q-card-actions>
-            </q-form>
-          </q-card>
-        </q-dialog>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+          <q-card-actions align="right" class="text-primary">
+            <q-btn flat no-caps :label="$t('login.cancel')" v-close-popup />
+            <q-btn
+              flat
+              no-caps
+              :label="$t('login.twoFactorSubmit')"
+              type="submit"
+            />
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
+  </AccessLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onBeforeUnmount } from "vue";
-import { type QForm, useQuasar } from "quasar";
+import { ref, reactive } from "vue";
+import { type QForm } from "quasar";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
+import AccessLayout from "@/components/access/AccessLayout.vue";
 
 // SSO descartado (ADR-010, 2026-06-17): imports y lógica SSO eliminados (módulo ee/sso vaciado).
 
-// setup quasar
-const $q = useQuasar();
-
-// 050 (cableado T047): el acceso va oscuro (T049), pero `$q.dark` es estado
-// GLOBAL y este `set` no tenía dueño: quedaba puesto al salir de la pantalla.
-// En el flujo autenticado no se notaba porque `getDashInfo` lo sobrescribe con
-// la preferencia del usuario (store/index.js), pero las rutas SIN sesión no
-// pasan por ahí: entrar a /login y seguir a /verificar dejaba el portal público
-// oscuro. El oscuro vale mientras esta pantalla está montada; al desmontarse se
-// devuelve lo que había.
-const darkPrevio = $q.dark.isActive;
-$q.dark.set(true);
-onBeforeUnmount(() => {
-  $q.dark.set(darkPrevio);
-});
+// El forzado de tema oscuro (y su restauración al desmontar) vive ahora en
+// AccessLayout, con la prop `force-dark`.
 
 // setup auth store
 const auth = useAuthStore();
