@@ -52,6 +52,11 @@ el `peerDependency` de Vite 2 y npm rechaza el árbol entero.
   Monta `AgentTable.vue` con el `QTable` de verdad y actúa sobre el DOM.
 - `test/components/agent-table-overdue-alert.spec.js` — el `$q.notify` de
   `overdueAlert` sin `textColor` (hallazgo #1 de `AUDITORIA-COLOR.md`).
+- `test/components/script-manager-nombre-largo.spec.js` — la regla de
+  aceptación G08 en la página /scripts: un script de nombre largo se recorta por
+  CSS y el valor entero queda en `title`. Falla si alguien vuelve al recorte por
+  JavaScript (`truncateText`), que deja el texto cortado en el DOM y con eso
+  inutiliza también a `src/boot/autotitle.js`.
 - `test/styles/q-tooltip-bg-white.spec.js` — prueba de presencia: ningún
   `<q-tooltip>` nuevo con `bg-white` (hallazgo #3 de `AUDITORIA-COLOR.md`,
   **todavía sin arreglar**: 78 etiquetas en 74 archivos, inventariadas en
