@@ -488,7 +488,7 @@
 
               <span
                 class="q-pl-xs text-weight-bold"
-                :style="{ color: props.node.hidden ? 'grey' : '' }"
+                :class="{ 'obs-text-muted': props.node.hidden }"
                 >{{ props.node.name }}</span
               >
               <span class="q-pl-xs">{{ props.node.description }}</span>
@@ -845,7 +845,7 @@
             <q-td
               key="name"
               :props="props"
-              :style="{ color: props.row.hidden ? 'grey' : '' }"
+              :class="{ 'obs-text-muted': props.row.hidden }"
             >
               <!-- marca de plantilla propia de Observer RMM -->
               <img

@@ -22,10 +22,10 @@
         v-if="script.script_body && missingShebang"
         dense
         inline-actions
-        class="text-black bg-warning"
+        class="bg-warning obs-banner-warn"
       >
         <template v-slot:avatar>
-          <q-icon class="text-center" name="warning" color="black" />
+          <q-icon class="text-center" name="warning" />
         </template>
         <i18n-t
           keypath="scriptFormModal.shebangWarning"

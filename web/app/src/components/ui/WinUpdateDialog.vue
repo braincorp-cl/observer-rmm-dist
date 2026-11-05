@@ -22,9 +22,13 @@
         <div class="q-mt-md">
           <strong>{{ $t("winUpdateDialog.supportUrls") }}</strong>
           <div v-for="url in supportUrls" :key="url" class="q-mt-xs">
-            <a :href="url" target="_blank" rel="noopener" :class="linkClass">{{
-              url
-            }}</a>
+            <a
+              :href="url"
+              target="_blank"
+              rel="noopener"
+              class="text-primary"
+              >{{ url }}</a
+            >
           </div>
         </div>
       </q-card-section>
@@ -37,9 +41,7 @@
 
 <script setup>
 import { computed } from "vue";
-import { useDialogPluginComponent, useQuasar } from "quasar";
-
-const $q = useQuasar();
+import { useDialogPluginComponent } from "quasar";
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -59,9 +61,5 @@ const descriptionParagraphs = computed(() =>
   props.description
     .split(/\. +/)
     .map((para) => (para.endsWith(".") ? para : para + ".")),
-);
-
-const linkClass = computed(() =>
-  $q.dark.isActive ? "text-white" : "text-primary",
 );
 </script>

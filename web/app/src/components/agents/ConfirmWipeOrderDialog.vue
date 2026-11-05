@@ -186,7 +186,7 @@ export default {
 .oe-order-table td {
   text-align: left;
   padding: 4px 8px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  border-bottom: 1px solid var(--obs-border);
   font-size: 13px;
 }
 .oe-order-table th {

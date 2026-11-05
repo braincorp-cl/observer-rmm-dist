@@ -11,7 +11,7 @@
         <template #prepend>
           <q-icon
             name="fa-solid fa-display"
-            class="q-mr-sm text-blue-5"
+            class="q-mr-sm obs-icon-neutral"
             size="18px"
           />
         </template>
@@ -41,7 +41,11 @@
               @dblclick="toggleNode(prop.node)"
               style="cursor: pointer"
             >
-              <q-icon name="folder" class="q-mr-sm text-yellow-7" size="18px" />
+              <q-icon
+                name="folder"
+                class="q-mr-sm obs-icon-neutral"
+                size="18px"
+              />
               <q-input
                 @click.stop
                 v-if="editingNodeId === prop.node.id"
@@ -1057,15 +1061,15 @@ watch(currentPath, (newPath) => {
   top: -6px;
   left: 0;
   white-space: nowrap;
-  background: #e0e0e0;
-  color: #000000;
+  background: var(--obs-raised);
+  color: var(--obs-text);
   display: none;
   padding: 5px;
   min-width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid var(--obs-border);
   border-radius: 4px;
   z-index: 100;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 5px var(--obs-shadow-1);
 }
 .registry-cell:hover .cell-hover {
   display: block;
@@ -1077,7 +1081,7 @@ watch(currentPath, (newPath) => {
   overflow: visible !important;
 }
 .folder-path {
-  border: 1px solid #ccc;
+  border: 1px solid var(--obs-border);
   padding: 0 6px;
 }
 .nowrap {
