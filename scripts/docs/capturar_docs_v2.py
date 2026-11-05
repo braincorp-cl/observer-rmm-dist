@@ -72,6 +72,13 @@ OCULTAR = [
     # 🔑 El cliente de andamiaje no es sólo ruido visual: carga DESKTOP-4G49P7G, una
     # máquina REAL con su IP de salida (207.248.205.50, fluitek). Esconderlo es también
     # medida de privacidad, no sólo limpieza de la foto.
+    #
+    # Ese equipo es WIN_REBOOT y está ahí de prestado: `canarios.sh flota050-on` lo mueve
+    # al cliente canario y el teardown lo devuelve a su sitio. Así que esta regla puede
+    # quedarse SIN CASAR NADA el día que el canario se desmonte y el cliente desaparezca.
+    # 🪤 Eso NO la vuelve código muerto: mientras el canario esté activo protege a una
+    # máquina real, y volverá a hacerlo en el siguiente `flota050-on`. No borrarla por
+    # verla sin efecto en una corrida.
     ("span", r"^Canario 050", ".q-tree__node"),                    # cliente de andamiaje en el árbol
     ("td, .q-td", r"^Canario 050", "tr"),                          # y si asomara en una tabla
 ]
