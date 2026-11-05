@@ -5,9 +5,7 @@
         {{ $t("userSessions.title", { username: user.username }) }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">{{
-            $t("userSessions.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("userSessions.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-table

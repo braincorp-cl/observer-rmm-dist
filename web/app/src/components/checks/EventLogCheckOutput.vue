@@ -5,9 +5,7 @@
         {{ evtLogData.readable_desc }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("eventLogCheckOutput.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("eventLogCheckOutput.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <div v-if="evtLogData.check_result.extra_details !== null">

@@ -15,9 +15,7 @@
         }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">{{
-            $t("reporting.common.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("reporting.common.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-toolbar>

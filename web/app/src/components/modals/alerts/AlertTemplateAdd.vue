@@ -5,9 +5,7 @@
         {{ $t("alertTemplateAdd.title", { type: type }) }}
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip class="bg-white text-primary">{{
-            $t("alertsModalsCommon.close")
-          }}</q-tooltip>
+          <q-tooltip>{{ $t("alertsModalsCommon.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
       <q-form @submit.prevent="submit" ref="form">

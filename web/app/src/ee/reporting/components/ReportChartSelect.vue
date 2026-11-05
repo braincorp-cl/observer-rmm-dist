@@ -5,7 +5,7 @@
         {{ $t("reporting.chartSelect.title") }}
         <q-space />
         <q-btn v-close-popup dense flat icon="close">
-          <q-tooltip class="bg-white text-primary">{{
+          <q-tooltip>{{
             $t("reporting.common.close")
           }}</q-tooltip>
         </q-btn>
