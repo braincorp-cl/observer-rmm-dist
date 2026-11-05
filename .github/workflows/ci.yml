@@ -249,10 +249,10 @@ jobs:
   # un .vue roto se descubria recien en el deploy. Con release/v2 (rediseno de
   # la UI, todo el trabajo es frontend) eso deja de ser tolerable.
   # Mismo camino que install.yml: `npm ci` desde el lockfile + `npm run build`,
-  # con la Node de referencia de web/BUILD.md. Va tambien lint:i18n, el gate
-  # no-raw-text de los .vue ya migrados.
+  # con la Node de referencia de web/BUILD.md. Van tambien lint:i18n, el gate
+  # no-raw-text de los .vue ya migrados, y las pruebas del frontend.
   frontend:
-    name: Frontend (npm ci + lint:i18n + quasar build)
+    name: Frontend (npm ci + lint:i18n + test + quasar build)
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     defaults:
@@ -272,6 +272,32 @@ jobs:
 
       - name: lint:i18n
         run: npm run lint:i18n
+
+      # El corredor de pruebas del frontend (vitest + jsdom + @vue/test-utils,
+      # configurado en web/app/vitest.config.mjs) existia y NINGUN job lo
+      # ejecutaba: 28 pruebas que no corrian son 28 ceros silenciosos. Es el
+      # mismo hueco que se tapo en el job `go` el 2026-08-11, y pesa mas aca
+      # porque en release/v2 todo el trabajo es frontend.
+      #
+      # Entre lint:i18n y el build A PROPOSITO: las pruebas no dependen del
+      # bundle —vitest transforma las fuentes con su propio Vite 5 y las pruebas
+      # de presencia solo leen los .vue— y tardan segundos contra los minutos
+      # del build. Asi una prueba roja se ve sin pagar el `quasar build`.
+      #
+      # `npm test` encadena los dos corredores que conviven en el repo:
+      # `test:node` (node:test, src/utils/coords.test.mjs) y `vitest run`
+      # (test/**/*.spec.js); la extension es el contrato, ver vitest.config.mjs.
+      # Aqui corre tambien el trinquete contra
+      # test/styles/q-tooltip-bg-white.baseline.json, que falla si alguien
+      # reintroduce `bg-white` en un q-tooltip (hallazgo #3 de
+      # AUDITORIA-COLOR.md). Verificado en local: con una etiqueta nueva el paso
+      # sale con RC=1.
+      #
+      # Reusa el `npm ci` y la Node 22.22.2 que el job ya fija arriba: no hay
+      # segunda instalacion ni segundo setup-node. Un fallo pone el job en rojo
+      # porque `npm test` devuelve RC!=0 y los `run` corren con `bash -e`.
+      - name: npm test
+        run: npm test
 
       - name: quasar build
         run: npm run build
