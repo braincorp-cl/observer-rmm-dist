@@ -1060,8 +1060,14 @@ body.body--dark
   outline: 2px solid var(--obs-focus) !important
   outline-offset: 2px
   box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+// 🪤 El !important hace falta también aquí, y por mi propia culpa: la regla
+// genérica de arriba lo lleva, así que sin él esta excepción NO surte efecto y
+// el <input> nativo conserva su aro ADEMÁS del de .q-field__control. Resultado
+// medido por el gauntlet: dos aros concéntricos en los campos, que es otra
+// FORMA — justo lo que el criterio prohíbe.
 .q-field__native:focus-visible, .q-field__input:focus-visible
-  outline: none
+  outline: none !important
+  box-shadow: none !important
 
 // Casillas, radios e interruptores. Su <input> es de 1px y esta oculto: el
 // anillo tiene que ir en la parte visible.
@@ -1103,3 +1109,21 @@ body.body--dark
 // del sistema, no de una pantalla.
 .q-field--filled .q-field__control, .q-field--filled .q-field__control:before
   border-radius: 8px
+
+// 🔑 V2-G15, reparo del gauntlet (2026-11-05): ANILLO RECORTADO POR EL OVERFLOW.
+// La hipótesis abierta del ítem quedó CONFIRMADA con píxeles, no con cascada:
+// en la columna de contexto del agente, `.obs-ctx__list` tiene `overflow:hidden`
+// con un rect idéntico al del elemento y la `q-list` de dentro `overflow:auto`,
+// así que un anillo dibujado 2px POR FUERA cae fuera del recorte y no se ve.
+// El estilo computado decía 13,07 y 14,59; los píxeles decían que no había nada.
+//
+// La salida NO es bajar el offset en toda la consola —rompería la «misma forma»
+// que el propio ítem exige—: se trata donde está el recorte. Dentro de un
+// contenedor que recorta, el anillo se dibuja HACIA ADENTRO. Mismos dos tonos,
+// mismo grosor, misma forma; sólo cambia de lado, que es la única manera de que
+// exista dentro de una caja que no deja margen.
+.obs-ctx__list :focus-visible,
+.q-virtual-scroll :focus-visible,
+.q-scrollarea :focus-visible
+  outline-offset: -2px !important
+  box-shadow: inset 0 0 0 2px var(--obs-focus-alt) !important
