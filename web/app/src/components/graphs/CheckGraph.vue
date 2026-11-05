@@ -51,6 +51,14 @@
 </template>
 <script>
 import VueApexCharts from "vue3-apexcharts";
+import { getCssVar } from "quasar";
+
+// 046 (UI-D02): los colores del gráfico salen de los tokens del tema y no de
+// hex literales (el azul previo al rebranding y el rojo/ámbar de Quasar no
+// seguían al tema). Mismo patrón que AgentLocationDialog/LostCaseTimelineDialog.
+function obsToken(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
 
 export default {
   name: "CheckGraph",
@@ -82,7 +90,7 @@ export default {
             enabled: false,
           },
         },
-        colors: ["#027BE3"],
+        colors: [getCssVar("primary")],
         stroke: {
           width: 3,
         },
@@ -193,19 +201,23 @@ export default {
         yaxis: [],
       };
 
+      const cNegative = getCssVar("negative");
+      const cWarning = getCssVar("warning");
+      const cOnBrand = obsToken("--obs-on-brand");
+
       // add error threshold line if exists
       if (this.check.error_threshold) {
         this.chartOptions["annotations"]["yaxis"].push({
           y: this.check.error_threshold,
           strokeDashArray: 0,
-          borderColor: "#C10015",
+          borderColor: cNegative,
           label: {
             position: "left",
             offsetX: 100,
-            borderColor: "#C10015",
+            borderColor: cNegative,
             style: {
-              color: "#FFF",
-              background: "#C10015",
+              color: cOnBrand,
+              background: cNegative,
             },
             text: this.$t("checkGraph.errorThreshold"),
           },
@@ -217,14 +229,14 @@ export default {
         this.chartOptions["annotations"]["yaxis"].push({
           y: this.check.warning_threshold,
           strokeDashArray: 0,
-          borderColor: "#ff9800",
+          borderColor: cWarning,
           label: {
             position: "left",
             offsetX: 100,
-            borderColor: "#ff9800",
+            borderColor: cWarning,
             style: {
-              color: "#FFF",
-              background: "#ff9800",
+              color: cOnBrand,
+              background: cWarning,
             },
             text: this.$t("checkGraph.warningThreshold"),
           },

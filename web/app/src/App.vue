@@ -76,9 +76,6 @@ a
   thead tr:first-child th
     background-color: var(--obs-raised)
 
-.bg-dark
-  background-color: --q-page-dark
-
 .bg-light
   background-color: var(--obs-surface)
 
@@ -87,15 +84,6 @@ a
 
 .highlight-dark
   background-color: var(--obs-selected)
-
-.action-completed
-  background-color: $positive
-
-.agent-offline
-  background: gray !important
-
-.agent-overdue
-  background: red !important
 
 .min-width
   min-width: 0px !important

@@ -21,7 +21,7 @@
             {{ $t("aiScriptPrompt.subtitle") }}
           </div>
         </div>
-        <q-chip square dense outline color="primary" :label="shellLabel" />
+        <q-chip square dense class="obs-chip-neutral" :label="shellLabel" />
       </q-card-section>
 
       <q-card-section class="q-pt-none">

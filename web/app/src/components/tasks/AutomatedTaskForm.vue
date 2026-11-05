@@ -281,7 +281,7 @@
                               ? 'mdi-microsoft-windows'
                               : 'mdi-powershell'
                           "
-                          color="primary"
+                          class="obs-icon-neutral"
                         />
                         <span class="mono">{{ element.command }}</span>
                       </q-item-label>

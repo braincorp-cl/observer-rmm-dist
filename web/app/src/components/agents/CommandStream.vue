@@ -95,12 +95,12 @@ onUnmounted(close);
 <style scoped>
 .command-stream {
   font-family: monospace;
-  background: #191818;
-  color: #fff;
+  background: var(--obs-deep);
+  color: var(--obs-text);
   padding: 0 10px;
   height: 30vh;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid var(--obs-border);
   border-radius: 4px;
 }
 .terminal {

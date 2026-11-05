@@ -73,7 +73,7 @@
     >
       <template v-slot:body-cell-is_system_volume="props">
         <q-td :props="props">
-          <q-badge v-if="props.row.is_system_volume" color="primary">
+          <q-badge v-if="props.row.is_system_volume" class="obs-chip-neutral">
             {{ $t("diskEncryption.systemVolumeYes") }}
           </q-badge>
           <span v-else>{{ dash }}</span>

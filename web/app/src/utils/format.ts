@@ -274,25 +274,6 @@ export function formatCustomFields(
   return tempArray;
 }
 
-export function formatScriptSyntax(syntax: string) {
-  let temp = syntax;
-  temp = temp.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  temp = temp
-    .replaceAll("&lt;", '<span style="color:#d4d4d4">&lt;</span>')
-    .replaceAll("&gt;", '<span style="color:#d4d4d4">&gt;</span>');
-  temp = temp
-    .replaceAll("[", '<span style="color:#ffd70a">[</span>')
-    .replaceAll("]", '<span style="color:#ffd70a">]</span>');
-  temp = temp
-    .replaceAll("(", '<span style="color:#87cefa">(</span>')
-    .replaceAll(")", '<span style="color:#87cefa">)</span>');
-  temp = temp
-    .replaceAll("{", '<span style="color:#c586b6">{</span>')
-    .replaceAll("}", '<span style="color:#c586b6">}</span>');
-  temp = temp.replaceAll("\n", "<br />");
-  return temp;
-}
-
 // date formatting
 
 export function getTimeLapse(unixtime: number) {
