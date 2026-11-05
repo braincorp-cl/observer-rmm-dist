@@ -51,7 +51,7 @@
                   :label="$t('login.submit')"
                   type="submit"
                   color="primary"
-                  class="full-width"
+                  class="obs-page__btn full-width"
                 />
               </div>
             </q-form>

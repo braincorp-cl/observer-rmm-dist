@@ -29,7 +29,7 @@
               no-caps
               :label="$t('totp.finish')"
               color="primary"
-              class="full-width"
+              class="obs-page__btn full-width"
               @click="logout"
               :loading="loading"
             />

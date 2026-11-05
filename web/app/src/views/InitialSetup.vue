@@ -92,7 +92,7 @@
                 no-caps
                 :label="$t('setup.finish')"
                 color="primary"
-                class="full-width"
+                class="obs-page__btn full-width"
                 type="submit"
               />
             </q-card-actions>
