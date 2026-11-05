@@ -4,31 +4,31 @@
 equivocarse. **No contiene el merge hecho**: el árbol de este repositorio está
 sin fusionar y ningún archivo de `src/` fue modificado.
 
+**Revisión 2** — reescrito contra la punta actual de `release/v2`. La revisión 1
+se escribió sobre `467d451`; desde entonces entraron 20 commits y 94 archivos.
+Al final hay una sección de **qué quedó obsoleto** respecto de esa versión.
+
 **Contra qué estado se escribió.**
 
 | | |
 |---|---|
 | Repositorio | `braincorp-cl/observer-rmm-dist` |
-| Rama de trabajo | `v2/guion-t047` (= `origin/release/v2` + 5 commits) |
-| `main` | `origin/main` |
-| Base común | `1079c0b9e92f5aa4741713929a562cbea3369ba5` |
+| Rama de trabajo | `v2/guion-t047` = punta de `release/v2` + este documento |
+| Punta de `release/v2` | `ae08aa7` |
+| Punta de `main` | `da0e21b` |
+| Base común | `1079c0b` — **sin cambios** desde la revisión 1 |
 | `main` sobre la base | 199 archivos, +19 401 / −559 |
-| `release/v2` sobre la base | 147 archivos, +9 521 / −3 392 |
+| `release/v2` sobre la base | 190 archivos, +12 982 / −3 947 |
 
-**Advertencia sobre la rama.** El enunciado pedía simular
-`git merge-tree release/v2 main`. Lo hice, y además contra `HEAD`
-(`v2/guion-t047`), que va 5 commits adelante. **Los conflictos son los mismos 7
-archivos en ambos casos**, pero 3 de esos archivos
-(`EditCoreSettings.vue`, `en.json`, `es.json`) fueron tocados por esos 5
-commits, así que **los bloques finales de este guion están sacados contra
-`HEAD`**, que es el árbol real sobre el que se va a trabajar. Si alguien fusiona
-parado en `release/v2` puro, los conflictos de esos tres archivos tendrán un
-lado "nuestro" distinto.
+**`main` no se movió donde importa.** Avanzó, pero sus commits recientes son
+todos de ansible, despliegue y backend. Su último commit que toca
+`web/app/src` es `ed3dbd6`, que ya estaba dentro del alcance de la revisión 1.
+Los 7 archivos que llegan nuevos de `main` son exactamente los mismos.
 
-**Cómo se verificó.** Todo lo que sigue se ejecutó en un **clon desechable** en
-`/tmp`, no acá: se hizo el merge de verdad, se aplicaron las resoluciones de la
-Parte 1, y se corrieron `lint`, `lint:i18n` y `build` sobre el resultado. **Las
-cuatro pasan.** El clon se borró. Donde algo no se pudo verificar, lo digo.
+**Cómo se verificó.** Igual que la revisión 1: el merge se hizo de verdad en un
+**clon desechable** en `/tmp`, se aplicaron las resoluciones de la Parte 1, y se
+corrieron los cinco comandos sobre el resultado. **Los cinco pasan.** El clon se
+borró. Donde algo no se pudo verificar, lo digo.
 
 ---
 
@@ -36,41 +36,79 @@ cuatro pasan.** El clon se borró. Donde algo no se pudo verificar, lo digo.
 
 ```bash
 git fetch origin main release/v2
-git checkout v2/guion-t047
+git checkout release/v2
 git merge origin/main --no-commit
 ```
 
-Resultado esperado: **7 archivos en conflicto, 12 hunks.** Nada más entra en
-conflicto; todo lo demás automergea, y ahí está el problema real (Parte 2).
+Resultado esperado: **7 archivos en conflicto, 12 hunks.** El conjunto no cambió
+respecto de la revisión 1. Todo lo demás automergea, y ahí está el problema real
+(Parte 2).
 
 ---
 
 ## Parte 1 · Los 12 hunks en conflicto
 
-| # | Archivo | Hunks | Resolución en una línea |
-|---|---|---|---|
-| 1 | `web/app/package.json` | 1 | Unión: lista de la v2 + 4 archivos de `main` |
-| 2 | `src/components/agents/AssetsTab.vue` | 1 | Estructura v2 + rama `storage_media` (y agregarla a `assetOptions`) |
-| 3 | `src/components/agents/EraseCertificateDetailDialog.vue` | 1 | Tomar `main` y pasar prettier |
-| 4 | `src/components/modals/coresettings/EditCoreSettings.vue` | 2 | A: estructura v2 + 3 campos de `main`. B: tomar v2 |
-| 5 | `src/i18n/en.json` | 2 | Unión profunda por script |
-| 6 | `src/i18n/es.json` | 2 | Unión profunda por script |
-| 7 | `src/views/EraseCertificatesView.vue` | 3 | Ver detalle; uno deja código muerto (→ Parte 2, hueco B) |
+### Cuatro de los siete no hay que volver a mirarlos
 
-**Ninguno de los 12 exige una decisión de producto.** Las preguntas abiertas que
-sí encontré están en la Parte 2, y ninguna bloquea el merge.
+Los 20 commits nuevos **no tocaron** `AssetsTab.vue`,
+`EraseCertificateDetailDialog.vue`, `EditCoreSettings.vue` ni
+`EraseCertificatesView.vue`. Eso no es una suposición: comparé los **blobs de
+las tres etapas** del conflicto (base, nuestro lado, lado de `main`) entre la
+revisión 1 y ahora, y los doce SHA son idénticos:
+
+```
+a84cdada / e3c62e17 / 0b6ede7b   AssetsTab.vue
+1898a05d / c90b9ff7 / 6fa8d87a   EraseCertificateDetailDialog.vue
+a1d372a5 / 4b76cb72 / 3e4040f4   EditCoreSettings.vue
+7d8b35e9 / 6c7addbf / 9daf9b2a   EraseCertificatesView.vue
+```
+
+Mismos tres insumos ⇒ mismo conflicto, byte a byte. **Las resoluciones de la
+revisión 1 para esos cuatro valen tal cual** y están más abajo sin un solo
+cambio. Lo confirmé además aplicándolas: entraron sin un ajuste y el árbol
+compila.
+
+De los tres restantes, sólo cambió **nuestro** lado (etapa 2); base y `main`
+siguen idénticos:
+
+```
+8d3bbd90 -> f1761977   package.json
+62dbbceb -> 0c7e2595   i18n/en.json
+e3548dac -> ca96e5ca   i18n/es.json
+```
+
+### Resumen
+
+| # | Archivo | Hunks | Resolución | ¿Rehecha? |
+|---|---|---|---|---|
+| 1 | `web/app/package.json` | 1 | Unión: lista de la v2 + 4 archivos de `main` | Recalculada |
+| 2 | `src/components/agents/AssetsTab.vue` | 1 | Estructura v2 + rama `storage_media` | Sin cambio |
+| 3 | `src/components/agents/EraseCertificateDetailDialog.vue` | 1 | Tomar `main` y pasar prettier | Sin cambio |
+| 4 | `src/components/modals/coresettings/EditCoreSettings.vue` | 2 | A: estructura v2 + 3 campos. B: tomar v2 | Sin cambio |
+| 5 | `src/i18n/en.json` | 2 | Unión profunda por script | Recalculada |
+| 6 | `src/i18n/es.json` | 2 | Unión profunda por script | Recalculada |
+| 7 | `src/views/EraseCertificatesView.vue` | 3 | Ver detalle; uno deja código muerto | Sin cambio |
+
+**Ninguno de los 12 exige una decisión de producto.**
 
 ---
 
 ### 1 · `web/app/package.json` — el gate `lint:i18n`
 
-**Qué quiere cada lado.** Es una sola línea con la lista de archivos del gate de
-traducciones. La v2 agregó 14 archivos (el shell `NavMenu`/`NavRail`, el
-`AgentWorkspace` y sus piezas, y las vistas `Alerts`/`Automation`/`Scripts`/
-`Settings`/`Preferences`). `main` agregó 4.
+**🔎 Corrección a un dato de partida.** Se me indicó que la lista `lint:i18n`
+venía más larga. **No creció**: la comparé entre `467d451` y la punta y es
+**byte a byte idéntica**, 187 archivos. Lo que cambió en `package.json` son tres
+scripts (`test`, `test:node`, `test:watch`) y cuatro devDependencies
+(`vitest`, `jsdom`, `@vitejs/plugin-vue`, `@vue/test-utils`).
 
-**Resolución: unión.** Lo comprobé por diferencia de conjuntos: **nadie borró
-nada**, así que no hay nada que decidir. Los 4 de `main` son:
+**Eso importa para la resolución**: los scripts nuevos **no entran en
+conflicto**. El conflicto sigue siendo una sola línea, la de `lint:i18n`, porque
+`main` no tocó esa zona del archivo. `git checkout --ours` conserva los scripts
+de prueba sin más.
+
+**Qué quiere cada lado.** La v2 agregó 14 archivos a la lista; `main` agregó 4.
+Diferencia de conjuntos sobre las tres etapas: **nadie borró nada**, así que no
+hay nada que decidir. Los 4 de `main`:
 
 ```
 src/views/StorageMediaView.vue
@@ -79,20 +117,18 @@ src/components/agents/StorageMediaDetail.vue
 src/components/agents/AssetCustodyTimeline.vue
 ```
 
-**Por qué importa.** Esos 4 archivos son exactamente las vistas y componentes
-nuevos de la Parte 2. Si se resuelve tomando el lado de la v2 (lo cómodo, porque
-la línea de la v2 es la más larga), **el gate deja de mirarlos** y cualquier
-texto sin traducir que traigan pasa sin que nadie se entere.
+**Por qué importa.** Esos 4 son exactamente las vistas y componentes nuevos de
+la Parte 2. Si se resuelve tomando el lado de la v2 (lo cómodo, porque su línea
+es la más larga), **el gate deja de mirarlos** y cualquier texto sin traducir
+que traigan pasa sin que nadie se entere. Y `lint:i18n` **sí es una compuerta de
+CI**, así que el costo aparece tarde.
 
-**Bloque listo para pegar.** La línea tiene ~11 KB, pegarla a mano es una mala
-idea. Usar esto, que es determinista:
+**Resolución** (la línea pesa ~11 KB; pegarla a mano es una mala idea):
 
 ```bash
 git checkout --ours web/app/package.json
 python3 -I scripts/t047-fix-lint-i18n.py
 ```
-
-Con `scripts/t047-fix-lint-i18n.py`:
 
 ```python
 #!/usr/bin/env python3
@@ -120,12 +156,14 @@ open(P, "a").write("\n")
 print("lint:i18n:", len(xs) - 6, "archivos")
 ```
 
-**Verificación:** debe imprimir `lint:i18n: 191 archivos` (187 + 4). El `git
-diff` de `package.json` debe tener exactamente **una** línea cambiada.
+**Verificación:** imprime `lint:i18n: 191 archivos` (187 + 4), y el `git diff`
+de `package.json` tiene exactamente **una** línea cambiada. Ejecutado: ✅.
 
 ---
 
 ### 2 · `AssetsTab.vue` — las pestañas de Activos
+
+*(Resolución de la revisión 1, sin cambios: los tres insumos son idénticos.)*
 
 **Qué quiere cada lado.**
 - **v2**: borró las `q-tabs`/`q-tab-panels` y dejó bloques desplegables
@@ -136,8 +174,8 @@ diff` de `package.json` debe tener exactamente **una** línea cambiada.
 
 **Resolución: estructura de la v2, más una rama para `storage_media`.**
 
-**🔴 La trampa.** El `<script>` **automergeó sin conflicto**: el `import` de
-`StorageMediaDetail` y su registro en `components:` ya están puestos. Pero
+**🔴 La trampa.** El `<script>` **automergea sin conflicto**: el `import` de
+`StorageMediaDetail` y su registro en `components:` ya quedan puestos. Pero
 `assetOptions` es del lado de la v2 y **no lista `storage_media`**. Si se
 resuelve tomando el lado de la v2 tal cual, el componente queda importado,
 registrado y jamás renderizado: la subsección "Medios de almacenamiento"
@@ -183,11 +221,13 @@ agregar la entrada después de `["encryption", "encryption"],`:
         ["storage_media", "storageMedia"],
 ```
 
-La clave `agentTabs.assets.storageMedia` ya llega con el i18n de `main`.
+La clave `agentTabs.assets.storageMedia` llega con el i18n de `main`.
 
 ---
 
 ### 3 · `EraseCertificateDetailDialog.vue` — las filas del certificado
+
+*(Sin cambios respecto de la revisión 1.)*
 
 **Qué quiere cada lado.**
 - **v2**: sólo reformateó (prettier pasó las filas de una línea a multilínea).
@@ -196,48 +236,53 @@ La clave `agentTabs.assets.storageMedia` ya llega con el i18n de `main`.
   tipo y origen del medio, disposición, método y evidencia de verificación,
   bloque de "quien da fe") y pasó 4 valores por funciones de etiqueta.
 
-**Resolución: el lado de `main`, y después prettier.** Todo el contenido es de
-`main`; lo único que aporta la v2 es el formato, y prettier lo reproduce exacto.
+**Resolución: el lado de `main`, y después prettier.**
 
 ```bash
 git checkout --theirs web/app/src/components/agents/EraseCertificateDetailDialog.vue
 cd web/app && npx prettier --write src/components/agents/EraseCertificateDetailDialog.vue
 ```
 
-Lo verifiqué: el resultado de prettier es idéntico al estilo de la v2. Prettier
-además reparte en 3 líneas un `<td :class="{ mono: ... }">{{ field.value }}</td>`
-que `main` trajo sin partir — es correcto y deseable.
+El resultado de prettier es idéntico al estilo de la v2. Además reparte en 3
+líneas un `<td :class="{ mono: ... }">{{ field.value }}</td>` que `main` trae sin
+partir — es correcto y deseable.
 
-**Red de seguridad.** Acá el lint protege: `labelMediaType`, `labelDisposition`,
+**⚠️ La red de seguridad NO está en CI.** `labelMediaType`, `labelDisposition`,
 `labelVerificationResult`, `labelVerificationMethod` y las variables `d`, `eq`,
-`conc` ya entraron limpias por automerge. Si alguien toma el lado de la v2 por
-error, quedan sin usar y **`npm run lint` lo caza**. Es el único de los 7 donde
-pasa eso; en los demás el error es silencioso.
+`conc` entran limpias por automerge. Si alguien toma el lado de la v2 por error,
+quedan sin usar y **`npm run lint` lo caza**. Pero el job `frontend` de
+`ci.yml` corre `lint:i18n`, `test` y `build` — **no corre `npm run lint`**. Es
+el único de los 12 hunks con red, y hay que tenderla a mano:
+
+```bash
+cd web/app && npm run lint
+```
 
 ---
 
 ### 4 · `EditCoreSettings.vue` — dos hunks
 
+*(Sin cambios respecto de la revisión 1.)*
+
 #### Hunk A · los campos de retención
 
 **Qué quiere cada lado.**
 - **v2**: sacó el envoltorio `<q-tab-panel>` y lo dejó como `<div>`
-  (desindentado 2 espacios) — la v2 sirve esto como página
-  `/settings/:section` con navegación lateral, no como pestañas.
-- **`main`**: agregó **3 campos nuevos** dentro del `<q-tab-panel>`:
-  `erase_attachment_retention_days`, `erase_attachment_prune_enabled` y
-  `erase_public_verify_enabled`.
+  (desindentado 2 espacios) — la v2 sirve esto como página `/settings/:section`
+  con navegación lateral, no como pestañas.
+- **`main`**: agregó **3 campos nuevos**: `erase_attachment_retention_days`,
+  `erase_attachment_prune_enabled` y `erase_public_verify_enabled`.
 
 **Resolución: la estructura de la v2 (cierre `</div>`), con los 3 campos de
 `main` reindentados 2 espacios menos.**
 
-**Comprobé que sí quedan alcanzables**: la sección `retention` está en
+**Comprobé que quedan alcanzables**: la sección `retention` está en
 `SECTION_GROUPS` (grupo `platform`) y en `SAVABLE`, así que después del merge se
 llega por **Ajustes → Plataforma → Retención** y el `PUT /core/settings/` los
 guarda. Acá no hay hueco.
 
-**El tercer campo enciende la ruta pública** (`/verificar`), que es la vista de
-la que habla el hueco D.
+**El tercer campo enciende la ruta pública** (`/verificar`), que es la vista del
+hueco D.
 
 **Bloque final** — va **antes** del `</div>` que cierra el panel, después del
 `q-card-section` de `lost_mode_evidence_closed_case_days`:
@@ -313,33 +358,42 @@ semántico. **Tomar el lado de la v2 tal cual.**
 ### 5 y 6 · `i18n/en.json` y `i18n/es.json`
 
 **Qué quiere cada lado.** El conflicto clásico de JSON: ambos agregaron claves
-después de la misma línea. La v2 sumó 144 claves (`navRail`, `agentWorkspace`,
-`settingsPage`); `main` sumó 203 (`erase.custody`, `erase.reconciliation`,
-`erase.verify`, `erase.retention`, `storageMedia`, los enums de disposición y
-verificación).
+después de la misma línea. Recalculado contra la punta:
 
-**Resolución: unión profunda.** Lo verifiqué clave por clave sobre los tres
-estados (base / v2 / main):
+| | base | v2 (nuestro) | `main` | unión |
+|---|---|---|---|---|
+| claves | 3 150 | 3 301 | 3 353 | 3 505 |
+| agregadas | — | +152 | +203 | |
+| **borradas** | — | **1** | 0 | |
+
+Las 152 de la v2 incluyen las 8 nuevas de las ventanas remotas
+(`takeControl.*` y `remoteBackground.*`, de T048/T049). Verifiqué que
+sobreviven a la unión.
+
+**🔴 Lo que cambió respecto de la revisión 1: ahora hay un borrado.** El commit
+`cf00224` quitó `takeControl.agentStatus`, huérfana tras T048. **`main` todavía
+la tiene.** Una unión ingenua —o un `--theirs`— la **resucita**, y vuelve a
+entrar una clave que la v2 borró a propósito. El resultado correcto tiene
+**3 504** claves, no 3 505.
+
+El resto sigue como antes:
 
 - **colisiones reales: 0** — ninguna clave fue cambiada a valores distintos por
   los dos lados;
-- **borrados: 0** — ninguno de los dos quitó una clave;
-- unión: **3 497 claves** en cada idioma (desde 3 150 en la base).
+- `main` no borró nada.
 
-Como no hay nada que decidir, **no resolver esto a mano**: son 4 hunks sobre
-~3 500 claves y un error acá es una clave perdida que nadie nota hasta que un
-usuario ve un identificador crudo en pantalla.
+Como no hay nada que decidir pero sí algo que es fácil romper, **no resolver
+esto a mano**: son 4 hunks sobre ~3 500 claves.
 
 ```bash
 python3 -I scripts/t047-union-i18n.py web/app/src/i18n/en.json
 python3 -I scripts/t047-union-i18n.py web/app/src/i18n/es.json
 ```
 
-Con `scripts/t047-union-i18n.py`:
-
 ```python
 #!/usr/bin/env python3
 # Une los i18n del merge: BASE/OURS/THEIRS -> union profunda, orden de OURS primero.
+# Respeta los borrados de cualquiera de los dos lados y aborta ante una colision real.
 # Uso: python3 -I union-i18n.py <ruta.json>   (con el merge en conflicto)
 import json, subprocess, sys, collections
 
@@ -363,11 +417,11 @@ def unir(b, o, t, camino=""):
         if k in o and k in t:
             r[k] = unir(b.get(k), o[k], t[k], f"{camino}.{k}")
         elif k in o:
-            if k in b and k not in t:      # theirs lo borro
+            if k in b and k not in t:      # theirs la borro
                 continue
             r[k] = o[k]
         else:
-            if k in b and k not in o:      # ours lo borro
+            if k in b and k not in o:      # ours la borro  <-- takeControl.agentStatus
                 continue
             r[k] = t[k]
     return r
@@ -380,21 +434,27 @@ print(f"{ruta}: {len(json.dumps(res))} bytes, listo")
 ```
 
 El script **aborta si encuentra una colisión real**, así que si el día del merge
-alguien tocó la misma clave en los dos lados, se entera en vez de perderla en
-silencio.
+alguien tocó la misma clave en los dos lados, se entera en vez de perderla.
 
-**Verificación:** las dos deben quedar en 3 497 claves.
+**Verificación** — las dos deben quedar en **3 504** claves y
+`takeControl.agentStatus` **no** debe existir:
 
 ```bash
 python3 -c "
 import json
 f=lambda o: sum(map(f,o.values())) if isinstance(o,dict) else 1
-for L in ('en','es'): print(L, f(json.load(open(f'web/app/src/i18n/{L}.json'))))"
+for L in ('en','es'):
+    d=json.load(open(f'web/app/src/i18n/{L}.json'))
+    print(L, f(d), 'agentStatus' in d['takeControl'])"
 ```
+
+Debe imprimir `en 3504 False` y `es 3504 False`. Ejecutado: ✅.
 
 ---
 
 ### 7 · `EraseCertificatesView.vue` — tres hunks
+
+*(Sin cambios respecto de la revisión 1.)*
 
 #### Hunk 1 · las `q-tabs` de la vista
 
@@ -405,22 +465,17 @@ for L in ('en','es'): print(L, f(json.load(open(f'web/app/src/i18n/{L}.json'))))
 
 **Resolución: el lado de la v2** (sin `q-tabs`, cierre `</ObsPageHead>`).
 
-**🔴 Pero eso deja código muerto.** El panel entero de Reconciliación
-automergeó limpio más abajo bajo `v-show="tab === 'reconciliation'"`, y en la v2
-`tab` es `computed(() => props.mode)`, alimentado por la ruta, que sólo vale
-`"certificates"` o `"intake"`. **Compila, pasa lint y no se ve nunca.** La
-reparación está en la Parte 2, hueco B. No se arregla dentro del conflicto.
+**🔴 Pero eso deja código muerto.** El panel entero de Reconciliación automergea
+limpio más abajo bajo `v-show="tab === 'reconciliation'"`. Reparación en la
+Parte 2, hueco B. No se arregla dentro del conflicto.
 
 #### Hunk 2 · los botones de la fila
 
 - **v2**: cambió `color="deep-orange"` → `color="primary"` en el botón de
-  certificar (pasada de color V2-G05, commit `c4b9674`: fuera los colores fuera
-  de paleta).
+  certificar (pasada de color V2-G05, commit `c4b9674`).
 - **`main`**: agregó un botón nuevo "Ver custodia" delante.
 
-**Resolución: los dos.** El botón de `main` tal cual (sin color explícito, que
-es lo que corresponde a un control sin estado en la v2) y el de certificar con
-el `primary` de la v2.
+**Resolución: los dos.**
 
 ```vue
         <template v-slot:body-cell-actions="props">
@@ -453,11 +508,12 @@ el `primary` de la v2.
 - **v2**: `tab` computado desde `props.mode`, más `pageTitle` e `intakeSearch`.
 - **`main`**: una constante `sep = "·"`.
 
-**Resolución: unión.** Hay que quedarse con las dos cosas.
+**Resolución: unión.**
 
 **🔴 Trampa silenciosa.** `sep` lo usa la plantilla del panel de Reconciliación,
-que automergeó. Si se toma el lado de la v2 y se pierde `sep`, **no falla ni el
-build ni el lint**: Vue sólo emite un warning en consola y renderiza vacío.
+que automergea. Si se toma el lado de la v2 y se pierde `sep`, **no falla ni el
+build, ni el lint, ni las pruebas**: Vue sólo emite un warning en consola y
+renderiza vacío.
 
 ```js
     const dash = "—";
@@ -479,33 +535,53 @@ build ni el lint**: Vue sólo emite un warning en consola y renderiza vacío.
 
 ```bash
 git add -A
-cd web/app && npm run lint && npm run lint:i18n && npm run build
+cd web/app && npm run lint && npm run lint:i18n && npm test && npm run build
 ```
 
-Las tres pasan sobre el merge resuelto así — lo ejecuté. **Pero pasar las tres
-no significa que el merge esté terminado**, y de eso trata la Parte 2.
+Los cuatro pasan sobre el merge resuelto así — lo ejecuté contra la punta
+actual. **Pero pasar no significa que el merge esté terminado**, y de eso trata
+la Parte 2.
 
 ---
 
 ## Parte 2 · Lo que entra limpio y queda mudo
 
-Esta es la parte cara. El merge no deja ni un marcador de conflicto en nada de
-lo que sigue, y nada de esto lo detecta `lint`, `lint:i18n` ni `build`.
+**Revisión contra la punta actual: siguen siendo los mismos seis. Ninguno
+cambió y no apareció ninguno nuevo.** No lo asumí: lo verifiqué.
 
-**Verificación de los tres casos de la medición anterior:**
+**Por qué se sostienen.** De los archivos de los que dependen los seis huecos,
+los 20 commits nuevos tocaron exactamente **dos**:
 
-| Caso reportado | ¿Sigue siendo cierto? |
+| Archivo | Estado |
 |---|---|
-| Rutas nuevas que nadie enlaza (v2 navega por `NavMenu.vue`, no `FileBar.vue`) | **Sí, pero una sola ruta, no varias** (hueco A) |
-| Panel entero bajo un `v-show` que ninguna ruta alimenta | **Sí, exacto** (hueco B) |
-| Vistas nuevas con el chrome de la v1, una pública | **Parcialmente** — el problema es más chico de lo que suena (huecos C y D) |
+| `NavMenu.vue`, `NavRail.vue`, `FileBar.vue`, `MainLayout.vue` | intactos |
+| `router/routes.js`, `DiskEncryptionView.vue` | intactos |
+| `WipeOrderDialog.vue`, `NotFound.vue`, `store/index.js`, `quasar.config.js` | intactos |
+| `css/app.sass` | **+8 líneas** |
+| `views/LoginView.vue` | **+23 / −14** |
 
-Y aparecieron **dos huecos más** del mismo tipo que no estaban en la lista
-(huecos E y F).
+Y revisé las dos:
+
+- **`app.sass`** sólo agrega el token `--obs-term-bg` para el terminal web. **No
+  toca ningún remapeo de paleta** (siguen en las líneas 331-345 y 488) **ni
+  agrega `obs-notice--warning`** (siguen existiendo sólo `--info` y
+  `--negative`). Los huecos C, E y F se apoyan en eso y siguen en pie.
+- **`LoginView.vue`** es T049, y **sí cambia algo del hueco D, para bien**: ver
+  más abajo.
+
+**Búsqueda de un hueco nuevo.** Crucé los archivos que tocan los **dos** lados y
+que **automergean** —que es donde se esconde un conflicto semántico sin
+marcador—: son los mismos cuatro de la revisión 1 (`AssetIntakeForm.vue`,
+`WipeOrderDialog.vue`, `ClientsForm.vue`, `routes.js`). Ninguno de los 20
+commits nuevos entra en esa intersección salvo `ClientsForm.vue`, donde la v2
+sólo quitó un `bg-white` de un tooltip y `main` agrega el campo de retención más
+abajo: no se rozan. **Sin hueco nuevo.**
 
 ---
 
 ### Hueco A · La ruta `StorageMedia` no la enlaza nadie
+
+**Verificado contra la punta: sin cambios.**
 
 **Qué entra.** Una ruta nueva, limpia, en `router/routes.js`:
 
@@ -519,20 +595,19 @@ Y aparecieron **dos huecos más** del mismo tipo que no estaban en la lista
 ```
 
 **Por qué el merge no lo cablea.** `main` sí agregó el enlace — pero en
-`src/components/FileBar.vue` (línea 176 post-merge), que es la barra de menús de
-la v1. **En la v2 ese archivo no se renderiza en ninguna parte.** Lo comprobé:
-`MainLayout.vue` monta `<NavRail />` y nada más; las únicas referencias a
-`FileBar` que quedan en el árbol fusionado son **comentarios** (en `NavMenu.vue`
-y en `store/index.js`, explicando que la barra se eliminó). La v2 navega por
-`src/components/shell/NavMenu.vue`, que tiene el ítem de `DiskEncryption` pero
-no el de `StorageMedia`.
+`src/components/FileBar.vue`, la barra de menús de la v1. **En la v2 ese archivo
+no se renderiza en ninguna parte**: `MainLayout.vue` monta `<NavRail />` y nada
+más, y las únicas dos referencias a `FileBar` que quedan en el árbol fusionado
+son **comentarios** (`NavMenu.vue:3` y `NavMenu.vue:490`). La v2 navega por
+`NavMenu.vue`, que tiene el ítem de `DiskEncryption` pero no el de
+`StorageMedia`.
 
-La clave `nav.storageMedia` **sí llega** por la unión de i18n, lista y traducida
-a los dos idiomas. Lo único que falta es el ítem de menú.
+La clave `nav.storageMedia` **sí llega** por la unión de i18n, traducida a los
+dos idiomas. Falta sólo el ítem de menú.
 
 **Qué hacer a mano.** En `src/components/shell/NavMenu.vue`, **después de la
 línea 200** (el `</q-item>` que cierra el ítem de `DiskEncryption`, que abre en
-la línea 198):
+la 198):
 
 ```vue
           <!-- inventario de medios de almacenamiento (feature 055) -->
@@ -542,52 +617,51 @@ la línea 198):
 ```
 
 **Decisión pendiente (chica).** `main` lo puso en el menú **Ver**, junto a
-Cifrado de disco. En la v2 el riel tiene grupos distintos. Dejarlo junto a
-Cifrado de disco es lo que dice el comentario de la ruta ("hermana del panel de
-cifrado") y es lo que propongo; si el riel de la v2 tiene otro grupo pensado para
-inventario, va ahí.
+Cifrado de disco. Dejarlo ahí es lo que dice el comentario de la ruta ("hermana
+del panel de cifrado") y es lo que propongo; si el riel de la v2 tiene otro grupo
+pensado para inventario, va ahí.
 
 **Cómo comprobarlo abriendo la UI.**
 1. Entrar a la consola. En el riel izquierdo, abrir el menú **Ver**.
-2. **Antes del arreglo**: aparece "Cifrado de disco" y no aparece "Medios de
-   almacenamiento". La única forma de llegar al panel es escribir
-   `/storage-media` en la barra de direcciones — y si se escribe, **el panel
-   carga perfecto**, que es lo que hace el hueco invisible.
-3. **Después**: el ítem está, y al hacer clic abre el mismo panel.
+2. **Antes**: aparece "Cifrado de disco" y no "Medios de almacenamiento". La
+   única forma de llegar al panel es escribir `/storage-media` en la barra de
+   direcciones — y si se escribe, **el panel carga perfecto**, que es lo que
+   hace el hueco invisible.
+3. **Después**: el ítem está y abre el mismo panel.
 
 ---
 
 ### Hueco B · El panel de Reconciliación entra completo y no se ve nunca
 
-Éste es el caso del enunciado, y es el más caro de los seis.
+**Verificado contra la punta: sin cambios.** `EraseCertificatesView.vue` y
+`routes.js` están intactos; el `v-show`, el `computed` y las dos únicas rutas con
+`mode` siguen exactamente igual.
 
-**Qué entra.** El panel de Reconciliación de `main` (RF-07) **automergea
-entero y sin conflicto**: ~150 líneas de plantilla y ~150 de lógica —
-filtros de cliente y período, el cálculo, la tabla por cliente, la tabla de
-activos sin certificar, `loadReconciliation()`, sus columnas y el enlace a la
-cadena de custodia. Más 68 claves de i18n bajo `erase.reconciliation.*`, ya
-traducidas.
+**Qué entra.** El panel de Reconciliación de `main` (RF-07) **automergea entero
+y sin conflicto**: ~150 líneas de plantilla y ~150 de lógica — filtros de
+cliente y período, el cálculo, la tabla por cliente, la tabla de activos sin
+certificar, `loadReconciliation()`, sus columnas y el enlace a la cadena de
+custodia. Más 68 claves de i18n bajo `erase.reconciliation.*`, ya traducidas.
 
 **Por qué el merge no lo cablea.** Todo cuelga de
-`v-show="tab === 'reconciliation'"`. En `main`, `tab` era un
-`ref("certificates")` que movían las `q-tabs`. En la v2, `tab` es:
+`v-show="tab === 'reconciliation'"`. En `main`, `tab` era un `ref("certificates")`
+que movían las `q-tabs`. En la v2:
 
 ```js
 const tab = computed(() => props.mode);
 ```
 
-y `props.mode` lo fija la ruta: sólo existen `/erase-certificates`
-(`mode: "certificates"`) y `/erase-intake` (`mode: "intake"`). **No hay ninguna
-ruta que ponga `mode: "reconciliation"`**, así que la condición nunca es cierta.
+y `props.mode` lo fija la ruta. Las únicas rutas que lo pasan valen
+`"certificates"` e `"intake"`. **No existe ninguna con `"reconciliation"`**, así
+que la condición nunca es cierta.
 
-El código es válido, está referenciado, compila y **pasa `lint` y `lint:i18n`
-sin una sola queja** — justamente porque `v-show` no exige que la condición
-pueda ser cierta alguna vez.
+El código es válido, está referenciado, compila y **pasa `lint`, `lint:i18n` y
+`npm test` sin una sola queja** — porque `v-show` no exige que la condición pueda
+ser cierta alguna vez.
 
 **Qué hacer a mano.** Tres ediciones.
 
-**1.** En `src/router/routes.js`, después del bloque de la ruta `EraseIntake`
-(el que cierra tras `props: { mode: "intake" }`):
+**1.** En `src/router/routes.js`, después del bloque de la ruta `EraseIntake`:
 
 ```js
       {
@@ -604,7 +678,7 @@ pueda ser cierta alguna vez.
 ```
 
 **2.** En `src/components/shell/NavMenu.vue`, después del ítem `EraseOrders`
-(línea ~211 post-merge):
+(abre en la línea 209, cierra en la 211):
 
 ```vue
           <q-item clickable v-close-popup :to="{ name: 'EraseReconciliation' }">
@@ -615,9 +689,8 @@ pueda ser cierta alguna vez.
 (No hace falta crear una clave `nav.*`: `erase.reconciliation.title` ya llega
 traducida en los dos idiomas.)
 
-**3.** En `src/views/EraseCertificatesView.vue`, el `pageTitle` del `setup()`
-sólo contempla dos modos y con `reconciliation` mostraría "Certificados de
-borrado". Reemplazar por:
+**3.** En `src/views/EraseCertificatesView.vue`, el `pageTitle` sólo contempla
+dos modos y con `reconciliation` mostraría "Certificados de borrado":
 
 ```js
     const pageTitle = computed(() => {
@@ -628,85 +701,84 @@ borrado". Reemplazar por:
 ```
 
 **Cómo comprobarlo abriendo la UI.**
-1. Ir a **Certificados de borrado**. Mirar la cabecera de la página: en la v1
-   había tres pestañas (Certificados / Ingresos / Reconciliación). **Después del
-   merge sin arreglar no hay ninguna pestaña**, y sólo se llega a dos de los tres
-   paneles, por el menú. No hay nada en pantalla que insinúe que el tercero
-   existe: ésa es exactamente la razón por la que se escapa.
-2. Prueba directa: escribir `/erase-reconciliation` en la barra de direcciones.
-   **Antes del arreglo** cae en el 404 del producto. **Después** abre el panel
-   con sus filtros de cliente y fechas y el botón **Calcular**.
-3. Confirmación de que el panel funciona de verdad y no sólo aparece: elegir un
-   cliente y un período y pulsar **Calcular**; tienen que salir las cuatro cifras
-   (Ingresados / Certificados / Faltantes / Detenidos) y la tabla "Activos sin
-   certificar". Si salen, el cableado está completo.
+1. Ir a **Certificados de borrado** y mirar la cabecera: en la v1 había tres
+   pestañas. **Después del merge sin arreglar no hay ninguna pestaña**, y sólo se
+   llega a dos de los tres paneles, por el menú. Nada en pantalla insinúa que el
+   tercero existe: por eso se escapa.
+2. Escribir `/erase-reconciliation` en la barra de direcciones. **Antes**: cae en
+   el 404 del producto. **Después**: abre el panel con sus filtros y el botón
+   **Calcular**.
+3. Confirmación de que funciona y no sólo aparece: elegir cliente y período y
+   pulsar **Calcular**; deben salir las cuatro cifras (Ingresados / Certificados
+   / Faltantes / Detenidos) y la tabla "Activos sin certificar".
 
 ---
 
 ### Hueco C · `StorageMediaView` llega con el chrome de la v1
 
+**Verificado contra la punta: sin cambios.** `DiskEncryptionView.vue` está
+intacto y el bloque `.obs-ws, .obs-page` de `app.sass` sigue donde estaba
+(ahora en la línea 140).
+
 **Qué entra.** `src/views/StorageMediaView.vue`, archivo nuevo (292 líneas).
 
-**Por qué el merge no lo cablea.** Es un archivo nuevo: no hay con qué chocar,
-entra tal cual lo escribió `main`. Y `main` lo escribió copiando
-`DiskEncryptionView.vue` **anterior** a la conversión de la v2. Las dos vistas
-son hermanas (lo dice el comentario de la ruta) y hoy son visiblemente distintas:
+**Por qué el merge no lo cablea.** Es un archivo nuevo: no hay con qué chocar.
+Y `main` lo escribió copiando `DiskEncryptionView.vue` **anterior** a la
+conversión de la v2. Las dos vistas son hermanas (lo dice el comentario de la
+ruta) y hoy son visiblemente distintas:
 
 | | `DiskEncryptionView` (v2) | `StorageMediaView` (de `main`) |
 |---|---|---|
 | Envoltorio | `<q-page class="obs-page">` | `<q-page class="q-pa-md">` (L2) |
-| Cabecera | `<ObsPageHead :title :crumbs>` | `div.row` + `.text-h6` a mano (L4) |
+| Cabecera | `<ObsPageHead :title :crumbs>` (L3) | `div.row` + `.text-h6` a mano (L4) |
 | Botón refrescar | `outline no-caps .obs-page__btn` con rótulo | `dense flat` con tooltip (L6-15) |
-| Aviso "sólo Windows" | `<div class="obs-notice" role="note">` | `<q-banner class="bg-grey-3 text-black">` (L21) |
-| Filtros | `.obs-page__filters` + `.obs-page__field`, `outlined` | grilla `row q-col-gutter-md`, `filled` (L28-68) |
+| Aviso "sólo Windows" | `<div class="obs-notice" role="note">` (L18) | `<q-banner class="bg-grey-3 text-black">` (L21) |
+| Filtros | `.obs-page__filters` + `.obs-page__field`, `outlined` (L23) | grilla `row q-col-gutter-md`, `filled` (L28-68) |
 | `<q-table>` | — | **idéntica, no hay que tocarla** |
 
 **🔑 Lo importante: la clase `obs-page` no es cosmética, es el gancho.** En
-`src/css/app.sass:132` el bloque `.obs-ws, .obs-page` es el que convierte a
+`src/css/app.sass:140` el bloque `.obs-ws, .obs-page` es el que convierte a
 tokens los grises por defecto de Quasar: fondo y color de la tarjeta de tabla,
 bordes de celdas, **color y fondo de la cabecera de la tabla**, los campos de
-formulario y `.text-grey`/`.text-grey-8`. **Sin esa clase nada de eso se
-aplica.** No es que se vea "un poco distinto": la cabecera de la tabla y los
-campos quedan con la paleta de Quasar mientras la vista hermana de al lado usa
-tokens.
+formulario y `.text-grey-8`. **Sin esa clase nada de eso se aplica.**
 
-**Lo que NO es problema** (lo verifiqué antes de reportarlo): `bg-grey-3`,
-`text-black`, `text-grey-7`, `bg-orange-1/2`, `text-orange-9` y `text-grey`
-**sí están remapeados a tokens globalmente** en `app.sass:320-340` y `470-480`.
-O sea que el color de esos avisos no se rompe. El daño real es el de la clase
-`obs-page` y la diferencia de forma con la vista hermana.
+**Lo que NO es problema** (verificado selector por selector, y vuelto a verificar
+contra la punta): `bg-grey-3` (L331), `text-black` (L335), `text-grey-6/7`
+(L337), `bg-orange-1` (L339), `text-orange-9` (L341), `bg-orange-2` (L345) y
+`text-grey` (L488) **sí están remapeados a tokens globalmente**. El color de
+esos avisos no se rompe. El daño real es el de la clase `obs-page` y la
+diferencia de forma con la vista hermana.
 
 **Qué hacer a mano**, en `src/views/StorageMediaView.vue`:
 - **L2**: `class="q-pa-md"` → `class="obs-page"`.
 - **L3-16**: reemplazar el `div.row` + `text-h6` + botón por
   `<ObsPageHead :title="$t('storageMedia.title')" :crumbs="[$t('nav.agents')]">`
   con el botón de refrescar en el slot, copiando `DiskEncryptionView.vue:3-13`.
-  Agregar el `import ObsPageHead` y registrarlo.
+  Agregar el `import ObsPageHead` (ver `DiskEncryptionView.vue:122,130`).
 - **L21-27**: el `q-banner` → `<div class="obs-notice" role="note">` con
   `<q-icon name="storage" />`, copiando `DiskEncryptionView.vue:18-21`.
-- **L28-68**: la grilla `row q-col-gutter-md` → `<div class="obs-page__filters">`
-  y los tres `q-select` de `filled` a `outlined class="obs-page__field"`,
-  copiando `DiskEncryptionView.vue:23-51`.
+- **L28-68**: la grilla → `<div class="obs-page__filters">` y los tres
+  `q-select` de `filled` a `outlined class="obs-page__field"`, copiando
+  `DiskEncryptionView.vue:23-51`.
 - La `<q-table>` (L71+) **no se toca**.
 
 **Cómo comprobarlo abriendo la UI.** Abrir **Cifrado de disco** y **Medios de
-almacenamiento** en dos pestañas del navegador y alternar entre ellas:
+almacenamiento** en dos pestañas y alternar:
 1. El título: una tiene miga de pan y título de página; la otra sólo un texto en
-   negrita pegado arriba a la izquierda.
-2. El botón de refrescar: en una es un botón con borde y la palabra
-   "Actualizar"; en la otra es sólo un ícono.
-3. El aviso de "sólo Windows": en una es un recuadro con borde redondeado; en la
-   otra es una franja.
-4. Los filtros: en una los campos tienen contorno; en la otra tienen fondo
-   relleno.
-5. **La prueba decisiva**: mirar la **fila de encabezados de la tabla** en las
-   dos. En Cifrado de disco tiene el fondo elevado y el texto atenuado del tema;
-   en Medios de almacenamiento no. Si después del arreglo las dos se ven iguales,
-   `obs-page` está haciendo su trabajo.
+   negrita arriba a la izquierda.
+2. El botón de refrescar: botón con borde y rótulo vs. sólo un ícono.
+3. El aviso de "sólo Windows": recuadro con borde redondeado vs. franja.
+4. Los filtros: campos con contorno vs. campos con fondo relleno.
+5. **La prueba decisiva**: la **fila de encabezados de la tabla**. En Cifrado de
+   disco tiene el fondo elevado y el texto atenuado del tema; en Medios de
+   almacenamiento no. Si después del arreglo las dos se ven iguales, `obs-page`
+   está haciendo su trabajo.
 
 ---
 
 ### Hueco D · `VerifyCertificateView`, la vista PÚBLICA
+
+**Verificado contra la punta: el hueco sigue, y T049 mejoró el arreglo.**
 
 **Qué entra.** `src/views/VerifyCertificateView.vue` (167 líneas) y su ruta,
 **fuera de `MainLayout` y sin `requireAuth`**:
@@ -722,140 +794,172 @@ almacenamiento** en dos pestañas del navegador y alternar entre ellas:
 La abre un tercero sin cuenta: el cliente, un auditor, un tribunal. Se enciende
 con el toggle `erase_public_verify_enabled` del hunk A de `EditCoreSettings`.
 
-**Esta sí la pude abrir de verdad**, porque no pide autenticación: compilé el
-merge resuelto, serví el `dist` y la cargué en un navegador. Lo que sigue está
-medido, no deducido.
-
-**Por qué el merge no lo cablea.** Archivo nuevo otra vez. Y al vivir fuera de
-`MainLayout`, **nadie le fija el tema**:
-
-- `src/store/index.js:266` hace `Dark.set(data.dark_mode)` — pero dentro de la
-  carga de `dashinfo`, que **exige sesión iniciada**. Un tercero nunca pasa por
-  ahí.
-- `LoginView.vue:102`, la otra página fuera de `MainLayout`, resuelve esto
-  **forzando** `$q.dark.set(true)`.
-- `quasar.config.js` **no define `dark`**, así que el default de Quasar es claro.
-
-**Medido en el navegador, sobre el merge resuelto:**
+**Esto lo pude abrir de verdad** (revisión 1), porque la ruta no pide
+autenticación: compilé el merge resuelto, serví el `dist` y lo cargué en un
+navegador. Medido, no deducido:
 
 | Ruta | `body` | Fondo |
 |---|---|---|
 | `/login` | `body--dark` | `rgb(15, 26, 42)` |
 | `/verificar` | `body--light` | `rgb(238, 242, 247)` |
 
-Dos páginas públicas del mismo producto, con el tema opuesto. Nadie eligió eso:
-es lo que queda cuando una vista nueva no pasa por el único lugar que fija el
-tema.
+**Por qué el merge no lo cablea.** Al vivir fuera de `MainLayout`, nadie le fija
+el tema:
 
-También confirmé que **no tiene** `.obs-page` ni `ObsPageHead`, y que **sí**
-hereda las fuentes del producto (`Archivo`) y los remapeos de color globales,
-porque `app.sass` es global. Visualmente: una tarjeta blanca sobre fondo pálido,
-**sin logo ni nombre del producto en ninguna parte**.
+- `src/store/index.js` hace `Dark.set(data.dark_mode)` dentro de la carga de
+  `dashinfo`, que **exige sesión iniciada**. Un tercero nunca pasa por ahí.
+- `quasar.config.js` **no define `dark`**, así que el default de Quasar es claro.
+- `LoginView.vue:112` resuelve esto **forzando** `$q.dark.set(true)`.
 
-**Qué hacer a mano:**
+**🆕 Lo que cambió con T049, y mejora el arreglo.** Las tres pantallas de acceso
+se rehicieron y dejaron un precedente que en la revisión 1 no existía:
 
-1. **El tema (objetivo, hay que arreglarlo).** En
-   `src/views/VerifyCertificateView.vue`, dentro del `<script setup>` (empieza en
-   L102), fijar el tema explícitamente como hace `LoginView`:
+- usan `class="flex flex-center obs-ws"` — y sus propios comentarios dicen que
+  **`obs-ws` es el ámbito de tokens de las vistas** fuera de `MainLayout`. O sea
+  que para una página así la clase correcta es `obs-ws`, no `obs-page`.
+- el título de marca es `<h1 class="obs-page__title">Observer RMM</h1>` dentro de
+  una `q-card` (`LoginView.vue:13`), con `obs-page__title` definido en
+  `app.sass:530`.
+- las acciones principales usan `unelevated no-caps color="primary"` +
+  `obs-page__btn`.
+- el tema lo sigue fijando **cada pantalla por su cuenta**: `LoginView.vue:112` y
+  `TOTPSetup.vue:96`. **No se creó ningún helper compartido**, así que el arreglo
+  del portal público mantiene la misma forma.
+
+*(Observación al pasar, preexistente y ajena al merge: `InitialSetup.vue` **no**
+fija el tema, aunque también vive fuera de `MainLayout`. No es consecuencia del
+merge y no lo cuento como hueco; lo anoto porque muestra que "página fuera de
+`MainLayout` que se olvida del tema" ya es un patrón en la v2.)*
+
+**✅ Decisión de producto, ya tomada.** La revisión 1 dejaba abierto si el portal
+llevaba marca. **Está decidido:**
+
+> El portal público **lleva marca de producto** — logo y una línea que diga qué
+> es la página — pero **NO** el nombre del tenant ni del cliente, porque cada
+> instalación es un cliente y eso es justo lo que la decisión **L-02** prohíbe.
+> **Tampoco lleva chrome de navegación.**
+
+Eso cierra la pregunta y además encaja exactamente con el patrón T049: una
+`q-card` centrada, con el `obs-page__title` de marca arriba y nada de riel ni
+menús.
+
+**Qué hacer a mano**, en `src/views/VerifyCertificateView.vue`:
+
+1. **Tema.** En el `<script setup>`, fijarlo como las pantallas de acceso:
    ```js
    import { useQuasar } from "quasar";
    const $q = useQuasar();
    $q.dark.set(true);
    ```
-2. **`formatearFecha` (L126)** usa `new Date(valor).toLocaleString()`, que no es
-   el formateo de fechas del resto del producto. La fecha de emisión del
-   certificado va a salir con otro formato que en el resto de la consola. Usar el
+2. **Ámbito de tokens.** En el `<div v-else class="q-pa-md">` (L7), pasar a
+   `class="q-pa-md obs-ws"`, siguiendo a `LoginView.vue:4` y `TOTPSetup.vue:9`.
+3. **Marca.** Agregar, como primera `q-card-section` de la tarjeta, el bloque de
+   marca con la misma escala que el acceso:
+   ```vue
+         <q-card-section>
+           <div class="text-center q-pt-md">
+             <h1 class="obs-page__title ellipsis">Observer RMM</h1>
+           </div>
+         </q-card-section>
+   ```
+   El "qué es esta página" ya existe y está traducido: el subtítulo
+   `erase.verify.subtitle`, que la vista ya pinta debajo del título. **No se
+   agrega el nombre del tenant ni del cliente en ninguna parte** (L-02), y no se
+   agrega riel, cabecera ni menús.
+4. **`NotFound` en contexto público.** Cuando el tenant tiene la función apagada
+   se renderiza `NotFound.vue` (L6), que trae un botón "Volver" que hace
+   `$router.push("/")` y deja a un tercero sin cuenta en el login de una
+   instalación ajena. **Ocultarlo en contexto público**: darle a `NotFound.vue`
+   una prop tipo `:hide-back="true"` y pasarla desde acá, o envolver el botón en
+   un `v-if`.
+5. **Formato de fecha.** `formatearFecha` (L126) usa
+   `new Date(valor).toLocaleString()`, que no es el formateo del resto del
+   producto: la fecha de emisión saldrá distinta que en la consola. Usar el
    helper de `src/utils/format.ts`.
-3. **El `NotFound` del portal apagado (L6)**: cuando el tenant tiene la función
-   apagada, se renderiza `NotFound.vue`, que trae un botón "Volver" que hace
-   `$router.push("/")`. Para un tercero sin cuenta eso lo deja en la pantalla de
-   login de una instalación ajena. Conviene ocultar ese botón en el contexto
-   público.
-
-**❓ Pregunta de producto, no la invento.** ¿El portal público debe llevar el
-chrome de la v2 (logo Observer, cabecera de producto) o quedarse neutro a
-propósito? Hay un argumento real para cada lado:
-- **A favor de ponerle marca**: el destinatario necesita saber de qué
-  instalación es el certificado que está verificando; hoy la página no lo dice.
-- **A favor de dejarlo neutro**: `erasePublicVerifyEnabledHint` subraya que la
-  página "no muestra cliente, equipo ni serie", y la decisión de diseño L-02
-  prohíbe convertirla en un oráculo. Poner marca completa empuja en la dirección
-  contraria.
-
-No la resuelvo. Lo que sí hay que arreglar pase lo que pase es el tema (punto 1):
-hoy no es una decisión de nadie, es un accidente.
 
 **Cómo comprobarlo abriendo la UI.**
 1. En **Ajustes → Plataforma → Retención**, encender **"Exponer la verificación
    pública de certificados"** y guardar.
 2. Abrir **una ventana de incógnito** (clave: sin sesión) y entrar a
    `https://<instalación>/verificar`.
-3. **Antes del arreglo**: la página sale en **claro**. Abrir `/login` en otra
-   pestaña de la misma ventana de incógnito: sale en **oscuro**. Las dos son
-   públicas, del mismo producto, y no coinciden.
-4. **Después**: las dos en oscuro.
-5. Con un identificador real de certificado, verificar también que la fecha
-   "Emitido:" tenga el mismo formato que la columna de fecha en
-   **Certificados de borrado**.
+3. **Antes**: sale en **claro**; `/login` en otra pestaña de la misma ventana
+   sale en **oscuro**. Las dos son públicas, del mismo producto, y no coinciden.
+   Y la página no dice en ninguna parte de qué producto es.
+4. **Después**: las dos en oscuro, y el portal muestra "Observer RMM" con la
+   misma tipografía y escala que el login, con su línea de qué es la página.
+5. **Comprobación de L-02**: leer la página entera, incluido el resultado de una
+   verificación real, y confirmar que **no aparece el nombre del tenant ni del
+   cliente** en ningún lado.
+6. Con un identificador real, verificar que la fecha "Emitido:" tenga el mismo
+   formato que la columna de fecha en **Certificados de borrado**.
+7. Apagar el toggle y recargar `/verificar`: debe salir el NotFound genérico
+   **sin** el botón "Volver".
 
 ---
 
 ### Hueco E · Avisos de la v1 dentro de diálogos que la v2 ya había convertido
 
-**No estaba en la lista de los tres.** Es el mismo mecanismo y lo encontré
-barriendo el resto del diff.
+**Verificado contra la punta: sin cambios.** `WipeOrderDialog.vue` está intacto,
+y `app.sass` sigue definiendo sólo `obs-notice--info` y `obs-notice--negative`.
 
 **Qué entra.** `main` agrega avisos nuevos a archivos que **la v2 ya había
 convertido al patrón `obs-notice`**:
 
-- `src/components/agents/WipeOrderDialog.vue` (automergea limpio): tras el merge
-  el diálogo tiene **tres** avisos seguidos. El de arriba (~L25) es el de la v2,
-  `class="obs-notice q-ma-md"`. Los dos que agrega `main` justo debajo (L43 y
-  L53) son `<q-banner class="bg-orange-1 text-orange-9 q-ma-md">` y
-  `<q-banner class="bg-grey-3 text-black q-ma-md">`.
+- `src/components/agents/WipeOrderDialog.vue` (automergea): tras el merge el
+  diálogo tiene **tres** avisos seguidos. El de arriba (L25) es el de la v2,
+  `class="obs-notice q-ma-md"`. Los dos que agrega `main` justo debajo son
+  `<q-banner class="bg-orange-1 text-orange-9 q-ma-md">` (L43) y
+  `<q-banner class="bg-grey-3 text-black q-ma-md">` (L53).
 - `src/components/agents/AssetCustodyTimeline.vue` (archivo nuevo, L37):
   `<q-banner dense class="bg-grey-2 text-grey-8 q-mb-md">`.
 
 **Por qué el merge no lo cablea.** Nada que fusionar: uno automergea y el otro es
 archivo nuevo. Y el color no avisa, porque `bg-orange-1`, `text-orange-9`,
 `bg-grey-3` y `text-black` **sí están remapeados globalmente**. Lo que no se
-remapea es la **forma**: `obs-notice` aporta borde de 1px, radio de 8px, padding
-propio, `font-size: 13px` y el ícono atenuado a 18px. Un `q-banner` pelado no
-tiene nada de eso. Quedan tres avisos pegados con dos formas distintas.
+remapea es la **forma**: `obs-notice` (`app.sass:551`) aporta borde de 1px, radio
+de 8px, padding propio, `font-size: 13px` y el ícono atenuado a 18px. Un
+`q-banner` pelado no tiene nada de eso. Quedan tres avisos pegados con dos formas
+distintas.
 
 Dos clases además **no están remapeadas en ninguna parte**, ni global ni dentro
 de `.obs-page`: **`bg-grey-2`** y **`text-grey-8`** (ésta sólo existe dentro de
 `.obs-ws`/`.obs-page`, y `AssetCustodyTimeline` se monta como diálogo, fuera de
-ambas). Ahí el color tampoco sale de tokens.
+ambas).
 
-**Qué hacer a mano:**
+**✅ Decisión de producto, ya tomada.** La revisión 1 preguntaba si el aviso de
+estado sólido debía reusar `--negative` o si se creaba `--warning`.
+**Está decidido:**
+
+> Se crea `obs-notice--warning` en vez de reusar `--negative`, **pero no ahora**:
+> va en la tanda del sistema de diseño, junto con el anillo de foco.
+
+**Eso cambia qué hacer en este merge.** El modificador **no se crea acá**, así
+que los tres avisos quedan con `obs-notice` a secas, que ya los deja
+consistentes entre sí y con el resto del producto. El matiz de severidad del
+aviso de estado sólido llega después, cambiando una clase:
+
 - `WipeOrderDialog.vue` **L43** y **L53**: `class="..."` → `class="obs-notice
   q-ma-md"`, quitando las clases de paleta.
 - `AssetCustodyTimeline.vue` **L37**: → `class="obs-notice q-mb-md"`.
 
-**❓ Pregunta de producto (chica).** El aviso de L43 ("la sobrescritura NO es
-sanitización defendible sobre estado sólido") es una **advertencia**, y hoy
-`app.sass` sólo define `obs-notice--info` y `obs-notice--negative`; **no existe
-`obs-notice--warning`**. Dos opciones: usar `--negative` (defendible: es un
-aviso de cumplimiento legal, no un matiz), o agregar un modificador
-`--warning` en `app.sass` con `var(--q-warning)`. La segunda es más limpia pero
-toca el sistema de diseño. Lo dejo planteado; el aviso neutro de L53 ("no se
-sabe qué medio hay") va con `obs-notice` a secas en cualquier caso.
+**Dejar anotado para la tanda del sistema de diseño**: cuando exista
+`obs-notice--warning`, el aviso de `WipeOrderDialog.vue:43` ("la sobrescritura NO
+es sanitización defendible sobre estado sólido") es uno de sus destinatarios.
 
 **Cómo comprobarlo abriendo la UI.** Abrir una **orden de borrado** sobre un
 equipo con disco de estado sólido inventariado (**Equipos perdidos** → caso
-abierto → **Ordenar borrado**). En la parte de arriba del diálogo quedan dos o
-tres avisos apilados: **antes del arreglo** el primero tiene borde y esquinas
-redondeadas y los de abajo son franjas rectangulares a todo el ancho; **después**
-los tres son iguales. Para el de custodia: en **Certificados de borrado**, botón
-**Ver custodia** de cualquier fila, y mirar el aviso "Un eslabón no se edita ni
-se borra".
+abierto → **Ordenar borrado**). Arriba del diálogo quedan dos o tres avisos
+apilados: **antes** el primero tiene borde y esquinas redondeadas y los de abajo
+son franjas rectangulares a todo el ancho; **después** los tres son iguales. Para
+el de custodia: en **Certificados de borrado**, botón **Ver custodia** de
+cualquier fila, y mirar el aviso "Un eslabón no se edita ni se borra".
 
 ---
 
 ### Hueco F · `verdictColor` trae la paleta cruda de la v1, con `teal` incluido
 
-**Tampoco estaba en la lista.**
+**Verificado contra la punta: sin cambios.** `utils/storageMedia.js` llega igual,
+y `app.sass` no agregó remapeos para esos colores.
 
 **Qué entra.** `src/utils/storageMedia.js` (archivo nuevo), L34-51:
 
@@ -872,44 +976,66 @@ export function verdictColor(veredicto) {
 }
 ```
 
-Lo consumen `StorageMediaView.vue` (badge de la columna "Categoría alcanzable")
-y `StorageMediaDetail.vue` (badge del detalle, dentro de la pestaña Activos).
+Lo consumen `StorageMediaView.vue` (badge de la columna "Categoría alcanzable") y
+`StorageMediaDetail.vue` (badge del detalle, dentro de la pestaña Activos).
 
-**Por qué el merge no lo cablea.** Archivo nuevo; nada con qué chocar. Pero la
-v2 hizo dos pasadas de color (V2-G05) cuyo criterio es el contrario:
+**Por qué el merge no lo cablea.** Archivo nuevo. Pero la v2 hizo dos pasadas de
+color (V2-G05) cuyo criterio es el contrario:
 
 - la vista hermana usa tokens semánticos —
   `{encrypted: "positive", unencrypted: "negative", unsupported: "grey",
-  no_data: "warning"}` — y pinta el `grey` con la clase `obs-chip-neutral`,
-  que lo saca de `var(--obs-raised)`;
-- **`teal` está explícitamente prohibido como color de dato** en la v2. El commit
-  `cda299a` de esta misma rama se titula, literalmente, "teal usado como dato", y
-  `app.sass:487` lo deja por escrito: *"teal solo acción o navegación"*.
+  no_data: "warning"}` — y pinta el `grey` con la clase `obs-chip-neutral`
+  (`DiskEncryptionView.vue:79`), que lo saca de `var(--obs-raised)`;
+- **`teal` está explícitamente prohibido como color de dato**. El commit
+  `cda299a` se titula, literalmente, "teal usado como dato", y `app.sass`
+  lo deja por escrito: *"teal solo acción o navegación"*.
 
 De `green`, `teal`, `blue`, `purple` y `orange` **ninguno está remapeado** (sólo
 lo está `.bg-grey`). Entran como la paleta cruda de Quasar.
 
-**Qué hacer a mano.** En `src/utils/storageMedia.js` L34-51, pasar a tokens
-semánticos. Hay que preservar la regla que el propio comentario del archivo
-protege — que `no_data` y `no_category` **no compartan color** (RN-02):
+**✅ Decisión de producto, ya tomada.** La revisión 1 preguntaba cómo mapear 6
+veredictos a 4 colores. **Está decidido:**
+
+> **El color lleva la severidad y el rótulo del badge lleva el veredicto**, así
+> que no se fuerzan 6 en 4 ni se amplía la paleta.
+
+Es decir: que dos veredictos compartan color **no es pérdida de información**,
+porque el texto del badge ya los distingue. El color sólo tiene que decir *qué
+tan grave es*.
+
+**Qué hacer a mano**, en `src/utils/storageMedia.js` L34-51, aplicando esa regla:
 
 ```js
+// El color lleva la SEVERIDAD; el rótulo del badge lleva el veredicto, así que
+// dos veredictos pueden compartir color sin que se pierda cuál es cuál.
 export function verdictColor(veredicto) {
   switch (veredicto) {
+    // Hay una vía de sanitización defendible.
     case "purge_remote":
-      return "positive";
     case "purge_live_image":
     case "clear_remote":
-      return "info";
-    case "virtual_media":
-      return "grey";      // + clase obs-chip-neutral en el badge
+      return "positive";
+    // Se midió y no hay categoría alcanzable: sólo queda sanitización parcial.
     case "no_category":
       return "warning";
+    // No aplica ("el medio real está en otra parte") o no se sabe. Nunca rojo:
+    // un equipo del que no sabemos nada no es un incumplidor.
+    case "virtual_media":
     default:
       return "grey";      // + clase obs-chip-neutral en el badge
   }
 }
 ```
+
+**RN-02 queda respetada**: "sin dato" (`grey`) y "sin categoría alcanzable"
+(`warning`) **no comparten color**, que es lo que la regla exige y lo que el
+comentario original del archivo protege.
+
+**La agrupación por severidad es mía, derivada de la regla y de los textos de
+`verdictHelp` del propio `main`**: los tres primeros son los casos en que el
+producto afirma que la sanitización es defendible. Si "severidad" para ustedes
+separa `purge_live_image` (que exige arrancar el equipo fuera de su SO) del
+resto, es mover un `case` de grupo y nada más.
 
 Y en los dos badges que la usan, acompañar el gris con la clase neutra, igual que
 `DiskEncryptionView.vue:79`:
@@ -921,24 +1047,15 @@ Y en los dos badges que la usan, acompañar el gris con la clase neutra, igual q
 >
 ```
 
-**❓ Pregunta de producto.** Mi propuesta colapsa `purge_live_image` y
-`clear_remote` en un mismo `info`, y `virtual_media` y `no_data` en gris. **Eso
-pierde distinciones que `main` hacía a propósito**: el comentario de la función
-dice que "sin dato" y "sin categoría alcanzable" no deben compartir color, y ahí
-lo respeto (gris vs. `warning`), pero `virtual_media` y `no_data` sí quedan
-iguales. La v2 tiene 4 colores semánticos y acá hay 6 veredictos, así que **no
-hay un mapeo 1:1 y la decisión es de producto**: ¿cuáles de los 6 pueden
-compartir color? La alternativa es ampliar la paleta de datos de la v2, que es
-una decisión de diseño más grande. No la tomo.
-
 **Cómo comprobarlo abriendo la UI.** Ir a **Medios de almacenamiento** (después
 del hueco A) y mirar la columna **Categoría alcanzable** junto a la columna
-**Estado** de **Cifrado de disco** en otra pestaña. **Antes del arreglo** los
-badges de Medios salen verde/turquesa/azul/morado/naranjo —
-colores que no aparecen en ninguna otra tabla de la consola; los de Cifrado usan
-los cuatro del tema. **Después** las dos tablas usan la misma paleta.
-Comprobarlo **en tema claro y en oscuro**: el `grey` crudo es el que peor se
-porta al cambiar de tema, y es lo que arregla `obs-chip-neutral`.
+**Estado** de **Cifrado de disco** en otra pestaña. **Antes** los badges de
+Medios salen verde/turquesa/azul/morado/naranjo — colores que no aparecen en
+ninguna otra tabla de la consola; los de Cifrado usan los del tema. **Después**
+las dos tablas usan la misma paleta, y el rótulo de cada badge sigue diciendo
+cuál de los seis veredictos es. Comprobarlo **en tema claro y en oscuro**: el
+`grey` crudo es el que peor se porta al cambiar de tema, y es lo que arregla
+`obs-chip-neutral`.
 
 ---
 
@@ -949,115 +1066,195 @@ porta al cambiar de tema, y es lo que arregla `obs-chip-neutral`.
 | A | Ruta `StorageMedia` sin enlace | `NavMenu.vue` | No (sólo en qué grupo del menú) |
 | B | Panel Reconciliación muerto | `routes.js`, `NavMenu.vue`, `EraseCertificatesView.vue` | No |
 | C | `StorageMediaView` con chrome v1 | `StorageMediaView.vue` | No |
-| D | Portal público sin tema | `VerifyCertificateView.vue` | Sí, para la marca; **no** para el tema |
-| E | Avisos v1 junto a `obs-notice` | `WipeOrderDialog.vue`, `AssetCustodyTimeline.vue` | Sí, chica (`--warning`) |
-| F | `verdictColor` con paleta cruda | `utils/storageMedia.js` + 2 badges | Sí (mapeo 6→4) |
+| D | Portal público sin tema ni marca | `VerifyCertificateView.vue`, `NotFound.vue` | **Resuelta** (lleva marca, sin tenant ni chrome) |
+| E | Avisos v1 junto a `obs-notice` | `WipeOrderDialog.vue`, `AssetCustodyTimeline.vue` | **Resuelta** (`obs-notice` ahora; `--warning` después) |
+| F | `verdictColor` con paleta cruda | `utils/storageMedia.js` + 2 badges | **Resuelta** (color = severidad, rótulo = veredicto) |
 
-Ninguno de los seis lo detecta `lint`, `lint:i18n` ni `build`. Los seis se ven a
-simple vista abriendo la pantalla correspondiente — por eso cada uno trae su
-receta de comprobación visual.
+Ninguno de los seis lo detecta `lint`, `lint:i18n`, `build` ni `npm test`. Los
+seis se ven a simple vista abriendo la pantalla correspondiente.
 
 ---
 
 ## Parte 3 · Línea base, SIN fusionar
 
-Corrida en este árbol (`v2/guion-t047`, sin merge), para poder distinguir después
-qué rompió el merge y qué ya estaba roto.
+Rehecha sobre la punta actual (`ae08aa7`), sin merge. Ahora son **cinco**
+comandos: existe `npm test`.
 
 | Comando | Resultado |
 |---|---|
-| `npm ci` | ✅ **0** — 697 paquetes en 39 s |
-| `npm run build` | ✅ **0** — "Build succeeded", SPA, 52 550 ms |
+| `npm ci` | ✅ **0** — 779 paquetes en 23 s |
+| `npm run build` | ✅ **0** — "Build succeeded", SPA, 66 648 ms |
 | `npm run lint` | ✅ **0** — **sin una sola advertencia** |
 | `npm run lint:i18n` | ✅ **0** — **sin un solo hallazgo**, sobre 187 archivos |
+| `npm test` | ✅ **0** — node:test 6/6 y vitest 22/22 en 3 archivos |
 
-**La línea base está completamente limpia.** Es la mejor noticia de este
-documento: **cualquier cosa que salga roja después del merge la rompió el
-merge**, sin excepciones y sin zona gris.
+**La línea base está completamente limpia.** Cualquier cosa que salga roja
+después del merge la rompió el merge, sin zona gris.
+
+### Detalle de `npm test`
+
+`npm test` encadena dos corredores: `test:node` (node:test, 6 pruebas sobre
+`src/utils/coords.test.mjs`) y `vitest run` (22 pruebas en 3 archivos):
+
+```
+✓ test/styles/q-tooltip-bg-white.spec.js        (3 pruebas)
+✓ test/components/agent-table-overdue-alert.spec.js (7 pruebas)
+✓ test/components/agent-table-hostname.spec.js  (12 pruebas)
+```
+
+**El trinquete de tooltips y el merge.** `q-tooltip-bg-white.spec.js` es un
+trinquete **en los dos sentidos** contra
+`test/styles/q-tooltip-bg-white.baseline.json`, que hoy vale:
+
+```json
+{ "src/components/ui/DialogWrapper.vue": 1 }
+```
+
+Falla si alguien **reintroduce** un `bg-white` en un `q-tooltip`, y también si
+hay **uno menos** sin actualizar el inventario. Lo verifiqué contra el merge:
+
+- los 4 `.vue` nuevos que entran de `main` tienen **0** `bg-white` (sus tooltips
+  son `<q-tooltip>` pelados, que es justo el patrón al que convergió la v2);
+- el merge **no toca** `DialogWrapper.vue`, así que el inventario tampoco baja.
+
+**El trinquete queda verde después del merge.** Es la primera red automática que
+este merge tiene y conviene saber que no se dispara, para no perder tiempo
+interpretándola.
+
+### ⚠️ `npm run lint` NO está en CI
+
+El job `frontend` de `.github/workflows/ci.yml` corre, en este orden:
+
+```
+npm ci  →  npm run lint:i18n  →  npm test  →  npm run build
+```
+
+**No corre `npm run lint`**, y no lo corre ningún otro job. O sea que la red de
+seguridad del hunk 3 (imports y variables que quedan sin usar si se resuelve
+mal) **sólo existe si alguien corre el lint a mano**. Está en el comando de
+cierre de la Parte 1 por eso.
 
 ### Ruido preexistente que NO hay que atribuirle al merge
 
-`npm ci` y `npm run build` terminan en 0 pero imprimen cosas. Todas son
-previas al merge:
+Todos estos salen con los comandos en 0, y son previos al merge:
 
-- **`npm ci`**: `43 vulnerabilities (14 moderate, 27 high, 2 critical)` en
-  `npm audit`. Preexistente, no lo toca el merge.
+- **`npm ci`**: `49 vulnerabilities (18 moderate, 27 high, 4 critical)` en
+  `npm audit`, y tres `npm warn deprecated glob@…`. Subió desde 43 al entrar las
+  dependencias de prueba; es previo al merge igual.
 - **`build`**: `<script src="/env-config.js"> in "/index.html" can't be bundled
   without type="module"`.
-- **`build`**: `Browserslist: browsers data (caniuse-lite) is 6 months old`.
+- **`build` y `test`**: `Browserslist: browsers data (caniuse-lite) is 6 months
+  old`.
 - **`build`**, dos avisos de minificado de CSS, **con número de línea del CSS
-  concatenado, no de un archivo fuente** — no confundirlos con un error nuevo:
+  concatenado, no de un archivo fuente**:
   ```
-  ▲ [WARNING] Expected identifier but found "." [css-syntax-error]   <stdin>:3437:1   .gutterItem {
-  ▲ [WARNING] Expected identifier but found ">" [css-syntax-error]   <stdin>:3600:1   > div {
+  ▲ [WARNING] Expected identifier but found "." [css-syntax-error]   <stdin>:…   .gutterItem {
+  ▲ [WARNING] Expected identifier but found ">" [css-syntax-error]   <stdin>:…   > div {
   ```
 - **`build`**: `(!) Some chunks are larger than 1600 KiB after minification`.
 
-### Otros números de la base, para comparar después
+### Números para comparar después
 
-| Medida | Antes | Después del merge (medido) |
+| Medida | Base (sin fusionar) | Tras el merge resuelto (medido) |
 |---|---|---|
-| Claves i18n (`en.json` / `es.json`) | 3 294 / 3 294 | **3 497 / 3 497** |
+| Claves i18n (`en` / `es`) | 3 301 / 3 301 | **3 504 / 3 504** |
 | Archivos en el gate `lint:i18n` | 187 | **191** |
-| Quasar / `@quasar/app-vite` / Vite | 2.18.5 / 1.10.2 / 2.9.18 | sin cambio |
+| Inventario del trinquete de tooltips | 1 | **1** (sin cambio) |
+| Pruebas | 6 + 22 | **6 + 22** (sin cambio) |
 
 ### Lo mismo, corrido sobre el merge YA resuelto
 
-Como la Parte 1 se verificó de verdad, también tengo este lado de la
-comparación. En el clon desechable, con los 7 conflictos resueltos como dice la
-Parte 1 **y sin ninguno de los arreglos de la Parte 2**:
+En el clon desechable, con los 7 conflictos resueltos como dice la Parte 1 **y
+sin ninguno de los arreglos de la Parte 2**:
 
 | Comando | Resultado |
 |---|---|
 | `npm run lint` | ✅ **0** |
 | `npm run lint:i18n` | ✅ **0** — ahora sobre 191 archivos |
-| `npm run build` | ✅ **0** — "Build succeeded", mismos avisos preexistentes |
+| `npm test` | ✅ **0** — 6 + 22, trinquete incluido |
+| `npm run build` | ✅ **0** — mismos avisos preexistentes |
 
-**Las tres en verde con los seis huecos de la Parte 2 abiertos.** Ése es el dato
-más útil del documento: el verde de la Parte 3 **no es evidencia de que el merge
-esté terminado**, y quien lo ejecute no debería cerrarlo basándose en eso.
+**Las cuatro en verde con los seis huecos de la Parte 2 abiertos.** Ése sigue
+siendo el dato más útil del documento, y ahora vale también para `npm test` y
+para la CI: **el verde de CI no es evidencia de que el merge esté terminado.**
+
+---
+
+## Qué quedó obsoleto de la revisión 1
+
+- **La advertencia sobre la rama.** La revisión 1 avisaba que los bloques estaban
+  sacados contra `HEAD` y no contra `release/v2` puro, porque la rama de trabajo
+  iba 5 commits adelante. Ya no aplica: esos 5 commits están dentro de
+  `release/v2`, y esta revisión se escribió contra su punta.
+- **La línea base entera.** Los números de la revisión 1 (697 paquetes, 43
+  vulnerabilidades, build de 52 550 ms, 3 294 claves i18n) eran de otro árbol.
+  Reemplazados. Y le faltaba un comando: `npm test` no existía.
+- **"Los i18n no tienen borrados."** Era cierto entonces y **ya no**: la v2 borró
+  `takeControl.agentStatus`. La unión ahora da 3 504 claves, no 3 505, y una
+  resolución descuidada resucita la clave.
+- **Las tres preguntas de producto abiertas.** Las tres están respondidas en los
+  huecos D, E y F.
+- **El plan del hueco E.** La revisión 1 proponía *o* reusar `--negative` *o*
+  crear `--warning` ahora. Ya no: se usa `obs-notice` a secas y `--warning` llega
+  en la tanda del sistema de diseño.
+- **El plan del hueco F.** La revisión 1 proponía colapsar 6 veredictos en 4
+  colores y lo marcaba como pregunta abierta. La regla decidida (color =
+  severidad, rótulo = veredicto) cambia el mapeo y cierra la pregunta.
+- **El plan del hueco D.** La revisión 1 no sabía si el portal llevaba marca y no
+  tenía un patrón al que apuntar. Ahora lleva marca, y T049 dejó el patrón exacto
+  (`obs-ws`, `obs-page__title`, la `q-card` centrada del acceso).
+- **Números de línea de `app.sass`.** Se corrieron 8 líneas al entrar
+  `--obs-term-bg`. Todos los que cita esta revisión están verificados contra la
+  punta.
+- **Un dato de partida que no se sostuvo.** Se me indicó que la lista `lint:i18n`
+  venía más larga; es idéntica (187). Lo que creció en `package.json` son los
+  scripts de prueba y las devDependencies, que automergean.
 
 ---
 
 ## Qué elegí NO hacer
 
 - **No ejecuté el merge en este repositorio.** El árbol está sin fusionar, ningún
-  archivo de `src/` fue tocado, y lo único que agrego es este `.md` en la raíz.
-  La tarea era de preparación. Quedan `web/app/node_modules/` y `web/app/dist/`
-  como residuo de la Parte 3, que pedía correr `npm ci` y `npm run build`; los dos
-  están en `.gitignore` y no entran al commit.
-- **Sí hice el merge en un clon desechable en `/tmp`**, y lo digo explícitamente
-  porque cambia cuánto vale este documento. Preferí eso a entregar bloques
-  plausibles sin probar: las resoluciones de la Parte 1 están aplicadas y
-  compiladas, no deducidas. El clon ya no existe.
-- **No apliqué ninguno de los seis arreglos de la Parte 2**, aunque los tengo
-  especificados con archivo y línea. Tres de los seis tienen una pregunta de
-  producto adentro (la marca del portal público, el modificador `--warning`, el
-  mapeo de 6 veredictos a 4 colores), y aplicarlos ahora habría significado
-  responderlas por mi cuenta y dejarlas enterradas en un diff.
-- **No respondí esas tres preguntas.** Las dejé planteadas con el argumento de
-  cada lado, que era lo pedido.
-- **No reporté como defecto el color de los avisos de la v1 que entran de
-  `main`.** Era mi primera lectura y era incorrecta: `app.sass:320-340` ya
-  remapea globalmente `bg-grey-3`, `bg-orange-1/2`, `text-black`, `text-grey-6/7`
-  y `text-grey`. Verifiqué selector por selector antes de escribir, y el hueco E
-  quedó reducido a lo que de verdad falla (la forma de `obs-notice`, más
-  `bg-grey-2` y `text-grey-8`, que son las dos únicas clases sin remapeo). El
-  hueco C también se encogió: el problema no es la paleta sino la clase
-  `obs-page`.
+  archivo de `src/` fue tocado, y lo único que toco es este `.md`. Lo que sí hice
+  fue poner la rama al día con `release/v2` (un merge de nuestra propia rama
+  base, no el de `main`), porque la tarea pedía trabajar contra la punta actual y
+  la línea base de la Parte 3 tiene que salir de ese árbol.
+- **No rehice las resoluciones de los cuatro archivos intactos**, como se pidió.
+  Pero tampoco las di por buenas a ojo: comparé los doce SHA de las tres etapas
+  del conflicto contra la revisión 1 y son idénticos, y además las apliqué en el
+  clon desechable para confirmar que entran sin ajustes. La confirmación es una
+  prueba, no una suposición.
+- **Sí volví a hacer el merge en un clon desechable en `/tmp`**, ya borrado. Lo
+  digo porque cambia cuánto vale este documento: las resoluciones de la Parte 1
+  están aplicadas y compiladas contra la punta actual, no deducidas.
+- **No apliqué ninguno de los seis arreglos de la Parte 2**, aunque ahora los
+  seis tienen el camino completo y ninguno espera una decisión. Siguen siendo
+  trabajo de cableado posterior al merge, y mezclarlos con la resolución de
+  conflictos haría imposible revisar ninguna de las dos cosas.
+- **No creé `obs-notice--warning`**, siguiendo la decisión (b): va en la tanda
+  del sistema de diseño junto con el anillo de foco, no acá. Dejé anotado cuál es
+  su destinatario para cuando esa tanda ocurra.
+- **No reabrí las tres decisiones ya tomadas.** En el hueco F derivé una
+  agrupación concreta de los 6 veredictos a partir de la regla decidida, y la
+  marqué como derivación mía para que corregirla sea mover un `case`; no la
+  presenté como una pregunta nueva.
 - **No verifiqué en navegador los huecos A, B, C, E ni F.** Todos cuelgan de
-  rutas con `requireAuth` y este entorno no tiene backend. Sí verifiqué el hueco
-  D en un navegador de verdad, porque la ruta pública no pide sesión, y de ahí
-  salen las medidas de `body--light` vs `body--dark`. Los otros cinco están
-  sostenidos en lectura del árbol ya fusionado, no del árbol de `main`: comprobé
-  que `FileBar.vue` no lo renderiza nadie, que `tab` sale de `props.mode`, y que
-  las rutas y claves i18n existen o faltan. Cada uno lleva su receta de
-  comprobación visual para que quien tenga una instalación cierre el circuito en
-  un par de minutos.
+  rutas con `requireAuth` y este entorno no tiene backend. El hueco D sí está
+  medido en un navegador real (revisión 1), porque la ruta pública no pide
+  sesión. Los otros cinco están sostenidos en lectura del árbol ya fusionado —
+  que `FileBar.vue` no lo renderiza nadie, que `tab` sale de `props.mode`, que
+  las rutas y claves existen o faltan, que `app.sass` remapea unos selectores y
+  no otros— y cada uno lleva su receta de comprobación visual.
+- **No investigué por qué `npm run lint` no está en CI.** Lo verifiqué, lo digo
+  y lo compenso poniéndolo en el comando de cierre de la Parte 1; si debería
+  estar en el job `frontend` es una decisión que no me corresponde tomar acá.
+- **No toqué `InitialSetup.vue`**, aunque tampoco fija el tema y vive fuera de
+  `MainLayout`. Es un defecto preexistente de la v2, no lo causa el merge, y
+  arreglarlo desde este trabajo sería ensanchar el alcance sin que nadie lo haya
+  pedido. Queda anotado en el hueco D.
 - **No toqué `release/v2` ni abrí un pull request.** El commit va a
-  `v2/guion-t047`, como corresponde.
-- **No estimé de nuevo las 10-11 horas.** No tenía con qué contrastar la medición
-  previa. Lo que sí puedo decir es dónde está el costo: los 12 hunks son
-  mecánicos y 4 de ellos (i18n y `package.json`) se resuelven con dos scripts;
-  las horas se van en los seis huecos de la Parte 2, que no los encuentra ninguna
-  herramienta y hay que ir a buscar a mano.
+  `v2/guion-t047`.
+- **No estimé de nuevo las 10-11 horas.** No tengo con qué contrastar la medición
+  previa. Dónde está el costo no cambió: los 12 hunks son mecánicos y 4 de ellos
+  se resuelven con dos scripts; las horas se van en los seis huecos de la Parte
+  2, que no los encuentra ninguna herramienta.
