@@ -209,7 +209,12 @@ class GetAddAlertTemplates(APIView):
     permission_classes = [IsAuthenticated, AlertTemplatePerms]
 
     def get(self, request):
-        alert_templates = AlertTemplate.objects.all()
+        # El listado de plantillas se lee en la consola de arriba a abajo, asi
+        # que tiene que salir siempre igual: sin `order_by` PostgreSQL devuelve
+        # las filas en el orden que le conviene y la lista se reacomoda entre
+        # peticiones. `name` es el criterio con el que la busca una persona;
+        # `id` desempata porque `AlertTemplate.name` no es unico.
+        alert_templates = AlertTemplate.objects.order_by("name", "id")
         return Response(AlertTemplateSerializer(alert_templates, many=True).data)
 
     def post(self, request):

@@ -34,6 +34,31 @@ def sanitize_client_header(raw: Optional[str]) -> Optional[str]:
     return clean or None
 
 
+def jsonizable(valor: Any) -> Any:
+    """Deja `view_args`/`view_kwargs` en algo que `json.dumps` sí acepte.
+
+    Los convertidores de ruta de Django devuelven objetos, no primitivos: `uuid`
+    entrega un `uuid.UUID`, y eso NO es serializable. `AuditLog.debug_info` es un
+    `JSONField` y `AuditLog.save()` envuelve el `json.dumps` en un `try/except`
+    que, al fallar, reemplaza el campo entero por
+    `{"error": "could not process audit value"}`. O sea que un audit escrito
+    desde una ruta con `<uuid:...>` no perdía sólo el kwarg: perdía también la
+    IP, la URL y el método, en silencio y sin excepción que lo delate.
+
+    No había ocurrido porque hasta ahora ninguna vista con kwarg UUID escribía
+    `AuditLog` (las de `fileretrieval` no auditaban nada). La descarga de un
+    archivo recuperado sí, así que acá se arregla la causa en vez de esquivarla
+    en el llamador.
+    """
+    if isinstance(valor, (str, int, float, bool, type(None))):
+        return valor
+    if isinstance(valor, dict):
+        return {str(k): jsonizable(v) for k, v in valor.items()}
+    if isinstance(valor, (list, tuple)):
+        return [jsonizable(v) for v in valor]
+    return str(valor)
+
+
 EXCLUDE_PATHS = (
     "/api/v3",
     "/api/v4",
@@ -58,8 +83,40 @@ class AuditMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        return response
+        # El `finally` es la ÚNICA limpieza garantizada, y tiene que estar.
+        #
+        # `process_view` deja el usuario del request en `request_local`, que es
+        # estado de PROCESO: un `threading.local()` de módulo, creado al
+        # importar. No se reinicia solo entre requests. Y mientras siga puesto,
+        # `BaseAuditModel.save()` (logs/models.py) escribe un `AuditLog` por
+        # CADA save de un modelo auditado —Agent, Client, Site, User,
+        # CoreSettings…— aunque ya no haya ningún request en curso.
+        #
+        # Los dos hooks de abajo no alcanzan a cubrir todas las respuestas:
+        # `process_template_response` sólo corre si la respuesta sabe
+        # renderizarse (las `Response` de DRF, sí; una `FileResponse` o un
+        # `HttpResponse` plano, no) y `process_exception` sólo si la vista
+        # revienta. O sea que todo endpoint de descarga dejaba el usuario
+        # pegado: el instalador .ps1, el XLSX de actividad, el PDF del informe
+        # de extravío, los certificados de borrado, los assets de reportería.
+        #
+        # En producción eso le atribuye al último usuario que bajó un archivo
+        # los audit de cualquier save posterior del worker. En la suite se ve
+        # como filas de `AuditLog` que aparecen de la nada en tests que no
+        # tienen nada que ver: el 2026-10-28, `logs/tests.py` contó 99 filas
+        # donde esperaba 86. Las trece de más no sobrevivían a ningún rollback,
+        # las creaba el propio fixture del test al arrancar con el usuario de
+        # otro test todavía puesto. Ver `logs/test_audit_isolation.py` y
+        # `observerrmm/test_audit_request_local.py`.
+        try:
+            return self.get_response(request)
+        finally:
+            self.limpiar_request_local()
+
+    @staticmethod
+    def limpiar_request_local():
+        request_local.debug_info = None
+        request_local.username = None
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if not request.path.startswith(EXCLUDE_PATHS):
@@ -95,8 +152,8 @@ class AuditMiddleware:
                         view_func.cls.__name__ if hasattr(view_func, "cls") else None
                     )
                     debug_info["view_func"] = view_Name
-                    debug_info["view_args"] = view_args
-                    debug_info["view_kwargs"] = view_kwargs
+                    debug_info["view_args"] = jsonizable(view_args)
+                    debug_info["view_kwargs"] = jsonizable(view_kwargs)
                     debug_info["ip"] = request._client_ip
                     client = sanitize_client_header(
                         request.META.get("HTTP_X_OBSERVER_CLIENT")
@@ -109,13 +166,16 @@ class AuditMiddleware:
                     # get authenticated user after request
                     request_local.username = request.user.username
 
+    # Estos dos quedan por una razón: limpian ANTES de que la respuesta se
+    # renderice, que es el momento en que lo hacían hasta ahora. El `finally`
+    # de `__call__` corre DESPUÉS del render, así que sacarlos cambiaría que
+    # `AuditLog.save()` alcance a ver el `debug_info` durante el render. No
+    # reemplazan al `finally`: no cubren las respuestas que no se renderizan.
     def process_exception(self, request, exception):
-        request_local.debug_info = None
-        request_local.username = None
+        self.limpiar_request_local()
 
     def process_template_response(self, request, response):
-        request_local.debug_info = None
-        request_local.username = None
+        self.limpiar_request_local()
         return response
 
 

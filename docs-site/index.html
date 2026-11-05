@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Observer RMM · Software de monitoreo y administración remota</title>
-<meta name="description" content="Software RMM para monitorear y administrar equipos Windows, Linux y macOS: control remoto, scripts, parches, inventario, geolocalización y antirrobo.">
+<meta name="description" content="Software RMM para equipos Windows, Linux y macOS: control remoto, scripts, inventario, geolocalización y antirrobo. Parches y cifrado BitLocker, sólo en Windows.">
 <!-- seo:start -->
 <link rel="canonical" href="https://docs.observer.cl/">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -15,14 +15,14 @@
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:url" content="https://docs.observer.cl/">
 <meta property="og:title" content="Observer RMM · Software de monitoreo y administración remota">
-<meta property="og:description" content="Software RMM para monitorear y administrar equipos Windows, Linux y macOS: control remoto, scripts, parches, inventario, geolocalización y antirrobo.">
+<meta property="og:description" content="Software RMM para equipos Windows, Linux y macOS: control remoto, scripts, inventario, geolocalización y antirrobo. Parches y cifrado BitLocker, sólo en Windows.">
 <meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
 (function () {
@@ -69,7 +69,7 @@
    "applicationCategory": "BusinessApplication",
    "applicationSubCategory": "Remote Monitoring and Management (RMM)",
    "operatingSystem": "Windows, Linux, macOS",
-   "softwareVersion": "1.4.33",
+   "softwareVersion": "1.4.42",
    "inLanguage": [
     "es",
     "en"
@@ -115,12 +115,14 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
     <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
@@ -151,11 +153,6 @@
           <h3>Primeros pasos</h3>
           <p>Del primer inicio de sesión al primer agente enrolado: clientes, sitios y despliegue.</p>
         </a>
-        <a class="card" href="/api/">
-          <span class="k">Integraciones</span>
-          <h3>API REST</h3>
-          <p>Conecte su ITSM, CMDB o mesa de ayuda: cómo generar una API key y la referencia de todos los endpoints.</p>
-        </a>
         <a class="card" href="/functions/mcp/">
           <span class="k">Integraciones</span>
           <h3>Asistentes de IA (MCP)</h3>
@@ -180,6 +177,11 @@
           <span class="k">Referencia</span>
           <h3>Permisos y seguridad</h3>
           <p>El modelo de roles y los permisos con implicancias de seguridad que conviene restringir.</p>
+        </a>
+        <a class="card" href="/functions/user_management/">
+          <span class="k">Guía</span>
+          <h3>Usuarios y roles</h3>
+          <p>Crear cuentas, elegir el perfil del catálogo, acotar el alcance por cliente y sitio, doble factor y llaves de API.</p>
         </a>
         <a class="card" href="/videos/">
           <span class="k">Videos</span>
@@ -218,11 +220,6 @@
           <h3>Getting started</h3>
           <p>From the first sign-in to your first enrolled agent: clients, sites, and deployment.</p>
         </a>
-        <a class="card" href="/api/">
-          <span class="k">Integrations</span>
-          <h3>REST API</h3>
-          <p>Connect your ITSM, CMDB or help desk: how to generate an API key and the reference for every endpoint.</p>
-        </a>
         <a class="card" href="/functions/mcp/">
           <span class="k">Integrations</span>
           <h3>AI assistants (MCP)</h3>
@@ -247,6 +244,11 @@
           <span class="k">Reference</span>
           <h3>Permissions &amp; security</h3>
           <p>The role model and the security-sensitive permissions worth restricting.</p>
+        </a>
+        <a class="card" href="/functions/user_management/">
+          <span class="k">Guide</span>
+          <h3>Users &amp; roles</h3>
+          <p>Create accounts, pick a catalogue role, scope access by client and site, two-factor and API keys.</p>
         </a>
         <a class="card" href="/videos/">
           <span class="k">Videos</span>

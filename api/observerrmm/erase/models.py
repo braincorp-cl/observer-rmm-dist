@@ -33,7 +33,7 @@ import json
 import uuid
 from typing import TYPE_CHECKING, Any, Dict
 
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.utils import timezone
 
 from agents.lostmode_storage import get_lost_mode_evidence_fs
@@ -79,6 +79,75 @@ class AssetIntakeState(models.TextChoices):
     NO_MEDIA = "no_media", "Sin medio detectable"
 
 
+class MediaDisposition(models.TextChoices):
+    """Destino final del medio (Apéndice C de NIST SP 800-88 Rev. 2).
+
+    El mínimo de la norma no se conforma con decir que el medio se saneó: exige
+    declarar dónde quedó. Es el dato que distingue un disco reutilizado dentro de
+    la organización de uno que salió por la puerta a manos de un tercero.
+    """
+
+    INTERNAL_REUSE = "internal_reuse", "Reutilización interna"
+    EXTERNAL_REUSE = "external_reuse", "Reutilización externa o donación"
+    RETURNED = "returned", "Devuelto al propietario o arrendador"
+    RECYCLED = "recycled", "Reciclaje por gestor autorizado"
+    DESTROYED = "destroyed", "Destruido físicamente"
+    RETAINED = "retained", "Retenido en custodia"
+    OTHER = "other", "Otro (ver detalle)"
+
+
+class DestructionVerification(models.TextChoices):
+    """Cómo se acreditó la destrucción física (C7).
+
+    `NONE` es un valor legítimo y explícito, no un hueco: una destrucción en
+    planta de un tercero puede no dejar testigo ni fotografía. El certificado
+    entonces lo declara en lugar de afirmar un `PASS` que nadie comprobó.
+    """
+
+    NONE = "none", "Sin verificación acreditada"
+    WITNESSED = "witnessed", "Presenciada por un testigo"
+    PHOTOGRAPHIC = "photographic", "Registro fotográfico"
+    WEIGHED = "weighed", "Pesaje del material destruido"
+    VENDOR_CERTIFICATE = "vendor_certificate", "Certificado del gestor autorizado"
+
+
+class MediaType(models.TextChoices):
+    """Tipo de medio (Apéndice C de NIST SP 800-88 Rev. 2, feature 053 · RF-09).
+
+    Lo teclea quien recibe el activo: un disco suelto o un equipo que nunca se
+    enroló no tiene inventario del cual leerlo. Vacío = no consta, igual que
+    `MediaDisposition`.
+    """
+
+    HDD = "hdd", "Disco magnético (HDD)"
+    SSD = "ssd", "Estado sólido (SSD)"
+    NVME = "nvme", "Estado sólido NVMe"
+    OPTICAL = "optical", "Óptico (CD/DVD/Blu-ray)"
+    TAPE = "tape", "Cinta magnética"
+    MOBILE = "mobile", "Dispositivo móvil"
+    OTHER = "other", "Otro"
+
+
+class CustodyEventKind(models.TextChoices):
+    """Lo que le pasa al activo entre el acta y el certificado (RF-06).
+
+    Vocabulario **cerrado** a propósito: es lo que hace contable la
+    reconciliación. Texto libre daría un informe que nadie puede agrupar; lo que
+    no cabe en el tipo va al `detail`, nunca al revés.
+
+    `RECEIVED` lo escribe el servidor al crear el acta y no se duplica: si fuera
+    opcional, la cadena arrancaría en el aire.
+    """
+
+    RECEIVED = "received", "Recibido en custodia"
+    RELOCATED = "relocated", "Trasladado"
+    STORED = "stored", "Almacenado a la espera de disposición"
+    HANDED_TO_PROCESSOR = "handed_to_processor", "Enviado a gestor externo"
+    SANITIZED = "sanitized", "Medio saneado"
+    DESTROYED = "destroyed", "Destruido físicamente"
+    RETURNED = "returned", "Devuelto a su propietario o arrendador"
+
+
 class EraseQuerySet(models.QuerySet):
     """Filtrado por rol equivalente a la rama `Client` de `PermissionQuerySet`.
 
@@ -116,6 +185,36 @@ class EraseQuerySet(models.QuerySet):
         return self.filter(scope)
 
 
+class _GuardaDeBorradoEnBloque:
+    """Mixin que niega el `delete()` de un `QuerySet`.
+
+    🔴 `ImmutableChainRecord` sobrecargaba `Model.delete()` y **no** el del
+    queryset, así que `EraseCertificate.objects.filter(...).delete()` borraba
+    evidencia legal sin disparar nada. Es el MISMO mecanismo del defecto del
+    `CASCADE` —saltarse `Model.delete()`— sólo que invocado a mano en vez de por
+    una FK, y por eso la guarda de instancia no lo veía.
+
+    Va como mixin y no en cada queryset porque las tres cadenas no comparten
+    manager: `EraseCertificate` necesita además el `filter_by_role` de
+    `EraseQuerySet`, y las otras dos no deben heredarlo —`filter_by_role` recorta
+    por `client`/`site`, campos que `CustodyEvent` no tiene—.
+    """
+
+    def delete(self):
+        raise ImmutableRecordError(
+            f"{self.model.__name__} es append-only: no se puede borrar en "
+            "bloque. La retención (D5) purga adjuntos, nunca la fila ni su hash."
+        )
+
+
+class _AppendOnlyQuerySet(_GuardaDeBorradoEnBloque, models.QuerySet):
+    """Para las cadenas sin recorte por rol."""
+
+
+class _AppendOnlyEraseQuerySet(_GuardaDeBorradoEnBloque, EraseQuerySet):
+    """Para las cadenas que además recortan por alcance."""
+
+
 class ImmutableChainRecord(models.Model):
     """Base append-only con encadenamiento de hash (write-once, C3 / RF-G04).
 
@@ -123,13 +222,17 @@ class ImmutableChainRecord(models.Model):
     - No se elimina: `delete()` lanza `ImmutableRecordError`.
     - Al insertar, toma el `record_hash` del último registro de SU MISMA clase como
       `prev_hash`, y calcula `record_hash = sha256(prev_hash + contenido canónico)`.
-      La lectura del último registro va bajo `select_for_update()` dentro de una
-      transacción para serializar inserciones concurrentes (Postgres).
+      Las inserciones concurrentes se serializan con un **advisory lock por
+      cadena** (ver `_lock_chain`), no con `select_for_update()` sobre el último
+      registro: eso no protege de dos escritores simultáneos y deja la cadena
+      ramificada sin que nada falle.
 
     Verificar la cadena = recorrer por id ascendente comprobando que cada fila
     encadena el hash de la anterior y que su `record_hash` recomputa. Un borrado
     intermedio rompe la continuidad de `prev_hash` y queda en evidencia.
     """
+
+    objects = _AppendOnlyQuerySet.as_manager()
 
     created_at = models.DateTimeField(editable=False)
     prev_hash = models.CharField(max_length=64, blank=True, default="", editable=False)
@@ -158,12 +261,39 @@ class ImmutableChainRecord(models.Model):
             )
 
         with transaction.atomic():
-            last = type(self)._base_manager.select_for_update().order_by("-id").first()
+            self._lock_chain()
+            last = type(self)._base_manager.order_by("-id").first()
             self.prev_hash = last.record_hash if last else ""
             if not self.created_at:
                 self.created_at = timezone.now()
             self.record_hash = self.compute_record_hash(self.prev_hash)
             super().save(*args, **kwargs)
+
+    def _lock_chain(self) -> None:
+        """Serializa las inserciones de ESTA cadena hasta el fin de la transacción.
+
+        🔴 `select_for_update()` sobre el último registro **no alcanza**, y se
+        comprobó con ocho escrituras simultáneas: en READ COMMITTED, la
+        transacción que espera el candado re-evalúa el predicado sobre la *fila
+        bloqueada*, pero no descubre las filas que la otra insertó mientras
+        tanto, así que vuelve a leer el mismo "último" y dos eslabones terminan
+        colgando del mismo `prev_hash`. La cadena se ramifica sin que nada falle.
+
+        Un advisory lock por clase no tiene ese problema porque no cuelga de
+        ninguna fila: lo toma el primero que llega y lo suelta el commit. El
+        alcance es la tabla de la subclase, así que la custodia no espera por la
+        auditoría ni al revés.
+        """
+
+        cursor_vendor = connection.vendor
+        if cursor_vendor != "postgresql":  # pragma: no cover - solo Postgres en prod
+            return
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                [f"observer_erase_chain:{type(self)._meta.db_table}"],
+            )
 
     def delete(self, *args: Any, **kwargs: Any) -> None:
         raise ImmutableRecordError(
@@ -204,15 +334,34 @@ class WipeOrder(models.Model):
     )
     agent_hostname = models.CharField(max_length=255, blank=True, default="")
     agent_serial = models.CharField(max_length=255, blank=True, default="")
+    # Fabricante y modelo al crear la orden (feature 053 · RF-04). Se snapshotea
+    # por el mismo motivo que el hostname: el agente es `SET_NULL` y puede no
+    # existir cuando se emita el certificado, que sí tiene que nombrar el equipo.
+    agent_make_model = models.CharField(max_length=255, blank=True, default="")
 
     action = models.CharField(max_length=32, choices=EraseAction.choices)
     scope = models.JSONField(default=dict, blank=True)
     dry_run = models.BooleanField(default=True)
     reason = models.TextField(blank=True, default="")
 
-    # Ancla al caso perdido abierto (RF-G06): el ciclo del modo perdido vigente al
-    # crear la orden. No se ordena un borrado desde el listado general.
+    # Expediente del que cuelga la orden (RF-12, feature 053). Son dos anclas
+    # posibles y excluyentes, ninguna opcional: o un caso de modo perdido abierto
+    # —`lost_mode_cycle`, el ciclo vigente al crear la orden— o un acta de ingreso
+    # a baja. Nunca se ordena un borrado desde el listado general.
+    #
+    # `intake` es FK y no un derivado: "el acta más reciente del equipo" se
+    # recalcularía en cada lectura y mañana le atribuiría la orden a un expediente
+    # que no la autorizó. La FK congela cuál fue. Del lado perdido el congelado
+    # sigue siendo el ciclo y no una FK, porque `LostModeState` es `OneToOne` y se
+    # reusa en cada caso: apuntarlo identificaría al equipo, no al caso.
     lost_mode_cycle = models.PositiveIntegerField(null=True, blank=True)
+    intake = models.ForeignKey(
+        "erase.AssetIntake",
+        related_name="wipe_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     status = models.CharField(
         max_length=32,
@@ -265,6 +414,25 @@ class EraseAuditRecord(ImmutableChainRecord):
         null=True,
         blank=True,
     )
+    # 🔑 Copia CONGELADA de la PK de la orden, tomada al insertar.
+    #
+    # `order` es `SET_NULL`, y eso salva la fila cuando se borra la orden —que es
+    # el punto— pero `canonical_content()` hashea esa referencia: al anularse, el
+    # `record_hash` guardado deja de recomputar y la fila se lee como
+    # ADULTERADA. Un trámite administrativo corriente producía exactamente la
+    # señal que el módulo usa para denunciar manipulación, y desde ahí dejaba de
+    # poder distinguirse de una adulteración real.
+    #
+    # Las otras dos cadenas no lo tienen porque hashean TEXTO congelado:
+    # `EraseCertificate` el `tenant`, `CustodyEvent` el `intake_process_id`. Esta
+    # columna le da lo mismo a la auditoría.
+    #
+    # 🔒 Por qué un entero y no texto: para que los hashes YA EMITIDOS no
+    # cambien. La migración `0008` copia `order_id` en `order_pk`, así que el
+    # valor que entra al hash es el mismo entero de siempre y el histórico sigue
+    # verificando. Un `order_ref` de texto habría serializado `"5"` donde antes
+    # iba `5`, invalidando toda la cadena.
+    order_pk = models.PositiveIntegerField(null=True, blank=True, editable=False)
     agent_id = models.CharField(max_length=255, blank=True, default="")
     hostname = models.CharField(max_length=255, blank=True, default="")
     event = models.CharField(max_length=64)
@@ -277,10 +445,28 @@ class EraseAuditRecord(ImmutableChainRecord):
     def __str__(self) -> str:
         return f"EraseAuditRecord<{self.pk}> {self.event} {self.actor}"
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # Congelar ANTES de que la base calcule el hash. Sólo al insertar: en una
+        # fila ya emitida `save()` lanza `ImmutableRecordError` de todas formas.
+        if self.pk is None and self.order_pk is None:
+            self.order_pk = self.order_id
+        super().save(*args, **kwargs)
+
     def canonical_content(self) -> Dict[str, Any]:
         return {
             "created_at": self.created_at.isoformat() if self.created_at else "",
-            "order_id": self.order_id,
+            # 🔒 SÓLO `order_pk`, sin respaldo a `order_id`. Un respaldo
+            # parecía prudente —"por si la migración no corrió"— y era justo lo
+            # que reintroducía el defecto: con el respaldo puesto, anular la FK
+            # volvía a mover el contenido canónico. Lo cazó el invariante de
+            # comportamiento de `test_anular_una_fk_no_mueve_el_contenido_canonico`.
+            #
+            # No hace falta porque el esquema y el código viajan juntos:
+            # `deploy-api.yml` corre `migrate` en el mismo despliegue, y la
+            # migración `0008` copia `order_id` en `order_pk` para todas las
+            # filas con la orden viva. El valor que entra al hash es el mismo
+            # entero de siempre, así que el histórico sigue verificando.
+            "order_id": self.order_pk,
             "agent_id": self.agent_id,
             "hostname": self.hostname,
             "event": self.event,
@@ -302,7 +488,7 @@ class EraseCertificate(ImmutableChainRecord):
     certificado dentro del repositorio inmutable.
     """
 
-    objects = EraseQuerySet.as_manager()
+    objects = _AppendOnlyEraseQuerySet.as_manager()
 
     certificate_id = models.CharField(max_length=64, unique=True)
     kind = models.CharField(max_length=32, choices=CertificateKind.choices)
@@ -322,8 +508,19 @@ class EraseCertificate(ImmutableChainRecord):
         blank=True,
     )
 
+    # 🔴 SET_NULL, no CASCADE. Un CASCADE no pasa por `Model.delete()` —el
+    # collector de Django borra en bloque— asi que borrar un cliente eliminaba
+    # sus certificados SIN disparar `ImmutableRecordError`: evidencia permanente
+    # destruida en silencio por una operacion administrativa corriente.
+    # Verificado antes de corregirlo: al borrar el cliente sobrevivian 0.
+    # El certificado no queda sin identidad: `tenant` guarda el nombre del
+    # cliente, va dentro del documento firmado y entra en `canonical_content`.
     client = models.ForeignKey(
-        "clients.Client", related_name="erase_certificates", on_delete=models.CASCADE
+        "clients.Client",
+        related_name="erase_certificates",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     site = models.ForeignKey(
         "clients.Site",
@@ -408,8 +605,26 @@ class AssetIntake(models.Model):
         blank=True,
     )
 
+    # Fabricante y modelo tecleados al recibir (feature 053 · RF-04): un disco
+    # suelto o un equipo nunca enrolado no tiene inventario del cual leerlos.
+    equipment_make = models.CharField(max_length=255, blank=True, default="")
+    equipment_model = models.CharField(max_length=255, blank=True, default="")
     equipment_serial = models.CharField(max_length=255, blank=True, default="")
     media_serial = models.CharField(max_length=255, blank=True, default="")
+
+    # Destino final del medio (RF-03). Vacío = no consta todavía; el certificado
+    # emite el campo igual, vacío, porque un campo ausente es ambiguo y uno vacío
+    # declara "no consta".
+    media_disposition = models.CharField(
+        max_length=32, choices=MediaDisposition.choices, blank=True, default=""
+    )
+    media_disposition_detail = models.CharField(max_length=255, blank=True, default="")
+    # Tipo de medio del minimo del Apendice C (RF-09). Lo teclea quien recibe:
+    # un equipo nunca enrolado no tiene inventario del cual leerlo. Vacio = no
+    # consta, igual que `media_disposition`.
+    media_type = models.CharField(
+        max_length=32, choices=MediaType.choices, blank=True, default=""
+    )
     asset_tag = models.CharField(max_length=255, blank=True, default="")
     ticket_ref = models.CharField(max_length=255, blank=True, default="")
 
@@ -426,6 +641,13 @@ class AssetIntake(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            # El agrupado de la reconciliacion (RF-07) por cliente y periodo.
+            # Sin el, decenas de miles de actas se recorren con seq scan.
+            models.Index(
+                fields=["client", "created_at"], name="erase_intake_client_idx"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"AssetIntake<{self.process_id}> {self.equipment_serial}"
@@ -437,6 +659,54 @@ class AssetIntake(models.Model):
             AssetIntakeState.NON_FUNCTIONAL,
             AssetIntakeState.NO_MEDIA,
         )
+
+
+def destruction_evidence_path(instance: "DestructionEvidence", filename: str) -> str:
+    """Ruta relativa dentro de LOST_MODE_EVIDENCE_BASE_PATH (storage cifrado).
+
+    Una carpeta por acta, al molde de `retrieval_file_path`: purgar la evidencia
+    de un proceso vencido es un `rm -r` y no un recorrido de filas.
+    """
+    return f"destruction/{instance.intake.process_id}/{filename}"
+
+
+class DestructionEvidence(models.Model):
+    """Adjunto que acredita una destrucción física (feature 053 · L-03).
+
+    Vive en tabla propia y no en el certificado a propósito (decisión de L-04):
+    el certificado es permanente e inmutable, la evidencia es purgable. Así la
+    retención puede borrar una fotografía de 4 MB sin tocar —ni invalidar— el
+    documento que la citó: el certificado guarda el hash, no el archivo.
+
+    Reusa el almacén cifrado en reposo del modo perdido, igual que
+    `RetrievedFile`.
+    """
+
+    intake = models.ForeignKey(
+        AssetIntake,
+        related_name="destruction_evidence",
+        on_delete=models.CASCADE,
+    )
+    asset = models.FileField(
+        storage=get_lost_mode_evidence_fs,
+        upload_to=destruction_evidence_path,
+        null=True,
+        blank=True,
+    )
+    original_name = models.CharField(max_length=255, blank=True, default="")
+    size = models.PositiveBigIntegerField(default=0)
+    # SHA-256 del archivo tal como se subió. Es lo que viaja al documento firmado:
+    # sobrevive a la purga del adjunto y permite comprobar, si alguien conserva
+    # una copia, que es la misma que el certificado citó.
+    sha256 = models.CharField(max_length=64, blank=True, default="")
+    uploaded_by = models.CharField(max_length=255, blank=True, default="")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self) -> str:
+        return f"DestructionEvidence<{self.pk}> {self.original_name}"
 
 
 class WipePathTemplate(models.Model):
@@ -564,9 +834,17 @@ class FileRetrievalOrder(models.Model):
     paths = models.JSONField(default=list, blank=True)
     dry_run = models.BooleanField(default=False)
 
-    # Ancla al caso perdido abierto (RF-G06): imposible ordenar desde el listado
-    # general. Espeja la semántica de `WipeOrder.lost_mode_cycle`.
+    # Mismo expediente doble que `WipeOrder` (RF-12, feature 053): caso de modo
+    # perdido abierto o acta de ingreso. El ancla es idéntica a propósito, para que
+    # no se pueda borrar un activo en baja sin poder antes rescatar sus archivos.
     lost_mode_cycle = models.PositiveIntegerField(null=True, blank=True)
+    intake = models.ForeignKey(
+        "erase.AssetIntake",
+        related_name="fileretrieval_orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     # Topes efectivos aplicados (RF-08); 0 = usar el default de settings al validar.
     size_limit_bytes = models.PositiveBigIntegerField(default=0)
@@ -639,3 +917,71 @@ class RetrievedFile(models.Model):
 
     def __str__(self) -> str:
         return f"RetrievedFile<{self.pk}> {self.source_path}"
+
+
+class CustodyEvent(ImmutableChainRecord):
+    """Un eslabón de la cadena de custodia del activo (feature 053 · RF-06).
+
+    Entre el acta de ingreso y el certificado, la custodia tenía dos extremos y
+    nada en medio. Cada cosa que le pasa al activo —traslado, almacenamiento,
+    salida al gestor, destrucción— es un evento append-only encadenado, con lo
+    que la plataforma puede responder dónde se detuvo un activo que no llegó a
+    certificarse.
+
+    Cadena **propia**: `ImmutableChainRecord` es abstracta y `save()` busca el
+    eslabón anterior en la tabla de su propia subclase, así que esta cadena no
+    toca la de auditoría ni la de certificados.
+
+    🔴 La FK al acta es `SET_NULL`, NUNCA `CASCADE`: un `CASCADE` no pasa por
+    `Model.delete()` —el collector de Django borra en bloque— y eliminaría
+    eslabones sin disparar `ImmutableRecordError`, dejando la cadena con el
+    `prev_hash` descolgado y sin forma de distinguir una purga administrativa de
+    una manipulación. Por eso la identidad del expediente va denormalizada, al
+    mismo criterio que `EraseAuditRecord.agent_id`/`hostname`: un eslabón
+    huérfano sigue diciendo qué pasó y con qué activo.
+    """
+
+    intake = models.ForeignKey(
+        AssetIntake,
+        related_name="custody_events",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    # Identidad del expediente y del activo, congelada al registrar el evento.
+    intake_process_id = models.CharField(max_length=64, blank=True, default="")
+    equipment_serial = models.CharField(max_length=255, blank=True, default="")
+
+    kind = models.CharField(max_length=32, choices=CustodyEventKind.choices)
+    # Cuándo OCURRIÓ, que no es cuándo se registró (`created_at`). Confundirlas
+    # falsearía la cadena.
+    at = models.DateTimeField()
+    # Username como texto, no FK: la traza sobrevive a que la cuenta se elimine,
+    # igual que `WipeOrder.ordered_by`.
+    actor = models.CharField(max_length=255, blank=True, default="")
+    location = models.CharField(max_length=255, blank=True, default="")
+    # Datos del evento (guía de despacho, gestor…). NO para el tipo: eso es `kind`.
+    detail = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        # El orden de la cadena es el de inserción, no el de `at`: un evento
+        # registrado tarde sobre un hecho antiguo no reordena los eslabones.
+        ordering = ["id"]
+        indexes = [
+            models.Index(fields=["intake", "id"], name="erase_custody_intake_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"CustodyEvent<{self.pk}> {self.kind} {self.intake_process_id}"
+
+    def canonical_content(self) -> Dict[str, Any]:
+        return {
+            "created_at": self.created_at.isoformat() if self.created_at else "",
+            "intake_process_id": self.intake_process_id,
+            "equipment_serial": self.equipment_serial,
+            "kind": self.kind,
+            "at": self.at.isoformat() if self.at else "",
+            "actor": self.actor,
+            "location": self.location,
+            "detail": self.detail,
+        }

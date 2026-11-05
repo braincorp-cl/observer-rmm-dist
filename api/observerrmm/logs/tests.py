@@ -4,7 +4,15 @@ from unittest.mock import patch
 from django.utils import timezone as djangotime
 from model_bakery import baker, seq
 
-from observerrmm.constants import DebugLogLevel, DebugLogType, PAAction, PAStatus
+from logs.models import AuditLog
+from observerrmm.constants import (
+    AuditActionType,
+    AuditObjType,
+    DebugLogLevel,
+    DebugLogType,
+    PAAction,
+    PAStatus,
+)
 from observerrmm.test import ObserverTestCase
 
 base_url = "/logs"
@@ -16,6 +24,26 @@ class TestAuditViews(ObserverTestCase):
         self.setup_coresettings()
 
     def create_audit_records(self):
+        # 🪤 Las aserciones de más abajo son CONTEOS ABSOLUTOS (86 filas en total,
+        # 26 de objetos, 12 de login...), y eso las vuelve frágiles: el CI corre
+        # con `pytest-randomly`, que baraja el orden en cada corrida, y basta una
+        # fila incidental de `AuditLog` para que el número deje de calzar. Paso el
+        # 2026-10-28 en `main` con 99 contra 86 esperadas, en un commit que sólo
+        # tocaba HTML — o sea verde/rojo según la semilla, no según el código.
+        #
+        # Se vacía la tabla antes de sembrar para que contenga EXACTAMENTE lo que
+        # este fixture crea. Es lo que el test quiere medir: cómo filtra el
+        # endpoint sobre un conjunto conocido, no cuántas filas hay en el mundo.
+        # El `delete()` vive dentro de la transacción del `TestCase`, así que se
+        # revierte al terminar y no afecta a ningún otro test.
+        #
+        # OJO: esto NO arreglaba el 99 contra 86, sólo tapaba cuatro de las trece
+        # filas (las que `setUp` audita de más; las otras nueve las crea este
+        # fixture DESPUÉS del `delete()`). La causa era `request_local` sin
+        # limpiar en `AuditMiddleware`, arreglada en `observerrmm/middleware.py`
+        # y fijada en `observerrmm/test_audit_request_local.py`.
+        AuditLog.objects.all().delete()
+
         # create clients for client filter
         site = baker.make("clients.Site")
         agent1 = baker.make_recipe("agents.agent", site=site, hostname="AgentHostname1")
@@ -315,12 +343,38 @@ class TestAuditViews(ObserverTestCase):
         user.role.can_view_sites.set([site])
 
         response = self.check_authorized("patch", url, data)
-        self.assertEqual(len(response.data["audit_logs"]), 63)
+        # 63 → 22. Las 86 filas sembradas son 45 con agente y 41 sin agente, y de
+        # las 45 sólo 22 cuelgan del agente que vive en `site`.
+        #
+        # Las 41 sin agente las escribieron OTROS usuarios (`create_audit_records`
+        # les pone nombres de baker), y hasta ahora entraban igual: el filtro las
+        # sumaba con un `Q(agent_id=None)` sin ninguna condición más, así que un
+        # rol recortado a un sitio veía la actividad administrativa de TODA la
+        # instalación —cambios de rol, altas de usuario, ediciones de cliente—,
+        # también la de los otros clientes del servidor. Ahora de las filas sin
+        # agente sólo ve las PROPIAS, y este usuario no tiene ninguna.
+        #
+        # Que no sea un recorte ciego lo prueba el bloque de abajo y
+        # `logs/test_audit_scope.py`.
+        self.assertEqual(len(response.data["audit_logs"]), 22)
+
+        # Su propia actividad sin agente sí la ve: el recorte le quita lo ajeno,
+        # no su trazabilidad.
+        propia = AuditLog.objects.create(
+            username=user.username,
+            object_type=AuditObjType.CLIENT,
+            action=AuditActionType.MODIFY,
+            message=f"{user.username} modified client",
+        )
+        response = self.check_authorized("patch", url, data)
+        self.assertEqual(len(response.data["audit_logs"]), 23)
+        self.assertIn(propia.id, {f["id"] for f in response.data["audit_logs"]})
+        propia.delete()
 
         # limit user to client if agent check
         user.role.can_view_clients.set([site.client])
         response = self.check_authorized("patch", url, data)
-        self.assertEqual(len(response.data["audit_logs"]), 63)
+        self.assertEqual(len(response.data["audit_logs"]), 22)
 
     def test_debuglog_permissions(self):
         # create data

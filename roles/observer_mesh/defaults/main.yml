@@ -1,10 +1,15 @@
 ---
 observer_mesh_port: 4430
-observer_nodejs_version: "20"
+
+# Tope para `meshcentral --logintokenkey`. Normalmente responde en 1 o 2 segundos; el
+# tope existe porque ante un error de autenticacion contra su base MeshCentral imprime
+# el stack y NO sale, y sin tope el playbook se queda esperando sin mensaje.
+observer_mesh_ltk_timeout: 120
+observer_nodejs_version: "24"
 # 1.1.44 = igualar producción. <1.1.44 NO respalda PostgreSQL en el autobackup nativo
 # (performBackup solo tenía ramas mongo/mysql; postgres caía a NeDB → zip sin pgdump).
 # 1.1.44 añade la rama DB_POSTGRESQL → genera meshcentral-pgdump-<fecha>.sql vía pg_dump.
-observer_meshcentral_version: "1.1.44"
+observer_meshcentral_version: "1.3.1"
 observer_mesh_db_name: meshcentral
 observer_mesh_db_user: meshcentral
 
@@ -29,7 +34,11 @@ observer_mesh_ignore_agent_hash_check: "{{ (observer_trusted_proxy_ip | default(
 # porque get_mesh_ws_url mina el token de auth para ESTE usuario. La contraseña vive en
 # vault (vault_observer_mesh_password) y NO es el MESH_TOKEN_KEY (ese es el login token key).
 observer_mesh_user: meshcentral_admin
-observer_mesh_admin_email: "{{ observer_acme_email | default('admin@' + (observer_base_domain | default('localhost'))) }}"
+# El `or` y no `| default()`: default solo actua si la variable esta INDEFINIDA, y
+# observer_proxy la declara como cadena vacia — con lo que el fallback no se aplicaba y
+# el email del admin de mesh quedaba en blanco. Se nota recien al instalar con
+# certificado propio, donde no hay email de ACME que heredar.
+observer_mesh_admin_email: "{{ (observer_acme_email | default('')) or ('admin@' + (observer_base_domain | default('localhost'))) }}"
 
 # --- Mantenimiento de la DB de MeshCentral (fix issue #7787 + retención) ---
 # Toggle global del bloque de mantenimiento (índice + LZ4 + purga nocturna).
@@ -73,3 +82,21 @@ observer_mesh_autobackup_hour: 6
 # Por qué: con ad-hoc, TCC ancla el permiso de pantalla al cdhash y cada update
 # del Mesh deja el escritorio remoto en gris (medido 2026-10-22, macOS 27).
 observer_mesh_macos_signed_tag: ""
+
+# --- Consentimiento del usuario final para "Tomar control" (escritorio) ---
+# true = el agente muestra un cuadro de dialogo y la sesion de escritorio no arranca
+# hasta que el usuario acepte (bit 8 del bitmask `consent` de MeshCentral, nivel
+# dominio = piso que ningun grupo puede bajar). Terminal y archivos siguen sin pedir
+# permiso. Encendido por defecto desde 2026-10-26 (pedido de TNS) para que lo hereden
+# los despliegues y updates futuros de todos los tenants; un tenant que no lo quiera
+# lo apaga en su inventario.
+observer_mesh_consent_desktop_prompt: true
+# Segundos que se muestra el dialogo. Al vencer se DENIEGA (autoAcceptOnTimeout=false
+# fijo en la plantilla): el silencio no es consentimiento.
+observer_mesh_consent_timeout: 30
+# Sin usuario con sesion iniciada no hay quien acepte: en false el soporte se queda
+# afuera de los equipos desatendidos.
+observer_mesh_consent_auto_accept_no_user: true
+observer_mesh_consent_title: "Observer RMM"
+# {0} = nombre real del tecnico, {1} = su usuario.
+observer_mesh_consent_desktop_msg: "{0} ({1}) solicita ver y controlar su pantalla. Acepte solo si usted pidio soporte."

@@ -215,6 +215,28 @@ pre code { background: none; border: 0; padding: 0; }
 .callout.warn    { border-left-color: var(--amber); } .callout.warn .tag    { color: var(--amber); }
 .callout.danger  { border-left-color: var(--red);   } .callout.danger .tag  { color: var(--red); }
 
+/* ---------- Distintivo de estado de implementación ---------- */
+/* Declara en qué punto del ciclo está cada capacidad. El default del sitio es
+   "disponible en la versión publicada": sólo se rotula lo que NO lo está, más
+   la leyenda que lo explica. Agregar una capacidad nueva al sitio obliga a
+   decidir su estado — ese es el punto del distintivo. */
+.status {
+  display: inline-block; vertical-align: middle; margin-left: 8px;
+  font-family: var(--mono); font-size: .62rem; text-transform: uppercase;
+  letter-spacing: 1px; font-weight: 700; line-height: 1.5;
+  padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.status.ga      { color: var(--green); }
+.status.policy  { color: var(--amber); }
+.status.partial { color: var(--amber); }
+.status.dev     { color: var(--muted); }
+.status-legend { margin: 18px 0 6px; font-size: .9rem; color: var(--muted); }
+.status-legend li { margin: 4px 0; }
+@media (max-width: 600px) {
+  .status { margin-left: 0; margin-top: 6px; display: block; width: fit-content; }
+}
+
 /* ---------- Features (página de características) ---------- */
 .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 22px 0 6px; }
 .feature {

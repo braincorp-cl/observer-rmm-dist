@@ -70,6 +70,12 @@
     group: root
     mode: "0644"
 
+# 2b. Version de PostgreSQL: la resuelve el host, no un numero fijo en los defaults.
+#     Detalle y motivo en el propio archivo incluido.
+- name: Resolver la version de PostgreSQL de este host
+  ansible.builtin.include_tasks: resolve_version.yml
+  tags: [pg_version]
+
 # 3. Instalar PostgreSQL
 - name: Instalar PostgreSQL {{ observer_postgresql_version }}
   ansible.builtin.apt:

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!-- Pagina generada. No editar a mano: editar el catalogo del producto y regenerar. -->
+<html lang="es" data-title-es="Catálogo de perfiles · Observer RMM" data-title-en="Role catalogue · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo de perfiles de Observer RMM: roles y permisos</title>
+<meta name="description" content="Los perfiles que Observer RMM trae definidos de fábrica: administrador, técnico nivel 1 y 2, monitoreo, parches, automatización, auditor y custodia, con el detalle de permisos de cada uno.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/role_catalog/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/role_catalog/">
+<meta property="og:title" content="Catálogo de perfiles de Observer RMM: roles y permisos">
+<meta property="og:description" content="Los perfiles que Observer RMM trae definidos de fábrica, con el detalle de permisos de cada uno y las reglas de separación de deberes.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "TechArticle",
+   "@id": "https://docs.observer.cl/functions/role_catalog/#article",
+   "headline": "Catálogo de perfiles de Observer RMM: roles y permisos",
+   "description": "Los {{N_ROLES}} perfiles que Observer RMM trae definidos de fábrica y el detalle de permisos de cada uno.",
+   "inLanguage": ["es-CL", "en"],
+   "dateModified": "{{DATE}}",
+   "proficiencyLevel": "Expert",
+   "about": {"@type": "SoftwareApplication", "name": "Observer RMM", "applicationCategory": "BusinessApplication"},
+   "author": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "publisher": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"}
+  }
+ ]
+}
+</script>
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=5">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .role-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); padding: 18px 20px; margin: 18px 0;
+  }
+  .role-card h3 { margin: 0 0 4px; }
+  .role-card .who { color: var(--muted); margin: 0 0 12px; font-size: .96rem; }
+  .perm-count {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--cyan);
+  }
+  ul.perms {
+    columns: 2; column-gap: 28px; margin: 0; padding-left: 18px;
+    font-size: .9rem; color: var(--muted);
+  }
+  ul.perms li { break-inside: avoid; margin: 0 0 3px; }
+  .table-wrap { overflow-x: auto; }
+  @media (max-width: 860px) { ul.perms { columns: 1; } }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+{{RAIL}}
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Administración</p>
+      <p class="eyebrow lang-en">Administration</p>
+      <h1><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></h1>
+      <p class="lead lang-es">Observer RMM trae <strong>{{N_ROLES}} perfiles definidos de fábrica</strong>, repartidos en cuatro familias. Cada uno agrupa un subconjunto de los <strong>{{N_PERMS}} permisos</strong> del motor de roles, pensado para una función concreta del equipo. Son el punto de partida: puedes asignarlos tal cual, ajustarlos o crear los tuyos.</p>
+      <p class="lead lang-en">Observer RMM ships <strong>{{N_ROLES}} built-in roles</strong> across four families. Each one bundles a subset of the role engine's <strong>{{N_PERMS}} permissions</strong>, aimed at a concrete job on the team. They are a starting point: assign them as they are, tune them, or create your own.</p>
+
+      <h2 id="como-leer"><span class="lang-es">Cómo leer este catálogo</span><span class="lang-en">How to read this catalogue</span></h2>
+      <p class="lang-es">Un <strong>perfil</strong> (rol) es un conjunto de permisos. A cada usuario se le asigna uno, y su acceso efectivo es el de ese perfil, acotado además a los clientes y sitios que tenga autorizados. El modelo completo está en <a href="/functions/permissions/">Permisos y seguridad</a>; acá se documenta <em>qué trae cada perfil</em>.</p>
+      <p class="lang-en">A <strong>role</strong> is a set of permissions. Each user is assigned one, and their effective access is that of the role, further limited to the clients and sites they are authorized for. The full model lives in <a href="/functions/permissions/">Permissions &amp; security</a>; this page documents <em>what each role contains</em>.</p>
+      <p class="lang-es">Los nombres de permiso son exactamente los que aparecen en <strong>Configuración → Gestor de permisos</strong> de la consola, para que puedas comparar casilla por casilla.</p>
+      <p class="lang-en">Permission names are exactly the ones shown under <strong>Settings → Permissions manager</strong> in the console, so you can compare them checkbox by checkbox.</p>
+
+      <h2 id="resumen"><span class="lang-es">Los {{N_ROLES}} perfiles de un vistazo</span><span class="lang-en">The {{N_ROLES}} roles at a glance</span></h2>
+{{SUMMARY}}
+
+      <div class="callout note lang-es">
+        <span class="tag">Mínimo privilegio</span>
+        <p>Ningún perfil hereda de otro. Si una persona necesita dos funciones —por ejemplo, atender soporte y además ordenar borrados— se le asigna el perfil de su función principal y se evalúa el segundo acceso aparte: así queda registrado y es revocable por separado.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Least privilege</span>
+        <p>No role inherits from another. If a person needs two functions —say, support duty plus ordering wipes— assign the role for their main function and evaluate the second access separately: that way it is recorded and can be revoked on its own.</p>
+      </div>
+
+{{FAMILIES}}
+
+      <h2 id="separacion-de-deberes"><span class="lang-es">Lo que no hereda nadie</span><span class="lang-en">What nobody inherits</span></h2>
+      <p class="lang-es">Cinco capacidades quedan <strong>fuera de todos los perfiles administrativos</strong>, incluido <em>Administrador de Plataforma</em>, y solo existen en la familia de custodia: ordenar un <strong>borrado remoto</strong>, <strong>recuperar archivos</strong> de un equipo, ver la <strong>evidencia</strong> capturada de un equipo perdido, operar el <strong>modo perdido</strong> y consultar o configurar el <strong>monitoreo de actividad laboral</strong>.</p>
+      <p class="lang-en">Five capabilities are <strong>excluded from every administrative role</strong>, <em>Platform Administrator</em> included, and exist only in the custody family: ordering a <strong>remote wipe</strong>, <strong>retrieving files</strong> from a machine, viewing the <strong>evidence</strong> captured from a lost device, operating <strong>lost mode</strong>, and viewing or configuring <strong>employee activity monitoring</strong>.</p>
+      <p class="lang-es">No es una omisión: es separación de deberes. Son acciones irreversibles o con impacto sobre la privacidad de una persona, y deben requerir una asignación explícita y auditable, no caer por arrastre en quien administra la plataforma.</p>
+      <p class="lang-en">That is not an oversight: it is separation of duties. These are irreversible actions, or actions that affect a person's privacy, and they must require an explicit, auditable assignment instead of arriving as a side effect of administering the platform.</p>
+
+      <h2 id="instalacion"><span class="lang-es">Cómo llegan los perfiles a tu instancia</span><span class="lang-en">How the roles reach your instance</span></h2>
+      <p class="lang-es">Se siembran solos. Cada actualización de la plataforma ejecuta el sembrado del catálogo, que es <strong>idempotente y no destructivo</strong>:</p>
+      <p class="lang-en">They seed themselves. Every platform update runs the catalogue seeding, which is <strong>idempotent and non-destructive</strong>:</p>
+      <ul class="lang-es">
+        <li>Si el perfil <strong>no existe</strong>, se crea con sus permisos canónicos.</li>
+        <li>Si el perfil <strong>ya existe</strong>, no se toca. Desde el momento en que está creado, es tuyo: puedes renombrar sus permisos, asignarle usuarios o eliminarlo, y las actualizaciones dejan de modificarlo.</li>
+        <li>Ningún perfil del catálogo se crea como superusuario.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>If the role <strong>does not exist</strong>, it is created with its canonical permissions.</li>
+        <li>If the role <strong>already exists</strong>, it is left alone. Once created, it is yours: you can change its permissions, assign users to it or delete it, and updates stop touching it.</li>
+        <li>No catalogue role is created as a superuser.</li>
+      </ul>
+      <p class="lang-es">Si quieres volver a dejar un perfil exactamente como lo define el catálogo —por ejemplo, después de haberlo ajustado y querer revertir—, pídelo a soporte: existe una opción de realineado que se aplica perfil por perfil.</p>
+      <p class="lang-en">If you want to reset a role back to exactly what the catalogue defines —say, after tuning it and wanting to revert— ask support: there is a realignment option that applies role by role.</p>
+
+      <h2 id="delegacion"><span class="lang-es">Delegar la creación de usuarios</span><span class="lang-en">Delegating user creation</span></h2>
+      <p class="lang-es">El perfil <em>Administrador de Organización</em> existe para que el cliente administre su propio equipo sin depender del proveedor: puede crear usuarios y asignarles un perfil, pero no puede crear ni editar perfiles.</p>
+      <p class="lang-en">The <em>Organization Administrator</em> role exists so the customer can administer their own team without depending on the provider: they can create users and assign them a role, but cannot create or edit roles.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Importante</span>
+        <p>Hoy, quien puede <strong>gestionar cuentas de usuario</strong> y <strong>listar roles</strong> ve en el selector <em>todos</em> los perfiles de la instancia, incluidos los más privilegiados. Mientras no entregue la restricción por perfil asignable, delega este rol solo a personas de confianza del cliente y revisa periódicamente los <strong>registros de auditoría</strong>, que dejan constancia de cada creación de usuario y de cada cambio de perfil.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Important</span>
+        <p>Today, whoever can <strong>manage user accounts</strong> and <strong>list roles</strong> sees <em>every</em> role of the instance in the selector, the most privileged ones included. Until the assignable-role restriction ships, delegate this role only to trusted people on the customer side and review the <strong>audit logs</strong> regularly — they record every user creation and every role change.</p>
+      </div>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>

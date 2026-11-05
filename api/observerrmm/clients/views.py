@@ -292,7 +292,12 @@ class AgentDeployment(APIView):
     permission_classes = [IsAuthenticated, DeploymentPerms]
 
     def get(self, request):
-        deps = Deployment.objects.filter_by_role(request.user)  # type: ignore
+        # Tabla de despliegues en la consola: se lee por lo mas reciente, que es
+        # el que alguien acaba de crear y viene a copiar. `id` desempata porque
+        # `created` puede repetir instante en una carga por lote.
+        deps = Deployment.objects.filter_by_role(request.user).order_by(  # type: ignore
+            "-created", "-id"
+        )
         return Response(DeploymentSerializer(deps, many=True).data)
 
     def post(self, request):

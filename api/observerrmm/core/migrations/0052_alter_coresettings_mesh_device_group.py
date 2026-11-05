@@ -1,5 +1,5 @@
-# Alinea el estado de migraciones con el rebrand F006:
-# default 'TacticalRMM' -> 'ObserverRMM' en CoreSettings.mesh_device_group
+# Alinea el estado de migraciones con el nombre del producto (F006):
+# el default de CoreSettings.mesh_device_group pasa a 'ObserverRMM'
 # (core/models.py:82). El modelo cambió en F006 sin migración acompañante;
 # detectado por el gate smoke de F008 (makemigrations --check).
 # AlterField de solo-default no produce SQL: Django no persiste defaults en BD.

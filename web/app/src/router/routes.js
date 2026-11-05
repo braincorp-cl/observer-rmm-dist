@@ -92,6 +92,17 @@ const routes = [
         },
       },
       {
+        // Feature 055 · inventario de medios y categoría de sanitización
+        // alcanzable. Hermana del panel de cifrado: las dos miden el mismo
+        // aparato, una el cifrado en uso y la otra la capacidad del hardware.
+        path: "storage-media",
+        name: "StorageMedia",
+        component: () => import("@/views/StorageMediaView.vue"),
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         // Feature 039 · Observer Erase · reportería de certificados de borrado y
         // custodia de activos (Bloques C+D). Vista de nivel superior, hermana del
         // Dashboard: la reportería se comparte por URL, no es un diálogo.
@@ -226,6 +237,16 @@ const routes = [
     meta: {
       requiresVisitor: true,
     },
+  },
+  {
+    // Portal PÚBLICO de verificación de certificados (053 · ola 4). Fuera de
+    // MainLayout y SIN `requireAuth`: el destinatario de un certificado es un
+    // tercero —un cliente, un auditor, un tribunal— que no tiene cuenta acá.
+    // La guardia del router sólo actúa sobre `meta.requireAuth` (index.js:36),
+    // así que omitirlo es lo que vuelve pública la ruta.
+    path: "/verificar/:certificate_id?",
+    name: "VerifyCertificate",
+    component: () => import("@/views/VerifyCertificateView.vue"),
   },
   {
     path: "/expired",

@@ -9,15 +9,30 @@ está GATED por ADR-029 y por `settings.ERASE_DESTRUCTIVE_DISPATCH_ENABLED`
 
 import asyncio
 import json
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
+from django.db.models import Count, Exists, F, Max, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from agents.mediosalmacenamiento import es_virtual
+from agents.models import LostModeEvidence, LostModeState
+from observerrmm.constants import (
+    ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS,
+    STORAGE_MEDIA_TYPE_HDD,
+    STORAGE_MEDIA_TYPE_SCM,
+    STORAGE_MEDIA_TYPE_SSD,
+)
 from erase.models import (
+    AssetIntake,
     CertificateKind,
+    CustodyEvent,
+    CustodyEventKind,
     EraseAuditRecord,
+    EraseCertificate,
     FileRetrievalOrder,
     FileRetrievalStatus,
     WipeOrder,
@@ -41,8 +56,78 @@ DEFAULT_WIPE_MAX_PATHS_PER_ORDER = 200
 DEFAULT_WIPE_MAX_BYTES_PER_ORDER = 5 * 2**30  # 5 GiB
 
 
+# Lo que `Agent.make_model` devuelve cuando el WMI no alcanza (agents/models.py).
+# Son mensajes de diagnóstico, no modelos: un certificado que se entrega a un
+# tercero no publica "error getting make/model" en la casilla del modelo.
+MAKE_MODEL_SENTINELS = ("error getting make/model", "unknown make/model")
+
+
+def clean_make_model(value: Optional[str]) -> str:
+    """Devuelve el fabricante y modelo, o "" si lo que vino es un centinela."""
+    text = (value or "").strip()
+    return "" if text.lower() in MAKE_MODEL_SENTINELS else text
+
+
 class OrderStateError(Exception):
     """Transición inválida de una orden (ej. confirmar una ya cancelada)."""
+
+
+class OrderAnchorError(Exception):
+    """El equipo no tiene expediente del cual colgar la orden (RF-12).
+
+    NO hereda de `OrderStateError` a propósito: `WipeOrderCreate` ya captura ese
+    tipo y responde 400, y heredar haría que esto cayera ahí por accidente. Esto
+    es un 409 —conflicto con el estado del equipo, no una transición inválida—,
+    el mismo código que fileretrieval ya devolvía antes de unificarse.
+    """
+
+
+@dataclass(frozen=True)
+class OrderAnchor:
+    """Expediente que autoriza una orden, resuelto por el servidor.
+
+    `source` dice de cuál de los dos vino; los otros dos campos son lo que se
+    congela en la orden. `lost_mode_cycle` puede ser `None` con `source`
+    `"lost_mode"`: es el caso recién denunciado, que todavía no capturó
+    evidencia (CA-09), y coaccionarlo a 0 inventaría un ciclo que no existe.
+    """
+
+    source: str
+    lost_mode_cycle: Optional[int] = None
+    intake: Optional[AssetIntake] = None
+
+
+def resolve_order_anchor(*, agent) -> OrderAnchor:
+    """Resuelve el expediente de un equipo: caso perdido abierto > acta de ingreso.
+
+    Único punto de verdad para las dos vistas que crean órdenes (RF-12). Todo se
+    deriva en el servidor: lo que mande el cliente en el payload se ignora, para
+    que la guardia no dependa de la consola.
+
+    🔑 Se filtra SIEMPRE por `active=True`. La fila de `LostModeState` sobrevive
+    al cierre del caso por diseño (guarda la configuración del equipo), así que
+    un `filter(agent=agent)` suelto sería una no-guardia: dejaría pasar cualquier
+    equipo que alguna vez estuvo perdido.
+
+    No se usa `lost_mode_cycle` del payload ni para detectar el caso: es un
+    contador de capturas de evidencia y el diálogo de la consola manda `null`
+    cuando el caso todavía no capturó nada, justo el equipo recién denunciado.
+    """
+    if LostModeState.objects.filter(agent=agent, active=True).exists():
+        cycle = LostModeEvidence.objects.filter(agent=agent).aggregate(m=Max("cycle"))[
+            "m"
+        ]
+        return OrderAnchor(source="lost_mode", lost_mode_cycle=cycle)
+
+    intake = AssetIntake.objects.filter(agent=agent).order_by("-created_at").first()
+    if intake is not None:
+        return OrderAnchor(source="intake", intake=intake)
+
+    raise OrderAnchorError(
+        "este equipo no tiene expediente abierto: una orden cuelga de un caso de "
+        "equipo perdido abierto o de un acta de ingreso a baja, nunca del listado "
+        "general (RF-12)"
+    )
 
 
 def record_event(
@@ -77,6 +162,7 @@ def create_order(
     dry_run: bool = True,
     reason: str = "",
     lost_mode_cycle: Optional[int] = None,
+    intake: Optional[AssetIntake] = None,
 ) -> WipeOrder:
     order = WipeOrder.objects.create(
         agent=agent,
@@ -84,11 +170,16 @@ def create_order(
         site=site,
         agent_hostname=getattr(agent, "hostname", "") or "",
         agent_serial=getattr(agent, "serial_number", "") or "",
+        # Snapshot de fabricante y modelo (RF-04): el agente es `SET_NULL` y puede
+        # no existir al emitir el certificado. Se guarda ya limpio de centinelas
+        # para que la columna no llegue a contener un mensaje de error.
+        agent_make_model=clean_make_model(getattr(agent, "make_model", "")),
         action=action,
         scope=scope or {},
         dry_run=dry_run,
         reason=reason,
         lost_mode_cycle=lost_mode_cycle,
+        intake=intake,
         status=WipeOrderStatus.PENDING_CONFIRMATION,
         ordered_by=ordered_by,
     )
@@ -368,8 +459,23 @@ def apply_wipe_report(
     )
     # Enganche al certificado C (RF-10 / T016): SOLO con `verified=True`. Una orden
     # `incomplete` (verificación por relectura fallida, RN-08) nunca lo emite.
+    #
+    # 🔑 Blindado, y no por simetría con el resto: el borrado YA OCURRIÓ y es
+    # irreversible. Sin este `except`, un fallo al emitir sube como 500 al agente,
+    # que reintenta, recibe el 409 del estado terminal y deja de insistir — y la
+    # orden queda `executed` con `verified=true`, sin certificado y SIN UN SOLO
+    # RASTRO de por qué. Un ok falso perfecto. El fallo va a la cadena inmutable
+    # para que la falta del documento sea visible y la emisión se pueda reintentar.
     if order.verified:
-        issue_wipe_certificate(order=order)
+        try:
+            issue_wipe_certificate(order=order)
+        except Exception as e:  # noqa: BLE001 — emitir no puede tumbar el reporte
+            record_event(
+                order=order,
+                event="certificate_error",
+                actor="system",
+                detail={"error": f"{type(e).__name__}: {e}"[:500]},
+            )
     return order
 
 
@@ -393,7 +499,37 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
     result = order.result or {}
     paths_result = {k: v for k, v in result.items() if k != "_"}
     started = order.dispatched_at or order.confirmed_at or order.ordered_at
-    operator = order.confirmed_by or order.ordered_by
+
+    # 🔑 El operador es quien ORDENÓ, no `confirmed_by or ordered_by`. Con la
+    # expresión anterior, una orden confirmada mostraba a la misma persona como
+    # operador y como quien da fe: justo el "ok falso" que la separación de
+    # deberes existe para evitar. Quien confirmó va al bloque de concurrencia.
+    operator = order.ordered_by
+    concurrence = (
+        {
+            "name": order.confirmed_by,
+            "role": "Segunda confirmación de la orden (RF-G02)",
+            "at": order.confirmed_at.isoformat() if order.confirmed_at else "",
+        }
+        if order.confirmed_by
+        else None
+    )
+
+    # Fabricante y modelo: el snapshot que se congeló al crear la orden (RF-04).
+    # Si la orden es anterior a la feature 053 la columna está vacía, así que se
+    # cae al agente en vivo — que puede no existir (`SET_NULL`) y puede devolver
+    # un centinela de error, de ahí el mismo filtro.
+    make_model = order.agent_make_model or clean_make_model(
+        getattr(order.agent, "make_model", "")
+    )
+
+    # Destino del medio: sólo si la orden cuelga de un acta de ingreso. Anclada a
+    # un caso de equipo perdido el campo viaja presente y VACÍO, que es la verdad
+    # —el medio sigue en el equipo, dondequiera que esté—, no un dato ausente.
+    intake = order.intake
+    media_snapshot, capacity_reported, media_type_measured = snapshot_del_medio(
+        order.agent
+    )
     try:
         certificate.issue_certificate(
             kind=CertificateKind.REMOTE_DESTRUCTION,
@@ -401,16 +537,42 @@ def issue_wipe_certificate(*, order: WipeOrder) -> None:
             site=order.site,
             agent=order.agent,
             order=order,
-            actor=operator,
+            intake=intake,
+            # El actor de la auditoría es quien autorizó, que no es lo mismo que
+            # el operador del documento: la emisión la dispara el reporte del
+            # agente, no una persona.
+            actor=order.confirmed_by or order.ordered_by,
             method_applied=order.method_applied,
-            standard_ref="NIST SP 800-88r1 Clear",
-            verification_result="PASS",
+            standard_ref=certificate.STANDARD_REF_SELECTIVE,
+            scope_note=certificate.SCOPE_DISCLAIMER_SELECTIVE,
+            verification_result=certificate.VERIFICATION_PASS,
+            verification_method="Relectura por-ruta informada por el agente (RN-08)",
             operator=operator,
+            concurrence=concurrence,
+            media_disposition=getattr(intake, "media_disposition", "") or "",
+            media_disposition_detail=(
+                getattr(intake, "media_disposition_detail", "") or ""
+            ),
+            # RF-09. Sin acta los dos viajan vacíos: el medio sigue en el equipo
+            # y su procedencia no consta en ninguna parte que podamos citar.
+            media_type=getattr(intake, "media_type", "") or "",
+            media_origin=compose_media_origin(intake),
+            # Feature 055 · lo que el agente MIDIÓ del medio. No pisa lo que el
+            # acta declaró: los dos viajan y el documento muestra ambos.
+            media=media_snapshot,
+            capacity_reported=capacity_reported,
+            media_type_measured=media_type_measured,
             started_at=started.isoformat() if started else "",
             finished_at=order.executed_at.isoformat() if order.executed_at else "",
+            # 🐞 Antes esto ponía `model = agent_hostname`: el documento que se
+            # entrega a un tercero llevaba el nombre de red como si fuera el
+            # modelo del equipo. Ahora cada dato va en su casilla.
             equipment={
-                "model": order.agent_hostname or "",
+                "make_model": make_model,
+                "make": getattr(intake, "equipment_make", "") or "",
+                "model": getattr(intake, "equipment_model", "") or "",
                 "serial": order.agent_serial or "",
+                "hostname": order.agent_hostname or "",
             },
             software_version=getattr(order.agent, "version", "") or "",
             extra={
@@ -479,6 +641,7 @@ def create_retrieval_order(
     requested_by: str,
     dry_run: bool = False,
     lost_mode_cycle: Optional[int] = None,
+    intake: Optional[AssetIntake] = None,
 ) -> FileRetrievalOrder:
     """Crea una orden de recuperación y la despacha (best-effort).
 
@@ -511,6 +674,7 @@ def create_retrieval_order(
         paths=list(paths),
         dry_run=dry_run,
         lost_mode_cycle=lost_mode_cycle,
+        intake=intake,
         size_limit_bytes=size_limit,
         file_limit=file_limit,
         status=FileRetrievalStatus.PENDING,
@@ -619,3 +783,408 @@ def expire_stale_retrieval_orders() -> int:
         )
         count += 1
     return count
+
+
+# ============================================================================
+# Custodia por eventos (feature 053 · ola 2 · RF-06, RF-07, RF-09)
+# ============================================================================
+
+
+class CustodyEventError(Exception):
+    """Un eslabón que no se puede registrar.
+
+    NO hereda de `OrderStateError`: esa excepción la traducen las vistas de
+    órdenes a 400, y el duplicado de `received` tiene que salir como 409. Son
+    dos errores distintos y mezclarlos los haría indistinguibles para el cliente.
+    """
+
+
+def record_custody_event(
+    *,
+    intake: AssetIntake,
+    kind: str,
+    actor: str,
+    at=None,
+    location: str = "",
+    detail: Optional[Dict[str, Any]] = None,
+) -> CustodyEvent:
+    """Único punto de escritura de la cadena de custodia.
+
+    Valida lo que no puede validar el modelo:
+
+    - `kind` dentro del vocabulario cerrado (lo que hace contable el informe);
+    - `at` no en el futuro: un eslabón fechado mañana no es un hecho;
+    - `received` una sola vez, porque lo escribe el servidor al crear el acta.
+
+    La identidad del expediente se congela en el eslabón: la FK es `SET_NULL` y
+    el eslabón tiene que seguir valiendo si el acta desaparece.
+    """
+    if kind not in CustodyEventKind.values:
+        raise CustodyEventError(
+            f"'{kind}' no es un evento de custodia conocido; el vocabulario es "
+            "cerrado a propósito, porque es lo que hace contable la reconciliación"
+        )
+
+    ahora = timezone.now()
+    at = at or ahora
+    if at > ahora:
+        raise CustodyEventError(
+            "un evento de custodia registra cuándo OCURRIÓ, así que no puede "
+            "estar en el futuro"
+        )
+
+    if kind == CustodyEventKind.RECEIVED:
+        ya_existe = CustodyEvent.objects.filter(
+            intake=intake, kind=CustodyEventKind.RECEIVED
+        ).exists()
+        if ya_existe:
+            raise CustodyEventError(
+                "el acta ya tiene su eslabón de recepción: lo escribe el servidor "
+                "al crearla y no se duplica"
+            )
+
+    return CustodyEvent.objects.create(
+        intake=intake,
+        intake_process_id=intake.process_id,
+        equipment_serial=intake.equipment_serial,
+        kind=kind,
+        at=at,
+        actor=actor,
+        location=location,
+        detail=detail or {},
+    )
+
+
+def verify_custody_chain(intake: AssetIntake) -> bool:
+    """¿Encadena y recomputa la cadena de custodia de este acta?
+
+    Misma comprobación que el detalle del certificado hace sobre su cadena, pero
+    acotada a los eslabones del acta: se recorre por `id` ascendente —el orden de
+    inserción, no el de `at`— verificando que cada uno encadene el `record_hash`
+    del anterior y que su propio hash recompute.
+
+    🪤 El primer eslabón del acta NO tiene por qué traer `prev_hash` vacío: la
+    cadena es global por tabla y otro acta pudo escribir antes. Lo que se
+    comprueba acá es la continuidad entre los eslabones de ESTE expediente.
+    """
+    eslabones = list(CustodyEvent.objects.filter(intake=intake).order_by("id"))
+    anterior: Optional[CustodyEvent] = None
+    for ev in eslabones:
+        if ev.compute_record_hash(ev.prev_hash) != ev.record_hash:
+            return False
+        if anterior is not None and ev.prev_hash != anterior.record_hash:
+            return False
+        anterior = ev
+    return True
+
+
+def first_custody_event(intake: AssetIntake) -> Optional[CustodyEvent]:
+    """El eslabón de recepción del acta, si lo tiene."""
+    return (
+        CustodyEvent.objects.filter(intake=intake, kind=CustodyEventKind.RECEIVED)
+        .order_by("id")
+        .first()
+    )
+
+
+def snapshot_del_medio(agent):
+    """Lo que el inventario sabe del DISCO DE SISTEMA, para el certificado.
+
+    Devuelve `(media, capacity_reported, media_type_measured)`. Los tres son
+    `None`/vacío cuando no hay inventario, y eso es deliberado: el certificado
+    emite el campo presente y vacío —«no consta»— y **no inventa un disco que
+    nadie midió** (ADR-032).
+
+    🔑 Por qué el disco de sistema y no todos: el documento describe el equipo
+    sobre el que se actuó, y su medio es el que aloja el sistema. Listar los
+    demás convertiría un campo de identificación en un inventario, y el que
+    recibe el certificado necesita saber sobre qué disco se operó.
+    """
+    if agent is None:
+        return None, None, ""
+
+    try:
+        disco = (
+            agent.storage_media_devices.filter(is_system_disk=True, removable=False)
+            .order_by("pk")
+            .first()
+        )
+    except Exception:  # pragma: no cover - agente sin la relación (datos viejos)
+        return None, None, ""
+
+    if disco is None:
+        return None, None, ""
+
+    media = {
+        "model": disco.model or "",
+        "manufacturer": disco.manufacturer or "",
+        "serial": disco.serial_number or "",
+        "firmware": disco.firmware_revision or "",
+        # 🔑 Derivado, NO la columna `is_virtual`: esa sólo registra el bus, y un
+        # disco de hipervisor llega con bus de disco real (medido el 2026-11-02).
+        # Sin esto el documento declaraba «Magnético (platos)» sobre un disco
+        # VMware y prometía, por omisión, que la sobrescritura lo alcanzaba.
+        "is_virtual": es_virtual(disco),
+        # Crudos (RN-04): el que verifica el documento puede traducirlos con la
+        # tabla del estándar, y nosotros no congelamos una etiqueta nuestra
+        # dentro de un documento inmutable.
+        "media_type_code": disco.media_type_code,
+        "bus_type": disco.bus_type,
+        "measured_at": disco.measured_at.isoformat() if disco.measured_at else "",
+    }
+    return media, disco.size_bytes, _etiqueta_de_medio(disco)
+
+
+def _etiqueta_de_medio(disco) -> str:
+    """La única traducción que el certificado sí congela, y por qué.
+
+    El documento lo lee un tercero sin acceso a la consola ni a la tabla de
+    códigos, y «4» no le dice nada sobre qué puede exigir. Es la excepción
+    consciente a RN-04: el código crudo viaja igual, al lado, en `media`.
+
+    🔑 Lo virtualizado gana sobre el código del medio, y no es cosmético: en un
+    disco de hipervisor el código describe lo que el sistema operativo cree ver
+    —platos, en el caso de VMware—, no lo que hay debajo. Congelar «Magnético
+    (platos)» en un documento inmutable le diría al que lo recibe que puede
+    exigir una sobrescritura que nunca tocó el medio real.
+    """
+    if es_virtual(disco):
+        return "Virtualizado (el medio real está en otra parte)"
+
+    return {
+        STORAGE_MEDIA_TYPE_HDD: "Magnético (platos)",
+        STORAGE_MEDIA_TYPE_SSD: "Estado sólido",
+        STORAGE_MEDIA_TYPE_SCM: "Memoria de clase almacenamiento",
+    }.get(disco.media_type_code, "")
+
+
+def compose_media_origin(intake: Optional[AssetIntake]) -> str:
+    """El *Media Source* del Apéndice C: de dónde provino el medio.
+
+    🔑 No es dónde se almacenó. El dato vive en el acta —equipo enrolado, serie y
+    quién lo entregó— y la cadena aporta la fecha de entrada a custodia. Si el
+    acta no tiene nada de eso, se devuelve vacío: el certificado declara "no
+    consta" antes que inventar una procedencia (ADR-032).
+    """
+    if intake is None:
+        return ""
+
+    partes: List[str] = []
+    hostname = getattr(getattr(intake, "agent", None), "hostname", "") or ""
+    if hostname:
+        partes.append(f"equipo {hostname}")
+    if intake.equipment_serial:
+        partes.append(f"serie {intake.equipment_serial}")
+    if intake.delivered_by:
+        partes.append(f"entregado por {intake.delivered_by}")
+
+    if not partes:
+        return ""
+
+    recibido = first_custody_event(intake)
+    if recibido is not None:
+        partes.append(f"en custodia desde {recibido.at.date().isoformat()}")
+
+    return "; ".join(partes)
+
+
+MISSING_PAGE_LIMIT_DEFAULT = 100
+MISSING_PAGE_LIMIT_MAX = 500
+
+
+def reconciliation(
+    *,
+    qs,
+    client=None,
+    desde=None,
+    hasta=None,
+    stalled_days: Optional[int] = None,
+    limit: Optional[int] = None,
+    offset: int = 0,
+) -> Dict[str, Any]:
+    """Ingresados, certificados y faltantes, por cliente y período (RF-07).
+
+    `qs` llega **ya filtrado por el alcance de rol**: los totales se calculan
+    después de recortar, nunca antes, para que un usuario de alcance limitado vea
+    números que cuadran con lo que puede abrir.
+
+    🔑 **Faltante = acta sin certificado**, no "acta vieja". Definirlo por
+    antigüedad inventaría un plazo que la plataforma no conoce. `stalled_days`
+    sólo **marca** un faltante como detenido; no cambia quién es faltante.
+
+    🔴 **Los totales se agregan en la base, no recorriendo filas en Python**, y
+    de `missing_items` se materializa **sólo la página pedida**. La primera
+    versión traía todas las actas del período a memoria y devolvía todos los
+    faltantes de una vez: con 6.000 actas eran 4.000 ítems en una respuesta, y
+    ni los tests ni la prueba manual lo notaban porque con tres actas da igual.
+
+    Los parámetros se llaman `desde`/`hasta` porque `from` es reservada en
+    Python; la vista traduce los `from`/`to` del contrato HTTP.
+    """
+    if desde and hasta and desde > hasta:
+        raise CustodyEventError("el inicio del período es posterior a su fin")
+
+    if client is not None:
+        qs = qs.filter(client=client)
+    if desde:
+        qs = qs.filter(created_at__gte=desde)
+    if hasta:
+        qs = qs.filter(created_at__lte=hasta)
+
+    ahora = timezone.now()
+    corte = (
+        ahora - timedelta(days=stalled_days) if stalled_days not in (None, "") else None
+    )
+
+    # Fecha contra la que se mide "detenido": la del último eslabón, y si el
+    # acta no tiene ninguno, la de su ingreso — un acta sin movimientos es
+    # justamente la que lleva más tiempo quieta.
+    ultimo_at = Subquery(
+        CustodyEvent.objects.filter(intake=OuterRef("pk"))
+        .order_by("-id")
+        .values("at")[:1]
+    )
+    base = qs.annotate(
+        certificado=Exists(EraseCertificate.objects.filter(intake=OuterRef("pk"))),
+        referencia=Coalesce(ultimo_at, F("created_at")),
+    )
+
+    def agregados() -> Dict[str, Any]:
+        """Instancias NUEVAS en cada uso: una expresión de agregación se resuelve
+        contra el queryset donde se usa, así que no se comparten entre el
+        `aggregate()` y el `annotate()`.
+
+        🪤 Sin umbral, `stalled` **no se consulta**: se resuelve a 0 después. Un
+        `Q(pk__in=[])` como filtro vacío parece lo natural y colapsa el
+        `aggregate` entero a ceros —todas las claves, sin error—, porque Django
+        propaga `EmptyResultSet` a la consulta completa.
+        """
+        cuentas = {
+            "intakes": Count("pk"),
+            "certified": Count("pk", filter=Q(certificado=True)),
+            "missing": Count("pk", filter=Q(certificado=False)),
+        }
+        if corte is not None:
+            cuentas["stalled"] = Count(
+                "pk", filter=Q(certificado=False) & Q(referencia__lt=corte)
+            )
+        return cuentas
+
+    def con_stalled(fila: Dict[str, Any]) -> Dict[str, Any]:
+        # Sin umbral nadie está detenido: detenido es otra cosa que faltante.
+        fila.setdefault("stalled", 0)
+        return fila
+
+    totales = con_stalled(base.aggregate(**agregados()))
+    por_cliente = [
+        con_stalled(
+            {
+                "client_id": fila["client_id"],
+                "client": fila["client__name"],
+                "intakes": fila["intakes"],
+                "certified": fila["certified"],
+                "missing": fila["missing"],
+                **({"stalled": fila["stalled"]} if "stalled" in fila else {}),
+            }
+        )
+        for fila in base.values("client_id", "client__name")
+        .annotate(**agregados())
+        .order_by("client__name")
+    ]
+
+    # --- la página de faltantes, y sólo la página ---
+    limite = limit if limit is not None else MISSING_PAGE_LIMIT_DEFAULT
+    limite = max(1, min(int(limite), MISSING_PAGE_LIMIT_MAX))
+    desplazamiento = max(0, int(offset))
+
+    faltantes_qs = base.filter(certificado=False).order_by("created_at", "pk")
+    pagina = list(faltantes_qs[desplazamiento : desplazamiento + limite])
+
+    # El último eslabón de los de ESTA página, en dos consultas fijas.
+    ultimos: Dict[int, CustodyEvent] = {}
+    if pagina:
+        ids = (
+            CustodyEvent.objects.filter(intake_id__in=[a.pk for a in pagina])
+            .values("intake_id")
+            .annotate(ultimo=Max("id"))
+            .values_list("ultimo", flat=True)
+        )
+        ultimos = {
+            ev.intake_id: ev for ev in CustodyEvent.objects.filter(id__in=list(ids))
+        }
+
+    faltantes = []
+    for acta in pagina:
+        ultimo = ultimos.get(acta.pk)
+        referencia = ultimo.at if ultimo is not None else acta.created_at
+        faltantes.append(
+            {
+                "intake_id": acta.pk,
+                "process_id": acta.process_id,
+                "equipment_serial": acta.equipment_serial,
+                "received_at": acta.created_at,
+                "days_open": (ahora - acta.created_at).days,
+                "last_event": (
+                    {"kind": ultimo.kind, "at": ultimo.at} if ultimo else None
+                ),
+                "stalled": bool(corte and referencia < corte),
+            }
+        )
+
+    return {
+        "period": {"from": desde, "to": hasta},
+        "totals": totales,
+        "by_client": por_cliente,
+        "missing_items": faltantes,
+        # Lo que la consola necesita para paginar sin adivinar.
+        "missing_page": {
+            "limit": limite,
+            "offset": desplazamiento,
+            "total": totales["missing"],
+            "returned": len(faltantes),
+        },
+    }
+
+
+# --- retención de adjuntos (feature 053 · ola 3 — RNF-06/L-04) ----------------
+
+
+def resolve_attachment_retention(*, client=None, core=None) -> int:
+    """Días que sobrevive un ADJUNTO de borrado. Precedencia **cliente > global**.
+
+    - Global: `CoreSettings.erase_attachment_retention_days`, siempre presente.
+    - Cliente: `Client.erase_attachment_retention_days`. Un valor no-nulo pisa al
+      global; `None` es **«sin decidir» y hereda**, nunca «cero días».
+    - Sobre el resultado se aplica el piso legal
+      `ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS` (RF-D5, ≥ 12 meses).
+
+    Regla única y central: **nadie más resuelve esta precedencia. Vive acá.** Al
+    molde de `agents.utils.resolve_lost_mode_cascade`, y por la misma razón: para
+    que la consola, la API y la purga entreguen exactamente el mismo número. Si se
+    resolviera en dos lugares, la consola mostraría 400 días y la purga aplicaría
+    366, y nadie se enteraría hasta que faltara un archivo.
+
+    🔑 El piso se aplica **al leer**, no sólo en el validador del campo: un
+    `loaddata`, un `queryset.update()` o una fila escrita antes de que el validador
+    existiera **no pasan por él**. Dos guardas a propósito, porque un piso que se
+    puede esquivar no es un piso.
+
+    🔒 Este plazo **nunca** alcanza al certificado, que es permanente e inmutable
+    (RNF-01 / RN-E07). Sólo al binario del adjunto.
+    """
+    if core is None:
+        from core.utils import get_core_settings
+
+        core = get_core_settings()
+
+    dias = getattr(core, "erase_attachment_retention_days", None)
+    if client is not None:
+        propio = getattr(client, "erase_attachment_retention_days", None)
+        if propio is not None:
+            dias = propio
+
+    if dias is None:
+        # Sin ajuste global legible (instancia a medio migrar): el piso manda.
+        return ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS
+
+    return max(int(dias), ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS)

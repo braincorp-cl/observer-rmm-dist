@@ -384,10 +384,14 @@ class TestCoreTasks(ObserverTestCase):
         url = "/core/customfields/"
 
         # setup
-        custom_fields = baker.make("core.CustomField", _quantity=2)
+        baker.make("core.CustomField", _quantity=2)
 
         r = self.client.get(url)
-        serializer = CustomFieldSerializer(custom_fields, many=True)
+        # Espeja el orden del endpoint; el orden de creacion no lo garantiza
+        # PostgreSQL.
+        serializer = CustomFieldSerializer(
+            CustomField.objects.order_by("order", "name", "id"), many=True
+        )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.data), 2)
         self.assertEqual(r.data, serializer.data)
@@ -476,10 +480,13 @@ class TestCoreTasks(ObserverTestCase):
         url = "/core/keystore/"
 
         # setup
-        keys = baker.make("core.GlobalKVStore", _quantity=2)
+        baker.make("core.GlobalKVStore", _quantity=2)
 
         r = self.client.get(url)
-        serializer = KeyStoreSerializer(keys, many=True)
+        # Espeja el orden del endpoint, no el de creacion.
+        serializer = KeyStoreSerializer(
+            GlobalKVStore.objects.order_by("name", "id"), many=True
+        )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.data), 2)
         self.assertEqual(r.data, serializer.data)
@@ -534,10 +541,13 @@ class TestCoreTasks(ObserverTestCase):
         url = "/core/urlaction/"
 
         # setup
-        action = baker.make("core.URLAction", _quantity=2)
+        baker.make("core.URLAction", _quantity=2)
 
         r = self.client.get(url)
-        serializer = URLActionSerializer(action, many=True)
+        # Espeja el orden del endpoint, no el de creacion.
+        serializer = URLActionSerializer(
+            URLAction.objects.order_by("name", "id"), many=True
+        )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.data), 2)
         self.assertEqual(r.data, serializer.data)

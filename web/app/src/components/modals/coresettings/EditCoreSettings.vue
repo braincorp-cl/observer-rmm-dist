@@ -1001,6 +1001,57 @@
                 />
               </q-card-section>
             </div>
+            <!-- Feature 053 ola 3 (RNF-06/L-04). Hasta esta ola el plazo
+                   existia en la API y no se mostraba NI se leia: se podia
+                   configurar, recibir 200 y no configurar nada. -->
+            <q-card-section class="row">
+              <div class="col-4">
+                {{ $t("editCoreSettings.eraseAttachmentRetentionDays") }}
+              </div>
+              <div class="col-2"></div>
+              <q-input
+                dense
+                outlined
+                type="number"
+                min="366"
+                v-model.number="settings.erase_attachment_retention_days"
+                class="col-6"
+                :hint="$t('editCoreSettings.eraseAttachmentRetentionDaysHint')"
+              />
+            </q-card-section>
+            <q-card-section class="row">
+              <div class="col-4">
+                {{ $t("editCoreSettings.eraseAttachmentPruneEnabled") }}
+              </div>
+              <div class="col-2"></div>
+              <div class="col-6">
+                <q-toggle
+                  v-model="settings.erase_attachment_prune_enabled"
+                  :label="$t('editCoreSettings.eraseAttachmentPruneEnabled')"
+                />
+                <div class="text-caption text-grey">
+                  {{ $t("editCoreSettings.eraseAttachmentPruneEnabledHint") }}
+                </div>
+              </div>
+            </q-card-section>
+
+            <!-- Feature 053 ola 4 (RF-08). Nace apagado: enciende una ruta
+                   SIN autenticacion en el dominio de esta instalacion. -->
+            <q-card-section class="row">
+              <div class="col-4">
+                {{ $t("editCoreSettings.erasePublicVerifyEnabled") }}
+              </div>
+              <div class="col-2"></div>
+              <div class="col-6">
+                <q-toggle
+                  v-model="settings.erase_public_verify_enabled"
+                  :label="$t('editCoreSettings.erasePublicVerifyEnabled')"
+                />
+                <div class="text-caption text-grey">
+                  {{ $t("editCoreSettings.erasePublicVerifyEnabledHint") }}
+                </div>
+              </div>
+            </q-card-section>
 
             <div v-if="tab === 'apikeys'" class="obs-set__panel">
               <APIKeysTable />

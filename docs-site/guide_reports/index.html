@@ -22,7 +22,7 @@
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <style>
   /* Diagrama archify embebido a ancho completo (mismo patrón que Topología/Permisos/Alertas). */
@@ -73,12 +73,14 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/" class="active"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
     <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
@@ -112,8 +114,8 @@
       </div>
 
       <h2 id="arquitectura"><span class="lang-es">Cómo funciona la reportería, por dentro</span><span class="lang-en">How reporting works, under the hood</span></h2>
-      <p class="lang-es">El dato nace en el <strong>agente</strong> de cada equipo: sus chequeos, actualizaciones de Windows, inventario de software y datos del sistema viajan al servidor por dos canales —el <strong>check-in por NATS</strong> (el servicio <code>natsapi</code> escribe el estado del equipo) y los <strong>envíos HTTP de <code>apiv3</code></strong>— y se recolectan de toda la flota en la base de datos <strong>PostgreSQL <code>observerrmm</code></strong>. Cuando pides un reporte desde la <strong>Consola</strong> (frontend), la <strong>API Django</strong> invoca el <strong>motor de reportería</strong> (<code>ee.reporting</code>): consulta esos datos con el ORM (solo los modelos permitidos), arma la plantilla con <strong>Jinja + Markdown</strong> y produce la salida —<strong>HTML</strong>, o <strong>PDF</strong> con WeasyPrint y gráficos rendidos por Kaleido—. Para <strong>programar</strong>, <strong>Celery Beat</strong> dispara cada minuto al <em>worker</em>, que genera el reporte, guarda el historial y, si corresponde, lo <strong>envía por correo</strong> vía SMTP a los destinatarios.</p>
-      <p class="lang-en">The data originates in each machine's <strong>agent</strong>: its checks, Windows updates, software inventory, and system data travel to the server over two channels —the <strong>NATS check-in</strong> (the <code>natsapi</code> service writes the machine's state) and <strong><code>apiv3</code> HTTP posts</strong>— and are collected across the whole fleet into the <strong>PostgreSQL <code>observerrmm</code></strong> database. When you request a report from the <strong>Console</strong> (frontend), the <strong>Django API</strong> invokes the <strong>reporting engine</strong> (<code>ee.reporting</code>): it queries that data through the ORM (only the allowed models), assembles the template with <strong>Jinja + Markdown</strong>, and produces the output —<strong>HTML</strong>, or <strong>PDF</strong> via WeasyPrint with charts rendered by Kaleido—. For <strong>scheduling</strong>, <strong>Celery Beat</strong> triggers the <em>worker</em> every minute, which generates the report, saves the history and, when configured, <strong>emails it</strong> over SMTP to the recipients.</p>
+      <p class="lang-es">El dato nace en el <strong>agente</strong> de cada equipo: sus chequeos, actualizaciones de Windows, inventario de software y datos del sistema viajan al servidor por dos canales —un <strong>check-in permanente</strong>, que mantiene al día el estado del equipo, y <strong>envíos puntuales</strong> cada vez que hay algo nuevo que contar— y se recolectan de toda la flota en la base de datos del servidor. Cuando pides un reporte desde la <strong>Consola</strong>, el servidor consulta esos datos (solo los conjuntos que la plantilla tiene permitidos), arma la plantilla y produce la salida en <strong>HTML</strong> o en <strong>PDF</strong>, con los gráficos ya dibujados. Para <strong>programar</strong>, el servidor revisa cada minuto si toca alguno, lo genera, guarda el historial y, si corresponde, lo <strong>envía por correo</strong> a los destinatarios.</p>
+      <p class="lang-en">The data originates in each machine's <strong>agent</strong>: its checks, Windows updates, software inventory, and system data travel to the server over two channels —a <strong>continuous check-in</strong> that keeps the machine's state current, and <strong>one-off posts</strong> whenever there is something new to report— and are collected across the whole fleet into the server's database. When you request a report from the <strong>Console</strong>, the server queries that data (only the datasets the template is allowed to read), assembles the template and produces the output as <strong>HTML</strong> or <strong>PDF</strong>, with the charts already drawn. For <strong>scheduling</strong>, the server checks every minute whether one is due, generates it, saves the history and, when configured, <strong>emails it</strong> to the recipients.</p>
 
       <figure class="diagram-bleed">
         <iframe class="diagram-frame" src="/guide_reports/observer-reporteria.html" title="Diagrama del sistema de reportería de Observer RMM: agente, backend, base de datos, generación de salida, programación y envío por correo" loading="lazy"></iframe>
@@ -204,7 +206,7 @@
         <li><strong>Software</strong> — Inventario de Software · Software por Cliente · Cobertura de Antivirus.</li>
         <li><strong>Parches y actualizaciones</strong> — Actualizaciones de Windows Pendientes · Actualizaciones Pendientes por Sitio · Últimas Actualizaciones Instaladas · Panorama de Parches.</li>
         <li><strong>Monitoreo y alertas</strong> — Estado de la Flota · Estado de Chequeos · Panel de Alertas · Registro de Auditoría.</li>
-        <li><strong>Actividad de usuarios</strong> (requiere encender el monitoreo de actividad en Configuración global → Employee Monitoring) — Actividad de usuarios - diario · Actividad - resumen semanal.</li>
+        <li><strong>Actividad de usuarios</strong> (requiere encender el monitoreo de actividad en Configuración global → Monitoreo de empleados) — Actividad de usuarios - diario · Actividad - resumen semanal.</li>
       </ul>
       <ul class="lang-en">
         <li><strong>Machines &amp; inventory</strong> — Agent Inventory · Machine Specifications · Agents by Client and Site · Comprehensive Machine Report · Operating System Distribution · Machine Uptime · Machines Pending Reboot · Agent Installation Date.</li>

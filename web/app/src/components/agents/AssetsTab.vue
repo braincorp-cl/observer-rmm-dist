@@ -29,8 +29,12 @@
             :agent-id="selectedAgent"
             :status="agentStatus"
           />
+          <StorageMediaDetail
+            v-else-if="opt.value === 'storage_media' && selectedAgent"
+            :agent-id="selectedAgent"
+          />
           <WmiDetail
-            v-else-if="opt.value !== 'encryption'"
+            v-else-if="!['encryption', 'storage_media'].includes(opt.value)"
             :info="assets[opt.value]"
           />
         </div>
@@ -49,10 +53,11 @@ import { fetchAgent } from "@/api/agents";
 // ui imports
 import WmiDetail from "@/components/agents/WmiDetail.vue";
 import DiskEncryptionDetail from "@/components/agents/DiskEncryptionDetail.vue";
+import StorageMediaDetail from "@/components/agents/StorageMediaDetail.vue";
 
 export default {
   name: "AssetsTab",
-  components: { WmiDetail, DiskEncryptionDetail },
+  components: { WmiDetail, DiskEncryptionDetail, StorageMediaDetail },
   setup() {
     // setup vuex
     const store = useStore();
@@ -80,6 +85,7 @@ export default {
         ["desktop_monitor", "desktopMonitor"],
         ["network_adapter", "networkAdapter"],
         ["encryption", "encryption"],
+        ["storage_media", "storageMedia"],
       ].map(([value, key]) => ({ value, label: t(`agentTabs.assets.${key}`) })),
     );
     // Feature 037: el estado de última señal del agente lo lee el detalle de

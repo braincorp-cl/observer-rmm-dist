@@ -10,3 +10,27 @@
 # Credenciales de la API de producción de GoDaddy (https://developer.godaddy.com/keys).
 vault_godaddy_key: "CHANGEME_godaddy_api_key"
 vault_godaddy_secret: "CHANGEME_godaddy_api_secret"
+
+# ---------------------------------------------------------------------------
+# SOLO para observer_cert_mode: byo (certificado propio, sin ACME).
+# Deje estas dos fuera del archivo si usa el modo acme.
+#
+# Pegue el contenido COMPLETO de los archivos, con los saltos de linea. El
+# fullchain va con la cadena intermedia incluida, o los agentes y los
+# navegadores moviles fallan la validacion aunque el navegador de escritorio
+# la pase (trae la intermedia en cache).
+#
+# install.sh --use-own-cert <fullchain.pem> <privkey.pem> escribe estas dos
+# claves por usted y fija observer_cert_mode: byo en el inventario.
+# ---------------------------------------------------------------------------
+# vault_tls_cert: |
+#   -----BEGIN CERTIFICATE-----
+#   ... el certificado del servidor ...
+#   -----END CERTIFICATE-----
+#   -----BEGIN CERTIFICATE-----
+#   ... la cadena intermedia ...
+#   -----END CERTIFICATE-----
+# vault_tls_key: |
+#   -----BEGIN PRIVATE KEY-----
+#   ... la clave privada ...
+#   -----END PRIVATE KEY-----

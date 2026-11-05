@@ -1,8 +1,8 @@
-# Renombre del campo `sync_mesh_with_trmm` -> `sync_mesh_with_ormm`.
+# Renombre del campo de sincronizacion con Mesh a `sync_mesh_with_ormm`.
 #
-# El prefijo `trmm` venia del upstream y nombra al producto legacy; el nuestro es
-# Observer RMM, asi que la columna pasa a `ormm`. Es un RenameField: preserva los
-# datos y es reversible, a diferencia de add+copy+drop.
+# El prefijo queda alineado con el del producto (`ormm`, por Observer RMM), como
+# el resto de los flags. Es un RenameField: preserva los datos y es reversible, a
+# diferencia de add+copy+drop.
 #
 # Las migraciones 0043 (que creo la columna) y 0044 (que la referencia como
 # dependencia) NO se tocan: son historia congelada y editarlas dejaria el estado

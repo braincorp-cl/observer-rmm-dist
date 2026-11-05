@@ -79,10 +79,15 @@ class GetAddReportTemplate(APIView):
     def get(self, request: Request) -> Response:
         depends_on: List[str] = request.query_params.getlist("dependsOn[]", [])
 
+        # `ReportTemplate.name` es unico y es por donde la busca quien arma un
+        # informe, asi que ordenar por el deja el listado estable y legible. Las
+        # dos ramas usan el mismo criterio para que filtrar no reordene la lista.
         if depends_on:
-            templates = ReportTemplate.objects.filter(depends_on__overlap=depends_on)
+            templates = ReportTemplate.objects.filter(
+                depends_on__overlap=depends_on
+            ).order_by("name")
         else:
-            templates = ReportTemplate.objects.all()
+            templates = ReportTemplate.objects.order_by("name")
         return Response(ReportTemplateSerializer(templates, many=True).data)
 
     def post(self, request: Request) -> Response:
@@ -379,7 +384,9 @@ class GetAddReportSchedule(APIView):
     serializer_class = ReportScheduleSerializer
 
     def get(self, request: Request) -> Response:
-        schedules = ReportSchedule.objects.all()
+        # `name` no es unico en ReportSchedule: `id` desempata para que la
+        # tabla de programaciones no se reacomode entre peticiones.
+        schedules = ReportSchedule.objects.order_by("name", "id")
         return Response(ReportScheduleSerializer(schedules, many=True).data)
 
     def post(self, request: Request) -> Response:
@@ -454,7 +461,10 @@ class GetReportHistory(APIView):
     serializer_class = ReportHistorySerializer
 
     def get(self, request: Request) -> Response:
-        history = ReportHistory.objects.all()
+        # Un historial se lee por lo mas reciente, no alfabeticamente. `id`
+        # desempata porque `date_created` se llena con `auto_now_add` y dos
+        # corridas del mismo lote pueden caer en el mismo instante.
+        history = ReportHistory.objects.order_by("-date_created", "-id")
         return Response(ReportHistorySerializer(history, many=True).data)
 
 
@@ -876,7 +886,7 @@ class GetAddReportHTMLTemplate(APIView):
     permission_classes = [IsAuthenticated, ReportingPerms]
 
     def get(self, request: Request) -> Response:
-        reports = ReportHTMLTemplate.objects.all()
+        reports = ReportHTMLTemplate.objects.order_by("name")
         return Response(ReportHTMLTemplateSerializer(reports, many=True).data)
 
     def post(self, request: Request) -> Response:
@@ -922,7 +932,7 @@ class GetAddReportDataQuery(APIView):
     permission_classes = [IsAuthenticated, ReportingPerms]
 
     def get(self, request: Request) -> Response:
-        reports = ReportDataQuery.objects.all()
+        reports = ReportDataQuery.objects.order_by("name")
         return Response(ReportDataQuerySerializer(reports, many=True).data)
 
     def post(self, request: Request) -> Response:

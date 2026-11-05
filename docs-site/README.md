@@ -18,11 +18,39 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 | `/functions/mcp/` | Guía independiente (no enlazada desde la UI): conectar asistentes de IA (Claude Code, VS Code, Cursor, Claude Desktop, n8n) al servidor MCP (feature 045) |
 | `/functions/permissions/#permisos-con-implicancias-de-seguridad` | `EditCoreSettings.vue` — ⚠ junto a "scripts de servidor" y "terminal web" |
 | `/faq/#agentes-inesperados` | `installAgent.exeWarningMessage` (catálogos i18n en/es) |
-| `/api/` | Referencia pública de la API REST para integraciones de terceros (ITSM/CMDB) con API key. **Generada**: `python3 scripts/docs/build_api_page.py` (rutas y métodos extraídos de `urls.py` + vistas; descripciones en `scripts/docs/api_catalog.py`; falla si una ruta nueva no está descrita) |
+| `/functions/user_management/` | Guía independiente (no enlazada desde la UI): administración de usuarios —alta, perfil, alcance por cliente/sitio, doble factor, llaves de API, baja y delegación al cliente | 
+| `/functions/role_catalog/` | Catálogo de los perfiles que la plataforma siembra de fábrica. **Generada**: `python3 scripts/docs/build_roles_page.py` (perfiles y permisos salen de `api/observerrmm/accounts/role_catalog.py`, el mismo módulo que usa `seed_default_roles`; las etiquetas de cada permiso, de `RolesForm.vue` + `i18n/{es,en}.json`; el rail se copia de `/functions/permissions/`) |
 
 Contenido **bilingüe español / inglés**, adaptado al entorno Observer. Sin
 dependencias externas (CSS propio en `assets/style.css`, tema "Observation Deck"
 espejando la UI).
+
+## La referencia de la API no se publica
+
+`docs/api-reference/index.html` (fuera de `docs-site/`, documentacion interna que
+tampoco viaja en el bundle del cliente) la genera
+`python3 scripts/docs/build_api_page.py`.
+
+**Por que dejo de ser publica (2-nov-2026):** publicaba 180+ rutas, y los nombres
+de endpoint son el ADN de un backend — varios son irrepetibles y una sola busqueda
+los traza hasta el proyecto del que deriva el producto. Las integraciones las
+orquesta BrainCorp y la referencia se entrega con el contrato, asi que publicar el
+mapa completo no compraba nada. No se renombro ninguna ruta: eso habria roto las
+llaves de API ya emitidas y el canal de check-in de la flota.
+
+## Convención de rutas
+
+**En inglés, y las funciones del producto bajo `/functions/`.** Así están
+`/faq/`, `/features/`, `/guide_*` y `/functions/{permissions,email_alerts,mcp,
+user_management,role_catalog}`. Quedan en español `/topologia/`, `/uso_aceptable/` y
+`/videos/`, anteriores a la convención; no son el modelo a seguir.
+
+**Renombrar una ruta ya publicada exige un 301**, no borrarla: el sitio está indexado a
+propósito y un 404 tira el posicionamiento y rompe los enlaces externos. Las reglas van en
+el vhost con `RedirectMatch` (cubre con y sin barra final; la más específica primero,
+porque mod_alias hace match por prefijo). 🪤 Además hay que **borrar el directorio viejo
+del docroot**: mientras exista, Apache sirve el archivo y la redirección nunca dispara.
+Precedente: `/administracion/` → `/functions/user_management/` el 2026-10-24.
 
 ## SEO — el sitio es público y se quiere encontrable
 
@@ -102,7 +130,9 @@ Servido por Apache en **appserver (`10.20.0.52`)**:
 
 - DocumentRoot: `/var/www/html/observer-docs/`
 - vhost: `/etc/apache2/sites-available/docs.observer.cl.conf` (escucha en `:82`;
-  `Options -Indexes`, sin listado de directorios)
+  `Options -Indexes`, sin listado de directorios). **Está versionado** en
+  `scripts/appserver/docs.observer.cl.conf`: al tocarlo en el servidor hay que
+  traer el cambio al repo, o la próxima lectura del repo miente.
 - TLS y exposición pública: los termina el NPM corporativo
   (`docs.observer.cl` → `10.20.0.52:82`).
 

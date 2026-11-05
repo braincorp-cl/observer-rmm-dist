@@ -55,8 +55,11 @@ urlpatterns = [
     path("<agent:agent_id>/processes/<int:pid>/", views.AgentProcesses.as_view()),
     path("<agent:agent_id>/eventlog/<str:logtype>/<int:days>/", views.get_event_log),
     # agent history
+    # las dos primeras quedan en desuso: no paginan
     path("history/", views.AgentHistoryView.as_view()),
     path("<agent:agent_id>/history/", views.AgentHistoryView.as_view()),
+    path("v2/history/", views.AgentHistoryViewV2.as_view()),
+    path("v2/<agent:agent_id>/history/", views.AgentHistoryViewV2.as_view()),
     # respuesta rápida de endpoint (feature 028)
     path("<agent:agent_id>/lock/", views.LockAgent.as_view()),
     path("<agent:agent_id>/alert/", views.SendAlert.as_view()),
@@ -93,6 +96,9 @@ urlpatterns = [
     # habría duplicado el camino del `func: wmi` con otro nombre.
     path("diskencryption/", views.DiskEncryptionFleet.as_view()),
     path("<agent:agent_id>/diskencryption/", views.DiskEncryptionDetail.as_view()),
+    # Feature 055 · inventario de medios y categoría de sanitización alcanzable.
+    path("storagemedia/", views.StorageMediaFleet.as_view()),
+    path("<agent:agent_id>/storagemedia/", views.StorageMediaDetail.as_view()),
     # agent geolocation (feature 023)
     path("<agent:agent_id>/location/", views.AgentLocation.as_view()),
     path("<agent:agent_id>/location/history/", views.AgentLocationHistory.as_view()),

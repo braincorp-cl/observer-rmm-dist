@@ -436,12 +436,22 @@
 - name: Servidor MCP
   ansible.builtin.import_playbook: deploy-mcp.yml
 
-# Changelog público (agents.observer.cl/changelog). Se publica desde el control-plane
-# y no desde GitHub Actions: el firewall del appserver solo admite GitHub por FQDN y los
-# runners salen de rangos Azure dinámicos, así que el WebDAV no les es alcanzable.
-# Solo corre si el inventario define observer_changelog_publish_host (appserver de
-# BrainCorp); un tenant sin esa variable no publica nada. Idempotente: el mismo
-# CHANGELOG.md da el mismo HTML, y copy no marca cambio.
+# Changelog público (agents.observer.cl/changelog) — RESPALDO MANUAL.
+#
+# El dueño de la publicación es publish-changelog.yml (WebDAV desde el runner). Hasta
+# el 2026-10-26 lo era esta play, porque se creía que GitHub Actions no alcanzaba al
+# appserver; una sonda desde un runner (PUT 201 + GET verificado) demostró lo
+# contrario y la publicación volvió al CI.
+#
+# Esta play queda para cuando el CI no es una opción (GitHub caído, publicación de
+# emergencia desde el control-plane) y por eso ya NO corre sola: exige
+# observer_changelog_publish_force=true además del observer_changelog_publish_host del
+# inventario. Dos dueños publicando el mismo archivo es como se termina sirviendo una
+# versión vieja sin que nadie se entere.
+#
+#   ansible-playbook deploy-api.yml -i inventory/<inv>.yml -e observer_changelog_publish_force=true
+#
+# Idempotente: el mismo CHANGELOG.md da el mismo HTML, y copy no marca cambio.
 - name: Changelog público — generar en el control-plane
   hosts: localhost
   gather_facts: false
@@ -452,7 +462,9 @@
         name: changelog_appserver
         ansible_host: "{{ observer_changelog_publish_host }}"
         ansible_user: "{{ observer_changelog_publish_user | default('observer') }}"
-      when: observer_changelog_publish_host | default('') | length > 0
+      when:
+        - observer_changelog_publish_host | default('') | length > 0
+        - observer_changelog_publish_force | default(false) | bool
 
     - name: Generar changelog.html desde CHANGELOG.md
       ansible.builtin.command:
@@ -462,7 +474,9 @@
           - "{{ playbook_dir }}/CHANGELOG.md"
           - "{{ playbook_dir }}/.changelog.html"
       changed_when: false
-      when: observer_changelog_publish_host | default('') | length > 0
+      when:
+        - observer_changelog_publish_host | default('') | length > 0
+        - observer_changelog_publish_force | default(false) | bool
 
 - name: Changelog público — publicar en el appserver
   hosts: changelog_appserver

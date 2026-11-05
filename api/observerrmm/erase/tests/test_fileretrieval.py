@@ -238,3 +238,43 @@ class FileRetrievalUploadTests(ObserverTestCase):
                 url_otro, {"file": f, "source_path": "/x"}, format="multipart"
             )
         self.assertNotEqual(r.status_code, 200)
+
+
+class FileRetrievalAgendadoTests(ObserverTestCase):
+    """Las dos tareas del módulo tienen que estar AGENDADAS, no sólo escritas.
+
+    `redispatch_pending_retrieval_orders` y `expire_stale_retrieval_orders`
+    existían, estaban bien escritas, tenían tests que las ejercitaban llamándolas
+    a mano… y no las invocaba nadie: el único `grep` de cada nombre en el repo era
+    su propio `def`. El `test_expira_orden_zombie` de más arriba pasaba en verde
+    todo ese tiempo, porque prueba el SERVICIO `services.expire_stale_retrieval_orders`,
+    que es justo lo único que no estaba en duda.
+
+    El agujero era peor que una omisión: el docstring de `dispatch_retrieval_order`
+    promete por escrito que a un equipo offline "la reintenta el beat
+    `redispatch_pending_retrieval_orders` hasta `expires_at`". Mientras ese beat
+    no existió, una orden pedida con el equipo apagado se quedaba en `pending`
+    para siempre — nadie la reintentaba al reconectar y nadie la vencía, así que
+    el TTL de 7 días era un campo que ningún proceso hacía cumplir.
+
+    Estos dos tests son lo que impide que vuelva a pasar.
+    """
+
+    def setUp(self):
+        self.setup_coresettings()
+
+    def test_el_mantenimiento_reintenta_las_ordenes_en_cola(self):
+        from core.tasks import core_maintenance_tasks
+
+        with patch("core.tasks.redispatch_pending_retrieval_orders") as tarea:
+            core_maintenance_tasks()
+
+        tarea.delay.assert_called_once_with()
+
+    def test_el_mantenimiento_vence_las_ordenes_expiradas(self):
+        from core.tasks import core_maintenance_tasks
+
+        with patch("core.tasks.expire_stale_retrieval_orders") as tarea:
+            core_maintenance_tasks()
+
+        tarea.delay.assert_called_once_with()

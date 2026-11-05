@@ -7,6 +7,7 @@ import requests
 import validators
 from cryptography import x509
 from django.conf import settings
+from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -33,7 +34,12 @@ from core.utils import (
     token_is_valid,
 )
 from logs.models import AuditLog
-from observerrmm.constants import AuditActionType, PAStatus
+from observerrmm.constants import (
+    CELERY_HEARTBEAT_CACHE_KEY,
+    CELERY_HEARTBEAT_MAX_AGE,
+    AuditActionType,
+    PAStatus,
+)
 from observerrmm.helpers import get_certs, notify_error
 from observerrmm.logger import logger
 from observerrmm.permissions import (
@@ -283,10 +289,18 @@ class GetAddCustomFields(APIView):
     permission_classes = [IsAuthenticated, CustomFieldPerms]
 
     def get(self, request):
+        # `CustomField.order` existe justamente para decidir en que posicion se
+        # pinta cada campo en la ficha; sin `order_by` ese valor se ignoraba y la
+        # ficha salia en el orden que devolvia PostgreSQL. `name` desempata entre
+        # campos con el mismo `order`, que es lo normal porque el default es 0, e
+        # `id` cierra el empate restante: `unique_together` es (model, name), asi
+        # que la rama sin filtro puede traer el mismo nombre para dos modelos.
         if "model" in request.query_params.keys():
-            fields = CustomField.objects.filter(model=request.query_params["model"])
+            fields = CustomField.objects.filter(
+                model=request.query_params["model"]
+            ).order_by("order", "name", "id")
         else:
-            fields = CustomField.objects.all()
+            fields = CustomField.objects.order_by("order", "name", "id")
         return Response(CustomFieldSerializer(fields, many=True).data)
 
     def patch(self, request):
@@ -399,7 +413,8 @@ class GetAddKeyStore(APIView):
     permission_classes = [IsAuthenticated, GlobalKeyStorePerms]
 
     def get(self, request):
-        keys = GlobalKVStore.objects.all()
+        # `name` no es unico en GlobalKVStore, de ahi el desempate por `id`.
+        keys = GlobalKVStore.objects.order_by("name", "id")
         return Response(KeyStoreSerializer(keys, many=True).data)
 
     def post(self, request):
@@ -432,7 +447,7 @@ class GetAddURLAction(APIView):
     permission_classes = [IsAuthenticated, URLActionPerms]
 
     def get(self, request):
-        actions = URLAction.objects.all()
+        actions = URLAction.objects.order_by("name", "id")
         return Response(URLActionSerializer(actions, many=True).data)
 
     def post(self, request):
@@ -575,7 +590,7 @@ class GetAddSchedule(APIView):
     permission_classes = [IsAuthenticated, SchedulePerms]
 
     def get(self, request):
-        schedules = Schedule.objects.all()
+        schedules = Schedule.objects.order_by("name", "id")
         return Response(ScheduleSerializer(schedules, many=True).data)
 
     def post(self, request):
@@ -721,6 +736,16 @@ def status_v2(request):
         celery_queue_health = "unhealthy"
         logger.error(f"Error getting celery queue length: {e}")
 
+    # -1 = nunca se registro un latido, o redis no responde
+    celery_heartbeat_age = -1
+    celery_heartbeat_health = "unhealthy"
+    with suppress(Exception):
+        last_heartbeat = cache.get(CELERY_HEARTBEAT_CACHE_KEY)
+        if last_heartbeat is not None:
+            celery_heartbeat_age = int(djangotime.now().timestamp()) - last_heartbeat
+            if celery_heartbeat_age <= CELERY_HEARTBEAT_MAX_AGE:
+                celery_heartbeat_health = "healthy"
+
     nats_std_port, nats_ws_port = get_nats_ports()
     mesh_port = getattr(settings, "MESH_PORT", 4430)
 
@@ -737,6 +762,8 @@ def status_v2(request):
         "redis_ping": redis_ping,
         "celery_queue_len": queue_len,
         "celery_queue_health": celery_queue_health,
+        "celery_heartbeat_age": celery_heartbeat_age,
+        "celery_heartbeat_health": celery_heartbeat_health,
         "nats_std_ping": localhost_port_is_open(nats_std_port),
         "nats_ws_ping": localhost_port_is_open(nats_ws_port),
         "mesh_ping": localhost_port_is_open(mesh_port),

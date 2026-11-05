@@ -89,7 +89,8 @@
     "eraseCertificates": "Erase certificates",
     "eraseIntake": "Asset intake",
     "eraseOrders": "Erase orders",
-    "activityLive": "Live monitoring"
+    "activityLive": "Live monitoring",
+    "storageMedia": "Storage media"
   },
   "setup": {
     "gettingStarted": "Getting Started",
@@ -506,7 +507,13 @@
     "weekday3": "Thursday",
     "weekday4": "Friday",
     "weekday5": "Saturday",
-    "weekday6": "Sunday"
+    "weekday6": "Sunday",
+    "eraseAttachmentRetentionDays": "Erase attachment retention (days)",
+    "eraseAttachmentRetentionDaysHint": "Inheritable floor: each client may ask for more, never less. Legal minimum 366 days. The certificate is permanent and never expires.",
+    "eraseAttachmentPruneEnabled": "Purge expired attachments",
+    "eraseAttachmentPruneEnabledHint": "When off, the purge still runs hourly but only RECORDS how much it would delete, deleting nothing. When on, it deletes the file and keeps the row with its hash. This is irreversible.",
+    "erasePublicVerifyEnabled": "Expose public certificate verification",
+    "erasePublicVerifyEnabledHint": "Opens a public page at /verificar/, with no authentication, where a third party checks a certificate by its identifier. It shows no customer, device or serial. Tell the customer before turning it on."
   },
   "bulkAction": {
     "close": "Close",
@@ -758,7 +765,8 @@
       "graphics": "Graphics",
       "desktopMonitor": "Monitors",
       "networkAdapter": "Network Adapters",
-      "encryption": "Encryption"
+      "encryption": "Encryption",
+      "storageMedia": "Media"
     },
     "debug": "Debug",
     "audit": "Audit",
@@ -1020,7 +1028,9 @@
     "manageAssetIntake": "Manage asset intake",
     "retrieveFiles": "Retrieve files (before wiping)",
     "viewActivity": "View activity monitoring",
-    "manageActivity": "Turn activity monitoring on/off"
+    "manageActivity": "Turn activity monitoring on/off",
+    "assignableRoles": "Roles it can grant",
+    "assignableRolesHint": "Empty means it cannot grant any role. It will never be able to grant one with permissions this role lacks."
   },
   "uiConfirmDialog": {
     "yes": "Yes",
@@ -3433,7 +3443,21 @@
       "documentHash": "Document hash",
       "signatureAlg": "Signature algorithm",
       "signingKeyId": "Signing key ID",
-      "loadError": "Could not load the certificate"
+      "loadError": "Could not load the certificate",
+      "make": "Manufacturer",
+      "model": "Model",
+      "hostname": "Device network name",
+      "verificationMethod": "How it was verified",
+      "verificationEvidence": "Verification record",
+      "disposition": "Final media disposition",
+      "dispositionDetail": "Disposition detail",
+      "concurrenceName": "Concurrence (second person)",
+      "concurrenceRole": "Concurrence role",
+      "concurrenceContact": "Concurrence contact",
+      "concurrenceAt": "Concurrence date",
+      "notVerifiedNotice": "This certificate states that the destruction was neither witnessed nor recorded.",
+      "mediaType": "Media type",
+      "mediaOrigin": "Media source"
     },
     "tab": {
       "title": "Erase certificates",
@@ -3458,7 +3482,8 @@
       "colRoutes": "Route",
       "colCreatedAt": "Received",
       "colActions": "Actions",
-      "certifyDestruction": "Certify destruction"
+      "certifyDestruction": "Certify destruction",
+      "colDisposition": "Media disposition"
     },
     "intakeForm": {
       "title": "Asset intake for disposal",
@@ -3475,7 +3500,16 @@
       "required": "Required",
       "physicalRouteNotice": "A non-functional asset or one with no detectable media is routed straight to physical destruction.",
       "save": "Register intake",
-      "created": "Intake recorded ({id})"
+      "created": "Intake recorded ({id})",
+      "equipment": "Enrolled device",
+      "equipmentHint": "Optional. A loose drive has no device attached.",
+      "equipmentMake": "Manufacturer",
+      "equipmentModel": "Model",
+      "disposition": "Final media disposition",
+      "dispositionHint": "Empty = not on record yet",
+      "dispositionDetail": "Disposition detail",
+      "mediaType": "Media type",
+      "mediaTypeHint": "The media to be sanitized or destroyed."
     },
     "certify": {
       "title": "Certify physical destruction",
@@ -3487,7 +3521,18 @@
       "cancel": "Cancel",
       "emit": "Issue certificate",
       "emitted": "Certificate issued ({id})",
-      "error": "Could not issue the certificate"
+      "error": "Could not issue the certificate",
+      "concurrenceSection": "Concurrence (second person)",
+      "concurrenceName": "Name",
+      "concurrenceRole": "Role",
+      "concurrenceContact": "Contact",
+      "verificationMethod": "How the destruction was verified",
+      "verificationEvidence": "Verification record",
+      "verificationEvidenceHint": "Whatever is on record: weight, processor reference, anything available.",
+      "evidenceFile": "Photograph (optional)",
+      "evidenceFileHint": "Image or PDF, up to 15 MB. Not required.",
+      "noVerificationNotice": "Without an accredited method and a named second person, the certificate will state that the destruction was NOT verified. Issuing it that way is correct: what is not acceptable is claiming otherwise.",
+      "witnessRequired": "A witnessed destruction must name who witnessed it."
     },
     "confirmOrder": {
       "title": "Confirm wipe order",
@@ -3533,6 +3578,118 @@
       "colActions": "Actions",
       "filterStatus": "Status",
       "search": "Search the table"
+    },
+    "disposition": {
+      "internal_reuse": "Internal reuse",
+      "external_reuse": "External reuse or donation",
+      "returned": "Returned to owner or lessor",
+      "recycled": "Recycled by an authorized processor",
+      "destroyed": "Physically destroyed",
+      "retained": "Retained in custody",
+      "other": "Other (see detail)"
+    },
+    "verificationMethod": {
+      "none": "No accredited verification",
+      "witnessed": "Witnessed",
+      "photographic": "Photographic record",
+      "weighed": "Destroyed material weighed",
+      "vendor_certificate": "Certificate from the authorized processor"
+    },
+    "verificationResult": {
+      "PASS": "Verified",
+      "NOT_VERIFIED": "No accredited verification"
+    },
+    "mediaType": {
+      "hdd": "Magnetic disk (HDD)",
+      "ssd": "Solid state (SSD)",
+      "nvme": "Solid state NVMe",
+      "optical": "Optical (CD/DVD/Blu-ray)",
+      "tape": "Magnetic tape",
+      "mobile": "Mobile device",
+      "other": "Other"
+    },
+    "custody": {
+      "title": "Chain of custody",
+      "subtitle": "What happened to the asset between intake and certificate",
+      "empty": "This record has no links yet.",
+      "emptyLegacy": "Records created before this version were born without links; no link with a false date is invented.",
+      "chainIntact": "Chain intact",
+      "chainBroken": "Chain broken",
+      "immutableNotice": "A link cannot be edited or deleted. To correct a mistake, add another event.",
+      "add": "Record event",
+      "adding": "Recording…",
+      "added": "Event recorded",
+      "kind": "What happened",
+      "at": "When it happened",
+      "atHint": "When the event occurred, which may be earlier than when you record it.",
+      "actor": "Recorded by",
+      "location": "Where it ended up",
+      "detail": "Detail",
+      "recordHash": "Link hash",
+      "prevHash": "Chains with",
+      "createdAt": "Recorded on",
+      "view": "View custody",
+      "kinds": {
+        "received": "Received into custody",
+        "relocated": "Relocated",
+        "stored": "Stored awaiting disposition",
+        "handed_to_processor": "Handed to external processor",
+        "sanitized": "Media sanitized",
+        "destroyed": "Physically destroyed",
+        "returned": "Returned to owner or lessor"
+      }
+    },
+    "reconciliation": {
+      "title": "Reconciliation",
+      "subtitle": "What came in, what was certified and what is missing, by client and period",
+      "client": "Client",
+      "allClients": "All clients in my scope",
+      "from": "From",
+      "to": "To",
+      "stalledDays": "Flag as stalled after (days)",
+      "stalledHint": "It only flags a missing asset as stalled; it does not change who is missing.",
+      "run": "Calculate",
+      "intakes": "Intakes",
+      "certified": "Certified",
+      "missing": "Missing",
+      "stalled": "Stalled",
+      "missingTitle": "Assets without a certificate",
+      "missingDefinition": "Missing means a record without a certificate, not an old record.",
+      "processId": "Record",
+      "equipmentSerial": "Serial",
+      "receivedAt": "Received on",
+      "daysOpen": "Days open",
+      "lastEvent": "Stopped at",
+      "noEvents": "No links",
+      "empty": "No assets without a certificate in this period.",
+      "loadError": "The reconciliation could not be calculated.",
+      "byClient": "By client"
+    },
+    "retention": {
+      "label": "Attachment retention (days)",
+      "hint": "Days the destruction photo and this client's retrieved files are kept. The certificate is permanent and never expires.",
+      "inherited": "Inherits from server: {days} days",
+      "inheritedHint": "Empty = inherits the server-wide period. It does not mean zero days.",
+      "floorError": "The legal minimum is {days} days"
+    },
+    "intakeScanHint": "You can scan the code with a reader; reading it does not submit the form.",
+    "verify": {
+      "title": "Erasure certificate verification",
+      "subtitle": "Paste the identifier printed on the certificate to check that it is authentic.",
+      "inputLabel": "Certificate identifier",
+      "inputHint": "In the form OE-YYYYMMDD-XXXXXXXXXX",
+      "submit": "Verify",
+      "documentIntact": "Document intact",
+      "signatureValid": "Signature valid",
+      "chainIntact": "Chain intact",
+      "verdictValid": "This certificate is authentic and has not been altered.",
+      "verdictInvalid": "This certificate does not pass verification.",
+      "notFound": "No certificate with that identifier exists on this installation.",
+      "throttled": "Too many requests in a row. Wait a moment and try again.",
+      "offlineNotice": "The signature can also be verified without this site, using the installation's public key:",
+      "offlineLink": "public signing key",
+      "issuedAtLine": "Issued: {value}",
+      "kindLine": "Type: {value}"
     }
   },
   "navRail": {
@@ -3711,5 +3868,85 @@
     "unsaved": "No changes | {n} unsaved change | {n} unsaved changes",
     "noChanges": "No unsaved changes",
     "reset": "Reset"
+  },
+  "storageMedia": {
+    "title": "Storage media",
+    "refresh": "Refresh",
+    "loading": "Loading…",
+    "noData": "No devices to show.",
+    "windowsOnlyNotice": "This panel covers Windows devices only: it is the only platform reporting media in this phase. macOS and Linux devices do not appear here.",
+    "filterVerdict": "Reachable category",
+    "filterClient": "Client",
+    "filterSite": "Site",
+    "colHostname": "Device",
+    "colClient": "Client",
+    "colSite": "Site",
+    "colVerdict": "Reachable category",
+    "colMedia": "System media",
+    "colMeasuredAt": "Last measured",
+    "verdict": {
+      "purge_remote": "Remote purge",
+      "purge_live_image": "Purge via live image",
+      "clear_remote": "Remote clear",
+      "virtual_media": "Virtualized media",
+      "no_category": "No reachable category",
+      "no_data": "No data"
+    },
+    "verdictHelp": {
+      "purge_remote": "The disk is self-encrypting with its key in use: sanitization takes seconds and does not require touching the device.",
+      "purge_live_image": "The firmware accepts a sanitize command, but it requires booting the device outside its operating system.",
+      "clear_remote": "Magnetic media: overwriting does constitute defensible sanitization.",
+      "virtual_media": "The real medium is elsewhere. No category of the standard applies to the disk the operating system sees.",
+      "no_category": "Measured, and no category is reachable: only partial path-based sanitization remains.",
+      "no_data": "Unknown. This is not the same as «no path available»: this device has not reported, or the query failed."
+    },
+    "mediaType": {
+      "0": "Unspecified",
+      "3": "Magnetic (platters)",
+      "4": "Solid state",
+      "5": "Storage class memory",
+      "unknown": "Unknown"
+    },
+    "busType": {
+      "3": "ATA",
+      "7": "USB",
+      "8": "RAID",
+      "10": "SAS",
+      "11": "SATA",
+      "15": "Virtual (file backed)",
+      "16": "Storage Spaces",
+      "17": "NVMe",
+      "unknown": "Unknown"
+    },
+    "selfEncrypting": {
+      "0": "Not capable",
+      "1": "Capable, not enabled",
+      "2": "Enabled",
+      "unknown": "Not determined"
+    },
+    "detail": {
+      "title": "Device disks",
+      "systemDisk": "System disk",
+      "model": "Model",
+      "manufacturer": "Manufacturer",
+      "serial": "Serial number",
+      "firmware": "Firmware",
+      "capacity": "Capacity",
+      "bus": "Bus",
+      "mediaType": "Media type",
+      "spindleSpeed": "Spindle speed",
+      "selfEncrypting": "Self-encryption",
+      "sanitizeCapabilities": "Sanitize commands",
+      "measuredAt": "Measured",
+      "notProbed": "Capabilities were not probed for this disk.",
+      "queryError": "The storage media inventory for this device could not be read.",
+      "noMedia": "This device has not reported its disks yet.",
+      "pair": "{label}: {value}"
+    },
+    "warnings": {
+      "overwriteOnSolidState": "This device has a solid state disk: overwriting does NOT constitute defensible sanitization on that medium. The certificate will state the real scope.",
+      "overwriteUnknownMedia": "The medium of this device is unknown, so overwriting cannot be claimed to be defensible on it.",
+      "cryptoEraseUnavailable": "Remote crypto-erase is not available: no inventoried medium supports it."
+    }
   }
 }

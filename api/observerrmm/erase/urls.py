@@ -28,10 +28,27 @@ urlpatterns = [
     path("certificates/<int:pk>/", views.EraseCertificateDetail.as_view()),
     path("certificates/<int:pk>/pdf/", views.EraseCertificatePDF.as_view()),
     path("certificates/<int:pk>/json/", views.EraseCertificateJSON.as_view()),
+    # La clave PUBLICA de firma — sin auth: el destinatario de un certificado es
+    # un tercero sin cuenta en la consola, y una clave publica no es un secreto.
+    path("signing-key/", views.EraseSigningKey.as_view()),
+    # Portal PUBLICO de verificación — la segunda y última ruta sin auth del
+    # módulo, acá al lado de la clave a propósito: son las dos que un tercero
+    # puede tocar. 🪤 `<str:>` y no `<slug:>`: un identificador con formato
+    # inválido TIENE que llegar a la vista para que responda 200. Un conversor
+    # que rebotara en el router daría 404 y volvería a ser el oráculo de
+    # existencia que CA-08 prohíbe, por la puerta de atrás.
+    path("verify/<str:certificate_id>/", views.EraseCertificateVerify.as_view()),
     # Custodia (D)
     path("intake/", views.AssetIntakeList.as_view()),
+    path("intake/<int:pk>/", views.AssetIntakeDetail.as_view()),
     path(
         "intake/<int:pk>/certify-destruction/",
         views.AssetIntakeCertifyDestruction.as_view(),
     ),
+    # Cadena de custodia del activo (feature 053 · ola 2 · RF-06). Sin PUT,
+    # PATCH ni DELETE: un eslabon es inmutable y se corrige anadiendo otro.
+    path("intake/<int:pk>/custody/", views.IntakeCustodyEvents.as_view()),
+    # Reconciliacion (RF-07). Autenticada SIEMPRE: enumerar bajas de un cliente
+    # es justo lo que L-02 prohibio para el verificador publico.
+    path("reconciliation/", views.ReconciliationReport.as_view()),
 ]

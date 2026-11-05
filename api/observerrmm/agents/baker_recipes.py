@@ -50,16 +50,28 @@ workstation_agent = agent.extend(
     monitoring_type=AgentMonType.WORKSTATION,
 )
 
+# 🪤 `last_seen` va como CALLABLE, no como valor ya evaluado.
+#
+# Con `last_seen=djangotime.now()` la hora se congela al IMPORTAR este módulo, y
+# `Agent.status` la compara contra `now()` de verdad con un umbral de 4 minutos
+# (`offline_time`). La suite tarda más de ocho minutos, así que un agente creado
+# con la receta "online" pasa a calificar como OFFLINE en cuanto el test que lo
+# usa corre pasado el minuto 4. Con pytest-randomly el orden cambia en cada
+# corrida, de modo que el mismo commit pasa o falla según dónde caigan los tests
+# que miran el estado: CI rojo al azar, sin que nadie haya tocado el código.
+#
+# model_bakery llama a los callables al crear cada objeto, así que esto fija la
+# hora en el momento del test y no en el de la importación.
 online_agent = agent.extend(
-    last_seen=djangotime.now(), services=get_win_svcs(), wmi_detail=get_wmi_data()
+    last_seen=djangotime.now, services=get_win_svcs(), wmi_detail=get_wmi_data()
 )
 
 offline_agent = agent.extend(
-    last_seen=djangotime.now() - djangotime.timedelta(minutes=7)
+    last_seen=lambda: djangotime.now() - djangotime.timedelta(minutes=7)
 )
 
 overdue_agent = agent.extend(
-    last_seen=djangotime.now() - djangotime.timedelta(minutes=35)
+    last_seen=lambda: djangotime.now() - djangotime.timedelta(minutes=35)
 )
 
 agent_with_services = agent.extend(

@@ -16,6 +16,7 @@ from autotasks.models import AutomatedTask, TaskResult
 from observerrmm.celery import app
 from observerrmm.constants import AGENT_STATUS_ONLINE, ORPHANED_WIN_TASK_LOCK
 from observerrmm.helpers import rand_range, setup_nats_options
+from observerrmm.nats_utils import nats_request
 from observerrmm.utils import redis_lock
 
 if TYPE_CHECKING:
@@ -105,8 +106,8 @@ def remove_orphaned_win_tasks(self) -> str:
 
         async def _handle_task(nc: "NATSClient", sub, data, names) -> str:
             try:
-                msg = await nc.request(
-                    subject=sub, payload=msgpack.dumps(data), timeout=5
+                msg = await nats_request(
+                    nc=nc, subject=sub, payload=msgpack.dumps(data), timeout=5
                 )
             except TimeoutError:
                 return "timeout"

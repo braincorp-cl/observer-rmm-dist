@@ -168,6 +168,7 @@ module.exports = {
         // (method.<n>, conversion.<n>, ...): el agente manda el número y la
         // consola lo lee, igual que endpointResponse.codes con la 028.
         "src/views/DiskEncryptionView.vue",
+        "src/views/StorageMediaView.vue",
         "src/views/ActivityLiveView.vue",
         // 050 (ola 4-5): gestores y ajustes como páginas.
         "src/views/ScriptsView.vue",
@@ -176,17 +177,20 @@ module.exports = {
         "src/views/SettingsView.vue",
         "src/views/PreferencesView.vue",
         "src/components/agents/DiskEncryptionDetail.vue",
+        "src/components/agents/StorageMediaDetail.vue",
         // Feature 039 · Observer Erase (Bloques C+D + gobernanza B0). Toda la
         // consola nace traducida, con namespace propio (erase.*) y los códigos
         // (kind, action, status, intake.state) redactados por clave: el servidor
         // manda el enum crudo y la consola lo lee, igual que diskEncryption.* con
         // los códigos de WMI.
         "src/views/EraseCertificatesView.vue",
+        "src/views/VerifyCertificateView.vue",
         "src/views/WipeOrdersView.vue",
         "src/components/agents/EraseCertificatesTab.vue",
         "src/components/agents/EraseCertificatesTable.vue",
         "src/components/agents/EraseCertificateDetailDialog.vue",
         "src/components/agents/AssetIntakeForm.vue",
+        "src/components/agents/AssetCustodyTimeline.vue",
         "src/components/agents/ConfirmWipeOrderDialog.vue",
         "src/components/agents/RecoveryWindowDialog.vue",
         "src/components/modals/admin/UserForm.vue",

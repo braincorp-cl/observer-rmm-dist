@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<!-- Pagina generada. No editar a mano: editar el catalogo del producto y regenerar. -->
+<html lang="es" data-title-es="Catálogo de perfiles · Observer RMM" data-title-en="Role catalogue · Observer RMM">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo de perfiles de Observer RMM: roles y permisos</title>
+<meta name="description" content="Los perfiles que Observer RMM trae definidos de fábrica: administrador, técnico nivel 1 y 2, monitoreo, parches, automatización, auditor y custodia, con el detalle de permisos de cada uno.">
+<!-- seo:start -->
+<link rel="canonical" href="https://docs.observer.cl/functions/role_catalog/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0F1A2A">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Observer RMM">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://docs.observer.cl/functions/role_catalog/">
+<meta property="og:title" content="Catálogo de perfiles de Observer RMM: roles y permisos">
+<meta property="og:description" content="Los perfiles que Observer RMM trae definidos de fábrica, con el detalle de permisos de cada uno y las reglas de separación de deberes.">
+<meta property="og:image" content="https://docs.observer.cl/assets/og-observer-rmm.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "TechArticle",
+   "@id": "https://docs.observer.cl/functions/role_catalog/#article",
+   "headline": "Catálogo de perfiles de Observer RMM: roles y permisos",
+   "description": "Los 18 perfiles que Observer RMM trae definidos de fábrica y el detalle de permisos de cada uno.",
+   "inLanguage": ["es-CL", "en"],
+   "dateModified": "2026-10-23",
+   "proficiencyLevel": "Expert",
+   "about": {"@type": "SoftwareApplication", "name": "Observer RMM", "applicationCategory": "BusinessApplication"},
+   "author": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"},
+   "publisher": {"@type": "Organization", "name": "BrainCorp", "url": "https://www.observer.cl/"}
+  }
+ ]
+}
+</script>
+<!-- seo:end -->
+<link rel="stylesheet" href="/assets/style.css?v=5">
+<link href="/assets/favicon.png" rel="icon" type="image/png">
+<style>
+  .role-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); padding: 18px 20px; margin: 18px 0;
+  }
+  .role-card h3 { margin: 0 0 4px; }
+  .role-card .who { color: var(--muted); margin: 0 0 12px; font-size: .96rem; }
+  .perm-count {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--cyan);
+  }
+  ul.perms {
+    columns: 2; column-gap: 28px; margin: 0; padding-left: 18px;
+    font-size: .9rem; color: var(--muted);
+  }
+  ul.perms li { break-inside: avoid; margin: 0 0 3px; }
+  .table-wrap { overflow-x: auto; }
+  @media (max-width: 860px) { ul.perms { columns: 1; } }
+</style>
+<script>
+(function () {
+  var d = document.documentElement;
+  var t = localStorage.getItem('observer-docs-theme');
+  if (t) d.setAttribute('data-theme', t);
+  try { if (localStorage.getItem('observer-docs-rail') === 'collapsed') d.setAttribute('data-rail', 'collapsed'); } catch (e) {}
+  var l = localStorage.getItem('observer-docs-lang') || 'es';
+  d.setAttribute('data-lang', l);
+  d.setAttribute('lang', l);
+  var tt = d.getAttribute('data-title-' + l);
+  if (tt) document.title = tt;
+})();
+</script>
+</head>
+<body>
+<header class="deck">
+  <button class="rail-toggle" id="railToggle" title="Mostrar u ocultar la navegación" aria-label="Mostrar u ocultar la navegación" aria-expanded="true">☰</button>
+  <span class="signal" aria-hidden="true"></span>
+  <a class="brand" href="/"><b>Observer RMM</b><span class="sub">Docs</span></a>
+  <span class="spacer"></span>
+  <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+    <button type="button" data-set-lang="es" aria-pressed="true">ES</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="Cambiar tema / Toggle theme" aria-label="Cambiar tema / Toggle theme">◐</button>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Secciones / Sections">
+    <p class="rail-label"><span class="lang-es">Documentación</span><span class="lang-en">Documentation</span></p>
+    <a href="/"><span class="lang-es">Inicio</span><span class="lang-en">Home</span></a>
+    <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
+    <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
+    <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
+    <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
+    <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
+    <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
+    <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
+    <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/" class="active"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
+    <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
+    <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
+    <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
+    <a href="/faq/"><span class="lang-es">Preguntas frecuentes</span><span class="lang-en">FAQ</span></a>
+  
+  </nav>
+
+  <main>
+    <div class="content">
+      <p class="eyebrow lang-es">Administración</p>
+      <p class="eyebrow lang-en">Administration</p>
+      <h1><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></h1>
+      <p class="lead lang-es">Observer RMM trae <strong>18 perfiles definidos de fábrica</strong>, repartidos en cuatro familias. Cada uno agrupa un subconjunto de los <strong>79 permisos</strong> del motor de roles, pensado para una función concreta del equipo. Son el punto de partida: puedes asignarlos tal cual, ajustarlos o crear los tuyos.</p>
+      <p class="lead lang-en">Observer RMM ships <strong>18 built-in roles</strong> across four families. Each one bundles a subset of the role engine's <strong>79 permissions</strong>, aimed at a concrete job on the team. They are a starting point: assign them as they are, tune them, or create your own.</p>
+
+      <h2 id="como-leer"><span class="lang-es">Cómo leer este catálogo</span><span class="lang-en">How to read this catalogue</span></h2>
+      <p class="lang-es">Un <strong>perfil</strong> (rol) es un conjunto de permisos. A cada usuario se le asigna uno, y su acceso efectivo es el de ese perfil, acotado además a los clientes y sitios que tenga autorizados. El modelo completo está en <a href="/functions/permissions/">Permisos y seguridad</a>; acá se documenta <em>qué trae cada perfil</em>.</p>
+      <p class="lang-en">A <strong>role</strong> is a set of permissions. Each user is assigned one, and their effective access is that of the role, further limited to the clients and sites they are authorized for. The full model lives in <a href="/functions/permissions/">Permissions &amp; security</a>; this page documents <em>what each role contains</em>.</p>
+      <p class="lang-es">Los nombres de permiso son exactamente los que aparecen en <strong>Configuración → Gestor de permisos</strong> de la consola, para que puedas comparar casilla por casilla.</p>
+      <p class="lang-en">Permission names are exactly the ones shown under <strong>Settings → Permissions manager</strong> in the console, so you can compare them checkbox by checkbox.</p>
+
+      <h2 id="resumen"><span class="lang-es">Los 18 perfiles de un vistazo</span><span class="lang-en">The 18 roles at a glance</span></h2>
+      <div class="table-wrap"><table><thead><tr><th><span class="lang-es">Perfil</span><span class="lang-en">Role</span></th><th><span class="lang-es">Familia</span><span class="lang-en">Family</span></th><th><span class="lang-es">Para qué sirve</span><span class="lang-en">What it is for</span></th><th style="text-align:right"><span class="lang-es">Permisos</span><span class="lang-en">Permissions</span></th></tr></thead><tbody>
+<tr><td><a href="#rol-administrador-de-plataforma"><strong>Administrador de Plataforma</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Gobierno de la plataforma</span><span class="lang-en">Platform governance</span></td><td><span class="lang-es">Administra la plataforma completa: usuarios, roles, ajustes del servidor, scripts, claves y llaves de API. No incluye custodia.</span><span class="lang-en">Administers the whole platform: users, roles, server settings, scripts, keystore and API keys. Custody permissions excluded.</span></td><td style="text-align:right">69</td></tr>
+<tr><td><a href="#rol-administrador-de-organizacion"><strong>Administrador de Organización</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Gobierno de la plataforma</span><span class="lang-en">Platform governance</span></td><td><span class="lang-es">Administra su propia organización: flota, sitios, tareas, alertas, parches, informes y las cuentas de su equipo. No gestiona roles ni toca la configuración del servidor.</span><span class="lang-en">Administers their own organization: fleet, sites, tasks, alerts, patching, reports and their team&#x27;s accounts. Cannot manage roles or touch server configuration.</span></td><td style="text-align:right">48</td></tr>
+<tr><td><a href="#rol-supervisor-de-servicio"><strong>Supervisor de Servicio</strong></a></td><td><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></td><td><span class="lang-es">Coordina la mesa de servicio: ve toda la operación y gestiona checks, tareas, alertas, políticas e informes. No administra cuentas.</span><span class="lang-en">Coordinates the service desk: sees the whole operation and manages checks, tasks, alerts, policies and reports. Does not administer accounts.</span></td><td style="text-align:right">44</td></tr>
+<tr><td><a href="#rol-tecnico-de-soporte-nivel-2"><strong>Técnico de Soporte Nivel 2</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></td><td><span class="lang-es">Resuelve incidentes con herramientas avanzadas: control remoto, scripts, línea de comandos, procesos y registro de Windows.</span><span class="lang-en">Resolves incidents with advanced tooling: remote control, scripts, command line, processes and the Windows registry.</span></td><td style="text-align:right">37</td></tr>
+<tr><td><a href="#rol-tecnico-de-soporte-nivel-1"><strong>Técnico de Soporte Nivel 1</strong></a></td><td><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></td><td><span class="lang-es">Atiende la primera línea: control remoto, reinicios, servicios de Windows, instalación de agentes y consulta del inventario técnico.</span><span class="lang-en">Handles the first line: remote control, reboots, Windows services, agent installation and read access to the technical inventory.</span></td><td style="text-align:right">24</td></tr>
+<tr><td><a href="#rol-operador-de-monitoreo"><strong>Operador de Monitoreo</strong></a></td><td><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></td><td><span class="lang-es">Turno de monitoreo (NOC): vigila checks y alertas, ejecuta verificaciones y tareas, y escala. Sin acceso remoto a los equipos.</span><span class="lang-en">Monitoring shift (NOC): watches checks and alerts, runs checks and tasks, and escalates. No remote access to machines.</span></td><td style="text-align:right">22</td></tr>
+<tr><td><a href="#rol-auditor-de-plataforma"><strong>Auditor de Plataforma</strong></a></td><td><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></td><td><span class="lang-es">Acceso de solo lectura a toda la plataforma, incluidos los registros de auditoría. No ejecuta ninguna acción sobre los equipos.</span><span class="lang-en">Read-only access to the whole platform, audit logs included. Performs no action on the machines.</span></td><td style="text-align:right">24</td></tr>
+<tr><td><a href="#rol-administrador-de-parches-y-software"><strong>Administrador de Parches y Software</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></td><td><span class="lang-es">Conduce las campañas de actualización: aprueba e instala parches, gestiona software y coordina los reinicios de la flota.</span><span class="lang-en">Runs update campaigns: approves and installs patches, manages software and coordinates fleet reboots.</span></td><td style="text-align:right">25</td></tr>
+<tr><td><a href="#rol-ingeniero-de-automatizacion"><strong>Ingeniero de Automatización</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></td><td><span class="lang-es">Construye la automatización: scripts, políticas, tareas programadas, campos personalizados y despliegues.</span><span class="lang-en">Builds the automation: scripts, policies, scheduled tasks, custom fields and deployments.</span></td><td style="text-align:right">30</td></tr>
+<tr><td><a href="#rol-gestor-de-inventario-y-activos"><strong>Gestor de Inventario y Activos</strong></a></td><td><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></td><td><span class="lang-es">Mantiene el inventario: clientes, sitios, altas de equipos, campos personalizados y la ficha técnica de cada activo.</span><span class="lang-en">Maintains the inventory: clients, sites, machine intake, custom fields and each asset&#x27;s technical record.</span></td><td style="text-align:right">17</td></tr>
+<tr><td><a href="#rol-analista-de-informes"><strong>Analista de Informes</strong></a></td><td><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></td><td><span class="lang-es">Genera, programa y distribuye los informes de la plataforma, con acceso de lectura a los datos que los alimentan.</span><span class="lang-en">Generates, schedules and distributes platform reports, with read access to the data behind them.</span></td><td style="text-align:right">12</td></tr>
+<tr><td><a href="#rol-integracion-de-solo-lectura"><strong>Integración de Solo Lectura</strong></a></td><td><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></td><td><span class="lang-es">Perfil para llaves de API de sistemas externos (ITSM, CMDB, tableros): lee inventario y estado, no ejecuta nada.</span><span class="lang-en">Profile for external systems&#x27; API keys (ITSM, CMDB, dashboards): reads inventory and status, executes nothing.</span></td><td style="text-align:right">9</td></tr>
+<tr><td><a href="#rol-operador-de-equipos-perdidos"><strong>Operador de Equipos Perdidos</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Opera el caso de un equipo perdido o robado: lo marca, lo bloquea, hace sonar la alarma y muestra mensajes en pantalla.</span><span class="lang-en">Operates the lost or stolen device case: flags it, locks it, sounds the alarm and shows on-screen messages.</span></td><td style="text-align:right">6</td></tr>
+<tr><td><a href="#rol-revisor-de-evidencia"><strong>Revisor de Evidencia</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Revisa la evidencia capturada de un equipo perdido (ubicación, capturas, fotos). No puede operar el caso ni borrar el equipo.</span><span class="lang-en">Reviews the evidence captured from a lost device (location, screenshots, photos). Cannot operate the case or wipe the device.</span></td><td style="text-align:right">3</td></tr>
+<tr><td><a href="#rol-recuperador-de-archivos"><strong>Recuperador de Archivos</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Recupera archivos de un equipo antes de darlo de baja o borrarlo. Permiso dedicado: recuperar no es borrar.</span><span class="lang-en">Retrieves files from a machine before decommissioning or wiping it. Dedicated permission: retrieving is not wiping.</span></td><td style="text-align:right">3</td></tr>
+<tr><td><a href="#rol-ordenante-de-borrado"><strong>Ordenante de Borrado</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Ordena el borrado remoto de un equipo. Es la capacidad más destructiva de la plataforma y no la hereda ningún otro perfil.</span><span class="lang-en">Orders the remote wipe of a machine. The most destructive capability in the platform; no other profile inherits it.</span></td><td style="text-align:right">3</td></tr>
+<tr><td><a href="#rol-auditor-de-custodia"><strong>Auditor de Custodia</strong></a></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Custodia la cadena documental: certificados de borrado y actas de ingreso de activos.</span><span class="lang-en">Keeps the documentary chain: erase certificates and asset intake records.</span></td><td style="text-align:right">4</td></tr>
+<tr><td><a href="#rol-supervisor-de-actividad-laboral"><strong>Supervisor de Actividad Laboral</strong></a> <span class="perm-count">●</span></td><td><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></td><td><span class="lang-es">Consulta y configura el monitoreo de actividad laboral, sujeto a la política de uso aceptable y al consentimiento informado del personal.</span><span class="lang-en">Views and configures employee activity monitoring, subject to the acceptable use policy and to staff&#x27;s informed consent.</span></td><td style="text-align:right">7</td></tr>
+</tbody></table></div>
+      <p class="lang-es"><span class="perm-count">●</span> Perfiles con capacidades de alto impacto: revísalos en cada auditoría de accesos.</p>
+      <p class="lang-en"><span class="perm-count">●</span> Roles with high-impact capabilities: review them in every access audit.</p>
+
+      <div class="callout note lang-es">
+        <span class="tag">Mínimo privilegio</span>
+        <p>Ningún perfil hereda de otro. Si una persona necesita dos funciones —por ejemplo, atender soporte y además ordenar borrados— se le asigna el perfil de su función principal y se evalúa el segundo acceso aparte: así queda registrado y es revocable por separado.</p>
+      </div>
+      <div class="callout note lang-en">
+        <span class="tag">Least privilege</span>
+        <p>No role inherits from another. If a person needs two functions —say, support duty plus ordering wipes— assign the role for their main function and evaluate the second access separately: that way it is recorded and can be revoked on its own.</p>
+      </div>
+
+      <h2 id="familia-gobierno"><span class="lang-es">Gobierno de la plataforma</span><span class="lang-en">Platform governance</span></h2>
+      <p class="lang-es">Quién administra el sistema y a su propia gente. Son los perfiles con más alcance y los que conviene contar con los dedos de una mano.</p>
+      <p class="lang-en">Who administers the system and their own people. These are the widest-reaching roles, and the ones you want to be able to count on one hand.</p>
+      <div class="role-card">
+        <h3 id="rol-administrador-de-plataforma">Administrador de Plataforma</h3>
+        <p class="who"><span class="lang-es">Administra la plataforma completa: usuarios, roles, ajustes del servidor, scripts, claves y llaves de API. No incluye custodia.</span><span class="lang-en">Administers the whole platform: users, roles, server settings, scripts, keystore and API keys. Custody permissions excluded.</span></p>
+        <p class="perm-count"><span class="lang-es">69 permisos</span><span class="lang-en">69 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Usar MeshCentral</li><li>Desinstalar agentes</li><li>Actualizar agentes</li><li>Editar agentes</li><li>Gestionar procesos</li><li>Ver registros de eventos</li><li>Enviar comando</li><li>Apagar / reiniciar agentes</li><li>Instalar agentes</li><li>Ejecutar script</li><li>Acciones masivas</li><li>Recuperar agentes</li><li>Listar historial de agentes</li><li>Encender agentes (WoL)</li><li>Usar registro</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Ver configuración global</li><li>Editar configuración global</li><li>Realizar mantenimiento del servidor</li><li>Gestionar firma de código</li><li>Ejecutar acciones de URL</li><li>Ver campos personalizados</li><li>Editar campos personalizados</li><li>Ejecutar scripts en el servidor Observer</li><li>Usar terminal web del servidor Observer</li><li>Ver almacén de claves global</li><li>Editar almacén de claves global</li><li>Listar programaciones</li><li>Gestionar programaciones</li><li>Listar chequeos</li><li>Gestionar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Gestionar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Gestionar despliegues</li><li>Listar políticas de automatización</li><li>Gestionar políticas de automatización</li><li>Listar tareas</li><li>Gestionar tareas</li><li>Ejecutar tareas</li><li>Ver registros de auditoría</li><li>Listar acciones pendientes</li><li>Gestionar acciones pendientes</li><li>Ver registros de depuración</li><li>Listar scripts</li><li>Gestionar scripts</li><li>Listar alertas</li><li>Gestionar alertas</li><li>Listar plantillas de alerta</li><li>Gestionar plantillas de alerta</li><li>Gestionar servicios de Windows</li><li>Listar software</li><li>Gestionar software</li><li>Gestionar actualizaciones de Windows</li><li>Listar cuentas de usuario</li><li>Gestionar cuentas de usuario</li><li>Listar roles</li><li>Gestionar roles</li><li>Listar claves de API</li><li>Gestionar claves de API</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li><li>Gestor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Use MeshCentral</li><li>Uninstall Agents</li><li>Update Agents</li><li>Edit Agents</li><li>Manage Processes</li><li>View Event Logs</li><li>Send Command</li><li>Shutdown / Reboot Agents</li><li>Install Agents</li><li>Run Script</li><li>Bulk Actions</li><li>Recover Agents</li><li>List Agent History</li><li>Wake-Up (WoL) Agents</li><li>Use Registry</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>View Global Settings</li><li>Edit Global Settings</li><li>Do Server Maintenance</li><li>Manage Code Signing</li><li>Run URL Actions</li><li>View Custom Fields</li><li>Edit Custom Fields</li><li>Run Scripts on Observer Server</li><li>Use Observer Server Web Terminal</li><li>View Global Key Store</li><li>Edit Global Key Store</li><li>List Schedules</li><li>Manage Schedules</li><li>List Checks</li><li>Manage Checks</li><li>Run Checks</li><li>List Clients</li><li>Manage Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>Manage Deployments</li><li>List Automation Policies</li><li>Manage Automation Policies</li><li>List Tasks</li><li>Manage Tasks</li><li>Run Tasks</li><li>View Audit Logs</li><li>List Pending Actions</li><li>Manage Pending Actions</li><li>View Debug Logs</li><li>List Scripts</li><li>Manage Scripts</li><li>List Alerts</li><li>Manage Alerts</li><li>List Alert Templates</li><li>Manage Alert Templates</li><li>Manage Windows Services</li><li>List Software</li><li>Manage Software</li><li>Manage Windows Updates</li><li>List User Accounts</li><li>Manage User Accounts</li><li>List Roles</li><li>Manage Roles</li><li>List API Keys</li><li>Manage API Keys</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li><li>Reporting Manager</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-administrador-de-organizacion">Administrador de Organización</h3>
+        <p class="who"><span class="lang-es">Administra su propia organización: flota, sitios, tareas, alertas, parches, informes y las cuentas de su equipo. No gestiona roles ni toca la configuración del servidor.</span><span class="lang-en">Administers their own organization: fleet, sites, tasks, alerts, patching, reports and their team&#x27;s accounts. Cannot manage roles or touch server configuration.</span></p>
+        <p class="perm-count"><span class="lang-es">48 permisos</span><span class="lang-en">48 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Usar MeshCentral</li><li>Desinstalar agentes</li><li>Actualizar agentes</li><li>Editar agentes</li><li>Instalar agentes</li><li>Apagar / reiniciar agentes</li><li>Acciones masivas</li><li>Listar historial de agentes</li><li>Encender agentes (WoL)</li><li>Ver registros de eventos</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Ver configuración global</li><li>Ver campos personalizados</li><li>Listar chequeos</li><li>Gestionar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Gestionar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Gestionar despliegues</li><li>Listar políticas de automatización</li><li>Listar tareas</li><li>Gestionar tareas</li><li>Ejecutar tareas</li><li>Ver registros de auditoría</li><li>Listar acciones pendientes</li><li>Gestionar acciones pendientes</li><li>Ver registros de depuración</li><li>Listar scripts</li><li>Listar alertas</li><li>Gestionar alertas</li><li>Listar plantillas de alerta</li><li>Gestionar plantillas de alerta</li><li>Gestionar servicios de Windows</li><li>Listar software</li><li>Gestionar software</li><li>Gestionar actualizaciones de Windows</li><li>Listar cuentas de usuario</li><li>Gestionar cuentas de usuario</li><li>Listar roles</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li><li>Gestor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Use MeshCentral</li><li>Uninstall Agents</li><li>Update Agents</li><li>Edit Agents</li><li>Install Agents</li><li>Shutdown / Reboot Agents</li><li>Bulk Actions</li><li>List Agent History</li><li>Wake-Up (WoL) Agents</li><li>View Event Logs</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>View Global Settings</li><li>View Custom Fields</li><li>List Checks</li><li>Manage Checks</li><li>Run Checks</li><li>List Clients</li><li>Manage Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>Manage Deployments</li><li>List Automation Policies</li><li>List Tasks</li><li>Manage Tasks</li><li>Run Tasks</li><li>View Audit Logs</li><li>List Pending Actions</li><li>Manage Pending Actions</li><li>View Debug Logs</li><li>List Scripts</li><li>List Alerts</li><li>Manage Alerts</li><li>List Alert Templates</li><li>Manage Alert Templates</li><li>Manage Windows Services</li><li>List Software</li><li>Manage Software</li><li>Manage Windows Updates</li><li>List User Accounts</li><li>Manage User Accounts</li><li>List Roles</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li><li>Reporting Manager</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+
+      <h2 id="familia-operacion"><span class="lang-es">Operación y mesa de servicio</span><span class="lang-en">Operations and service desk</span></h2>
+      <p class="lang-es">El día a día: atender incidentes, tomar control remoto, vigilar alertas y revisar lo que pasó.</p>
+      <p class="lang-en">Day to day: handling incidents, taking remote control, watching alerts and reviewing what happened.</p>
+      <div class="role-card">
+        <h3 id="rol-supervisor-de-servicio">Supervisor de Servicio</h3>
+        <p class="who"><span class="lang-es">Coordina la mesa de servicio: ve toda la operación y gestiona checks, tareas, alertas, políticas e informes. No administra cuentas.</span><span class="lang-en">Coordinates the service desk: sees the whole operation and manages checks, tasks, alerts, policies and reports. Does not administer accounts.</span></p>
+        <p class="perm-count"><span class="lang-es">44 permisos</span><span class="lang-en">44 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Usar MeshCentral</li><li>Actualizar agentes</li><li>Editar agentes</li><li>Instalar agentes</li><li>Apagar / reiniciar agentes</li><li>Ejecutar script</li><li>Acciones masivas</li><li>Listar historial de agentes</li><li>Encender agentes (WoL)</li><li>Ver registros de eventos</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Ver configuración global</li><li>Ver campos personalizados</li><li>Listar programaciones</li><li>Listar chequeos</li><li>Gestionar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Listar políticas de automatización</li><li>Gestionar políticas de automatización</li><li>Listar tareas</li><li>Gestionar tareas</li><li>Ejecutar tareas</li><li>Ver registros de auditoría</li><li>Listar acciones pendientes</li><li>Gestionar acciones pendientes</li><li>Listar scripts</li><li>Listar alertas</li><li>Gestionar alertas</li><li>Listar plantillas de alerta</li><li>Gestionar plantillas de alerta</li><li>Gestionar servicios de Windows</li><li>Listar software</li><li>Gestionar software</li><li>Gestionar actualizaciones de Windows</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li><li>Gestor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Use MeshCentral</li><li>Update Agents</li><li>Edit Agents</li><li>Install Agents</li><li>Shutdown / Reboot Agents</li><li>Run Script</li><li>Bulk Actions</li><li>List Agent History</li><li>Wake-Up (WoL) Agents</li><li>View Event Logs</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>View Global Settings</li><li>View Custom Fields</li><li>List Schedules</li><li>List Checks</li><li>Manage Checks</li><li>Run Checks</li><li>List Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>List Automation Policies</li><li>Manage Automation Policies</li><li>List Tasks</li><li>Manage Tasks</li><li>Run Tasks</li><li>View Audit Logs</li><li>List Pending Actions</li><li>Manage Pending Actions</li><li>List Scripts</li><li>List Alerts</li><li>Manage Alerts</li><li>List Alert Templates</li><li>Manage Alert Templates</li><li>Manage Windows Services</li><li>List Software</li><li>Manage Software</li><li>Manage Windows Updates</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li><li>Reporting Manager</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-tecnico-de-soporte-nivel-2">Técnico de Soporte Nivel 2</h3>
+        <p class="who"><span class="lang-es">Resuelve incidentes con herramientas avanzadas: control remoto, scripts, línea de comandos, procesos y registro de Windows.</span><span class="lang-en">Resolves incidents with advanced tooling: remote control, scripts, command line, processes and the Windows registry.</span></p>
+        <p class="perm-count"><span class="lang-es">37 permisos</span><span class="lang-en">37 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Usar MeshCentral</li><li>Desinstalar agentes</li><li>Actualizar agentes</li><li>Editar agentes</li><li>Gestionar procesos</li><li>Ver registros de eventos</li><li>Enviar comando</li><li>Apagar / reiniciar agentes</li><li>Instalar agentes</li><li>Ejecutar script</li><li>Acciones masivas</li><li>Recuperar agentes</li><li>Listar historial de agentes</li><li>Encender agentes (WoL)</li><li>Usar registro</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Ver campos personalizados</li><li>Listar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Listar tareas</li><li>Ejecutar tareas</li><li>Listar acciones pendientes</li><li>Listar scripts</li><li>Listar alertas</li><li>Gestionar servicios de Windows</li><li>Listar software</li><li>Gestionar software</li><li>Gestionar actualizaciones de Windows</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Use MeshCentral</li><li>Uninstall Agents</li><li>Update Agents</li><li>Edit Agents</li><li>Manage Processes</li><li>View Event Logs</li><li>Send Command</li><li>Shutdown / Reboot Agents</li><li>Install Agents</li><li>Run Script</li><li>Bulk Actions</li><li>Recover Agents</li><li>List Agent History</li><li>Wake-Up (WoL) Agents</li><li>Use Registry</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>View Custom Fields</li><li>List Checks</li><li>Run Checks</li><li>List Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>List Tasks</li><li>Run Tasks</li><li>List Pending Actions</li><li>List Scripts</li><li>List Alerts</li><li>Manage Windows Services</li><li>List Software</li><li>Manage Software</li><li>Manage Windows Updates</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-tecnico-de-soporte-nivel-1">Técnico de Soporte Nivel 1</h3>
+        <p class="who"><span class="lang-es">Atiende la primera línea: control remoto, reinicios, servicios de Windows, instalación de agentes y consulta del inventario técnico.</span><span class="lang-en">Handles the first line: remote control, reboots, Windows services, agent installation and read access to the technical inventory.</span></p>
+        <p class="perm-count"><span class="lang-es">24 permisos</span><span class="lang-en">24 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Usar MeshCentral</li><li>Actualizar agentes</li><li>Instalar agentes</li><li>Apagar / reiniciar agentes</li><li>Acciones masivas</li><li>Listar historial de agentes</li><li>Encender agentes (WoL)</li><li>Ver registros de eventos</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Listar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Listar tareas</li><li>Listar acciones pendientes</li><li>Listar alertas</li><li>Gestionar servicios de Windows</li><li>Listar software</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Use MeshCentral</li><li>Update Agents</li><li>Install Agents</li><li>Shutdown / Reboot Agents</li><li>Bulk Actions</li><li>List Agent History</li><li>Wake-Up (WoL) Agents</li><li>View Event Logs</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>List Checks</li><li>List Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>List Tasks</li><li>List Pending Actions</li><li>List Alerts</li><li>Manage Windows Services</li><li>List Software</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-operador-de-monitoreo">Operador de Monitoreo</h3>
+        <p class="who"><span class="lang-es">Turno de monitoreo (NOC): vigila checks y alertas, ejecuta verificaciones y tareas, y escala. Sin acceso remoto a los equipos.</span><span class="lang-en">Monitoring shift (NOC): watches checks and alerts, runs checks and tasks, and escalates. No remote access to machines.</span></p>
+        <p class="perm-count"><span class="lang-es">22 permisos</span><span class="lang-en">22 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Ver registros de eventos</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Listar chequeos</li><li>Gestionar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar tareas</li><li>Ejecutar tareas</li><li>Listar acciones pendientes</li><li>Gestionar acciones pendientes</li><li>Listar alertas</li><li>Gestionar alertas</li><li>Listar plantillas de alerta</li><li>Gestionar plantillas de alerta</li><li>Listar software</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>View Event Logs</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>List Checks</li><li>Manage Checks</li><li>Run Checks</li><li>List Clients</li><li>List Sites</li><li>List Tasks</li><li>Run Tasks</li><li>List Pending Actions</li><li>Manage Pending Actions</li><li>List Alerts</li><li>Manage Alerts</li><li>List Alert Templates</li><li>Manage Alert Templates</li><li>List Software</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-auditor-de-plataforma">Auditor de Plataforma</h3>
+        <p class="who"><span class="lang-es">Acceso de solo lectura a toda la plataforma, incluidos los registros de auditoría. No ejecuta ninguna acción sobre los equipos.</span><span class="lang-en">Read-only access to the whole platform, audit logs included. Performs no action on the machines.</span></p>
+        <p class="perm-count"><span class="lang-es">24 permisos</span><span class="lang-en">24 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Ver registros de eventos</li><li>Listar notas</li><li>Ver configuración global</li><li>Ver campos personalizados</li><li>Listar programaciones</li><li>Listar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar despliegues</li><li>Listar políticas de automatización</li><li>Listar tareas</li><li>Ver registros de auditoría</li><li>Listar acciones pendientes</li><li>Ver registros de depuración</li><li>Listar scripts</li><li>Listar alertas</li><li>Listar plantillas de alerta</li><li>Listar software</li><li>Listar cuentas de usuario</li><li>Listar roles</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>View Event Logs</li><li>List Notes</li><li>View Global Settings</li><li>View Custom Fields</li><li>List Schedules</li><li>List Checks</li><li>List Clients</li><li>List Sites</li><li>List Deployments</li><li>List Automation Policies</li><li>List Tasks</li><li>View Audit Logs</li><li>List Pending Actions</li><li>View Debug Logs</li><li>List Scripts</li><li>List Alerts</li><li>List Alert Templates</li><li>List Software</li><li>List User Accounts</li><li>List Roles</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+      </div>
+
+      <h2 id="familia-especialista"><span class="lang-es">Especialistas</span><span class="lang-en">Specialists</span></h2>
+      <p class="lang-es">Funciones que concentran una disciplina —parches, automatización, inventario, informes— sin necesitar el resto de la plataforma.</p>
+      <p class="lang-en">Functions centred on one discipline —patching, automation, inventory, reporting— without needing the rest of the platform.</p>
+      <div class="role-card">
+        <h3 id="rol-administrador-de-parches-y-software">Administrador de Parches y Software</h3>
+        <p class="who"><span class="lang-es">Conduce las campañas de actualización: aprueba e instala parches, gestiona software y coordina los reinicios de la flota.</span><span class="lang-en">Runs update campaigns: approves and installs patches, manages software and coordinates fleet reboots.</span></p>
+        <p class="perm-count"><span class="lang-es">25 permisos</span><span class="lang-en">25 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Ver registros de eventos</li><li>Apagar / reiniciar agentes</li><li>Acciones masivas</li><li>Ejecutar script</li><li>Enviar mensajes en pantalla</li><li>Listar notas</li><li>Gestionar notas</li><li>Listar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar tareas</li><li>Gestionar tareas</li><li>Ejecutar tareas</li><li>Listar acciones pendientes</li><li>Gestionar acciones pendientes</li><li>Listar scripts</li><li>Listar alertas</li><li>Listar software</li><li>Gestionar software</li><li>Gestionar actualizaciones de Windows</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>View Event Logs</li><li>Shutdown / Reboot Agents</li><li>Bulk Actions</li><li>Run Script</li><li>Send on-screen messages</li><li>List Notes</li><li>Manage Notes</li><li>List Checks</li><li>Run Checks</li><li>List Clients</li><li>List Sites</li><li>List Tasks</li><li>Manage Tasks</li><li>Run Tasks</li><li>List Pending Actions</li><li>Manage Pending Actions</li><li>List Scripts</li><li>List Alerts</li><li>List Software</li><li>Manage Software</li><li>Manage Windows Updates</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-ingeniero-de-automatizacion">Ingeniero de Automatización</h3>
+        <p class="who"><span class="lang-es">Construye la automatización: scripts, políticas, tareas programadas, campos personalizados y despliegues.</span><span class="lang-en">Builds the automation: scripts, policies, scheduled tasks, custom fields and deployments.</span></p>
+        <p class="perm-count"><span class="lang-es">30 permisos</span><span class="lang-en">30 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Ejecutar script</li><li>Acciones masivas</li><li>Ejecutar acciones de URL</li><li>Ver campos personalizados</li><li>Editar campos personalizados</li><li>Listar programaciones</li><li>Gestionar programaciones</li><li>Ver almacén de claves global</li><li>Listar chequeos</li><li>Gestionar chequeos</li><li>Ejecutar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar despliegues</li><li>Gestionar despliegues</li><li>Listar políticas de automatización</li><li>Gestionar políticas de automatización</li><li>Listar tareas</li><li>Gestionar tareas</li><li>Ejecutar tareas</li><li>Listar acciones pendientes</li><li>Ver registros de depuración</li><li>Listar scripts</li><li>Gestionar scripts</li><li>Listar alertas</li><li>Listar software</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>Run Script</li><li>Bulk Actions</li><li>Run URL Actions</li><li>View Custom Fields</li><li>Edit Custom Fields</li><li>List Schedules</li><li>Manage Schedules</li><li>View Global Key Store</li><li>List Checks</li><li>Manage Checks</li><li>Run Checks</li><li>List Clients</li><li>List Sites</li><li>List Deployments</li><li>Manage Deployments</li><li>List Automation Policies</li><li>Manage Automation Policies</li><li>List Tasks</li><li>Manage Tasks</li><li>Run Tasks</li><li>List Pending Actions</li><li>View Debug Logs</li><li>List Scripts</li><li>Manage Scripts</li><li>List Alerts</li><li>List Software</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-gestor-de-inventario-y-activos">Gestor de Inventario y Activos</h3>
+        <p class="who"><span class="lang-es">Mantiene el inventario: clientes, sitios, altas de equipos, campos personalizados y la ficha técnica de cada activo.</span><span class="lang-en">Maintains the inventory: clients, sites, machine intake, custom fields and each asset&#x27;s technical record.</span></p>
+        <p class="perm-count"><span class="lang-es">17 permisos</span><span class="lang-en">17 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Editar agentes</li><li>Listar historial de agentes</li><li>Listar notas</li><li>Gestionar notas</li><li>Ver campos personalizados</li><li>Editar campos personalizados</li><li>Listar clientes</li><li>Gestionar clientes</li><li>Listar sitios</li><li>Gestionar sitios</li><li>Listar despliegues</li><li>Gestionar despliegues</li><li>Gestionar ingreso de activos</li><li>Listar software</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Edit Agents</li><li>List Agent History</li><li>List Notes</li><li>Manage Notes</li><li>View Custom Fields</li><li>Edit Custom Fields</li><li>List Clients</li><li>Manage Clients</li><li>List Sites</li><li>Manage Sites</li><li>List Deployments</li><li>Manage Deployments</li><li>Manage asset intake</li><li>List Software</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-analista-de-informes">Analista de Informes</h3>
+        <p class="who"><span class="lang-es">Genera, programa y distribuye los informes de la plataforma, con acceso de lectura a los datos que los alimentan.</span><span class="lang-en">Generates, schedules and distributes platform reports, with read access to the data behind them.</span></p>
+        <p class="perm-count"><span class="lang-es">12 permisos</span><span class="lang-en">12 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Listar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar tareas</li><li>Ver registros de auditoría</li><li>Listar alertas</li><li>Listar software</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li><li>Gestor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>List Checks</li><li>List Clients</li><li>List Sites</li><li>List Tasks</li><li>View Audit Logs</li><li>List Alerts</li><li>List Software</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li><li>Reporting Manager</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-integracion-de-solo-lectura">Integración de Solo Lectura</h3>
+        <p class="who"><span class="lang-es">Perfil para llaves de API de sistemas externos (ITSM, CMDB, tableros): lee inventario y estado, no ejecuta nada.</span><span class="lang-en">Profile for external systems&#x27; API keys (ITSM, CMDB, dashboards): reads inventory and status, executes nothing.</span></p>
+        <p class="perm-count"><span class="lang-es">9 permisos</span><span class="lang-en">9 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Listar historial de agentes</li><li>Listar chequeos</li><li>Listar clientes</li><li>Listar sitios</li><li>Listar tareas</li><li>Listar alertas</li><li>Listar software</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>List Agent History</li><li>List Checks</li><li>List Clients</li><li>List Sites</li><li>List Tasks</li><li>List Alerts</li><li>List Software</li><li>Reporting Viewer</li></ul>
+      </div>
+
+      <h2 id="familia-custodia"><span class="lang-es">Custodia y respuesta</span><span class="lang-en">Custody and response</span></h2>
+      <p class="lang-es">Capacidades irreversibles o sensibles para la privacidad. Se asignan de a una, a una persona concreta y por el tiempo que dure el caso.</p>
+      <p class="lang-en">Irreversible or privacy-sensitive capabilities. Assigned one at a time, to a specific person, and for as long as the case lasts.</p>
+      <div class="role-card">
+        <h3 id="rol-operador-de-equipos-perdidos">Operador de Equipos Perdidos</h3>
+        <p class="who"><span class="lang-es">Opera el caso de un equipo perdido o robado: lo marca, lo bloquea, hace sonar la alarma y muestra mensajes en pantalla.</span><span class="lang-en">Operates the lost or stolen device case: flags it, locks it, sounds the alarm and shows on-screen messages.</span></p>
+        <p class="perm-count"><span class="lang-es">6 permisos</span><span class="lang-en">6 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Marcar equipos como perdidos</li><li>Enviar mensajes en pantalla</li><li>Bloquear pantalla</li><li>Hacer sonar la alarma</li><li>Usar asistentes de IA (MCP)</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Mark devices as lost</li><li>Send on-screen messages</li><li>Lock screen</li><li>Sound the alarm</li><li>Use AI assistants (MCP)</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-revisor-de-evidencia">Revisor de Evidencia</h3>
+        <p class="who"><span class="lang-es">Revisa la evidencia capturada de un equipo perdido (ubicación, capturas, fotos). No puede operar el caso ni borrar el equipo.</span><span class="lang-en">Reviews the evidence captured from a lost device (location, screenshots, photos). Cannot operate the case or wipe the device.</span></p>
+        <p class="perm-count"><span class="lang-es">3 permisos</span><span class="lang-en">3 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Ver evidencia de equipos perdidos</li><li>Usar asistentes de IA (MCP)</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>View lost device evidence</li><li>Use AI assistants (MCP)</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-recuperador-de-archivos">Recuperador de Archivos</h3>
+        <p class="who"><span class="lang-es">Recupera archivos de un equipo antes de darlo de baja o borrarlo. Permiso dedicado: recuperar no es borrar.</span><span class="lang-en">Retrieves files from a machine before decommissioning or wiping it. Dedicated permission: retrieving is not wiping.</span></p>
+        <p class="perm-count"><span class="lang-es">3 permisos</span><span class="lang-en">3 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Recuperar archivos (antes de borrar)</li><li>Usar asistentes de IA (MCP)</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Retrieve files (before wiping)</li><li>Use AI assistants (MCP)</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-ordenante-de-borrado">Ordenante de Borrado</h3>
+        <p class="who"><span class="lang-es">Ordena el borrado remoto de un equipo. Es la capacidad más destructiva de la plataforma y no la hereda ningún otro perfil.</span><span class="lang-en">Orders the remote wipe of a machine. The most destructive capability in the platform; no other profile inherits it.</span></p>
+        <p class="perm-count"><span class="lang-es">3 permisos</span><span class="lang-en">3 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Ordenar borrado de equipos</li><li>Usar asistentes de IA (MCP)</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>Order device wipes</li><li>Use AI assistants (MCP)</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-auditor-de-custodia">Auditor de Custodia</h3>
+        <p class="who"><span class="lang-es">Custodia la cadena documental: certificados de borrado y actas de ingreso de activos.</span><span class="lang-en">Keeps the documentary chain: erase certificates and asset intake records.</span></p>
+        <p class="perm-count"><span class="lang-es">4 permisos</span><span class="lang-en">4 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Ver certificados de borrado</li><li>Gestionar ingreso de activos</li><li>Usar asistentes de IA (MCP)</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>View erase certificates</li><li>Manage asset intake</li><li>Use AI assistants (MCP)</li></ul>
+      </div>
+      <div class="role-card">
+        <h3 id="rol-supervisor-de-actividad-laboral">Supervisor de Actividad Laboral</h3>
+        <p class="who"><span class="lang-es">Consulta y configura el monitoreo de actividad laboral, sujeto a la política de uso aceptable y al consentimiento informado del personal.</span><span class="lang-en">Views and configures employee activity monitoring, subject to the acceptable use policy and to staff&#x27;s informed consent.</span></p>
+        <p class="perm-count"><span class="lang-es">7 permisos</span><span class="lang-en">7 permissions</span></p>
+        <ul class="perms lang-es"><li>Listar agentes</li><li>Ver monitoreo de actividad</li><li>Encender/apagar monitoreo de actividad</li><li>Listar clientes</li><li>Listar sitios</li><li>Usar asistentes de IA (MCP)</li><li>Visor de informes</li></ul>
+        <ul class="perms lang-en"><li>List Agents</li><li>View activity monitoring</li><li>Turn activity monitoring on/off</li><li>List Clients</li><li>List Sites</li><li>Use AI assistants (MCP)</li><li>Reporting Viewer</li></ul>
+        <div class="callout warn lang-es"><span class="tag">Alto impacto</span><p>Este perfil otorga capacidades que conviene mantener acotadas a pocas personas y revisar periódicamente.</p></div>
+        <div class="callout warn lang-en"><span class="tag">High impact</span><p>This role grants capabilities worth keeping limited to a few people and reviewing regularly.</p></div>
+      </div>
+
+      <h2 id="separacion-de-deberes"><span class="lang-es">Lo que no hereda nadie</span><span class="lang-en">What nobody inherits</span></h2>
+      <p class="lang-es">Cinco capacidades quedan <strong>fuera de todos los perfiles administrativos</strong>, incluido <em>Administrador de Plataforma</em>, y solo existen en la familia de custodia: ordenar un <strong>borrado remoto</strong>, <strong>recuperar archivos</strong> de un equipo, ver la <strong>evidencia</strong> capturada de un equipo perdido, operar el <strong>modo perdido</strong> y consultar o configurar el <strong>monitoreo de actividad laboral</strong>.</p>
+      <p class="lang-en">Five capabilities are <strong>excluded from every administrative role</strong>, <em>Platform Administrator</em> included, and exist only in the custody family: ordering a <strong>remote wipe</strong>, <strong>retrieving files</strong> from a machine, viewing the <strong>evidence</strong> captured from a lost device, operating <strong>lost mode</strong>, and viewing or configuring <strong>employee activity monitoring</strong>.</p>
+      <p class="lang-es">No es una omisión: es separación de deberes. Son acciones irreversibles o con impacto sobre la privacidad de una persona, y deben requerir una asignación explícita y auditable, no caer por arrastre en quien administra la plataforma.</p>
+      <p class="lang-en">That is not an oversight: it is separation of duties. These are irreversible actions, or actions that affect a person's privacy, and they must require an explicit, auditable assignment instead of arriving as a side effect of administering the platform.</p>
+
+      <h2 id="instalacion"><span class="lang-es">Cómo llegan los perfiles a tu instancia</span><span class="lang-en">How the roles reach your instance</span></h2>
+      <p class="lang-es">Se siembran solos. Cada actualización de la plataforma ejecuta el sembrado del catálogo, que es <strong>idempotente y no destructivo</strong>:</p>
+      <p class="lang-en">They seed themselves. Every platform update runs the catalogue seeding, which is <strong>idempotent and non-destructive</strong>:</p>
+      <ul class="lang-es">
+        <li>Si el perfil <strong>no existe</strong>, se crea con sus permisos canónicos.</li>
+        <li>Si el perfil <strong>ya existe</strong>, no se toca. Desde el momento en que está creado, es tuyo: puedes renombrar sus permisos, asignarle usuarios o eliminarlo, y las actualizaciones dejan de modificarlo.</li>
+        <li>Ningún perfil del catálogo se crea como superusuario.</li>
+      </ul>
+      <ul class="lang-en">
+        <li>If the role <strong>does not exist</strong>, it is created with its canonical permissions.</li>
+        <li>If the role <strong>already exists</strong>, it is left alone. Once created, it is yours: you can change its permissions, assign users to it or delete it, and updates stop touching it.</li>
+        <li>No catalogue role is created as a superuser.</li>
+      </ul>
+      <p class="lang-es">Si quieres volver a dejar un perfil exactamente como lo define el catálogo —por ejemplo, después de haberlo ajustado y querer revertir—, pídelo a soporte: existe una opción de realineado que se aplica perfil por perfil.</p>
+      <p class="lang-en">If you want to reset a role back to exactly what the catalogue defines —say, after tuning it and wanting to revert— ask support: there is a realignment option that applies role by role.</p>
+
+      <h2 id="delegacion"><span class="lang-es">Delegar la creación de usuarios</span><span class="lang-en">Delegating user creation</span></h2>
+      <p class="lang-es">El perfil <em>Administrador de Organización</em> existe para que el cliente administre su propio equipo sin depender del proveedor: puede crear usuarios y asignarles un perfil, pero no puede crear ni editar perfiles.</p>
+      <p class="lang-en">The <em>Organization Administrator</em> role exists so the customer can administer their own team without depending on the provider: they can create users and assign them a role, but cannot create or edit roles.</p>
+      <div class="callout warn lang-es">
+        <span class="tag">Importante</span>
+        <p>Hoy, quien puede <strong>gestionar cuentas de usuario</strong> y <strong>listar roles</strong> ve en el selector <em>todos</em> los perfiles de la instancia, incluidos los más privilegiados. Mientras no entregue la restricción por perfil asignable, delega este rol solo a personas de confianza del cliente y revisa periódicamente los <strong>registros de auditoría</strong>, que dejan constancia de cada creación de usuario y de cada cambio de perfil.</p>
+      </div>
+      <div class="callout warn lang-en">
+        <span class="tag">Important</span>
+        <p>Today, whoever can <strong>manage user accounts</strong> and <strong>list roles</strong> sees <em>every</em> role of the instance in the selector, the most privileged ones included. Until the assignable-role restriction ships, delegate this role only to trusted people on the customer side and review the <strong>audit logs</strong> regularly — they record every user creation and every role change.</p>
+      </div>
+
+      <footer>
+        <span class="mono">Observer RMM</span><span class="lang-es"> — Documentación operativa y guías para clientes.</span><span class="lang-en"> — Operational documentation and guides for customers.</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var btns = document.querySelectorAll('.lang-toggle [data-set-lang]');
+  function setPressed(l) {
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-set-lang') === l ? 'true' : 'false');
+    }
+  }
+  function apply(l) {
+    d.setAttribute('data-lang', l);
+    d.setAttribute('lang', l);
+    localStorage.setItem('observer-docs-lang', l);
+    var tt = d.getAttribute('data-title-' + l);
+    if (tt) document.title = tt;
+    setPressed(l);
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) { b.addEventListener('click', function () { apply(b.getAttribute('data-set-lang')); }); })(btns[i]);
+  }
+  setPressed(d.getAttribute('data-lang') || 'es');
+
+  var tb = document.getElementById('themeToggle');
+  tb.addEventListener('click', function () {
+    var cur = d.getAttribute('data-theme');
+    var isDark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = isDark ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    localStorage.setItem('observer-docs-theme', next);
+  });
+
+  var rt = document.getElementById('railToggle');
+  if (rt) rt.addEventListener('click', function () {
+    var collapsed = d.getAttribute('data-rail') === 'collapsed';
+    if (collapsed) { d.removeAttribute('data-rail'); } else { d.setAttribute('data-rail', 'collapsed'); }
+    try { localStorage.setItem('observer-docs-rail', collapsed ? 'expanded' : 'collapsed'); } catch (e) {}
+    rt.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+</body>
+</html>

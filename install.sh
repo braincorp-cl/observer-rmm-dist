@@ -3,7 +3,7 @@
 # Observer RMM - instalador interactivo (greenfield, all-in-one, en el propio servidor)
 # =============================================================================
 #
-# Corre EN el servidor del cliente (Ubuntu 22.04/24.04 recien instalado). Pregunta los
+# Corre EN el servidor del cliente (Ubuntu 22.04/24.04/26.04 recien instalado). Pregunta los
 # datos del cliente, deriva lo derivable, valida, arma el inventario y ejecuta los MISMOS
 # playbooks Ansible del dist en modo local. Al final informa las cuentas de acceso.
 # No requiere un clon de GitHub ni un control-plane: el bundle se descarga del CDN.
@@ -19,6 +19,12 @@
 #   --version X.Y.Z      version del bundle (default: la publicada como LATEST)
 #   --bundle ARCHIVO     usar un bundle local (.tar.gz) en vez de descargarlo
 #   --answers ARCHIVO    respuestas en formato KEY=valor (modo no interactivo, ver abajo)
+#   --use-own-cert FULLCHAIN PRIVKEY
+#                        instalar con un certificado propio en vez de emitirlo por ACME.
+#                        No pide credenciales de GoDaddy ni toca el DNS publico, y no exige
+#                        salida a Let's Encrypt. Es la via para un cliente on-premise y para
+#                        restaurar en una maquina nueva con el certificado del respaldo.
+#                        El fullchain debe traer la cadena intermedia y cubrir los 3 FQDN
 #   --yes                no pedir confirmacion final (para --answers)
 #   --verify             solo re-ejecutar el healthcheck y mostrar el resumen (post-reboot)
 #
@@ -33,6 +39,8 @@
 # Claves de --answers (los secretos NUNCA van en el archivo: se leen de variables de
 # entorno OBS_GODADDY_KEY / OBS_GODADDY_SECRET o se preguntan):
 #   OBS_SLUG, OBS_API_FQDN, OBS_RMM_FQDN, OBS_MESH_FQDN, OBS_ACME_EMAIL,
+#   OBS_ADMIN_EMAIL (opcional: email del administrador de la consola; por omision el de
+#                    ACME, y con --use-own-cert admin@<dominio base>),
 #   OBS_PROXY_IP (vacio = sin proxy reverso), OBS_TIMEZONE, OBS_AGENT_VER,
 #   OBS_HUGEPAGES (s/n), OBS_REBOOT (s/n)
 #
@@ -52,6 +60,7 @@ CDN_BASE="${OBS_CDN_BASE:-https://agents.observer.cl/installer}"
 BASE_DIR="${OBS_BASE_DIR:-/opt/observer-installer}"
 LOG_FILE="${OBS_LOG_FILE:-/var/log/observer-install.log}"
 PY_BUILD_VERSION="3.12.15"     # solo si el python3 del sistema es < 3.12 (Ubuntu 22.04)
+                               # 24.04 trae 3.12 y 26.04 trae 3.14: en ambos no se compila nada
 MIN_RAM_KB=7500000             # ~8 GB
 MIN_DISK_GB=40
 
@@ -61,6 +70,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 TOKEN="${OBS_INSTALLER_TOKEN:-}"
 TOKEN_USER="${OBS_INSTALLER_USER:-}"
 WANT_VERSION=""
+CERT_MODE="acme"   # "byo" con --use-own-cert
+OWN_CERT=""
+OWN_KEY=""
+# En modo byo nunca se pregunta el email de ACME, y `set -u` hacia fallar
+# save_answers al escribirlo. Se declara vacia para que exista siempre.
+OBS_ACME_EMAIL="${OBS_ACME_EMAIL:-}"
+# Email del administrador de la consola. Distinto del de ACME aunque suela coincidir:
+# con certificado propio no hay email de ACME del que heredarlo.
+OBS_ADMIN_EMAIL="${OBS_ADMIN_EMAIL:-}"
 LOCAL_BUNDLE=""
 ANSWERS_FILE=""
 ASSUME_YES=0
@@ -115,6 +133,10 @@ while [ $# -gt 0 ]; do
     --version) WANT_VERSION="${2:-}"; shift 2 ;;
     --bundle)  LOCAL_BUNDLE="${2:-}"; shift 2 ;;
     --answers) ANSWERS_FILE="${2:-}"; shift 2 ;;
+    --use-own-cert) CERT_MODE="byo"; OWN_CERT="${2:-}"; OWN_KEY="${3:-}"
+                    # shift 3 con menos de 3 argumentos falla, y con `set -e` mata el
+                    # script antes de llegar a la validacion que explica que falta.
+                    shift "$(( $# < 3 ? $# : 3 ))" ;;
     --yes)     ASSUME_YES=1; shift ;;
     --verify)  VERIFY_ONLY=1; shift ;;
     --update)  UPDATE_MODE=1; shift ;;
@@ -122,10 +144,48 @@ while [ $# -gt 0 ]; do
     --force)   FORCE=1; shift ;;
     --allow-downgrade) ALLOW_DOWNGRADE=1; shift ;;
     --reapply) REAPPLY=1; shift ;;
-    -h|--help) sed -n '2,48p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) sed -n '2,52p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) die "opcion desconocida: $1 (use --help)" ;;
   esac
 done
+
+# --- validacion de --use-own-cert ------------------------------------------------------
+# Se valida ACA y no al escribir el vault: un error de ruta llegaba hasta el vault y
+# escribia un bloque YAML vacio, que Ansible aceptaba y nginx tambien al arrancar. El
+# fallo aparecia recien en el primer handshake TLS, lejos de la causa.
+if [ "$CERT_MODE" = "byo" ]; then
+  [ -n "$OWN_CERT" ] && [ -n "$OWN_KEY" ] \
+    || { echo "ERROR: --use-own-cert necesita DOS rutas: <fullchain.pem> <privkey.pem>" >&2; exit 1; }
+  for f in "$OWN_CERT" "$OWN_KEY"; do
+    [ -s "$f" ] || { echo "ERROR: no existe o esta vacio: $f" >&2; exit 1; }
+    [ -r "$f" ] || { echo "ERROR: sin permiso de lectura: $f" >&2; exit 1; }
+  done
+  if command -v openssl >/dev/null 2>&1; then
+    openssl x509 -in "$OWN_CERT" -noout >/dev/null 2>&1 \
+      || { echo "ERROR: $OWN_CERT no es un certificado PEM valido" >&2; exit 1; }
+    # Pareja cert/clave: si no coinciden, nginx arranca igual y el error aparece recien en
+    # el handshake, cuando ya nadie lo asocia al instalador.
+    #
+    # Se comparan las llaves PUBLICAS y no los modulos: el modulo solo existe en RSA, y
+    # `openssl x509 -modulus` sobre un certificado EC falla. Con `set -o pipefail` ese
+    # fallo mataba el pipeline, y con `set -e` mataba el script entero antes de evaluar
+    # nada — los certificados de Let's Encrypt de este producto son EC, asi que el camino
+    # roto era justamente el normal. `-pubkey`/`-pubout` sirven para RSA, EC y Ed25519.
+    # Los `|| true` son necesarios: sin ellos un openssl que falle vuelve a matar el script.
+    c_pub=$( { openssl x509 -in "$OWN_CERT" -noout -pubkey 2>/dev/null || true; } | openssl md5 2>/dev/null || true)
+    k_pub=$( { openssl pkey -in "$OWN_KEY"  -pubout       2>/dev/null || true; } | openssl md5 2>/dev/null || true)
+    [ -n "$c_pub" ] && [ -n "$k_pub" ] && [ "$c_pub" = "$k_pub" ] \
+      || { echo "ERROR: el certificado y la clave no son pareja ($OWN_CERT / $OWN_KEY)" >&2; exit 1; }
+    # Aviso, no error: un cert vencido instala igual y el operador puede estar
+    # reemplazandolo a proposito en medio de una recuperacion.
+    openssl x509 -in "$OWN_CERT" -noout -checkend 0 >/dev/null 2>&1 \
+      || echo "AVISO: el certificado de $OWN_CERT ya esta vencido" >&2
+    # La cadena intermedia: sin ella los agentes y los moviles fallan aunque el navegador
+    # de escritorio pase, porque trae la intermedia en cache.
+    [ "$(grep -c 'BEGIN CERTIFICATE' "$OWN_CERT")" -ge 2 ] \
+      || echo "AVISO: $OWN_CERT trae un solo certificado; falta la cadena intermedia" >&2
+  fi
+fi
 
 if [ -n "$ANSWERS_FILE" ]; then
   [ -r "$ANSWERS_FILE" ] || die "no se puede leer $ANSWERS_FILE"
@@ -234,8 +294,15 @@ bootstrap() {
   ln -sfn "$NEW_REL" "$BASE_DIR/current"
   save_token
   # Continua el mismo script, ya dentro del bundle (sin --bundle/--token: ya no hacen falta).
+  #
+  # 🪤 Esta lista hay que ampliarla con CADA opcion nueva que afecte la instalacion. Al
+  # agregar --use-own-cert se olvido, y el efecto fue desconcertante: el script re-exec
+  # arrancaba en modo acme, pedia el email de Let's Encrypt y moria por "email invalido"
+  # — sin una sola mencion del certificado propio que se le habia pasado. El sintoma no
+  # apunta a la causa.
   local pass=()
   [ -n "$ANSWERS_FILE" ] && pass+=(--answers "$ANSWERS_FILE")
+  [ "$CERT_MODE" = "byo" ] && pass+=(--use-own-cert "$OWN_CERT" "$OWN_KEY")
   [ "$ASSUME_YES" = 1 ] && pass+=(--yes)
   [ "$VERIFY_ONLY" = 1 ] && pass+=(--verify)
   exec bash "$NEW_REL/install.sh" "${pass[@]}"
@@ -295,8 +362,17 @@ preflight() {
   info "preflight del servidor"
   # shellcheck disable=SC1091
   . /etc/os-release
-  [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?} (requiere Ubuntu 22.04 o 24.04)"
-  case "${VERSION_ID:-}" in 22.04|24.04) ;; *) die "Ubuntu ${VERSION_ID:-?} no soportado (22.04 o 24.04)";; esac
+  # DECISION 2026-11-04 (usuario): las TRES versiones se quedan. Se evaluo cerrar la
+  # compuerta a 26.04 para que toda instalacion nueva naciera ahi, y se descarto: el
+  # argumento era llegar a PostgreSQL 18, y PG 18 NO depende del SO. Verificado contra
+  # el indice real de PGDG, con control negativo --una suite inventada da 404--:
+  # jammy, noble y resolute publican postgresql-18, y hay un servidor propio con
+  # Ubuntu 22.04 corriendo PostgreSQL 18.6 (18.6-1.pgdg22.04+2). Cerrar la compuerta
+  # solo habria rechazado a un cliente que estandariza en 24.04 LTS --lo normal en
+  # infra corporativa-- sin ganar nada en la base de datos. La version que se instala
+  # en una maquina limpia la fija observer_postgresql_version_new_install, no el SO.
+  [ "${ID:-}" = ubuntu ] || die "sistema no soportado: ${PRETTY_NAME:-?} (requiere Ubuntu 22.04, 24.04 o 26.04)"
+  case "${VERSION_ID:-}" in 22.04|24.04|26.04) ;; *) die "Ubuntu ${VERSION_ID:-?} no soportado (22.04, 24.04 o 26.04)";; esac
   case "$(uname -m)" in
     x86_64) ;; aarch64) warn "arquitectura arm64: soportada, pero menos probada que x86_64" ;;
     *) die "arquitectura $(uname -m) no soportada" ;;
@@ -324,8 +400,11 @@ check_egress() {
   local hosts=(
     github.com objects.githubusercontent.com pypi.org files.pythonhosted.org
     registry.npmjs.org deb.nodesource.com apt.postgresql.org nginx.org
-    www.python.org acme-v02.api.letsencrypt.org api.godaddy.com
+    www.python.org
   )
+  # Los origenes de emision solo se exigen en modo acme: un servidor on-premise con
+  # certificado propio no tiene por que alcanzarlos, y pedirselo lo frenaba sin motivo.
+  [ "$CERT_MODE" = "acme" ] && hosts+=(acme-v02.api.letsencrypt.org api.godaddy.com)
   local h bad=()
   for h in "${hosts[@]}"; do
     curl -sS -o /dev/null --connect-timeout 8 --max-time 15 "https://$h/" 2>/dev/null || bad+=("$h")
@@ -361,7 +440,11 @@ load_answers() {
     val="${val%\"}"; val="${val#\"}"
     case "$key" in
       OBS_SLUG|OBS_API_FQDN|OBS_RMM_FQDN|OBS_MESH_FQDN|OBS_ACME_EMAIL|OBS_PROXY_IP|\
-      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE) printf -v "$key" '%s' "$val" ;;
+      OBS_TIMEZONE|OBS_AGENT_VER|OBS_HUGEPAGES|OBS_REBOOT|OBS_BUNDLE|\
+      OBS_ADMIN_EMAIL) printf -v "$key" '%s' "$val" ;;
+      # OBS_CERT_MODE lo escribe save_answers; sin esta rama, --update muere releyendo
+      # el answers.env que escribio el propio install.sh.
+      OBS_CERT_MODE) CERT_MODE="$val" ;;
       OBS_GODADDY_KEY|OBS_GODADDY_SECRET) die "$key no puede ir en el archivo de respuestas (use variable de entorno)" ;;
       *) warn "clave desconocida en respuestas: $key (ignorada)" ;;
     esac
@@ -428,22 +511,39 @@ collect_answers() {
   [ "$OBS_API_FQDN" != "$OBS_RMM_FQDN" ] && [ "$OBS_API_FQDN" != "$OBS_MESH_FQDN" ] && [ "$OBS_RMM_FQDN" != "$OBS_MESH_FQDN" ] \
     || die "los 3 FQDN deben ser distintos"
 
-  ask OBS_ACME_EMAIL "Email de registro Let's Encrypt" "" _email "email invalido"
+  if [ "$CERT_MODE" = "byo" ]; then
+    echo
+    echo "Certificado: aportado por usted (--use-own-cert). Sin ACME y sin tocar el DNS."
+    info "certificado: $OWN_CERT"
+    info "clave:       $OWN_KEY"
+    # Sin email de ACME hay que saber cual es el del administrador de la consola. Si no
+    # lo dieron, se deriva del dominio base en vez de frenar la instalacion.
+    if [ -z "$OBS_ADMIN_EMAIL" ]; then
+      if [ -n "$ANSWERS_FILE" ]; then
+        OBS_ADMIN_EMAIL="admin@$OBS_BASE_DOMAIN"
+        info "email del administrador (derivado): $OBS_ADMIN_EMAIL"
+      else
+        ask OBS_ADMIN_EMAIL "Email del administrador de la consola" "admin@$OBS_BASE_DOMAIN" _email "email invalido"
+      fi
+    fi
+  else
+    ask OBS_ACME_EMAIL "Email de registro Let's Encrypt" "" _email "email invalido"
 
-  echo
-  echo "Certificado: wildcard *.$OBS_BASE_DOMAIN por DNS de GoDaddy (Let's Encrypt)."
-  if [ -z "${OBS_GODADDY_KEY:-}" ]; then
-    [ -n "$ANSWERS_FILE" ] && die "defina OBS_GODADDY_KEY y OBS_GODADDY_SECRET en el entorno"
-    tty_read OBS_GODADDY_KEY "GoDaddy API key" "" 1
-    tty_read OBS_GODADDY_SECRET "GoDaddy API secret" "" 1
+    echo
+    echo "Certificado: wildcard *.$OBS_BASE_DOMAIN por DNS de GoDaddy (Let's Encrypt)."
+    if [ -z "${OBS_GODADDY_KEY:-}" ]; then
+      [ -n "$ANSWERS_FILE" ] && die "defina OBS_GODADDY_KEY y OBS_GODADDY_SECRET en el entorno"
+      tty_read OBS_GODADDY_KEY "GoDaddy API key" "" 1
+      tty_read OBS_GODADDY_SECRET "GoDaddy API secret" "" 1
+    fi
+    local rc=0
+    OBS_GODADDY_ZONE="$(godaddy_zone "$OBS_BASE_DOMAIN")" || rc=$?
+    case "$rc" in
+      0) info "GoDaddy: credenciales OK, zona '$OBS_GODADDY_ZONE'" ;;
+      2) die "GoDaddy rechazo las credenciales (401/403)" ;;
+      *) die "ninguna zona de la cuenta GoDaddy contiene $OBS_BASE_DOMAIN" ;;
+    esac
   fi
-  local rc=0
-  OBS_GODADDY_ZONE="$(godaddy_zone "$OBS_BASE_DOMAIN")" || rc=$?
-  case "$rc" in
-    0) info "GoDaddy: credenciales OK, zona '$OBS_GODADDY_ZONE'" ;;
-    2) die "GoDaddy rechazo las credenciales (401/403)" ;;
-    *) die "ninguna zona de la cuenta GoDaddy contiene $OBS_BASE_DOMAIN" ;;
-  esac
 
   echo
   echo "Si el servidor se publica detras de un proxy reverso (ej. Nginx Proxy Manager),"
@@ -496,7 +596,7 @@ show_summary_and_confirm() {
   Cliente:            $OBS_SLUG
   Consola / API:      https://$OBS_RMM_FQDN  /  https://$OBS_API_FQDN
   MeshCentral:        https://$OBS_MESH_FQDN
-  Certificado:        *.$OBS_BASE_DOMAIN (Let's Encrypt via GoDaddy, zona $OBS_GODADDY_ZONE)
+  Certificado:        $(if [ "$CERT_MODE" = byo ]; then echo "propio: $OWN_CERT"; else echo "*.$OBS_BASE_DOMAIN (Let's Encrypt via GoDaddy, zona $OBS_GODADDY_ZONE)"; fi)
   Proxy reverso:      ${OBS_PROXY_IP:-ninguno (publicacion directa)}
   Zona horaria:       $OBS_TIMEZONE
   Agente ofrecido:    $OBS_AGENT_VER
@@ -521,10 +621,13 @@ python_for_ansible() {
   PYBIN="$BASE_DIR/python/bin/python3.12"
   [ -x "$PYBIN" ] && return
   info "compilando Python $PY_BUILD_VERSION para Ansible (solo Ubuntu 22.04, ~5 min)"
-  run_root apt-get install -y -qq build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
+  run_root apt-get install -y -qq build-essential zlib1g-dev libncurses-dev libgdbm-dev libnss3-dev \
     libssl-dev libreadline-dev libffi-dev libsqlite3-dev libbz2-dev >/dev/null
   local src
-  src="$(mktemp -d)"
+  # -p /var/tmp y no el default de mktemp (/tmp): desde Ubuntu 24.10 /tmp es tmpfs, o
+  # sea RAM, y el arbol de compilacion de CPython pasa de 1 GB. En un servidor chico
+  # eso se lo lleva el OOM killer en medio del make.
+  src="$(mktemp -d -p /var/tmp)"
   tar -xzf "$REL/vendor/Python-$PY_BUILD_VERSION.tgz" -C "$src"
   # La salida del compilador (miles de lineas de avisos) va a un log aparte; solo se
   # muestra su cola si el build falla.
@@ -565,12 +668,26 @@ write_secrets_and_inventory() {
   fi
   chmod 0600 "$REL/.vault_pass"
   # En claro a proposito: el play de autovault de install.yml lo cifra en la primera corrida.
-  cat >"$REL/group_vars/observer_proxy/vault.yml" <<EOF
+  if [ "$CERT_MODE" = "byo" ]; then
+    # El cert y la clave van indentados como bloque YAML literal. sed agrega los 2 espacios
+    # a CADA linea: sin eso el YAML se rompe en la segunda y el error apunta al archivo,
+    # no al origen.
+    {
+      echo "---"
+      echo "# Certificado propio - lo escribio install.sh --use-own-cert; install.yml lo cifra."
+      echo "vault_tls_cert: |"
+      sed 's/^/  /' "$OWN_CERT"
+      echo "vault_tls_key: |"
+      sed 's/^/  /' "$OWN_KEY"
+    } >"$REL/group_vars/observer_proxy/vault.yml"
+  else
+    cat >"$REL/group_vars/observer_proxy/vault.yml" <<EOF
 ---
 # Credenciales GoDaddy (zona $OBS_GODADDY_ZONE) - las escribio install.sh; install.yml las cifra.
 vault_godaddy_key: "$OBS_GODADDY_KEY"
 vault_godaddy_secret: "$OBS_GODADDY_SECRET"
 EOF
+  fi
   chmod 0600 "$REL/group_vars/observer_proxy/vault.yml"
   umask 022
   render_inventory "$INV"
@@ -596,8 +713,9 @@ all:
     # DERIVADO de los 3 FQDN: base del wildcard *.$OBS_BASE_DOMAIN (un solo nivel).
     observer_base_domain: $OBS_BASE_DOMAIN
 
-    observer_cert_mode: acme
-    observer_acme_email: $OBS_ACME_EMAIL
+    observer_cert_mode: $CERT_MODE
+$(if [ "$CERT_MODE" = "acme" ]; then echo "    observer_acme_email: $OBS_ACME_EMAIL"; fi)
+$(if [ -n "$OBS_ADMIN_EMAIL" ]; then echo "    observer_admin_email: $OBS_ADMIN_EMAIL"; fi)
 
     # IP LAN del proxy reverso (real_ip). Tambien relaja el pin de hash del Mesh.
 $proxy_line
@@ -653,6 +771,8 @@ OBS_API_FQDN=$OBS_API_FQDN
 OBS_RMM_FQDN=$OBS_RMM_FQDN
 OBS_MESH_FQDN=$OBS_MESH_FQDN
 OBS_ACME_EMAIL=$OBS_ACME_EMAIL
+OBS_ADMIN_EMAIL=$OBS_ADMIN_EMAIL
+OBS_CERT_MODE=$CERT_MODE
 OBS_PROXY_IP=$OBS_PROXY_IP
 OBS_TIMEZONE=$OBS_TIMEZONE
 OBS_AGENT_VER=$OBS_AGENT_VER

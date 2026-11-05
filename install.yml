@@ -252,8 +252,70 @@
           changed_when: true
           no_log: true
 
-    - name: Cifrar GoDaddy (observer_proxy/vault.yml) si el humano lo dejó en claro
-      when: observer_cert_mode | default('acme') == 'acme'
+    # ------------------------------------------------------------------ 053 · T017
+    # Clave de firma de los certificados de borrado. UNA POR TENANT (decisión
+    # 2026-10-29): el `key_id` identifica al emisor concreto, cada cliente verifica
+    # contra la clave de su propia instancia y comprometer una no toca a las demás.
+    #
+    # Sentinela y archivo PROPIOS, por la misma razón que la llave de la evidencia:
+    # el sentinela del vault general es la existencia de ese archivo, así que un
+    # ambiente ya instalado nunca volvería a entrar y se quedaría sin clave para
+    # siempre. Con archivo aparte, el próximo install.yml de un ambiente existente
+    # la genera sin descifrar ni reescribir el vault que ya tiene.
+    #
+    # ⚠️ SI SE PIERDE, los certificados ya firmados quedan INVERIFICABLES. Respaldar
+    # con el resto del vault del ambiente. Rotarla NO invalida lo ya firmado, pero
+    # exige mover la PÚBLICA de la saliente a `observer_erase_signing_keys_retired`
+    # (ver roles/observer_api/defaults/main.yml): si no se publica, lo que firmó deja
+    # de verificar.
+    - name: ¿Ya existe la clave de firma de certificados?
+      ansible.builtin.stat:
+        path: "{{ _gv }}/observer_api/vault_erase_signing.yml"
+      register: _sentinel_erasesign
+
+    - name: Generar + cifrar la clave de firma de certificados
+      when: not _sentinel_erasesign.stat.exists
+      block:
+        - name: Sembrar la clave RSA-4096
+          # RSA y no Ed25519 porque `erase/signing.py` firma RSA-PSS y el verificador
+          # externo documentado es `openssl dgst -sigopt rsa_padding_mode:pss`, que es
+          # lo que un tercero ya tiene a mano. 4096 para no tener que rotar por
+          # envejecimiento criptográfico en un plazo relevante — y rotar acá es
+          # respuesta a incidente, no rutina.
+          ansible.builtin.set_fact:
+            _s_erasesign: "{{ lookup('pipe', 'openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 2>/dev/null') }}"
+          no_log: true
+
+        - name: Escribir group_vars/observer_api/vault_erase_signing.yml
+          ansible.builtin.copy:
+            dest: "{{ _gv }}/observer_api/vault_erase_signing.yml"
+            mode: "0600"
+            content: |
+              ---
+              # AUTOGENERADO por install.yml (idempotente) — NO editar ni commitear (gitignored).
+              # Clave privada de firma de los certificados de borrado (053 · T017).
+              # UNA POR TENANT. ⚠️ SI SE PIERDE, LOS CERTIFICADOS YA FIRMADOS QUEDAN
+              # INVERIFICABLES: respaldar con el resto del vault del ambiente.
+              # Para rotar: generar una nueva acá y publicar la PÚBLICA de la saliente
+              # en `observer_erase_signing_keys_retired`, o lo que firmó deja de verificar.
+              vault_erase_signing_key: |
+                {{ _s_erasesign | indent(16) }}
+          no_log: true
+
+        - name: Cifrar la clave de firma recién generada
+          ansible.builtin.command:
+            cmd: ansible-vault encrypt group_vars/observer_api/vault_erase_signing.yml
+            chdir: "{{ playbook_dir }}"
+          changed_when: true
+          no_log: true
+
+    # El cifrado corre en los DOS modos de certificado. En acme el archivo trae las
+    # credenciales de GoDaddy; en byo trae el certificado y su CLAVE PRIVADA, que
+    # install.sh escribe en claro para que el playbook las recoja. Gatillar todo el
+    # bloque sobre acme dejaba esa clave privada SIN CIFRAR en el disco, contra lo que
+    # dice el propio encabezado del archivo. Lo que sigue siendo exclusivo de acme es
+    # EXIGIR el archivo: en byo las credenciales de DNS no hacen falta.
+    - name: Cifrar observer_proxy/vault.yml si el humano lo dejó en claro
       block:
         - name: ¿Existe observer_proxy/vault.yml?
           ansible.builtin.stat:
@@ -266,19 +328,24 @@
               Falta group_vars/observer_proxy/vault.yml con las credenciales de GoDaddy.
               Cópielo de la plantilla y ponga su API key/secret:
               cp group_vars/observer_proxy/vault.yml.example group_vars/observer_proxy/vault.yml
-          when: not _proxy_vault.stat.exists
+          when:
+            - observer_cert_mode | default('acme') == 'acme'
+            - not _proxy_vault.stat.exists
 
         - name: Leer cabecera de observer_proxy/vault.yml
           ansible.builtin.slurp:
             src: "{{ _gv }}/observer_proxy/vault.yml"
           register: _proxy_raw
           no_log: true
+          when: _proxy_vault.stat.exists
 
         - name: Cifrar observer_proxy/vault.yml si aún está en claro
           ansible.builtin.command:
             cmd: ansible-vault encrypt group_vars/observer_proxy/vault.yml
             chdir: "{{ playbook_dir }}"
-          when: "'$ANSIBLE_VAULT' not in (_proxy_raw.content | b64decode)"
+          when:
+            - _proxy_vault.stat.exists
+            - "'$ANSIBLE_VAULT' not in (_proxy_raw.content | default('') | b64decode)"
           changed_when: true
           no_log: true
 
@@ -301,6 +368,14 @@
         vault_observer_mesh_password: "{{ hostvars['localhost']['_s_mesh'] }}"
       no_log: true
 
+    - name: Inyectar la clave de firma de certificados (053 · T017)
+      # Condición propia, por el mismo motivo que la de abajo: un ambiente ya
+      # instalado no tiene `_s_admin` y se habría quedado sin clave en silencio.
+      when: hostvars['localhost']['_s_erasesign'] is defined
+      ansible.builtin.set_fact:
+        vault_erase_signing_key: "{{ hostvars['localhost']['_s_erasesign'] }}"
+      no_log: true
+
     - name: Inyectar la llave de la evidencia del modo perdido (030 · T020)
       # Condición APARTE de la de arriba: esta llave tiene su propio sentinela y se
       # genera también en ambientes ya instalados, donde `_s_admin` no existe. Con la
@@ -318,21 +393,25 @@
 
 - name: Base de datos PostgreSQL
   hosts: observer_db
+  tags: [db]
   roles:
     - observer_db
 
 - name: Cache Redis
   hosts: observer_redis
+  tags: [redis]
   roles:
     - observer_redis
 
 - name: MeshCentral
   hosts: observer_mesh
+  tags: [mesh]
   roles:
     - observer_mesh
 
 - name: API Django + NATS + Celery
   hosts: observer_api
+  tags: [api]
   roles:
     - observer_api
 

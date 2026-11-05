@@ -257,7 +257,7 @@ HEAD = """<!DOCTYPE html>
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <style>
   .rn-tracks{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:1.2rem 0}
@@ -316,12 +316,14 @@ __JSONLD__
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
     <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/" class="active"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>

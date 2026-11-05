@@ -38,7 +38,7 @@ está validado de punta a punta: no usarlo en producción todavía.
   - Node.js 22.x + npm (el playbook compila el frontend SPA en el nodo de control)
   - `git`, acceso SSH al servidor
 - **Servidor target**:
-  - Ubuntu 22.04 LTS o 24.04 LTS, limpio (greenfield)
+  - Ubuntu 22.04, 24.04 o 26.04 LTS, limpio (greenfield)
   - 2+ vCPU, 4+ GB RAM (8+ GB recomendado), 40+ GB disco
   - Un usuario con `sudo` sin password (método A: local; método B: por SSH)
   - Puertos 80 y 443 accesibles desde donde vivan los agentes/operadores
@@ -57,7 +57,7 @@ lo derivable (la base del wildcard, el tamaño de PostgreSQL por RAM), valida (c
 GoDaddy, IP del proxy, zona horaria), arma el inventario y ejecuta **los mismos playbooks** de
 esta guía en modo local. Al final muestra las cuentas de la consola y de MeshCentral.
 
-Prerrequisito: el **Paso 1** de abajo (Ubuntu 22.04/24.04 y un usuario con sudo sin password) y
+Prerrequisito: el **Paso 1** de abajo (Ubuntu 22.04/24.04/26.04 y un usuario con sudo sin password) y
 los 3 FQDN creados en el DNS (Paso 4). Luego, en el servidor:
 
 ```bash
@@ -183,7 +183,7 @@ nodo de control y se conecta por SSH al servidor.
 
 ## Paso 1 — Preparar el servidor target
 
-1. **Instale Ubuntu 22.04 LTS** (o 24.04) recién instalado. Selecciones recomendadas
+1. **Instale Ubuntu 22.04 LTS** (o 24.04, o 26.04) recién instalado. Selecciones recomendadas
    del instalador:
    - **Idioma (Language):** English
    - **Keyboard layout / variant:** Spanish (Latin American)

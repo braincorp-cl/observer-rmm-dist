@@ -89,7 +89,8 @@
     "eraseCertificates": "Certificados de borrado",
     "eraseIntake": "Ingresos de activos",
     "eraseOrders": "Órdenes de borrado",
-    "activityLive": "Monitoreo en vivo"
+    "activityLive": "Monitoreo en vivo",
+    "storageMedia": "Medios de almacenamiento"
   },
   "setup": {
     "gettingStarted": "Primeros pasos",
@@ -506,7 +507,13 @@
     "weekday3": "Jueves",
     "weekday4": "Viernes",
     "weekday5": "Sábado",
-    "weekday6": "Domingo"
+    "weekday6": "Domingo",
+    "eraseAttachmentRetentionDays": "Retención de adjuntos de borrado (días)",
+    "eraseAttachmentRetentionDaysHint": "Piso heredable: cada cliente puede pedir más, nunca menos. Mínimo legal 366 días. El certificado es permanente y no caduca.",
+    "eraseAttachmentPruneEnabled": "Purgar los adjuntos vencidos",
+    "eraseAttachmentPruneEnabledHint": "Apagado, la purga corre igual cada hora pero sólo REGISTRA cuánto borraría, sin borrar nada. Encendido, borra el archivo y conserva la fila con su hash. Es irreversible.",
+    "erasePublicVerifyEnabled": "Exponer la verificación pública de certificados",
+    "erasePublicVerifyEnabledHint": "Abre una página pública en /verificar/, sin autenticación, donde un tercero comprueba un certificado con su identificador. No muestra cliente, equipo ni serie. Avise al cliente antes de encenderla."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -758,7 +765,8 @@
       "graphics": "Gráficos",
       "desktopMonitor": "Monitores",
       "networkAdapter": "Adaptadores de red",
-      "encryption": "Cifrado"
+      "encryption": "Cifrado",
+      "storageMedia": "Medios"
     },
     "debug": "Depuración",
     "audit": "Auditoría",
@@ -1020,7 +1028,9 @@
     "manageAssetIntake": "Gestionar ingreso de activos",
     "retrieveFiles": "Recuperar archivos (antes de borrar)",
     "viewActivity": "Ver monitoreo de actividad",
-    "manageActivity": "Encender/apagar monitoreo de actividad"
+    "manageActivity": "Encender/apagar monitoreo de actividad",
+    "assignableRoles": "Perfiles que puede otorgar",
+    "assignableRolesHint": "Vacío significa que no puede otorgar ningún perfil. Nunca podrá otorgar uno con permisos que este perfil no tenga."
   },
   "uiConfirmDialog": {
     "yes": "Sí",
@@ -3433,7 +3443,21 @@
       "documentHash": "Hash del documento",
       "signatureAlg": "Algoritmo de firma",
       "signingKeyId": "ID de clave de firma",
-      "loadError": "No se pudo cargar el certificado"
+      "loadError": "No se pudo cargar el certificado",
+      "make": "Fabricante",
+      "model": "Modelo",
+      "hostname": "Nombre de red del equipo",
+      "verificationMethod": "Cómo se verificó",
+      "verificationEvidence": "Constancia de la verificación",
+      "disposition": "Destino final del medio",
+      "dispositionDetail": "Detalle del destino",
+      "concurrenceName": "Da fe (segunda persona)",
+      "concurrenceRole": "Cargo de quien da fe",
+      "concurrenceContact": "Contacto de quien da fe",
+      "concurrenceAt": "Fecha en que dio fe",
+      "notVerifiedNotice": "Este certificado declara que la destrucción no fue presenciada ni registrada.",
+      "mediaType": "Tipo de medio",
+      "mediaOrigin": "Origen del medio"
     },
     "tab": {
       "title": "Certificados de borrado",
@@ -3458,7 +3482,8 @@
       "colRoutes": "Ruta",
       "colCreatedAt": "Ingresado",
       "colActions": "Acciones",
-      "certifyDestruction": "Certificar destrucción"
+      "certifyDestruction": "Certificar destrucción",
+      "colDisposition": "Destino del medio"
     },
     "intakeForm": {
       "title": "Ingreso de activo a baja",
@@ -3475,7 +3500,16 @@
       "required": "Obligatorio",
       "physicalRouteNotice": "Un activo no funcional o sin medio detectable se enruta directo a destrucción física.",
       "save": "Registrar ingreso",
-      "created": "Ingreso registrado ({id})"
+      "created": "Ingreso registrado ({id})",
+      "equipment": "Equipo enrolado",
+      "equipmentHint": "Opcional. Un disco suelto no tiene equipo asociado.",
+      "equipmentMake": "Fabricante",
+      "equipmentModel": "Modelo",
+      "disposition": "Destino final del medio",
+      "dispositionHint": "Vacío = todavía no consta",
+      "dispositionDetail": "Detalle del destino",
+      "mediaType": "Tipo de medio",
+      "mediaTypeHint": "El medio que se va a sanear o destruir."
     },
     "certify": {
       "title": "Certificar destrucción física",
@@ -3487,7 +3521,18 @@
       "cancel": "Cancelar",
       "emit": "Emitir certificado",
       "emitted": "Certificado emitido ({id})",
-      "error": "No se pudo emitir el certificado"
+      "error": "No se pudo emitir el certificado",
+      "concurrenceSection": "Quien da fe (segunda persona)",
+      "concurrenceName": "Nombre",
+      "concurrenceRole": "Cargo",
+      "concurrenceContact": "Contacto",
+      "verificationMethod": "Cómo se verificó la destrucción",
+      "verificationEvidence": "Constancia de la verificación",
+      "verificationEvidenceHint": "Lo que quede por escrito: peso, folio del gestor, lo que haya.",
+      "evidenceFile": "Fotografía (opcional)",
+      "evidenceFileHint": "Imagen o PDF, hasta 15 MB. No es obligatoria.",
+      "noVerificationNotice": "Sin un método acreditado y una segunda persona nombrada, el certificado va a declarar que la destrucción NO fue verificada. Es correcto emitirlo así: lo que no corresponde es afirmar lo contrario.",
+      "witnessRequired": "Una destrucción presenciada tiene que nombrar a quien la presenció."
     },
     "confirmOrder": {
       "title": "Confirmar orden de borrado",
@@ -3533,6 +3578,118 @@
       "colActions": "Acciones",
       "filterStatus": "Estado",
       "search": "Buscar en la tabla"
+    },
+    "disposition": {
+      "internal_reuse": "Reutilización interna",
+      "external_reuse": "Reutilización externa o donación",
+      "returned": "Devuelto al propietario o arrendador",
+      "recycled": "Reciclaje por gestor autorizado",
+      "destroyed": "Destruido físicamente",
+      "retained": "Retenido en custodia",
+      "other": "Otro (ver detalle)"
+    },
+    "verificationMethod": {
+      "none": "Sin verificación acreditada",
+      "witnessed": "Presenciada por un testigo",
+      "photographic": "Registro fotográfico",
+      "weighed": "Pesaje del material destruido",
+      "vendor_certificate": "Certificado del gestor autorizado"
+    },
+    "verificationResult": {
+      "PASS": "Verificado",
+      "NOT_VERIFIED": "Sin verificación acreditada"
+    },
+    "mediaType": {
+      "hdd": "Disco magnético (HDD)",
+      "ssd": "Estado sólido (SSD)",
+      "nvme": "Estado sólido NVMe",
+      "optical": "Óptico (CD/DVD/Blu-ray)",
+      "tape": "Cinta magnética",
+      "mobile": "Dispositivo móvil",
+      "other": "Otro"
+    },
+    "custody": {
+      "title": "Cadena de custodia",
+      "subtitle": "Lo que le pasó al activo entre el ingreso y el certificado",
+      "empty": "Este expediente todavía no tiene eslabones.",
+      "emptyLegacy": "Las actas anteriores a esta versión nacieron sin eslabones; no se inventa uno con fecha falsa.",
+      "chainIntact": "Cadena íntegra",
+      "chainBroken": "Cadena rota",
+      "immutableNotice": "Un eslabón no se edita ni se borra. Para corregir un error, se agrega otro evento.",
+      "add": "Registrar evento",
+      "adding": "Registrando…",
+      "added": "Evento registrado",
+      "kind": "Qué pasó",
+      "at": "Cuándo ocurrió",
+      "atHint": "Cuándo ocurrió el hecho, que puede ser anterior a cuándo lo registras.",
+      "actor": "Registrado por",
+      "location": "Dónde quedó",
+      "detail": "Detalle",
+      "recordHash": "Hash del eslabón",
+      "prevHash": "Encadena con",
+      "createdAt": "Registrado el",
+      "view": "Ver custodia",
+      "kinds": {
+        "received": "Recibido en custodia",
+        "relocated": "Trasladado",
+        "stored": "Almacenado a la espera de disposición",
+        "handed_to_processor": "Enviado a gestor externo",
+        "sanitized": "Medio saneado",
+        "destroyed": "Destruido físicamente",
+        "returned": "Devuelto a su propietario o arrendador"
+      }
+    },
+    "reconciliation": {
+      "title": "Reconciliación",
+      "subtitle": "Qué ingresó, qué se certificó y qué falta, por cliente y período",
+      "client": "Cliente",
+      "allClients": "Todos los clientes a mi alcance",
+      "from": "Desde",
+      "to": "Hasta",
+      "stalledDays": "Marcar como detenido tras (días)",
+      "stalledHint": "Solo marca un faltante como detenido; no cambia quién es faltante.",
+      "run": "Calcular",
+      "intakes": "Ingresados",
+      "certified": "Certificados",
+      "missing": "Faltantes",
+      "stalled": "Detenidos",
+      "missingTitle": "Activos sin certificar",
+      "missingDefinition": "Faltante es un acta sin certificado, no un acta vieja.",
+      "processId": "Expediente",
+      "equipmentSerial": "Serie",
+      "receivedAt": "Ingresado el",
+      "daysOpen": "Días abierto",
+      "lastEvent": "Se detuvo en",
+      "noEvents": "Sin eslabones",
+      "empty": "No hay activos sin certificar en este período.",
+      "loadError": "No se pudo calcular la reconciliación.",
+      "byClient": "Por cliente"
+    },
+    "retention": {
+      "label": "Retención de adjuntos (días)",
+      "hint": "Días que se conserva la fotografía de una destrucción y los archivos recuperados de este cliente. El certificado es permanente y no caduca nunca.",
+      "inherited": "Hereda del servidor: {days} días",
+      "inheritedHint": "Vacío = hereda el plazo global del servidor. No significa cero días.",
+      "floorError": "El mínimo legal es {days} días"
+    },
+    "intakeScanHint": "Puedes escanear el código con un lector; no se envía el formulario al leer.",
+    "verify": {
+      "title": "Verificación de certificado de borrado",
+      "subtitle": "Pegue el identificador impreso en el certificado para comprobar su autenticidad.",
+      "inputLabel": "Identificador del certificado",
+      "inputHint": "Con el formato OE-AAAAMMDD-XXXXXXXXXX",
+      "submit": "Verificar",
+      "documentIntact": "Documento íntegro",
+      "signatureValid": "Firma válida",
+      "chainIntact": "Cadena íntegra",
+      "verdictValid": "Este certificado es auténtico y no fue alterado.",
+      "verdictInvalid": "Este certificado no supera la verificación.",
+      "notFound": "No hay un certificado con ese identificador en esta instalación.",
+      "throttled": "Demasiadas consultas seguidas. Espere un momento y vuelva a intentar.",
+      "offlineNotice": "La firma también puede verificarse sin este sitio, con la clave pública de la instalación:",
+      "offlineLink": "clave pública de firma",
+      "issuedAtLine": "Emitido: {value}",
+      "kindLine": "Tipo: {value}"
     }
   },
   "navRail": {
@@ -3711,5 +3868,85 @@
     "unsaved": "Sin cambios | {n} cambio sin guardar | {n} cambios sin guardar",
     "noChanges": "Sin cambios sin guardar",
     "reset": "Restablecer"
+  },
+  "storageMedia": {
+    "title": "Medios de almacenamiento",
+    "refresh": "Actualizar",
+    "loading": "Cargando…",
+    "noData": "No hay equipos que mostrar.",
+    "windowsOnlyNotice": "Este panel cubre sólo equipos Windows: es la única plataforma que reporta el medio en esta fase. Los equipos macOS y Linux no aparecen acá.",
+    "filterVerdict": "Categoría alcanzable",
+    "filterClient": "Cliente",
+    "filterSite": "Sitio",
+    "colHostname": "Equipo",
+    "colClient": "Cliente",
+    "colSite": "Sitio",
+    "colVerdict": "Categoría alcanzable",
+    "colMedia": "Medio del sistema",
+    "colMeasuredAt": "Última medición",
+    "verdict": {
+      "purge_remote": "Purge remoto",
+      "purge_live_image": "Purge con imagen live",
+      "clear_remote": "Clear remoto",
+      "virtual_media": "Medio virtualizado",
+      "no_category": "Sin categoría alcanzable",
+      "no_data": "Sin dato"
+    },
+    "verdictHelp": {
+      "purge_remote": "El disco es autocifrado y su clave está en uso: la sanitización toma segundos y no exige tocar el equipo.",
+      "purge_live_image": "El firmware acepta un comando de sanitización, pero exige arrancar el equipo fuera de su sistema operativo.",
+      "clear_remote": "Medio magnético: la sobrescritura sí constituye sanitización defendible.",
+      "virtual_media": "El medio real está en otra parte. Ninguna categoría del estándar aplica al disco que el sistema operativo ve.",
+      "no_category": "Se midió y no hay categoría alcanzable: sólo queda sanitización parcial por rutas.",
+      "no_data": "No se sabe. No es lo mismo que «no hay vía»: este equipo no reportó, o la consulta falló."
+    },
+    "mediaType": {
+      "0": "Sin especificar",
+      "3": "Magnético (platos)",
+      "4": "Estado sólido",
+      "5": "Memoria de clase almacenamiento",
+      "unknown": "Desconocido"
+    },
+    "busType": {
+      "3": "ATA",
+      "7": "USB",
+      "8": "RAID",
+      "10": "SAS",
+      "11": "SATA",
+      "15": "Virtual (respaldado por archivo)",
+      "16": "Espacios de almacenamiento",
+      "17": "NVMe",
+      "unknown": "Desconocido"
+    },
+    "selfEncrypting": {
+      "0": "No capaz",
+      "1": "Capaz, no habilitado",
+      "2": "Habilitado",
+      "unknown": "No se determinó"
+    },
+    "detail": {
+      "title": "Discos del equipo",
+      "systemDisk": "Disco de sistema",
+      "model": "Modelo",
+      "manufacturer": "Fabricante",
+      "serial": "Número de serie",
+      "firmware": "Firmware",
+      "capacity": "Capacidad",
+      "bus": "Bus",
+      "mediaType": "Tipo de medio",
+      "spindleSpeed": "Velocidad de giro",
+      "selfEncrypting": "Autocifrado",
+      "sanitizeCapabilities": "Comandos de sanitización",
+      "measuredAt": "Medido",
+      "notProbed": "No se sondearon las capacidades de este disco.",
+      "queryError": "No se pudo leer el inventario de medios de este equipo.",
+      "noMedia": "Este equipo todavía no reportó sus discos.",
+      "pair": "{label}: {value}"
+    },
+    "warnings": {
+      "overwriteOnSolidState": "Este equipo tiene un disco de estado sólido: la sobrescritura NO constituye sanitización defendible sobre ese medio. El certificado declarará el alcance real.",
+      "overwriteUnknownMedia": "No se sabe qué medio tiene este equipo, así que no se puede afirmar que la sobrescritura sea defendible sobre él.",
+      "cryptoEraseUnavailable": "El crypto-erase remoto no está disponible: ningún medio inventariado lo sostiene."
+    }
   }
 }

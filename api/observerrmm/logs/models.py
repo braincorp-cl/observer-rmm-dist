@@ -1,4 +1,5 @@
 import json
+import posixpath
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Tuple, Union, cast
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from agents.models import Agent
     from clients.models import Client, Site
     from core.models import URLAction
+    from erase.models import EraseCertificate, FileRetrievalOrder, RetrievedFile
 
 
 def get_debug_level() -> str:
@@ -240,6 +242,154 @@ class AuditLog(models.Model):
             action=AuditActionType.LOST_MODE,
             message=detail,
             after_value=reason or None,
+            debug_info=debug_info,
+        )
+
+    @staticmethod
+    def audit_retrieved_file_download(
+        username: str,
+        order: "FileRetrievalOrder",
+        retrieved_file: "RetrievedFile",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 042: quién se bajó qué documento recuperado del equipo de una
+        # persona, y cuándo.
+        #
+        # 🔑 Tomar control del equipo ya dejaba traza (`audit_mesh_session`),
+        # correrle un comando también (`audit_raw_command`), y bajarse sus
+        # documentos no dejaba ninguna. Este módulo existe para ser defendible
+        # ante una auditoría: que no exista la fila de QUIÉN MIRÓ los archivos
+        # recuperados de un empleado es un hueco de gobernanza, no un detalle de
+        # telemetría. La 042 lleva en producción desde la 1.4.17 sin esta fila.
+        #
+        # 🔒 Lo que NO entra, y es deliberado:
+        #
+        # - El CONTENIDO del archivo. Obvio por tamaño, pero sobre todo porque
+        #   `AuditLog` es el audit operativo PURGABLE (`prune_audit_log` lo borra
+        #   al vencer el plazo) y el contenido recuperado es dato del titular
+        #   sujeto a otra retención: la de los adjuntos, que purga el almacén
+        #   cifrado. Copiarlo acá lo duplicaría bajo el régimen equivocado.
+        #
+        # - La RUTA COMPLETA en el equipo (`RetrievedFile.source_path`). La ruta
+        #   de un archivo personal es ella misma dato del titular —nombres,
+        #   carpetas, a veces el diagnóstico o el caso— y sobreviviría en un log
+        #   purgable después de que el adjunto ya se purgó. Para responder "qué
+        #   documento" alcanza el nombre del archivo y el id de la fila, que es
+        #   lo que se guarda: con el id se llega a `source_path` mientras la
+        #   orden exista, bajo el permiso de la orden. Mismo criterio con el que
+        #   `audit_agent_location_viewed` registra la consulta y no las
+        #   coordenadas.
+        #
+        # El nombre del archivo va en `after_value`, que es donde los audit_* de
+        # este archivo ponen el dato de la acción (el comando en
+        # `audit_raw_command`, el motivo en `audit_lost_mode`).
+        #
+        # Sobre `action=VIEW`: ver la nota de `audit_erase_certificate_pdf`. Una
+        # descarga merecería su propia categoría —el criterio que la 028, la 030
+        # y la 052 aplicaron con ENDPOINT_RESPONSE, LOST_MODE y
+        # DELEGATION_DENIED— pero eso exige migración y acá no se escribe
+        # ninguna.
+        nombre = posixpath.basename(
+            (retrieved_file.source_path or "").replace("\\", "/")
+        )
+        AuditLog.objects.create(
+            username=username,
+            agent=order.agent_hostname or None,
+            agent_id=order.agent_id_snapshot or None,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.VIEW,
+            message=(
+                f"{username} downloaded retrieved file #{retrieved_file.pk} "
+                f"from {order.agent_hostname or 'unknown'} "
+                f"(file retrieval order {order.pk})."
+            ),
+            after_value={"file_id": retrieved_file.pk, "file_name": nombre},
+            debug_info=debug_info,
+        )
+
+    @staticmethod
+    def audit_erase_certificate_pdf(
+        username: str,
+        certificate: "EraseCertificate",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 039/053: quién emitió/descargó el PDF de un certificado de
+        # borrado, y cuándo.
+        #
+        # El certificado es el documento que sale de la consola hacia un tercero
+        # —un cliente, un auditor, un tribunal—, así que su salida tiene que
+        # quedar registrada por el mismo motivo que `audit_lost_mode` registra la
+        # exportación del caso perdido: es la acción que saca la evidencia del
+        # control de la consola.
+        #
+        # 🔒 No entra el documento. `EraseCertificate.data` es la evidencia legal
+        # PERMANENTE del repositorio append-only; `AuditLog` se poda. Volcarlo acá
+        # sería la mezcla de regímenes que `erase/models.py` declara que este
+        # módulo no puede permitirse, y además daría una segunda copia del
+        # documento firmado que nadie encadena. Basta el `certificate_id`, que es
+        # el identificador público y estable: con él se llega al certificado
+        # íntegro y verificable mientras exista, que es para siempre.
+        #
+        # Tampoco entran series ni rutas: el `agent_id` ya identifica el equipo
+        # dentro de la consola, y las series viven en el certificado.
+        #
+        # `object_type=AGENT` y `action=VIEW` son lo más cercano que hay en los
+        # vocabularios actuales, no la categoría que esto merece: un certificado
+        # no es un equipo, y una destrucción física puede no tener agente (queda
+        # `agent_id` nulo). Los dos `TextChoices` están en la columna `choices`
+        # del modelo, así que un valor propio pide una migración `AlterField`
+        # —`logs/migrations/0026`, `0027` y `0029` son exactamente eso— y este
+        # cambio no escribe migraciones. Precedente de reusar VIEW para un
+        # acceso de lectura: `audit_agent_location_viewed` y
+        # `audit_activity_screenshot_forced`.
+        AuditLog.objects.create(
+            username=username,
+            agent=certificate.agent.hostname if certificate.agent else None,
+            agent_id=certificate.agent.agent_id if certificate.agent else None,
+            object_type=AuditObjType.AGENT,
+            action=AuditActionType.VIEW,
+            message=(
+                f"{username} downloaded the PDF of erase certificate "
+                f"{certificate.certificate_id}."
+            ),
+            after_value={"certificate_id": certificate.certificate_id},
+            debug_info=debug_info,
+        )
+
+    @staticmethod
+    def audit_delegation_denied(
+        username: str,
+        target: str,
+        reason: str,
+        attempted_role: str = "",
+        debug_info: Dict[Any, Any] = {},
+    ) -> None:
+        # Feature 052: un intento de delegación que NO prosperó.
+        #
+        # Categoría propia, no MODIFY: lo que se quiere poder responder es
+        # "¿cuántas veces alguien intentó otorgar lo que no le toca?", y eso se
+        # cuenta filtrando por acción, sin leer el cuerpo de cada fila. Mismo
+        # criterio que audit_endpoint_response (028) y audit_lost_mode (030).
+        #
+        # El perfil pretendido va en `after_value` porque es el valor que la
+        # operación habría escrito si no se la hubiera rechazado: es el campo
+        # que ya usan audit_lost_mode para el motivo y audit_raw_command para el
+        # comando.
+        #
+        # Queda NULO cuando el rechazo no fue por un perfil —tocar una cuenta de
+        # superusuario, o cambiarse el propio perfil—, siguiendo el `or None` de
+        # audit_lost_mode y audit_endpoint_response. Antes caía al motivo, y una
+        # columna «perfil pretendido» que a veces trae una frase de error es peor
+        # que una vacía: no se puede agrupar ni filtrar por ella, y el motivo ya
+        # viaja completo en `message`.
+        detail = f"{username} fue rechazado al administrar a {target}: {reason}"
+
+        AuditLog.objects.create(
+            username=username,
+            object_type=AuditObjType.USER,
+            action=AuditActionType.DELEGATION_DENIED,
+            message=detail,
+            after_value=attempted_role or None,
             debug_info=debug_info,
         )
 

@@ -1,12 +1,18 @@
 ---
-# Valida que CHANGELOG.md genere el HTML del changelog público (scripts/build_changelog.py).
+# Publica el changelog público (agents.observer.cl/changelog) por WebDAV, desde el
+# runner, con el mismo patrón que publish-docs.yml.
 #
-# NO publica: agents.observer.cl no es alcanzable desde los runners de GitHub (el firewall
-# admite GitHub solo por FQDN y los runners salen de rangos Azure dinámicos). La
-# publicación la hace deploy-api.yml desde el control-plane, en la play «Changelog
-# público», cuando el inventario define observer_changelog_publish_host.
+# Historia, porque la cabecera anterior decía lo contrario y costó caro: en julio la
+# escritura desde CI se validó E2E tras agregar EE.UU. al geo-allowlist del firewall;
+# en septiembre se anotó «Actions no puede, los runners salen de rangos Azure» y la
+# publicación se movió al control-plane. El 2026-10-26 una sonda desde un runner
+# (PUT 201 + GET verificado) demostró que SÍ alcanza al appserver: la nota estaba
+# obsoleta y este workflow vuelve a ser el dueño de la publicación.
+#
+# La play «Changelog público» de deploy-api.yml queda como respaldo manual
+# (observer_changelog_publish_force=true), no como segundo dueño.
 
-name: Changelog build
+name: Publish changelog
 
 on:
   push:
@@ -16,6 +22,10 @@ on:
       - scripts/build_changelog.py
       - .github/workflows/publish-changelog.yml
   workflow_dispatch: {}
+
+# Sin disparo por tag a propósito: `paths` no filtra igual para tags y el bump de
+# versión entra a main en el mismo push que el CHANGELOG, así que el push ya cubre
+# el release.
 
 jobs:
   publish-changelog:
@@ -31,3 +41,29 @@ jobs:
 
       - name: Build changelog HTML
         run: python3 scripts/build_changelog.py CHANGELOG.md changelog.html
+
+      # Sin continue-on-error: el atajo que dejó el changelog rezagado meses con los
+      # runs en verde (ver finding_publish_changelog_skip_silencioso_sin_secrets_cdn).
+      - name: Publicar por WebDAV
+        env:
+          CDN_UPLOAD_USER: ${{ secrets.CDN_UPLOAD_USER }}
+          CDN_UPLOAD_PASSWORD: ${{ secrets.CDN_UPLOAD_PASSWORD }}
+        run: |
+          test -n "$CDN_UPLOAD_USER" || { echo "::error::falta CDN_UPLOAD_USER"; exit 1; }
+          test -n "$CDN_UPLOAD_PASSWORD" || { echo "::error::falta CDN_UPLOAD_PASSWORD"; exit 1; }
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 30 --max-time 120 \
+            -u "$CDN_UPLOAD_USER:$CDN_UPLOAD_PASSWORD" -T changelog.html \
+            https://agents.observer.cl/changelog/index.html)
+          echo "PUT -> $code"
+          case "$code" in 20*) ;; *) echo "::error::PUT devolvió $code"; exit 1 ;; esac
+
+      # Verificación POR EFECTO, la misma vara que usaba la play de Ansible: que el
+      # sitio público sirva el ancla de la versión vigente, no que el PUT dijera 201.
+      - name: Verificar que el sitio sirve la versión vigente
+        run: |
+          ver=$(grep -oP 'ORMM_VERSION = "\K[^"]+' api/observerrmm/observerrmm/settings.py)
+          echo "ORMM_VERSION = $ver"
+          curl -sS --connect-timeout 30 --max-time 60 https://agents.observer.cl/changelog/ \
+            | grep -q "id=\"v${ver}\"" \
+            || { echo "::error::el changelog en vivo no trae el ancla id=\"v${ver}\""; exit 1; }
+          echo "changelog publicado y verificado para v${ver}"

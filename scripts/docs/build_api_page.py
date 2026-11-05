@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Genera la referencia pública de la API REST en docs-site/api/index.html.
+"""Genera la referencia de la API REST en docs/api-reference/index.html.
+
+Documentacion INTERNA: `docs/` no se publica en el sitio ni viaja en el bundle
+del cliente. La referencia completa de rutas deja de ser publica por decision
+de producto (2-nov-2026): las integraciones las orquesta BrainCorp.
 
 Las rutas y los métodos HTTP se EXTRAEN del código (`api/observerrmm/<app>/urls.py`
 y sus vistas, por análisis estático con `ast`: no hace falta levantar Django). Las
@@ -14,7 +18,7 @@ pública no puede desfasarse del producto en silencio.
 
 Solo stdlib. Uso:
     python3 scripts/docs/build_api_page.py [salida]
-    (por defecto: docs-site/api/index.html)
+    (por defecto: docs/api-reference/index.html)
 """
 from __future__ import annotations
 
@@ -157,7 +161,7 @@ def bi(es: str, en: str, tag: str = "span", cls: str = "") -> str:
 
 
 def main() -> int:
-    outp = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs-site/api/index.html"
+    outp = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs/api-reference/index.html"
     classes, funcs = scan_views()
     routes = scan_routes(classes, funcs)
     cp, labels = class_perms(), role_labels()

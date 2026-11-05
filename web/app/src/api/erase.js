@@ -63,9 +63,27 @@ export async function createAssetIntake(payload) {
 // C7 · emite el certificado de destrucción física para un activo ya ingresado.
 // Es el flujo de valor inmediato: no necesita el Bloque A ni el B.
 export async function certifyAssetDestruction(pk, payload) {
+  // 🪤 Desde la feature 053 el formulario puede traer una fotografia, y un
+  // archivo no viaja en JSON: hay que mandar multipart. Se usa FormData solo
+  // cuando hay archivo, para no cambiarle el content-type a las llamadas que
+  // no lo necesitan.
+  const archivo = payload.evidence_file;
+  let cuerpo = payload;
+  if (archivo) {
+    cuerpo = new FormData();
+    for (const [clave, valor] of Object.entries(payload)) {
+      if (valor === null || valor === undefined) continue;
+      cuerpo.append(clave, valor);
+    }
+  } else {
+    // Sin archivo se manda JSON, pero sin la clave vacia: DRF rechazaria un
+    // FileField con cadena vacia.
+    cuerpo = { ...payload };
+    delete cuerpo.evidence_file;
+  }
   const { data } = await axios.post(
     `${baseUrl}/intake/${pk}/certify-destruction/`,
-    payload,
+    cuerpo,
   );
   return data;
 }
@@ -155,4 +173,26 @@ export async function downloadRetrievedFile(pk, fileId) {
     `${baseUrl}/fileretrieval/${pk}/files/${fileId}/download/`,
     { responseType: "blob" },
   );
+}
+
+// --- Cadena de custodia y reconciliación (feature 053 · ola 2) ---------------
+
+export async function fetchCustodyEvents(intakeId) {
+  const { data } = await axios.get(`${baseUrl}/intake/${intakeId}/custody/`);
+  return data;
+}
+
+// No es idempotente a propósito: dos traslados reales al mismo lugar son dos
+// hechos. El servidor protege el único eslabón que sí lo es, `received`.
+export async function createCustodyEvent(intakeId, payload) {
+  const { data } = await axios.post(
+    `${baseUrl}/intake/${intakeId}/custody/`,
+    payload,
+  );
+  return data;
+}
+
+export async function fetchReconciliation(params) {
+  const { data } = await axios.get(`${baseUrl}/reconciliation/`, { params });
+  return data;
 }

@@ -10,7 +10,7 @@
       </q-bar>
 
       <q-card-section v-if="loading" class="row justify-center q-pa-lg">
-        <q-spinner size="2em" color="secondary" />
+        <q-spinner size="2em" color="primary" />
       </q-card-section>
 
       <template v-else-if="cert">
@@ -56,11 +56,25 @@
         <q-separator />
 
         <q-card-section class="scroll" style="max-height: 55vh">
+          <!-- Feature 053: que el documento declare que NO se verificó la
+               destrucción tiene que verse arriba, no perdido como una celda
+               más de la tabla. -->
+          <q-banner
+            v-if="notVerified"
+            dense
+            class="bg-orange-1 text-orange-9 q-mb-md"
+          >
+            <template v-slot:avatar>
+              <q-icon name="gpp_maybe" color="warning" />
+            </template>
+            {{ $t("erase.detail.notVerifiedNotice") }}
+          </q-banner>
+
           <table class="oe-detail-table">
             <tbody>
               <tr v-for="field in fields" :key="field.key">
                 <th>{{ field.label }}</th>
-                <td :class="{ mono: monoKeys.includes(field.key) }">{{ field.value }}</td>
+                <td>{{ field.value }}</td>
               </tr>
             </tbody>
           </table>
@@ -90,9 +104,9 @@
               </thead>
               <tbody>
                 <tr v-for="r in pathRows" :key="r.path">
-                  <td class="text-left oe-path mono">{{ r.path }}</td>
+                  <td class="text-left oe-path">{{ r.path }}</td>
                   <td class="text-left">{{ r.status }}</td>
-                  <td class="text-right mono">{{ r.bytes }}</td>
+                  <td class="text-right">{{ r.bytes }}</td>
                 </tr>
               </tbody>
             </q-markup-table>
@@ -135,6 +149,12 @@
 
 import { onMounted, ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import {
+  labelDisposition,
+  labelMediaType,
+  labelVerificationMethod,
+  labelVerificationResult,
+} from "@/utils/erase";
 import { useDialogPluginComponent } from "quasar";
 
 import {
@@ -169,6 +189,12 @@ export default {
     const fields = computed(() => {
       const c = cert.value;
       if (!c) return [];
+      // Feature 053: todo lo nuevo se lee con `?.` y cae a `dash`, para que un
+      // certificado v1 —emitido antes de esta feature— muestre guion en esas
+      // filas sin que el diálogo tenga que ramificar por versión del esquema.
+      const d = c.data ?? {};
+      const eq = d.equipment ?? {};
+      const conc = d.concurrence ?? {};
       return [
         {
           key: "certificate_id",
@@ -190,6 +216,45 @@ export default {
           label: t("erase.detail.assetTag"),
           value: c.asset_tag || dash,
         },
+        // El equipo, cada dato en su casilla: hasta esta feature el hostname
+        // viajaba en el lugar del modelo.
+        {
+          key: "equipment_make",
+          label: t("erase.detail.make"),
+          value: eq.make || dash,
+        },
+        {
+          key: "equipment_model",
+          label: t("erase.detail.model"),
+          value: eq.model || eq.make_model || dash,
+        },
+        {
+          key: "equipment_hostname",
+          label: t("erase.detail.hostname"),
+          value: eq.hostname || dash,
+        },
+        // RF-09. El origen es de DONDE VINO el medio, no donde se almacenó: lo
+        // compone el servidor desde el acta, y queda vacío si no consta.
+        {
+          key: "media_type",
+          label: t("erase.detail.mediaType"),
+          value: labelMediaType(d.media_type) || dash,
+        },
+        {
+          key: "media_origin",
+          label: t("erase.detail.mediaOrigin"),
+          value: d.media_origin || dash,
+        },
+        {
+          key: "media_disposition",
+          label: t("erase.detail.disposition"),
+          value: labelDisposition(d.media_disposition) || dash,
+        },
+        {
+          key: "media_disposition_detail",
+          label: t("erase.detail.dispositionDetail"),
+          value: d.media_disposition_detail || dash,
+        },
         {
           key: "method_applied",
           label: t("erase.detail.method"),
@@ -203,12 +268,43 @@ export default {
         {
           key: "verification_result",
           label: t("erase.detail.result"),
-          value: c.verification_result || dash,
+          value: labelVerificationResult(c.verification_result) || dash,
+        },
+        {
+          key: "verification_method",
+          label: t("erase.detail.verificationMethod"),
+          value: labelVerificationMethod(d.verification_method) || dash,
+        },
+        {
+          key: "verification_evidence",
+          label: t("erase.detail.verificationEvidence"),
+          value: d.verification_evidence || dash,
         },
         {
           key: "operator",
           label: t("erase.detail.operator"),
           value: c.operator || dash,
+        },
+        // Apéndice C: quien da fe va en su propio bloque, separado del operador.
+        {
+          key: "concurrence_name",
+          label: t("erase.detail.concurrenceName"),
+          value: conc.name || dash,
+        },
+        {
+          key: "concurrence_role",
+          label: t("erase.detail.concurrenceRole"),
+          value: conc.role || dash,
+        },
+        {
+          key: "concurrence_contact",
+          label: t("erase.detail.concurrenceContact"),
+          value: conc.contact || dash,
+        },
+        {
+          key: "concurrence_at",
+          label: t("erase.detail.concurrenceAt"),
+          value: conc.at ? formatDate(conc.at) : dash,
         },
         {
           key: "started_at",
@@ -263,6 +359,13 @@ export default {
 
     const verificationLevel = computed(
       () => cert.value?.data?.verification_level ?? "",
+    );
+
+    // Que el documento declare `NOT_VERIFIED` tiene que verse, no quedar como
+    // una celda más de la tabla: es lo que distingue un certificado que
+    // comprobó la destrucción de uno que solo la registra.
+    const notVerified = computed(
+      () => cert.value?.verification_result === "NOT_VERIFIED",
     );
 
     function chipColor(ok) {
@@ -325,19 +428,7 @@ export default {
 
     onMounted(load);
 
-    // V2-G01: identificador, etiqueta, método y norma son valores dedicados.
-    const monoKeys = [
-      "certificate_id",
-      "asset_tag",
-      "method_applied",
-      "standard_ref",
-      "document_hash",
-      "signature_alg",
-      "signing_key_id",
-    ];
-
     return {
-      monoKeys,
       dialogRef,
       onDialogHide,
       loading,
@@ -346,6 +437,7 @@ export default {
       fields,
       pathRows,
       verificationLevel,
+      notVerified,
       downloading,
       chipColor,
       signatureChipColor,
@@ -365,7 +457,7 @@ export default {
 .oe-detail-table td {
   text-align: left;
   padding: 5px 8px;
-  border-bottom: 1px solid var(--obs-border);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
   vertical-align: top;
   font-size: 13px;
 }
@@ -378,6 +470,7 @@ export default {
   word-break: break-all;
 }
 .oe-path {
+  font-family: monospace;
   word-break: break-all;
 }
 </style>

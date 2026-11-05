@@ -22,7 +22,7 @@
 <meta property="og:image:alt" content="Observer RMM — monitoreo y administración remota de equipos">
 <meta name="twitter:card" content="summary_large_image">
 <!-- seo:end -->
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <link href="/assets/favicon.png" rel="icon" type="image/png">
 <script>
 (function () {
@@ -63,12 +63,14 @@
     <a href="/features/"><span class="lang-es">Características</span><span class="lang-en">Features</span></a>
     <a href="/topologia/"><span class="lang-es">Topología</span><span class="lang-en">Topology</span></a>
     <a href="/guide_gettingstarted/"><span class="lang-es">Primeros pasos</span><span class="lang-en">Getting started</span></a>
-    <a href="/api/"><span class="lang-es">API REST</span><span class="lang-en">REST API</span></a>
     <a href="/functions/mcp/"><span class="lang-es">Asistentes de IA (MCP)</span><span class="lang-en">AI assistants (MCP)</span></a>
     <a href="/guide_reports/"><span class="lang-es">Reportes</span><span class="lang-en">Reports</span></a>
     <a href="/guide_monitoring/" class="active"><span class="lang-es">Monitoreo de empleados</span><span class="lang-en">Employee monitoring</span></a>
+    <a href="/functions/erase/"><span class="lang-es">Borrado seguro y certificados</span><span class="lang-en">Secure erase &amp; certificates</span></a>
     <a href="/functions/email_alerts/"><span class="lang-es">Alertas por correo</span><span class="lang-en">Email alerts</span></a>
     <a href="/functions/permissions/"><span class="lang-es">Permisos y seguridad</span><span class="lang-en">Permissions &amp; security</span></a>
+    <a href="/functions/user_management/"><span class="lang-es">Usuarios y roles</span><span class="lang-en">Users &amp; roles</span></a>
+    <a href="/functions/role_catalog/"><span class="lang-es">Catálogo de perfiles</span><span class="lang-en">Role catalogue</span></a>
     <a href="/videos/"><span class="lang-es">Videos</span><span class="lang-en">Videos</span></a>
     <a href="/release-notes/"><span class="lang-es">Notas de versión</span><span class="lang-en">Release notes</span></a>
     <a href="/uso_aceptable/"><span class="lang-es">Uso aceptable y privacidad</span><span class="lang-en">Acceptable use &amp; privacy</span></a>
@@ -138,7 +140,7 @@
       <p class="lang-en">Superusers have both permissions. Grant them only to those who need them (for example, managers or Human Resources) and review the general model in <a href="/functions/permissions/">Permissions &amp; security</a>.</p>
 
       <h2 id="encender"><span class="lang-es">2. Enciende el interruptor global y ajusta el muestreo</span><span class="lang-en">2. Turn on the global switch and tune the sampling</span></h2>
-      <p class="lang-es">Abre <em>Configuración → Configuración global</em> y ve a la pestaña <strong>Employee Monitoring</strong>. Activa <strong>Monitoreo de actividad de usuarios</strong> y revisa los parámetros (los valores entre paréntesis son los de fábrica):</p>
+      <p class="lang-es">Abre <em>Configuración → Configuración global</em> y ve a la pestaña <strong>Monitoreo de empleados</strong>. Activa <strong>Monitoreo de actividad de usuarios</strong> y revisa los parámetros (los valores entre paréntesis son los de fábrica):</p>
       <p class="lang-en">Open <em>Settings → Global settings</em> and go to the <strong>Employee Monitoring</strong> tab. Turn on <strong>User activity monitoring</strong> and review the parameters (factory values in parentheses):</p>
       <ul class="lang-es">
         <li><strong>Cadencia de muestreo</strong> (60 s) — cada cuánto el agente mira qué está al frente. Entre 15 y 600 segundos.</li>
@@ -173,7 +175,7 @@
       <ol class="lang-es">
         <li><strong>Desde el árbol de clientes</strong>: clic derecho sobre un cliente o un sitio → <strong>Monitoreo de actividad…</strong> → elige <em>Encender</em>, <em>Apagar</em> o <em>Heredar</em> y pulsa <strong>Guardar</strong>.</li>
         <li><strong>Desde un equipo</strong>: selecciónalo, abre la pestaña <strong>Actividad</strong> y pulsa <strong>Configurar</strong>.</li>
-        <li><strong>Desde la Configuración global</strong>: en la pestaña <em>Employee Monitoring</em>, la tabla de alcance muestra todas las reglas vigentes y cuántos equipos quedan monitoreados. Para agregar una, elige el cliente y, si corresponde, un sitio o un equipo, y pulsa <strong>Agregar</strong>; el ícono de quitar la elimina y el nivel vuelve a heredar.</li>
+        <li><strong>Desde la Configuración global</strong>: en la pestaña <em>Monitoreo de empleados</em>, la tabla de alcance muestra todas las reglas vigentes y cuántos equipos quedan monitoreados. Para agregar una, elige el cliente y, si corresponde, un sitio o un equipo, y pulsa <strong>Agregar</strong>; el ícono de quitar la elimina y el nivel vuelve a heredar.</li>
       </ol>
       <ol class="lang-en">
         <li><strong>From the client tree</strong>: right-click a client or a site → <strong>Activity monitoring…</strong> → choose <em>On</em>, <em>Off</em> or <em>Inherit</em> and click <strong>Save</strong>.</li>
@@ -305,7 +307,7 @@
       <ol class="lang-es">
         <li>Informa por escrito a las personas antes de encender.</li>
         <li>Da los permisos <em>Ver</em> y <em>Encender/apagar</em> monitoreo de actividad sólo a quien corresponda.</li>
-        <li>Enciende el interruptor global en <em>Employee Monitoring</em> y ajusta capturas, jornada y retención.</li>
+        <li>Enciende el interruptor global en <em>Monitoreo de empleados</em> y ajusta capturas, jornada y retención.</li>
         <li>Enciende el monitoreo por cliente, sitio o equipo.</li>
         <li>Carga la clasificación en <code>actividad_categorias</code>.</li>
         <li>Revisa la pestaña <em>Actividad</em> y el <em>Monitoreo en vivo</em>.</li>

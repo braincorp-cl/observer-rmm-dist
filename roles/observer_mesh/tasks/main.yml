@@ -40,17 +40,25 @@
     - name: Descargar script de instalación nodesource
       ansible.builtin.get_url:
         url: "https://deb.nodesource.com/setup_{{ observer_nodejs_version }}.x"
-        dest: /tmp/nodesource_setup.sh
+        dest: /var/tmp/nodesource_setup.sh
         mode: "0755"
 
     - name: Ejecutar script nodesource
-      ansible.builtin.command: bash /tmp/nodesource_setup.sh
+      ansible.builtin.command: bash /var/tmp/nodesource_setup.sh
       changed_when: true
 
+    # state: latest y NO present. Con `present` y nodejs YA instalado, apt considera la
+    # dependencia satisfecha y no actualiza nada: la tarea reporta `ok`, el playbook da
+    # verde y Node se queda en la major vieja. Medido el 4-nov-2026 subiendo el pin de 20
+    # a 24 en staging — MeshCentral paso a 1.3.1 y Node siguio en v20.20.2.
+    #
+    # `latest` aqui no trae sorpresas: este bloque entero esta guardado por
+    # `observer_node_major != observer_nodejs_version`, asi que solo corre cuando la major
+    # cambia de verdad, no en cada ejecucion.
     - name: Instalar Node.js {{ observer_nodejs_version }}
       ansible.builtin.apt:
         name: nodejs
-        state: present
+        state: latest  # noqa: package-latest
         update_cache: true
 
 - name: Informar que Node ya está en la versión pedida
@@ -87,6 +95,9 @@
     mode: "0750"
 
 - name: Desplegar mesh.cfg (config.json de MeshCentral)
+  # Tag propio: permite re-renderizar SOLO el config.json y reiniciar MeshCentral,
+  # sin correr el rol entero (install.yml --tags mesh_config --limit observer_mesh).
+  tags: [mesh_config]
   ansible.builtin.template:
     src: mesh.cfg.j2
     # MeshCentral lee su config de meshcentral-data/config.json (NO de la raíz del
@@ -155,25 +166,81 @@
 # valida los tokens que Django mina (meshctrl.get_auth_token → bytes.fromhex). Se publica
 # como fact para que observer_api lo inyecte en MESH_TOKEN_KEY (local_settings.j2).
 - name: "Mesh — esperar a que el HTTP server escuche en el puerto {{ observer_mesh_port }}"
+  # Tambien en api_config: sin esta espera, `--logintokenkey` puede correr contra un
+  # MeshCentral que aun no abrio el puerto y devolver vacio.
+  tags: [api_config, api]
   ansible.builtin.wait_for:
     host: 127.0.0.1
     port: "{{ observer_mesh_port }}"
     timeout: 180
 
 - name: "Mesh — obtener el login token key (idempotente: persiste en la DB mesh)"
+  # tags api_config Y api ADEMAS del normal: `local_settings.j2` del rol observer_api
+  # renderiza MESH_TOKEN_KEY desde el fact que estas tres tareas producen, asi que
+  # sin ellas la rebanada muere con
+  # "'HostVarsVars' has no attribute 'observer_mesh_login_token_key'".
+  # Faltaba `api`: el play de mesh lleva `tags: [mesh]`, de modo que `--tags api`
+  # no recogia ninguna de las tres y la rebanada de API quedaba inservible pese a
+  # existir. Son autocontenidas y de solo lectura (changed_when: false), asi que
+  # entrar en la corrida de API no reinstala ni reinicia MeshCentral.
+  tags: [api_config, api]
+  # 🪤 El `timeout` de coreutils no es decoracion. Si MeshCentral no puede abrir su
+  # base --por ejemplo porque la contrasena de su config.json quedo atras de la del rol
+  # de PostgreSQL-- imprime el stack de pg-protocol con el 28P01 y NO SALE: se queda
+  # colgado. Sin tope, el playbook espera para siempre y el operador ve una corrida
+  # detenida sin un solo mensaje. Medido el 4-nov-2026 en un servidor con esa
+  # divergencia: 25 KB de stack y el proceso vivo indefinidamente. Importa el doble
+  # desde que esta tarea entra tambien en la rebanada de API.
   ansible.builtin.command:
-    cmd: "/usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey"
+    cmd: >-
+      timeout {{ observer_mesh_ltk_timeout }}
+      /usr/bin/node /meshcentral/node_modules/meshcentral --logintokenkey
     chdir: /meshcentral
   become: true
   become_user: "{{ observer_user }}"
   register: observer_mesh_ltk
   changed_when: false
+  # El fallo lo explica la tarea siguiente, que distingue el cuelgue del resto.
+  failed_when: false
+  # De solo lectura, asi que corre tambien en --check. Sin esto Ansible la salta en modo
+  # simulacion, el fact queda vacio y el assert de abajo falla con "no devolvio un hex
+  # valido" — un falso negativo que hace parecer roto el bring-up y deja el play de mesh
+  # imposible de ensayar antes de aplicarlo.
+  check_mode: false
+
+- name: "Mesh — explicar el cuelgue de --logintokenkey en vez de esperar para siempre"
+  tags: [api_config, api]
+  when: observer_mesh_ltk.rc | default(0) == 124
+  ansible.builtin.fail:
+    msg: >-
+      MeshCentral --logintokenkey no respondio en {{ observer_mesh_ltk_timeout }}
+      segundos y se corto. Casi siempre es que MeshCentral no puede abrir su base:
+      ante un error de autenticacion imprime el stack y se queda colgado sin salir.
+      Comparar la contrasena de /meshcentral/meshcentral-data/config.json con
+      vault_observer_mesh_db_password; si el play de base de datos corrio despues de
+      la ultima escritura de ese config, el rol de PostgreSQL tiene la del vault y el
+      config quedo con la vieja. Comprobarlo a mano:
+      sudo -u postgres psql -c "\du meshcentral"
+      y revisar /var/log/postgresql/ por 28P01 del usuario meshcentral.
+
+- name: "Mesh — explicar cualquier otro fallo de --logintokenkey"
+  tags: [api_config, api]
+  when:
+    - observer_mesh_ltk.rc | default(0) != 0
+    - observer_mesh_ltk.rc | default(0) != 124
+  ansible.builtin.fail:
+    msg: >-
+      MeshCentral --logintokenkey salio con rc={{ observer_mesh_ltk.rc }}.
+      Ultimas lineas del error:
+      {{ (observer_mesh_ltk.stderr | default('') ~ ' ' ~ (observer_mesh_ltk.stdout | default('')))[-600:] }}
 
 - name: "Mesh — extraer el hex y publicarlo como fact para observer_api"
+  tags: [api_config, api]
   ansible.builtin.set_fact:
     observer_mesh_login_token_key: "{{ observer_mesh_ltk.stdout | regex_search('[0-9a-fA-F]{160,}') }}"
 
 - name: "Mesh — validar que el login token key es hex >=160 (si no, el bring-up está roto)"
+  tags: [api_config, api]
   ansible.builtin.assert:
     that:
       - observer_mesh_login_token_key is string

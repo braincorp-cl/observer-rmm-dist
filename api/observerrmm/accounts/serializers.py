@@ -4,6 +4,7 @@ from rest_framework.serializers import (
     ModelSerializer,
     ReadOnlyField,
     SerializerMethodField,
+    ValidationError,
 )
 
 from observerrmm.util_settings import get_webdomain
@@ -78,6 +79,32 @@ class RoleSerializer(ModelSerializer):
 
     def get_user_count(self, obj):
         return obj.users.count()
+
+    def validate_assignable_roles(self, value):
+        # Feature 052. Dos barreras de configuración, que no reemplazan al
+        # invariante de `can_assign_role` sino que atajan antes dos listas que
+        # nunca tendrían por qué existir.
+        #
+        # 1. Un perfil no se otorga a sí mismo: sería delegar la propia
+        #    autoridad, que es elevación lateral —dos delegados nombrándose
+        #    mutuamente y nadie por encima—.
+        if self.instance and any(r.pk == self.instance.pk for r in value):
+            raise ValidationError(
+                "Un perfil no puede estar entre los perfiles que él mismo otorga."
+            )
+
+        # 2. Un perfil de superusuario en la lista nunca llegará a usarse,
+        #    porque el invariante lo bloquea al asignar. Pero una lista que lo
+        #    CONTIENE es una señal de configuración peligrosa, y vale más
+        #    rechazarla al guardarla que descubrirla cuando alguien la intente.
+        superusuarios = [r.name for r in value if r.is_superuser]
+        if superusuarios:
+            raise ValidationError(
+                "No se puede incluir un perfil de superusuario entre los "
+                f"asignables: {', '.join(superusuarios)}."
+            )
+
+        return value
 
 
 class RoleAuditSerializer(ModelSerializer):

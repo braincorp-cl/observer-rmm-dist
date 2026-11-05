@@ -172,6 +172,12 @@
                   $t("nav.diskEncryption")
                 }}</q-item-section>
               </q-item>
+              <!-- inventario de medios de almacenamiento (feature 055) -->
+              <q-item clickable v-close-popup :to="{ name: 'StorageMedia' }">
+                <q-item-section>{{
+                  $t("nav.storageMedia")
+                }}</q-item-section>
+              </q-item>
               <!-- Observer Erase (feature 039): certificados de borrado + órdenes
                    gobernadas. Ninguna acción destructiva vive acá. -->
               <q-item

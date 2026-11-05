@@ -3,11 +3,18 @@ from typing import Dict
 
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from agents.models import Agent
 from logs.models import BaseAuditModel
-from observerrmm.constants import AGENT_DEFER, AgentMonType, CustomFieldType, GoArch
+from observerrmm.constants import (
+    AGENT_DEFER,
+    ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS,
+    AgentMonType,
+    CustomFieldType,
+    GoArch,
+)
 from observerrmm.models import PermissionQuerySet
 
 
@@ -22,6 +29,28 @@ class Client(BaseAuditModel):
     block_policy_inheritance = models.BooleanField(default=False)
     # Feature 049-B2: monitoreo de actividad (None = sin decidir = no).
     activity_monitoring = models.BooleanField(null=True, blank=True, default=None)
+
+    # Días que sobrevive el ADJUNTO de un borrado o de una destrucción física
+    # para los activos de este cliente (feature 053 · ola 3, RNF-06/L-04).
+    # `None` = heredar `CoreSettings.erase_attachment_retention_days`. NO es
+    # "cero días": el nulo es lo que mantiene viva la herencia. Un default
+    # numérico acá congelaría el valor del día de la migración y el cliente
+    # dejaría de seguir al global cuando éste cambiara.
+    #
+    # El piso es obligación legal (RF-D5, >= 12 meses), no una preferencia: se
+    # valida acá Y se vuelve a aplicar al leer en
+    # `erase.services.resolve_attachment_retention()`, porque este validador no
+    # corre en un `loaddata` ni en un `queryset.update()`. Un piso que se puede
+    # esquivar no es un piso.
+    #
+    # 🔒 NUNCA alcanza al certificado, que es permanente e inmutable
+    # (RNF-01/RN-E07). Sólo al binario del adjunto: la fila, su `sha256` y el
+    # encadenamiento de la cadena quedan intactos.
+    erase_attachment_retention_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(ERASE_ATTACHMENT_RETENTION_FLOOR_DAYS)],
+    )
     failing_checks = models.JSONField(default=_default_failing_checks_data)
     workstation_policy = models.ForeignKey(
         "automation.Policy",

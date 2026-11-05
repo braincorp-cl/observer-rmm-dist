@@ -194,14 +194,31 @@ class TestBuildingQueryset:
         result = build_queryset(data_source=data_source)
         assert "wmi_detail" not in result[0]
         assert "services" not in result[0]
-        assert result[0]["hostname"] == setup_agents[0].hostname
+        # Sin `filter` ni `sort`, este data source NO pide orden: `Agent.Meta` no
+        # define `ordering` y `build_queryset` no agrega `order_by`, asi que el
+        # orden de las filas lo decide PostgreSQL y no esta garantizado. Afirmar
+        # `result[0] == setup_agents[0]` dependia de que la base devolviera el
+        # orden de insercion, y el 2026-10-29 dejo de hacerlo: el CI fallo con
+        # `assert 'Agent2' == 'ZAgent1'` al cambiar el orden de la suite.
+        #
+        # Lo que este test comprueba es que `defer` quito esos dos campos y que
+        # `hostname` sigue estando; cual fila viene primero es incidental. Los
+        # tests de `sort` de mas abajo SI afirman posiciones, y pueden hacerlo
+        # porque ahi el data source pide el orden explicitamente.
+        assert {r["hostname"] for r in result} == {a.hostname for a in setup_agents}
 
     def test_build_queryset_first_operation(self, mock, setup_agents):
         data_source = {"model": Agent, "first": True}
 
         result = build_queryset(data_source=data_source)
 
-        assert result["hostname"] == setup_agents[0].hostname
+        # `first` sobre un queryset SIN orden: cual fila es "la primera" no esta
+        # definido. `Agent.Meta` no declara `ordering` y `build_queryset` solo
+        # agrega `order_by` si el data source lo pide, asi que fijar
+        # `setup_agents[0]` dependia de que PostgreSQL devolviera el orden de
+        # insercion. Lo que el test comprueba es que `first` devuelve UNA fila
+        # del modelo, no una lista.
+        assert result["hostname"] in {a.hostname for a in setup_agents}
 
     def test_build_queryset_count_operation(self, mock, setup_agents):
         data_source = {"model": Agent, "count": True}
@@ -227,7 +244,13 @@ class TestBuildingQueryset:
         result = build_queryset(data_source=data_source)
         # Deserializing the result to check the content.
         result_data = json.loads(result)
-        assert result_data[0]["hostname"] == setup_agents[0].hostname
+        # Mismo caso que `first_operation`: este data source no pide orden, asi
+        # que la posicion de las filas no esta definida. Es el test que fallo en
+        # el CI de la 1.4.38 con `assert 'Agent2' == 'ZAgent1'`. Lo que se
+        # comprueba es que el JSON trae los dos agentes serializados.
+        assert {r["hostname"] for r in result_data} == {
+            a.hostname for a in setup_agents
+        }
 
     def test_build_queryset_csv_presentation(self, mock, setup_agents):
         data_source = {
@@ -294,13 +317,20 @@ class TestBuildingQueryset:
 
         result = build_queryset(data_source=data_source)
 
-        # check agent 1
-        assert result[0]["custom_fields"]["custom1"] == "Agent1"
-        assert result[0]["custom_fields"]["custom2"] == default_value
+        # Mismo caso que `defer_operation` y `json_presentation`: este data
+        # source no pide orden, asi que fijar `result[0]` al primer agente
+        # sembrado dependia de que PostgreSQL devolviera el orden de insercion.
+        # El fixture siembra `ZAgent1` y `Agent2` justamente para que alfabetico
+        # e insercion no coincidan, asi que un `order_by` no sirve de espejo
+        # aca: lo que el test comprueba es que a CADA agente le llega su propio
+        # valor de `custom1` y el default de `custom2`, no en que fila viene.
+        por_hostname = {r["hostname"]: r["custom_fields"] for r in result}
 
-        # check agent 2
-        assert result[1]["custom_fields"]["custom1"] == "Agent2"
-        assert result[1]["custom_fields"]["custom2"] == default_value
+        assert por_hostname[setup_agents[0].hostname]["custom1"] == "Agent1"
+        assert por_hostname[setup_agents[1].hostname]["custom1"] == "Agent2"
+
+        assert por_hostname[setup_agents[0].hostname]["custom2"] == default_value
+        assert por_hostname[setup_agents[1].hostname]["custom2"] == default_value
 
     def test_build_queryset_filter_only_json_combination(self, mock, setup_agents):
         import json

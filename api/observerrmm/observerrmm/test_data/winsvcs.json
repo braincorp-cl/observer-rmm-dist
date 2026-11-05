@@ -2421,7 +2421,7 @@
     },
     {
         "pid": 49248,
-        "name": "tacticalrpc",
+        "name": "observeragent",
         "status": "running",
         "binpath": "\"C:\\Program Files\\ObserverAgent\\nssm.exe\"",
         "username": "LocalSystem",

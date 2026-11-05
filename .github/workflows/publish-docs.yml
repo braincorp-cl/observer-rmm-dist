@@ -1,0 +1,40 @@
+---
+# Publica docs.observer.cl desde el release, por WebDAV contra el appserver.
+#
+# Reemplaza al `sudo rsync` manual, que ataba la publicacion del sitio a un equipo
+# concreto. El runner abre la conexion hacia el appserver por HTTPS (el firewall
+# perimetral admite a los runners desde EE.UU.; validado E2E el 2026-10-26).
+#
+# Dispara en los tags v* (el momento en que se libera version) y a mano cuando la
+# documentacion cambia fuera de un release. No corre en cada push a main a proposito:
+# el sitio se actualiza al liberar, no en cada commit.
+
+name: Publish docs
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Qué se publicaría
+        run: python3 scripts/docs/publish_docs.py --simular
+
+      # Sin continue-on-error: si la publicacion falla, el job tiene que ponerse rojo.
+      # El changelog estuvo rezagado meses con los runs en verde por ese atajo.
+      - name: Publicar y verificar por efecto
+        env:
+          DOCS_UPLOAD_USER: ${{ secrets.DOCS_UPLOAD_USER }}
+          DOCS_UPLOAD_PASSWORD: ${{ secrets.DOCS_UPLOAD_PASSWORD }}
+        run: python3 scripts/docs/publish_docs.py

@@ -66,6 +66,7 @@ from observerrmm.constants import (
     PAStatus,
 )
 from observerrmm.helpers import date_is_in_past, notify_error
+from observerrmm.pagination import StandardResultsSetPagination
 from observerrmm.permissions import (
     _has_perm,
     _has_perm_on_agent,
@@ -78,11 +79,12 @@ from winupdate.serializers import WinUpdatePolicySerializer
 from winupdate.tasks import bulk_check_for_updates_task, bulk_install_updates_task
 
 from .diskencryption import filtro_por_estado
+from .mediosalmacenamiento import derivar_veredicto, filtro_por_veredicto
 from .lostmode_crypto import EvidenceKeyMissing, encryption_enabled
 from .models import (
-    AgentActivityScreenshot,
     Agent,
     AgentActivityDaily,
+    AgentActivityScreenshot,
     AgentCustomField,
     AgentHistory,
     DiskEncryptionVolume,
@@ -90,6 +92,7 @@ from .models import (
     LostModePolicy,
     LostModeState,
     Note,
+    StorageMedium,
 )
 from .permissions import (
     AgentHistoryPerms,
@@ -125,6 +128,8 @@ from .serializers import (
     AgentSerializer,
     AgentTableSerializer,
     DiskEncryptionFleetSerializer,
+    StorageMediaFleetSerializer,
+    StorageMediumSerializer,
     DiskEncryptionHistorySerializer,
     DiskEncryptionVolumeSerializer,
     LostModeEvidenceSerializer,
@@ -208,12 +213,25 @@ class GetAgents(APIView):
 
         # if detail=false
         else:
+            # `hostname` es como una persona busca un equipo en el selector que
+            # alimenta esta rama, y el `id` desempata porque el hostname NO es
+            # unico entre sitios. Sin orden, PostgreSQL devuelve las filas como
+            # le conviene y la lista se reacomoda entre peticiones.
+            #
+            # `hostname` no tiene indice y `Agent` es la tabla grande del
+            # producto (29k filas en la instalacion mas grande), asi que el
+            # orden cuesta. Se agrega igual: esta rama YA trae y serializa el
+            # conjunto filtrado completo, de modo que ordenar lo que de todas
+            # formas se esta materializando es despreciable al lado de eso. Si
+            # el endpoint llega a doler, lo que hay que arreglar es que no
+            # pagina, no el orden.
             agents = (
                 Agent.objects.filter_by_role(request.user)  # type: ignore
                 .defer(*AGENT_DEFER)
                 .select_related("site__client")
                 .filter(monitoring_type_filter)
                 .filter(client_site_filter)
+                .order_by("hostname", "id")
             )
             serializer = AgentHostnameSerializer(agents, many=True)
 
@@ -1751,11 +1769,18 @@ class GetAddNotes(APIView):
     permission_classes = [IsAuthenticated, AgentNotesPerms]
 
     def get(self, request, agent_id=None):
+        # Las notas se leen como una bitacora: lo mas reciente primero. `id`
+        # desempata porque `entry_time` puede repetir instante entre dos notas
+        # creadas en la misma peticion. Las dos ramas usan el mismo criterio
+        # para que abrir un equipo y ver el listado general no muestren el
+        # mismo historial en ordenes distintos.
         if agent_id:
             agent = get_object_or_404(Agent, agent_id=agent_id)
-            notes = Note.objects.filter(agent=agent)
+            notes = Note.objects.filter(agent=agent).order_by("-entry_time", "-id")
         else:
-            notes = Note.objects.filter_by_role(request.user)  # type: ignore
+            notes = Note.objects.filter_by_role(request.user).order_by(  # type: ignore
+                "-entry_time", "-id"
+            )
 
         return Response(AgentNoteSerializer(notes, many=True).data)
 
@@ -2058,6 +2083,14 @@ class WMI(APIView):
 
 
 class AgentHistoryView(APIView):
+    """Historial sin tope. En desuso: devuelve la tabla entera.
+
+    Se mantiene montada por compatibilidad con clientes que ya la usan. Lo nuevo
+    debe ir a AgentHistoryViewV2, que pagina. Sin agent_id esta vista serializa
+    el historial de toda la flota de una sola vez y puede dejar al servidor sin
+    memoria.
+    """
+
     permission_classes = [IsAuthenticated, AgentHistoryPerms]
 
     def get(self, request, agent_id=None):
@@ -2068,6 +2101,34 @@ class AgentHistoryView(APIView):
             history = AgentHistory.objects.filter_by_role(request.user)  # type: ignore
         ctx = {"default_tz": get_default_timezone()}
         return Response(AgentHistorySerializer(history, many=True, context=ctx).data)
+
+
+class AgentHistoryViewV2(APIView):
+    """Historial paginado, con orden acotado a una lista blanca."""
+
+    permission_classes = [IsAuthenticated, AgentHistoryPerms]
+    ordering_fields = ("time", "type", "command", "username")
+
+    def get(self, request, agent_id=None):
+        if agent_id:
+            agent = get_object_or_404(Agent, agent_id=agent_id)
+            history = AgentHistory.objects.filter(agent=agent)
+        else:
+            history = AgentHistory.objects.filter_by_role(request.user)  # type: ignore
+
+        ordering = request.query_params.get("ordering", "-time")
+        if ordering.lstrip("-") not in self.ordering_fields:
+            ordering = "-time"
+
+        # el id desempata: sin el, dos filas del mismo instante pueden cambiar
+        # de pagina entre peticiones y el cliente veria duplicados o huecos
+        history = history.select_related("script").order_by(ordering, "-id")
+
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(history, request, view=self)
+        ctx = {"default_tz": get_default_timezone()}
+        serializer = AgentHistorySerializer(page, many=True, context=ctx)
+        return paginator.get_paginated_response(serializer.data)
 
 
 def _geo_visible(agent: "Agent") -> bool:
@@ -3218,5 +3279,105 @@ class ActivityMonitoringOverview(APIView):
                 "global_enabled": core.activity_monitoring_enabled,
                 "monitored_agents": monitoreados,
                 "rules": reglas,
+            }
+        )
+
+
+class StorageMediaFleet(APIView):
+    """Feature 055 · el panel de categoría de sanitización alcanzable (RF-06).
+
+    Sin `agent_id` en la ruta: el alcance lo recorta `filter_by_role`, igual que
+    el resto de los listados. El inventario del medio lo ve quien ya puede ver
+    el agente, sin permiso nuevo — agregar uno propio para un dato de inventario
+    sólo serviría para que alguien se olvide de asignarlo.
+
+    🔑 El sujeto de la consulta es el AGENTE, no la tabla de medios, y esa
+    inversión es lo que hace posible el estado «sin dato»: un equipo sin reporte
+    no existiría en un listado que saliera de `StorageMedium`. Justo el que más
+    importa ver, además: el que nunca contestó.
+
+    Sólo agentes Windows. Esta fase no lee macOS ni Linux, y mostrarlos todos en
+    «sin dato» convertiría el panel en una lista de falsos desconocidos.
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request):
+        qs = (
+            Agent.objects.filter_by_role(request.user)  # type: ignore
+            .filter(plat=AgentPlat.WINDOWS)
+            .select_related("storage_media", "site__client")
+            .prefetch_related(
+                # El disco de sistema es lo único que el panel necesita de la
+                # tabla de medios. Sin este Prefetch, `derivar_veredicto` hace
+                # una consulta POR FILA: el N+1 clásico, y en una flota grande
+                # es la diferencia entre una pantalla y un tiempo de espera
+                # agotado.
+                Prefetch(
+                    "storage_media_devices",
+                    queryset=StorageMedium.objects.filter(
+                        is_system_disk=True, removable=False
+                    ),
+                    to_attr="system_disks",
+                )
+            )
+        )
+
+        if veredicto := request.query_params.get("verdict"):
+            filtro = filtro_por_veredicto(veredicto)
+            if filtro is None:
+                # Un filtro desconocido NO puede devolver la flota completa como
+                # si se hubiera aplicado: en un panel que informa decisiones de
+                # baja eso se lee como "todos tienen vía".
+                return notify_error(f"Unknown verdict filter: {veredicto}")
+            qs = qs.filter(filtro)
+
+        if client := request.query_params.get("client"):
+            qs = qs.filter(site__client_id=client)
+
+        if site := request.query_params.get("site"):
+            qs = qs.filter(site_id=site)
+
+        # distinct() porque los filtros por veredicto cruzan la tabla de medios:
+        # un agente con dos filas que matchean saldría dos veces.
+        return Response(
+            StorageMediaFleetSerializer(
+                qs.distinct().order_by("hostname"), many=True
+            ).data
+        )
+
+
+class StorageMediaDetail(APIView):
+    """Feature 055 · el detalle de un equipo (RF-01 y RF-09).
+
+    Devuelve TODOS los discos fijos, no sólo el de sistema: el veredicto del
+    equipo sale del de sistema (RN-03), pero un segundo disco sin vía de
+    sanitización es información que el operador quiere ver antes de prometer
+    algo, y esconderla sería decidir por él.
+
+    `query_error` viaja como CAUSA, no como ausencia: es la diferencia entre
+    «no pudimos leer este disco» y «este disco no puede sanitizarse» (RN-02).
+    """
+
+    permission_classes = [IsAuthenticated, AgentPerms]
+
+    def get(self, request, agent_id):
+        agent = get_object_or_404(Agent, agent_id=agent_id)
+
+        discos = agent.storage_media_devices.filter(removable=False).order_by(
+            "-is_system_disk", "device_index", "pnp_device_id"
+        )
+        estado = getattr(agent, "storage_media", None)
+
+        return Response(
+            {
+                "agent_id": agent.agent_id,
+                "hostname": agent.hostname,
+                "verdict": derivar_veredicto(agent),
+                "supported": estado.supported if estado else None,
+                "query_error": estado.query_error if estado else None,
+                "capabilities_probed": (estado.capabilities_probed if estado else None),
+                "measured_at": estado.measured_at if estado else None,
+                "media": StorageMediumSerializer(discos, many=True).data,
             }
         )

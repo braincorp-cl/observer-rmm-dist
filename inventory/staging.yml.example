@@ -29,6 +29,15 @@ all:
     # que Mesh deja enmarcar. El wildcard del host tiene que cubrirlos.
     observer_app_preview_domains: [rmm-v2.example.cl]
     observer_mesh_domain: mesh.example.cl       # mesh — meshcentral.conf
+    # Consentimiento del usuario final antes de "Tomar control" (escritorio). El default
+    # del producto es `true` y asi va en PRODUCCION. En un ambiente de PRUEBAS conviene
+    # apagarlo: sus equipos no tienen a nadie que acepte el cuadro, y como
+    # autoAcceptOnTimeout es false, cada sesion de escritorio muere a los 30 s con
+    # "Failed to start remote desktop after local user rejected".
+    # 🪤 `autoAcceptIfNoUser: true` NO cubre ese caso: auto-acepta cuando NO hay sesion
+    # iniciada, no cuando hay una sesion abierta sin nadie delante.
+    # Descomentar SOLO en staging/lab. Si el ambiente es de produccion, dejarlo asi.
+    # observer_mesh_consent_desktop_prompt: false
     observer_base_domain: example.cl            # dominio raíz para el wildcard *.example.cl
     # URL ofuscada del admin Django (random ~70 chars, como install.sh). Estable por
     # ambiente y única por instalación → definir en un vault, NUNCA en claro aquí.

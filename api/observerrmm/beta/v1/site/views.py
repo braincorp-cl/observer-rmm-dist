@@ -5,7 +5,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from clients.models import Site
 from clients.permissions import SitesPerms
-from beta.v1.pagination import StandardResultsSetPagination
+from observerrmm.pagination import StandardResultsSetPagination
 from ..serializers import SiteSerializer
 
 

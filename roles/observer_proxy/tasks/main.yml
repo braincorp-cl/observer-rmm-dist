@@ -133,11 +133,28 @@
       changed_when: true
       notify: reload nginx
 
-# Modo byo (= install.sh --use-own-cert): cert provisto por el operador vía vault.
+# Modo byo (= install.sh --use-own-cert <fullchain> <privkey>): cert provisto por el
+# operador vía vault, sin ACME ni DNS público. Es la vía para un cliente on-premise y
+# para restaurar en una máquina nueva con el certificado que viene en el respaldo.
 # (El directorio /etc/ssl/observer ya se crea arriba, incondicional.)
 - name: Provisión TLS BYO (cert del vault)
   when: observer_cert_mode == 'byo'
   block:
+    # Sin este assert, las dos tareas de abajo fallaban con un
+    # "'vault_tls_cert' is undefined" que no dice qué hacer. Las variables no tienen
+    # default a propósito: son material del vault, y un default vacío escribiría un
+    # certificado en blanco que nginx acepta al arrancar y rompe recién en el TLS.
+    - name: Validar prerequisitos del modo byo
+      ansible.builtin.assert:
+        that:
+          - vault_tls_cert is defined and (vault_tls_cert | length > 0)
+          - vault_tls_key is defined and (vault_tls_key | length > 0)
+        fail_msg: >
+          observer_cert_mode=byo requiere vault_tls_cert y vault_tls_key en
+          group_vars/observer_proxy/vault.yml (vea vault.yml.example). El certificado debe
+          cubrir los 3 FQDN; un wildcard *.{{ observer_base_domain | default('<base>') }}
+          sirve. Con install.sh use: --use-own-cert <fullchain.pem> <privkey.pem>.
+
     - name: Escribir certificado TLS
       ansible.builtin.copy:
         content: "{{ vault_tls_cert }}"

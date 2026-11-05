@@ -43,16 +43,16 @@ LOST_MODE_EVIDENCE_KEY = ""
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-ORMM_VERSION = "1.4.33"
+ORMM_VERSION = "1.4.42"
 
 WEB_VERSION = "0.2.15"
 
 # bump this version everytime vue code is changed
 # to alert user they need to manually refresh their browser
-APP_VER = "0.1.16"
+APP_VER = "0.1.18"
 
 # https://github.com/braincorp-cl/observer-agent-dist/releases
-LATEST_AGENT_VER = "2.18.0"
+LATEST_AGENT_VER = "2.18.5"
 
 MESH_VER = "1.1.32"
 
@@ -199,6 +199,13 @@ ORMM_CHECK_CREDS_MIN_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_MIN_THROTTLE", 5
 ORMM_CHECK_CREDS_DAY_THROTTLE = int(os.getenv("ORMM_CHECK_CREDS_DAY_THROTTLE", 1000))
 ORMM_LOGIN_MIN_THROTTLE = int(os.getenv("ORMM_LOGIN_MIN_THROTTLE", 50))
 ORMM_LOGIN_DAY_THROTTLE = int(os.getenv("ORMM_LOGIN_DAY_THROTTLE", 1000))
+# Rate limiting del portal PÚBLICO de verificación de certificados (053 ola 4).
+# Defaults bajos a propósito: quien verifica un certificado hace una o dos
+# consultas, no veinte. 🔑 No es la defensa principal contra un barrido del
+# espacio de identificadores —lo son los 40 bits de `new_certificate_id()` y que
+# un acierto no diga de quién es el certificado—; esto sólo encarece el intento.
+ORMM_VERIFY_MIN_THROTTLE = int(os.getenv("ORMM_VERIFY_MIN_THROTTLE", 20))
+ORMM_VERIFY_DAY_THROTTLE = int(os.getenv("ORMM_VERIFY_DAY_THROTTLE", 500))
 
 if not DOCKER_BUILD:
     ALLOWED_HOSTS = []
@@ -230,6 +237,19 @@ if "GHACTIONS" in os.environ:
     MESH_SITE = "https://example.com"
     MESH_TOKEN_KEY = "bd65e957a1e70c622d32523f61508400d6cd0937001a7ac12042227eba0b9ed625233851a316d4f489f02994145f74537a331415d00047dbbf13d940f556806dffe7a8ce1de216dc49edbad0c1a7399c"
     REDIS_HOST = "localhost"
+
+# Conexiones persistentes a Postgres, solo dentro de uWSGI: ahi el proceso
+# atiende muchas peticiones seguidas y reabrir la conexion en cada una se nota.
+# En celery y en los comandos de manage.py no aporta y quedarian colgando.
+# setdefault para que local_settings siga mandando si lo define.
+try:
+    import uwsgi  # noqa: F401
+except ImportError:
+    pass
+else:
+    with suppress(NameError, KeyError):
+        DATABASES["default"].setdefault("CONN_MAX_AGE", 600)  # noqa: F405
+        DATABASES["default"].setdefault("CONN_HEALTH_CHECKS", True)  # noqa: F405
 
 if not DOCKER_BUILD:
 
@@ -271,6 +291,8 @@ REST_FRAMEWORK = {
         "login_min": f"{ORMM_LOGIN_MIN_THROTTLE}/minute",
         "check_creds_day": f"{ORMM_CHECK_CREDS_DAY_THROTTLE}/day",
         "login_day": f"{ORMM_LOGIN_DAY_THROTTLE}/day",
+        "verify_min": f"{ORMM_VERIFY_MIN_THROTTLE}/minute",
+        "verify_day": f"{ORMM_VERIFY_DAY_THROTTLE}/day",
     },
 }
 

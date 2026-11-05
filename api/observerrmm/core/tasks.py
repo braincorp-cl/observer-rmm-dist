@@ -17,6 +17,11 @@ from packaging import version as pyver
 from accounts.models import User
 from accounts.utils import is_superuser
 from agents.models import Agent
+from erase.tasks import (
+    expire_stale_retrieval_orders,
+    prune_erase_attachments,
+    redispatch_pending_retrieval_orders,
+)
 from agents.tasks import (
     clear_faults_task,
     prune_agent_history,
@@ -51,6 +56,7 @@ from observerrmm.constants import (
     AGENT_STATUS_ONLINE,
     AGENT_STATUS_OVERDUE,
     CACHE_DB_FIELDS_TASK_LOCK,
+    CELERY_HEARTBEAT_CACHE_KEY,
     RESOLVE_ALERTS_LOCK,
     SYNC_MESH_PERMS_TASK_LOCK,
     SYNC_SCHED_TASK_LOCK,
@@ -102,6 +108,12 @@ def remove_orphaned_history_results() -> int:
         return 0
 
 
+@app.task(ignore_result=True)
+def celery_heartbeat_task() -> None:
+    """Sella la hora en que un worker proceso una tarea de verdad."""
+    cache.set(CELERY_HEARTBEAT_CACHE_KEY, int(djangotime.now().timestamp()), None)
+
+
 @app.task
 def core_maintenance_tasks() -> None:
     AutomatedTask.objects.filter(
@@ -151,6 +163,51 @@ def core_maintenance_tasks() -> None:
         core.lost_mode_evidence_prune_days,
         core.lost_mode_evidence_closed_case_days,
     )
+
+    # Retención de los ADJUNTOS del módulo de borrado seguro (053 ola 3,
+    # RNF-06/L-04). También SIN el guard `> 0`, por el mismo criterio que la
+    # poda de arriba: el plazo no se desactiva desde un campo, se ajusta.
+    #
+    # 🔴 Esta línea es la que faltaba. `prune_erase_attachments` existía desde
+    # la 042, estaba bien escrita, citaba la norma correcta y pasaba los tests —
+    # y NO estaba agendada en ninguna parte: el único `grep` del nombre en todo
+    # el repo era su propio `def`. Durante dos olas, ningún adjunto del módulo
+    # caducó, ni la fotografía de una destrucción física ni los archivos
+    # recuperados, mientras la política de uso aceptable afirmaba por escrito
+    # que sí caducaban.
+    #
+    # Se agenda SIEMPRE, y el ajuste decide si borra o sólo mide: apagada, la
+    # corrida deja registrado cuánto purgaría sobre datos reales. Agendarla sólo
+    # cuando está encendida reproduciría el defecto de arriba —una tarea que
+    # existe y no corre— y volvería inverificable que siga agendada.
+    prune_erase_attachments.delay(dry_run=not core.erase_attachment_prune_enabled)
+
+    # Órdenes de recuperación de archivos (042). Las dos tareas de abajo estaban
+    # ESCRITAS Y SIN AGENDAR, el mismo defecto que la poda de adjuntos de arriba:
+    # el único `grep` de cada nombre en todo el repo era su propio `def`.
+    #
+    # 🔴 Y acá el código no sólo las omitía: las PROMETÍA. El docstring de
+    # `erase.services.dispatch_retrieval_order` dice, sobre un equipo offline,
+    # que "la orden queda `pending` y la reintenta el beat
+    # `redispatch_pending_retrieval_orders` hasta `expires_at`". Ese beat no
+    # existía. Una orden pedida mientras el equipo estaba apagado se quedaba en
+    # `pending` para siempre: nadie la reintentaba al reconectar y nadie la
+    # vencía, así que tampoco pasaba a `expired` ni dejaba el evento
+    # `retrieval_expired` en la custodia. El TTL de 7 días era un campo que
+    # ningún proceso hacía cumplir.
+    #
+    # Van acá y no en entradas propias del `beat_schedule` porque este es el
+    # molde del producto para el mantenimiento periódico, y porque la cadencia
+    # horaria alcanza de sobra para las dos: la ventana de la orden son 7 días
+    # (`DEFAULT_FILERETRIEVAL_TTL_SECONDS`), o sea hasta 168 reintentos antes de
+    # vencer, y el vencimiento se aplica a lo más una hora después del plazo.
+    #
+    # Con `.delay()`, igual que las podas: `dispatch_retrieval_order` habla por
+    # NATS con 15 s de timeout por orden, y encadenar eso dentro de esta tarea
+    # haría que una flota con varias órdenes en cola bloquee todo el
+    # mantenimiento horario.
+    redispatch_pending_retrieval_orders.delay()
+    expire_stale_retrieval_orders.delay()
 
 
 @app.task

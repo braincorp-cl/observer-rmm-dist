@@ -80,7 +80,30 @@
       "certUrl": "https://{{ observer_mesh_domain }}:443/",
       "geoLocation": true,
       "cookieIpCheck": false,
-      "mstsc": true
+      "mstsc": true,
+{#
+  Consentimiento del usuario final ANTES de "Tomar control" (escritorio).
+  Pedido del encargado de TNS 2026-10-26: hasta ahora la sesion de escritorio abria la
+  pantalla sin avisar. MeshCentral arma el bitmask `consent` con un OR de cinco origenes
+  (dominio, grupo de equipos, nodo, usuario, grupo de usuarios: meshuser.js 295-310,
+  meshrelay.js 264-265); el del DOMINIO es el unico piso que no se puede bajar desde la
+  UI y que heredan los grupos que Observer cree despues, por eso va aca y no por grupo.
+  Bit 8 = pedir permiso para escritorio (meshcentral.js 1604-1610). Terminal (16) y
+  archivos (32) quedan FUERA a proposito: el pedido es solo "Tomar control".
+  autoAcceptIfNoUser: sin sesion iniciada no hay quien acepte; en false el soporte
+  quedaria bloqueado en equipos desatendidos (mantencion nocturna, barridos).
+  autoAcceptOnTimeout en false: el silencio NO es consentimiento.
+#}
+      "userConsentFlags": {
+        "desktopprompt": {{ observer_mesh_consent_desktop_prompt | bool | to_json }}
+      },
+      "consentMessages": {
+        "Title": "{{ observer_mesh_consent_title }}",
+        "Desktop": "{{ observer_mesh_consent_desktop_msg }}",
+        "consentTimeout": {{ observer_mesh_consent_timeout | int }},
+        "autoAcceptOnTimeout": false,
+        "autoAcceptIfNoUser": {{ observer_mesh_consent_auto_accept_no_user | bool | to_json }}
+      }
     }
   }
 }

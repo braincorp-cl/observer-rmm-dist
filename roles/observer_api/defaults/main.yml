@@ -1,6 +1,28 @@
 ---
 observer_python_version: "3.11"
-observer_nats_version: "2.14.0"
+
+# Email del superusuario Django. Es un concepto distinto del email de registro de ACME,
+# aunque hoy compartan valor cuando el certificado se emite por ACME: uno identifica al
+# administrador de la consola, el otro a quien registra el certificado.
+#
+# Estaban acoplados y el acoplamiento se rompia solo: `django_deploy.yml` usaba
+# `observer_acme_email` directo, que vive en los defaults de observer_proxy — otro rol, y
+# que corre DESPUES. Andaba nada mas porque install.sh siempre lo escribia en el
+# inventario. Al instalar con certificado propio (observer_cert_mode: byo) deja de haber
+# email de ACME, y la creacion del superusuario fallaba con 'observer_acme_email' is
+# undefined tras doce minutos de instalacion, con todo lo demas ya puesto.
+#
+# El `or` de Jinja y no `| default()`: default solo actua sobre una variable INDEFINIDA, y
+# aca el valor puede llegar definido pero vacio (es el default de observer_proxy).
+observer_admin_email: "{{ (observer_acme_email | default('')) or ('admin@' + (observer_base_domain | default('localhost'))) }}"
+observer_nats_version: "2.15.1"
+# SHA256 de los tarballs de la release, tomados del SHA256SUMS que publica nats-io.
+# Van por arquitectura porque el tarball es distinto en cada una. Al subir el pin hay
+# que reemplazar los dos: un checksum viejo con un pin nuevo falla la descarga, que es
+# el comportamiento que se quiere (falla ruidosa, no instalacion silenciosa).
+observer_nats_sha256:
+  amd64: "bf5edc7b1ce98e885c368cb43a886eb148dc5d0551d99f3cf6141fb5e1954c70"
+  arm64: "e2fbab4cad7d3c76e3052eb959570393c9d73ba756b70bf8e9eea61e9ae6d49c"
 observer_nats_port: 4222
 observer_nats_ws_port: 9235
 observer_nats_host: "127.0.0.1"
@@ -104,3 +126,31 @@ observer_open_ai_temperature: ""
 # posterior no pisa el valor que el cliente cambie en Ajustes. Vacío = default del modelo
 # (America/Santiago). La fija install.sh con la zona confirmada del cliente.
 observer_default_time_zone: ""
+
+# --- Firma de los certificados de borrado (053 · T017) ---------------------
+# La clave ACTIVA la genera install.yml por ambiente y vive cifrada en
+# group_vars/observer_api/vault_erase_signing.yml (gitignored), como
+# vault_lost_mode_evidence_key. Acá solo van las RETIRADAS.
+#
+# Claves retiradas, en PEM PUBLICO. Rotar NO invalida lo ya firmado —una clave
+# publica no caduca— pero SOLO si la saliente se publica acá: el verificador
+# elige por el `key_id` que el propio certificado declara, y una clave que no
+# esta publicada deja sin verificar todo lo que firmo.
+#
+# Rotar es RESPUESTA A INCIDENTE, no rutina: no hay CA ni certificado que venza,
+# y la unica razon real para retirar una clave es que la privada se comprometa.
+observer_erase_signing_keys_retired: []
+
+# --- Despacho destructivo de Observer Erase (043 · ADR-029) -----------------
+# Gate legal del Bloque A: con `false` la orden se gobierna (se crea, se confirma
+# entre dos personas y vence su ventana) pero NO VIAJA al equipo; queda el evento
+# `dispatch_gated_adr029` y nada mas.
+#
+# 🔑 El flag NO es el permiso para borrar: es el permiso para que la orden viaje.
+# Lo que decide si se borra o solo se enumera es `dry_run` de la propia orden, y
+# `dispatch_order` (erase/services.py:313) evalua este flag ANTES de mirarlo ⇒
+# con el flag apagado TAMPOCO corre el simulacro en seco (RF-G05 / T023).
+#
+# Apagado de fabrica y en los 5 PROD. Se enciende por ambiente, aca y no a mano:
+# local_settings.py se re-renderiza en cada install.yml.
+observer_erase_destructive_dispatch_enabled: false
