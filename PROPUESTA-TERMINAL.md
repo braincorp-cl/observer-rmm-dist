@@ -1,17 +1,18 @@
 # Propuesta: tokens de color para el terminal web (`WebTerminal.vue`)
 
-**Estado:** propuesta, sin implementar. Ningún archivo de `web/app/src/` fue modificado por este
-documento.
-**Hallazgo que cierra:** `web/app/src/views/WebTerminal.vue:54` pasa `theme: { background: "#333" }`
-a xterm — un hex a mano (viola `UI-D02` / `V2-G02`) que además nunca sigue al tema, y sin
-`foreground` fijado en ninguna parte.
+**Estado:** **aplicada** en el commit `64c310b` (opción A + `minimumContrastRatio: 4.5`). Las
+secciones 1 a 3 describen el estado *anterior* al cambio y la medición que llevó a la decisión; la
+sección 3 cierra con el resultado medido después de aplicarlo.
+**Hallazgo que cierra:** `web/app/src/views/WebTerminal.vue:54` (numeración previa al cambio)
+pasaba `theme: { background: "#333" }` a xterm — un hex a mano (viola `UI-D02` / `V2-G02`) que
+además nunca seguía al tema, y sin `foreground` fijado en ninguna parte.
 **Fecha de medición:** 2026-11-05.
 
 ---
 
 ## 0. Método (qué medí y con qué)
 
-Nada acá viene de memoria. Las dos fuentes son:
+Nada acá viene de memoria. Las fuentes son tres:
 
 1. **El CSS compilado del proyecto.** Compilé `src/css/quasar.variables.sass` +
    `src/css/app.sass` con `sass 1.80.6` (quitando solo los `@import` de `@fontsource`, que no
@@ -24,12 +25,18 @@ Nada acá viene de memoria. Las dos fuentes son:
    `src/browser/services/ThemeService.ts`, `src/browser/Types.ts`, `src/common/Color.ts`,
    `src/common/services/OptionsService.ts`, `src/browser/Viewport.ts`,
    `src/browser/renderer/dom/DomRendererRowFactory.ts` y `css/xterm.css`.
+3. **El propio xterm corriendo en un navegador**, para verificar el resultado después de aplicar el
+   cambio (sección 3, "Resultado medido"). Con `npm ci` hecho, cargué el `lib/xterm.mjs` instalado
+   en Chromium headless con las mismas opciones del componente y el CSS del build real
+   (`dist/8bf4ae1b.css`), y leí del DOM con `getComputedStyle` el color que xterm pinta de verdad.
+   Esta fuente no existía cuando escribí las secciones 1 y 2.
 
-Los ratios los calculé con una réplica exacta de `src/common/Color.ts` de xterm
+Los ratios de la predicción los calculé con una réplica exacta de `src/common/Color.ts` de xterm
 (`relativeLuminance2`, `contrastRatio`, `ensureContrastRatio`, `reduceLuminance`,
 `increaseLuminance`, `blend`), no con una implementación propia de WCAG. Eso importa para la
 sección 3: así los valores "después de corregir" son los que xterm realmente va a pintar, con su
-algoritmo de pasos del 10 %, no un ideal teórico.
+algoritmo de pasos del 10 %, no un ideal teórico. La fuente 3 lo confirmó después: predicción y
+medición coinciden en los 16 colores.
 
 Valores de token resueltos (del CSS compilado):
 
@@ -49,7 +56,10 @@ Valores de token resueltos (del CSS compilado):
 
 ---
 
-## 1. Qué par usa HOY el terminal, de verdad
+## 1. Qué par usaba el terminal ANTES del cambio, de verdad
+
+> Esta sección y la 3 describen el estado previo al commit `64c310b`. "ANTES" en las tablas es
+> ese estado, no el actual.
 
 ### Fondo
 
@@ -77,7 +87,7 @@ Lo mismo pasa con tres colores más que el componente tampoco fija y que sí se 
 
 | | fondo | primer plano | ratio | AA texto normal (4,5:1) |
 |---|---|---|---|---|
-| **HOY, ambos temas** | `#333333` | `#FFFFFF` | **12,63:1** | pasa |
+| **ANTES, ambos temas** | `#333333` | `#FFFFFF` | **12,63:1** | pasa |
 
 El par de hoy **no es el problema de contraste**: 12,63:1 es holgado. Los dos problemas reales son
 otros:
@@ -92,11 +102,19 @@ otros:
 ### Detalle de implementación que conviene saber
 
 `css/xterm.css` del paquete trae `.xterm .xterm-viewport { background-color: #000; }` (línea 95).
-No se ve, porque `Viewport.ts:74` escribe
+No se ve, pero **no porque algo lo sobrescriba**: en xterm 6 `Viewport.ts:74` escribe
 `this._scrollableElement.getDomNode().style.backgroundColor = themeService.colors.background.css`
-en estilo inline, que gana a la hoja de estilos. O sea: el `#000` del CSS vendido queda tapado por
-el `#333333` del `theme`. Si algún día se quita `background` del `theme`, no queda `#333` ni
-transparente: queda **negro**.
+en un elemento **distinto y descendiente**, `.xterm-scrollable-element`. O sea: `.xterm-viewport`
+se queda genuinamente en `#000`, y lo que no se ve es porque su hijo lo **tapa** por completo. El
+elemento que pinta el fondo del terminal, y el único cuyo color hay que leer para medir, es
+`.xterm-scrollable-element`. Si algún día se quita `background` del `theme`, no queda `#333` ni
+transparente: queda **negro**, porque `parseColor` cae a `DEFAULT_BACKGROUND`.
+
+> Esta imprecisión no es gratuita y vale dejarla escrita: en la primera corrida de la verificación
+> leí `.xterm-viewport`, me devolvió `#000000` y con eso todos los ratios salieron inflados (ansi 0
+> en 6,00 en vez de 5,36). Lo cacé porque el número no cuadraba con la predicción de esta misma
+> propuesta, no porque la medición avisara: era un resultado plausible y más favorable. Si vas a
+> medir xterm desde el DOM, lee `.xterm-scrollable-element`.
 
 ---
 
@@ -204,7 +222,7 @@ caen crudos sobre el fondo.
 `AA` = ≥ 4,5:1 (texto normal). `grande` = ≥ 3:1 (solo válido para texto ≥ 18,66 px bold o ≥ 24 px;
 el terminal corre a 15 px, así que para este caso **"grande" es falla**).
 
-| # | nombre | hex | sobre HOY `#333333` | sobre `#0A1220` (A y B-oscuro) | sobre `#DCE3EC` (B-claro) |
+| # | nombre | hex | sobre ANTES `#333333` | sobre `#0A1220` (A y B-oscuro) | sobre `#DCE3EC` (B-claro) |
 |---|---|---|---|---|---|
 | 0 | black | `#2e3436` | 1,00 ✗ | 1,48 ✗ | 9,78 ✓ |
 | 1 | red | `#cc0000` | 2,15 ✗ | 3,18 grande | 4,55 ✓ |
@@ -266,7 +284,7 @@ Esto es lo que xterm pintaría **sobre el fondo propuesto `#0A1220`** con `minim
 | 8 | brBlack | `#555753` | 2,57 | `#848683` | **5,10** |
 | 9 | brRed | `#ef2929` | 4,48 | `#f13f3f` | **4,93** |
 
-**Resultado: 16 de 16 ≥ 4,5:1, con dos tokens tocados y una línea de opción.**
+**Resultado esperado: 16 de 16 ≥ 4,5:1, con dos tokens tocados y una línea de opción.**
 
 Variante conservadora, si 4,5 se considera demasiada intervención sobre los colores que eligió el
 programa remoto: con `minimumContrastRatio: 3` solo cambian **tres** colores sobre `#0A1220`
@@ -279,6 +297,28 @@ mecanismo corrige los 11 que fallan (p. ej. `brWhite #eeeeec` → `#636363`, `br
 `#696220`, `brCyan #34e2e2` → `#166969`). Funciona, pero conviene saber que en tema claro la
 corrección es **agresiva**: `brWhite`, `brYellow`, `brGreen` y `brCyan` quedan prácticamente
 irreconocibles como "el color que mandó el programa". Es otro argumento a favor de A.
+
+#### Resultado medido en el xterm real (después de aplicar, commit `64c310b`)
+
+Verificado con la fuente 3 del método: el `@xterm/xterm` 6.0.0 que instaló `npm ci`, corriendo en
+Chromium con las opciones del componente y el CSS del build, leyendo del DOM el color pintado por
+celda. El fondo real resultó `#0a1220` y el primer plano `#e6edf5`, **par base 15,89:1**, y
+**16 de 16 ANSI ≥ 4,5:1**. Cambiaron exactamente los 6 previstos, con los mismos hexes:
+
+| # | nombre | antes | ratio antes | pintado (medido) | ratio medido |
+|---|---|---|---|---|---|
+| 0 | black | `#2e3436` | 1,48 | `#858a8a` | **5,36** |
+| 1 | red | `#cc0000` | 3,18 | `#df5959` | **5,10** |
+| 4 | blue | `#3465a4` | 3,16 | `#5c83b7` | **4,81** |
+| 5 | magenta | `#75507b` | 2,85 | `#9c81a0` | **5,41** |
+| 8 | brBlack | `#555753` | 2,57 | `#848683` | **5,10** |
+| 9 | brRed | `#ef2929` | 4,48 | `#f13f3f` | **4,93** |
+
+Los otros 10 (`green`, `yellow`, `cyan`, `white`, `brGreen`, `brYellow`, `brBlue`, `brMagenta`,
+`brCyan`, `brWhite`) salieron **intactos**, idénticos al Tango de origen. Predicción y medición
+coinciden en los 16 valores, así que la réplica de `Color.ts` usada en la predicción era fiel.
+
+---
 
 ### Un caso más que suele olvidarse: video inverso
 
@@ -293,10 +333,12 @@ primer plano y nada más. Primer plano por defecto sobre fondo ANSI, sin correcc
 
 ---
 
-## 4. Diff propuesto (no aplicado)
+## 4. Diff aplicado
 
-Dos archivos, 31 líneas agregadas y 1 eliminada; 21 de las 31 son comentarios que dejan la
-medición en el código. **Corresponde a la opción A + `minimumContrastRatio: 4.5`.**
+Dos archivos, 31 líneas agregadas y 1 eliminada; la mayoría son comentarios que dejan la medición
+en el código. **Corresponde a la opción A + `minimumContrastRatio: 4.5`.** Es el diff tal como se
+propuso; al aplicarlo se amplió el comentario de `minimumContrastRatio` para que lleve el dato de
+los 7 de 16 y el de ansi 0 invisible, de modo que nadie lo revierta por parecer arbitrario.
 
 ```diff
 diff --git a/web/app/src/css/app.sass b/web/app/src/css/app.sass
@@ -393,26 +435,33 @@ Verificado sobre una copia del checkout en el scratchpad, no sobre `src/`:
 - **`quasar.variables.sass`**: no hace falta ninguna variable Sass nueva, porque `$obs-d-deep` y
   `$obs-d-text` ya existen.
 
-### Cómo verificar después de aplicar
+### Qué se verificó al aplicarlo, y qué queda por mirar en pantalla
 
-1. `cd web/app && npx quasar build` (o `npx vue-tsc --noEmit`) debe pasar. `obsToken` devuelve
-   `string | undefined` y `ITheme` declara `foreground?: string` / `background?: string`
-   (`typings/xterm.d.ts:343-351`), así que encaja. El único riesgo de tipos sería
-   `exactOptionalPropertyTypes`, que **no** está en `web/app/tsconfig.json` pero sí podría venir
-   de `@quasar/app-vite/tsconfig-preset`, que no pude leer sin `node_modules`. Si estuviera
-   activo, la firma pasa a `string` y los `obsToken(...)` se envuelven en un objeto armado
-   condicionalmente.
-2. Abrir el terminal con el tema **claro** activo y confirmar que el fondo sigue siendo navy
-   oscuro, no `#DCE3EC` — si sale claro, `obsToken` devolvió vacío.
-3. Correr algo con color en el agente (`ls --color=always /`, `systemctl status`) y confirmar que
-   ningún color desaparece. En particular `printf '\e[30mnegro\e[0m\n'`: hoy es invisible (1,00:1
-   sobre `#333333`), después debe leerse gris (`#858a8a`, 5,36:1).
-4. Si el fondo sale **negro puro** (`#000000`), es la falla silenciosa de `parseColor`: el token no
-   resolvió.
+Verificado:
+
+1. `npm ci`, `npm run build` y `npm run lint:i18n` en verde. El build descarta el riesgo de tipos
+   que quedaba abierto: `obsToken` devuelve `string | undefined`, `ITheme` declara
+   `foreground?: string` / `background?: string` (`typings/xterm.d.ts:343-351`), y
+   `exactOptionalPropertyTypes` no está activo en la cadena de tsconfig del proyecto.
+2. El CSS del build contiene `body{font-variant-numeric:tabular-nums;--obs-term-bg: #0A1220}`, o
+   sea el token se declara en `body` y no depende de la clase de tema.
+3. Los 16 ANSI sobre el fondo nuevo, medidos en el xterm real (tabla de la sección 3): 16 de 16
+   ≥ 4,5:1.
+4. `obsToken` resuelve: en la corrida de verificación devolvió `#0A1220` y `#E6EDF5` con
+   `body--light` puesto, que es el estado real de esa ventana (ver 5.1). El riesgo de que el token
+   no resolviera y el fondo cayera a negro queda descartado.
+
+Queda por mirar en una pantalla de verdad:
+
+5. Abrir el terminal con el tema **claro** activo y confirmar que el fondo sigue siendo navy
+   oscuro, no `#DCE3EC`.
+6. Correr algo con color en el agente (`ls --color=always /`, `systemctl status`) y confirmar que
+   ningún color desaparece. En particular `printf '\e[30mnegro\e[0m\n'`: antes era invisible
+   (1,00:1 sobre `#333333`), ahora debe leerse gris (`#858a8a`, 5,36:1).
 
 ---
 
-## 5. Preguntas abiertas
+## 5. Preguntas: lo resuelto y lo que sigue abierto
 
 ### 5.1 (Bloquea la opción B) El popup del terminal nunca aplica el tema del usuario
 
@@ -422,11 +471,14 @@ ventana nueva** (`src/api/core.ts:86-91`, `openURL`), es una ruta de nivel super
 `$q.dark.set()`**.
 
 `Dark.set(data.dark_mode)` vive en `src/store/index.js:266`, dentro de `getDashInfo`, que
-`WebTerminal.vue` no despacha. Los **otros dos popups hacen exactamente eso y el terminal es el
-único que no**:
+`WebTerminal.vue` no despacha. De los cuatro popups, **dos lo hacen y dos no** (en la primera
+versión de este documento escribí que el terminal era el único que no; es falso, `WebVNC.vue`
+tiene el mismo hueco):
 
 - `src/views/TakeControl.vue:110-114` → `const { dark_mode } = await fetchDashboardInfo(); $q.dark.set(dark_mode);`
 - `src/views/RemoteBackground.vue:176-180` → idem.
+- `src/views/WebTerminal.vue:50` (`onMounted`) → **no lo llama.**
+- `src/views/WebVNC.vue:35` (`onMounted`) → **tampoco.**
 
 Consecuencia: en la ventana del terminal el `body` queda en `body--light` siempre, y **cualquier**
 `var(--obs-*)` leído ahí resuelve a los valores del tema claro, aunque el usuario tenga el oscuro.
@@ -434,25 +486,44 @@ Para la opción A no importa (los dos tokens son invariantes, y el diff define `
 `body` sin depender de la clase de tema). Para la opción B es bloqueante: habría que agregar el
 `getDashInfo` que ya tienen sus dos hermanas **antes** de tematizar el terminal.
 
-**Pregunta:** ¿se arregla igual, como consistencia con `TakeControl` / `RemoteBackground`, aunque la
-opción A no lo necesite? Es un `await` y dos líneas, y hoy es una inconsistencia real entre los tres
-popups.
+**Resuelto: se reporta, no se arregla acá** — queda para su propia tarjeta. Verificado además, para
+esa tarjeta, que el alcance es mayor que el tema:
+
+- **En la ventana del terminal no afecta nada visible hoy.** Su DOM es
+  `body.body--light > #q-app > .full-page-terminal > .xterm-container`: ni un componente de Quasar,
+  ni un string traducido, ni una sola llamada HTTP (`useCliWSConnection` sólo arma una URL de
+  WebSocket), así que el interceptor de axios no puede levantar un toast ahí. El
+  `background: var(--obs-page)` de `body--light` queda cubierto (`body{margin:0}` en el CSS del
+  build, más el `100vh` y el `background` que agrega este cambio). Residuo: un flash claro antes de
+  que Vue monte.
+- **El idioma, no sólo el tema.** `applyLocale(...)` vive en el mismo `getDashInfo`
+  (`src/store/index.js:269`), así que esa ventana usa el idioma por defecto del *servidor*
+  (`src/boot/i18n.ts:28`, `window._env_.DEFAULT_LANG`), nunca la preferencia del usuario. Cualquier
+  string que se agregue a esa ventana sale en el idioma equivocado.
+- **Donde sí se ve es en VNC.** `WebVNC.vue` tiene el mismo hueco **y** hace una llamada axios, así
+  que los toasts del interceptor (`src/boot/axios.js:77` y `:135`) pueden renderizarse ahí en tema
+  claro y con el locale del servidor.
 
 ### 5.2 Cambio de tema con el terminal abierto
 
 Si se elige B, el tema de xterm habría que reaplicarlo cuando cambia `$q.dark.isActive`. Es
 soportado: `ThemeService` escucha `onSpecificOptionChange('theme', ...)` (`ThemeService.ts:73`), así
 que basta `term.options.theme = { ... }`. Con la opción A no aplica, porque los tokens no cambian.
-**Pregunta:** ¿vale la pena el watcher, o se acepta que el terminal se abre con el tema que tenía al
-abrirse?
+**Resuelto: no aplica**, porque se eligió A y los dos tokens son invariantes; el watcher sería
+código muerto. Queda anotado por si alguna vez se migra a B.
 
 ### 5.3 ¿`minimumContrastRatio` es aceptable para los operadores?
 
 La opción corrige colores que el programa remoto eligió a propósito. Para un sysadmin que lee
 `git diff` o `kubectl` por color, un rojo que pasa de `#cc0000` a `#df5959` sigue leyéndose como
-rojo, pero es otro rojo. **Pregunta:** ¿4,5 (AA estricto, 6 colores alterados sobre `#0A1220`), 3
-(3 colores alterados) o 1 (desactivado, 6 de 16 bajo AA)? Mi recomendación es 4,5. Este es un
-cambio de comportamiento visible, no solo de tokens, y es la decisión que menos puedo tomar yo.
+rojo, pero es otro rojo. Las opciones eran 4,5 (AA estricto, 6 colores alterados sobre `#0A1220`),
+3 (3 colores alterados) o 1 (desactivado, 6 de 16 bajo AA).
+
+**Resuelto: 4,5.** El argumento que decidió fue que hoy ya había salida ilegible en producción —7 de
+16 ANSI sobre AA y ansi 0 en 1,00:1—, así que el programa remoto ya no estaba consiguiendo el color
+que eligió: lo estaba consiguiendo ilegible. Aceptado explícitamente que la opción altera colores
+elegidos por el remoto. El porqué quedó escrito junto a la opción en `WebTerminal.vue` para que
+nadie lo revierta por parecer arbitrario.
 
 ### 5.4 ¿`CommandStream.vue` debería alinearse?
 
@@ -463,25 +534,28 @@ anota como hallazgo aparte?
 ### 5.5 El `#000` de `css/xterm.css`
 
 `.xterm .xterm-viewport { background-color: #000 }` es hex a mano, pero vive en el CSS vendido de
-`@xterm/xterm`, no en `src/`. Hoy queda tapado por el estilo inline de `Viewport.ts:74`.
+`@xterm/xterm`, no en `src/`. Sigue valiendo `#000` en tiempo de ejecución —nadie lo
+sobrescribe— y no se ve sólo porque `.xterm-scrollable-element`, su hijo, lo tapa con el fondo
+del `theme` (ver "Detalle de implementación" en la sección 1).
 **Pregunta:** ¿se considera que la regla de color aplica solo a `src/`, o conviene dejarlo anotado
 como deuda conocida de dependencia?
 
 ### 5.6 Nombre del token
 
-Propuse `--obs-term-bg`. Los tokens invariantes existentes no tienen un prefijo común
-(`--obs-paper` no lo tiene, `--obs-hdr-*` usa el de su componente). `--obs-term` o
-`--obs-terminal` servirían igual. **Pregunta:** ¿nombre preferido?
+Los tokens invariantes existentes no tienen un prefijo común (`--obs-paper` no lo tiene,
+`--obs-hdr-*` usa el de su componente). `--obs-term` o `--obs-terminal` servirían igual.
+
+**Resuelto: `--obs-term-bg`**, el nombre propuesto.
 
 ---
 
 ## 6. Qué quedó sin medir
 
-- **No corrí la webUI.** No hay `node_modules` instalado en el checkout y este es un trabajo de
-  propuesta, así que no hay captura de pantalla ni medición de píxeles renderizados. Todos los
-  ratios salen del CSS compilado y del código de xterm, no del DOM vivo. Lo que no verifiqué en
-  pantalla es que el `fit()` no deje una franja del `body` visible al borde (por eso el diff agrega
-  `background: var(--obs-term-bg)` a `.full-page-terminal`, que es preventivo, no medido).
+- **No corrí la webUI completa.** Sí corrí el xterm real en Chromium contra el CSS del build (fuente
+  3 del método), pero eso es el componente aislado, no la aplicación con sesión y agente al otro
+  lado: no hay captura de la ventana `/webterm` de verdad. En particular no verifiqué en pantalla
+  que el `fit()` no deje una franja del `body` visible al borde — por eso el cambio agrega
+  `background: var(--obs-term-bg)` a `.full-page-terminal`, que es preventivo, no medido.
 - **No evalué los 240 colores restantes** de la paleta de 256 (índices 16-255), generados
   programáticamente en `Types.ts:203-223`. Son demasiados para tabular y `minimumContrastRatio` los
   cubre por el mismo mecanismo de render.
