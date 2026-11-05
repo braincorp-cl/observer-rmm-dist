@@ -1,20 +1,34 @@
 <template>
-  <div class="q-pa-md">
-    <div class="row">
-      <div class="col"></div>
-      <div class="col">
-        <q-card>
+  <!-- 050 (T049): mismo andamiaje que LoginView — q-layout / q-page-container /
+       q-page centrada — en vez del `row` con dos columnas vacías. La tarjeta
+       toma el mismo ancho responsivo que el acceso, así que las tres pantallas
+       del flujo comparten geometría. `obs-ws` es el ámbito de tokens de las
+       vistas migradas: sin él, los grises internos de Quasar (rótulo y
+       marginales del campo, borde del `outlined`, íconos) los pinta la hoja del
+       framework con alfa sobre negro/blanco en vez de los tokens --obs-*
+       (V2-G02). -->
+  <q-layout>
+    <q-page-container>
+      <q-page class="flex flex-center obs-ws">
+        <q-card
+          v-bind:style="$q.screen.lt.sm ? { width: '80%' } : { width: '30%' }"
+        >
           <q-card-actions align="center">
+            <!-- 050 (T049): enlace a la documentación ⇒ botón secundario
+                 (`outline` + `obs-page__btn`, el patrón de las vistas
+                 migradas). Antes iba `color="info"`, que lo ponía a competir
+                 con la acción principal de la tarjeta. -->
             <q-btn
+              outline
+              no-caps
               :label="$t('setup.gettingStarted')"
-              color="info"
-              class="full-width"
+              class="obs-page__btn full-width"
               href="https://docs.observer.cl/guide_gettingstarted/"
               target="_blank"
             />
           </q-card-actions>
           <q-card-section class="row items-center">
-            <div class="text-h5 text-weight-bold">{{ $t("setup.title") }}</div>
+            <h1 class="obs-page__title">{{ $t("setup.title") }}</h1>
           </q-card-section>
           <q-form @submit.prevent="finish">
             <q-card-section>
@@ -74,18 +88,19 @@
 
             <q-card-actions align="center">
               <q-btn
+                unelevated
+                no-caps
                 :label="$t('setup.finish')"
                 color="primary"
-                class="full-width"
+                class="obs-page__btn full-width"
                 type="submit"
               />
             </q-card-actions>
           </q-form>
         </q-card>
-      </div>
-      <div class="col"></div>
-    </div>
-  </div>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script>
