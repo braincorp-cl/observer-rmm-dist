@@ -104,3 +104,21 @@ El spec vigila las dos mitades del contrato: que los `|` literales se rindan
 completos **y** que los cinco plurales de verdad sigan eligiendo rama por
 contador —escapar uno de esos lo rompería al revés, con el mismo silencio—, más
 un barrido que caza cualquier `|` desnudo nuevo fuera de la lista de plurales.
+
+## `acceso-maqueta.spec.js` — las cinco pantallas de acceso siguen la maqueta
+
+Vigila los **dos** modos de fallo que ya ocurrieron, no una idea abstracta de
+«se ve bien»:
+
+1. 🪤 **Una pantalla del flujo que no usa la maqueta.** Pasó: T049 restiló la
+   tarjeta de la v1 en login/setup/totp y no tocó las otras dos —
+   `SessionExpired.vue` con **cero commits** en toda la rama. Un `grep` del
+   import no basta (se puede importar sin usar), así que se monta cada vista y
+   se exige la franja en el DOM renderizado.
+2. 🪤 **El 404 imponiendo el chrome dentro del portal público.**
+   `VerifyCertificateView` lo monta con `public-context`: ahí la franja serían
+   dos marcas en pantalla y una página completa embebida en otra. Es el fallo
+   **opuesto** al 1, y una regla que sólo mirara «todas llevan franja» lo
+   provocaría.
+
+Verificado por mutación: contra las vistas anteriores fallan 7 de 11.
