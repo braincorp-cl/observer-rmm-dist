@@ -1691,7 +1691,10 @@
     "processes": "Procesos",
     "eventLog": "Registro de eventos",
     "registry": "Registro",
-    "metaTitle": "{hostname} - {client} - {site} | Segundo plano remoto"
+    "metaTitle": "{hostname} - {client} - {site} | Segundo plano remoto",
+    "navLabel": "Secciones del segundo plano remoto",
+    "terminalFrame": "Terminal remota del equipo",
+    "fileFrame": "Explorador de archivos del equipo"
   },
   "customFields": {
     "title": "Campos personalizados",

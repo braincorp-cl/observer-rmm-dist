@@ -1691,7 +1691,10 @@
     "processes": "Processes",
     "eventLog": "Event Log",
     "registry": "Registry",
-    "metaTitle": "{hostname} - {client} - {site} | Remote Background"
+    "metaTitle": "{hostname} - {client} - {site} | Remote Background",
+    "navLabel": "Remote background sections",
+    "terminalFrame": "Remote terminal of the endpoint",
+    "fileFrame": "File browser of the endpoint"
   },
   "customFields": {
     "title": "Custom Fields",
