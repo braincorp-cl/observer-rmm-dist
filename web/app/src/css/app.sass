@@ -1122,8 +1122,18 @@ body.body--dark
 // contenedor que recorta, el anillo se dibuja HACIA ADENTRO. Mismos dos tonos,
 // mismo grosor, misma forma; sólo cambia de lado, que es la única manera de que
 // exista dentro de una caja que no deja margen.
+//
+// 🪤 Y el reparo del reparo, de la misma corrida: `inset 0 0 0 2px` NO alcanza.
+// Con `outline-offset: -2px` el aro de 2px ocupa los 2px más externos de la caja
+// y el inset de 2px ocupa EXACTAMENTE los mismos, y el outline se pinta por
+// encima del box-shadow ⇒ adentro quedaba UNA sola banda. Eso rompe las dos
+// cosas a la vez: la «misma forma en toda la consola» y la técnica de dos tonos
+// en la que se apoya la enmienda A del criterio. Con 4px de extensión el inset
+// ocupa [-4px, 0], el outline le tapa los 2px de afuera y el resultado visible
+// es idéntico al de fuera: 2px de --obs-focus y 2px de --obs-focus-alt, en el
+// mismo orden de tonos.
 .obs-ctx__list :focus-visible,
 .q-virtual-scroll :focus-visible,
 .q-scrollarea :focus-visible
   outline-offset: -2px !important
-  box-shadow: inset 0 0 0 2px var(--obs-focus-alt) !important
+  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
