@@ -1027,7 +1027,7 @@ body.body--dark
 // La FORMA va por default convencional y quedó anotada como discutible el
 // 4-nov; el COLOR y el disparador NO se tocan.
 \:focus-visible
-  outline: 2px solid var(--obs-focus) !important
+  outline: 2px solid var(--obs-focus-alt) !important
   // Por FUERA del control, y está medido que es el único lugar donde las dos
   // bandas salen puras. 🪤 Probé la geometría contraria —el anillo entero hacia
   // adentro, para que ningún ancestro pudiera recortarlo— y los píxeles la
@@ -1038,10 +1038,17 @@ body.body--dark
   // empieza en el borde (#555F6E leído donde iba la banda). El `outline` sí se
   // pinta sobre los descendientes, la sombra interior NO: por eso adentro
   // sobrevive una banda y no dos, y la técnica de dos tonos necesita las dos.
-  // El offset de 2px deja el hueco que rellena el box-shadow, así que de fuera
-  // hacia adentro se ve: 2px --obs-focus, 2px --obs-focus-alt, control.
-  outline-offset: 2px
-  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+  // Medido el 5-nov, y es por lo que la asignación quedó así: con el outline
+  // dibujando la banda EXTERNA, la interna (box-shadow) la tapaban los
+  // descendientes que sobresalen de la caja. La insignia de notificaciones
+  // (`.q-badge--floating`, en top:-4px right:-4px) borraba el anillo de dos
+  // lados de la campana, y lo que quedaba daba 2,78:1 (oscuro) y 2,90:1 (claro)
+  // contra el rojo de la insignia: bajo el 3:1. Con el outline dibujando la
+  // banda INTERNA, la insignia ya no puede taparla y esa banda da 5,00 y 4,79
+  // contra el mismo rojo. El chip del encabezado tenía el mismo problema sobre
+  // la barra oscura (1,06:1 en claro) y pasa a 4,64.
+  outline-offset: 0
+  box-shadow: 0 0 0 4px var(--obs-focus) !important
 
 // 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
 // `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
@@ -1061,18 +1068,28 @@ body.body--dark
 .q-avatar:focus-visible,
 .q-card:focus-visible,
 .q-expansion-item__container > .q-item:focus-visible
-  outline: 2px solid var(--obs-focus) !important
-  outline-offset: 2px
-  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
+  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
+  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
+  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
+  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
+  outline: 2px solid var(--obs-focus-alt) !important
+  outline-offset: 0
+  box-shadow: 0 0 0 4px var(--obs-focus) !important
 
 // --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
 
 // Campos. El foco va al <input>, que vive DENTRO del control: un anillo ahi
 // quedaria encajonado. Se dibuja sobre el control y se quita del nativo.
 .q-field__control:has(:focus-visible)
-  outline: 2px solid var(--obs-focus) !important
-  outline-offset: 2px
-  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
+  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
+  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
+  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
+  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
+  outline: 2px solid var(--obs-focus-alt) !important
+  outline-offset: 0
+  box-shadow: 0 0 0 4px var(--obs-focus) !important
 // 🪤 El !important hace falta también aquí, y por mi propia culpa: la regla
 // genérica de arriba lo lleva, así que sin él esta excepción NO surte efecto y
 // el <input> nativo conserva su aro ADEMÁS del de .q-field__control. Resultado
@@ -1087,17 +1104,27 @@ body.body--dark
 .q-checkbox:has(:focus-visible) .q-checkbox__inner,
 .q-radio:has(:focus-visible) .q-radio__inner,
 .q-toggle:has(:focus-visible) .q-toggle__track
-  outline: 2px solid var(--obs-focus) !important
-  outline-offset: 2px
-  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
+  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
+  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
+  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
+  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
+  outline: 2px solid var(--obs-focus-alt) !important
+  outline-offset: 0
+  box-shadow: 0 0 0 4px var(--obs-focus) !important
 .q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
   outline: none
 
 // QSelect pone un target de foco invisible fuera del control (.q-select__focus-target).
 .q-field:has(.q-select__focus-target:focus-visible) .q-field__control
-  outline: 2px solid var(--obs-focus) !important
-  outline-offset: 2px
-  box-shadow: 0 0 0 2px var(--obs-focus-alt) !important
+  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
+  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
+  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
+  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
+  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
+  outline: 2px solid var(--obs-focus-alt) !important
+  outline-offset: 0
+  box-shadow: 0 0 0 4px var(--obs-focus) !important
 
 // ---------------------------------------------------------------------------
 // obs-notice--warning (tanda del sistema de diseño, 2026-11-05)
@@ -1147,5 +1174,11 @@ body.body--dark
 .obs-fleet__tree :focus-visible,
 .q-virtual-scroll :focus-visible,
 .q-scrollarea :focus-visible
+  // 🪤 Acá el outline vuelve a dibujar la banda EXTERNA, al revés que afuera, y
+  // es a propósito: hacia adentro la que los descendientes tapan es la interna,
+  // así que la que tiene que sobrevivir es la de fuera. El ORDEN DE TONOS que se
+  // ve es el mismo en los dos casos —--obs-focus afuera, --obs-focus-alt
+  // adentro—, que es lo que el criterio llama «la misma forma».
+  outline-color: var(--obs-focus) !important
   outline-offset: -2px !important
   box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
