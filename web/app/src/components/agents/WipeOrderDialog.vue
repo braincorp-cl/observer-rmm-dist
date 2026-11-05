@@ -40,20 +40,20 @@
       <q-banner
         v-if="overwriteDefensible === false"
         dense
-        class="bg-orange-1 text-orange-9 q-ma-md"
+        class="obs-notice q-ma-md"
       >
         <template v-slot:avatar>
-          <q-icon name="warning" color="warning" />
+          <q-icon name="warning" />
         </template>
         {{ $t("storageMedia.warnings.overwriteOnSolidState") }}
       </q-banner>
       <q-banner
         v-else-if="overwriteDefensible === null"
         dense
-        class="bg-grey-3 text-black q-ma-md"
+        class="obs-notice q-ma-md"
       >
         <template v-slot:avatar>
-          <q-icon name="help_outline" color="grey-7" />
+          <q-icon name="help_outline" />
         </template>
         {{ $t("storageMedia.warnings.overwriteUnknownMedia") }}
       </q-banner>

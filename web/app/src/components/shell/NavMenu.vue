@@ -198,6 +198,12 @@
           <q-item clickable v-close-popup :to="{ name: 'DiskEncryption' }">
             <q-item-section>{{ $t("nav.diskEncryption") }}</q-item-section>
           </q-item>
+          <!-- inventario de medios de almacenamiento (feature 055). Hermano del
+               panel de cifrado: la ruta entraba en routes.js sin enlace, y la v2
+               navega por acá (FileBar.vue ya no se monta). -->
+          <q-item clickable v-close-popup :to="{ name: 'StorageMedia' }">
+            <q-item-section>{{ $t("nav.storageMedia") }}</q-item-section>
+          </q-item>
           <!-- Observer Erase (feature 039): certificados de borrado + órdenes
                    gobernadas. Ninguna acción destructiva vive acá. -->
           <q-item clickable v-close-popup :to="{ name: 'EraseCertificates' }">
@@ -205,6 +211,9 @@
           </q-item>
           <q-item clickable v-close-popup :to="{ name: 'EraseIntake' }">
             <q-item-section>{{ $t("nav.eraseIntake") }}</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup :to="{ name: 'EraseReconciliation' }">
+            <q-item-section>{{ $t("nav.eraseReconciliation") }}</q-item-section>
           </q-item>
           <q-item clickable v-close-popup :to="{ name: 'EraseOrders' }">
             <q-item-section>{{ $t("nav.eraseOrders") }}</q-item-section>

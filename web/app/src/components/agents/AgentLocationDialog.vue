@@ -43,7 +43,7 @@
         v-else-if="location && !location.enabled"
         style="height: 420px"
       >
-        <q-banner class="bg-grey-3 text-grey-9">
+        <q-banner class="obs-notice">
           <template #avatar><q-icon name="location_off" /></template>
           {{ $t("agentTabs.location.disabled") }}
         </q-banner>
@@ -54,7 +54,7 @@
         v-else-if="location && location.lat == null"
         style="height: 420px"
       >
-        <q-banner class="bg-grey-3 text-grey-9">
+        <q-banner class="obs-notice">
           <template #avatar><q-icon name="help_outline" /></template>
           {{ $t("agentTabs.location.noFix") }}
         </q-banner>

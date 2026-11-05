@@ -25,35 +25,23 @@
     <!-- Los tres "no sabemos" van con su propia redacción, no fusionados: el
          operador tiene que distinguir "no lo soporta" de "no pudimos leer" de
          "nunca reportó" (RN-A03, RF-07). -->
-    <q-banner
-      v-if="supported === false"
-      dense
-      class="bg-grey-3 text-black q-mb-sm"
-    >
+    <q-banner v-if="supported === false" dense class="obs-notice q-mb-sm">
       <template v-slot:avatar>
-        <q-icon name="info" color="grey-7" />
+        <q-icon name="info" />
       </template>
       {{ $t("diskEncryption.notSupported") }}
     </q-banner>
 
-    <q-banner
-      v-else-if="queryError"
-      dense
-      class="obs-notice q-mb-sm"
-    >
+    <q-banner v-else-if="queryError" dense class="obs-notice q-mb-sm">
       <template v-slot:avatar>
-        <q-icon name="warning" color="warning" />
+        <q-icon name="warning" />
       </template>
       {{ $t("diskEncryption.queryError", { error: queryError }) }}
     </q-banner>
 
-    <q-banner
-      v-else-if="supported === null"
-      dense
-      class="bg-grey-3 text-black q-mb-sm"
-    >
+    <q-banner v-else-if="supported === null" dense class="obs-notice q-mb-sm">
       <template v-slot:avatar>
-        <q-icon name="help_outline" color="grey-7" />
+        <q-icon name="help_outline" />
       </template>
       {{ $t("diskEncryption.neverReported") }}
     </q-banner>

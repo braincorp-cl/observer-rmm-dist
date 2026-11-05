@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, onBeforeUnmount } from "vue";
 import { type QForm, useQuasar } from "quasar";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
@@ -109,7 +109,19 @@ import { useRouter } from "vue-router";
 
 // setup quasar
 const $q = useQuasar();
+
+// 050 (cableado T047): el acceso va oscuro (T049), pero `$q.dark` es estado
+// GLOBAL y este `set` no tenía dueño: quedaba puesto al salir de la pantalla.
+// En el flujo autenticado no se notaba porque `getDashInfo` lo sobrescribe con
+// la preferencia del usuario (store/index.js), pero las rutas SIN sesión no
+// pasan por ahí: entrar a /login y seguir a /verificar dejaba el portal público
+// oscuro. El oscuro vale mientras esta pantalla está montada; al desmontarse se
+// devuelve lo que había.
+const darkPrevio = $q.dark.isActive;
 $q.dark.set(true);
+onBeforeUnmount(() => {
+  $q.dark.set(darkPrevio);
+});
 
 // setup auth store
 const auth = useAuthStore();

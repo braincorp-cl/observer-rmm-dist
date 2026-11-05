@@ -6,7 +6,12 @@
       <span v-if="measuredAt" class="text-caption text-grey q-mr-sm">
         {{ formatDate(measuredAt) }}
       </span>
-      <q-badge v-if="verdict" :color="verdictColor(verdict)" class="q-mr-sm">
+      <q-badge
+        v-if="verdict"
+        :color="verdictColor(verdict)"
+        class="q-mr-sm"
+        :class="{ 'obs-chip-neutral': verdictColor(verdict) === 'grey' }"
+      >
         {{ $t(`storageMedia.verdict.${verdict}`) }}
       </q-badge>
     </div>
@@ -15,9 +20,9 @@
          operador tiene que distinguir "no pudimos leer" de "nunca reportó" de
          "no se sondearon las capacidades" (RN-02). Confundirlos haría que
          alguien decida una baja sobre un dato que no existe. -->
-    <q-banner v-if="queryError" dense class="bg-orange-2 text-black q-mb-sm">
+    <q-banner v-if="queryError" dense class="obs-notice q-mb-sm">
       <template v-slot:avatar>
-        <q-icon name="warning" color="orange" />
+        <q-icon name="warning" />
       </template>
       {{ $t("storageMedia.detail.queryError") }}
       <div class="text-caption q-mt-xs">{{ queryError }}</div>
@@ -26,7 +31,7 @@
     <q-banner
       v-else-if="!loading && media.length === 0"
       dense
-      class="bg-grey-3 text-black q-mb-sm"
+      class="obs-notice q-mb-sm"
     >
       {{ $t("storageMedia.detail.noMedia") }}
     </q-banner>
@@ -34,10 +39,10 @@
     <q-banner
       v-else-if="capabilitiesProbed === false"
       dense
-      class="bg-grey-3 text-black q-mb-sm"
+      class="obs-notice q-mb-sm"
     >
       <template v-slot:avatar>
-        <q-icon name="info" color="primary" />
+        <q-icon name="info" />
       </template>
       {{ $t("storageMedia.detail.notProbed") }}
     </q-banner>

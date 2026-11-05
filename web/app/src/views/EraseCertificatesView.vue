@@ -145,70 +145,71 @@
       </q-table>
     </div>
 
-    <!-- Reconciliación (RF-07) · qué entró, qué se certificó y qué falta -->
+    <!-- Reconciliación (RF-07) · qué entró, qué se certificó y qué falta.
+         Ruta propia /erase-reconciliation (cableado T047): hasta acá el panel
+         llegaba completo del merge pero `tab` nunca valía 'reconciliation'. La
+         barra de filtros pasa al lenguaje de las páginas de flota
+         (obs-page__filters + campos `outlined`), igual que /cifrado y
+         /medios. -->
     <div v-show="tab === 'reconciliation'">
-      <div class="text-caption text-grey-7 q-mb-sm">
+      <p class="obs-page__lead">
         {{ $t("erase.reconciliation.subtitle") }}
-      </div>
+      </p>
 
-      <div class="row q-col-gutter-md q-mb-md items-end">
-        <div class="col-12 col-sm-3">
-          <q-select
-            dense
-            filled
-            clearable
-            emit-value
-            map-options
-            v-model="recFilters.client"
-            :options="clientOptions"
-            :label="$t('erase.reconciliation.client')"
-          />
-        </div>
-        <div class="col-6 col-sm-2">
-          <q-input
-            dense
-            filled
-            type="date"
-            v-model="recFilters.from"
-            :label="$t('erase.reconciliation.from')"
-          />
-        </div>
-        <div class="col-6 col-sm-2">
-          <q-input
-            dense
-            filled
-            type="date"
-            v-model="recFilters.to"
-            :label="$t('erase.reconciliation.to')"
-          />
-        </div>
-        <div class="col-6 col-sm-3">
-          <q-input
-            dense
-            filled
-            type="number"
-            v-model.number="recFilters.stalled_days"
-            :label="$t('erase.reconciliation.stalledDays')"
-            :hint="$t('erase.reconciliation.stalledHint')"
-          />
-        </div>
-        <div class="col-6 col-sm-2">
-          <q-btn
-            color="primary"
-            no-caps
-            :loading="recLoading"
-            :label="$t('erase.reconciliation.run')"
-            @click="loadReconciliation"
-          />
-        </div>
+      <div class="obs-page__filters q-mb-md">
+        <q-select
+          dense
+          outlined
+          class="obs-page__field"
+          clearable
+          emit-value
+          map-options
+          v-model="recFilters.client"
+          :options="clientOptions"
+          :label="$t('erase.reconciliation.client')"
+        />
+        <q-input
+          dense
+          outlined
+          class="obs-page__field"
+          type="date"
+          v-model="recFilters.from"
+          :label="$t('erase.reconciliation.from')"
+        />
+        <q-input
+          dense
+          outlined
+          class="obs-page__field"
+          type="date"
+          v-model="recFilters.to"
+          :label="$t('erase.reconciliation.to')"
+        />
+        <q-input
+          dense
+          outlined
+          class="obs-page__field"
+          type="number"
+          v-model.number="recFilters.stalled_days"
+          :label="$t('erase.reconciliation.stalledDays')"
+          :hint="$t('erase.reconciliation.stalledHint')"
+        />
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          class="obs-page__btn"
+          :loading="recLoading"
+          :label="$t('erase.reconciliation.run')"
+          @click="loadReconciliation"
+        />
       </div>
 
       <div class="row q-col-gutter-md q-mb-md">
         <div v-for="m in recMetrics" :key="m.key" class="col-6 col-sm-3">
           <q-card flat bordered>
             <q-card-section class="text-center">
-              <div class="text-h5" :class="m.clase">{{ m.valor }}</div>
-              <div class="text-caption text-grey-7">{{ m.label }}</div>
+              <div class="text-h5 mono" :class="m.clase">{{ m.valor }}</div>
+              <div class="text-caption obs-text-muted">{{ m.label }}</div>
             </q-card-section>
           </q-card>
         </div>
@@ -230,9 +231,9 @@
 
       <!-- 🔑 El listado es el producto: el número dice cuántos faltan, esta
            tabla dice DÓNDE se detuvo cada uno. -->
-      <div class="text-caption text-grey-7 q-mb-xs">
+      <p class="obs-page__lead q-mb-xs">
         {{ $t("erase.reconciliation.missingDefinition") }}
-      </div>
+      </p>
       <q-table
         dense
         flat
@@ -263,7 +264,7 @@
 
         <template v-slot:body-cell-stalled="props">
           <q-td :props="props">
-            <q-badge v-if="props.row.stalled" color="deep-orange">
+            <q-badge v-if="props.row.stalled" color="warning">
               {{ $t("erase.reconciliation.stalled") }}
             </q-badge>
             <span v-else>{{ dash }}</span>
@@ -389,9 +390,9 @@
             />
           </div>
 
-          <q-banner v-if="!accredited" dense class="bg-orange-1 text-orange-9">
+          <q-banner v-if="!accredited" dense class="obs-notice">
             <template v-slot:avatar>
-              <q-icon name="gpp_maybe" color="warning" />
+              <q-icon name="gpp_maybe" />
             </template>
             {{ $t("erase.certify.noVerificationNotice") }}
           </q-banner>
@@ -467,11 +468,11 @@ export default {
     // el gate `lint:i18n` trata cualquier texto crudo como falta de traducción.
     const sep = "·";
     const tab = computed(() => props.mode);
-    const pageTitle = computed(() =>
-      tab.value === "intake"
-        ? t("nav.eraseIntake")
-        : t("nav.eraseCertificates"),
-    );
+    const pageTitle = computed(() => {
+      if (tab.value === "intake") return t("nav.eraseIntake");
+      if (tab.value === "reconciliation") return t("nav.eraseReconciliation");
+      return t("nav.eraseCertificates");
+    });
     const intakeSearch = ref("");
     const loading = ref(false);
 
@@ -636,7 +637,7 @@ export default {
           key: "missing",
           label: t("erase.reconciliation.missing"),
           valor: t0.missing ?? 0,
-          clase: "text-deep-orange",
+          clase: "text-warning",
         },
         {
           key: "stalled",
@@ -787,6 +788,10 @@ export default {
       loading.value = true;
       try {
         await Promise.all([loadCerts(), loadIntakes(), loadClients()]);
+        // La página de reconciliación calcula al entrar, igual que /cifrado y
+        // /medios: aterrizar en cuatro ceros se leería como "no falta nada".
+        // «Calcular» sigue existiendo para re-correr con otros filtros.
+        if (tab.value === "reconciliation") await loadReconciliation();
       } finally {
         loading.value = false;
       }

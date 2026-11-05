@@ -126,6 +126,20 @@ const routes = [
         },
       },
       {
+        // 050 (V2-S02 · cableado T047): reconciliación (RF-07) con ruta propia.
+        // El panel entraba completo desde main bajo `v-show="tab ===
+        // 'reconciliation'"`, pero en la v2 `tab` es un computed desde
+        // `props.mode` y la ruta no existía: código muerto que compilaba. Se
+        // cablea igual que /erase-intake — tercera ruta sobre la misma vista.
+        path: "erase-reconciliation",
+        name: "EraseReconciliation",
+        component: () => import("@/views/EraseCertificatesView.vue"),
+        props: { mode: "reconciliation" },
+        meta: {
+          requireAuth: true,
+        },
+      },
+      {
         // Feature 039 · Observer Erase · gobernanza de las órdenes de borrado
         // (B0). No crea nada destructivo (Bloque A GATED): confirma a dos
         // personas y gobierna la ventana de arrepentimiento.

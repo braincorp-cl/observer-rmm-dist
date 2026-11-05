@@ -1,71 +1,70 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <div class="text-h6">{{ $t("storageMedia.title") }}</div>
-      <q-space />
+  <q-page class="obs-page">
+    <!-- 050 (cableado T047): la vista llegaba del merge con el chrome de la v1
+         (q-pa-md + text-h6 + q-banner gris + campos `filled` en grilla). Pasa al
+         lenguaje de las páginas de flota, el mismo de su hermana /cifrado:
+         ObsPageHead con migas, aviso neutro `obs-notice` y barra de filtros. -->
+    <ObsPageHead
+      :title="$t('storageMedia.title')"
+      :crumbs="[$t('nav.agents')]"
+    >
       <q-btn
-        dense
-        flat
+        outline
+        no-caps
+        class="obs-page__btn"
         icon="refresh"
+        :label="$t('storageMedia.refresh')"
         :loading="loading"
         @click="load"
-        :aria-label="$t('storageMedia.refresh')"
-      >
-        <q-tooltip>{{ $t("storageMedia.refresh") }}</q-tooltip>
-      </q-btn>
-    </div>
+      />
+    </ObsPageHead>
 
     <!-- Sólo Windows en esta fase: mostrar macOS/Linux en "sin dato" los
          pintaría como falsos desconocidos. El aviso lo dice para que nadie lea
          el panel como el estado de TODA la flota. -->
-    <q-banner dense class="bg-grey-3 text-black q-mb-md">
-      <template v-slot:avatar>
-        <q-icon name="storage" color="primary" />
-      </template>
-      {{ $t("storageMedia.windowsOnlyNotice") }}
-    </q-banner>
+    <div class="obs-notice" role="note">
+      <q-icon name="storage" />
+      <div>{{ $t("storageMedia.windowsOnlyNotice") }}</div>
+    </div>
 
-    <div class="row q-col-gutter-md q-mb-md">
-      <div class="col-12 col-sm-4">
-        <q-select
-          dense
-          filled
-          clearable
-          emit-value
-          map-options
-          v-model="filters.verdict"
-          :options="verdictOptions"
-          :label="$t('storageMedia.filterVerdict')"
-          @update:model-value="load"
-        />
-      </div>
-      <div class="col-12 col-sm-4">
-        <q-select
-          dense
-          filled
-          clearable
-          emit-value
-          map-options
-          v-model="filters.client"
-          :options="clientOptions"
-          :label="$t('storageMedia.filterClient')"
-          @update:model-value="onClientChange"
-        />
-      </div>
-      <div class="col-12 col-sm-4">
-        <q-select
-          dense
-          filled
-          clearable
-          emit-value
-          map-options
-          v-model="filters.site"
-          :options="siteOptions"
-          :label="$t('storageMedia.filterSite')"
-          :disable="!filters.client"
-          @update:model-value="load"
-        />
-      </div>
+    <div class="obs-page__filters">
+      <q-select
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        emit-value
+        map-options
+        v-model="filters.verdict"
+        :options="verdictOptions"
+        :label="$t('storageMedia.filterVerdict')"
+        @update:model-value="load"
+      />
+      <q-select
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        emit-value
+        map-options
+        v-model="filters.client"
+        :options="clientOptions"
+        :label="$t('storageMedia.filterClient')"
+        @update:model-value="onClientChange"
+      />
+      <q-select
+        dense
+        outlined
+        class="obs-page__field"
+        clearable
+        emit-value
+        map-options
+        v-model="filters.site"
+        :options="siteOptions"
+        :label="$t('storageMedia.filterSite')"
+        :disable="!filters.client"
+        @update:model-value="load"
+      />
     </div>
 
     <q-table
@@ -83,7 +82,12 @@
     >
       <template v-slot:body-cell-verdict="props">
         <q-td :props="props">
-          <q-badge :color="verdictColor(props.row.verdict)">
+          <q-badge
+            :color="verdictColor(props.row.verdict)"
+            :class="{
+              'obs-chip-neutral': verdictColor(props.row.verdict) === 'grey',
+            }"
+          >
             {{ verdictLabel(props.row.verdict) }}
           </q-badge>
           <!-- La causa del "sin dato", si la hay. El error de consulta se ve al
@@ -97,7 +101,7 @@
       </template>
 
       <template v-slot:body-cell-media="props">
-        <q-td :props="props">
+        <q-td :props="props" class="mono">
           {{ systemMedia(props.row) }}
         </q-td>
       </template>
@@ -127,6 +131,7 @@
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 
 import { fetchStorageMediaFleet } from "@/api/storagemedia";
 import { fetchClients } from "@/api/clients";
@@ -139,6 +144,7 @@ import {
 
 export default {
   name: "StorageMediaView",
+  components: { ObsPageHead },
   setup() {
     const { t } = useI18n();
     const router = useRouter();
