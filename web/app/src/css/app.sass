@@ -9,6 +9,14 @@
 
 body
   font-variant-numeric: tabular-nums
+  // Lienzo de un terminal: oscuro en ambos temas, por la misma razón por la que
+  // $obs-paper es papel en ambos. Los 16 colores ANSI que xterm trae por defecto
+  // son la paleta Tango, calibrada para fondo oscuro: sobre --obs-deep claro
+  // (#DCE3EC) 11 de los 16 no llegan a 4,5:1, y los peores son justamente los
+  // bright que usan los prompts y los logs. Alias de $obs-d-deep: no agrega
+  // ningún hex nuevo, y existe para que WebTerminal.vue no escriba el color a
+  // mano (V2-G02). El primer plano reusa --obs-on-dark, ya invariante.
+  --obs-term-bg: #{$obs-d-deep}
 
 // Datos (IP, MAC, versiones, conteos, rutas): monoespaciada.
 .mono
