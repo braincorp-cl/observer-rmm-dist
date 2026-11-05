@@ -1050,6 +1050,24 @@ body.body--dark
   outline-offset: 0
   box-shadow: 0 0 0 4px var(--obs-focus) !important
 
+// 🔑 LA INSIGNIA FLOTANTE TAPA EL ANILLO, y lo gana incluso al outline. Medido
+// el 5-nov en la campana de notificaciones: `.q-badge--floating` va en
+// top:-4px right:-4px, o sea FUERA de la caja del botón y justo encima de las
+// cuatro bandas de dos de sus lados. Quedaba el anillo interrumpido arriba y a
+// la derecha, y lo que se veía daba 2,78:1 (oscuro) y 2,90:1 (claro) contra el
+// rojo de la insignia.
+//
+// 🪤 Y no se arregló intercambiando quién dibuja qué: una insignia es
+// `position:absolute`, así que se pinta por encima del outline del botón
+// también —lo supuse al revés y la medición me corrigió—. La salida es que la
+// insignia lleve EL MISMO anillo: así la silueta que el foco marca es el botón
+// con su insignia, que es lo que el ojo ve como un solo control. Las dos
+// sombras se apilan hacia afuera y la primera queda encima, así que el orden de
+// tonos es el mismo que en el resto de la consola.
+.q-btn:focus-visible .q-badge,
+.q-item:focus-visible .q-badge
+  box-shadow: 0 0 0 2px var(--obs-focus-alt), 0 0 0 4px var(--obs-focus) !important
+
 // 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
 // `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
 // framework dice `.no-outline { outline: 0 !important }`. Ninguna especificidad
