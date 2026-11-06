@@ -48,6 +48,15 @@ let raf = 0;
 // sobre «Cancelar»: una tecla sin foco visible en ningún lado. Medido en
 // «Reiniciar más tarde», parada 8 de 11, en los dos temas.
 let teclado = false;
+// 🪤 ¿Este objetivo casó `:focus-visible` alguna vez? La excepción de modalidad
+// de arriba vale SOLO para un elemento que ya tuvo el anillo y lo perdió sin
+// perder el foco —el caso del `datetime-local`—. Sin esta bandera, y desde que
+// la capa relee `document.activeElement` en cada cuadro, la excepción cubriría
+// CUALQUIER foco programático posterior a una tecla: abrir un diálogo con Enter
+// enfoca su contenedor (`tabindex=-1`, que nunca casa `:focus-visible`) y
+// aparecería un anillo alrededor del diálogo entero, que es justo el halo que
+// la enmienda b del criterio prohíbe.
+let vistoVisible = false;
 
 function crear() {
   if (capa) return capa;
@@ -141,6 +150,7 @@ function dentroDeLaVentana(r) {
 
 function ocultar() {
   objetivo = null;
+  vistoVisible = false;
   if (raf) { cancelAnimationFrame(raf); raf = 0; }
   if (capa) capa.style.display = "none";
 }
@@ -158,19 +168,24 @@ function pintar() {
   // cambio de foco de donde venga.
   const act = document.activeElement;
   if (!act || act === document.body) return ocultar();
-  if (act !== objetivo) objetivo = act;
+  if (act !== objetivo) {
+    objetivo = act;
+    vistoVisible = false;
+  }
   if (!objetivo || !objetivo.isConnected) return ocultar();
   // 🪤 Si el elemento perdió :focus-visible sin disparar focusout (pasa cuando
   // el usuario cambia a ratón sobre el mismo control), el anillo se tiene que
   // ir: se vuelve a preguntar en cada cuadro, no sólo al enfocar.
   try {
+    if (objetivo.matches(":focus-visible")) vistoVisible = true;
     if (
-      !objetivo.matches(":focus-visible") &&
+      !vistoVisible ||
+      (!objetivo.matches(":focus-visible") &&
       // ... salvo que el foco siga PUESTO en el mismo elemento y la última
       // interacción haya sido una tecla. Esto NO afloja el control del ratón:
       // un `pointerdown` apaga la bandera (y además oculta el anillo), así que
       // el clic sigue sin dibujar nada.
-      !(teclado && document.activeElement === objetivo)
+       !(teclado && document.activeElement === objetivo))
     ) {
       return ocultar();
     }
@@ -221,6 +236,7 @@ function alEnfocar(ev) {
     /* sin soporte: se marca igual */
   }
   objetivo = el;
+  vistoVisible = true;
   pintar();
 }
 
