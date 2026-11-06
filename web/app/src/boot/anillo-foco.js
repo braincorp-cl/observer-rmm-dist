@@ -39,6 +39,15 @@ const ID = "obs-anillo-foco";
 let capa = null;
 let objetivo = null;
 let raf = 0;
+// 🪤 Modalidad de la última interacción. Hace falta por un caso MEDIDO: en un
+// `<input type="datetime-local">` el TAB recorre los segmentos internos
+// (año, mes, día, hora, minuto) y en el ÚLTIMO de ellos Chrome deja de casar
+// `:focus-visible` aunque el input siga siendo `document.activeElement` —su
+// `outline` computado pasa de `3px none` a `0px none`—. Con la regla a secas el
+// anillo desaparecía durante una pulsación de TAB y volvía en la siguiente, ya
+// sobre «Cancelar»: una tecla sin foco visible en ningún lado. Medido en
+// «Reiniciar más tarde», parada 8 de 11, en los dos temas.
+let teclado = false;
 
 function crear() {
   if (capa) return capa;
@@ -109,7 +118,16 @@ function pintar() {
   // el usuario cambia a ratón sobre el mismo control), el anillo se tiene que
   // ir: se vuelve a preguntar en cada cuadro, no sólo al enfocar.
   try {
-    if (!objetivo.matches(":focus-visible")) return ocultar();
+    if (
+      !objetivo.matches(":focus-visible") &&
+      // ... salvo que el foco siga PUESTO en el mismo elemento y la última
+      // interacción haya sido una tecla. Esto NO afloja el control del ratón:
+      // un `pointerdown` apaga la bandera (y además oculta el anillo), así que
+      // el clic sigue sin dibujar nada.
+      !(teclado && document.activeElement === objetivo)
+    ) {
+      return ocultar();
+    }
   } catch (e) {
     /* navegador sin :focus-visible: se deja el anillo, que es el lado seguro */
   }
@@ -157,6 +175,20 @@ function alEnfocar(ev) {
 
 export default () => {
   if (typeof document === "undefined") return;
+  document.addEventListener(
+    "keydown",
+    () => {
+      teclado = true;
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointerdown",
+    () => {
+      teclado = false;
+    },
+    true,
+  );
   document.addEventListener("focusin", alEnfocar, true);
   document.addEventListener("focusout", ocultar, true);
   // Un clic de ratón quita :focus-visible en el cuadro siguiente; el bucle de
