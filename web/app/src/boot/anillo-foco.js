@@ -148,25 +148,26 @@ function dentroDeLaVentana(r) {
   return { left: x1, top: y1, width: x2 - x1, height: y2 - y1 };
 }
 
-// 🪤 Un `tabindex` NEGATIVO no es un control: no se alcanza con el tabulador,
-// y el criterio habla de los controles que SÍ se alcanzan. Hace falta por dos
-// casos medidos, los dos con `:focus-visible` VERDADERO —Chrome se lo concede
-// al foco programático cuando la última interacción fue una tecla—, así que la
-// regla de `:focus-visible` por sí sola no los filtra:
-//   · abrir un diálogo con ENTER enfoca `.q-dialog__inner`, que es el VELO a
-//     pantalla completa (1440x757 en 0,0): el anillo salía alrededor de la
-//     VENTANA ENTERA hasta la siguiente pulsación de TAB. Es anterior a este
-//     arreglo y nadie lo había visto porque los recorridos de diálogos los
-//     abren con un clic, que apaga la bandera de modalidad;
-//   · y el `tbody.q-virtual-scroll__content` donde aterriza el foco cuando el
-//     scroller recicla la fila enfocada: ahí el anillo tomaba la forma del
-//     cuerpo de la tabla.
-// Los dos son contenedores, y en los dos el foco está de paso: la tecla
-// siguiente lo deja en un control de verdad, que es el que lleva anillo.
-function alcanzableConTabulador(el) {
-  if (!el || !el.getAttribute) return false;
-  const ti = el.getAttribute("tabindex");
-  return !(ti !== null && Number(ti) < 0);
+// 🪤 Un anillo que cubre la VENTANA ENTERA no señala ningún lugar, así que no
+// se dibuja. Hace falta por un caso medido: abrir un diálogo con ENTER enfoca
+// `.q-dialog__inner`, que es el VELO a pantalla completa (1440x757 en 0,0), y
+// Chrome le concede `:focus-visible` VERDADERO al foco programático cuando la
+// última interacción fue una tecla —así que la regla de `:focus-visible` no lo
+// filtra—. El resultado era un marco de 4px alrededor de toda la pantalla hasta
+// la siguiente pulsación de TAB. Nadie lo había visto porque los recorridos de
+// diálogos los abren con un CLIC, que apaga la bandera de modalidad.
+//
+// 🪤 Y el descarte NO va por `tabindex` negativo, que es lo primero que probé y
+// MIDIÓ MAL: la pestaña «GENERAL» del diálogo de editar agente es un
+// `div.q-tab` con `tabindex="-1"` y el TAB aterriza ahí igual, así que la regla
+// por tabindex le quitaba el anillo a un control de verdad (1 parada rota en
+// cada tema, que antes estaba conforme). El tamaño sí distingue: un control de
+// ancho completo como el `.q-table__middle` del gestor mide 1440x636 y se
+// queda con su anillo; el velo mide la ventana EN LOS DOS EJES.
+function cubreLaVentana(r) {
+  return (
+    r.width >= window.innerWidth - 1 && r.height >= window.innerHeight - 1
+  );
 }
 
 function ocultar() {
@@ -194,7 +195,6 @@ function pintar() {
     vistoVisible = false;
   }
   if (!objetivo || !objetivo.isConnected) return ocultar();
-  if (!alcanzableConTabulador(objetivo)) return ocultar();
   // 🪤 Si el elemento perdió :focus-visible sin disparar focusout (pasa cuando
   // el usuario cambia a ratón sobre el mismo control), el anillo se tiene que
   // ir: se vuelve a preguntar en cada cuadro, no sólo al enfocar.
@@ -216,6 +216,7 @@ function pintar() {
   }
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
+  if (cubreLaVentana(r)) return ocultar();
   if (
     r.width < 1 || r.height < 1 ||
     r.left > window.innerWidth || r.top > window.innerHeight ||
@@ -257,7 +258,6 @@ function alEnfocar(ev) {
   } catch (e) {
     /* sin soporte: se marca igual */
   }
-  if (!alcanzableConTabulador(el)) return ocultar();
   objetivo = el;
   vistoVisible = true;
   pintar();
