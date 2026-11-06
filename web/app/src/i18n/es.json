@@ -1838,7 +1838,9 @@
     "colInstall": "Instalar",
     "colName": "Nombre",
     "confirmInstall": "¿Instalar {name}?",
-    "install": "Instalar"
+    "install": "Instalar",
+    "installAria": "Instalar {name}",
+    "descriptionAria": "Ver la descripción de {name} en el sitio del repositorio"
   },
   "serverMaintenance": {
     "title": "Mantenimiento del servidor",
