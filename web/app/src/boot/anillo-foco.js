@@ -188,6 +188,17 @@ function pintar() {
   // es exactamente la violación que el ítem persigue. Siguiendo al
   // `activeElement` la capa se recupera sola en el cuadro siguiente, venga el
   // cambio de foco de donde venga.
+  // 🪤 SIN TECLA PREVIA NO SE PINTA, y esto es más estricto que
+  // `:focus-visible` a secas, no menos. Medido: al hacer clic sobre el control
+  // que YA tenía el foco, Chrome deja `:focus-visible` VERDADERO en el
+  // `span.q-focus-helper` que recibe el foco, así que la regla del navegador
+  // por sí sola dibujaba anillo en un clic de ratón —y en la corrida anterior
+  // eso lo tapaba, por casualidad, la regla del `tabindex` negativo que hubo
+  // que retirar—. El criterio dice que el disparador es `:focus-visible` y NO
+  // el clic, así que la modalidad decide primero: un `pointerdown` apaga la
+  // bandera y hasta la tecla siguiente no hay anillo. El recorrido con TAB no
+  // se ve afectado, porque tabular ES una tecla.
+  if (!teclado) return ocultar();
   const act = document.activeElement;
   if (!act || act === document.body) return ocultar();
   if (act !== objetivo) {
