@@ -261,6 +261,32 @@ function esAnclaYNoControl(el) {
 // de ninguna premisa sobre el `tabindex`. El `q-checkbox__inner` vuelve a ser un
 // hueco declarado.
 
+// Segunda red: un rect que abarca la ventana en LOS DOS EJES no señala ningún
+// lugar. La holgura ya no tiene que ser precisa —la identidad del velo hace el
+// trabajo—, así que se pone amplia a propósito.
+//
+// 🔴 ESTE BLOQUE SE BORRÓ POR ACCIDENTE y se restaura. Al retirar la guarda
+// `noEsUnControl` corté el texto entre el comentario que la introducía y
+// `function ocultar()`, y en ese tramo vivían TAMBIÉN `HOLGURA_VENTANA` y esta
+// función, que `pintar()` llama. Resultado: `ReferenceError` en cada cuadro y la
+// capa del anillo NUNCA SE CREABA — `crear()` sólo se llama desde `pintar()`—,
+// o sea el anillo apagado en TODA la consola.
+//
+// 🔑 Y ninguna de mis comprobaciones lo vio: `node --check` pasa (la sintaxis es
+// válida), el build pasa, y los 81 tests pasan porque no cubren el boot. Lo cazó
+// el CONTROL POSITIVO de `medir_g15_por_que_no_hay_capa.py`: un TAB real en la
+// flota con `focus-visible` en true y `capas_en_el_dom: 0`. Un corte por
+// marcadores de texto necesita un control que pregunte si lo que quedó sigue
+// funcionando, no sólo si compila.
+const HOLGURA_VENTANA = 100;
+
+function noSenalaNingunLugar(r) {
+  return (
+    r.width >= window.innerWidth - HOLGURA_VENTANA &&
+    r.height >= window.innerHeight - HOLGURA_VENTANA
+  );
+}
+
 function ocultar() {
   objetivo = null;
   vistoVisible = false;
