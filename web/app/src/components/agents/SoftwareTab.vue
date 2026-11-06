@@ -6,7 +6,22 @@
     {{ $t("agentTabs.common.windowsOnly") }}
   </div>
   <div v-else>
+    <!-- 🪤 050 (V2-G15): PATRON DE REJILLA. Con una parada de tabulador por fila,
+         el tabulador aterriza en las filas SOBRE-RENDERIZADAS que el
+         desplazamiento virtual deja fuera del contenedor, donde el anillo no se
+         dibuja a proposito porque el control esta entero fuera de pantalla
+         (medido en el dialogo de instalar software: 13 paradas en y=785..1031 y
+         en y=-321..-239 sobre un viewport de 757, en los dos temas). La tabla
+         pasa a ser UNA parada y las flechas mueven la fila, con `scrollTo` POR
+         INDICE. Los dos oyentes de la raiz son el seguro: cuando el reciclaje
+         destruye el nodo enfocado, Chrome SUBE el foco al scroller
+         (`tabindex=-1`) y desde ahi la rejilla quedaria muerta. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
       :table-class="{
         'table-bgcolor': !$q.dark.isActive,
         'table-bgcolor-dark': $q.dark.isActive,
@@ -64,19 +79,38 @@
         <export-table-btn :data="software" :columns="columns" />
       </template>
 
+      <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la tabla.
+           🪤 Va en la columna del NOMBRE y no en el botón de desinstalar, que es
+           condicional (`v-if="props.row.uninstall"`): en las filas sin ese botón
+           la tabla se quedaría sin parada de tabulador y dejaría de ser
+           alcanzable. El host tiene que existir en TODAS las filas. -->
+      <template v-slot:body-cell-name="props">
+        <td class="obs-wrap-words">
+          <span
+            class="obs-rej__host"
+            :data-fila="props.rowIndex"
+            :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+            @focus="filaFoco = props.rowIndex"
+            >{{ props.row.name }}</span
+          >
+        </td>
+      </template>
       <template v-slot:body-cell-uninstall="props">
         <td class="obs-nowrap">
+          <!-- `tabindex="-1"`: se alcanza con la flecha derecha desde el nombre. -->
           <q-btn
             v-if="props.row.uninstall"
             :label="$t('agentTabs.software.uninstall')"
             color="primary"
             dense
             size="sm"
+            tabindex="-1"
             @click="openUninstallSoftware(props.row)"
           />
         </td>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
@@ -98,8 +132,19 @@ import UninstallSoftware from "@/components/software/UninstallSoftware.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 import { notifySuccess } from "@/utils/notify";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "SoftwareTab",
+  mixins: [mixinRejillaTabla],
+  computed: {
+    rejillaFilas() {
+      return this.software;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
+  },
   components: {
     ExportTableBtn,
   },

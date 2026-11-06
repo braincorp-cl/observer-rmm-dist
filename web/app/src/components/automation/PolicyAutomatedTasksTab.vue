@@ -22,7 +22,22 @@
         push
         @click="showAddTask"
       />
+      <!-- 🪤 050 (V2-G15): PATRON DE REJILLA. Con una parada de tabulador por fila,
+           el tabulador aterriza en las filas SOBRE-RENDERIZADAS que el
+           desplazamiento virtual deja fuera del contenedor, donde el anillo no se
+           dibuja a proposito porque el control esta entero fuera de pantalla
+           (medido: 13 paradas en y=785..1031 y en y=-321..-239 sobre un viewport de
+           757, en los dos temas). La tabla pasa a ser UNA parada y las flechas
+           mueven la fila, con `scrollTo` POR INDICE. Los dos oyentes de la raiz son
+           el seguro: cuando el reciclaje destruye el nodo enfocado, Chrome SUBE el
+           foco al scroller (`tabindex=-1`) y desde ahi la rejilla quedaria
+           muerta. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
           'table-bgcolor-dark': $q.dark.isActive,
@@ -139,6 +154,7 @@
             <!-- tds -->
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   editTask(props.row, { enabled: !props.row.enabled })
@@ -149,6 +165,7 @@
 
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   editTask(props.row, { text_alert: !props.row.text_alert })
@@ -159,6 +176,7 @@
             <!-- email alert -->
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   editTask(props.row, { email_alert: !props.row.email_alert })
@@ -169,6 +187,7 @@
             <!-- dashboard alert -->
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   editTask(props.row, {
@@ -190,7 +209,19 @@
                 }}</q-tooltip>
               </q-icon>
             </q-td>
-            <q-td>{{ props.row.name }}</q-td>
+            <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la tabla.
+                 Desde aquí la tecla Menú abre el menú contextual de la fila —que antes
+                 era sólo de ratón— y las flechas izquierda/derecha llegan a los demás
+                 controles de la fila. -->
+            <q-td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ props.row.name }}</span
+              >
+            </q-td>
             <q-td>{{ props.row.schedule }}</q-td>
             <q-td>
               <span
@@ -204,6 +235,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </div>
   </div>
 </template>
@@ -213,9 +245,13 @@ import mixins from "@/mixins/mixins";
 import AutomatedTaskForm from "@/components/tasks/AutomatedTaskForm.vue";
 import PolicyStatus from "@/components/automation/modals/PolicyStatus.vue";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "PolicyAutomatedTasksTab",
-  mixins: [mixins],
+  // 🪤 UNA sola clave `mixins`: una segunda PISA a la primera
+  // y el mixin queda declarado y muerto, sin que el build ni el lint avisen.
+  mixins: [mixins, mixinRejillaTabla],
   props: {
     selectedPolicy: !Number,
     embedded: { type: Boolean, default: false },
@@ -236,6 +272,12 @@ export default {
     },
   },
   computed: {
+    rejillaFilas() {
+      return this.tasks;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
     columns() {
       return [
         { name: "enabled", align: "left", field: "enabled" },

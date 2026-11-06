@@ -127,6 +127,7 @@
           </q-menu>
           <q-td key="smsalert" :props="props">
             <q-checkbox
+              tabindex="-1"
               v-if="
                 props.row.alert_template &&
                 props.row.alert_template.always_text !== null
@@ -142,6 +143,7 @@
             </q-checkbox>
 
             <q-checkbox
+              tabindex="-1"
               v-else
               dense
               @update:model-value="
@@ -154,6 +156,7 @@
           </q-td>
           <q-td key="emailalert" :props="props">
             <q-checkbox
+              tabindex="-1"
               v-if="
                 props.row.alert_template &&
                 props.row.alert_template.always_email !== null
@@ -169,6 +172,7 @@
             </q-checkbox>
 
             <q-checkbox
+              tabindex="-1"
               v-else
               dense
               @update:model-value="
@@ -181,6 +185,7 @@
           </q-td>
           <q-td key="dashboardalert" :props="props">
             <q-checkbox
+              tabindex="-1"
               v-if="
                 props.row.alert_template &&
                 props.row.alert_template.always_alert !== null
@@ -196,6 +201,7 @@
             </q-checkbox>
 
             <q-checkbox
+              tabindex="-1"
               v-else
               dense
               @update:model-value="
@@ -380,10 +386,6 @@
                 $t('agentTable.openAgentAria', { hostname: props.row.hostname })
               "
               @focus="filaFoco = props.rowIndex"
-              @keydown.down.prevent="moverFilaFoco(props.rowIndex + 1)"
-              @keydown.up.prevent="moverFilaFoco(props.rowIndex - 1)"
-              @keydown.home.prevent="moverFilaFoco(0)"
-              @keydown.end.prevent="moverFilaFoco(agents.length - 1)"
               @keydown.space.prevent
               @keyup.enter="
                 openAgentWorkspace(props.row.agent_id, props.row.plat)
@@ -492,14 +494,28 @@ import AgentActionMenu from "@/components/agents/AgentActionMenu.vue";
 import { runURLAction } from "@/api/core";
 import { runTakeControl, runRemoteBackground } from "@/api/agents";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "AgentTable",
+  // Contrato del patrón de rejilla (`composables/rejillaTabla.js`). La clase del
+  // host se mantiene en `obs-agtbl__host` a propósito: es la que miden los
+  // instrumentos de la 050 y la que tiene estilo en `css/app.sass`.
+  // 🪤 Las flechas de la fila YA NO viven en el template: el oyente de la raíz
+  // las atiende, y así el tope sale de `filteredSortedRows` en vez de
+  // `agents.length`, que con un filtro activo mandaba Fin a un índice que no
+  // existe en la lista renderizada.
   components: {
     AgentActionMenu,
   },
   props: ["agents", "columns", "search", "visibleColumns"],
   inject: ["refreshDashboard"],
-  mixins: [mixins],
+  // 🪤 UNA sola clave `mixins`. El primer intento añadió `mixins: [mixinRejillaTabla]`
+  // arriba sin ver que el componente YA tenía esta: en un objeto literal la
+  // segunda clave PISA a la primera, así que el mixin quedó declarado y muerto.
+  // El build y los dos lint pasaron sin decir nada; lo delató una prueba que
+  // falló con «alDesplazarVirtual no está definido en la instancia».
+  mixins: [mixins, mixinRejillaTabla],
   data() {
     return {
       pagination: {
@@ -508,106 +524,9 @@ export default {
         descending: false,
       },
       // Índice de la fila que lleva el tabulador (patrón de rejilla).
-      filaFoco: 0,
-      // Hay un movimiento de foco en vuelo: el scroller va a emitir eventos
-      // mientras salta y no debe repuntar `filaFoco` a mitad del salto.
-      moviendoFoco: false,
     };
   },
   methods: {
-    // Mueve la fila que tiene el tabulador. 🪤 `scrollTo` POR ÍNDICE y no
-    // `scrollIntoView`: el scroller virtual recicla los nodos, así que
-    // desplazar por píxeles deja el foco sobre otro equipo. Y el `.focus()` de
-    // después conserva `:focus-visible` porque el movimiento viene de una
-    // tecla: el navegador mantiene la modalidad de la última interacción.
-    moverFilaFoco(i) {
-      const ultima = (this.agents || []).length - 1;
-      if (ultima < 0) return;
-      const idx = Math.max(0, Math.min(ultima, i));
-      this.filaFoco = idx;
-      this.moviendoFoco = true;
-      const tabla = this.$refs.tablaAgentes;
-      if (tabla && tabla.scrollTo) tabla.scrollTo(idx);
-      this.$nextTick(() => this.enfocarFila(idx, 16));
-    },
-    // 🪤 Un solo cuadro NO alcanza en un salto largo, y el precio era la
-    // rejilla entera. Inicio/Fin mueven el scroller 170 filas: el nodo de la
-    // fila destino todavía no existe cuando corre el primer rAF, así que el
-    // `.focus()` no encontraba nada; el nodo de la fila que SÍ tenía el foco ya
-    // lo había destruido el reciclaje, y el foco caía en
-    // `tbody.q-virtual-scroll__content`, que tiene `tabindex=-1`. Desde ahí la
-    // rejilla quedaba muerta —los `keydown` viven en la fila, así que la flecha
-    // siguiente ya no hacía nada— y el anillo tomaba la forma del cuerpo de la
-    // tabla, 371px por encima del borde de la ventana. Medido en los dos temas:
-    // paso 4 (FIN) y paso 7 (ARRIBA después de FIN). Se reintenta cuadro a
-    // cuadro hasta que el nodo exista.
-    enfocarFila(idx, espera) {
-      const el = document.querySelector(
-        `.obs-agtbl__host[data-fila="${idx}"]`,
-      );
-      if (el) {
-        this.moviendoFoco = false;
-        // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
-        // pelearía con la rueda del usuario y con el `scrollTo` por índice,
-        // que es el que debe decidir dónde queda el scroller.
-        if (document.activeElement !== el) el.focus({ preventScroll: true });
-        return;
-      }
-      // Escalera: el nodo destino de un salto de 170 filas aparece a los ~83 ms
-      // medidos, y el scroller puede tardar más con la ventana pequeña.
-      if (espera > 512) {
-        this.moviendoFoco = false;
-        return;
-      }
-      setTimeout(() => this.enfocarFila(idx, espera * 2), espera);
-    },
-    // El foco aterrizó en el scroller en vez de una fila: se devuelve a la fila
-    // que lleva el tabulador. Sin esto la rejilla no se recupera nunca.
-    alEntrarFoco(ev) {
-      const t = ev.target;
-      if (!t || !t.matches || t.classList.contains("obs-agtbl__host")) return;
-      if (
-        !t.matches(
-          ".q-virtual-scroll__content, .q-table__middle, tbody, table",
-        )
-      ) {
-        return;
-      }
-      this.enfocarFila(this.filaFoco, 16);
-    },
-    // Y mientras el foco está en el scroller, las teclas de la rejilla se
-    // atienden igual: el oyente de la fila no existe en ese estado.
-    alTeclaRejilla(ev) {
-      const t = ev.target;
-      if (!t || !t.matches || t.classList.contains("obs-agtbl__host")) return;
-      if (
-        !t.matches(
-          ".q-virtual-scroll__content, .q-table__middle, tbody, table",
-        )
-      ) {
-        return;
-      }
-      const ultima = (this.agents || []).length - 1;
-      const destino = {
-        ArrowDown: this.filaFoco + 1,
-        ArrowUp: this.filaFoco - 1,
-        Home: 0,
-        End: ultima,
-      };
-      if (!(ev.key in destino)) return;
-      ev.preventDefault();
-      this.moverFilaFoco(destino[ev.key]);
-    },
-    // 🪤 Si la fila con `tabindex=0` se sale de la ventana renderizada (el
-    // usuario desplazó con la rueda), la tabla se queda SIN parada de
-    // tabulador y deja de ser alcanzable. Acá se la trae al primer índice
-    // visible, que es el dato que entrega el propio evento del scroller.
-    alDesplazarVirtual(det) {
-      if (!det || this.moviendoFoco) return;
-      const { from, to } = det;
-      if (typeof from !== "number" || typeof to !== "number") return;
-      if (this.filaFoco < from || this.filaFoco > to) this.filaFoco = from;
-    },
     // Contrato del `since=None` (feature 036): un equipo puede estar en
     // mantenimiento sin fecha —los que ya lo estaban antes de la migración, o
     // cualquier escritura futura que se salte el sellado— y ahí se dice
@@ -817,6 +736,15 @@ export default {
     },
   },
   computed: {
+    rejillaFilas() {
+      return this.agents;
+    },
+    rejillaRef() {
+      return "tablaAgentes";
+    },
+    rejillaClaseHost() {
+      return "obs-agtbl__host";
+    },
     // Textos de alerta por vencimiento (computed para reaccionar al cambio de idioma).
     dashboard_overdue_text() {
       return this.$t("agentTable.dashboardOverdueText");

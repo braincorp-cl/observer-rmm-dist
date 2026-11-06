@@ -8,6 +8,10 @@
           <q-tooltip>{{ $t("userSessions.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <!-- 🪤 050 (V2-G15): PATRÓN DE REJILLA. Ver composables/rejillaTabla.js:
+           con una parada por fila el tabulador cae en las filas sobre-renderizadas
+           que el desplazamiento virtual deja fuera del contenedor. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
         dense
         :table-class="{
@@ -23,7 +27,11 @@
         row-key="id"
         binary-state-sort
         virtual-scroll
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         :rows-per-page-options="[0]"
+        ref="tablaRejilla"
       >
         <template #top>
           <q-space />
@@ -37,11 +45,23 @@
         <template #body="props">
           <q-tr>
             <!-- rows -->
-            <td>{{ formatDate(props.row.created) }}</td>
+            <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la
+                 tabla, y desde ella la flecha derecha llega al botón de
+                 desconectar. -->
+            <td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ formatDate(props.row.created) }}</span
+              >
+            </td>
             <td>{{ formatDate(props.row.expiry) }}</td>
             <td>
               <q-btn
                 size="sm"
+                tabindex="-1"
                 @click="removeSession(props.row)"
                 :label="$t('userSessions.disconnect')"
                 outline
@@ -50,6 +70,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -66,6 +87,7 @@ import {
   deleteAllUserSessions,
   deleteUserSession,
 } from "@/api/accounts";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 //types
 // SSO descartado (ADR-010, 2026-06-17): tipo SSOUser reemplazado por User base (módulo ee/sso vaciado).
@@ -109,6 +131,20 @@ const { dialogRef, onDialogHide } = useDialogPluginComponent();
 const $q = useQuasar();
 
 const sessions = ref([] as AuthToken[]);
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila. El `ref` de la plantilla tiene que existir acá o `scrollTo` por índice
+// no encuentra la tabla.
+const tablaRejilla = ref();
+const {
+  filaFoco,
+  alEntrarFoco,
+  alTeclaRejilla,
+  alDesplazarVirtual,
+} = usarRejillaTabla({
+  refTabla: tablaRejilla,
+  filas: () => sessions.value,
+});
 const loading = ref(false);
 
 function removeSession(token: AuthToken) {

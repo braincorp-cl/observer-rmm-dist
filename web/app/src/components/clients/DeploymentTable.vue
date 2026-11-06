@@ -16,7 +16,22 @@
           <q-tooltip />
         </q-btn>
       </q-bar>
+      <!-- 🪤 050 (V2-G15): PATRON DE REJILLA. Con una parada de tabulador por fila,
+           el tabulador aterriza en las filas SOBRE-RENDERIZADAS que el
+           desplazamiento virtual deja fuera del contenedor, donde el anillo no se
+           dibuja a proposito porque el control esta entero fuera de pantalla
+           (medido en el dialogo de instalar software: 13 paradas en y=785..1031 y
+           en y=-321..-239 sobre un viewport de 757, en los dos temas). La tabla
+           pasa a ser UNA parada y las flechas mueven la fila, con `scrollTo` POR
+           INDICE. Los dos oyentes de la raiz son el seguro: cuando el reciclaje
+           destruye el nodo enfocado, Chrome SUBE el foco al scroller
+           (`tabindex=-1`) y desde ahi la rejilla quedaria muerta. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         dense
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
@@ -68,7 +83,19 @@
                 </q-item>
               </q-list>
             </q-menu>
-            <q-td key="client" :props="props">{{ props.row.client_name }}</q-td>
+            <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la
+                 tabla. Desde aquí la tecla Menú abre el menú contextual de la
+                 fila —que antes era sólo de ratón— y las flechas
+                 izquierda/derecha llegan a los demás controles de la fila. -->
+            <q-td key="client" :props="props">
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ props.row.client_name }}</span
+              >
+            </q-td>
             <q-td key="site" :props="props">{{ props.row.site_name }}</q-td>
             <q-td key="mon_type" :props="props">{{ props.row.mon_type }}</q-td>
             <q-td key="goarch" :props="props" class="mono">{{ props.row.goarch }}</q-td>
@@ -88,12 +115,15 @@
               }}</q-tooltip>
             </q-td>
             <q-td key="link" :props="props">
+              <!-- `tabindex="-1"`: se alcanza con la flecha derecha desde el
+                   host de la fila. -->
               <q-btn
                 flat
                 dense
                 size="sm"
                 color="primary"
                 icon="content_copy"
+                tabindex="-1"
                 :label="$t('deploymentTable.copy')"
                 @click="copyLink(props.row)"
               />
@@ -101,6 +131,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -118,8 +149,19 @@ import { getBaseUrl } from "@/boot/axios";
 // ui imports
 import NewDeployment from "@/components/clients/NewDeployment.vue";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "DeploymentTable",
+  mixins: [mixinRejillaTabla],
+  computed: {
+    rejillaFilas() {
+      return this.deployments;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
+  },
   emits: [...useDialogPluginComponent.emits],
   setup() {
     // quasar dialog setup

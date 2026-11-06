@@ -21,6 +21,10 @@
 
       <!-- file/folder list -->
       <template #after>
+        <!-- 🪤 050 (V2-G15): PATRÓN DE REJILLA, ver composables/rejillaTabla.js.
+             Los dos oyentes son el seguro para cuando el reciclaje del scroller
+             deja el foco en el propio scroller. -->
+        <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
         <q-table
           ref="tableRef"
           v-model:selected="selectedTableNodes"
@@ -31,6 +35,9 @@
           :no-data-label="$t('fileBrowser.folderEmpty')"
           binary-state-sort
           virtual-scroll
+          @virtual-scroll="alDesplazarVirtual"
+          :virtual-scroll-item-size="33"
+          :virtual-scroll-sticky-size-start="28"
           selection="multiple"
           row-key="id"
           :pagination="{ sortBy: 'type', descending: true }"
@@ -72,7 +79,13 @@
 
               <!-- rows -->
               <q-td>
-                <q-checkbox v-model="slotProps.selected" dense />
+                <!-- `tabindex="-1"`: se alcanza con la flecha desde el host de
+                     la fila (patrón de rejilla). -->
+                <q-checkbox
+                  v-model="slotProps.selected"
+                  dense
+                  tabindex="-1"
+                />
               </q-td>
 
               <!-- 050 (T046, G05): el ícono NO lleva color. El teal y el
@@ -88,7 +101,17 @@
                   :name="
                     slotProps.row.type === 'folder' ? 'folder' : 'description'
                   "
-                />{{ slotProps.row.name }}
+                /><!-- Host enfocable de la fila: la ÚNICA parada de tabulador
+                     de la tabla. Desde aquí el menú contextual de la fila
+                     (ranura `table-menu`) es alcanzable con la tecla Menú, y la
+                     flecha llega a la casilla de selección. -->
+                <span
+                  class="obs-rej__host"
+                  :data-fila="slotProps.rowIndex"
+                  :tabindex="slotProps.rowIndex === filaFoco ? 0 : -1"
+                  @focus="filaFoco = slotProps.rowIndex"
+                  >{{ slotProps.row.name }}</span
+                >
               </q-td>
               <q-td>{{ slotProps.row.type }}</q-td>
               <!-- 050 (T046, G01): un tamaño en su celda es un valor dedicado
@@ -99,12 +122,14 @@
             </q-tr>
           </template>
         </q-table>
+        </div>
       </template>
     </q-splitter>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 // composition imports
 import { ref, toRef, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -157,6 +182,14 @@ const selectedTableNodes = ref([] as FileSystemNodeTable[]);
 const splitter = ref(25);
 const nodes = toRef(props, "nodes");
 const tableRows = ref([] as FileSystemNodeTable[]);
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila. Reutiliza el `ref` que ya existía (`tableRef`).
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: tableRef,
+    filas: () => tableRows.value,
+  });
 const tableColumns = computed<QTableColumn[]>(() => [
   {
     name: "name",

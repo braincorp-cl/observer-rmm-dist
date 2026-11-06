@@ -80,7 +80,22 @@
         </q-list>
       </q-btn-dropdown>
 
+      <!-- 🪤 050 (V2-G15): PATRON DE REJILLA. Con una parada de tabulador por fila,
+           el tabulador aterriza en las filas SOBRE-RENDERIZADAS que el
+           desplazamiento virtual deja fuera del contenedor, donde el anillo no se
+           dibuja a proposito porque el control esta entero fuera de pantalla
+           (medido: 13 paradas en y=785..1031 y en y=-321..-239 sobre un viewport de
+           757, en los dos temas). La tabla pasa a ser UNA parada y las flechas
+           mueven la fila, con `scrollTo` POR INDICE. Los dos oyentes de la raiz son
+           el seguro: cuando el reciclaje destruye el nodo enfocado, Chrome SUBE el
+           foco al scroller (`tabindex=-1`) y desde ahi la rejilla quedaria
+           muerta. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
           'table-bgcolor-dark': $q.dark.isActive,
@@ -188,6 +203,7 @@
             <!-- tds -->
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   checkAlert(props.row.id, 'Text', props.row.text_alert)
@@ -197,6 +213,7 @@
             </q-td>
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   checkAlert(props.row.id, 'Email', props.row.email_alert)
@@ -206,6 +223,7 @@
             </q-td>
             <q-td>
               <q-checkbox
+              tabindex="-1"
                 dense
                 @update:model-value="
                   checkAlert(
@@ -217,7 +235,19 @@
                 v-model="props.row.dashboard_alert"
               />
             </q-td>
-            <q-td>{{ props.row.readable_desc }}</q-td>
+            <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la tabla.
+                 Desde aquí la tecla Menú abre el menú contextual de la fila —que antes
+                 era sólo de ratón— y las flechas izquierda/derecha llegan a los demás
+                 controles de la fila. -->
+            <q-td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ props.row.readable_desc }}</span
+              >
+            </q-td>
             <q-td>
               <span
                 style="cursor: pointer; text-decoration: underline"
@@ -238,6 +268,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </div>
   </div>
 </template>
@@ -254,9 +285,13 @@ import WinSvcCheck from "@/components/checks/WinSvcCheck.vue";
 import ScriptCheck from "@/components/checks/ScriptCheck.vue";
 import EventLogCheck from "@/components/checks/EventLogCheck.vue";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "PolicyChecksTab",
-  mixins: [mixins],
+  // 🪤 UNA sola clave `mixins`: una segunda PISA a la primera
+  // y el mixin queda declarado y muerto, sin que el build ni el lint avisen.
+  mixins: [mixins, mixinRejillaTabla],
   props: {
     selectedPolicy: !Number,
     embedded: { type: Boolean, default: false },
@@ -277,6 +312,12 @@ export default {
     },
   },
   computed: {
+    rejillaFilas() {
+      return this.checks;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
     ...mapState(["dash_positive_color", "dash_warning_color"]),
     columns() {
       return [

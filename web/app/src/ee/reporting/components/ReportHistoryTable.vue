@@ -16,6 +16,8 @@
         </q-btn>
       </q-bar>
 
+      <!-- 🪤 050 (V2-G15): PATRÓN DE REJILLA, ver composables/rejillaTabla.js. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
         dense
         :table-class="{
@@ -36,7 +38,11 @@
         row-key="id"
         binary-state-sort
         virtual-scroll
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         :rows-per-page-options="[0]"
+        ref="tablaRejilla"
       >
         <template #top>
           <q-space />
@@ -191,12 +197,15 @@
                      control lleva su rótulo de acción en teal y el rojo queda
                      en la insignia de estado que va dentro, el mismo patrón del
                      botón «Dependencias» (T044). -->
+                <!-- `tabindex="-1"`: se alcanza con la flecha derecha desde el
+                     host de la fila (patrón de rejilla). -->
                 <q-btn
                   v-if="props.row.error_data"
                   flat
                   dense
                   no-caps
                   color="primary"
+                  tabindex="-1"
                   @click="openErrorMessage(props.row.error_data)"
                 >
                   <q-icon
@@ -209,6 +218,20 @@
                 </q-btn>
               </template>
 
+              <!-- Host enfocable de la fila, en la PRIMERA columna del bucle
+                   genérico: es la única parada de tabulador de la tabla, y desde
+                   ella la tecla Menú abre el menú contextual de la fila —que
+                   antes era sólo de ratón. -->
+              <template v-else-if="col.name === props.cols[0].name">
+                <span
+                  class="obs-rej__host"
+                  :data-fila="props.rowIndex"
+                  :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                  @focus="filaFoco = props.rowIndex"
+                  >{{ col.value }}</span
+                >
+              </template>
+
               <template v-else>
                 {{ col.value }}
               </template>
@@ -216,11 +239,13 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
@@ -280,6 +305,16 @@ const {
 } = useSharedReportHistory;
 
 const search = ref("");
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila. El tope real sale de `filteredSortedRows` de la propia tabla, que es lo
+// que importa acá porque esta tabla lleva `:filter="search"`.
+const tablaRejilla = ref();
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: tablaRejilla,
+    filas: () => reportHistory.value,
+  });
 
 // Confirm and delete
 function deleteHistory(entry: ReportHistory) {

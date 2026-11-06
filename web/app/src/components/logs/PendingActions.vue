@@ -18,7 +18,20 @@
         <q-space />
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
+      <!-- 🪤 050 (V2-G15): PATRÓN DE REJILLA. Con una parada de tabulador por
+           fila, el tabulador aterriza en las filas SOBRE-RENDERIZADAS que el
+           desplazamiento virtual deja fuera del contenedor, donde el anillo no
+           se dibuja a propósito porque el control está entero fuera de
+           pantalla (medido: 13 paradas en y=785..1031 y y=-321..-239 sobre un
+           viewport de 757). Los dos oyentes de la raíz son el seguro: cuando el
+           reciclaje destruye el nodo enfocado, Chrome SUBE el foco al scroller
+           (`tabindex=-1`) y desde ahí la rejilla quedaría muerta. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         dense
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
@@ -98,7 +111,19 @@
               }}</span>
             </q-td>
             <q-td v-else>{{ $t("pendingActions.completed") }}</q-td>
-            <q-td>{{ props.row.description }}</q-td>
+            <!-- Host enfocable de la fila: la ÚNICA parada de tabulador de la
+                 tabla. Desde aquí la tecla Menú abre el menú contextual de la
+                 fila —que hasta ahora era sólo de ratón— y la flecha derecha
+                 llega al botón de salida cuando existe. -->
+            <q-td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ props.row.description }}</span
+              >
+            </q-td>
             <q-td v-if="!agent">{{ props.row.hostname }}</q-td>
             <q-td v-if="!agent">{{ props.row.client }}</q-td>
             <q-td v-if="!agent">{{ props.row.site }}</q-td>
@@ -112,6 +137,7 @@
                 color="primary"
                 icon="preview"
                 size="sm"
+                tabindex="-1"
                 :label="$t('pendingActions.viewOutput')"
                 @click="showOutput(props.row.details.output)"
               />
@@ -120,6 +146,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -139,8 +166,19 @@ import { getNextAgentUpdateTime } from "@/utils/format";
 import { notifySuccess } from "@/utils/notify";
 import PreDialog from "@/components/ui/PreDialog.vue";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "PendingActions",
+  mixins: [mixinRejillaTabla],
+  computed: {
+    rejillaFilas() {
+      return this.filteredActions;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
+  },
   emits: [...useDialogPluginComponent.emits],
   props: {
     agent: Object,
