@@ -1,5 +1,16 @@
 <template>
-  <div class="q-pa-none">
+  <!-- 🪤 Los dos oyentes de la RAÍZ son el seguro del patrón de rejilla.
+       Chrome, al destruir el nodo que tiene el foco, NO lo manda al <body>:
+       lo sube al ancestro enfocable más cercano, y el scroller virtual de
+       Quasar lleva `tabindex=-1`. Un salto de Inicio/Fin recicla la fila
+       enfocada, así que el foco termina en `tbody.q-virtual-scroll__content`
+       y desde ahí la rejilla queda MUERTA: los `keydown` viven en la fila,
+       la flecha siguiente no hace nada y el anillo toma la forma del cuerpo
+       de la tabla, 371px por encima del borde de la ventana (medido en los
+       dos temas, pasos 4 y 7 de la sonda de teclas). Un `.focus()` diferido
+       NO lo arregla —se desplegó y se midió: el foco seguía en el tbody—,
+       así que se ataja donde aterriza. -->
+  <div class="q-pa-none" @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <!-- 🪤 050 (V2-G15): sin estos dos la aritmetica del desplazamiento
          virtual esta MAL y el navegador manda las filas enfocadas fuera de
          pantalla al tabular. Medido en el tablero servido: 171 filas de 46,5
@@ -517,7 +528,7 @@ export default {
       this.moviendoFoco = true;
       const tabla = this.$refs.tablaAgentes;
       if (tabla && tabla.scrollTo) tabla.scrollTo(idx);
-      this.$nextTick(() => this.enfocarFila(idx, 20));
+      this.$nextTick(() => this.enfocarFila(idx, 16));
     },
     // 🪤 Un solo cuadro NO alcanza en un salto largo, y el precio era la
     // rejilla entera. Inicio/Fin mueven el scroller 170 filas: el nodo de la
@@ -530,20 +541,62 @@ export default {
     // tabla, 371px por encima del borde de la ventana. Medido en los dos temas:
     // paso 4 (FIN) y paso 7 (ARRIBA después de FIN). Se reintenta cuadro a
     // cuadro hasta que el nodo exista.
-    enfocarFila(idx, intentos) {
-      const el = this.$el.querySelector(
+    enfocarFila(idx, espera) {
+      const el = document.querySelector(
         `.obs-agtbl__host[data-fila="${idx}"]`,
       );
       if (el) {
         this.moviendoFoco = false;
-        if (document.activeElement !== el) el.focus();
+        // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
+        // pelearía con la rueda del usuario y con el `scrollTo` por índice,
+        // que es el que debe decidir dónde queda el scroller.
+        if (document.activeElement !== el) el.focus({ preventScroll: true });
         return;
       }
-      if (intentos <= 0) {
+      // Escalera: el nodo destino de un salto de 170 filas aparece a los ~83 ms
+      // medidos, y el scroller puede tardar más con la ventana pequeña.
+      if (espera > 512) {
         this.moviendoFoco = false;
         return;
       }
-      requestAnimationFrame(() => this.enfocarFila(idx, intentos - 1));
+      setTimeout(() => this.enfocarFila(idx, espera * 2), espera);
+    },
+    // El foco aterrizó en el scroller en vez de una fila: se devuelve a la fila
+    // que lleva el tabulador. Sin esto la rejilla no se recupera nunca.
+    alEntrarFoco(ev) {
+      const t = ev.target;
+      if (!t || !t.matches || t.classList.contains("obs-agtbl__host")) return;
+      if (
+        !t.matches(
+          ".q-virtual-scroll__content, .q-table__middle, tbody, table",
+        )
+      ) {
+        return;
+      }
+      this.enfocarFila(this.filaFoco, 16);
+    },
+    // Y mientras el foco está en el scroller, las teclas de la rejilla se
+    // atienden igual: el oyente de la fila no existe en ese estado.
+    alTeclaRejilla(ev) {
+      const t = ev.target;
+      if (!t || !t.matches || t.classList.contains("obs-agtbl__host")) return;
+      if (
+        !t.matches(
+          ".q-virtual-scroll__content, .q-table__middle, tbody, table",
+        )
+      ) {
+        return;
+      }
+      const ultima = (this.agents || []).length - 1;
+      const destino = {
+        ArrowDown: this.filaFoco + 1,
+        ArrowUp: this.filaFoco - 1,
+        Home: 0,
+        End: ultima,
+      };
+      if (!(ev.key in destino)) return;
+      ev.preventDefault();
+      this.moverFilaFoco(destino[ev.key]);
     },
     // 🪤 Si la fila con `tabindex=0` se sale de la ventana renderizada (el
     // usuario desplazó con la rueda), la tabla se queda SIN parada de
