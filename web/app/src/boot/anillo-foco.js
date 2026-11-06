@@ -195,7 +195,48 @@ function dentroDeLaVentana(r) {
 // Un control de ancho completo —`.q-table__middle` del gestor, 1440x636— falla
 // la condición del alto y conserva su anillo; y un control pequeño con
 // `tabindex="-1"`, como la pestaña «GENERAL», no se ve afectado.
-const HOLGURA_VENTANA = 60;
+// 🪤 CUARTA versión de esta guarda, y la primera que NO es un número. Las tres
+// anteriores fallaron cada una por un puñado de píxeles, y la medición las
+// cazó siempre:
+//   · `w >= vw-1 && h >= vh-1` sobre el rect crudo: el velo A MITAD DE LA
+//     TRANSICIÓN mide MENOS que la ventana, escapaba, y el recorte lo estiraba
+//     a los cuatro bordes;
+//   · la misma pregunta sobre el rect YA RECORTADO: heredó el número del
+//     recorte y falló por UN píxel (el velo pasa a 7 px del borde);
+//   · `60` px de holgura sobre el rect crudo, justificada con un barrido de
+//     3785 paradas en el que ninguna tenía los dos ejes a menos de 60 px. Ese
+//     barrido NO INCLUÍA DIÁLOGOS MAXIMIZADOS, cuyo velo en transición mide
+//     0,9533 × la ventana = 1373 de 1440: falló por 7 px otra vez. 🔑 Un
+//     control cuya población no cubre el caso justifica un número equivocado.
+//     Y el detector con que lo validé usaba `>= vw-14`, MÁS FLOJO que la
+//     guarda: no podía ver nada entre 14 y 60 px, así que declaró 0 eventos
+//     mientras el producto pintaba a 67. Un detector más flojo que la guarda no
+//     valida la guarda.
+//
+// La pregunta correcta no es CUÁNTO MIDE el rect: es QUÉ ES el elemento. El
+// `.q-dialog__inner` es el envoltorio del diálogo y recibe el foco sólo como
+// ancla de la trampa de foco de Quasar, siempre con `tabindex="-1"`: no es un
+// control, nunca lo es, y su tamaño no viene al caso. Así no queda ningún
+// número que equivocar.
+//
+// 🪤 La lista lleva SÓLO el velo del diálogo, a propósito. El contenedor
+// `.q-menu` también recibe el foco con `tabindex="-1"` al abrirse el menú,
+// pero ahí el anillo rodea un panel de 278×423 que SÍ dice dónde está el foco,
+// y esa parada está medida y declarada aparte (sección 23 de la vara) para que
+// la juzgue el criterio. Meterla acá cambiaría un comportamiento que decidí no
+// tocar. Y `.q-menu__container` no existe en el DOM servido —la clase es
+// `q-menu`—, así que ponerlo habría sido código que nadie llama.
+const ANCLAS_DE_TRAMPA = ".q-dialog__inner";
+
+function esAnclaYNoControl(el) {
+  return el.getAttribute("tabindex") === "-1" && el.matches(ANCLAS_DE_TRAMPA);
+}
+
+// Segunda red, por si apareciera otro ancla que no esté en la lista: un rect
+// que abarca la ventana en LOS DOS EJES no señala ningún lugar. La holgura ya
+// no tiene que ser precisa —la identidad hace el trabajo—, así que se pone
+// amplia a propósito.
+const HOLGURA_VENTANA = 100;
 
 function noSenalaNingunLugar(r) {
   return (
@@ -259,6 +300,7 @@ function pintar() {
   } catch (e) {
     /* navegador sin :focus-visible: se deja el anillo, que es el lado seguro */
   }
+  if (esAnclaYNoControl(objetivo)) return ocultar();
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
   if (noSenalaNingunLugar(r)) return ocultar();
