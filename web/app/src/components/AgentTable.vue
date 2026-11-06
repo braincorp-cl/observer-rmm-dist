@@ -1,29 +1,23 @@
 <template>
-  <!-- 🪤 050 (V2-G15): `focusin` acá y no un `@focus` por fila. Al tabular hacia
-       una fila que no está a la vista, el navegador desplaza el contenedor y
-       ENSEGUIDA el desplazamiento virtual de Quasar re-renderiza la ventana de
-       filas, lo que deja la fila enfocada fuera de pantalla otra vez. Medido al
-       tabular por el tablero: las paradas 70..74 quedaban en y=765, 812, 859,
-       906 y 953 con un viewport de 757, cada una más abajo que la anterior.
-       El anillo de foco estaba ahí; lo que no estaba era la fila.
-       Es la SEGUNDA línea de defensa: la primera son `virtual-scroll-item-size`
-       y `virtual-scroll-sticky-size-start`, abajo. Medido: con el corrector
-       solo no alcanzaba, porque la aritmética del scroller seguía mal. -->
-  <div class="q-pa-none" @focusin="asegurarFilaVisible">
+  <div class="q-pa-none">
     <!-- 🪤 050 (V2-G15): sin estos dos la aritmetica del desplazamiento
          virtual esta MAL y el navegador manda las filas enfocadas fuera de
          pantalla al tabular. Medido en el tablero servido: 171 filas de 46,5
          px dan 7.951 px de contenido y el scrollHeight del contenedor decia
          5.537 — un 30 % corto, porque sin `virtual-scroll-item-size` Quasar
          estima el alto y recien lo corrige al renderizar. Con la estimacion
-         corta, `scrollIntoView` del navegador calcula un destino equivocado y
-         la fila termina en y=801, 857, 895, 942, 989 y 1036 con un viewport
-         de 757 (medido, paradas 62..67). Y `virtual-scroll-sticky-size-start`
-         son los 28 px del encabezado pegajoso: sin declararlos, una fila
-         "traida a la vista" aterriza DEBAJO del encabezado (medido: y=3 y
-         y=-91). Los 46,5 son el alto real de 38 de las 41 filas renderizadas. -->
+         corta, el destino que calcula el navegador —y el `scrollTo` por
+         índice de abajo— sale equivocado: la fila terminaba en y=801, 857,
+         895, 942, 989 y 1036 con un viewport de 757 (medido, paradas 62..67).
+         Y `virtual-scroll-sticky-size-start` son los 28 px del encabezado
+         pegajoso: sin declararlos, una fila traída a la vista aterriza DEBAJO
+         de él (medido: y=3 y y=-91). Los 46,5 px son el alto real de 38 de las
+         41 filas renderizadas. Estos dos son los que hacen que el `scrollTo`
+         por índice del patrón de rejilla caiga donde debe. -->
     <q-table
+      ref="tablaAgentes"
       dense
+      @virtual-scroll="alDesplazarVirtual"
       :table-class="{
         'table-bgcolor': !$q.dark.isActive,
         'table-bgcolor-dark': $q.dark.isActive,
@@ -351,14 +345,34 @@
                  mecanismo por el que el QTree del tablero ya es operable.
                  No lleva @click: el clic burbujea al de la fila, así que el
                  clic y el doble clic (046 F4 / RN-03) quedan intactos. -->
+            <!-- 🪤 050 (V2-G15 / V2-G14): PATRÓN DE REJILLA, no una parada de
+                 tabulador por fila. Con `tabindex="0"` en las 171 filas pasaban
+                 dos cosas, las dos medidas: (1) cruzar la tabla pedía 171 TAB;
+                 (2) el TAB caía en las filas SOBRE-RENDERIZADAS que el
+                 desplazamiento virtual deja bajo el pliegue del contenedor
+                 —y=772..838 con la ventana en 757—, donde el anillo no se
+                 dibuja A PROPÓSITO porque la capa se oculta cuando el control
+                 está entero fuera de pantalla. Y traerlas a la vista NO era
+                 arreglo: el nodo enfocado SE RECICLA, así que al desplazar el
+                 contenedor el foco queda sobre OTRO equipo (medido:
+                 BOG-SRV-PROXY ⇒ BUE-CAJA-01). Por eso ahora la tabla es UNA
+                 parada de tabulador y las flechas mueven la fila, con
+                 `scrollTo` POR ÍNDICE del scroller virtual, que es lo único que
+                 mantiene sincronizados la fila enfocada y su dato. -->
             <div
               class="obs-agtbl__host"
               style="display: inline-block"
               role="button"
-              tabindex="0"
+              :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+              :data-fila="props.rowIndex"
               :aria-label="
                 $t('agentTable.openAgentAria', { hostname: props.row.hostname })
               "
+              @focus="filaFoco = props.rowIndex"
+              @keydown.down.prevent="moverFilaFoco(props.rowIndex + 1)"
+              @keydown.up.prevent="moverFilaFoco(props.rowIndex - 1)"
+              @keydown.home.prevent="moverFilaFoco(0)"
+              @keydown.end.prevent="moverFilaFoco(agents.length - 1)"
               @keydown.space.prevent
               @keyup.enter="
                 openAgentWorkspace(props.row.agent_id, props.row.plat)
@@ -482,25 +496,41 @@ export default {
         sortBy: "hostname",
         descending: false,
       },
+      // Índice de la fila que lleva el tabulador (patrón de rejilla).
+      filaFoco: 0,
     };
   },
   methods: {
-    // Devuelve a la vista la fila que acaba de recibir el foco, después de que
-    // el desplazamiento virtual haya re-renderizado: DOS cuadros, porque con
-    // uno solo la corrección se aplica sobre la posición vieja.
-    asegurarFilaVisible(ev) {
-      const el = ev.target;
-      if (!el || !el.classList || !el.classList.contains("obs-agtbl__host")) {
-        return;
-      }
-      requestAnimationFrame(() =>
+    // Mueve la fila que tiene el tabulador. 🪤 `scrollTo` POR ÍNDICE y no
+    // `scrollIntoView`: el scroller virtual recicla los nodos, así que
+    // desplazar por píxeles deja el foco sobre otro equipo. Y el `.focus()` de
+    // después conserva `:focus-visible` porque el movimiento viene de una
+    // tecla: el navegador mantiene la modalidad de la última interacción.
+    moverFilaFoco(i) {
+      const ultima = (this.agents || []).length - 1;
+      if (ultima < 0) return;
+      const idx = Math.max(0, Math.min(ultima, i));
+      this.filaFoco = idx;
+      const tabla = this.$refs.tablaAgentes;
+      if (tabla && tabla.scrollTo) tabla.scrollTo(idx);
+      this.$nextTick(() =>
         requestAnimationFrame(() => {
-          const r = el.getBoundingClientRect();
-          if (r.top < 4 || r.bottom > window.innerHeight - 4) {
-            el.scrollIntoView({ block: "nearest" });
-          }
+          const el = this.$el.querySelector(
+            `.obs-agtbl__host[data-fila="${idx}"]`,
+          );
+          if (el) el.focus();
         }),
       );
+    },
+    // 🪤 Si la fila con `tabindex=0` se sale de la ventana renderizada (el
+    // usuario desplazó con la rueda), la tabla se queda SIN parada de
+    // tabulador y deja de ser alcanzable. Acá se la trae al primer índice
+    // visible, que es el dato que entrega el propio evento del scroller.
+    alDesplazarVirtual(det) {
+      if (!det) return;
+      const { from, to } = det;
+      if (typeof from !== "number" || typeof to !== "number") return;
+      if (this.filaFoco < from || this.filaFoco > to) this.filaFoco = from;
     },
     // Contrato del `since=None` (feature 036): un equipo puede estar en
     // mantenimiento sin fecha —los que ya lo estaban antes de la migración, o
