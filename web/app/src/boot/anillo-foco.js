@@ -232,44 +232,34 @@ function esAnclaYNoControl(el) {
   return el.getAttribute("tabindex") === "-1" && el.matches(ANCLAS_DE_TRAMPA);
 }
 
-// Y la segunda cara del mismo principio, medida en el séptimo veredicto. El
-// crítico fotografió un anillo ausente sobre `div.q-checkbox__inner` en el
-// encabezado de «Activos de reporte»: la capa estaba visible, en su sitio y con
-// z 9400, y no había un solo píxel del token.
+// 🔴 ACÁ VIVÍA UNA GUARDA MÍA QUE SE RETIRÓ POR REGRESIÓN MEDIDA, y queda
+// escrita porque la lección es más valiosa que el código.
 //
-// 🔑 Lo que destapó la medición es que los dos crudos NO hablaban del mismo
-// elemento. En el estado ALCANZABLE el foco cae en la RAÍZ `div.q-checkbox`, que
-// lleva `tabindex="0"`, y ahí el anillo se pinta bien: medido 4 de 4, con el
-// `box-shadow` de los dos tokens en el orden correcto por tema y 244 píxeles del
-// token en oscuro / 233 en claro. El elemento del veredicto era el `__inner`, un
-// HIJO con `tabindex: null`, sin rol y sin aria, que recibe el foco sólo como
-// efecto colateral mientras se abre un tercer diálogo encima.
+// El séptimo veredicto fotografió un anillo ausente sobre
+// `div.q-checkbox__inner`, un hijo con `tabindex: null` que recibe el foco como
+// efecto colateral mientras se abre un tercer diálogo encima. Lo «arreglé» con
+// una regla general: si el elemento no declara `tabindex`, no es enfocable por
+// naturaleza y no es editable, entonces no es un control y no lleva anillo.
 //
-// O sea: no es un control, igual que el velo. Y la regla correcta no es otra
-// lista de clases, que se queda corta en el siguiente caso: es preguntar si el
-// elemento es un control. Lo es si declara `tabindex` —cualquiera, porque un
-// `-1` SÍ recibe foco con el tabulador en Quasar, como está medido en los
-// `div.q-tab`—, si es enfocable por naturaleza, o si es editable.
-const CONTROLES_NATIVOS = "a[href],button,input,select,textarea";
-
-function noEsUnControl(el) {
-  if (el.hasAttribute("tabindex")) return false;
-  if (el.isContentEditable) return false;
-  return !el.matches(CONTROLES_NATIVOS);
-}
-
-// Segunda red, por si apareciera otro ancla que no esté en la lista: un rect
-// que abarca la ventana en LOS DOS EJES no señala ningún lugar. La holgura ya
-// no tiene que ser precisa —la identidad hace el trabajo—, así que se pone
-// amplia a propósito.
-const HOLGURA_VENTANA = 100;
-
-function noSenalaNingunLugar(r) {
-  return (
-    r.width >= window.innerWidth - HOLGURA_VENTANA &&
-    r.height >= window.innerHeight - HOLGURA_VENTANA
-  );
-}
+// 🔑 La regla era FALSA, y la advertencia estaba escrita por mí en la enmienda j
+// de este mismo criterio: **el `tabindex` NO es proxy de «alcanzable con el
+// tabulador»**. Chrome pone las REGIONES DESPLAZABLES en el orden de tabulación
+// aunque no declaren `tabindex`, y `div.q-table__middle.q-virtual-scroll` es una
+// de ellas. El octavo veredicto lo midió: `focus_visible: true`,
+// `tabindex_atributo: null`, `es_nativo_enfocable: false`, TAB real llegando en
+// 9 pulsaciones, rect 1280×636 — y mi guarda apagándole el anillo. Catorce casos
+// medidos sin anillo (3 superficies × 2 temas más los 8 anchos del gestor),
+// contra los 24 de 24 conformes que la enmienda i había medido en ese mismo
+// elemento: **regresión contra el estado anterior del propio ítem**.
+//
+// 🔑 Y la proporción es la lección: arreglé un transitorio de UNA ocurrencia con
+// una regla general y rompí CATORCE casos estables. Un transitorio se declara
+// como hueco abierto; no se tapa con una regla que cambia el comportamiento de
+// todo lo demás.
+//
+// El velo sigue guardado por IDENTIDAD, que es lo que está medido y no depende
+// de ninguna premisa sobre el `tabindex`. El `q-checkbox__inner` vuelve a ser un
+// hueco declarado.
 
 function ocultar() {
   objetivo = null;
@@ -326,7 +316,7 @@ function pintar() {
   } catch (e) {
     /* navegador sin :focus-visible: se deja el anillo, que es el lado seguro */
   }
-  if (esAnclaYNoControl(objetivo) || noEsUnControl(objetivo)) return ocultar();
+  if (esAnclaYNoControl(objetivo)) return ocultar();
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
   if (noSenalaNingunLugar(r)) return ocultar();
