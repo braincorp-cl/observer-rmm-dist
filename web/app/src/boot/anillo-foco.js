@@ -36,6 +36,11 @@
 
 const ID = "obs-anillo-foco";
 
+// El recorte de `dentroDeLaVentana` y la guarda de `noSenalaNingunLugar` miden
+// con el MISMO número: un anillo recortado a los cuatro bordes es, por
+// construcción, uno que empieza en B y termina en vw-B / vh-B.
+const CLAMP_B = 6;
+
 let capa = null;
 let objetivo = null;
 let raf = 0;
@@ -134,7 +139,7 @@ function dentroDeLaVentana(r) {
   // ya salen en los píxeles (x=0 y x=vw-1) pero no queda ningún píxel de
   // referencia a su lado, y un lado que no se puede contrastar no se puede
   // declarar conforme.
-  const B = 6;
+  const B = CLAMP_B;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   let x1 = r.left;
@@ -161,12 +166,34 @@ function dentroDeLaVentana(r) {
 // MIDIÓ MAL: la pestaña «GENERAL» del diálogo de editar agente es un
 // `div.q-tab` con `tabindex="-1"` y el TAB aterriza ahí igual, así que la regla
 // por tabindex le quitaba el anillo a un control de verdad (1 parada rota en
-// cada tema, que antes estaba conforme). El tamaño sí distingue: un control de
-// ancho completo como el `.q-table__middle` del gestor mide 1440x636 y se
-// queda con su anillo; el velo mide la ventana EN LOS DOS EJES.
-function cubreLaVentana(r) {
+// cada tema, que antes estaba conforme).
+//
+// 🪤 Y TAMPOCO va por el tamaño del rect ANTES del recorte, que es el segundo
+// intento y también midió mal. El velo de un diálogo ANIDADO entra con una
+// transición de escala, y el `.q-dialog__inner` recibe el foco mientras la
+// transición corre: medido cuadro a cuadro con una sonda de
+// `requestAnimationFrame` dentro de la página, pasa por 1425.7x749.5 y
+// 1438.5x756.2 antes de asentarse en 1440x757. Con la comparación «>= vw-1 y
+// >= vh-1» esos cuadros ESCAPAN, y entonces el recorte de `dentroDeLaVentana`
+// los estira hasta los cuatro bordes: un marco de dos tonos alrededor de toda
+// la pantalla, fotografiado en `rep-recursos-subir` (tercer nivel: Gestor de
+// reportes → Recursos → Subir), parada 8, tema claro.
+//
+// La pregunta correcta se le hace al rect que se va a PINTAR, no al de antes
+// del recorte, y es exactamente la propiedad que el criterio nombra: ¿el anillo
+// abarca los CUATRO bordes de la ventana? Así no hay umbral que adivinar. Un
+// control de ancho completo —`.q-table__middle` del gestor, 1440x636— toca
+// izquierda y derecha pero no arriba y abajo, así que conserva su anillo; y un
+// control pequeño con `tabindex="-1"`, como la pestaña «GENERAL», tampoco se ve
+// afectado. Control de la holgura, sobre las 3.785 paradas medidas de la
+// corrida 8: NINGUNA tiene los dos ejes a menos de 60px de la ventana, y el
+// control más cercano está a 170px en su eje menor.
+function noSenalaNingunLugar(rv, B) {
   return (
-    r.width >= window.innerWidth - 1 && r.height >= window.innerHeight - 1
+    rv.left <= B &&
+    rv.top <= B &&
+    rv.left + rv.width >= window.innerWidth - B &&
+    rv.top + rv.height >= window.innerHeight - B
   );
 }
 
@@ -227,7 +254,6 @@ function pintar() {
   }
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
-  if (cubreLaVentana(r)) return ocultar();
   if (
     r.width < 1 || r.height < 1 ||
     r.left > window.innerWidth || r.top > window.innerHeight ||
@@ -237,6 +263,7 @@ function pintar() {
     return seguir();
   }
   const rv = dentroDeLaVentana(r);
+  if (noSenalaNingunLugar(rv, CLAMP_B)) return ocultar();
   if (rv.width < 1 || rv.height < 1) {
     capa.style.display = "none";
     return seguir();
