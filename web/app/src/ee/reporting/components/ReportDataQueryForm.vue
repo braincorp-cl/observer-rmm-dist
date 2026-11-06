@@ -29,9 +29,16 @@
         <q-space />
       </q-toolbar>
 
+      <!-- 🪤 050 (V2-G15): el alto del editor es el de la ventana MENOS el
+           cromo del diálogo, y el 126 que había no cuadraba: medido, la barra
+           son 56 px y la barra de herramientas 50 (=106 arriba) y el pie 61,
+           o sea 167. Con 126 la tarjeta se pasaba 41 px del borde inferior y el
+           pie quedaba FUERA de la ventana, con los botones «Cancelar» y
+           «Guardar» a ras del borde: su anillo de foco inferior se iba de
+           pantalla y no se podía medir a ningún alto (900, 1200 y 1400). -->
       <div
         ref="queryEditor"
-        :style="{ height: `${$q.screen.height - 126}px` }"
+        :style="{ height: `${$q.screen.height - 167}px` }"
       ></div>
 
       <q-card-actions align="right">

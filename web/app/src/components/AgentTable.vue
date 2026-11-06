@@ -1,5 +1,12 @@
 <template>
-  <div class="q-pa-none">
+  <!-- 🪤 050 (V2-G15): `focusin` acá y no un `@focus` por fila. Al tabular hacia
+       una fila que no está a la vista, el navegador desplaza el contenedor y
+       ENSEGUIDA el desplazamiento virtual de Quasar re-renderiza la ventana de
+       filas, lo que deja la fila enfocada fuera de pantalla otra vez. Medido al
+       tabular por el tablero: las paradas 70..74 quedaban en y=765, 812, 859,
+       906 y 953 con un viewport de 757, cada una más abajo que la anterior.
+       El anillo de foco estaba ahí; lo que no estaba era la fila. -->
+  <div class="q-pa-none" @focusin="asegurarFilaVisible">
     <q-table
       dense
       :table-class="{
@@ -461,6 +468,23 @@ export default {
     };
   },
   methods: {
+    // Devuelve a la vista la fila que acaba de recibir el foco, después de que
+    // el desplazamiento virtual haya re-renderizado: DOS cuadros, porque con
+    // uno solo la corrección se aplica sobre la posición vieja.
+    asegurarFilaVisible(ev) {
+      const el = ev.target;
+      if (!el || !el.classList || !el.classList.contains("obs-agtbl__host")) {
+        return;
+      }
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          if (r.top < 4 || r.bottom > window.innerHeight - 4) {
+            el.scrollIntoView({ block: "nearest" });
+          }
+        }),
+      );
+    },
     // Contrato del `since=None` (feature 036): un equipo puede estar en
     // mantenimiento sin fecha —los que ya lo estaban antes de la migración, o
     // cualquier escritura futura que se salte el sellado— y ahí se dice

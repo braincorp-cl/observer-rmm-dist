@@ -99,7 +99,16 @@ export default function () {
       SET_SPLITTER(state, val) {
         // top toolbar is 50px. Filebar is 40px and agent filter tabs are 44px
         // 046 F1: sin la barra de menús (FileBar, 40 px) la tabla recupera ese alto.
-        state.tableHeight = `${Screen.height - 50 - 78 - val}px`;
+        // 🪤 050 (V2-G15): los 78 venían de la v1 y el tablero de la v2 metió el
+        // bloque de KPIs sobre la tabla, así que la cuenta sobraba: MEDIDO, la
+        // tabla terminaba 59,7 px POR DEBAJO del borde inferior de la ventana a
+        // 900, 1200 y 1400 de alto (constante, el mismo número en los tres), y
+        // el contenedor de página sólo podía desplazar 109. Efecto real: al
+        // tabular, 6 de las 91 paradas del tablero enfocaban filas FUERA de
+        // pantalla — el anillo se dibujaba donde nadie lo veía. Los 150 son esos
+        // 78 + 60 del bloque nuevo + 12 px de aire para que el anillo de la
+        // ÚLTIMA fila quepa dentro de la ventana (el anillo son 4 px por fuera).
+        state.tableHeight = `${Screen.height - 50 - 150 - val}px`;
 
         // q-tabs are 37px
         state.tabHeight = `${val - 37}px`;
