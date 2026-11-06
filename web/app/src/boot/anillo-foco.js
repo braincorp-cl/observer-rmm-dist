@@ -36,9 +36,8 @@
 
 const ID = "obs-anillo-foco";
 
-// El recorte de `dentroDeLaVentana` y la guarda de `noSenalaNingunLugar` miden
-// con el MISMO número: un anillo recortado a los cuatro bordes es, por
-// construcción, uno que empieza en B y termina en vw-B / vh-B.
+// Cuánto se mete el anillo hacia adentro cuando no cabe por un lado. El porqué
+// del SEIS está en `dentroDeLaVentana`.
 const CLAMP_B = 6;
 
 let capa = null;
@@ -179,21 +178,29 @@ function dentroDeLaVentana(r) {
 // la pantalla, fotografiado en `rep-recursos-subir` (tercer nivel: Gestor de
 // reportes → Recursos → Subir), parada 8, tema claro.
 //
-// La pregunta correcta se le hace al rect que se va a PINTAR, no al de antes
-// del recorte, y es exactamente la propiedad que el criterio nombra: ¿el anillo
-// abarca los CUATRO bordes de la ventana? Así no hay umbral que adivinar. Un
-// control de ancho completo —`.q-table__middle` del gestor, 1440x636— toca
-// izquierda y derecha pero no arriba y abajo, así que conserva su anillo; y un
-// control pequeño con `tabindex="-1"`, como la pestaña «GENERAL», tampoco se ve
-// afectado. Control de la holgura, sobre las 3.785 paradas medidas de la
-// corrida 8: NINGUNA tiene los dos ejes a menos de 60px de la ventana, y el
-// control más cercano está a 170px en su eje menor.
-function noSenalaNingunLugar(rv, B) {
+// 🪤 Y el TERCER intento, atar la pregunta al rect ya RECORTADO —«¿el anillo
+// toca los cuatro bordes?»— también midió mal, y por poco: la transición pasa
+// por cuadros en que el velo queda a SIETE píxeles del borde, con el recorte
+// de 6px sin actuar y la pregunta dando false por un píxel. Medido después de
+// desplegar ese intento: la capa seguía pintando (7, 6, 1426, 745) en 2
+// cuadros por tema. Una guarda que depende del recorte hereda su número.
+//
+// Así que la pregunta se le hace al rect CRUDO y es la del criterio: ¿abarca
+// este rect la ventana en LOS DOS EJES? Eso pide un umbral, y el umbral sale
+// de un control, no de la intuición: sobre las 3.785 paradas medidas de la
+// corrida 8, NINGUNA tiene los dos ejes a menos de 60px de la ventana, y el
+// control más cercano está a 170px en su eje menor. Con 60px de holgura, el
+// primer control real queda 110px por debajo del corte.
+//
+// Un control de ancho completo —`.q-table__middle` del gestor, 1440x636— falla
+// la condición del alto y conserva su anillo; y un control pequeño con
+// `tabindex="-1"`, como la pestaña «GENERAL», no se ve afectado.
+const HOLGURA_VENTANA = 60;
+
+function noSenalaNingunLugar(r) {
   return (
-    rv.left <= B &&
-    rv.top <= B &&
-    rv.left + rv.width >= window.innerWidth - B &&
-    rv.top + rv.height >= window.innerHeight - B
+    r.width >= window.innerWidth - HOLGURA_VENTANA &&
+    r.height >= window.innerHeight - HOLGURA_VENTANA
   );
 }
 
@@ -254,6 +261,7 @@ function pintar() {
   }
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
+  if (noSenalaNingunLugar(r)) return ocultar();
   if (
     r.width < 1 || r.height < 1 ||
     r.left > window.innerWidth || r.top > window.innerHeight ||
@@ -263,7 +271,6 @@ function pintar() {
     return seguir();
   }
   const rv = dentroDeLaVentana(r);
-  if (noSenalaNingunLugar(rv, CLAMP_B)) return ocultar();
   if (rv.width < 1 || rv.height < 1) {
     capa.style.display = "none";
     return seguir();
