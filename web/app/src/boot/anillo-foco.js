@@ -117,7 +117,15 @@ function rectUnion(el) {
 // propio control. Es la misma decisión que el solape con un contenedor
 // apretado: antes pisar 4px de cromática que no verse.
 function dentroDeLaVentana(r) {
-  const B = 4; // el grosor de las dos bandas juntas
+  // 🪤 SEIS y no cuatro. Cuatro es el grosor de las dos bandas, y con eso el
+  // anillo cabe pero queda AL RAS del borde: la banda externa no tiene nada al
+  // lado. La técnica de dos tonos se apoya en que las dos bandas sean un
+  // ANILLO —un borde entre dos tonos, con el mundo a continuación—, así que se
+  // dejan 2px del fondo del propio control por fuera. Medido: con 4 las bandas
+  // ya salen en los píxeles (x=0 y x=vw-1) pero no queda ningún píxel de
+  // referencia a su lado, y un lado que no se puede contrastar no se puede
+  // declarar conforme.
+  const B = 6;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   let x1 = r.left;
