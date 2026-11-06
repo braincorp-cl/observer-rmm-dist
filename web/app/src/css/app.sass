@@ -988,161 +988,45 @@ body.body--dark
   color: var(--obs-text)
 
 // ---------------------------------------------------------------------------
-// V2-G15 — Anillo de foco (tanda del sistema de diseño, 2026-11-05)
+// V2-G15 — Anillo de foco: lo dibuja `boot/anillo-foco.js`, NO este archivo
 // ---------------------------------------------------------------------------
-// Hasta hoy este archivo no tenia NI UNA regla de foco en 968 renglones.
-// Quasar hace `outline: 0` y lo reemplaza por un velo `currentColor @ .22`
-// (.q-focus-helper) que, compuesto sobre la paleta real, da 1,33-1,46:1 en los
-// dos temas: por debajo del 3:1 que pide WCAG 2.4.11. En la practica, quien
-// navega con el tabulador no sabe donde esta.
+// 🔑 Acá vivieron CINCO geometrías en una noche y las cinco murieron medidas en
+// píxeles sobre lo servido. El resumen, porque la próxima tentación va a ser
+// volver a escribirlas acá:
 //
-// Parametros decididos por el usuario el 2026-11-04:
-//   color      --obs-focus, el neutro de TEXTO del tema, nunca el teal de marca
-//              ni un color de estado. El anillo dice «aca esta el foco», que no
-//              es ni estado ni accion ⇒ no se re-litiga contra V2-G05.
-//   disparador :focus-visible. Se ve al TABULAR, no al hacer clic con el raton.
-// Forma y lugar van por default convencional, no por decision expresa.
+//   · anillo 2px por FUERA  ⇒ lo recorta cualquier ancestro con overflow y
+//     holgura 0. Enumerarlos falló TRES veces: `.obs-ctx__list`, después
+//     `.obs-fleet__tree`, después `div.row.no-wrap.items-center` del ActionBar
+//     del agente — 292 de 349 lados sin banda, y un sexto no se descarta leyendo;
+//   · anillo hacia ADENTRO  ⇒ lo tapa un descendiente: `.q-focus-helper`
+//     (#414A57 donde iba #16202E) o el texto de la propia celda (#555F6E);
+//   · cualquiera de las dos ⇒ lo pinta encima un HERMANO POSTERIOR, sin overflow
+//     de por medio (el ítem siguiente del riel de ajustes), o una INSIGNIA
+//     flotante, que es `position:absolute` y le gana al outline.
 //
-// 🪤 CRITERIO DE LA TANDA, medido el 2026-11-05 y no negociable: TODA excepcion
-// se escribe con :focus-visible, NUNCA con :focus a secas. :focus-visible no
-// matchea foco PROGRAMATICO; :focus si. Quasar enfoca el contenedor de un
-// dialogo para que ESC funcione, y los arneses de captura dejan foco puesto al
-// navegar: con :focus a secas aparece un halo que nadie pidio, justo en los
-// dialogos, y se lee como defecto del producto.
-
-// 🔑 ANILLO DE DOS TONOS, y no es decoración: es lo que hace que el criterio se
-// cumpla SIEMPRE. Con un solo color el anillo falla contra los fondos que se le
-// parecen. Medido sobre lo servido: el botón «Ver listado» del banner ÁMBAR de
-// mantenimiento daba 1,36:1 con el neutro claro sobre #FFC15E, muy por debajo
-// del 3:1 de WCAG 2.4.11 — y es un estado alcanzable, no un caso de laboratorio.
+// Los tres mecanismos son propiedades del ÁRBOL, no del control: ninguna regla
+// sobre el control los puede evitar, y por eso el anillo se fue a una capa en
+// `<body>`. El color, el disparador y el orden de tonos no cambiaron: los mismos
+// tokens `--obs-focus` / `--obs-focus-alt`, `:focus-visible`, 2px + 2px.
 //
-// La salida es la convencional para un anillo sobre fondo arbitrario: dos aros
-// de luminancia opuesta y CONTIGUOS. Lo que cumple el criterio no es que uno de
-// los dos le gane al fondo —eso es lo que se midió mal y costó el 🔴 del 5-nov—
-// sino que las dos bandas contrasten ENTRE SÍ: #E6EDF5 contra #16202E da
-// 13,90:1, constante, no depende del fondo. Es la técnica de dos tonos que
-// WCAG 2.4.11 acepta justamente para fondos arbitrarios, y es la enmienda A que
-// el usuario decidió el 5-nov.
-//
-// La FORMA va por default convencional y quedó anotada como discutible el
-// 4-nov; el COLOR y el disparador NO se tocan.
-\:focus-visible
-  outline: 2px solid var(--obs-focus-alt) !important
-  // Por FUERA del control, y está medido que es el único lugar donde las dos
-  // bandas salen puras. 🪤 Probé la geometría contraria —el anillo entero hacia
-  // adentro, para que ningún ancestro pudiera recortarlo— y los píxeles la
-  // tumbaron: adentro, la banda interna queda TAPADA. En los controles de
-  // Quasar la tapa `.q-focus-helper`, el velo translúcido que este mismo anillo
-  // vino a reemplazar (medido: #16202E esperado, #414A57 leído en un QBtn del
-  // tablero); en las filas de tabla la tapa el texto de la propia celda, que
-  // empieza en el borde (#555F6E leído donde iba la banda). El `outline` sí se
-  // pinta sobre los descendientes, la sombra interior NO: por eso adentro
-  // sobrevive una banda y no dos, y la técnica de dos tonos necesita las dos.
-  // Medido el 5-nov, y es por lo que la asignación quedó así: con el outline
-  // dibujando la banda EXTERNA, la interna (box-shadow) la tapaban los
-  // descendientes que sobresalen de la caja. La insignia de notificaciones
-  // (`.q-badge--floating`, en top:-4px right:-4px) borraba el anillo de dos
-  // lados de la campana, y lo que quedaba daba 2,78:1 (oscuro) y 2,90:1 (claro)
-  // contra el rojo de la insignia: bajo el 3:1. Con el outline dibujando la
-  // banda INTERNA, la insignia ya no puede taparla y esa banda da 5,00 y 4,79
-  // contra el mismo rojo. El chip del encabezado tenía el mismo problema sobre
-  // la barra oscura (1,06:1 en claro) y pasa a 4,64.
-  outline-offset: 0
-  box-shadow: 0 0 0 4px var(--obs-focus) !important
-
-// 🔑 LA INSIGNIA FLOTANTE TAPA EL ANILLO, y lo gana incluso al outline. Medido
-// el 5-nov en la campana de notificaciones: `.q-badge--floating` va en
-// top:-4px right:-4px, o sea FUERA de la caja del botón y justo encima de las
-// cuatro bandas de dos de sus lados. Quedaba el anillo interrumpido arriba y a
-// la derecha, y lo que se veía daba 2,78:1 (oscuro) y 2,90:1 (claro) contra el
-// rojo de la insignia.
-//
-// 🪤 Y no se arregló intercambiando quién dibuja qué: una insignia es
-// `position:absolute`, así que se pinta por encima del outline del botón
-// también —lo supuse al revés y la medición me corrigió—. La salida es que la
-// insignia lleve EL MISMO anillo: así la silueta que el foco marca es el botón
-// con su insignia, que es lo que el ojo ve como un solo control. Las dos
-// sombras se apilan hacia afuera y la primera queda encima, así que el orden de
-// tonos es el mismo que en el resto de la consola.
-.q-btn:focus-visible .q-badge,
-.q-item:focus-visible .q-badge
-  box-shadow: 0 0 0 2px var(--obs-focus-alt), 0 0 0 4px var(--obs-focus) !important
-
-// 🪤 EL !important NO ES PEREZA, ES LA UNICA SALIDA. Quasar le reparte la clase
-// `no-outline` a sus controles (QBtn, QItem, QTab, QChip...) y la hoja del
-// framework dice `.no-outline { outline: 0 !important }`. Ninguna especificidad
-// le gana a un !important: sólo otro !important.
-//
-// Cómo se encontró, porque la primera hipótesis era falsa: medí con tabulador
-// real sobre lo servido y un `.q-btn` enfocado daba `outline-style: none` con
-// `:focus-visible` en true. Supuse que era orden de hoja y nombré los
-// componentes para subir la especificidad; volví a medir y seguía en none. La
-// respuesta estaba en la lista de clases del propio botón —`no-outline` entre
-// ellas—, no en mi CSS. Leer el elemento, no razonar sobre la cascada.
-.q-btn:focus-visible,
-.q-item:focus-visible,
-.q-tab:focus-visible,
-.q-chip:focus-visible,
-.q-avatar:focus-visible,
-.q-card:focus-visible,
-.q-expansion-item__container > .q-item:focus-visible
-  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
-  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
-  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
-  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
-  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
-  outline: 2px solid var(--obs-focus-alt) !important
-  outline-offset: 0
-  box-shadow: 0 0 0 4px var(--obs-focus) !important
-
-// --- Excepciones: componentes donde el foco NO cae en lo que se ve ----------
-
-// Campos. El foco va al <input>, que vive DENTRO del control: un anillo ahi
-// quedaria encajonado. Se dibuja sobre el control y se quita del nativo.
-.q-field__control:has(:focus-visible)
-  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
-  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
-  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
-  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
-  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
-  outline: 2px solid var(--obs-focus-alt) !important
-  outline-offset: 0
-  box-shadow: 0 0 0 4px var(--obs-focus) !important
-// 🪤 El !important hace falta también aquí, y por mi propia culpa: la regla
-// genérica de arriba lo lleva, así que sin él esta excepción NO surte efecto y
-// el <input> nativo conserva su aro ADEMÁS del de .q-field__control. Resultado
-// medido por el gauntlet: dos aros concéntricos en los campos, que es otra
-// FORMA — justo lo que el criterio prohíbe.
-.q-field__native:focus-visible, .q-field__input:focus-visible
+// 🪤 Lo único que queda acá es APAGAR el anillo nativo, y con `:has()` a
+// propósito: si el boot no cargara, la regla no aplica y el navegador vuelve a
+// dibujar SU anillo. Un `outline: none` suelto dejaría la consola sin ningún
+// indicador de foco el día que el boot falle.
+// 🪤 Acá el `:focus-visible` va SIN barra invertida. La barra sólo hace falta
+// cuando el selector EMPIEZA con dos puntos, para que Sass no lo lea como una
+// propiedad; en un descendiente, `\:focus-visible` compila a un identificador
+// escapado —`\:focus-visible` tal cual en el .css— y la regla no matchea NADA.
+// Lo cacé leyendo el CSS compilado, que es la única forma de verlo: el .sass se
+// ve correcto y el build no se queja.
+body:has(#obs-anillo-foco) :focus-visible
   outline: none !important
-  box-shadow: none !important
 
-// Casillas, radios e interruptores. Su <input> es de 1px y esta oculto: el
-// anillo tiene que ir en la parte visible.
-.q-checkbox:has(:focus-visible) .q-checkbox__inner,
-.q-radio:has(:focus-visible) .q-radio__inner,
-.q-toggle:has(:focus-visible) .q-toggle__track
-  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
-  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
-  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
-  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
-  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
-  outline: 2px solid var(--obs-focus-alt) !important
-  outline-offset: 0
-  box-shadow: 0 0 0 4px var(--obs-focus) !important
-.q-checkbox :focus-visible, .q-radio :focus-visible, .q-toggle :focus-visible
-  outline: none
-
-// QSelect pone un target de foco invisible fuera del control (.q-select__focus-target).
-.q-field:has(.q-select__focus-target:focus-visible) .q-field__control
-  // 🔑 QUIÉN DIBUJA CADA BANDA IMPORTA, y no es intercambiable: el `outline` se
-  // pinta POR ENCIMA de los descendientes y el `box-shadow` NO. Así que la
-  // banda interna —la que los descendientes tapan— la dibuja el outline, y la
-  // externa el box-shadow. Lo que se ve es lo mismo de antes, en el mismo
-  // orden: 2px de --obs-focus afuera, 2px de --obs-focus-alt adentro.
-  outline: 2px solid var(--obs-focus-alt) !important
-  outline-offset: 0
-  box-shadow: 0 0 0 4px var(--obs-focus) !important
+// 🪤 Y sigue valiendo el criterio de la tanda: toda excepción de foco se escribe
+// con `:focus-visible`, NUNCA con `:focus` a secas. `:focus-visible` no matchea
+// foco PROGRAMÁTICO y `:focus` sí; Quasar enfoca el contenedor de un diálogo
+// para que ESC funcione, así que con `:focus` aparecería un halo que nadie pidió
+// justo en los diálogos.
 
 // ---------------------------------------------------------------------------
 // obs-notice--warning (tanda del sistema de diseño, 2026-11-05)
@@ -1167,36 +1051,3 @@ body.body--dark
 // del sistema, no de una pantalla.
 .q-field--filled .q-field__control, .q-field--filled .q-field__control:before
   border-radius: 8px
-
-// 🔑 V2-G15: CONTENEDORES QUE RECORTAN EL ANILLO. Un anillo dibujado 2px por
-// fuera no existe si un ancestro con overflow lo recorta — y el estilo computado
-// no se enteró: en la corrida r1 decía 13,07 y en los píxeles no había nada.
-// Dentro de estos contenedores el anillo se dibuja HACIA ADENTRO: mismos tonos,
-// mismo grosor, mismo orden, sólo cambia de lado.
-//
-// 🪤 La lista se arma MIDIENDO, no leyendo: el reparo nombró los tres primeros
-// y la re-medición en píxeles encontró el cuarto —`.obs-fleet__tree`, el árbol
-// de clientes, `overflow:auto` con holgura 0 ARRIBA, así que su primera fila
-// perdía la banda de arriba—. Un quinto no se descarta leyendo el CSS, así que
-// quien verifica este ítem corre `medir_g15_recortes.py`, que enumera los
-// ancestros con holgura < 4px de CADA parada del tabulador. La lista de acá es
-// el resultado de esa medición, no una conjetura.
-//
-// 🪤 Y acá adentro la banda interna puede quedar tapada por el contenido de la
-// celda en los lados izquierdo y derecho (medido: #555F6E donde iba #16202E, en
-// una fila de la tabla de equipos). En esos dos lados el indicador se lee como
-// UNA banda de --obs-focus, que contra el relleno de la celda da 13,07 (oscuro)
-// y 15,42 (claro): cumple por adyacencia directa, que es la otra técnica que
-// WCAG 2.4.11 acepta. Está declarado en la vara, no es un descuido.
-.obs-ctx__list :focus-visible,
-.obs-fleet__tree :focus-visible,
-.q-virtual-scroll :focus-visible,
-.q-scrollarea :focus-visible
-  // 🪤 Acá el outline vuelve a dibujar la banda EXTERNA, al revés que afuera, y
-  // es a propósito: hacia adentro la que los descendientes tapan es la interna,
-  // así que la que tiene que sobrevivir es la de fuera. El ORDEN DE TONOS que se
-  // ve es el mismo en los dos casos —--obs-focus afuera, --obs-focus-alt
-  // adentro—, que es lo que el criterio llama «la misma forma».
-  outline-color: var(--obs-focus) !important
-  outline-offset: -2px !important
-  box-shadow: inset 0 0 0 4px var(--obs-focus-alt) !important
