@@ -498,6 +498,9 @@ export default {
       },
       // Índice de la fila que lleva el tabulador (patrón de rejilla).
       filaFoco: 0,
+      // Hay un movimiento de foco en vuelo: el scroller va a emitir eventos
+      // mientras salta y no debe repuntar `filaFoco` a mitad del salto.
+      moviendoFoco: false,
     };
   },
   methods: {
@@ -511,23 +514,43 @@ export default {
       if (ultima < 0) return;
       const idx = Math.max(0, Math.min(ultima, i));
       this.filaFoco = idx;
+      this.moviendoFoco = true;
       const tabla = this.$refs.tablaAgentes;
       if (tabla && tabla.scrollTo) tabla.scrollTo(idx);
-      this.$nextTick(() =>
-        requestAnimationFrame(() => {
-          const el = this.$el.querySelector(
-            `.obs-agtbl__host[data-fila="${idx}"]`,
-          );
-          if (el) el.focus();
-        }),
+      this.$nextTick(() => this.enfocarFila(idx, 20));
+    },
+    // 🪤 Un solo cuadro NO alcanza en un salto largo, y el precio era la
+    // rejilla entera. Inicio/Fin mueven el scroller 170 filas: el nodo de la
+    // fila destino todavía no existe cuando corre el primer rAF, así que el
+    // `.focus()` no encontraba nada; el nodo de la fila que SÍ tenía el foco ya
+    // lo había destruido el reciclaje, y el foco caía en
+    // `tbody.q-virtual-scroll__content`, que tiene `tabindex=-1`. Desde ahí la
+    // rejilla quedaba muerta —los `keydown` viven en la fila, así que la flecha
+    // siguiente ya no hacía nada— y el anillo tomaba la forma del cuerpo de la
+    // tabla, 371px por encima del borde de la ventana. Medido en los dos temas:
+    // paso 4 (FIN) y paso 7 (ARRIBA después de FIN). Se reintenta cuadro a
+    // cuadro hasta que el nodo exista.
+    enfocarFila(idx, intentos) {
+      const el = this.$el.querySelector(
+        `.obs-agtbl__host[data-fila="${idx}"]`,
       );
+      if (el) {
+        this.moviendoFoco = false;
+        if (document.activeElement !== el) el.focus();
+        return;
+      }
+      if (intentos <= 0) {
+        this.moviendoFoco = false;
+        return;
+      }
+      requestAnimationFrame(() => this.enfocarFila(idx, intentos - 1));
     },
     // 🪤 Si la fila con `tabindex=0` se sale de la ventana renderizada (el
     // usuario desplazó con la rueda), la tabla se queda SIN parada de
     // tabulador y deja de ser alcanzable. Acá se la trae al primer índice
     // visible, que es el dato que entrega el propio evento del scroller.
     alDesplazarVirtual(det) {
-      if (!det) return;
+      if (!det || this.moviendoFoco) return;
       const { from, to } = det;
       if (typeof from !== "number" || typeof to !== "number") return;
       if (this.filaFoco < from || this.filaFoco > to) this.filaFoco = from;

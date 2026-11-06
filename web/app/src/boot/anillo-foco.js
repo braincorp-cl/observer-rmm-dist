@@ -105,6 +105,32 @@ function rectUnion(el) {
   return { left: x1, top: y1, width: x2 - x1, height: y2 - y1 };
 }
 
+// 🪤 Un control a RAS del borde de la ventana se queda SIN anillo en ese lado.
+// Las bandas van por FUERA del rect, así que en un elemento de ancho completo
+// —`.q-table__middle.q-virtual-scroll` del gestor de informes mide 1280x636 en
+// x=0— caen en x=-4 y x=vw+3, y el navegador no dibuja nada fuera de la
+// ventana. Medido a 1280, 1440, 1600 y 1920 y en los dos temas: cero píxeles de
+// token en izq y der, con la serie hacia adentro en fondo puro. El criterio es
+// explícito —una banda ausente, tapada o RECORTADA anula el indicador entero—,
+// así que en el lado donde el anillo no cabe se mete HACIA ADENTRO: se recorta
+// el rect 4px por ese lado y las dos bandas quedan completas, pisando 4px del
+// propio control. Es la misma decisión que el solape con un contenedor
+// apretado: antes pisar 4px de cromática que no verse.
+function dentroDeLaVentana(r) {
+  const B = 4; // el grosor de las dos bandas juntas
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let x1 = r.left;
+  let y1 = r.top;
+  let x2 = r.left + r.width;
+  let y2 = r.top + r.height;
+  if (x1 < B) x1 = B;
+  if (y1 < B) y1 = B;
+  if (x2 > vw - B) x2 = vw - B;
+  if (y2 > vh - B) y2 = vh - B;
+  return { left: x1, top: y1, width: x2 - x1, height: y2 - y1 };
+}
+
 function ocultar() {
   objetivo = null;
   if (raf) { cancelAnimationFrame(raf); raf = 0; }
@@ -141,12 +167,17 @@ function pintar() {
     capa.style.display = "none";
     return seguir();
   }
+  const rv = dentroDeLaVentana(r);
+  if (rv.width < 1 || rv.height < 1) {
+    capa.style.display = "none";
+    return seguir();
+  }
   const cs = getComputedStyle(caja);
   const c = crear();
   c.style.display = "block";
-  c.style.transform = `translate(${Math.round(r.left)}px, ${Math.round(r.top)}px)`;
-  c.style.width = `${Math.round(r.width)}px`;
-  c.style.height = `${Math.round(r.height)}px`;
+  c.style.transform = `translate(${Math.round(rv.left)}px, ${Math.round(rv.top)}px)`;
+  c.style.width = `${Math.round(rv.width)}px`;
+  c.style.height = `${Math.round(rv.height)}px`;
   // El anillo sigue la forma del control. Las bandas van por fuera, así que el
   // radio se agranda con ellas para que el arco no se achate.
   c.style.borderRadius = cs.borderRadius === "0px" ? "0px" : cs.borderRadius;
