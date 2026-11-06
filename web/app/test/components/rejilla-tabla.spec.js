@@ -87,6 +87,110 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+// 🔴 El modo de fallo que el séptimo veredicto midió en producción: DOS rejillas
+// montadas a la vez. `data-fila` es un índice POR TABLA, así que una búsqueda
+// global con `document.querySelector` devuelve el host de la OTRA tabla —en el
+// diálogo «Instalar software» había 75 hosts, 42 dentro y 33 detrás del velo, y
+// dos con `data-fila="1"`—, la trampa de foco del diálogo rebotaba al botón
+// `close` y los controles de las 42 filas quedaban sin vía de teclado.
+function montarDosTablas(nA, nB) {
+  document.body.innerHTML = "";
+  const raices = [];
+  for (const [nombre, n] of [
+    ["A", nA],
+    ["B", nB],
+  ]) {
+    const raiz = document.createElement("div");
+    raiz.className = "raiz-" + nombre;
+    const tabla = document.createElement("table");
+    const tbody = document.createElement("tbody");
+    tbody.className = "q-virtual-scroll__content";
+    tbody.tabIndex = -1;
+    for (let i = 0; i < n; i++) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      const host = document.createElement("div");
+      host.className = "obs-rej__host";
+      host.setAttribute("data-fila", String(i));
+      host.textContent = nombre + i;
+      host.tabIndex = i === 0 ? 0 : -1;
+      td.appendChild(host);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+    tabla.appendChild(tbody);
+    raiz.appendChild(tabla);
+    document.body.appendChild(raiz);
+    raices.push(raiz);
+  }
+  return raices;
+}
+
+function contextoEn(raiz, nFilas) {
+  const estado = { foco: 0, moviendo: false, scrollA: [] };
+  const rejilla = crearRejilla({
+    filas: () => new Array(nFilas).fill(0),
+    tabla: () => ({
+      $el: raiz,
+      scrollTo: (i) => estado.scrollA.push(i),
+    }),
+    claseHost: () => "obs-rej__host",
+    leerFoco: () => estado.foco,
+    fijarFoco: (n) => {
+      estado.foco = n;
+    },
+    leerMoviendo: () => estado.moviendo,
+    fijarMoviendo: (b) => {
+      estado.moviendo = b;
+    },
+    alSiguienteCuadro: (fn) => fn(),
+  });
+  return { estado, rejilla };
+}
+
+describe("patrón de rejilla: DOS rejillas en el mismo documento", () => {
+  it("cada una enfoca el host de SU tabla, no el de la otra", () => {
+    const [raizA, raizB] = montarDosTablas(5, 5);
+    const a = contextoEn(raizA, 5);
+    const b = contextoEn(raizB, 5);
+
+    b.rejilla.mover(1);
+    expect(document.activeElement.textContent).toBe("B1");
+    expect(raizB.contains(document.activeElement)).toBe(true);
+
+    a.rejilla.mover(1);
+    expect(document.activeElement.textContent).toBe("A1");
+    expect(raizA.contains(document.activeElement)).toBe(true);
+  });
+
+  it("el host de la OTRA tabla no cuenta como host propio", () => {
+    const [raizA, raizB] = montarDosTablas(3, 3);
+    const b = contextoEn(raizB, 3);
+    const hostAjeno = raizA.querySelector('[data-fila="0"]');
+    // Si `esHost` sólo mirara la clase, esto se tomaría como «el foco ya está
+    // en la fila» y la rejilla de B no se recuperaría nunca.
+    b.estado.foco = 2;
+    b.rejilla.alEntrarFoco({ target: raizB.querySelector("tbody") });
+    expect(document.activeElement.textContent).toBe("B2");
+    expect(hostAjeno.classList.contains("obs-rej__host")).toBe(true);
+  });
+
+  it("las flechas de una no mueven la fila de la otra", () => {
+    const [raizA, raizB] = montarDosTablas(6, 6);
+    const a = contextoEn(raizA, 6);
+    const b = contextoEn(raizB, 6);
+    b.rejilla.mover(0);
+    b.rejilla.alTecla({
+      key: "End",
+      target: raizB.querySelector("tbody"),
+      preventDefault: () => {},
+    });
+    expect(b.estado.foco).toBe(5);
+    expect(a.estado.foco).toBe(0);
+    expect(document.activeElement.textContent).toBe("B5");
+  });
+});
+
 describe("patrón de rejilla: mover la fila", () => {
   it("mueve el foco a la fila pedida y desplaza el scroller POR ÍNDICE", () => {
     montarTabla(10);
@@ -164,6 +268,44 @@ describe("patrón de rejilla: el nodo destino que aparece TARDE", () => {
     rejilla.mover(170);
     vi.advanceTimersByTime(5000);
     expect(estado.moviendo).toBe(false);
+  });
+});
+
+// 🔴 El segundo defecto que el séptimo veredicto midió: 184
+// `RangeError: Maximum call stack size exceeded` en este mismo archivo. Medido en
+// la flota servida: cada Fin/Inicio produce ~22 `focusin`, TODOS sobre
+// `q-virtual-scroll__content`, y sin guarda de reentrada cada uno arrancaba otra
+// escalera de reintentos, así que se apilaban.
+describe("patrón de rejilla: UNA sola escalera de reintentos en vuelo", () => {
+  it("22 focusin seguidos sobre el scroller no apilan 22 escaleras", () => {
+    vi.useFakeTimers();
+    const espia = vi.spyOn(globalThis, "setTimeout");
+    const { tbody } = montarTabla(3);
+    const { estado, rejilla } = contexto(171);
+    // la fila 170 no existe todavía: la escalera arranca y se queda esperando
+    estado.foco = 170;
+    for (let i = 0; i < 22; i++) rejilla.alEntrarFoco({ target: tbody });
+    const programados = espia.mock.calls.length;
+    expect(programados).toBeLessThanOrEqual(22);
+    // y al avanzar el reloj, el total de reintentos NO explota
+    vi.advanceTimersByTime(2000);
+    expect(espia.mock.calls.length).toBeLessThan(40);
+    espia.mockRestore();
+  });
+
+  it("no atiende el scroller mientras hay un movimiento en vuelo", () => {
+    vi.useFakeTimers();
+    montarTabla(3);
+    const { estado, rejilla } = contexto(171);
+    rejilla.mover(170); // deja `moviendo` en true, con su escalera
+    expect(estado.moviendo).toBe(true);
+    const espia = vi.spyOn(globalThis, "setTimeout");
+    for (let i = 0; i < 10; i++) {
+      rejilla.alEntrarFoco({ target: document.querySelector("tbody") });
+    }
+    // ninguna escalera nueva: el movimiento en vuelo ya tiene la suya
+    expect(espia.mock.calls.length).toBe(0);
+    espia.mockRestore();
   });
 });
 

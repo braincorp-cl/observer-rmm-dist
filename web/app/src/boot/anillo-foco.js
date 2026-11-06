@@ -232,6 +232,32 @@ function esAnclaYNoControl(el) {
   return el.getAttribute("tabindex") === "-1" && el.matches(ANCLAS_DE_TRAMPA);
 }
 
+// Y la segunda cara del mismo principio, medida en el séptimo veredicto. El
+// crítico fotografió un anillo ausente sobre `div.q-checkbox__inner` en el
+// encabezado de «Activos de reporte»: la capa estaba visible, en su sitio y con
+// z 9400, y no había un solo píxel del token.
+//
+// 🔑 Lo que destapó la medición es que los dos crudos NO hablaban del mismo
+// elemento. En el estado ALCANZABLE el foco cae en la RAÍZ `div.q-checkbox`, que
+// lleva `tabindex="0"`, y ahí el anillo se pinta bien: medido 4 de 4, con el
+// `box-shadow` de los dos tokens en el orden correcto por tema y 244 píxeles del
+// token en oscuro / 233 en claro. El elemento del veredicto era el `__inner`, un
+// HIJO con `tabindex: null`, sin rol y sin aria, que recibe el foco sólo como
+// efecto colateral mientras se abre un tercer diálogo encima.
+//
+// O sea: no es un control, igual que el velo. Y la regla correcta no es otra
+// lista de clases, que se queda corta en el siguiente caso: es preguntar si el
+// elemento es un control. Lo es si declara `tabindex` —cualquiera, porque un
+// `-1` SÍ recibe foco con el tabulador en Quasar, como está medido en los
+// `div.q-tab`—, si es enfocable por naturaleza, o si es editable.
+const CONTROLES_NATIVOS = "a[href],button,input,select,textarea";
+
+function noEsUnControl(el) {
+  if (el.hasAttribute("tabindex")) return false;
+  if (el.isContentEditable) return false;
+  return !el.matches(CONTROLES_NATIVOS);
+}
+
 // Segunda red, por si apareciera otro ancla que no esté en la lista: un rect
 // que abarca la ventana en LOS DOS EJES no señala ningún lugar. La holgura ya
 // no tiene que ser precisa —la identidad hace el trabajo—, así que se pone
@@ -300,7 +326,7 @@ function pintar() {
   } catch (e) {
     /* navegador sin :focus-visible: se deja el anillo, que es el lado seguro */
   }
-  if (esAnclaYNoControl(objetivo)) return ocultar();
+  if (esAnclaYNoControl(objetivo) || noEsUnControl(objetivo)) return ocultar();
   const caja = cajaDe(objetivo);
   const r = rectUnion(caja);
   if (noSenalaNingunLugar(r)) return ocultar();

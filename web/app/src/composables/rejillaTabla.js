@@ -80,8 +80,41 @@ export function crearRejilla(ctx) {
     return "." + ctx.claseHost() + '[data-fila="' + idx + '"]';
   }
 
+  /**
+   * 🔴 La raíz donde se BUSCA el host, y el porqué está medido. La primera
+   * versión usaba `document.querySelector(selector(idx))`, o sea una búsqueda
+   * GLOBAL con un índice que es POR TABLA. Con dos rejillas montadas a la vez
+   * los `data-fila` COLISIONAN, y el séptimo veredicto lo midió en el diálogo
+   * «Instalar software»: 75 `.obs-rej__host` en el documento —42 dentro del
+   * diálogo y 33 en la tabla de software que queda detrás—, DOS con
+   * `data-fila="1"`, y el primero del documento es el de detrás del velo. La
+   * primera flecha enfocaba ése, la trampa de foco del diálogo rebotaba el foco
+   * al botón `close`, y de ahí no salía: los controles de las 42 filas del
+   * diálogo quedaban sin vía de teclado. O sea que el patrón estaba ROTO justo
+   * en la superficie por la que se desplegó.
+   *
+   * Se acota al elemento raíz de la propia `q-table`. Si la instancia aún no
+   * está montada se cae al documento, que es el único caso en que no hay
+   * ambigüedad posible (no hay tabla todavía).
+   */
+  function raiz() {
+    const tabla = ctx.tabla();
+    const el = tabla && (tabla.$el || tabla.el);
+    return el && el.querySelector ? el : document;
+  }
+
+  function buscarHost(idx) {
+    return raiz().querySelector(selector(idx));
+  }
+
+  /**
+   * 🪤 Y `esHost` tampoco puede quedarse en «tiene la clase»: un host de OTRA
+   * rejilla también la tiene. Se exige además que esté dentro de ESTA tabla.
+   */
   function esHost(t) {
-    return !!(t && t.classList && t.classList.contains(ctx.claseHost()));
+    if (!t || !t.classList || !t.classList.contains(ctx.claseHost())) return false;
+    const r = raiz();
+    return r === document || r.contains(t);
   }
 
   /**
@@ -94,8 +127,28 @@ export function crearRejilla(ctx) {
    * el scroller puede tardar más con la ventana pequeña: se reintenta en
    * escalera hasta 512 ms.
    */
+  /**
+   * 🔴 UNA sola escalera en vuelo, y el porqué está medido. La primera versión
+   * no tenía guarda de reentrada: cada `focusin` que aterriza en el scroller
+   * llamaba a `enfocar()` y arrancaba OTRA escalera de reintentos. Medido en la
+   * flota servida: cada Fin/Inicio produce ~22 `focusin`, todos sobre
+   * `q-virtual-scroll__content` (110 en tres teclas), así que las escaleras se
+   * apilaban — y eso es el `RangeError: Maximum call stack size exceeded` que el
+   * séptimo veredicto contó 184 veces en este mismo archivo, con la columna del
+   * error cayendo justo en el `.focus()` de abajo.
+   */
+  let tempo = 0;
+
+  function cancelarEscalera() {
+    if (tempo) {
+      clearTimeout(tempo);
+      tempo = 0;
+    }
+  }
+
   function enfocar(idx, espera) {
-    const el = document.querySelector(selector(idx));
+    cancelarEscalera();
+    const el = buscarHost(idx);
     if (el) {
       ctx.fijarMoviendo(false);
       // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
@@ -108,7 +161,10 @@ export function crearRejilla(ctx) {
       ctx.fijarMoviendo(false);
       return;
     }
-    setTimeout(() => enfocar(idx, espera * 2), espera);
+    tempo = setTimeout(() => {
+      tempo = 0;
+      enfocar(idx, espera * 2);
+    }, espera);
   }
 
   function mover(i) {
@@ -127,8 +183,15 @@ export function crearRejilla(ctx) {
     return t.matches(ANCESTROS_DEL_SCROLLER);
   }
 
-  /** El foco aterrizó en el scroller: se devuelve a la fila del tabulador. */
+  /**
+   * El foco aterrizó en el scroller: se devuelve a la fila del tabulador.
+   *
+   * 🪤 Y se IGNORA mientras hay un movimiento en vuelo: ese movimiento ya tiene
+   * su escalera, y atender además cada `focusin` del scroller es lo que apilaba
+   * ~22 escaleras por tecla.
+   */
   function alEntrarFoco(ev) {
+    if (ctx.leerMoviendo()) return;
     if (!enElScroller(ev.target)) return;
     enfocar(ctx.leerFoco(), 16);
   }
@@ -144,7 +207,7 @@ export function crearRejilla(ctx) {
    * se desincroniza en silencio.
    */
   function moverEnLaFila(paso) {
-    const host = document.querySelector(selector(ctx.leerFoco()));
+    const host = buscarHost(ctx.leerFoco());
     const fila = host && host.closest("tr");
     if (!fila) return false;
     const ctrls = [host].concat(
