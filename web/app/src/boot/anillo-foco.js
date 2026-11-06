@@ -139,6 +139,18 @@ function ocultar() {
 
 function pintar() {
   raf = 0;
+  // 🪤 El objetivo se RELEE del documento en cada cuadro y no se confía en el
+  // `focusin`. Motivo medido: cuando el scroller virtual recicla el nodo que
+  // tiene el foco, Chrome sube el foco al ancestro enfocable (el `tbody` con
+  // `tabindex=-1`) y la tabla lo devuelve a la fila; en ese ida y vuelta el par
+  // focusout/focusin se perdía y la capa quedaba en `display:none` con el foco
+  // puesto y `:focus-visible` verdadero — un control enfocado SIN anillo, que
+  // es exactamente la violación que el ítem persigue. Siguiendo al
+  // `activeElement` la capa se recupera sola en el cuadro siguiente, venga el
+  // cambio de foco de donde venga.
+  const act = document.activeElement;
+  if (!act || act === document.body) return ocultar();
+  if (act !== objetivo) objetivo = act;
   if (!objetivo || !objetivo.isConnected) return ocultar();
   // 🪤 Si el elemento perdió :focus-visible sin disparar focusout (pasa cuando
   // el usuario cambia a ratón sobre el mismo control), el anillo se tiene que
@@ -221,7 +233,11 @@ export default () => {
     true,
   );
   document.addEventListener("focusin", alEnfocar, true);
-  document.addEventListener("focusout", ocultar, true);
+  // 🪤 Un `focusout` NO apaga la capa por sí solo: puede ser el primer tramo
+  // de un cambio de foco interno (nodo reciclado) y el cuadro siguiente ya
+  // dice quién lo tiene de verdad. Si el foco se fue al `body`, `pintar` la
+  // apaga allí mismo.
+  document.addEventListener("focusout", seguir, true);
   // Un clic de ratón quita :focus-visible en el cuadro siguiente; el bucle de
   // `pintar` lo detecta, pero esto lo hace inmediato y sin un cuadro de anillo
   // espurio.
