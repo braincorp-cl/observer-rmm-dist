@@ -5,8 +5,23 @@
        filas, lo que deja la fila enfocada fuera de pantalla otra vez. Medido al
        tabular por el tablero: las paradas 70..74 quedaban en y=765, 812, 859,
        906 y 953 con un viewport de 757, cada una más abajo que la anterior.
-       El anillo de foco estaba ahí; lo que no estaba era la fila. -->
+       El anillo de foco estaba ahí; lo que no estaba era la fila.
+       Es la SEGUNDA línea de defensa: la primera son `virtual-scroll-item-size`
+       y `virtual-scroll-sticky-size-start`, abajo. Medido: con el corrector
+       solo no alcanzaba, porque la aritmética del scroller seguía mal. -->
   <div class="q-pa-none" @focusin="asegurarFilaVisible">
+    <!-- 🪤 050 (V2-G15): sin estos dos la aritmetica del desplazamiento
+         virtual esta MAL y el navegador manda las filas enfocadas fuera de
+         pantalla al tabular. Medido en el tablero servido: 171 filas de 46,5
+         px dan 7.951 px de contenido y el scrollHeight del contenedor decia
+         5.537 — un 30 % corto, porque sin `virtual-scroll-item-size` Quasar
+         estima el alto y recien lo corrige al renderizar. Con la estimacion
+         corta, `scrollIntoView` del navegador calcula un destino equivocado y
+         la fila termina en y=801, 857, 895, 942, 989 y 1036 con un viewport
+         de 757 (medido, paradas 62..67). Y `virtual-scroll-sticky-size-start`
+         son los 28 px del encabezado pegajoso: sin declararlos, una fila
+         "traida a la vista" aterriza DEBAJO del encabezado (medido: y=3 y
+         y=-91). Los 46,5 son el alto real de 38 de las 41 filas renderizadas. -->
     <q-table
       dense
       :table-class="{
@@ -23,6 +38,8 @@
       row-key="id"
       binary-state-sort
       virtual-scroll
+      :virtual-scroll-item-size="46.5"
+      :virtual-scroll-sticky-size-start="28"
       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
       :no-data-label="$t('agentTable.noAgents')"
