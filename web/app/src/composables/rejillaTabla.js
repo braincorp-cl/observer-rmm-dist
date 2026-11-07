@@ -146,16 +146,55 @@ export function crearRejilla(ctx) {
     }
   }
 
+  /**
+   * 🔴 Guarda de REENTRADA SINCRÓNICA, y el porqué está MEDIDO en el sha
+   * servido `69b0168`, DOS VECES y con el mismo dedo apuntando al mismo sitio:
+   * `266ca4a5.js 0:866 Uncaught RangeError: Maximum call stack size exceeded`,
+   * donde `266ca4a5.js` es ESTE archivo y la columna 866 cae exactamente en el
+   * `focus()` de abajo.
+   *
+   * El ciclo. `focus()` despacha `focusin` EN EL ACTO, antes de retornar. Si
+   * ese `focus()` recicla el nodo de la fila —y en un salto de Inicio/Fin lo
+   * recicla—, el nodo enfocado se destruye durante el propio despacho y Chrome
+   * sube el foco al scroller. Ese `focusin` del scroller entra a
+   * `alEntrarFoco`, que llama a `enfocar`, que llama a `focus()`… sin pasar
+   * NUNCA por el bucle de eventos. La escalera de reintentos no protege de
+   * esto, porque no hay `setTimeout` de por medio: es una pila.
+   *
+   * 🪤 Y la guarda anterior (`return` mientras `leerMoviendo()`) no lo atajaba
+   * porque `enfocar` apagaba la bandera ANTES del `focus()`: cuando el
+   * `focusin` reentrante llegaba, el movimiento ya constaba como terminado. Por
+   * eso ahora la bandera se apaga DESPUÉS, y sólo cuando el foco quedó de
+   * verdad en la fila pedida.
+   */
+  let enfocando = false;
+
   function enfocar(idx, espera) {
     cancelarEscalera();
     const el = buscarHost(idx);
     if (el) {
-      ctx.fijarMoviendo(false);
-      // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
-      // pelearía con la rueda del usuario y con el `scrollTo` por índice, que
-      // es el que debe decidir dónde queda el scroller.
-      if (document.activeElement !== el) el.focus({ preventScroll: true });
-      return;
+      if (document.activeElement === el) {
+        ctx.fijarMoviendo(false);
+        return;
+      }
+      enfocando = true;
+      try {
+        // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
+        // pelearía con la rueda del usuario y con el `scrollTo` por índice, que
+        // es el que debe decidir dónde queda el scroller.
+        el.focus({ preventScroll: true });
+      } finally {
+        enfocando = false;
+      }
+      // 🪤 Y no se da por hecho que PEGÓ. Si el `focus()` recicló el nodo, el
+      // foco quedó en el scroller: se compara contra el host que hay AHORA en
+      // ese índice, porque el nodo puede ser otro, y si no pegó se reintenta
+      // por escalera en vez de dejar la tabla sin parada de tabulador.
+      const ahora = buscarHost(idx);
+      if (ahora && document.activeElement === ahora) {
+        ctx.fijarMoviendo(false);
+        return;
+      }
     }
     if (espera > 512) {
       ctx.fijarMoviendo(false);
@@ -186,11 +225,17 @@ export function crearRejilla(ctx) {
   /**
    * El foco aterrizó en el scroller: se devuelve a la fila del tabulador.
    *
-   * 🪤 Y se IGNORA mientras hay un movimiento en vuelo: ese movimiento ya tiene
-   * su escalera, y atender además cada `focusin` del scroller es lo que apilaba
-   * ~22 escaleras por tecla.
+   * 🪤 Y se IGNORA en DOS casos, cada uno medido: mientras hay un movimiento en
+   * vuelo —ese movimiento ya tiene su escalera, y atender además cada `focusin`
+   * del scroller es lo que apilaba ~22 escaleras por tecla— y mientras `enfocar`
+   * está dentro de su propio `focus()`, que es la recursión sincrónica del
+   * `RangeError`.
    */
   function alEntrarFoco(ev) {
+    // 🔴 Lo primero: el `focusin` que ESTE módulo acaba de provocar con su
+    // propio `focus()` no se atiende. Es la mitad de la guarda contra el
+    // RangeError medido; la otra mitad es apagar la bandera después del foco.
+    if (enfocando) return;
     if (ctx.leerMoviendo()) return;
     if (!enElScroller(ev.target)) return;
     enfocar(ctx.leerFoco(), 16);

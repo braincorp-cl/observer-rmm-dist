@@ -16,8 +16,16 @@
 //    alcanzable; el evento del scroller tiene que repuntar el foco al primer
 //    índice visible, y NO debe hacerlo a mitad de un salto en vuelo.
 // 3. 🪤 Con una sola parada por tabla, los DEMÁS controles de la fila quedarían
-//    inalcanzables. Siete de las quince tablas tienen dos o más, así que las
-//    flechas izquierda/derecha tienen que moverse dentro de la fila.
+//    inalcanzables, así que las flechas izquierda/derecha tienen que moverse
+//    dentro de la fila. 🔴 Aquí decía «siete de las quince tablas tienen dos o
+//    más»: era FALSO, salió de un clasificador mío que contaba enfocables POR
+//    ARCHIVO y no por tabla. Contado en el DOM servido dentro de una fila real
+//    y con el mismo selector que usa `moverEnLaFila`: AgentTable 1,
+//    PendingActions 1, AdminManager 1, SoftwareTab 2.
+// 5. 🔴 La RECURSIÓN SINCRÓNICA de `enfocar`: su propio `focus()` despacha
+//    `focusin` antes de retornar, y si recicló el nodo ese `focusin` vuelve a
+//    entrar por `alEntrarFoco`. Es el `RangeError: Maximum call stack size
+//    exceeded` medido en el sha servido.
 // 4. Los límites: no se sale por arriba de la primera fila ni por debajo de la
 //    última, y una tabla vacía no revienta.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -421,5 +429,79 @@ describe("patrón de rejilla: los demás controles de la fila", () => {
     });
     expect(estado.foco).toBe(2);
     expect(document.activeElement.getAttribute("data-fila")).toBe("2");
+  });
+});
+
+// 🔴 La recursión sincrónica, que es el `RangeError: Maximum call stack size
+// exceeded` medido DOS veces sobre el sha servido `69b0168`
+// (`266ca4a5.js 0:866`, que es este composable y la columna del `focus()`).
+//
+// 🔑 Por qué llegó tan tarde al banco de pruebas: lo buscaba con una sonda
+// `window.onerror` DENTRO de la página, y ese canal es CIEGO a este error —su
+// control positivo me devolvió `"Script error."` con `stack: null`—. El canal
+// que sí lo ve es el log del navegador. Dos no-reproducciones mías lo
+// declararon ausente antes de que una tercera medición, con el canal correcto,
+// lo pusiera 12 veces en mi propia sesión.
+describe("rejilla: el focus() propio no puede reentrar por focusin", () => {
+  /**
+   * Monta el escenario exacto: un host cuyo `focus()` RECICLA el nodo, o sea
+   * deja el foco en el scroller en vez de en él. Sin guarda, `alEntrarFoco`
+   * vuelve a llamar a `enfocar` dentro del mismo `focus()` y la pila crece
+   * hasta reventar.
+   */
+  function montarConReciclajeAlEnfocar(nFilas) {
+    const { tbody } = montarTabla(nFilas);
+    const envoltorio = document.createElement("div");
+    document.body.appendChild(envoltorio);
+    envoltorio.appendChild(document.querySelector("table"));
+    const cuenta = { focus: 0 };
+    for (const host of document.querySelectorAll(".obs-rej__host")) {
+      host.focus = function () {
+        cuenta.focus++;
+        // El reciclaje: el foco NO queda en el host, cae en el scroller, y el
+        // `focusin` se despacha SINCRÓNICAMENTE, como en el navegador.
+        tbody.dispatchEvent(
+          new window.FocusEvent("focusin", { bubbles: true }),
+        );
+      };
+    }
+    return { tbody, envoltorio, cuenta };
+  }
+
+  it("no desborda la pila cuando el focus() deja el foco en el scroller", () => {
+    const { envoltorio, cuenta } = montarConReciclajeAlEnfocar(4);
+    const { rejilla } = contexto(4);
+    envoltorio.addEventListener("focusin", rejilla.alEntrarFoco);
+    vi.useFakeTimers();
+    // Sin la guarda esto lanza RangeError; con ella, un solo focus().
+    expect(() => rejilla.enfocar(0, 16)).not.toThrow();
+    expect(cuenta.focus).toBe(1);
+  });
+
+  it("si el foco no pegó, reintenta por escalera y no se rinde en el acto", () => {
+    const { envoltorio, cuenta } = montarConReciclajeAlEnfocar(4);
+    const { estado, rejilla } = contexto(4);
+    envoltorio.addEventListener("focusin", rejilla.alEntrarFoco);
+    vi.useFakeTimers();
+    estado.moviendo = true;
+    rejilla.enfocar(0, 16);
+    expect(cuenta.focus).toBe(1);
+    // El movimiento sigue EN VUELO: el foco no quedó en la fila pedida.
+    expect(estado.moviendo).toBe(true);
+    vi.advanceTimersByTime(16);
+    expect(cuenta.focus).toBe(2);
+  });
+
+  it("cuando el focus() SÍ pega, apaga la bandera y no reintenta", () => {
+    montarTabla(4);
+    const { estado, rejilla } = contexto(4);
+    vi.useFakeTimers();
+    estado.moviendo = true;
+    rejilla.enfocar(2, 16);
+    expect(document.activeElement.getAttribute("data-fila")).toBe("2");
+    expect(estado.moviendo).toBe(false);
+    const activo = document.activeElement;
+    vi.advanceTimersByTime(600);
+    expect(document.activeElement).toBe(activo);
   });
 });
