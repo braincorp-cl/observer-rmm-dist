@@ -857,7 +857,7 @@
               />
               {{ truncateText(props.row.name, 50) }}
               <q-tooltip
-                v-if="props.row.name.length >= 50"
+                v-if="props.row.name.length > 50"
                 style="font-size: 12px"
               >
                 {{ props.row.name }}
@@ -871,7 +871,7 @@
               <span v-if="props.row.args.length > 0">
                 {{ truncateText(props.row.args.toString(), 30) }}
                 <q-tooltip
-                  v-if="props.row.args.toString().length >= 30"
+                  v-if="props.row.args.toString().length > 30"
                   style="font-size: 12px"
                 >
                   {{ props.row.args }}
@@ -883,7 +883,7 @@
             <q-td key="desc" :props="props">
               {{ truncateText(props.row.description, 30) }}
               <q-tooltip
-                v-if="props.row.description.length >= 30"
+                v-if="props.row.description.length > 30"
                 style="font-size: 12px"
                 >{{ props.row.description }}</q-tooltip
               >

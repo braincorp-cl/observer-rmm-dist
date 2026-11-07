@@ -68,7 +68,17 @@
               <div v-if="hasDetail(ev)" class="text-caption text-grey-7">
                 {{ campo("detail", detailText(ev)) }}
               </div>
-              <div class="text-caption text-grey-6 ellipsis">
+              <!-- 🔴 050 (G08, 13.ª corrida): el hash se corta EN JS a 16 de
+                   64 hex, asi que el boot `autotitle` —que copia el textContent
+                   ya cortado— solo podia repetir el recorte. El valor completo
+                   tiene que salir del DATO, no del DOM: va en `title` propio, y
+                   el boot respeta un title propio (`hasAttribute` + sin marca).
+                   🔑 Una salvaguarda que lee el DOM no repara un corte hecho
+                   ANTES del DOM. -->
+              <div
+                class="text-caption text-grey-6 ellipsis"
+                :title="campo('recordHash', ev.record_hash || dash)"
+              >
                 {{ campo("recordHash", corto(ev.record_hash)) }}
               </div>
             </div>
@@ -227,7 +237,9 @@ export default {
       // El `: ` va acá y no en la plantilla: el gate `lint:i18n` trata
       // cualquier texto crudo en el template como falta de traducción.
       campo: (clave, valor) => `${t(`erase.custody.${clave}`)}: ${valor}`,
-      corto: (hash) => `${(hash || "").slice(0, 16)}…`,
+      // 🪤 Sin hash no hay recorte que marcar: un «…» solo seria un corte
+      // falso, que es justo lo que el criterio castiga.
+      corto: (hash) => (hash ? `${hash.slice(0, 16)}…` : dash),
       hasDetail: (ev) => ev.detail && Object.keys(ev.detail).length > 0,
       detailText: (ev) =>
         Object.entries(ev.detail || {})

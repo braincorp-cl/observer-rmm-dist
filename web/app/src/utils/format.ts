@@ -355,10 +355,16 @@ export function formatTableColumnText(text: string) {
   return string.trim();
 }
 
+// 🪤 050 (G08, 13.ª corrida): era `>=`, y con `length === chars`
+// `substring(0, chars)` devuelve el texto ENTERO, al que se le pegaba «...».
+// O sea una marca de corte sobre algo no cortado —un corte falso— y, encima,
+// los tooltips de cinco sitios se condicionan con `>`, asi que justo en ese
+// largo exacto el «...» aparecia sin ningun canal detras. Con `>` la marca solo
+// sale cuando de verdad se quito cola.
 export function truncateText(txt: string, chars: number) {
   if (!txt) return;
 
-  return txt.length >= chars ? txt.substring(0, chars) + "..." : txt;
+  return txt.length > chars ? txt.substring(0, chars) + "..." : txt;
 }
 
 export function bytes2Human(bytes: number) {

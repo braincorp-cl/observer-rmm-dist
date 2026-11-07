@@ -73,7 +73,10 @@
             </q-item>
           </q-list>
         </q-menu>
-        <q-td key="display_name" :props="props">
+        <!-- 🔴 050 (G08, 13.ª corrida): el nombre se corta EN JS, de modo que
+             ni la elipsis CSS ni el boot `autotitle` lo pueden devolver. El
+             title lleva el dato completo. -->
+        <q-td key="display_name" :props="props" :title="props.row.display_name">
           <q-icon name="fas fa-cogs" />
           &nbsp;&nbsp;&nbsp;{{ truncateText(props.row.display_name, 30) }}
         </q-td>

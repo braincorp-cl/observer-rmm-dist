@@ -81,9 +81,13 @@
         </q-td>
         <!-- 050 (T034, G01): las fechas van en Archivo; el resto de valores en Mono. -->
         <q-td v-else :class="{ mono: props.row.type !== 'datetime' }">
-          {{ truncateText(props.row.default_value_string) }}
+          <!-- 🪤 050 (G08, 13.ª corrida): iba sin segundo argumento porque
+               resolvia al `truncateText` DEL MIXIN, que cortaba a 60 fijo. Al
+               unificar en el util el umbral tiene que ir escrito: sin el, el
+               util no recorta y el «...» que el tooltip espera no aparece. -->
+          {{ truncateText(props.row.default_value_string, 60) }}
           <q-tooltip
-            v-if="(props.row.default_value_string || '').length >= 60"
+            v-if="(props.row.default_value_string || '').length > 60"
             style="font-size: 12px"
             >{{ props.row.default_value_string }}</q-tooltip
           >
@@ -100,6 +104,11 @@
 <script>
 import CustomFieldsForm from "@/components/modals/coresettings/CustomFieldsForm.vue";
 import mixins from "@/mixins/mixins";
+// 🪤 050 (G08, 13.ª corrida): habia DOS `truncateText`, el de este util y uno
+// del mixin global que cortaba a 60 fijo e ignoraba el segundo argumento. Este
+// archivo era el unico que llamaba al del mixin, asi que el duplicado se fue y
+// el umbral queda escrito donde se usa.
+import { truncateText } from "@/utils/format";
 
 export default {
   name: "CustomFieldsTable",
@@ -166,6 +175,7 @@ export default {
     },
   },
   methods: {
+    truncateText,
     editCustomField(field) {
       this.$q
         .dialog({
