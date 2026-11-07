@@ -2288,6 +2288,7 @@
     "back": "Back",
     "next": "Next",
     "stepGeneral": "General Settings",
+    "generalIncomplete": "The template name is missing, under “General Settings”.",
     "name": "Name",
     "required": "*Required",
     "enabled": "Enabled",

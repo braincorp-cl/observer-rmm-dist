@@ -5,10 +5,19 @@
 // lo único que detecta un defecto que vuelve por copiar y pegar.
 
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const SRC = fileURLToPath(new URL("../../src", import.meta.url));
+// 🪤 Acá NO se puede usar `new URL("../../src", import.meta.url)`, que es el
+// modo idiomático. Vite transforma esa forma cuando el primer argumento es un
+// literal: la reescribe como URL de ACTIVO y en tiempo de prueba devuelve
+// `http://localhost:3000/src`, con lo que `fileURLToPath` revienta con «The URL
+// must be of scheme file». Con el argumento armado por concatenación Vite no la
+// toca y sí funciona, que es por qué el mismo patrón vive sano en otro spec: la
+// diferencia no es el directorio, es si el literal es estático.
+// Se resuelve entonces desde `import.meta.url` pelado, que Vite no reescribe.
+const AQUI = dirname(fileURLToPath(import.meta.url));
+export const SRC = resolve(AQUI, "../../src");
 
 export async function listarVue(dir = SRC) {
   const entradas = await readdir(dir, { withFileTypes: true });

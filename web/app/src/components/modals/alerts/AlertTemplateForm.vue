@@ -20,9 +20,30 @@
         color="primary"
         animated
       >
+        <!-- 🔴 050 (G05, 14.ª corrida): este paso llevaba
+             `:error="!template.name && step > 1"`, y el `error` de QStep NO
+             pinta una insignia adentro: `.q-stepper__tab--error` pone
+             `color: var(--q-negative)` en el TAB, de donde el rótulo, el punto
+             y la línea de unión lo heredan por `currentColor`. O sea el color
+             de estado en la superficie propia de un control de NAVEGACIÓN, que
+             es textualmente lo que el criterio castiga; y la excepción
+             declarada está acotada a `q-field--error`, que un `q-stepper__tab`
+             no es.
+             🔑 El dato no se pierde: el `q-input` del nombre ya trae su
+             `:rules`, así que el campo se marca a sí mismo —el canal que el
+             criterio SÍ permite—, y para cuando el paso 1 no está a la vista
+             el aviso sale del slot `message` de abajo, que es un MENSAJE y no
+             un control. -->
+        <template v-if="!template.name && step > 1" #message>
+          <q-banner dense class="bg-transparent text-body2">
+            <template #avatar>
+              <q-icon name="warning" color="negative" />
+            </template>
+            {{ $t("alertTemplate.generalIncomplete") }}
+          </q-banner>
+        </template>
         <q-step
           :name="1"
-          :error="!template.name && step > 1"
           :title="$t('alertTemplate.stepGeneral')"
           icon="settings"
         >

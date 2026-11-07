@@ -2288,6 +2288,7 @@
     "back": "Atrás",
     "next": "Siguiente",
     "stepGeneral": "Configuración general",
+    "generalIncomplete": "Falta el nombre de la plantilla, en «Configuración general».",
     "name": "Nombre",
     "required": "*Obligatorio",
     "enabled": "Habilitado",

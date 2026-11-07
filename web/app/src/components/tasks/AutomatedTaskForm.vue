@@ -17,11 +17,20 @@
         <p>{{ $t("automatedTask.noScript2") }}</p>
       </q-card-section>
       <q-stepper v-else v-model="step" ref="stepper" color="primary" animated>
+        <!-- 🔴 050 (G05, 14.ª corrida): los tres pasos llevaban `:error`, que
+             pinta el TAB entero con `var(--q-negative)` (rótulo, punto y línea
+             heredan `currentColor`): color de estado en la superficie propia
+             de un control de navegación. Acá no hay nada que reponer: este
+             stepper NO tiene `header-nav`, así que sólo se avanza por
+             `validateStep()`, que llama a `form.validate()` —el que marca cada
+             campo con `q-field--error`, el canal permitido— y deja al usuario
+             en el paso cuyos campos ya están en rojo.
+             🪤 `isValidStep2` además sólo se asigna `true`: su `:error` nunca
+             podía encenderse. Era un control muerto además de ilegal. -->
         <q-step
           :name="1"
           :title="$t('automatedTask.step1Title')"
           :done="step > 1"
-          :error="!isValidStep1"
         >
           <q-form @submit.prevent ref="taskGeneralForm">
             <q-card-section>
@@ -94,7 +103,6 @@
           :name="2"
           :title="$t('automatedTask.step2Title')"
           :done="step > 2"
-          :error="!isValidStep2"
         >
           <div class="scroll" style="max-height: 60vh">
             <q-form @submit.prevent="addAction">
@@ -302,11 +310,7 @@
           </div>
         </q-step>
 
-        <q-step
-          :name="3"
-          :title="$t('automatedTask.step3Title')"
-          :error="!isValidStep3"
-        >
+        <q-step :name="3" :title="$t('automatedTask.step3Title')">
           <div class="scroll" style="height: 60vh; max-height: 60vh">
             <q-form @submit.prevent ref="taskDetailForm">
               <q-card-section>
@@ -1242,9 +1246,10 @@ export default defineComponent({
 
     // stepper logic
     const step = ref(1);
-    const isValidStep1 = ref(true);
-    const isValidStep2 = ref(true);
-    const isValidStep3 = ref(true);
+    // 🪤 Acá vivían `isValidStep1/2/3`. Su único consumidor era el `:error`
+    // de cada `q-step`, que se retiró por el criterio del color: sin ese
+    // consumidor serían tres refs que nadie lee, que es el otro defecto que
+    // este proyecto ya encontró tres veces.
 
     function validateStep(form, stepper) {
       if (step.value === 1 && localTask.task_supported_platforms.length === 0) {
@@ -1254,7 +1259,6 @@ export default defineComponent({
 
       if (step.value === 2) {
         if (localTask.actions.length > 0) {
-          isValidStep2.value = true;
           stepper.next();
           return;
         } else {
@@ -1265,10 +1269,8 @@ export default defineComponent({
       } else {
         form.validate().then((result) => {
           if (step.value === 1) {
-            isValidStep1.value = result;
             if (result) stepper.next();
           } else if (step.value === 3) {
-            isValidStep3.value = result;
             if (result) submit();
           }
         });
@@ -1297,9 +1299,6 @@ export default defineComponent({
       monthlyType,
       loading,
       step,
-      isValidStep1,
-      isValidStep2,
-      isValidStep3,
       scriptOptions,
       checkOptions,
       customFieldOptions,
