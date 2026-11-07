@@ -505,3 +505,71 @@ describe("rejilla: el focus() propio no puede reentrar por focusin", () => {
     expect(document.activeElement).toBe(activo);
   });
 });
+
+// 🔴 Asomar la fila cuando `scrollTo` por índice no alcanza. Medido en el sha
+// servido `ee57472`: en `UserSessionsTable`, Fin dejaba la fila 20 en `y=756,2`
+// con `h=14` sobre una ventana de 757 —0,8 px visibles— y el anillo no se
+// dibujaba. La tabla cabe entera en su `max-height`, así que su scroller
+// virtual no tiene recorrido: lo que estaba fuera lo estaba por el scroll del
+// DIÁLOGO, que nadie movía.
+//
+// 🪤 Lo que vigila el control de abajo es la PROPORCIÓN: `scrollIntoView` ya
+// está medido como malo cuando sustituye al `scrollTo` por índice (recicla el
+// nodo y el foco salta de fila), así que no puede llamarse en las filas que ya
+// se ven. En este mismo ítem arreglar un caso con una regla general ya rompió
+// catorce estables una vez.
+describe("rejilla: asomar la fila que quedó fuera de la ventana", () => {
+  function montarConRects(rects) {
+    const { tbody } = montarTabla(rects.length);
+    const llamadas = [];
+    const hosts = [...document.querySelectorAll(".obs-rej__host")];
+    hosts.forEach((host, i) => {
+      host.getBoundingClientRect = () => rects[i];
+      host.scrollIntoView = (o) => llamadas.push({ fila: i, opciones: o });
+    });
+    return { tbody, hosts, llamadas };
+  }
+  const dentro = { top: 300, bottom: 314, left: 10, right: 120, height: 14, width: 110 };
+  // 0,8 px visibles de 14, que es el caso medido
+  const alBorde = { top: 756.2, bottom: 770.2, left: 10, right: 120, height: 14, width: 110 };
+
+  beforeEach(() => {
+    window.innerHeight = 757;
+    window.innerWidth = 1440;
+  });
+
+  it("la asoma cuando casi toda la fila quedó fuera", () => {
+    const { llamadas } = montarConRects([dentro, alBorde]);
+    const { estado, rejilla } = contexto(2);
+    vi.useFakeTimers();
+    estado.moviendo = true;
+    rejilla.enfocar(1, 16);
+    expect(llamadas).toHaveLength(1);
+    expect(llamadas[0].fila).toBe(1);
+    expect(llamadas[0].opciones).toEqual({ block: "nearest", inline: "nearest" });
+    expect(estado.moviendo).toBe(false);
+  });
+
+  it("🪤 NO la toca cuando ya se ve: no pelea con el scrollTo por índice", () => {
+    const { llamadas } = montarConRects([dentro, dentro]);
+    const { rejilla } = contexto(2);
+    vi.useFakeTimers();
+    rejilla.enfocar(1, 16);
+    expect(llamadas).toHaveLength(0);
+    expect(document.activeElement.getAttribute("data-fila")).toBe("1");
+  });
+
+  it("si al asomarla se recicla el nodo, recupera el foco en esa misma fila", () => {
+    const { llamadas, hosts } = montarConRects([dentro, alBorde]);
+    const { rejilla } = contexto(2);
+    vi.useFakeTimers();
+    // El reciclaje: al asomar, el foco se cae del host.
+    hosts[1].scrollIntoView = (o) => {
+      llamadas.push({ fila: 1, opciones: o });
+      hosts[1].blur();
+    };
+    rejilla.enfocar(1, 16);
+    expect(llamadas).toHaveLength(1);
+    expect(document.activeElement).toBe(hosts[1]);
+  });
+});

@@ -169,6 +169,60 @@ export function crearRejilla(ctx) {
    */
   let enfocando = false;
 
+  function enfocarSinReentrar(el) {
+    enfocando = true;
+    try {
+      // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
+      // pelearía con la rueda del usuario y con el `scrollTo` por índice, que
+      // es el que debe decidir dónde queda el scroller.
+      el.focus({ preventScroll: true });
+    } finally {
+      enfocando = false;
+    }
+  }
+
+  /** Cuántos píxeles de alto del rect caen dentro de la ventana. */
+  function parteVisible(r) {
+    const h = window.innerHeight || 0;
+    return Math.max(0, Math.min(r.bottom, h) - Math.max(r.top, 0));
+  }
+
+  /**
+   * 🔴 Asomar la fila cuando `scrollTo` por índice NO alcanza, y el porqué está
+   * medido en el sha servido `ee57472`, en `UserSessionsTable`: con Fin, la fila
+   * 20 quedaba en `y=756,2` con `h=14` sobre una ventana de **757**, o sea
+   * **0,8 px visibles**, y el anillo no se dibujaba —con razón: no hay dónde—.
+   * Un control con el foco y `:focus-visible` verdadero sin ningún indicador.
+   *
+   * La causa no era el anillo. Esa tabla se limita a `screen.height - 24` = 733
+   * px y sus 21 filas miden 21×33 + 28 de cabecera = 721: **cabe entera**, así
+   * que su scroller virtual no tiene recorrido y `scrollTo(20)` no desplaza
+   * nada. Lo que estaba fuera de pantalla lo estaba por el scroll **del
+   * diálogo**, que nadie movía.
+   *
+   * 🔑 `mover()` daba por hecho que `scrollTo` por índice basta. No basta
+   * cuando el contenedor que scrollea no es el scroller de la tabla.
+   *
+   * 🪤 Y por qué NO se llama siempre: `scrollIntoView` está medido como MALO
+   * como sustituto del `scrollTo` por índice, porque desplaza el scroller
+   * virtual, recicla el nodo y el foco termina en otra fila (medido en la
+   * flota: BOG-SRV-PROXY ⇒ BUE-CAJA-01). Acá es un COMPLEMENTO, no un
+   * sustituto: sólo entra cuando la fila ya quedó mayormente fuera de la
+   * ventana, usa `block: "nearest"` para mover lo mínimo, y después
+   * **re-verifica** que el foco siga en el host de ESE índice.
+   */
+  function asomarALaVista(el, idx) {
+    const r = el.getBoundingClientRect();
+    if (!r.height) return;
+    if (parteVisible(r) >= r.height / 2) return;
+    if (!el.scrollIntoView) return;
+    el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const despues = buscarHost(idx);
+    if (despues && document.activeElement !== despues) {
+      enfocarSinReentrar(despues);
+    }
+  }
+
   function enfocar(idx, espera) {
     cancelarEscalera();
     const el = buscarHost(idx);
@@ -177,21 +231,18 @@ export function crearRejilla(ctx) {
         ctx.fijarMoviendo(false);
         return;
       }
-      enfocando = true;
-      try {
-        // 🪤 `preventScroll`: `focus()` arrastra el elemento a la vista y eso
-        // pelearía con la rueda del usuario y con el `scrollTo` por índice, que
-        // es el que debe decidir dónde queda el scroller.
-        el.focus({ preventScroll: true });
-      } finally {
-        enfocando = false;
-      }
+      enfocarSinReentrar(el);
       // 🪤 Y no se da por hecho que PEGÓ. Si el `focus()` recicló el nodo, el
       // foco quedó en el scroller: se compara contra el host que hay AHORA en
       // ese índice, porque el nodo puede ser otro, y si no pegó se reintenta
       // por escalera en vez de dejar la tabla sin parada de tabulador.
       const ahora = buscarHost(idx);
       if (ahora && document.activeElement === ahora) {
+        // 🪤 El orden importa: esto va ANTES de apagar la bandera, porque
+        // asomar la fila mueve el scroller y eso emite `virtual-scroll`, que
+        // repuntaría `filaFoco` a mitad del movimiento si la bandera ya
+        // estuviera en false.
+        asomarALaVista(ahora, idx);
         ctx.fijarMoviendo(false);
         return;
       }
