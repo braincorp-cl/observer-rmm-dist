@@ -15,6 +15,17 @@
     público se rinde como el fragmento que ya era, y es el anfitrión quien pone
     el marco.
   -->
+  <!--
+    🔴 050 (G08, 16.ª corrida): el censo de la clase destapó este segundo sitio,
+    que ningún crítico midió. `notFound.message` terminaba en «...» y el resto
+    de la frase —el código— vive en el `<strong>` de al lado: «Lo sentimos, no
+    hay nada aquí... (404)». Es exactamente la forma del `lead` que se arregló
+    en la corrida anterior: la relación «esto sigue ahí» es ESTRUCTURAL, no
+    tipográfica. El glifo prometía un resto que ya estaba en pantalla, a dos
+    caracteres de distancia, así que sobraba; ahora la oración cierra con punto
+    y el código sigue donde siempre. Las DOS ramas de esta vista rinden el mismo
+    mensaje, por eso el arreglo va en el i18n y no en el template.
+  -->
   <div v-if="publicContext" class="obs-nf obs-nf--embebido">
     <p class="obs-nf__msg">
       {{ $t("notFound.message") }}

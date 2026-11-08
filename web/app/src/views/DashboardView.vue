@@ -151,7 +151,19 @@
                 }}</q-item-section>
               </q-item>
 
-              <!-- Feature 049-B2: monitoreo de actividad por cliente/sitio -->
+              <!-- Feature 049-B2: monitoreo de actividad por cliente/sitio
+
+                   🔴 050 (G08, 16.ª corrida): este rótulo era «Monitoreo de
+                   actividad…». El «…» venía de la convención de escritorio
+                   («abre un diálogo»), pero medido en pantalla era un q-item
+                   PERMANENTE que terminaba en U+2026 con scrollWidth ==
+                   clientWidth (212 = 212) y cero canales: ni title propio ni
+                   heredado, ni aria-label, ni q-tooltip en DOM, ni al hover.
+                   Indistinguible de un recorte, y el criterio no mide
+                   intenciones (enmienda s1).
+                   🔑 Y la convención tampoco se sostenía acá: los otros diez
+                   ítems de ESTE MISMO menú abren diálogo igual y ninguno
+                   llevaba el glifo. Era un único rótulo fuera de norma. -->
               <q-item
                 clickable
                 v-close-popup

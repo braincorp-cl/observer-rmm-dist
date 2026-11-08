@@ -119,7 +119,7 @@
     "expiredHeading": "Sesión expirada"
   },
   "notFound": {
-    "message": "Lo sentimos, no hay nada aquí...",
+    "message": "Lo sentimos, no hay nada aquí.",
     "code": "(404)",
     "goBack": "Volver",
     "heading": "Página no encontrada"
@@ -170,7 +170,7 @@
     "colUser": "Usuario",
     "colLastResponse": "Última respuesta",
     "colBootTime": "Hora de arranque",
-    "activityMonitoring": "Monitoreo de actividad…"
+    "activityMonitoring": "Monitoreo de actividad"
   },
   "fleet": {
     "clientsAndSites": "Clientes y sitios",
@@ -2749,7 +2749,6 @@
       "actions": "Acciones",
       "description": "Descripción",
       "search": "Buscar",
-      "loading": "Cargando...",
       "pleaseWait": "Espere por favor...",
       "import": "Importar",
       "export": "Exportar",
@@ -3627,7 +3626,6 @@
       "chainBroken": "Cadena rota",
       "immutableNotice": "Un eslabón no se edita ni se borra. Para corregir un error, se agrega otro evento.",
       "add": "Registrar evento",
-      "adding": "Registrando…",
       "added": "Evento registrado",
       "kind": "Qué pasó",
       "at": "Cuándo ocurrió",

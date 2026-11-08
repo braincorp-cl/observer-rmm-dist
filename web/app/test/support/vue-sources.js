@@ -45,6 +45,36 @@ export async function leerVue() {
   );
 }
 
+// 🪤 Y el motivo de que esto NO se limite a `.vue`: el censo de la elipsis en
+// i18n (V2-G08, 16.ª corrida) tiene que mirar TODOS los consumidores de una
+// clave, y hay claves que se usan desde `.ts`. Un censo que solo lee `.vue`
+// declara «un solo sitio» cuando hay dos.
+export async function listarFuentes(
+  extensiones = [".vue", ".ts", ".js"],
+  dir = SRC,
+) {
+  const entradas = await readdir(dir, { withFileTypes: true });
+  const salida = [];
+  for (const entrada of entradas) {
+    const ruta = join(dir, entrada.name);
+    if (entrada.isDirectory())
+      salida.push(...(await listarFuentes(extensiones, ruta)));
+    else if (extensiones.some((e) => entrada.name.endsWith(e)))
+      salida.push(ruta);
+  }
+  return salida.sort();
+}
+
+export async function leerFuentes(extensiones) {
+  const archivos = await listarFuentes(extensiones);
+  return Promise.all(
+    archivos.map(async (ruta) => ({
+      ruta: rutaCorta(ruta),
+      fuente: await readFile(ruta, "utf8"),
+    })),
+  );
+}
+
 // Etiquetas de apertura de un componente, con sus atributos y su número de
 // línea. `[^>]*` cruza saltos de línea, así que toma las etiquetas repartidas
 // en varias líneas, que es como las deja prettier.

@@ -27,7 +27,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerVue } from "../support/vue-sources.js";
+import { leerVue, leerFuentes } from "../support/vue-sources.js";
 
 // 🪤 La ruta NO se arma con `new URL("literal", import.meta.url)`: Vite
 // reescribe esa forma y deja de apuntar al archivo. Ver vue-sources.js.
@@ -47,8 +47,18 @@ beforeAll(async () => {
   vue = await leerVue();
 });
 
-// Se miran los literales del CÓDIGO, no los de i18n: una elipsis dentro de una
-// frase traducida es prosa («Cargando…»), y eso no es lo que se persigue.
+// Se miran los literales del CÓDIGO. Los de i18n tienen su propio censo abajo.
+//
+// 🔴 Y ESA SEPARACIÓN fue el hueco por el que entró la 16.ª corrida. Acá vivía
+// este comentario: «no se miran los de i18n: una elipsis dentro de una frase
+// traducida es prosa («Cargando…»)». Seis críticos midieron entonces
+// `dashboard.activityMonitoring` = «Monitoreo de actividad…», que es una clave
+// de i18n y NO es prosa: es el rótulo permanente de un ítem de menú, con
+// scrollWidth == clientWidth y cero canales. 🔑 Una exención escrita por la
+// razón correcta («una frase en gerundio que nombra una operación en curso no
+// promete resto de texto») tapa igual todo lo que no es esa frase, si se
+// redacta por el ORIGEN del literal y no por su forma. El censo de i18n de
+// abajo exime por la RANURA donde se rinde, que es comprobable.
 const PEGA_ELIPSIS = /(?:`[^`\n]*|["'][^"'\n]*)(?:…|\.\.\.)(?:`|["'])/;
 
 const sinComentarios = (fuente) =>
@@ -157,5 +167,164 @@ describe("AutomationManager: el hueco de un conteo se lee, y dice cuál es", () 
       expect(d.automationManager.policyMetaLoading).toContain("{agents}");
       expect(d.automationManager.policyMetaError).toContain("{agents}");
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Censo de i18n. Las claves que terminan en marca de corte y por qué cada una
+// es legal: no por lo que quiso decir, sino por la RANURA en que se rinde.
+//
+// La propiedad que hace legal a una marca de corte en una frase de progreso es
+// ESTRUCTURAL y se puede comprobar: el elemento que la lleva existe sólo
+// mientras la operación está en vuelo (`$q.loading.show`, el `loading-label` de
+// una q-table, el `label` de un q-inner-loading) o lleva el valor íntegro en su
+// propio `title` (el chrome remoto, que además lo reemplaza por el hostname en
+// cuanto llega). Un rótulo PERMANENTE no tiene ninguna de las dos, y eso es lo
+// que se castiga.
+const RANURAS = {
+  // `$q.loading.show({ message })`: pantalla de carga global, se cierra con
+  // `$q.loading.hide()`.
+  "loading-show": {
+    linea: /^\s*message:\s*(?:this\.)?\$?t\(/,
+    contexto: /loading\.show\(/,
+  },
+  // `:loading-label` de q-table: sólo se dibuja con `:loading` en true.
+  "tabla-loading-label": { linea: /:loading-label="\$t\(/, contexto: null },
+  // `:label` de q-inner-loading: el componente entero vive bajo `:showing`.
+  "inner-loading-label": {
+    linea: /:label=['"]\$t\(/,
+    contexto: /<q-inner-loading/,
+  },
+  // `:title` de RemoteWindowChrome, que lo rinde con `:title` propio (el mismo
+  // texto, canal estático) y lo reemplaza por el hostname cuando llega.
+  "chrome-remoto-title": {
+    linea: /:title="\$t\(/,
+    contexto: /<RemoteWindowChrome/,
+  },
+};
+
+const MARCA_LEGITIMA_I18N = {
+  "installAgent.generatingExe": "loading-show",
+  "editCoreSettings.sendingTestEmail": "loading-show",
+  "editCoreSettings.sendingTestSms": "loading-show",
+  "takeControl.connecting": "chrome-remoto-title",
+  "webVNC.connecting": "chrome-remoto-title",
+  "reporting.common.pleaseWait": "inner-loading-label",
+  "reporting.templateForm.generatingReport": "inner-loading-label",
+  "lostEquipment.loading": "tabla-loading-label",
+  "diskEncryption.loading": "tabla-loading-label",
+  "erase.certificates.loading": "tabla-loading-label",
+  "storageMedia.loading": "tabla-loading-label",
+};
+
+const TERMINA_EN_MARCA = /(?:…|\.\.\.)\s*$/;
+
+function clavesConMarca(diccionario) {
+  const salida = [];
+  const andar = (nodo, prefijo) => {
+    if (typeof nodo === "string") {
+      if (TERMINA_EN_MARCA.test(nodo)) salida.push(prefijo);
+    } else if (nodo && typeof nodo === "object") {
+      for (const [k, v] of Object.entries(nodo))
+        andar(v, prefijo ? `${prefijo}.${k}` : k);
+    }
+  };
+  andar(diccionario, "");
+  return salida.sort();
+}
+
+// Clasifica el uso de una clave por la ranura en que se rinde. Mira hasta seis
+// líneas hacia atrás porque prettier reparte las etiquetas en varias líneas.
+function ranuraDeUso(lineas, i) {
+  const atras = lineas.slice(Math.max(0, i - 6), i + 1).join("\n");
+  for (const [nombre, { linea, contexto }] of Object.entries(RANURAS)) {
+    if (!linea.test(lineas[i])) continue;
+    if (contexto && !contexto.test(atras)) continue;
+    return nombre;
+  }
+  return null;
+}
+
+describe("censo: las claves de i18n que terminan en marca de corte", () => {
+  let fuentes;
+  const dicc = {};
+  beforeAll(async () => {
+    fuentes = await leerFuentes([".vue", ".ts", ".js"]);
+    for (const idioma of ["es", "en"])
+      dicc[idioma] = JSON.parse(
+        await readFile(resolve(APP, `src/i18n/${idioma}.json`), "utf8"),
+      );
+  });
+
+  it("son exactamente las declaradas, y las mismas en los dos idiomas", () => {
+    const esperadas = Object.keys(MARCA_LEGITIMA_I18N).sort();
+    expect(clavesConMarca(dicc.es)).toEqual(esperadas);
+    expect(clavesConMarca(dicc.en)).toEqual(esperadas);
+  });
+
+  it("cada uso de cada clave cae en la ranura que declara", () => {
+    const fallas = [];
+    for (const [clave, ranura] of Object.entries(MARCA_LEGITIMA_I18N)) {
+      let usos = 0;
+      for (const { ruta, fuente } of fuentes) {
+        if (ruta.startsWith("src/i18n/") || !fuente.includes(clave)) continue;
+        const lineas = fuente.split("\n");
+        for (let i = 0; i < lineas.length; i += 1) {
+          if (!lineas[i].includes(clave)) continue;
+          usos += 1;
+          const vista = ranuraDeUso(lineas, i);
+          if (vista !== ranura)
+            fallas.push(
+              `${clave} en ${ruta}:${i + 1} → ${vista} (≠ ${ranura})`,
+            );
+        }
+      }
+      // 🪤 Una clave sin ningún uso es la otra cara del mismo defecto: en esta
+      // corrida había DOS (`reporting.common.loading` y `erase.custody.adding`)
+      // que nadie llamaba y llevaban el glifo igual. Se borraron; si vuelve a
+      // aparecer una, este conteo la delata en vez de dejarla pasar por «no se
+      // rinde en ninguna ranura mala».
+      if (usos === 0) fallas.push(`${clave} no la usa nadie: es cadena muerta`);
+    }
+    expect(fallas).toEqual([]);
+  });
+
+  // Control negativo del clasificador: si `ranuraDeUso` dijera «ranura buena»
+  // para cualquier cosa, la prueba de arriba pasaría siempre.
+  it("el clasificador NO acepta un rótulo permanente", () => {
+    const permanente = [
+      "                <q-item-section>{{",
+      '                  $t("dashboard.activityMonitoring")',
+      "                }}</q-item-section>",
+    ];
+    expect(ranuraDeUso(permanente, 1)).toBe(null);
+    // Y el positivo: la misma función reconoce una ranura de verdad.
+    const transitorio = [
+      "            this.$q.loading.show({",
+      '              message: this.$t("installAgent.generatingExe"),',
+    ];
+    expect(ranuraDeUso(transitorio, 1)).toBe("loading-show");
+    // Y exige el contexto, no sólo la forma de la línea: la misma línea de
+    // `:label` fuera de un q-inner-loading no clasifica.
+    expect(ranuraDeUso(["  <q-btn", "    :label=\"$t('x.y')\""], 1)).toBe(null);
+  });
+
+  it("los dos rótulos permanentes de la 16.ª corrida quedaron sin glifo", () => {
+    expect(dicc.es.dashboard.activityMonitoring).toBe("Monitoreo de actividad");
+    expect(dicc.en.dashboard.activityMonitoring).toBe("Activity monitoring");
+    for (const idioma of ["es", "en"])
+      expect(TERMINA_EN_MARCA.test(dicc[idioma].notFound.message)).toBe(false);
+  });
+
+  it("las dos cadenas muertas no volvieron", () => {
+    for (const idioma of ["es", "en"]) {
+      expect(dicc[idioma].reporting.common.loading).toBeUndefined();
+      expect(dicc[idioma].erase.custody.adding).toBeUndefined();
+    }
+  });
+
+  it("el censo mira de verdad: hay fuentes y hay claves", () => {
+    expect(fuentes.length).toBeGreaterThan(200);
+    expect(Object.keys(MARCA_LEGITIMA_I18N).length).toBe(11);
   });
 });
