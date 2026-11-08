@@ -130,8 +130,11 @@ describe("AutomationManager: el hueco de un conteo se lee, y dice cuál es", () 
   });
 
   it("distingue cargando de fallado, y el fallo deja de ser silencioso", () => {
-    expect(fuente).toMatch(/automationManager\.countLoading/);
-    expect(fuente).toMatch(/automationManager\.countError/);
+    // 🪤 La primera version metia la palabra en la ranura del numero y en
+    // pantalla salia «sin dato chequeos · sin dato tareas». Cuando falta algun
+    // conteo la frase cambia ENTERA, y son dos frases distintas.
+    expect(fuente).toMatch(/automationManager\.policyMetaLoading/);
+    expect(fuente).toMatch(/automationManager\.policyMetaError/);
     // 🪤 El `.catch(() => {})` vacío de `loadPolicyCounts` es lo que hacía
     // permanente el hueco: ahora su catch TIENE que escribir el valor. Se
     // afirma sobre ese catch, no sobre cualquier catch vacío del archivo: el
@@ -142,13 +145,17 @@ describe("AutomationManager: el hueco de un conteo se lee, y dice cuál es", () 
     );
   });
 
-  it("las dos palabras existen en los dos idiomas", async () => {
+  it("las dos frases existen en los dos idiomas", async () => {
     for (const idioma of ["es", "en"]) {
       const d = JSON.parse(
         await readFile(resolve(APP, `src/i18n/${idioma}.json`), "utf8"),
       );
-      expect(d.automationManager.countLoading).toBeTruthy();
-      expect(d.automationManager.countError).toBeTruthy();
+      expect(d.automationManager.policyMetaLoading).toBeTruthy();
+      expect(d.automationManager.policyMetaError).toBeTruthy();
+      // Las dos frases llevan la ranura de equipos, que es el unico conteo
+      // que no sale de una peticion aparte y por eso siempre esta.
+      expect(d.automationManager.policyMetaLoading).toContain("{agents}");
+      expect(d.automationManager.policyMetaError).toContain("{agents}");
     }
   });
 });

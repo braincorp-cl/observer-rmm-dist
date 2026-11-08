@@ -1343,8 +1343,8 @@
     "addCheck": "Agregar chequeo",
     "addTask": "Agregar tarea",
     "policyMeta": "{checks} chequeos · {tasks} tareas · {agents} equipos",
-    "countLoading": "cargando",
-    "countError": "sin dato"
+    "policyMetaLoading": "contando chequeos y tareas · {agents} equipos",
+    "policyMetaError": "chequeos y tareas no disponibles · {agents} equipos"
   },
   "policyStatus": {
     "close": "Cerrar",

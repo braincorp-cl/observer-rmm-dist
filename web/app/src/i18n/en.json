@@ -1343,8 +1343,8 @@
     "addCheck": "Add check",
     "addTask": "Add task",
     "policyMeta": "{checks} checks · {tasks} tasks · {agents} agents",
-    "countLoading": "loading",
-    "countError": "no data"
+    "policyMetaLoading": "counting checks and tasks · {agents} devices",
+    "policyMetaError": "checks and tasks unavailable · {agents} devices"
   },
   "policyStatus": {
     "close": "Close",

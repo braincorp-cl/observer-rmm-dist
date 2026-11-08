@@ -830,17 +830,21 @@ export default {
       const c = this.policyCounts[pol.id] || {};
       // 🔴 050 (G08, 15.ª corrida): el hueco se rellenaba con «…», y un «…» es
       // indistinguible de la marca de un texto recortado —la clase que el
-      // criterio persigue— ademas de no decir SI es que carga o que fallo.
-      // Dos palabras, dos estados, ningun glifo con forma de corte.
-      const n = (v) =>
-        v === "error"
-          ? this.$t("automationManager.countError")
-          : v === null || v === undefined
-            ? this.$t("automationManager.countLoading")
-            : v;
+      // criterio persigue— además de no decir SI es que carga o que falló.
+      // 🪤 Y el primer arreglo metía la palabra en la ranura del número
+      // («sin dato chequeos · sin dato tareas»), que medido en pantalla se
+      // leía mal. Cuando falta algún conteo, la frase CAMBIA entera.
+      const falta = (v) => v === null || v === undefined || v === "error";
+      if (falta(c.checks) || falta(c.tasks)) {
+        const clave =
+          c.checks === "error" || c.tasks === "error"
+            ? "automationManager.policyMetaError"
+            : "automationManager.policyMetaLoading";
+        return this.$t(clave, { agents: pol.agents_count });
+      }
       return this.$t("automationManager.policyMeta", {
-        checks: n(c.checks),
-        tasks: n(c.tasks),
+        checks: c.checks,
+        tasks: c.tasks,
         agents: pol.agents_count,
       });
     },
