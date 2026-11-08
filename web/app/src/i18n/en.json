@@ -1342,7 +1342,9 @@
     "pickPolicy": "Pick a policy or create a new one.",
     "addCheck": "Add check",
     "addTask": "Add task",
-    "policyMeta": "{checks} checks · {tasks} tasks · {agents} agents"
+    "policyMeta": "{checks} checks · {tasks} tasks · {agents} agents",
+    "countLoading": "loading",
+    "countError": "no data"
   },
   "policyStatus": {
     "close": "Close",

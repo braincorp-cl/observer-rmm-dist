@@ -817,13 +817,27 @@ export default {
             .then((r) => {
               this.policyCounts[pol.id][k] = r.data.length;
             })
-            .catch(() => {}),
+            // 🪤 Esto era `.catch(() => {})`: con la peticion fallada el conteo
+            // quedaba en `null` PARA SIEMPRE y el hueco se veia igual que
+            // mientras carga. Ahora el fallo tiene su propio valor y se lee.
+            .catch(() => {
+              this.policyCounts[pol.id][k] = "error";
+            }),
         );
       });
     },
     policyMeta(pol) {
       const c = this.policyCounts[pol.id] || {};
-      const n = (v) => (v === null || v === undefined ? "…" : v);
+      // 🔴 050 (G08, 15.ª corrida): el hueco se rellenaba con «…», y un «…» es
+      // indistinguible de la marca de un texto recortado —la clase que el
+      // criterio persigue— ademas de no decir SI es que carga o que fallo.
+      // Dos palabras, dos estados, ningun glifo con forma de corte.
+      const n = (v) =>
+        v === "error"
+          ? this.$t("automationManager.countError")
+          : v === null || v === undefined
+            ? this.$t("automationManager.countLoading")
+            : v;
       return this.$t("automationManager.policyMeta", {
         checks: n(c.checks),
         tasks: n(c.tasks),

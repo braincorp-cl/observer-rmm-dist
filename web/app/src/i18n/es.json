@@ -1342,7 +1342,9 @@
     "pickPolicy": "Elige una política o crea una nueva.",
     "addCheck": "Agregar chequeo",
     "addTask": "Agregar tarea",
-    "policyMeta": "{checks} chequeos · {tasks} tareas · {agents} equipos"
+    "policyMeta": "{checks} chequeos · {tasks} tareas · {agents} equipos",
+    "countLoading": "cargando",
+    "countError": "sin dato"
   },
   "policyStatus": {
     "close": "Cerrar",

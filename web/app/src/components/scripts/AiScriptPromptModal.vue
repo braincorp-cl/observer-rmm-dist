@@ -25,12 +25,17 @@
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <!-- El prefijo se muestra como entrada de la frase: el operador escribe
-             la continuación, no un enunciado suelto. Es el MISMO texto que se
-             antepone al enviar, así que no hay dos redacciones que mantener. -->
-        <div class="text-body2 text-weight-medium q-mb-sm">
-          {{ lead }}
-        </div>
+        <!-- 🔴 050 (G08, 15.ª corrida): acá vivía un `<div>` suelto con el
+             prefijo más un «…» pegado (`lead`), para que se leyera como la
+             entrada de la frase que el operador continúa. Pero ese «…» es
+             INDISTINGUIBLE, para quien lee y para el detector, de la marca de
+             un texto recortado: terminaba en U+2026 con `scrollWidth ==
+             clientWidth` y sin ningún canal (ni title, ni aria, ni tooltip).
+             🔑 La relación «este texto sigue en ese campo» es ESTRUCTURAL, no
+             tipográfica: el prefijo es el rótulo del campo que se completa, y
+             como rótulo de `q-input` se lee sin ambigüedad y no necesita
+             glifo. Sigue siendo el MISMO texto que `submit()` antepone, así
+             que tampoco hay dos redacciones que mantener. -->
         <q-input
           v-model="promptText"
           type="textarea"
@@ -40,6 +45,8 @@
           counter
           maxlength="2000"
           input-class="ai-prompt-textarea"
+          :label="prefix.trim()"
+          stack-label
           :placeholder="$t('aiScriptPrompt.placeholder')"
           @keydown.ctrl.enter.prevent="submit"
           @keydown.meta.enter.prevent="submit"
@@ -123,7 +130,6 @@ const shellLabel = computed(
 const prefix = computed(() =>
   t("scriptsCommon.chatGptPrompt", { lang: shellLabel.value }),
 );
-const lead = computed(() => `${prefix.value.trim()}…`);
 
 const examples = computed(() => [
   t("aiScriptPrompt.example1"),
