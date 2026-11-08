@@ -2735,7 +2735,8 @@
     "argProxy": "-proxy \"http://proxyserver:port\""
   },
   "common": {
-    "copiedToClipboard": "Copiado al portapapeles"
+    "copiedToClipboard": "Copiado al portapapeles",
+    "downloadDenied": "El navegador bloqueó la descarga"
   },
   "reporting": {
     "common": {

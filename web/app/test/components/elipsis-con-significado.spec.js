@@ -43,8 +43,17 @@ const ELIPSIS_LEGITIMA = {
 };
 
 let vue;
+// 🪤 Y el TERCER hueco de la misma guarda, también de la 16.ª corrida: este
+// censo leía sólo `.vue`, y a `src/utils/format.ts` lo mirábamos a mano en una
+// prueba aparte. Un literal con marca de corte vivía entonces en
+// `src/utils/csv.js:40` —«Browser denied file download...», además en inglés
+// dentro de una consola en español— y no lo veía nadie: ni esta guarda ni el
+// gate `lint:i18n`, que enumera `.vue`. Ahora el censo lee los tres tipos de
+// archivo del árbol.
+let todas;
 beforeAll(async () => {
   vue = await leerVue();
+  todas = await leerFuentes([".vue", ".ts", ".js"]);
 });
 
 // Se miran los literales del CÓDIGO. Los de i18n tienen su propio censo abajo.
@@ -60,6 +69,7 @@ beforeAll(async () => {
 // redacta por el ORIGEN del literal y no por su forma. El censo de i18n de
 // abajo exime por la RANURA donde se rinde, que es comprobable.
 const PEGA_ELIPSIS = /(?:`[^`\n]*|["'][^"'\n]*)(?:…|\.\.\.)(?:`|["'])/;
+const TERMINA_EN_MARCA = /(?:…|\.\.\.)\s*$/;
 
 const sinComentarios = (fuente) =>
   fuente
@@ -70,15 +80,24 @@ const sinComentarios = (fuente) =>
 describe("censo: quién pega una elipsis a un valor", () => {
   it("solo los sitios declarados, cada uno con su razón", () => {
     const hallados = [];
-    for (const { ruta, fuente } of vue) {
+    for (const { ruta, fuente } of todas) {
+      if (ruta.startsWith("src/i18n/")) continue;
       if (PEGA_ELIPSIS.test(sinComentarios(fuente))) hallados.push(ruta);
     }
-    // format.ts no es .vue: se mira aparte, abajo.
-    expect(hallados.sort()).toEqual(
-      Object.keys(ELIPSIS_LEGITIMA)
-        .filter((r) => r.endsWith(".vue"))
-        .sort(),
-    );
+    expect(hallados.sort()).toEqual(Object.keys(ELIPSIS_LEGITIMA).sort());
+  });
+
+  it("el mensaje de descarga negada ya no es inglés crudo con glifo", async () => {
+    const src = await readFile(resolve(APP, "src/utils/csv.js"), "utf8");
+    expect(sinComentarios(src)).not.toMatch(/Browser denied file download/);
+    expect(src).toMatch(/i18n\.global\.t\("common\.downloadDenied"\)/);
+    for (const idioma of ["es", "en"]) {
+      const d = JSON.parse(
+        await readFile(resolve(APP, `src/i18n/${idioma}.json`), "utf8"),
+      );
+      expect(d.common.downloadDenied).toBeTruthy();
+      expect(TERMINA_EN_MARCA.test(d.common.downloadDenied)).toBe(false);
+    }
   });
 
   it("truncateText sigue siendo el único sitio de utils que la pega", async () => {
@@ -92,8 +111,11 @@ describe("censo: quién pega una elipsis a un valor", () => {
     );
   });
 
-  it("el censo mira de verdad: hay .vue que leer", () => {
+  it("el censo mira de verdad: hay .vue, .ts y .js que leer", () => {
     expect(vue.length).toBeGreaterThan(100);
+    expect(todas.length).toBeGreaterThan(vue.length);
+    for (const ext of [".vue", ".ts", ".js"])
+      expect(todas.some((f) => f.ruta.endsWith(ext))).toBe(true);
   });
 });
 
@@ -216,8 +238,6 @@ const MARCA_LEGITIMA_I18N = {
   "erase.certificates.loading": "tabla-loading-label",
   "storageMedia.loading": "tabla-loading-label",
 };
-
-const TERMINA_EN_MARCA = /(?:…|\.\.\.)\s*$/;
 
 function clavesConMarca(diccionario) {
   const salida = [];

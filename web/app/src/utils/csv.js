@@ -1,5 +1,12 @@
 import { exportFile, Notify } from "quasar";
 
+// 🔴 050 (G08, 16.ª corrida): este módulo no se importaba el i18n porque su
+// único mensaje al usuario estaba en inglés y a pelo en el código, con un
+// «...» pegado. Dos defectos en una línea, y los dos se escaparon por el mismo
+// agujero: el gate `lint:i18n` enumera `.vue` y el censo de la elipsis también
+// leía `.vue` nada más, así que un `.js` no lo miraba nadie.
+import { i18n } from "@/boot/i18n";
+
 function _wrapCsvValue(val, formatFn) {
   let formatted = formatFn !== void 0 ? formatFn(val) : val;
 
@@ -40,7 +47,11 @@ export function exportTableToCSV(rows, columns) {
 
   if (status !== true) {
     Notify({
-      message: "Browser denied file download...",
+      // 🪤 Decía «Browser denied file download...»: en inglés dentro de una
+      // consola en español, y con la marca de corte sobre una frase que no se
+      // corta. El estado es casi inalcanzable (el navegador tiene que negar la
+      // descarga), que es justo por lo que nadie lo había leído nunca.
+      message: i18n.global.t("common.downloadDenied"),
       color: "negative",
       icon: "warning",
     });
