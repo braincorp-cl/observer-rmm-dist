@@ -3002,6 +3002,7 @@
       "enabledLabel": "Habilitado",
       "reportTemplateLabel": "Plantilla de reporte",
       "dependenciesLabel": "Dependencias",
+      "dependenciesMissing": "Faltan dependencias",
       "formatLabel": "Formato",
       "scheduleLabel": "Programación",
       "createNewScheduleLabel": "Crear nueva programación",

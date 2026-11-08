@@ -194,9 +194,19 @@
                      no bastó — sin fondo, sin borde y sin rótulo, la única
                      superficie propia del control seguía siendo el triángulo
                      rojo, o sea un color de estado haciendo de rótulo. Ahora el
-                     control lleva su rótulo de acción en teal y el rojo queda
-                     en la insignia de estado que va dentro, el mismo patrón del
-                     botón «Dependencias» (T044). -->
+                     control lleva su rótulo de acción en teal. -->
+                <!-- 🔴 050 (G05, 17.ª corrida): y la segunda mitad de ese
+                     arreglo estaba mal. El rojo se dejó «en la insignia de
+                     estado que va dentro, el mismo patrón del botón
+                     Dependencias (T044)», pero no había ninguna insignia: era
+                     un q-icon sin fondo ni borde propios cuyo texto entra en el
+                     textContent del botón, o sea parte del RÓTULO, que el
+                     criterio nombra expresamente como superficie propia del
+                     control. Acá el rojo además no informaba nada: el botón
+                     sólo existe con `v-if="props.row.error_data"`, así que su
+                     presencia ya dice que hay error. El glifo se queda —sirve
+                     para barrer la columna— y hereda el teal de la acción: la
+                     FORMA lleva el significado, el COLOR lleva el rol. -->
                 <!-- `tabindex="-1"`: se alcanza con la flecha derecha desde el
                      host de la fila (patrón de rejilla). -->
                 <q-btn
@@ -208,12 +218,7 @@
                   tabindex="-1"
                   @click="openErrorMessage(props.row.error_data)"
                 >
-                  <q-icon
-                    name="warning"
-                    color="negative"
-                    size="xs"
-                    class="q-mr-xs"
-                  />
+                  <q-icon name="warning" size="xs" class="q-mr-xs" />
                   {{ $t("reporting.historyTable.showError") }}
                 </q-btn>
               </template>

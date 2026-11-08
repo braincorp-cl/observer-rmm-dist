@@ -47,8 +47,40 @@
             :rules="[(val: number) => !!val || $t('reporting.scheduleForm.requiredField')]"
           >
             <template #after v-if="hasDependencies">
-              <!-- 050 (T044, G05): el ámbar queda en la insignia de estado
-                   dentro del control; el rótulo de la acción va en teal. -->
+              <!-- 🔴 050 (G05, 17.ª corrida): el «warning» ámbar vivía DENTRO
+                   de este q-btn, y el comentario que lo justificaba —mío, de
+                   T044— lo llamaba «la insignia de estado dentro del control».
+                   No era una insignia. Medido: no tenía fondo ni borde propios
+                   (`background` vacío) y el textContent del botón era
+                   literalmente «warning Dependencias», o sea el glifo era parte
+                   del RÓTULO. Y el criterio ya nombraba el rótulo: «viola si la
+                   superficie propia del control, es decir su fondo, borde o
+                   rótulo, lleva color de estado».
+                   🔑 La exención del 2026-10-14 no estaba mal redactada: lo que
+                   hice fue DECLARAR en un comentario de qué clase era el
+                   elemento en vez de comprobar sobre cuál de esas tres
+                   superficies caía. Lo comprobable: un marcador de estado trae
+                   superficie propia (fondo o borde) y su texto NO entra en el
+                   textContent del control; un glifo del rótulo no tiene ninguna
+                   de las dos cosas.
+                   Ahora el ámbar es un marcador del CAMPO —hermano del botón y
+                   fuera de él, con su propio rótulo accesible y su tooltip— y el
+                   botón queda con su rótulo de acción en teal y nada más. El
+                   dato que señalaba (`areDependenciesMet`) no se pierde: sigue
+                   siendo el que decide si el marcador existe. -->
+              <q-icon
+                v-if="!areDependenciesMet"
+                name="warning"
+                color="warning"
+                size="xs"
+                role="img"
+                class="q-mr-xs"
+                :aria-label="$t('reporting.scheduleForm.dependenciesMissing')"
+              >
+                <q-tooltip>{{
+                  $t("reporting.scheduleForm.dependenciesMissing")
+                }}</q-tooltip>
+              </q-icon>
               <q-btn
                 flat
                 dense
@@ -56,13 +88,6 @@
                 color="primary"
                 @click="openDependenciesForm"
               >
-                <q-icon
-                  v-if="!areDependenciesMet"
-                  name="warning"
-                  color="warning"
-                  size="xs"
-                  class="q-mr-xs"
-                />
                 {{ $t("reporting.scheduleForm.dependenciesLabel") }}
               </q-btn>
             </template>

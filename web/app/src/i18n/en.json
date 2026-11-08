@@ -3002,6 +3002,7 @@
       "enabledLabel": "Enabled",
       "reportTemplateLabel": "Report Template",
       "dependenciesLabel": "Dependencies",
+      "dependenciesMissing": "Dependencies missing",
       "formatLabel": "Format",
       "scheduleLabel": "Schedule",
       "createNewScheduleLabel": "Create New Schedule",
