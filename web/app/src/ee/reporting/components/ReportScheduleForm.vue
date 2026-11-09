@@ -47,40 +47,34 @@
             :rules="[(val: number) => !!val || $t('reporting.scheduleForm.requiredField')]"
           >
             <template #after v-if="hasDependencies">
-              <!-- 🔴 050 (G05, 17.ª corrida): el «warning» ámbar vivía DENTRO
-                   de este q-btn, y el comentario que lo justificaba —mío, de
-                   T044— lo llamaba «la insignia de estado dentro del control».
-                   No era una insignia. Medido: no tenía fondo ni borde propios
-                   (`background` vacío) y el textContent del botón era
-                   literalmente «warning Dependencias», o sea el glifo era parte
-                   del RÓTULO. Y el criterio ya nombraba el rótulo: «viola si la
-                   superficie propia del control, es decir su fondo, borde o
-                   rótulo, lleva color de estado».
-                   🔑 La exención del 2026-10-14 no estaba mal redactada: lo que
-                   hice fue DECLARAR en un comentario de qué clase era el
-                   elemento en vez de comprobar sobre cuál de esas tres
-                   superficies caía. Lo comprobable: un marcador de estado trae
-                   superficie propia (fondo o borde) y su texto NO entra en el
-                   textContent del control; un glifo del rótulo no tiene ninguna
-                   de las dos cosas.
-                   Ahora el ámbar es un marcador del CAMPO —hermano del botón y
-                   fuera de él, con su propio rótulo accesible y su tooltip— y el
-                   botón queda con su rótulo de acción en teal y nada más. El
-                   dato que señalaba (`areDependenciesMet`) no se pierde: sigue
-                   siendo el que decide si el marcador existe. -->
-              <q-icon
-                v-if="!areDependenciesMet"
-                name="warning"
-                color="warning"
-                size="xs"
-                role="img"
-                class="q-mr-xs"
-                :aria-label="$t('reporting.scheduleForm.dependenciesMissing')"
-              >
-                <q-tooltip>{{
-                  $t("reporting.scheduleForm.dependenciesMissing")
-                }}</q-tooltip>
-              </q-icon>
+              <!-- 🔴 050 (G05, 17.ª y 18.ª corridas): acá hubo DOS arreglos y el
+                   primero no sirvió, así que queda la historia entera.
+                   · 17.ª: el «warning» ámbar vivía DENTRO del q-btn
+                     «Dependencias» y un comentario mío —de T044— lo llamaba «la
+                     insignia de estado dentro del control». No era una insignia:
+                     sin fondo ni borde propios, y el textContent del botón era
+                     literalmente «warning Dependencias», o sea el glifo era
+                     parte del RÓTULO, que el criterio nombra como superficie
+                     propia del control.
+                   · 18.ª: lo saqué del botón y lo puse como «hermano suyo,
+                     FUERA de él». 🔴 Falso: el slot #after se rinde DENTRO del
+                     `label.q-field` del q-select, que es otro control. Medido a
+                     dos niveles: icono rect 879,247,18,18 contenido en el del
+                     campo 437,236,566,60, `fondo_propio=False`,
+                     `borde_propio=False`, `position=relative`. Lo mismo que la
+                     17.ª, un control más arriba. Cinco de los seis críticos lo
+                     cazaron.
+                   🔑 Lo que aprendí recién: mover un color de estado de un
+                   control a su contenedor no lo saca de la clase, porque la
+                   clase no es «estar dentro de ESTE botón», es «caer sobre la
+                   superficie propia de ALGÚN control». Y mi propia sonda lo
+                   publicó como cero porque su lista de controles no incluía
+                   `.q-field`: el hueco estaba en el instrumento, no en el dato.
+                   Ahora el estado lo lleva el TEXTO del rótulo de la acción, en
+                   teal, sin ningún color de estado en juego: la palabra dice
+                   qué pasa y el color dice que es una acción. El dato
+                   (`areDependenciesMet`) sigue siendo el que decide qué se
+                   lee. -->
               <q-btn
                 flat
                 dense
@@ -88,7 +82,11 @@
                 color="primary"
                 @click="openDependenciesForm"
               >
-                {{ $t("reporting.scheduleForm.dependenciesLabel") }}
+                {{
+                  areDependenciesMet
+                    ? $t("reporting.scheduleForm.dependenciesLabel")
+                    : $t("reporting.scheduleForm.dependenciesMissing")
+                }}
               </q-btn>
             </template>
           </observer-dropdown>
