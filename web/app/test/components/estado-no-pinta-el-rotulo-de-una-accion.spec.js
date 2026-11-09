@@ -78,21 +78,91 @@ const CONTROLES = new Set([
   "q-tree",
 ]);
 
-const ETIQUETA = /<(\/?)([a-zA-Z][\w.-]*)([^>]*?)(\/?)>/g;
+// 🔴 19.ª corrida, y esto es la causa de que esta guarda pasara 24/24 mientras
+// el DOM medía la violación: `[^>]*` corta la lista de atributos en el PRIMER
+// `>`, y en `v-if="item.checks.failing > 0"` ese `>` está DENTRO del valor. El
+// `class="obs-ctx__fail"` que venía después nunca entraba en los atributos, así
+// que el censo no podía ver el elemento. No era una codificación nueva: era que
+// mi parser no respetaba las comillas.
+const ETIQUETA = /<(\/?)([a-zA-Z][\w.-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?)(\/?)>/g;
 const VACIOS = new Set(["br", "hr", "img", "input", "q-separator", "q-space"]);
 
-function pintaEstado(atributos) {
-  return (
-    COLOR.test(atributos) ||
-    CLASE.test(atributos) ||
-    CLASE_COMPUESTA.test(atributos)
-  );
+// 🪤 La CUARTA codificación: el color de estado puede venir de una clase del
+// PROYECTO cuya regla CSS pone el token (`.obs-ctx__fail { color:
+// var(--q-negative) }`). Ninguna de las tres pasadas anteriores la veía, porque
+// todas miraban la escritura del atributo. Así que las clases no se enumeran a
+// mano: se LEEN de los bloques <style> del árbol.
+const PROPIEDAD =
+  /^\s*(color|background|background-color|border|border-color|border-top-color|border-left-color|border-right-color|border-bottom-color)\s*:\s*(.+)$/;
+const TOKEN_ESTADO = new RegExp(`var\\(\\s*--q-${UNO}\\s*\\)`);
+
+// Devuelve {clase: {token, propiedad, anidada}} para un archivo.
+export function clasesDeEstado(fuente) {
+  const salida = {};
+  for (const [, bloque] of fuente.matchAll(
+    /<style[^>]*>([\s\S]*?)<\/style>/g,
+  )) {
+    const lineas = bloque.split("\n");
+    for (let i = 0; i < lineas.length; i += 1) {
+      const m = PROPIEDAD.exec(lineas[i]);
+      if (!m || !TOKEN_ESTADO.test(m[2])) continue;
+      // el selector es la línea anterior que no es una propiedad
+      for (let j = i - 1; j >= 0; j -= 1) {
+        const cand = lineas[j];
+        if (!cand.trim() || PROPIEDAD.test(cand)) continue;
+        const sel = cand.trim().replace(/\{$/, "").trim();
+        // ¿está anidado bajo otro selector con más indentación arriba?
+        const sangria = cand.length - cand.trimStart().length;
+        let anidada = false;
+        for (let k = j - 1; k >= 0; k -= 1) {
+          const arriba = lineas[k];
+          if (!arriba.trim() || PROPIEDAD.test(arriba)) continue;
+          const sa = arriba.length - arriba.trimStart().length;
+          if (sa < sangria) anidada = true;
+          break;
+        }
+        for (const [, clase] of sel.matchAll(/\.([A-Za-z0-9_-]+)/g)) {
+          salida[clase] = {
+            token: "--q-" + TOKEN_ESTADO.exec(m[2])[1],
+            propiedad: m[1],
+            selector: sel,
+            anidada,
+          };
+        }
+        break;
+      }
+    }
+  }
+  return salida;
+}
+
+function clasesDelElemento(atributos) {
+  const fuera = [];
+  for (const [, valor] of atributos.matchAll(
+    /[\w:-]*class\s*=\s*["`]([\s\S]*?)["`]/g,
+  ))
+    fuera.push(...(valor.match(/[A-Za-z0-9_-]+/g) || []));
+  return fuera;
+}
+
+function pintaEstado(atributos, delProyecto = {}) {
+  if (COLOR.test(atributos)) return "atributo color";
+  if (CLASE.test(atributos)) return "clase text-<estado>";
+  if (CLASE_COMPUESTA.test(atributos)) return "clase compuesta";
+  for (const c of clasesDelElemento(atributos)) {
+    const d = delProyecto[c];
+    // una regla ANIDADA pinta a un descendiente, no a este elemento
+    if (d && !d.anidada)
+      return `clase del proyecto .${c} (${d.propiedad}: ${d.token})`;
+  }
+  return null;
 }
 
 // Censo: todo elemento con color de estado que cuelgue de un control, con la
 // CADENA de controles y el atributo CRUDO que se vio (enmienda s4: el booleano
 // solo no basta).
 export function estadoSobreUnControl(fuente, ruta = "") {
+  const delProyecto = clasesDeEstado(fuente);
   const plantilla = /<template>([\s\S]*)<\/template>/.exec(fuente);
   if (!plantilla) return [];
   const tpl = plantilla[1];
@@ -115,12 +185,14 @@ export function estadoSobreUnControl(fuente, ruta = "") {
       continue;
     }
     const cadena = pila.map((p) => p.nombre).filter((n) => CONTROLES.has(n));
-    if (cadena.length && !CONTROLES.has(nombre) && pintaEstado(atributos)) {
+    const via = pintaEstado(atributos, delProyecto);
+    if (cadena.length && !CONTROLES.has(nombre) && via) {
       hallados.push({
         ruta,
         etiqueta: nombre,
         linea: tpl.slice(0, m.index).split("\n").length + desplazamiento,
         cadena_de_control: cadena,
+        via,
         atributo_crudo: atributos.replace(/\s+/g, " ").trim(),
       });
     }
@@ -269,6 +341,85 @@ describe("un color de estado no pinta la superficie propia de un control (V2-G05
     expect(estadoSobreUnControl(claseCompuesta)).toHaveLength(1); // 🪤 compuesta
     expect(estadoSobreUnControl(fuera)).toEqual([]); // negativo: fuera
     expect(estadoSobreUnControl(sinPlantilla)).toEqual([]); // negativo: sin template
+  });
+
+  // Cuando el color de estado lo lleva un DESCENDIENTE (regla anidada), el
+  // elemento pintado tiene que ser el NÚMERO: es la exención textual del
+  // 2026-10-14 («el número rojo de un KPI que filtra») y el patrón que el
+  // proyecto ya usaba en `.obs-fleet__kpi-num--neg` junto a un
+  // `.obs-fleet__kpi-label` neutro.
+  const ANIDADAS_DECLARADAS = {
+    "src/components/agents/workspace/ContextColumn.vue:obs-ctx__fail":
+      "el rotulo del q-item clickable quedo en --obs-muted y el color de estado " +
+      "lo lleva el span.mono con item.checks.failing, que es el numero exento.",
+    "src/components/agents/workspace/ContextColumn.vue:obs-ctx__chip--on-neg":
+      "igual: el rotulo del q-chip clickable encendido va neutro y el rojo queda " +
+      "en el span.mono con failingCount.",
+  };
+
+  it("las reglas anidadas que pintan estado están declaradas y apuntan al número", async () => {
+    const fuentes = await leerVue();
+    const anidadas = [];
+    for (const { ruta, fuente } of fuentes) {
+      const clases = clasesDeEstado(fuente);
+      for (const [clase, d] of Object.entries(clases)) {
+        if (d.anidada) anidadas.push({ ruta, clase, ...d });
+      }
+    }
+    // toda regla anidada pinta sobre `.mono`, que es la clase del número
+    for (const a of anidadas) {
+      expect(a.selector, `${a.ruta} ${a.clase}`).toMatch(/^\.mono$/);
+    }
+    // Y el padre de cada una está declarado con su razón.
+    // 🪤 Acá puse primero un `(?:\s+[^\n]*\n)*?` y colgó vitest por
+    // backtracking catastrófico, porque `\s` cruza saltos de línea: 16 procesos
+    // de node girando hasta que los maté. Se recorre por líneas, que además se
+    // lee sin descifrar nada.
+    const padres = new Set();
+    for (const { ruta, fuente } of fuentes) {
+      for (const [, bloque] of fuente.matchAll(
+        /<style[^>]*>([\s\S]*?)<\/style>/g,
+      )) {
+        const lineas = bloque.split("\n");
+        let padre = null;
+        for (let i = 0; i < lineas.length; i += 1) {
+          const ln = lineas[i];
+          if (!ln.trim()) continue;
+          if (
+            ln.length === ln.trimStart().length &&
+            /^\.[A-Za-z0-9_-]+$/.test(ln.trim())
+          )
+            padre = ln.trim().slice(1);
+          if (
+            padre &&
+            /^\s+\.mono$/.test(ln) &&
+            TOKEN_ESTADO.test(lineas[i + 1] || "")
+          )
+            padres.add(`${ruta}:${padre}`);
+        }
+      }
+    }
+    expect([...padres].sort()).toEqual(Object.keys(ANIDADAS_DECLARADAS).sort());
+    for (const [sitio, razon] of Object.entries(ANIDADAS_DECLARADAS))
+      expect(razon.length, sitio).toBeGreaterThan(40);
+  });
+
+  it("🪤 el parser respeta las comillas: un `>` dentro de un atributo no corta la etiqueta", () => {
+    // Este es el control del fallo de la 19.ª: con `[^>]*` el `class` quedaba
+    // fuera de los atributos y el elemento era invisible para el censo.
+    const conMayor =
+      '<template><q-item clickable><q-item-label v-if="a.b.failing > 0" class="text-negative">x</q-item-label></q-item></template>';
+    expect(estadoSobreUnControl(conMayor)).toHaveLength(1);
+    // y el caso que motivó todo, con la clase del proyecto resuelta del <style>
+    const conClaseDelProyecto =
+      '<template><q-item clickable><div v-if="n > 0" class="mi-fallo">x</div></q-item></template>' +
+      "<style>\n.mi-fallo\n  color: var(--q-negative)\n</style>";
+    expect(estadoSobreUnControl(conClaseDelProyecto)).toHaveLength(1);
+    // negativo: la misma clase pero con la regla ANIDADA pinta al descendiente
+    const anidada =
+      '<template><q-item clickable><div class="mi-fallo">x</div></q-item></template>' +
+      "<style>\n.mi-fallo\n  color: var(--obs-muted)\n  .mono\n    color: var(--q-negative)\n</style>";
+    expect(estadoSobreUnControl(anidada)).toEqual([]);
   });
 
   it("el censo mira de verdad", async () => {

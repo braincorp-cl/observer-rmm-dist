@@ -230,9 +230,17 @@ watch(
 .obs-ctx__chip--on
   background: var(--obs-selected)
   color: var(--obs-text)
+// 🔴 050 (G05, 19.a corrida): el mismo defecto, latente. Esta clase se aplica al
+// q-chip `clickable` MISMO cuando el filtro «con fallas» esta encendido, asi que
+// el rotulo del control se iba entero a --q-negative. Ningun critico lo midio
+// porque el filtro arranca apagado y ese estado no se ejercio: lo encontro el
+// censo de la clase. Mismo arreglo y mismo patron aprobado: el numero en rojo,
+// el rotulo del control neutro, igual que .obs-ctx__chip--on.
 .obs-ctx__chip--on-neg
   background: var(--obs-selected)
-  color: var(--q-negative)
+  color: var(--obs-text)
+  .mono
+    color: var(--q-negative)
 .obs-ctx__list
   overflow: hidden
 .obs-ctx__empty
@@ -265,8 +273,25 @@ watch(
   color: var(--obs-text)
 .obs-ctx__desc
   color: var(--obs-muted)
+// 🔴 050 (G05, 19.a corrida): esta clase pintaba el ROTULO COMPLETO del
+// q-item-label en --q-negative, y el q-item es `clickable` (@click=open), o sea
+// color de estado sobre el rotulo de un control de navegacion. Medido en el DOM:
+// texto «1 chequeo fallando», rgb(197,40,45) claro y rgb(242,90,95) oscuro, sin
+// fondo ni borde propios, rect [90,236,253,14] contenido en el del control
+// [60,207,295,51], sin rotulo accesible propio. Tres de seis criticos lo
+// cazaron; la clausula del 2026-10-14 lo nombra: «viola si la superficie propia
+// del control, es decir su fondo, borde o ROTULO, lleva color de estado».
+// 🔑 Y el patron correcto ya estaba en el proyecto, aprobado el 2026-10-14 con
+// el ejemplo del «numero rojo de un KPI que filtra»: el NUMERO lleva el color de
+// estado y el ROTULO del control se queda neutro, que es exactamente como vive
+// .obs-fleet__kpi-num--neg junto a .obs-fleet__kpi-label. Acá el numero ya tenia
+// su propio span.mono, asi que el arreglo es mover el color a ese span. El dato
+// (item.checks.failing) no se pierde y el punto de salud de la izquierda sigue
+// llevando el estado en color con su fondo propio y su title.
 .obs-ctx__fail
-  color: var(--q-negative)
+  color: var(--obs-muted)
+  .mono
+    color: var(--q-negative)
 .obs-ctx__foot
   padding: 8px 14px
   font-size: 12px
