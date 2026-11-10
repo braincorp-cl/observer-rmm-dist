@@ -12,7 +12,7 @@ Páginas enlazadas desde la UI, más guías operativas independientes:
 |---|---|
 | `/` | `FileBar.vue` — botón "Docs" |
 | `/features/` | Página de resumen de características (no enlazada desde la UI): catálogo completo de features + plataformas soportadas |
-| `/videos/` | Página independiente (no enlazada desde la UI): videos del producto. Hoy el spot antirrobo (25 s, `#antirrobo`) y su continuación «Equipo perdido o robado» (31 s, `#modo-perdido`), ambos 1080p, con MP4 + WebM, póster WebP/JPG, subtítulos VTT ES/EN y JSON-LD `VideoObject`; archivos en `assets/videos/`. Enlazada desde `/features/#respuesta-endpoint` y `/features/#modo-perdido` |
+| ~~`/videos/`~~ | **DADA DE BAJA el 2026-11-05, hasta nuevo aviso.** La página y su media se movieron a `docs-site-fuera-de-linea/`, que `publish_docs.py` no sube, y la próxima publicación la purga del docroot. Se le quitaron el enlace del riel de las 17 páginas, las dos tarjetas del inicio, los cuatro párrafos «Míralo en acción» de `/features/` y la entrada del sitemap. Motivo: los dos videos muestran la consola **v1**. Cómo reponerla: `docs-site-fuera-de-linea/README.md` |
 | `/guide_gettingstarted/` | `InitialSetup.vue` — botón "Primeros pasos" |
 | `/functions/email_alerts/` | Guía independiente (no enlazada desde la UI): configuración de correos de alerta |
 | `/functions/mcp/` | Guía independiente (no enlazada desde la UI): conectar asistentes de IA (Claude Code, VS Code, Cursor, Claude Desktop, n8n) al servidor MCP (feature 045) |
@@ -43,7 +43,7 @@ llaves de API ya emitidas y el canal de check-in de la flota.
 **En inglés, y las funciones del producto bajo `/functions/`.** Así están
 `/faq/`, `/features/`, `/guide_*` y `/functions/{permissions,email_alerts,mcp,
 user_management,role_catalog}`. Quedan en español `/topologia/`, `/uso_aceptable/` y
-`/videos/`, anteriores a la convención; no son el modelo a seguir.
+`/videos/` (dada de baja), anteriores a la convención; no son el modelo a seguir.
 
 **Renombrar una ruta ya publicada exige un 301**, no borrarla: el sitio está indexado a
 propósito y un 404 tira el posicionamiento y rompe los enlaces externos. Las reglas van en
@@ -83,6 +83,14 @@ geolocalización de equipos**. Lo que hay implementado:
 **Lo que NO está resuelto:** el bilingüe es del lado del cliente, sin URLs
 separadas, así que **solo se indexa el español**. Para posicionar en inglés harían
 falta rutas propias (`/en/...`) con `hreflang`, que es duplicar las 7 páginas.
+
+⚠️ **Las capturas de consola están RETIRADAS desde el 2026-11-05.** Las 23 imágenes de
+`assets/shots/` y los 21 bloques `<figure class="doc-shot">` de `/features/` y
+`/guide_reports/` se movieron a `docs-site-fuera-de-linea/`. Motivo: ilustraban la consola
+**v1** y la UI v2 ya cubre las 19 superficies, pero su cabecera aún dice v1.4.42 y falta la
+tanda del sistema de diseño ⇒ se repone todo junto con la **2.0.0**. Guion:
+`scripts/docs/GUION-RECAPTURA-UI-V2.md`. El corolario de privacidad de abajo sigue vigente
+para esa re-captura.
 
 ⚠️ **Corolario para las capturas:** el sitio es indexable, así que no se publican
 datos que identifiquen el equipo de una persona. Las capturas de ubicación se toman

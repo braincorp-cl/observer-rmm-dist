@@ -14,7 +14,16 @@ name: Publish docs
 on:
   push:
     tags: ["v*"]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      purgar_igual:
+        description: >-
+          Ejecutar la purga aunque supere el umbral del 25 %. Sólo para una BAJA REAL de
+          páginas (p. ej. la baja de /videos/ y de las capturas v1 del 2026-11-05). En
+          cualquier otro caso, superar el umbral significa checkout incompleto y el job
+          tiene que ponerse rojo.
+        type: boolean
+        default: false
 
 jobs:
   publish-docs:
@@ -29,7 +38,7 @@ jobs:
           python-version: "3.12"
 
       - name: Qué se publicaría
-        run: python3 scripts/docs/publish_docs.py --simular
+        run: python3 scripts/docs/publish_docs.py --simular ${{ inputs.purgar_igual && '--purgar-igual' || '' }}
 
       # Sin continue-on-error: si la publicacion falla, el job tiene que ponerse rojo.
       # El changelog estuvo rezagado meses con los runs en verde por ese atajo.
@@ -37,4 +46,4 @@ jobs:
         env:
           DOCS_UPLOAD_USER: ${{ secrets.DOCS_UPLOAD_USER }}
           DOCS_UPLOAD_PASSWORD: ${{ secrets.DOCS_UPLOAD_PASSWORD }}
-        run: python3 scripts/docs/publish_docs.py
+        run: python3 scripts/docs/publish_docs.py ${{ inputs.purgar_igual && '--purgar-igual' || '' }}
