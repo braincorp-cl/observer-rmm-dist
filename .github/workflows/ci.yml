@@ -273,25 +273,28 @@ jobs:
       - name: lint:i18n
         run: npm run lint:i18n
 
-      # El corredor de pruebas del frontend (vitest + jsdom + @vue/test-utils,
-      # configurado en web/app/vitest.config.mjs) existia y NINGUN job lo
-      # ejecutaba: 28 pruebas que no corrian son 28 ceros silenciosos. Es el
-      # mismo hueco que se tapo en el job `go` el 2026-08-11, y pesa mas aca
-      # porque en release/v2 todo el trabajo es frontend.
+      # Hasta el 2026-11-05 NINGUN job ejecutaba las pruebas del frontend: el
+      # job terminaba en `quasar build` sin probar nada, asi que cada prueba que
+      # existia era un cero silencioso. Es el mismo hueco que se tapo en el job
+      # `go` el 2026-08-11, y pesa mas en release/v2, donde todo el trabajo es
+      # frontend.
       #
       # Entre lint:i18n y el build A PROPOSITO: las pruebas no dependen del
-      # bundle —vitest transforma las fuentes con su propio Vite 5 y las pruebas
-      # de presencia solo leen los .vue— y tardan segundos contra los minutos
-      # del build. Asi una prueba roja se ve sin pagar el `quasar build`.
+      # bundle -ni node:test ni vitest necesitan el `quasar build`- y tardan
+      # segundos contra los minutos del build. Asi una prueba roja se ve sin
+      # pagar el build.
       #
-      # `npm test` encadena los dos corredores que conviven en el repo:
-      # `test:node` (node:test, src/utils/coords.test.mjs) y `vitest run`
-      # (test/**/*.spec.js); la extension es el contrato, ver vitest.config.mjs.
-      # Aqui corre tambien el trinquete contra
-      # test/styles/q-tooltip-bg-white.baseline.json, que falla si alguien
-      # reintroduce `bg-white` en un q-tooltip (hallazgo #3 de
-      # AUDITORIA-COLOR.md). Verificado en local: con una etiqueta nueva el paso
-      # sale con RC=1.
+      # `npm test` corre los corredores que la rama tenga declarados en
+      # web/app/package.json, y la extension es el contrato:
+      #   - `test:node`  -> node:test sobre src/utils/coords.test.mjs. Esta en
+      #     las dos ramas y no necesita ninguna dependencia.
+      #   - `vitest run` -> test/**/*.spec.js con jsdom y @vue/test-utils segun
+      #     web/app/vitest.config.mjs. Solo en release/v2, donde vive el
+      #     rediseno de la UI; ahi corre tambien el trinquete contra
+      #     test/styles/q-tooltip-bg-white.baseline.json, que falla si alguien
+      #     reintroduce `bg-white` en un q-tooltip (hallazgo #3 de
+      #     AUDITORIA-COLOR.md). Verificado en local: con una etiqueta nueva el
+      #     paso sale con RC=1.
       #
       # Reusa el `npm ci` y la Node 22.22.2 que el job ya fija arriba: no hay
       # segunda instalacion ni segundo setup-node. Un fallo pone el job en rojo
