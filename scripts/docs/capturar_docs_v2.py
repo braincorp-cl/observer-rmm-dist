@@ -69,9 +69,15 @@ IP_PUBLICABLE = (r"^(192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|100\.64\.|10\.|172
 OCULTAR = [
     # (selector de hoja, regex sobre SU propio texto, selector del ancestro a esconder)
     (".q-banner", r"mantenimiento|maintenance", ".q-banner"),      # servidor en mantenimiento
-    # 🔑 El cliente de andamiaje no es sólo ruido visual: carga DESKTOP-4G49P7G, una
-    # máquina REAL con su IP de salida (207.248.205.50, fluitek). Esconderlo es también
-    # medida de privacidad, no sólo limpieza de la foto.
+    # 🔑 El cliente de andamiaje no es sólo ruido visual: carga un equipo REAL de un
+    # cliente, con su hostname y su IP de salida reales. Esconderlo es también medida de
+    # privacidad, no sólo limpieza de la foto.
+    #
+    # 🪤 Y por eso este comentario NO nombra ni el equipo ni el cliente ni la IP: este
+    # repositorio es PÚBLICO, y una regla de privacidad que escribe en claro el dato que
+    # protege lo publica igual, sólo que en el código en vez de en la foto. El detalle
+    # concreto vive en el hub privado (feature 050). La regla de abajo no necesita esos
+    # literales: casa por «Canario 050», que es el cliente de andamiaje.
     #
     # Ese equipo es WIN_REBOOT y está ahí de prestado: `canarios.sh flota050-on` lo mueve
     # al cliente canario y el teardown lo devuelve a su sitio. Así que esta regla puede
