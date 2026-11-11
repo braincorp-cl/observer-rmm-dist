@@ -8,6 +8,9 @@ export async function fetchChocosSoftware(params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 
@@ -19,6 +22,9 @@ export async function fetchAgentSoftware(agent_id, params = {}) {
     return data.software;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 

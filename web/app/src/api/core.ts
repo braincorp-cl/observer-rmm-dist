@@ -31,6 +31,9 @@ export async function fetchCustomFields(params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 

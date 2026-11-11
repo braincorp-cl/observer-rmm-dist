@@ -150,11 +150,14 @@
 
       <template v-slot:body-cell-entry_time="props">
         <q-td :props="props">
-          <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones -->
+          <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones.
+               V2-G01: la hora es un VALOR y va en mono; la fecha es interfaz y
+               se queda en Archivo. Se decide por la forma del trozo, no por su
+               posición: el formato lo elige el usuario. -->
           <span
             v-for="(parte, i) in formatDate(props.value).split(' ')"
             :key="i"
-            class="obs-nowrap-inline"
+            :class="['obs-nowrap-inline', { mono: esHoraDeReloj(parte) }]"
             >{{ parte }}
           </span>
         </q-td>
@@ -166,6 +169,8 @@
 <script>
 // composition imports
 import { ref, computed, watch, onMounted } from "vue";
+
+import { esHoraDeReloj } from "@/utils/format";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useClientDropdown } from "@/composables/clients";
@@ -293,9 +298,7 @@ export default {
     const visibleColumns = computed(() =>
       columns.value
         .map((c) => c.name)
-        .filter(
-          (n) => !props.agent || !["agent", "client", "site"].includes(n),
-        )
+        .filter((n) => !props.agent || !["agent", "client", "site"].includes(n))
         // Origen (feature 045) solo existe para acciones hechas por MCP.
         .filter(
           (n) =>
@@ -520,6 +523,7 @@ export default {
       openAuditDetail,
       formatActionColor,
       formatDate,
+      esHoraDeReloj,
     };
   },
 };

@@ -97,14 +97,17 @@
         <div class="text-subtitle2 q-mb-sm">
           {{ $t("erase.fileretrieval.filesTitle") }}
         </div>
-        <div v-if="detail.result && detail.result.plan" class="text-caption q-mb-sm">
+        <div
+          v-if="detail.result && detail.result.plan"
+          class="text-caption q-mb-sm"
+        >
           {{ $t("erase.fileretrieval.plan", { plan: detail.result.plan }) }}
         </div>
         <q-list bordered separator v-if="detail.files && detail.files.length">
           <q-item v-for="f in detail.files" :key="f.id">
             <q-item-section>
               <q-item-label>{{ f.source_path }}</q-item-label>
-              <q-item-label caption>{{ f.size }} B</q-item-label>
+              <q-item-label caption>{{ bytes2Human(f.size) }}</q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-btn
@@ -137,6 +140,7 @@ import {
   downloadRetrievedFile,
 } from "@/api/erase";
 import { notifySuccess, notifyError } from "@/utils/notify";
+import { bytes2Human } from "@/utils/format";
 
 const CANCELABLE = ["pending", "dispatched", "uploading"];
 
@@ -294,6 +298,7 @@ export default {
       openOrder,
       cancel,
       download,
+      bytes2Human,
     };
   },
 };

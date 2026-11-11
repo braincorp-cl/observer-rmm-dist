@@ -233,18 +233,18 @@ export default {
 
     const columns = computed(() => [
       { name: "usuario", classes: "obs-wrap-words", label: t("agentActivity.user"), field: "usuario", align: "left" },
-      { name: "primero", classes: "obs-nowrap", label: t("agentActivity.firstSeen"), field: "primero", align: "left" },
-      { name: "ultimo", classes: "obs-nowrap", label: t("agentActivity.lastSeen"), field: "ultimo", align: "left" },
-      { name: "activo", classes: "obs-nowrap", label: t("agentActivity.activeTime"), field: (r) => hm(r.activo_min), align: "right" },
-      { name: "inactivo", classes: "obs-nowrap", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
+      { name: "primero", classes: "mono obs-nowrap", label: t("agentActivity.firstSeen"), field: "primero", align: "left" },
+      { name: "ultimo", classes: "mono obs-nowrap", label: t("agentActivity.lastSeen"), field: "ultimo", align: "left" },
+      { name: "activo", classes: "mono obs-nowrap", label: t("agentActivity.activeTime"), field: (r) => hm(r.activo_min), align: "right" },
+      { name: "inactivo", classes: "mono obs-nowrap", label: t("agentActivity.idleTime"), field: (r) => hm(r.inactivo_min), align: "right" },
       {
-        name: "jornada", classes: "obs-nowrap",
+        name: "jornada", classes: "mono obs-nowrap",
         label: t("agentActivity.workdayCol"),
         field: (r) => (r.primer_activo ? `${r.primer_activo}–${r.ultimo_activo}` : "—"),
         align: "left",
       },
       {
-        name: "pausas", classes: "obs-nowrap",
+        name: "pausas", classes: "mono obs-nowrap",
         label: t("agentActivity.breaks"),
         field: (r) => (r.pausasMin ? `${(r.pausas || []).length} · ${hm(r.pausasMin)}` : "—"),
         align: "right",

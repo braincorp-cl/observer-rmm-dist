@@ -9,6 +9,10 @@ export async function fetchClients() {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 
@@ -18,6 +22,9 @@ export async function fetchClient(id) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde UN recurso, asi que el vacio es {} y no [].
+    return {};
   }
 }
 
@@ -43,6 +50,9 @@ export async function fetchSites() {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 
@@ -52,6 +62,9 @@ export async function fetchSite(id) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde UN recurso, asi que el vacio es {} y no [].
+    return {};
   }
 }
 
@@ -79,6 +92,10 @@ export async function fetchDeployments() {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 

@@ -303,6 +303,18 @@ export function getTimeLapse(unixtime: number) {
   }
 }
 
+// V2-G01 (2026-11-11): la vara separa las dos tipografias por lo que el dato ES,
+// no por donde cae: una FECHA es texto de interfaz y va en Archivo, pero LA HORA
+// es un valor dedicado y va en JetBrains Mono (pista 2026-10-18).
+//
+// Una celda de bitacora rinde las dos juntas, y el formato lo elige el usuario
+// (`store.state.dateFormat`, por defecto "MMM-DD-YYYY - HH:mm"), asi que NO se
+// puede decidir por la posicion del trozo: con ese formato el trozo del medio es
+// un guion. Lo que identifica a la hora es su forma de reloj.
+export function esHoraDeReloj(parte: string) {
+  return /\d{1,2}:\d{2}/.test(parte);
+}
+
 export function formatDate(
   dateString: string | number | Date,
   format = "MMM-DD-YYYY HH:mm",

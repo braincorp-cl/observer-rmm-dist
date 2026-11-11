@@ -41,6 +41,9 @@ export async function fetchAgents(params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 
@@ -52,6 +55,11 @@ export async function fetchAgent(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): aca el vacio es un OBJETO, no una lista. SummaryTab
+    // hace `summary.value = await fetchAgent(...)` y en la linea siguiente lee
+    // `summary.value.plat`: con undefined reventaba ahi mismo, antes de que la
+    // plantilla llegara a recorrer summary.physical_disks.
+    return {};
   }
 }
 
@@ -108,6 +116,10 @@ export async function fetchAgentHistory(agent_id, params = {}) {
     return rows;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 
@@ -119,6 +131,10 @@ export async function fetchAgentChecks(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 
@@ -130,6 +146,9 @@ export async function fetchAgentTasks(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde una COLECCION, asi que el vacio es [].
+    return [];
   }
 }
 
@@ -169,6 +188,10 @@ export async function fetchAgentProcesses(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 
@@ -189,6 +212,10 @@ export async function fetchAgentEventLog(agent_id, logType, days, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 
@@ -200,6 +227,9 @@ export async function fetchAgentMeshCentralURLs(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde UN recurso, asi que el vacio es {} y no [].
+    return {};
   }
 }
 
@@ -209,6 +239,9 @@ export async function fetchAgentWebVNCUrl(agent_id, port) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): invariante — una lectora nunca devuelve undefined.
+    // Este endpoint rinde UN recurso, asi que el vacio es {} y no [].
+    return {};
   }
 }
 
@@ -277,6 +310,10 @@ export async function fetchAgentNotes(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 

@@ -233,6 +233,34 @@ body.body--dark
     white-space: normal
     overflow-wrap: anywhere
 
+// V2-G04 (2026-11-11): axe marcó `.dimmed-line-number` con 1,75 de contraste en
+// los DOS temas, en el diálogo «Nueva plantilla base» de reportes. Es clase
+// propia de Monaco (viewParts/lineNumbers), que la pinta desde su tema de
+// fábrica —el proyecto no define ninguno— y a propósito la deja tenue para
+// marcar las líneas fuera del foco. A 1,75 no se lee.
+//
+// Se corrige con el token que el proyecto ya validó a 4,5:1 (la nota de
+// $obs-d-faint dice que la maqueta usaba #6F849E y NO llegaba). El arreglo de
+// fondo sería un `monaco.editor.defineTheme` propio para los dos temas; esto
+// cubre la violación sin tocar cada instancia del editor.
+.monaco-editor
+  .line-numbers.dimmed-line-number
+    color: var(--obs-faint) !important
+
+// V2-G02 (2026-11-11): un q-chip SIN prop `color` se queda en el gris por
+// defecto de Quasar (#e0e0e0 = rgb(224,224,224)), que no es ninguno de nuestros
+// tokens y, por ser un valor fijo, NO cambia con el tema: en oscuro queda un
+// bloque claro. Medido en el detalle de Perdidos y presente en 30 de los 32
+// q-chip del árbol, así que se arregla con UNA regla y no con 30 ediciones.
+//
+// Los chips que SÍ declaran color no se tocan: Quasar los pinta con
+// `.bg-<color>{background:var(--q-<color>)!important}`, y el !important gana
+// sobre esta regla. Comprobado en la hoja servida f0fd0b83.css.
+.q-chip
+  background: var(--obs-raised)
+  color: var(--obs-text)
+  border: 1px solid var(--obs-border)
+
 // Banda de advertencia del encabezado (modo mantenimiento): el texto sigue al
 // tema; en claro el ámbar es oscuro y el negro no llegaba a AA (UI-D04).
 .obs-banner-warn

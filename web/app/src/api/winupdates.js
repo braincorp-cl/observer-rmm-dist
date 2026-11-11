@@ -11,6 +11,10 @@ export async function fetchAgentUpdates(agent_id, params = {}) {
     return data;
   } catch (e) {
     console.error(e);
+    // V2-G11 (2026-11-11): sin este return la funcion devuelve undefined y el
+    // llamador lo asigna a las filas de una q-table, que lee rows.length y
+    // revienta. Un fallo de red tiene que dar tabla vacia, no excepcion.
+    return [];
   }
 }
 

@@ -510,6 +510,15 @@ module.exports = {
         // Campo de credencial de la configuración global (contraseña SMTP,
         // tokens de Twilio y Mesh, clave de API del asistente de IA).
         "src/components/ui/SecretInput.vue",
+        // Pasada global T051 (2026-11-11, V2-G09): faltaban en ESTA lista y el gate
+        // enumera archivos, asi que no se quejaba. Censo congelado en
+        // test/gates/censo-i18n-dos-listas.spec.js para que la proxima omision falle en CI.
+        "src/components/access/AccessLayout.vue",
+        "src/components/agents/FileRetrievalDialog.vue",
+        "src/components/agents/WipeOrderDialog.vue",
+        "src/components/remote/RemoteWindowChrome.vue",
+        "src/components/shell/ObsSectionNav.vue",
+        "src/components/ui/ObsPageHead.vue",
       ],
       extends: ["plugin:@intlify/vue-i18n/recommended"],
       rules: {
