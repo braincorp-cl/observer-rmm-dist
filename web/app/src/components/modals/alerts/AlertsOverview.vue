@@ -276,6 +276,8 @@ export default {
           field: "alert_time",
           align: "left",
           sortable: true,
+          // V2-G01: marca de tiempo dedicada.
+          classes: "mono",
           format: (a) => this.formatDate(a),
         },
         {
@@ -298,6 +300,8 @@ export default {
           field: "hostname",
           align: "left",
           sortable: true,
+          // V2-G07: token sin espacios que fijaría el ancho de la columna.
+          classes: "obs-break-anywhere",
         },
         {
           name: "alert_type",
@@ -335,6 +339,8 @@ export default {
           field: "resolved_on",
           align: "left",
           sortable: true,
+          // V2-G01: marca de tiempo dedicada.
+          classes: "mono",
           format: (a) => this.formatDate(a),
         },
         {
@@ -343,6 +349,8 @@ export default {
           field: "snoozed_until",
           align: "left",
           sortable: true,
+          // V2-G01: marca de tiempo dedicada.
+          classes: "mono",
           format: (a) => this.formatDate(a),
         },
         {

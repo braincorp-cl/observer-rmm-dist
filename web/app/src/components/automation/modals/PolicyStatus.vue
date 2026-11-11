@@ -144,7 +144,8 @@
               }}</q-td>
               <q-td v-else>{{ $t("policyStatus.awaitingOutput") }}</q-td>
               <!-- last run -->
-              <q-td>{{
+              <!-- V2-G01: mono sólo cuando hay marca de tiempo. -->
+              <q-td :class="{ mono: !!props.row.last_run }">{{
                 props.row.last_run
                   ? formatDate(props.row.last_run)
                   : $t("policyStatus.never")

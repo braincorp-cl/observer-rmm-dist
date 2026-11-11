@@ -264,7 +264,10 @@ export default {
       { name: "capturas", classes: "mono obs-nowrap", label: t("agentActivity.captures"), field: "capturas", align: "right" },
       { name: "procs", classes: "obs-wrap-words", label: t("agentActivity.topProcesses"), field: "procsStr", align: "left" },
       { name: "sitios", classes: "obs-wrap-words", label: t("agentActivity.topSites"), field: "sitiosStr", align: "left" },
-      { name: "urls", label: t("agentActivity.topUrls"), field: "urlsStr", align: "left" },
+      { name: "urls", label: t("agentActivity.topUrls"), field: "urlsStr", align: "left",
+  // V2-G07: token sin espacios que fijaría el ancho de la columna.
+  classes: "obs-break-anywhere",
+},
       { name: "red", classes: "obs-wrap-words", label: t("agentActivity.network"), field: "redStr", align: "left" },
     ]);
 

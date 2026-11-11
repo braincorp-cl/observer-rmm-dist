@@ -200,7 +200,7 @@
             </q-td>
             <q-td>{{ props.row.first_name }} {{ props.row.last_name }}</q-td>
             <q-td>{{ props.row.email }}</q-td>
-            <q-td v-if="props.row.last_login">{{
+            <q-td v-if="props.row.last_login" class="mono">{{
               formatDate(props.row.last_login)
             }}</q-td>
             <q-td v-else>{{ $t("adminManager.never") }}</q-td>
@@ -427,6 +427,8 @@ export default {
           field: "last_login_ip",
           align: "left",
           sortable: true,
+          // V2-G07: token sin espacios que fijaría el ancho de la columna.
+          classes: "obs-break-anywhere",
         },
       ];
     },

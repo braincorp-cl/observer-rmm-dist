@@ -1077,6 +1077,8 @@ export default {
           field: "hostname",
           sortable: true,
           align: "left",
+          // V2-G07: token sin espacios que fijaría el ancho de la columna.
+          classes: "obs-break-anywhere",
         },
         {
           name: "description",

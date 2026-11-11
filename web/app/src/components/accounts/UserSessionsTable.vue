@@ -50,14 +50,14 @@
                  desconectar. -->
             <td>
               <span
-                class="obs-rej__host"
+                class="obs-rej__host mono"
                 :data-fila="props.rowIndex"
                 :tabindex="props.rowIndex === filaFoco ? 0 : -1"
                 @focus="filaFoco = props.rowIndex"
                 >{{ formatDate(props.row.created) }}</span
               >
             </td>
-            <td>{{ formatDate(props.row.expiry) }}</td>
+            <td class="mono">{{ formatDate(props.row.expiry) }}</td>
             <td>
               <q-btn
                 size="sm"

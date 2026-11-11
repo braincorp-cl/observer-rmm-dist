@@ -382,7 +382,7 @@
               >
             </q-td>
             <q-td v-else>{{ $t("agentTabs.tasks.awaitingOutput") }}</q-td>
-            <q-td v-if="props.row.task_result.last_run">{{
+            <q-td v-if="props.row.task_result.last_run" class="mono">{{
               formatDate(props.row.task_result.last_run)
             }}</q-td>
             <q-td v-else>{{ $t("agentTabs.tasks.hasNotRun") }}</q-td>

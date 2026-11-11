@@ -103,7 +103,9 @@
       </template>
 
       <template v-slot:body-cell-measured_at="props">
-        <q-td :props="props">{{ formatDate(props.row.measured_at) }}</q-td>
+        <q-td :props="props" class="mono">{{
+          formatDate(props.row.measured_at)
+        }}</q-td>
       </template>
     </q-table>
 
@@ -138,7 +140,9 @@
           }}</q-td>
         </template>
         <template v-slot:body-cell-changed_at="props">
-          <q-td :props="props">{{ formatDate(props.row.changed_at) }}</q-td>
+          <q-td :props="props" class="mono">{{
+            formatDate(props.row.changed_at)
+          }}</q-td>
         </template>
       </q-table>
     </div>
@@ -272,6 +276,8 @@ export default {
         field: "device_id",
         classes: "mono",
         align: "left",
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "previous_status",

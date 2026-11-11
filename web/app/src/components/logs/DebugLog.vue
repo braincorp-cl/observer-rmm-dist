@@ -117,7 +117,7 @@
       </template>
 
       <template v-slot:body-cell-entry_time="props">
-        <q-td :props="props">
+        <q-td :props="props" class="mono">
           {{ formatDate(props.value) }}
         </q-td>
       </template>

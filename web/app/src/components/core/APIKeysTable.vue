@@ -68,11 +68,11 @@
             {{ props.row.username }}
           </q-td>
           <!-- expiration -->
-          <q-td>
+          <q-td class="mono">
             {{ formatDate(props.row.expiration) }}
           </q-td>
           <!-- created time -->
-          <q-td>
+          <q-td class="mono">
             {{ formatDate(props.row.created_time) }}
           </q-td>
           <q-td>

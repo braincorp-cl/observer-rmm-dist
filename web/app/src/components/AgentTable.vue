@@ -472,7 +472,7 @@
               <q-tooltip>{{ $t("agentTable.agentOnline") }}</q-tooltip>
             </q-icon>
           </q-td>
-          <q-td key="last_seen" :props="props">{{
+          <q-td key="last_seen" :props="props" class="mono">{{
             formatDate(props.row.last_seen)
           }}</q-td>
           <q-td key="boot_time" :props="props">{{

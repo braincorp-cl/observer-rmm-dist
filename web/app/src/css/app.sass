@@ -179,16 +179,37 @@ body.body--dark
     white-space: normal
     padding-left: 8px
     padding-right: 8px
-  // anywhere (no break-word): solo anywhere reduce el ancho mínimo de la columna
-  // en una tabla de ancho automático; una URL o GUID ya no fija la columna.
+  // V2-G07 (invertido 2026-11-11, con la enmienda de V2-G06 aprobada).
+  //
+  // El default era `anywhere` porque sólo `anywhere` reduce el ancho mínimo de
+  // la columna en una tabla de ancho automático, y así una URL o un GUID no la
+  // fijaba. Pero `anywhere` parte la palabra SIEMPRE, aunque cabría entera en
+  // la línea siguiente, y eso es la violación que persigue V2-G07: medido en
+  // mant-tasks con «Esperando», «ejecutado», «convergencia» y
+  // «(CAP_SYS_MODULE)», en los dos temas.
+  //
+  // Los dos criterios se empujaban: el hack que evitaba el scroll de G06 era el
+  // que rompía G07, y 54 de las 56 columnas de prosa del árbol no tenían
+  // escape, así que el default estaba al revés. La enmienda de G06 amnistía el
+  // scroll propio de una tabla ancha -lo que cuenta es el de la PÁGINA, con sus
+  // columnas alcanzables-, así que el default pasa a ser el seguro para prosa.
+  //
+  // 🔑 `break-word` TAMBIÉN parte un token largo cuando no cabe; lo único que
+  // cambia es el ancho mínimo. Por eso el opt-in de abajo sólo hace falta donde
+  // un token fijaría la columna ancha, y eso lo decide la MEDICIÓN.
   .q-table td
+    overflow-wrap: break-word
+  // Opt-in: columnas con URL, hostname, correo o identificador largo sin
+  // espacios. Ahí el corte dentro del token es deliberado y la vara lo admite.
+  .q-table td.obs-break-anywhere
     overflow-wrap: anywhere
   // Valores cortos que no se parten (fecha, usuario, IP, tamaño, badge, botón):
   // con anywhere la tabla los cortaba letra a letra para no desbordar.
   .q-table td.obs-nowrap
     white-space: nowrap
     overflow-wrap: normal
-  // Texto que se parte solo entre palabras (fecha y hora, mensajes).
+  // Conservada por compatibilidad: desde la inversión coincide con el default,
+  // así que las columnas que ya la llevan no necesitan cambiar.
   .q-table td.obs-wrap-words
     overflow-wrap: break-word
   .obs-nowrap-inline

@@ -116,7 +116,9 @@
         </template>
 
         <template v-slot:body-cell-created_at="props">
-          <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
+          <q-td :props="props" class="mono">{{
+            formatDate(props.row.created_at)
+          }}</q-td>
         </template>
 
         <template v-slot:body-cell-actions="props">
@@ -272,7 +274,9 @@
         </template>
 
         <template v-slot:body-cell-received_at="props">
-          <q-td :props="props">{{ formatDate(props.row.received_at) }}</q-td>
+          <q-td :props="props" class="mono">{{
+            formatDate(props.row.received_at)
+          }}</q-td>
         </template>
 
         <template v-slot:body-cell-actions="props">
@@ -518,6 +522,8 @@ export default {
         field: "process_id",
         align: "left",
         sortable: true,
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "client",
@@ -531,6 +537,8 @@ export default {
         label: t("erase.view.colEquipmentSerial"),
         field: "equipment_serial",
         align: "left",
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "asset_tag",
@@ -693,12 +701,16 @@ export default {
         field: "process_id",
         align: "left",
         sortable: true,
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "equipment_serial",
         label: t("erase.reconciliation.equipmentSerial"),
         field: "equipment_serial",
         align: "left",
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "received_at",

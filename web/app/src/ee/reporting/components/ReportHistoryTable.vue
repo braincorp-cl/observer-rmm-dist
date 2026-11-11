@@ -290,6 +290,8 @@ const columns = computed<QTableColumn[]>(() => [
     field: "date_created",
     align: "left",
     sortable: true,
+    // V2-G01: marca de tiempo dedicada.
+    classes: "mono",
     format: (val: string) => formatDate(val),
   },
 ]);

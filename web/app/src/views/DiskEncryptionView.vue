@@ -95,7 +95,7 @@
       </template>
 
       <template v-slot:body-cell-measured_at="props">
-        <q-td :props="props">{{ formatDate(props.row.measured_at) }}</q-td>
+        <q-td :props="props" class="mono">{{ formatDate(props.row.measured_at) }}</q-td>
       </template>
     </q-table>
   </q-page>
@@ -157,6 +157,8 @@ export default {
         field: "hostname",
         align: "left",
         sortable: true,
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "client_name",

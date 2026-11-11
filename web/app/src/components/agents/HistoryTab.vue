@@ -68,7 +68,7 @@
       </template>
 
       <template v-slot:body-cell-time="props">
-        <q-td :props="props">
+        <q-td :props="props" class="mono">
           {{ formatDate(props.row.time) }}
         </q-td>
       </template>

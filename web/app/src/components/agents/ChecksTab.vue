@@ -476,7 +476,8 @@
               >{{ props.row.check_result.more_info }}</span
             >
           </q-td>
-          <q-td>{{
+          <!-- V2-G01: la marca de tiempo en mono; el «Nunca» es interfaz. -->
+          <q-td :class="{ mono: !!props.row.check_result.last_run }">{{
             props.row.check_result.last_run
               ? formatDate(props.row.check_result.last_run)
               : $t("agentTabs.checks.never")

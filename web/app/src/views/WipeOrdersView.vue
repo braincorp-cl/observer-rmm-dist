@@ -91,7 +91,7 @@
       </template>
 
       <template v-slot:body-cell-ordered_at="props">
-        <q-td :props="props">{{ formatDate(props.row.ordered_at) }}</q-td>
+        <q-td :props="props" class="mono">{{ formatDate(props.row.ordered_at) }}</q-td>
       </template>
 
       <template v-slot:body-cell-actions="props">
@@ -188,6 +188,8 @@ export default {
         field: "agent_hostname",
         align: "left",
         sortable: true,
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "status",

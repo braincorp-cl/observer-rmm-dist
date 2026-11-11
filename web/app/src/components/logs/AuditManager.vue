@@ -151,13 +151,14 @@
       <template v-slot:body-cell-entry_time="props">
         <q-td :props="props">
           <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones.
-               V2-G01: la hora es un VALOR y va en mono; la fecha es interfaz y
-               se queda en Archivo. Se decide por la forma del trozo, no por su
-               posición: el formato lo elige el usuario. -->
+               V2-G01 (enmienda 2026-11-11): la marca de tiempo es un VALOR y
+               va ENTERA en mono, no sólo su hora: así las horas quedan
+               alineadas columna contra columna. El corte en trozos se queda,
+               pero por el salto de línea, no por la tipografía. -->
           <span
             v-for="(parte, i) in formatDate(props.value).split(' ')"
             :key="i"
-            :class="['obs-nowrap-inline', { mono: esHoraDeReloj(parte) }]"
+            class="obs-nowrap-inline mono"
             >{{ parte }}
           </span>
         </q-td>
@@ -169,8 +170,6 @@
 <script>
 // composition imports
 import { ref, computed, watch, onMounted } from "vue";
-
-import { esHoraDeReloj } from "@/utils/format";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useClientDropdown } from "@/composables/clients";
@@ -523,7 +522,6 @@ export default {
       openAuditDetail,
       formatActionColor,
       formatDate,
-      esHoraDeReloj,
     };
   },
 };

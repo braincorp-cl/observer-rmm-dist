@@ -192,6 +192,8 @@ const columns = computed<QTableColumn[]>(() => [
     sortable: false,
     classes: "obs-wrap-words",
     format: (val: string[]) => val.join(", "),
+    // V2-G07: token sin espacios que fijaría el ancho de la columna.
+    classes: "obs-break-anywhere",
   },
   {
     name: "send_report_email",
@@ -208,6 +210,9 @@ const columns = computed<QTableColumn[]>(() => [
     field: "last_run",
     align: "center",
     sortable: true,
+    // V2-G01: mono SÓLO cuando rinde marca de tiempo; el rótulo «Nunca» es
+    // interfaz y se queda en Archivo.
+    classes: (row: { last_run?: string }) => (row.last_run ? "mono" : ""),
     format: (val: string) =>
       val ? formatDate(val) : t("reporting.scheduleTable.neverLabel"),
   },

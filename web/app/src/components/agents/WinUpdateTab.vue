@@ -202,7 +202,7 @@
               props.row.description
             }}</q-tooltip>
           </q-td>
-          <q-td>{{ formatDate(props.row.date_installed) }}</q-td>
+          <q-td class="mono">{{ formatDate(props.row.date_installed) }}</q-td>
         </q-tr>
       </template>
     </q-table>

@@ -104,7 +104,8 @@
               <span v-if="props.row.action_type === 'agentupdate'">{{
                 getNextAgentUpdateTime()
               }}</span>
-              <span v-else>{{
+              <!-- V2-G01: mono sólo en la rama de marca de tiempo. -->
+              <span v-else :class="{ mono: props.row.action_type === 'schedreboot' }">{{
                 props.row.action_type === "schedreboot"
                   ? formatDate(props.row.due)
                   : props.row.due

@@ -73,7 +73,7 @@
       :loading-label="$t('lostEquipment.loading')"
     >
       <template v-slot:body-cell-marked_at="props">
-        <q-td :props="props">{{ formatDate(props.row.marked_at) }}</q-td>
+        <q-td :props="props" class="mono">{{ formatDate(props.row.marked_at) }}</q-td>
       </template>
 
       <!-- T013 · RF-11: el estado de cifrado del equipo, sólo REPORTADO. Mismo
@@ -599,6 +599,8 @@ export default {
         field: "hostname",
         align: "left",
         sortable: true,
+        // V2-G07: token sin espacios que fijaría el ancho de la columna.
+        classes: "obs-break-anywhere",
       },
       {
         name: "client_name",

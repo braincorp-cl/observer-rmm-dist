@@ -48,7 +48,8 @@
           <q-card-section>
             <div class="row">
               <div class="col">
-                <div class="text-subtitle2">
+                <!-- V2-G01: marca de tiempo dedicada. -->
+                <div class="text-subtitle2 mono">
                   {{ formatDate(props.row.entry_time) }}
                 </div>
                 <div class="text-caption">{{ props.row.username }}</div>
