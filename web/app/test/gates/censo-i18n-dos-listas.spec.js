@@ -48,7 +48,10 @@ describe("V2-G09 · censo de las dos listas del gate de i18n", () => {
   }
 
   it("el censo se pudo medir (sin esto, cualquier verde es ciego)", () => {
-    expect(fallo, `no se pudo calcular el diff contra origin/main: ${fallo}`).toBeNull();
+    expect(
+      fallo,
+      `no se pudo calcular el diff contra origin/main: ${fallo}`,
+    ).toBeNull();
     expect(vue).not.toBeNull();
     expect(
       vue.length,
@@ -58,17 +61,29 @@ describe("V2-G09 · censo de las dos listas del gate de i18n", () => {
   });
 
   it("cada .vue del diff figura en el override de .eslintrc.js", () => {
+    // Sin censo no hay nada que comprobar: fallar con el motivo, no reventar
+    // con un TypeError al llamar .filter sobre null (medido en CI el 2026-11-11).
+    expect(vue, `el censo no se pudo medir: ${fallo}`).not.toBeNull();
     const eslintrc = readFileSync(resolve(APP, ".eslintrc.js"), "utf8");
     const faltan = vue.filter((f) => !eslintrc.includes(f));
-    expect(faltan, `faltan en el override de .eslintrc.js:\n  ${faltan.join("\n  ")}`).toEqual([]);
+    expect(
+      faltan,
+      `faltan en el override de .eslintrc.js:\n  ${faltan.join("\n  ")}`,
+    ).toEqual([]);
   });
 
   it("cada .vue del diff figura en el script lint:i18n de package.json", () => {
     const pkg = JSON.parse(readFileSync(resolve(APP, "package.json"), "utf8"));
+    // Sin censo no hay nada que comprobar: fallar con el motivo, no reventar
+    // con un TypeError al llamar .filter sobre null (medido en CI el 2026-11-11).
+    expect(vue, `el censo no se pudo medir: ${fallo}`).not.toBeNull();
     const script = pkg.scripts["lint:i18n"];
     expect(script, "no existe el script lint:i18n").toBeTruthy();
     const faltan = vue.filter((f) => !script.includes(f));
-    expect(faltan, `faltan en el script lint:i18n:\n  ${faltan.join("\n  ")}`).toEqual([]);
+    expect(
+      faltan,
+      `faltan en el script lint:i18n:\n  ${faltan.join("\n  ")}`,
+    ).toEqual([]);
   });
 
   it("control negativo: un .vue inventado NO figura en ninguna lista", () => {
