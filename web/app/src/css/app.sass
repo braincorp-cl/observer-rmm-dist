@@ -1008,14 +1008,35 @@ body.body--dark
 .q-dialog .q-tabs--vertical .q-tab
   height: auto
   min-height: 36px
-// 050 (ola 6, G08): el aviso de un campo («Valor por defecto: …») va en una
-// línea; si no cabe se corta con elipsis y autotitle pone el texto entero en title.
+// 050 (ola 6, G08 — REVERTIDO 2026-11-12 por decisión del usuario en V2-G06).
+//
+// La regla anterior ponía el aviso de un campo en UNA línea, lo cortaba con
+// elipsis y confiaba en que `autotitle` dejara el texto entero en `title`. Eso
+// resolvía G08 —había un canal con el valor completo— pero chocaba de frente
+// con la cláusula de 1024 de V2-G06: «lo que se pliega sigue alcanzable con un
+// control».
+//
+// Medido el 2026-11-12 en ajustes-general, los dos temas: el aviso del campo
+// «Retención de adjuntos de borrado (días)» mide sw=609 cw=420 a 1280 y 1440, y
+// cw=298 a 1024, con overflow hidden. O sea 311 px de texto tapado, 122 más que
+// a 1280: texto legible a 1280 que DESAPARECE al angostar, y lo único que lo
+// recuperaba era pasar el ratón por encima.
+//
+// 🔑 Decisión del usuario: un `title` NO cuenta como control. Y tiene razón
+// donde más importa: exige ratón, así que no existe por teclado ni por tacto.
+// Un canal que la mitad de los usuarios no puede accionar no es alcance.
+//
+// Así que el aviso se PLIEGA. No reabre G08: sin recorte no hay elipsis, y la
+// señal que G08 persigue es una marca de corte sin canal. Comprobado que es
+// seguro para el diseño: Quasar da al `.q-field__bottom` un min-height de 20 px
+// -mínimo, no fijo, así que crece- y ninguno de los 81 avisos del árbol está en
+// un campo con `hide-bottom-space`, que es la única variante donde el bottom va
+// en posición absoluta y un aviso más alto se solaparía con lo de abajo.
 .q-field__messages
   min-width: 0
 .q-field__messages > div
-  white-space: nowrap
-  overflow: hidden
-  text-overflow: ellipsis
+  white-space: normal
+  overflow-wrap: break-word
 // 050 (ola 6, G01): las filas por página de una tabla son un conteo (valor).
 .q-table__bottom .q-select .q-field__native
   font-family: $obs-font-mono
