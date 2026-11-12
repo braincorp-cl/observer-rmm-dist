@@ -89,6 +89,7 @@ import { notifySuccess } from "@/utils/notify";
 
 // ui imports
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
@@ -214,7 +215,7 @@ let editor: monaco.editor.IStandaloneCodeEditor;
 function loadEditor() {
   var model = monaco.editor.createModel(snippet.code, lang.value);
 
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(snippetEditor.value!, {

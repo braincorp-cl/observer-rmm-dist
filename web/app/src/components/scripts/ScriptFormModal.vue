@@ -297,6 +297,7 @@ import TestScriptModal from "@/components/scripts/TestScriptModal.vue";
 import AiScriptPromptModal from "@/components/scripts/AiScriptPromptModal.vue";
 import ObserverDropdown from "@/components/ui/ObserverDropdown.vue";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
@@ -490,7 +491,7 @@ let editor: monaco.editor.IStandaloneCodeEditor;
 function loadEditor() {
   var model = monaco.editor.createModel(script.script_body, lang.value);
 
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(scriptEditor.value!, {

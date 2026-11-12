@@ -322,6 +322,7 @@ import {
 import { notifyError } from "@/utils/notify";
 import { useI18n } from "vue-i18n";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 import { parseDocument } from "yaml";
 
@@ -667,7 +668,7 @@ function initializeEditor() {
   );
   cssModel = monaco.editor.createModel(state.template_css, "css", cssUri);
 
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor.value = monaco.editor.create(editorDiv.value!, {

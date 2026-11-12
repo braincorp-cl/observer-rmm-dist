@@ -131,6 +131,8 @@ export default {
         field: "user_count",
         align: "left",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
     ]);
 

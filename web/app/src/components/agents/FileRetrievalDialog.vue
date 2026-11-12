@@ -185,6 +185,8 @@ export default {
         label: t("erase.fileretrieval.colFiles"),
         field: "file_count",
         align: "right",
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       {
         name: "requested_at",

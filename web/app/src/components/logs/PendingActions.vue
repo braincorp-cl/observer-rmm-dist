@@ -104,8 +104,12 @@
               <span v-if="props.row.action_type === 'agentupdate'">{{
                 getNextAgentUpdateTime()
               }}</span>
-              <!-- V2-G01: mono sólo en la rama de marca de tiempo. -->
-              <span v-else :class="{ mono: props.row.action_type === 'schedreboot' }">{{
+              <!-- V2-G01: mono SIEMPRE. Mi primera versión lo condicionó a
+                   schedreboot asumiendo que la otra rama no era una fecha; NO lo
+                   comprobé y lo es: `props.row.due` es una marca de tiempo sin
+                   formatear. Medidos 36 nodos «Nov 12, 2026 at 12:35 AM» en
+                   Archivo justamente por esa rama. -->
+              <span v-else class="mono">{{
                 props.row.action_type === "schedreboot"
                   ? formatDate(props.row.due)
                   : props.row.due

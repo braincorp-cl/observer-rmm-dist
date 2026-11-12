@@ -69,6 +69,7 @@ import { useI18n } from "vue-i18n";
 import { useSharedReportDataQueries } from "../api/reporting";
 import { until } from "@vueuse/shared";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 import axios from "axios";
 
@@ -144,7 +145,7 @@ async function loadEditor() {
     ],
   });
 
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(queryEditor.value!, {

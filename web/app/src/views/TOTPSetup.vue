@@ -18,7 +18,7 @@
       <p class="obs-totp__paso">{{ $t("totp.manualInstructions") }}</p>
       <!-- 050 (T049, V2-G01): la clave compartida es un dato que se transcribe
            caracter por caracter ⇒ Mono. -->
-      <p class="mono obs-totp__clave">{{ totpKey }}</p>
+      <p class="mono obs-totp__clave obs-token-entero">{{ totpKey }}</p>
     </template>
     <q-btn
       unelevated

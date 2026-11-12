@@ -254,20 +254,26 @@ body.body--dark
     white-space: normal
     overflow-wrap: anywhere
 
-// V2-G04 (2026-11-11): axe marcó `.dimmed-line-number` con 1,75 de contraste en
-// los DOS temas, en el diálogo «Nueva plantilla base» de reportes. Es clase
-// propia de Monaco (viewParts/lineNumbers), que la pinta desde su tema de
-// fábrica —el proyecto no define ninguno— y a propósito la deja tenue para
-// marcar las líneas fuera del foco. A 1,75 no se lee.
+// V2-G07 (2026-11-12): un identificador sin espacios MÁS LARGO que su caja no
+// tiene solución por ajuste de línea: `break-word` y `anywhere` lo parten igual,
+// porque no cabe de ninguna manera. Medidos dos: el modelo de disco
+// `Seagate_BarraCuda_SSD_ZA500CM10002` (34 caracteres en 249 px) y la clave TOTP
+// de 48. La única salida es no partirlo.
 //
-// Se corrige con el token que el proyecto ya validó a 4,5:1 (la nota de
-// $obs-d-faint dice que la maqueta usaba #6F849E y NO llegaba). El arreglo de
-// fondo sería un `monaco.editor.defineTheme` propio para los dos temas; esto
-// cubre la violación sin tocar cada instancia del editor.
-.monaco-editor
-  .line-numbers.dimmed-line-number
-    color: var(--obs-faint) !important
+// 🔑 Pero `nowrap` A SECAS lo volvería INALCANZABLE, y eso viola la cláusula de
+// 1024 de V2-G06 —«lo que se pliega sigue alcanzable con un control»—. Por eso
+// van las dos juntas: nowrap para que la palabra no se parta, y overflow-x auto
+// para que el usuario pueda llegar al resto. La enmienda de G06 del 2026-11-11
+// habilita esto al dejar de contar el scroll propio de un área como violación.
+.obs-token-entero
+  white-space: nowrap
+  overflow-x: auto
+  max-width: 100%
 
+// V2-G04: el color del numero de linea atenuado de Monaco lo pone ahora el
+// tema propio (src/utils/monaco-tema.ts), no un !important desde aqui. El
+// parche por CSS no podia funcionar: mezclaba un token que reacciona al tema
+// con un editor que elegia el suyo una sola vez, al crearse.
 // V2-G02 (2026-11-11): un q-chip SIN prop `color` se queda en el gris por
 // defecto de Quasar (#e0e0e0 = rgb(224,224,224)), que no es ninguno de nuestros
 // tokens y, por ser un valor fijo, NO cambia con el tema: en oscuro queda un

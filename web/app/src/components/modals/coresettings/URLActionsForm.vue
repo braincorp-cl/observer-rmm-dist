@@ -119,6 +119,7 @@ import { URLAction, URLActionType } from "@/types/core/urlactions";
 import TestURLAction from "@/components/modals/coresettings/TestURLAction.vue";
 
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 
 // define emits
@@ -234,7 +235,7 @@ watch(tab, (newValue, oldValue) => {
 });
 
 function loadEditor() {
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   if (!editorDiv.value) return;
 

@@ -64,6 +64,7 @@ import { useDialogPluginComponent, extend, useQuasar } from "quasar";
 import { useSharedReportHTMLTemplates } from "../api/reporting";
 import { until } from "@vueuse/shared";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 import { useI18n } from "vue-i18n";
 
@@ -128,7 +129,7 @@ async function submit() {
 const htmlEditor = ref<HTMLElement | null>(null);
 let editor: monaco.editor.IStandaloneCodeEditor;
 
-const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+const theme = temaDeMonaco($q.dark.isActive);
 
 function loadEditor() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

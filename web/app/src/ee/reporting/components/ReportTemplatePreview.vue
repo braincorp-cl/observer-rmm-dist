@@ -53,6 +53,7 @@
 import { ref, onUnmounted, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 import { OBS_FONT_MONO } from "@/utils/fonts";
 
 // types
@@ -81,7 +82,7 @@ if (props.debug) {
   let variablesEditor: monaco.editor.IStandaloneCodeEditor;
 
   onMounted(() => {
-    const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+    const theme = temaDeMonaco($q.dark.isActive);
 
     templateEditor = monaco.editor.create(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

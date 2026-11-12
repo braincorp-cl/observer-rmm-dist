@@ -670,6 +670,8 @@ export default {
         field: "intakes",
         align: "right",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       {
         name: "certified",
@@ -677,6 +679,8 @@ export default {
         field: "certified",
         align: "right",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       {
         name: "missing",
@@ -684,6 +688,8 @@ export default {
         field: "missing",
         align: "right",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       {
         name: "stalled",
@@ -691,6 +697,8 @@ export default {
         field: "stalled",
         align: "right",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
     ];
 
@@ -725,6 +733,8 @@ export default {
         field: "days_open",
         align: "right",
         sortable: true,
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       {
         // 🔑 Esta columna es la que convierte el número en una acción.
@@ -738,6 +748,8 @@ export default {
         label: t("erase.reconciliation.stalled"),
         field: "stalled",
         align: "left",
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
       { name: "actions", label: "", field: "actions", align: "right" },
     ];

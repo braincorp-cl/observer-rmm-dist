@@ -63,6 +63,7 @@ import { ref, computed } from "vue";
 import { useDialogPluginComponent, useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import * as monaco from "monaco-editor";
+import { temaDeMonaco } from "@/utils/monaco-tema";
 
 // setup quasar
 const $q = useQuasar();
@@ -111,7 +112,7 @@ function loadEditor() {
   var modelUri = monaco.Uri.parse("model://new"); // a made up unique URI for our model
   var model = monaco.editor.createModel(options.value, "yaml", modelUri);
 
-  const theme = $q.dark.isActive ? "vs-dark" : "vs-light";
+  const theme = temaDeMonaco($q.dark.isActive);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   editor = monaco.editor.create(chartEditor.value!, {

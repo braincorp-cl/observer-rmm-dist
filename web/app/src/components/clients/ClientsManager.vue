@@ -175,6 +175,8 @@ export default {
         label: t("clientsManager.colTotalAgents"),
         field: "agent_count",
         align: "left",
+        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
+        classes: "mono",
       },
     ]);
 
