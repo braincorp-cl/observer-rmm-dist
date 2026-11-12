@@ -8,6 +8,12 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.43 — 2026-11-11
+
+- **El servidor aguanta mejor una flota grande.** Siete ajustes de rendimiento medidos sobre una réplica de datos reales: el emparejamiento de resultados con tareas y checks ya no dispara una consulta por resultado, los procesos de tareas se reciclan por memoria y no cada dos tareas, el servidor web reutiliza conexiones a la base, y el historial de un equipo se pide por páginas en vez de serializar la tabla entera de una vez.
+- **Un agente sin conexión ya no produce un error crudo.** Cuando nadie escucha en el asunto de NATS (el equipo está fuera de línea), el servidor lo trata igual que un tiempo de espera agotado. Además, las tareas periódicas emiten un latido que el monitoreo externo puede vigilar.
+- **Instalación y operación.** Ubuntu 26.04 LTS entra como plataforma soportada; MeshCentral se fija en 1.3.1 y Node.js en 24 (con verificación real de la versión instalada, porque subir el pin podía dar verde sin actualizar Node); `restore.sh` documenta y prueba la restauración de un respaldo; el modo de certificado propio ahora cifra la clave privada en disco; `--tags api` vuelve a funcionar; y el despliegue respalda `local_settings.py` y comprueba que la base abra antes de seguir.
+
 ## v1.4.42 — 2026-11-02
 
 - **La consola ya no promete sobrescritura sobre un disco de máquina virtual.** El aviso del diálogo de borrado decidía sólo por el tipo de medio que declara el sistema operativo, y un disco de VMware se declara «de platos»: el resultado era que la consola daba por defendible una sobrescritura que no alcanza al medio real. Ahora consulta también si el medio está virtualizado, igual que lo hace el servidor. El panel y el certificado ya lo sabían desde la 1.4.41; faltaba el diálogo.
