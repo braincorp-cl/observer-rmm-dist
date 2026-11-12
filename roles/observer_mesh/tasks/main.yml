@@ -60,6 +60,8 @@
         name: nodejs
         state: latest  # noqa: package-latest
         update_cache: true
+      # Un Node nuevo en disco tampoco llega al proceso hasta que se reinicia.
+      notify: restart meshcentral
 
 - name: Informar que Node ya está en la versión pedida
   ansible.builtin.debug:
@@ -85,6 +87,13 @@
     state: present
   become: true
   become_user: "{{ observer_user }}"
+  # npm cambio la version en disco, pero el proceso en marcha sigue siendo el viejo
+  # hasta que se reinicia. Sin este notify el playbook salia verde con el servicio
+  # corriendo la version anterior (medido el 11-nov-2026 en Fluitek y Tier1:
+  # package.json 1.3.1, journal "MeshCentral v1.2.1", node "(deleted)").
+  # `changed` solo si la version instalada difiere de la pedida, asi que una
+  # corrida sin cambios no reinicia nada.
+  notify: restart meshcentral
 
 - name: Crear el data dir de MeshCentral
   ansible.builtin.file:
