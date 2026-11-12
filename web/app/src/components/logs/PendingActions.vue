@@ -101,9 +101,15 @@
               <q-icon name="download" size="sm" />
             </q-td>
             <q-td v-if="props.row.status !== 'completed'">
-              <span v-if="props.row.action_type === 'agentupdate'">{{
-                getNextAgentUpdateTime()
-              }}</span>
+              <!-- 🪤 V2-G01: esta es la rama que de verdad se pinta. Con los
+                   datos reales de staging las 428 filas son `agentupdate`, y
+                   yo habia arreglado la OTRA dos veces seguidas. Tambien rinde
+                   marca de tiempo. -->
+              <span
+                v-if="props.row.action_type === 'agentupdate'"
+                class="mono"
+                >{{ getNextAgentUpdateTime() }}</span
+              >
               <!-- V2-G01: mono SIEMPRE. Mi primera versión lo condicionó a
                    schedreboot asumiendo que la otra rama no era una fecha; NO lo
                    comprobé y lo es: `props.row.due` es una marca de tiempo sin

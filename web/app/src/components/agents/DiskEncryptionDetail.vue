@@ -276,10 +276,9 @@ export default {
         name: "device_id",
         label: t("diskEncryption.histColDevice"),
         field: "device_id",
-        classes: "mono",
+        classes: "mono obs-break-anywhere",
         align: "left",
         // V2-G07: token sin espacios que fijaría el ancho de la columna.
-        classes: "obs-break-anywhere",
       },
       {
         name: "previous_status",

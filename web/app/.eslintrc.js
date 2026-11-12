@@ -68,6 +68,16 @@ module.exports = {
 
   // add your custom rules here
   rules: {
+    // 050 T051 (2026-11-12): no venia activa por los presets, y por eso no cazo
+    // cinco claves `classes` duplicadas que yo mismo introduje: un insert
+    // automatico agrego `classes: "obs-break-anywhere"` a columnas que YA
+    // tenian `classes: "mono"`, y en JS gana la segunda — asi que el arreglo de
+    // V2-G07 borro EN SILENCIO el de V2-G01 en device_id, certificate_id,
+    // process_id y equipment_serial, y el obs-wrap-words de email_recipients.
+    // Comprobado con control negativo que sin esta linea NO dispara. Al
+    // encenderla el arbol ya estaba en 0 violaciones.
+    "no-dupe-keys": "error",
+
     "prefer-promise-reject-errors": "off",
 
     quotes: ["warn", "double", { avoidEscape: true }],

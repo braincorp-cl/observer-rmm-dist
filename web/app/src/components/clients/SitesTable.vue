@@ -94,7 +94,14 @@
               {{ props.row.name }}
             </q-td>
             <!-- agent count -->
-            <q-td>{{ props.row.agent_count }}</q-td>
+            <!-- 🪤 V2-G01 (2026-11-12): el `classes: "mono"` de la definicion de
+                 columna es INERTE en esta tabla, porque la fila la dibuja el
+                 slot `v-slot:body` y Quasar solo aplica `classes` cuando
+                 renderiza la celda el mismo. Medido: «1» y «9» salian en
+                 Archivo mientras la columna homonima de CLIENTES salia en mono
+                 -esa tabla lleva la clase escrita a mano en su celda-. La clase
+                 va AQUI. -->
+            <q-td class="mono">{{ props.row.agent_count }}</q-td>
           </q-tr>
         </template>
       </q-table>

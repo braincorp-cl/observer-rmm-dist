@@ -190,10 +190,9 @@ const columns = computed<QTableColumn[]>(() => [
     field: "email_recipients",
     align: "left",
     sortable: false,
-    classes: "obs-wrap-words",
+    classes: "obs-wrap-words obs-break-anywhere",
     format: (val: string[]) => val.join(", "),
     // V2-G07: token sin espacios que fijaría el ancho de la columna.
-    classes: "obs-break-anywhere",
   },
   {
     name: "send_report_email",

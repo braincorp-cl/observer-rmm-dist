@@ -193,6 +193,8 @@ export default {
         label: t("erase.fileretrieval.colCreated"),
         field: "requested_at",
         align: "left",
+        // V2-G01: marca de tiempo dedicada (hoy rinde el ISO crudo).
+        classes: "mono",
       },
       {
         name: "actions",

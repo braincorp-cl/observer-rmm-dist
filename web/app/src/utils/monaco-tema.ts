@@ -42,12 +42,22 @@ function token(nombre: string, respaldo: string): string {
 
 function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
   return {
-    "editor.background": token("--obs-field", oscuro ? "#273447" : "#F2F4F7"),
-    "editor.foreground": token("--obs-text", oscuro ? "#E6EDF5" : "#16202E"),
-    "editorGutter.background": token(
-      "--obs-raised",
-      oscuro ? "#17253A" : "#F6F8FB",
+    // 🔑 El fondo OSCURO es --obs-deep y no --obs-field, y la razon es medida:
+    // con inherit:true los colores de sintaxis vienen de vs-dark, que los
+    // diseno contra SU fondo (#1e1e1e). Poner --obs-field (#273447), que es mas
+    // CLARO, les quitaba contraste: .mtk9 (#569cd6) caia de 5,65 a 4,27 y axe
+    // lo marco en 4,26 — la violacion la introduje yo al cambiar el fondo y
+    // heredar los primeros planos. El fondo y los primeros planos de un tema
+    // son un PAR; no se puede tomar uno del sistema de diseno y el otro de
+    // vs-dark. --obs-deep (#0A1220) es mas oscuro que #1e1e1e, asi que lo
+    // heredado GANA contraste: el minimo de los seis tokens de sintaxis pasa de
+    // 4,22 (sobre el propio fondo de vs-dark) a 4,75. En claro no hay problema:
+    // --obs-field claro (#F2F4F7) deja el minimo en 4,66.
+    "editor.background": token(
+      oscuro ? "--obs-deep" : "--obs-field",
+      oscuro ? "#0A1220" : "#F2F4F7",
     ),
+    "editor.foreground": token("--obs-text", oscuro ? "#E6EDF5" : "#16202E"),
     // Los numeros de linea: el inactivo es el que axe marcaba a 1,75 y luego a
     // 2,74. Con --obs-muted sobre --obs-field queda sobre 4,5:1 en los dos temas.
     "editorLineNumber.foreground": token(
@@ -83,6 +93,10 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
       oscuro ? "#1E2D42" : "#D3DCE7",
     ),
     "input.background": token("--obs-field", oscuro ? "#273447" : "#F2F4F7"),
+    "editorGutter.background": token(
+      "--obs-deep",
+      oscuro ? "#0A1220" : "#F6F8FB",
+    ),
     "input.foreground": token("--obs-text", oscuro ? "#E6EDF5" : "#16202E"),
   };
 }

@@ -109,13 +109,12 @@ export default {
     const columns = [
       {
         name: "certificate_id",
-        classes: "mono",
+        classes: "mono obs-break-anywhere",
         label: t("erase.certificates.colId"),
         field: "certificate_id",
         align: "left",
         sortable: true,
         // V2-G07: token sin espacios que fijaría el ancho de la columna.
-        classes: "obs-break-anywhere",
       },
       {
         name: "kind",
