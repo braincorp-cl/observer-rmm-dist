@@ -1648,7 +1648,10 @@
     "titleEdit": "Edit Global Key",
     "titleAdd": "Add Global Key",
     "editedSuccess": "Key was edited!",
-    "addedSuccess": "Key was added!"
+    "addedSuccess": "Key was added!",
+    "isSecret": "Secret",
+    "isSecretHint": "A secret key value is never shown again: it can only be replaced. Removing the mark requires entering a new value.",
+    "keepHint": "Leave empty to keep the stored value."
   },
   "resetPatchPolicy": {
     "title": "Reset Agent Patch Policy",
@@ -2528,7 +2531,9 @@
     "colName": "Name",
     "colValue": "Value",
     "deleteTitle": "Delete key: {name}?",
-    "keyDeleted": "key: {name} was deleted!"
+    "keyDeleted": "key: {name} was deleted!",
+    "secretSet": "Secret stored",
+    "secretEmpty": "Secret without value"
   },
   "alertsIcon": {
     "noNewAlerts": "No New Alerts",

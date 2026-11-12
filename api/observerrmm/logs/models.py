@@ -571,7 +571,16 @@ class AuditLog(models.Model):
         from clients.models import Client, Site
 
         debug_info["body"] = body
-        debug_info["headers"] = headers
+        # Las cabeceras pueden llevar credenciales: se registran solo sus nombres.
+        try:
+            import json
+
+            parsed = json.loads(headers) if isinstance(headers, str) else headers
+            debug_info["headers"] = (
+                sorted(parsed.keys()) if isinstance(parsed, dict) else "(oculto)"
+            )
+        except Exception:
+            debug_info["headers"] = "(oculto)" if headers else ""
 
         if instance_type == "agent":
             instance = Agent.objects.get(agent_id=instance_id)

@@ -6,19 +6,6 @@
       <q-btn
         size="sm"
         color="grey-5"
-        text-color="black"
-        class="q-mr-sm"
-        :label="
-          isPwd
-            ? $t('keyStoreTable.showValues')
-            : $t('keyStoreTable.hideValues')
-        "
-        :icon="isPwd ? 'visibility_off' : 'visibility'"
-        @click="isPwd = !isPwd"
-      />
-      <q-btn
-        size="sm"
-        color="grey-5"
         icon="fas fa-plus"
         text-color="black"
         :label="$t('keyStoreTable.addKey')"
@@ -75,8 +62,18 @@
             {{ props.row.name }}
           </q-td>
           <!-- value -->
-          <q-td>
-            {{ isPwd ? $t("keyStoreTable.masked") : props.row.value }}
+          <!-- RT-AUT-09: el servidor no entrega el valor de una clave secreta;
+               la celda dice si hay algo guardado, nunca qué. -->
+          <q-td v-if="props.row.is_secret" class="text-grey-7">
+            <q-icon name="lock" size="xs" class="q-mr-xs" />
+            {{
+              props.row.value_set
+                ? $t("keyStoreTable.secretSet")
+                : $t("keyStoreTable.secretEmpty")
+            }}
+          </q-td>
+          <q-td v-else>
+            {{ props.row.value }}
           </q-td>
         </q-tr>
       </template>
@@ -94,7 +91,6 @@ export default {
   data() {
     return {
       keystore: [],
-      isPwd: true,
       pagination: {
         rowsPerPage: 0,
         sortBy: "name",
@@ -118,7 +114,7 @@ export default {
           label: this.$t("keyStoreTable.colValue"),
           field: "value",
           align: "left",
-          sortable: true,
+          sortable: false,
         },
       ];
     },

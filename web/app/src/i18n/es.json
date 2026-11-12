@@ -1648,7 +1648,10 @@
     "titleEdit": "Editar clave global",
     "titleAdd": "Agregar clave global",
     "editedSuccess": "¡Clave editada!",
-    "addedSuccess": "¡Clave agregada!"
+    "addedSuccess": "¡Clave agregada!",
+    "isSecret": "Secreto",
+    "isSecretHint": "El valor de una clave secreta no vuelve a mostrarse: sólo se reemplaza. Para quitar la marca hay que escribir un valor nuevo.",
+    "keepHint": "Déjelo vacío para conservar el valor guardado."
   },
   "resetPatchPolicy": {
     "title": "Restablecer política de parches del agente",
@@ -2528,7 +2531,9 @@
     "colName": "Nombre",
     "colValue": "Valor",
     "deleteTitle": "¿Eliminar la clave: {name}?",
-    "keyDeleted": "¡La clave: {name} fue eliminada!"
+    "keyDeleted": "¡La clave: {name} fue eliminada!",
+    "secretSet": "Secreto guardado",
+    "secretEmpty": "Secreto sin valor"
   },
   "alertsIcon": {
     "noNewAlerts": "Sin Alertas Nuevas",

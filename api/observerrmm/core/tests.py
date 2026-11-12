@@ -1257,3 +1257,123 @@ class TestSendMailReportaLasFallasDeSmtp(ObserverTestCase):
 
         self.assertTrue(ok)
         self.assertEqual(msg, "Email test ok!")
+
+
+class TestKeyStoreSecretos(ObserverTestCase):
+    """RT-AUT-09: el valor de una clave secreta no sale del servidor."""
+
+    def setUp(self):
+        self.setup_coresettings()
+        self.authenticate()
+
+    def _entradas_auditoria(self):
+        from logs.models import AuditLog
+
+        return AuditLog.objects.filter(object_type="globalkvstore").order_by("id")
+
+    def test_la_api_no_devuelve_el_valor_secreto(self):
+        baker.make("core.GlobalKVStore", name="token", value="S3cr3t-001")
+        r = self.client.get("/core/keystore/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data[0]["value"], "")
+        self.assertTrue(r.data[0]["value_set"])
+        self.assertNotIn("S3cr3t-001", str(r.data))
+
+    def test_una_clave_no_secreta_se_ve(self):
+        baker.make(
+            "core.GlobalKVStore",
+            name="actividad_categorias",
+            value='{"x": 1}',
+            is_secret=False,
+        )
+        r = self.client.get("/core/keystore/")
+        self.assertEqual(r.data[0]["value"], '{"x": 1}')
+
+    def test_guardar_sin_valor_conserva_el_secreto(self):
+        key = baker.make("core.GlobalKVStore", name="token", value="S3cr3t-001")
+        r = self.client.put(
+            f"/core/keystore/{key.id}/", {"name": "token-2", "value": ""}
+        )
+        self.assertEqual(r.status_code, 200)
+        key.refresh_from_db()
+        self.assertEqual(key.name, "token-2")
+        self.assertEqual(key.value, "S3cr3t-001")
+
+    def test_crear_exige_valor(self):
+        r = self.client.post("/core/keystore/", {"name": "vacia", "value": ""})
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(GlobalKVStore.objects.filter(name="vacia").exists())
+
+    def test_quitar_la_marca_exige_valor_nuevo(self):
+        key = baker.make("core.GlobalKVStore", name="token", value="S3cr3t-001")
+        r = self.client.put(
+            f"/core/keystore/{key.id}/", {"is_secret": False, "value": ""}
+        )
+        self.assertEqual(r.status_code, 400)
+        key.refresh_from_db()
+        self.assertTrue(key.is_secret)
+
+        r = self.client.put(
+            f"/core/keystore/{key.id}/", {"is_secret": False, "value": "publico"}
+        )
+        self.assertEqual(r.status_code, 200)
+        key.refresh_from_db()
+        self.assertFalse(key.is_secret)
+        self.assertEqual(key.value, "publico")
+
+    def test_la_auditoria_registra_el_cambio_sin_el_valor(self):
+        self.client.post("/core/keystore/", {"name": "token", "value": "S3cr3t-001"})
+        key = GlobalKVStore.objects.get(name="token")
+        r = self.client.put(f"/core/keystore/{key.id}/", {"value": "S3cr3t-002"})
+        self.assertEqual(r.status_code, 200)
+
+        entradas = list(self._entradas_auditoria())
+        # alta + cambio de SOLO el valor: los dos dejan entrada.
+        self.assertEqual(len(entradas), 2)
+        for e in entradas:
+            texto = str(e.before_value) + str(e.after_value) + str(e.message)
+            self.assertNotIn("S3cr3t-001", texto)
+            self.assertNotIn("S3cr3t-002", texto)
+        cambio = entradas[1]
+        self.assertNotEqual(
+            cambio.before_value["value_fingerprint"],
+            cambio.after_value["value_fingerprint"],
+        )
+
+    def test_la_auditoria_de_url_action_no_lleva_las_cabeceras(self):
+        action = baker.make(
+            "core.URLAction",
+            name="hook",
+            pattern="https://example.com",
+            rest_headers='{"Authorization": "Bearer S3cr3t-003"}',
+        )
+        datos = URLAction.serialize(action)
+        self.assertNotIn("S3cr3t-003", str(datos))
+        self.assertTrue(datos["rest_headers"])
+
+    def test_probar_una_url_action_no_audita_el_secreto_resuelto(self):
+        from unittest.mock import patch
+
+        from logs.models import AuditLog
+
+        baker.make("core.GlobalKVStore", name="token", value="S3cr3t-004")
+        with patch(
+            "core.views.run_test_url_rest_action",
+            return_value=("ok", "https://example.com", '{"t": "S3cr3t-004"}'),
+        ):
+            r = self.client.post(
+                "/core/urlaction/run/test/",
+                {
+                    "pattern": "https://example.com",
+                    "rest_body": '{"t": "{{global.token}}"}',
+                    "rest_headers": '{"Authorization": "Bearer x"}',
+                    "rest_method": "post",
+                    "run_instance_type": "none",
+                    "run_instance_id": None,
+                },
+                format="json",
+            )
+        self.assertEqual(r.status_code, 200)
+        entrada = AuditLog.objects.order_by("-id").first()
+        self.assertNotIn("S3cr3t-004", str(entrada.debug_info) + str(entrada.message))
+        self.assertIn("{{global.token}}", str(entrada.debug_info))

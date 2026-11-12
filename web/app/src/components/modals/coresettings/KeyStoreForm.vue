@@ -30,7 +30,10 @@
             dense
             v-model="localKey.value"
             :type="isPwd ? 'password' : 'text'"
-            :rules="[(val) => !!val || $t('keyStoreForm.required')]"
+            :hint="keepsStoredValue ? $t('keyStoreForm.keepHint') : ''"
+            :rules="[
+              (val) => !!val || keepsStoredValue || $t('keyStoreForm.required'),
+            ]"
             ><template v-slot:append>
               <q-icon
                 :name="isPwd ? 'visibility_off' : 'visibility'"
@@ -39,6 +42,17 @@
               />
             </template>
           </q-input>
+        </q-card-section>
+
+        <!-- RT-AUT-09: una clave secreta no vuelve nunca a la consola -->
+        <q-card-section>
+          <q-toggle
+            v-model="localKey.is_secret"
+            :label="$t('keyStoreForm.isSecret')"
+          />
+          <div class="text-caption text-grey-7">
+            {{ $t("keyStoreForm.isSecretHint") }}
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -69,6 +83,7 @@ export default {
       localKey: {
         name: "",
         value: "",
+        is_secret: true,
       },
     };
   },
@@ -81,6 +96,13 @@ export default {
     editing() {
       return !!this.globalKey;
     },
+    // Al editar una clave secreta el valor llega vacío: dejarlo así conserva el
+    // guardado. Quitar la marca de secreto, en cambio, exige escribir uno nuevo.
+    keepsStoredValue() {
+      return (
+        this.editing && !!this.globalKey.is_secret && !!this.localKey.is_secret
+      );
+    },
   },
   methods: {
     submit() {
@@ -89,6 +111,8 @@ export default {
       let data = {
         ...this.localKey,
       };
+      delete data.value_set;
+      if (this.editing && !data.value) delete data.value;
 
       if (this.editing) {
         this.$axios

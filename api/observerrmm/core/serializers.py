@@ -180,9 +180,50 @@ class CodeSignTokenSerializer(serializers.ModelSerializer):
 
 
 class KeyStoreSerializer(serializers.ModelSerializer):
+    """RT-AUT-09: el valor de una clave secreta no sale por esta API ni a la auditoria.
+
+    OJO: no es "nunca sale del servidor". Una variable {{global.X}} se resuelve
+    al ejecutar scripts y acciones URL, y la ejecucion de prueba de una accion
+    URL le devuelve al operador la URL y el cuerpo resueltos (con otro permiso).
+
+    Salida: si la clave es secreta, `value` va vacio y `value_set` dice si hay
+    algo guardado. Entrada: un valor vacio CONSERVA el guardado (un formulario
+    que no conoce el valor no puede borrarlo al guardar otro campo). Quitar la
+    marca de secreto exige escribir un valor nuevo: si no, bastaria con
+    desmarcarla para leer el secreto.
+    """
+
+    value = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = GlobalKVStore
         fields = "__all__"
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["value_set"] = bool(instance.value)
+        if instance.is_secret:
+            ret["value"] = ""
+        return ret
+
+    def validate(self, attrs):
+        value = attrs.get("value")
+        if self.instance is None:
+            if not value:
+                raise serializers.ValidationError(
+                    {"value": "Este campo es obligatorio."}
+                )
+            return attrs
+
+        if not value:
+            attrs.pop("value", None)
+            if self.instance.is_secret and attrs.get("is_secret") is False:
+                raise serializers.ValidationError(
+                    {
+                        "value": "Para quitar la marca de secreto hay que escribir un valor nuevo."
+                    }
+                )
+        return attrs
 
 
 class URLActionSerializer(serializers.ModelSerializer):
