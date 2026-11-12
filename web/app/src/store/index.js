@@ -255,15 +255,25 @@ export default function () {
         commit("setDashPositiveColor", data.dash_positive_color);
         commit("setDashNegativeColor", data.dash_negative_color);
         commit("setDashWarningColor", data.dash_warning_color);
+        // 046: el rojo por defecto de la v1 es color de estado (UI-D05);
+        // la barra de carga usa secondary (neutro: actividad, no estado ni acción).
+        //
+        // 🪤 V2-G02 (2026-11-12): esto estaba DENTRO de `if (edited)`, y por eso
+        // el arreglo de la 046 no llegaba a tres superficies. `getDashInfo` se
+        // despacha con `edited = false` desde TakeControl.vue:112,
+        // MainLayout.vue:434 y la linea 218 de este archivo, asi que ahi la
+        // barra se quedaba en el #f44336 de fabrica de Quasar — que no es ningun
+        // token y ademas es un color de ESTADO usado como actividad. Medido: 12
+        // lecturas en rem-takecontrol, rem-webterm y rem-webvnc, que son
+        // justamente las que abren en ventana aparte. El color de la barra es un
+        // default global, no un ajuste «editado»: va fuera de la condicional.
+        LoadingBar.setDefaults({
+          color:
+            data.loading_bar_color === "red"
+              ? "secondary"
+              : data.loading_bar_color,
+        });
         if (edited) {
-          // 046: el rojo por defecto de la v1 es color de estado (UI-D05);
-          // la barra de carga usa secondary (neutro: actividad, no estado ni acción).
-          LoadingBar.setDefaults({
-            color:
-              data.loading_bar_color === "red"
-                ? "secondary"
-                : data.loading_bar_color,
-          });
           commit(
             "setClearSearchWhenSwitching",
             data.clear_search_when_switching,
