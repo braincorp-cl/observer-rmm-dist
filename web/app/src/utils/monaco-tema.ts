@@ -84,6 +84,34 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
       "--obs-border",
       oscuro ? "#1E2D42" : "#D3DCE7",
     ),
+    // V2-G02 (2026-11-13): claves que el primer tema no puso y que el censo
+    // midió fuera del set de tokens: la línea actual, la selección y el
+    // resaltado de coincidencias. Medidas como `current-line-exact` y
+    // `rgba(121,121,121,…)` en 16 bloques de 8 superficies.
+    "editor.lineHighlightBackground": token(
+      "--obs-hover",
+      oscuro ? "#17253A" : "#F6F8FB",
+    ),
+    "editor.selectionBackground": token(
+      "--obs-selected",
+      oscuro ? "#132A34" : "#EEF8FA",
+    ),
+    "editor.inactiveSelectionBackground": token(
+      "--obs-raised",
+      oscuro ? "#17253A" : "#F6F8FB",
+    ),
+    "editor.selectionHighlightBackground": token(
+      "--obs-selected",
+      oscuro ? "#132A34" : "#EEF8FA",
+    ),
+    "editor.wordHighlightBackground": token(
+      "--obs-selected",
+      oscuro ? "#132A34" : "#EEF8FA",
+    ),
+    "editorCursor.foreground": token(
+      "--obs-text",
+      oscuro ? "#E6EDF5" : "#16202E",
+    ),
     "editorWidget.background": token(
       "--obs-surface",
       oscuro ? "#131F31" : "#FFFFFF",

@@ -161,7 +161,9 @@
             </q-item-section>
             <!-- V2-G07: el modelo de disco es un token sin espacios que no
                  cabe en su caja; se deja entero y alcanzable por scroll. -->
-            <q-item-section class="mono obs-token-entero">{{ disk }}</q-item-section>
+            <q-item-section class="mono obs-token-entero">{{
+              disk
+            }}</q-item-section>
           </q-item>
           <!-- graphics -->
           <q-item>
@@ -202,7 +204,14 @@
                 class="obs-ui-text"
                 tag="span"
                 ><template #ips
-                  ><span class="mono">{{ summary.local_ips }}</span></template
+                  ><!-- V2-G07: una IPv6 con prefijo mide 28 caracteres y el
+                       contenedor 182 px, así que no cabe y se parte a media
+                       palabra con el `overflow-wrap: anywhere` que los q-item
+                       heredan. Mismo caso que el modelo de disco: se deja
+                       entera y alcanzable por scroll. --><span
+                    class="mono obs-token-entero"
+                    >{{ summary.local_ips }}</span
+                  ></template
                 ></i18n-t
               ></q-item-section
             >
