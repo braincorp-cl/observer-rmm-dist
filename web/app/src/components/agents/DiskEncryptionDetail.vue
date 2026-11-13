@@ -258,6 +258,10 @@ export default {
         classes: "mono",
       },
       {
+        // V2-G01 clase 12: código numérico crudo devuelto por el agente.
+        // 🔴 Anotado aparte como defecto de producto: al operador el número no
+        // le dice nada, debería decir «TPM» o «clave de recuperación».
+        classes: "mono",
         name: "key_protector_types",
         label: t("diskEncryption.volProtectorTypes"),
         field: "key_protector_types",

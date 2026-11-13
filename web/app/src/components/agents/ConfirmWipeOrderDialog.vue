@@ -15,7 +15,11 @@
           <template v-slot:avatar>
             <q-icon name="group" />
           </template>
-          {{ $t("erase.confirmOrder.twoPersonNotice", { orderedBy: order.ordered_by }) }}
+          {{
+            $t("erase.confirmOrder.twoPersonNotice", {
+              orderedBy: order.ordered_by,
+            })
+          }}
         </q-banner>
 
         <table class="oe-order-table q-mb-md">
@@ -61,7 +65,9 @@
           input-class="mono"
           :label="$t('erase.confirmOrder.recoverySeconds')"
           :hint="$t('erase.confirmOrder.recoverySecondsHint')"
-          :rules="[(val) => val >= 0 || $t('erase.confirmOrder.recoveryInvalid')]"
+          :rules="[
+            (val) => val >= 0 || $t('erase.confirmOrder.recoveryInvalid'),
+          ]"
         />
       </q-card-section>
 
@@ -72,15 +78,19 @@
           </template>
           <template #action>{{ actionLabel(order.action) }}</template>
           <template #hostname>
-            <span class="text-h6">{{
-              order.agent_hostname || dash
-            }}</span>
+            <span class="text-h6">{{ order.agent_hostname || dash }}</span>
           </template>
         </i18n-t>
+        <!-- V2-G01 clase 13: literal que el usuario debe TECLEAR para
+             habilitar una acción destructiva. Va en mono porque se transcribe
+             carácter por carácter y una confusión aquí ocurre justo antes de
+             un borrado. `input-class` y no `class`: el valor lo rinde el
+             <input>, y una clase en el q-field no lo alcanza. -->
         <q-input
           v-model="typed"
           autofocus
           class="q-mt-sm"
+          input-class="mono"
           :label="$t('confirmDialog.typeYes')"
           :rules="[(val) => (val || '').toLowerCase() === yesWord]"
         />

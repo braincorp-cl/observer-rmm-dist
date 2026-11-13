@@ -59,6 +59,8 @@
           outlined
           v-model="timezone"
           :options="allTimezones"
+          input-class="mono"
+          popup-content-class="mono"
         />
       </div>
 

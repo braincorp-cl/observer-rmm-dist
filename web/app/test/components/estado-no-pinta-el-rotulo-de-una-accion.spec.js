@@ -225,7 +225,13 @@ const DECLARADOS = {
     "`background: var(--q-positive|--q-negative|--q-warning)` sobre 8x8 con " +
     "border-radius, reporta dot(item) y trae role=img, aria-label y title con " +
     "el estado traducido (el arreglo de color-senal-unica.spec.js).",
-  "src/components/agents/ConfirmWipeOrderDialog.vue:42":
+  // 🪤 Movido de :42 a :46 el 2026-11-13 por un comentario de V2-G01 cuatro
+  // lineas mas arriba; el sitio es el MISMO q-badge y nada del producto
+  // cambio. Este censo congela `archivo:linea`, asi que cualquier edicion
+  // por encima de un sitio listado lo rompe. Es el precio de que la lista
+  // sea auditable -el numero lleva al sitio exacto-, no un defecto, pero
+  // conviene saberlo antes de culpar al producto.
+  "src/components/agents/ConfirmWipeOrderDialog.vue:46":
     "q-badge: trae fondo propio y reporta order.dry_run.",
   "src/components/agents/LostCaseTimelineDialog.vue:207":
     "q-chip: fondo propio, reporta screen.note del caso.",

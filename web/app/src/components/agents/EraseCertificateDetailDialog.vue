@@ -68,9 +68,18 @@
 
           <table class="oe-detail-table">
             <tbody>
+              <!-- V2-G01 lista cerrada: la fila de un listado clave-valor es
+                   ranura dedicada, así que el valor va en mono CUANDO es de una
+                   clase de la lista. Se decide por campo y no en bloque, porque
+                   en esta misma tabla conviven identificadores y marcas de
+                   tiempo (clases 10 y 8) con nombres de fabricante y rótulos de
+                   método, que son interfaz. Medidos en Archivo: «Nov-02-2026
+                   16:15» y «TAG-G050-0x». -->
               <tr v-for="field in fields" :key="field.key">
                 <th>{{ field.label }}</th>
-                <td>{{ field.value }}</td>
+                <td :class="{ mono: VALOR_MONO.has(field.key) }">
+                  {{ field.value }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -182,6 +191,21 @@ export default {
 
     // Los campos se arman como lista label/valor para pintarlos por binding: el
     // gate i18n (no-raw-text) marca cualquier literal suelto en el template.
+    // V2-G01 lista cerrada: qué claves de esta tabla son ranura de VALOR.
+    // clase 10 (identificador propio o impreso en el equipo), clase 7
+    // (especificación o modelo de hardware) y clase 8 (marca de tiempo
+    // dedicada). Lo que NO está acá es interfaz: el fabricante, el tipo y
+    // origen del medio, la disposición, el método aplicado y la norma.
+    const VALOR_MONO = new Set([
+      "certificate_id",
+      "asset_tag",
+      "equipment_serial",
+      "equipment_model",
+      "equipment_hostname",
+      "issued_at",
+      "process_id",
+    ]);
+
     const fields = computed(() => {
       const c = cert.value;
       if (!c) return [];
@@ -431,6 +455,7 @@ export default {
       cert,
       verification,
       fields,
+      VALOR_MONO,
       pathRows,
       verificationLevel,
       notVerified,

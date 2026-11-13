@@ -3,7 +3,8 @@
     <div class="row items-center q-mb-sm">
       <div class="text-subtitle2">{{ $t("storageMedia.detail.title") }}</div>
       <q-space />
-      <span v-if="measuredAt" class="text-caption text-grey q-mr-sm">
+      <!-- V2-G01 clase 8: marca de tiempo dedicada. -->
+      <span v-if="measuredAt" class="text-caption text-grey q-mr-sm mono">
         {{ formatDate(measuredAt) }}
       </span>
       <q-badge
@@ -50,7 +51,8 @@
     <q-list bordered separator v-if="media.length">
       <q-item v-for="disco in media" :key="disco.pnp_device_id">
         <q-item-section>
-          <q-item-label>
+          <!-- V2-G01 clase 7: modelo o especificación de hardware. -->
+          <q-item-label class="mono">
             {{ disco.model || disco.pnp_device_id }}
             <q-badge
               v-if="disco.is_system_disk"
@@ -62,7 +64,11 @@
           </q-item-label>
           <q-item-label caption>
             <div class="row q-col-gutter-x-md">
-              <div>{{ par("mediaType", mediaTypeLabel($t, disco.media_type_code)) }}</div>
+              <div>
+                {{
+                  par("mediaType", mediaTypeLabel($t, disco.media_type_code))
+                }}
+              </div>
               <div>{{ par("bus", busTypeLabel($t, disco.bus_type)) }}</div>
               <div v-if="disco.size_bytes">
                 {{ par("capacity", capacityLabel(disco.size_bytes)) }}
@@ -76,7 +82,12 @@
                 {{ par("firmware", disco.firmware_revision) }}
               </div>
               <div>
-                {{ par("selfEncrypting", selfEncryptingLabel($t, disco.self_encrypting)) }}
+                {{
+                  par(
+                    "selfEncrypting",
+                    selfEncryptingLabel($t, disco.self_encrypting),
+                  )
+                }}
               </div>
             </div>
           </q-item-label>

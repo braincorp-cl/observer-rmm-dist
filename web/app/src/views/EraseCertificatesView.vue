@@ -715,8 +715,11 @@ export default {
         label: t("erase.reconciliation.equipmentSerial"),
         field: "equipment_serial",
         align: "left",
-        // V2-G07: token sin espacios que fijaría el ancho de la columna.
-        classes: "obs-break-anywhere",
+        // V2-G01 clase 10 (identificador impreso en el equipo) + V2-G07 (token
+        // sin espacios). 🪤 Esta es la SEGUNDA definición de equipment_serial
+        // del archivo —la de reconciliación—: arreglé la otra y ésta quedó sin
+        // mono, y el censo la pescó como «SN-X» en Archivo.
+        classes: "mono obs-break-anywhere",
       },
       {
         name: "received_at",

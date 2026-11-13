@@ -254,6 +254,17 @@ body.body--dark
     white-space: normal
     overflow-wrap: anywhere
 
+// V2-G01 lista cerrada, clase 9 (2026-11-13): el valor de un input de fecha y
+// hora. 🔑 La clase tiene que ir EN EL INPUT y no en un envoltorio: el valor de
+// un `type="datetime-local"` lo rinde el NAVEGADOR, así que una clase en el
+// q-field no lo alcanza. Medidos 27 nodos en Archivo —10 filas de claves de
+// API, el paso 3 del diálogo de tarea y «Reiniciar más tarde»—, todos como
+// `input#f_… ` dentro de `.q-field__control-container`.
+input[type="datetime-local"],
+input[type="date"],
+input[type="time"]
+  font-family: $obs-font-mono
+
 // V2-G07 (2026-11-12): un identificador sin espacios MÁS LARGO que su caja no
 // tiene solución por ajuste de línea: `break-word` y `anywhere` lo parten igual,
 // porque no cabe de ninguna manera. Medidos dos: el modelo de disco

@@ -106,8 +106,15 @@
         <q-list bordered separator v-if="detail.files && detail.files.length">
           <q-item v-for="f in detail.files" :key="f.id">
             <q-item-section>
-              <q-item-label>{{ f.source_path }}</q-item-label>
-              <q-item-label caption>{{ bytes2Human(f.size) }}</q-item-label>
+              <!-- V2-G01 lista cerrada: clase 5 (ruta de archivo) y clase 4
+                   (tamano con unidad). Medidos 24 nodos en Archivo: las 12
+                   rutas y los 12 tamanos de esta lista. Aqui la clase va en el
+                   q-item-label, que es la ranura, no en la columna: esta lista
+                   no es una tabla. -->
+              <q-item-label class="mono">{{ f.source_path }}</q-item-label>
+              <q-item-label caption class="mono">{{
+                bytes2Human(f.size)
+              }}</q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-btn
