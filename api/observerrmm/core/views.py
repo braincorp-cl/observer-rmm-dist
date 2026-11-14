@@ -573,10 +573,12 @@ class RunTestURLAction(APIView):
             instance_id=instance_id,
         )
 
+        # RT-AUT-09: se audita la PLANTILLA del cuerpo, no el cuerpo resuelto:
+        # resolver {{global.X}} pondria el valor de una clave secreta en claro.
         AuditLog.audit_url_action_test(
             username=request.user.username,
             url=url,
-            body=replaced_body,
+            body=body,
             headers=headers,
             instance_type=instance_type,
             instance_id=instance_id,

@@ -7,19 +7,6 @@
         size="sm"
         outline
         no-caps
-        class="q-mr-sm"
-        :label="
-          isPwd
-            ? $t('keyStoreTable.showValues')
-            : $t('keyStoreTable.hideValues')
-        "
-        :icon="isPwd ? 'visibility_off' : 'visibility'"
-        @click="isPwd = !isPwd"
-      />
-      <q-btn
-        size="sm"
-        outline
-        no-caps
         icon="fas fa-plus"
         :label="$t('keyStoreTable.addKey')"
         @click="addKey"
@@ -75,8 +62,26 @@
             {{ props.row.name }}
           </q-td>
           <!-- value -->
-          <q-td :class="{ mono: !isPwd }">
-            {{ isPwd ? $t("keyStoreTable.masked") : props.row.value }}
+          <!-- RT-AUT-09 (llega por merge desde main): el servidor no entrega
+               el valor de una clave secreta; la celda dice si hay algo
+               guardado, nunca qué. Por eso se retiró el conmutador
+               mostrar/ocultar de la v2: con el valor fuera del cable, un botón
+               «Mostrar valores» prometía algo que ya no puede cumplir.
+               🪤 Dos cambios sobre lo que trajo main, los dos de criterios de
+               esta rama: `text-grey-7` es un color de la paleta de Quasar y no
+               un token del proyecto (V2-G02), así que va `.obs-text-muted`; y
+               el valor de una clave es ranura dedicada, así que la celda que SÍ
+               lo muestra va en mono (V2-G01, clase 10). -->
+          <q-td v-if="props.row.is_secret" class="obs-text-muted">
+            <q-icon name="lock" size="xs" class="q-mr-xs" />
+            {{
+              props.row.value_set
+                ? $t("keyStoreTable.secretSet")
+                : $t("keyStoreTable.secretEmpty")
+            }}
+          </q-td>
+          <q-td v-else class="mono">
+            {{ props.row.value }}
           </q-td>
         </q-tr>
       </template>
@@ -94,7 +99,6 @@ export default {
   data() {
     return {
       keystore: [],
-      isPwd: true,
       pagination: {
         rowsPerPage: 0,
         sortBy: "name",
@@ -118,7 +122,7 @@ export default {
           label: this.$t("keyStoreTable.colValue"),
           field: "value",
           align: "left",
-          sortable: true,
+          sortable: false,
         },
       ];
     },

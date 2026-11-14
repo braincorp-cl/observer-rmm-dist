@@ -752,9 +752,31 @@ class CodeSignToken(models.Model):
         return "Code signing token"
 
 
+def secret_fingerprint(value: str | None) -> str:
+    """Huella NO reversible de un secreto, para la auditoria.
+
+    Con el valor oculto, antes y despues de cambiar solo el secreto serializan
+    igual y BaseAuditModel no dejaria entrada. La huella cambia cuando cambia el
+    valor sin revelarlo: es un HMAC con la SECRET_KEY de la instalacion, asi que
+    no sirve para probar diccionarios desde fuera del servidor. Vacio da "".
+    """
+    import hashlib
+    import hmac
+
+    if not value:
+        return ""
+    return hmac.new(
+        settings.SECRET_KEY.encode(), value.encode(), hashlib.sha256
+    ).hexdigest()[:12]
+
+
 class GlobalKVStore(BaseAuditModel):
     name = models.CharField(max_length=25)
     value = models.TextField()
+    # RT-AUT-09: un valor secreto nunca sale del servidor (ni a la consola ni a
+    # la auditoria). Las claves nacen secretas; las de configuracion que se
+    # editan a la vista (p. ej. actividad_categorias) se marcan como no secretas.
+    is_secret = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -763,7 +785,10 @@ class GlobalKVStore(BaseAuditModel):
     def serialize(store):
         from .serializers import KeyStoreSerializer
 
-        return KeyStoreSerializer(store).data
+        data = KeyStoreSerializer(store).data
+        if store.is_secret:
+            data["value_fingerprint"] = secret_fingerprint(store.value)
+        return data
 
 
 class URLAction(BaseAuditModel):
@@ -788,7 +813,11 @@ class URLAction(BaseAuditModel):
     def serialize(action):
         from .serializers import URLActionSerializer
 
-        return URLActionSerializer(action).data
+        # Las cabeceras suelen llevar credenciales (Authorization, tokens): a la
+        # auditoria va solo su huella, para que un cambio siga dejando entrada.
+        data = dict(URLActionSerializer(action).data)
+        data["rest_headers"] = secret_fingerprint(action.rest_headers)
+        return data
 
 
 class Schedule(BaseAuditModel):
