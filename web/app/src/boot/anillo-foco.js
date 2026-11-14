@@ -78,8 +78,7 @@ function crear() {
     zIndex: "9400",
     // Las dos bandas, hacia afuera. La primera sombra se pinta encima, así que
     // --obs-focus-alt ocupa [0,2] y --obs-focus [2,4].
-    boxShadow:
-      "0 0 0 2px var(--obs-focus-alt), 0 0 0 4px var(--obs-focus)",
+    boxShadow: "0 0 0 2px var(--obs-focus-alt), 0 0 0 4px var(--obs-focus)",
   });
   document.body.appendChild(capa);
   return capa;
@@ -90,6 +89,38 @@ function crear() {
 // `.q-field__control`; en una casilla, al input oculto. Y un botón con insignia
 // flotante es, para el ojo, el botón MÁS su insignia: marcar sólo la caja del
 // botón dejaba la insignia fuera del anillo.
+// 🔑 V2-G15 (2026-11-14): un AYUDANTE fuera de pantalla con sustituto visible.
+// Hay widgets que reciben las teclas en un `<textarea>` que a propósito no se
+// ve, y dibujan ellos mismos lo que el usuario cree que está enfocado. Medido
+// en el CSS servido: `.xterm .xterm-helper-textarea` es
+// `position:absolute; left:-9999em; width:0; height:0`. El foco va ahí de
+// verdad —es el único enfocable de `/webterm`, `tabindex=0` y `:focus-visible`
+// verdadero— pero su rect no señala ningún lugar de la pantalla.
+//
+// Marcar el ayudante es imposible y no marcar nada es la violación que el ítem
+// persigue, así que el anillo va al widget que SÍ se ve. Es el mismo criterio
+// que ya aplica `cajaDe` con el `<input>` de un campo de Quasar: el elemento
+// que recibe el foco no siempre es el que hay que marcar.
+// 🪤 Monaco NO va en esta lista, y es a propósito. Su `textarea.inputarea` mide
+// 1×1 pero está EN pantalla, así que no cae en `rectInservible` (1 no es < 1) y
+// nunca llegaría a pedir sustituto: la entrada sería código que nadie llama.
+// Además la pasada de `c14973e` ya resolvió que ese textarea es artefacto del
+// instrumento —1432 de 1438 candidatos— y no un control alcanzable. Si eso se
+// revisa alguna vez, el cambio va en el umbral, no en esta lista.
+const SUSTITUTOS_DE_AYUDANTE = ".xterm";
+
+// ¿El rect no sirve para dibujar? Misma prueba que usaba `pintar` en línea.
+function rectInservible(r) {
+  return (
+    r.width < 1 ||
+    r.height < 1 ||
+    r.left > window.innerWidth ||
+    r.top > window.innerHeight ||
+    r.left + r.width < 0 ||
+    r.top + r.height < 0
+  );
+}
+
 function cajaDe(el) {
   const campo = el.closest(".q-field__control");
   if (campo) return campo;
@@ -107,13 +138,18 @@ function cajaDe(el) {
 
 function rectUnion(el) {
   const r = el.getBoundingClientRect();
-  let x1 = r.left, y1 = r.top, x2 = r.right, y2 = r.bottom;
+  let x1 = r.left,
+    y1 = r.top,
+    x2 = r.right,
+    y2 = r.bottom;
   const insignias = el.querySelectorAll(".q-badge--floating");
   for (const b of insignias) {
     const rb = b.getBoundingClientRect();
     if (!rb.width || !rb.height) continue;
-    x1 = Math.min(x1, rb.left); y1 = Math.min(y1, rb.top);
-    x2 = Math.max(x2, rb.right); y2 = Math.max(y2, rb.bottom);
+    x1 = Math.min(x1, rb.left);
+    y1 = Math.min(y1, rb.top);
+    x2 = Math.max(x2, rb.right);
+    y2 = Math.max(y2, rb.bottom);
   }
   return { left: x1, top: y1, width: x2 - x1, height: y2 - y1 };
 }
@@ -290,7 +326,10 @@ function noSenalaNingunLugar(r) {
 function ocultar() {
   objetivo = null;
   vistoVisible = false;
-  if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  if (raf) {
+    cancelAnimationFrame(raf);
+    raf = 0;
+  }
   if (capa) capa.style.display = "none";
 }
 
@@ -331,11 +370,11 @@ function pintar() {
     if (
       !vistoVisible ||
       (!objetivo.matches(":focus-visible") &&
-      // ... salvo que el foco siga PUESTO en el mismo elemento y la última
-      // interacción haya sido una tecla. Esto NO afloja el control del ratón:
-      // un `pointerdown` apaga la bandera (y además oculta el anillo), así que
-      // el clic sigue sin dibujar nada.
-       !(teclado && document.activeElement === objetivo))
+        // ... salvo que el foco siga PUESTO en el mismo elemento y la última
+        // interacción haya sido una tecla. Esto NO afloja el control del ratón:
+        // un `pointerdown` apaga la bandera (y además oculta el anillo), así que
+        // el clic sigue sin dibujar nada.
+        !(teclado && document.activeElement === objetivo))
     ) {
       return ocultar();
     }
@@ -343,20 +382,37 @@ function pintar() {
     /* navegador sin :focus-visible: se deja el anillo, que es el lado seguro */
   }
   if (esAnclaYNoControl(objetivo)) return ocultar();
-  const caja = cajaDe(objetivo);
-  const r = rectUnion(caja);
+  let caja = cajaDe(objetivo);
+  let r = rectUnion(caja);
+  // Si el propio enfocado no se puede dibujar, se busca su sustituto visible
+  // ANTES de rendirse. Se consulta sólo en ese caso, para no cambiarle la caja
+  // a nada que ya funcione.
+  if (rectInservible(r)) {
+    const sus = objetivo.closest(SUSTITUTOS_DE_AYUDANTE);
+    if (sus && sus !== caja) {
+      const rs = rectUnion(sus);
+      if (!rectInservible(rs)) {
+        caja = sus;
+        r = rs;
+      }
+    }
+  }
   if (noSenalaNingunLugar(r)) return ocultar();
-  if (
-    r.width < 1 || r.height < 1 ||
-    r.left > window.innerWidth || r.top > window.innerHeight ||
-    r.left + r.width < 0 || r.top + r.height < 0
-  ) {
-    capa.style.display = "none";
+  // 🪤 V2-G15 (2026-11-14): estas dos ramas hacían `capa.style.display` SIN
+  // guarda, y `crear()` recién se llama más abajo. O sea: en una página cuyo
+  // PRIMER enfocable tiene rect inservible, el primer TAB entraba acá con
+  // `capa === null` y lanzaba TypeError. La excepción se come el `seguir()`,
+  // así que el bucle de rAF no volvía a arrancar y la página quedaba sin anillo
+  // para siempre — no es un anillo faltante en un control, es el anillo MUERTO
+  // en toda la vista. Medido en `/webterm`, cuyo único enfocable es el ayudante
+  // de xterm: `capas_en_dom=0` y `capas_tras_8_TAB=0`, en los dos temas.
+  if (rectInservible(r)) {
+    if (capa) capa.style.display = "none";
     return seguir();
   }
   const rv = dentroDeLaVentana(r);
   if (rv.width < 1 || rv.height < 1) {
-    capa.style.display = "none";
+    if (capa) capa.style.display = "none";
     return seguir();
   }
   const cs = getComputedStyle(caja);

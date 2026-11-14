@@ -428,7 +428,8 @@ export default {
           align: "left",
           sortable: true,
           // V2-G07: token sin espacios que fijaría el ancho de la columna.
-          classes: "obs-break-anywhere",
+          // V2-G01 clase 1 (IP y MAC): la columna es ranura dedicada, va en mono.
+        classes: "mono obs-break-anywhere",
         },
       ];
     },

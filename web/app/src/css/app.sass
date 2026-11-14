@@ -246,6 +246,27 @@ body.body--dark
     row-gap: 16px
   .q-item__label, .q-item__section, span
     overflow-wrap: anywhere
+  // 🪤 V2-G07 (2026-11-14): el `anywhere` de arriba NO era la regla que faltaba,
+  // era la CAUSA. Parte cualquier palabra que no quepa, y en el resumen hay
+  // valores que son IDENTIFICADORES: medido a 1280, el service tag y asset tag
+  // de un equipo -24 caracteres, sin espacios- salia en DOS lineas dentro
+  // de un `.q-item__section--main` de 182 px. A 1440 la celda mide 249 px y
+  // cabe, asi que el defecto solo aparece al angostar.
+  //
+  // 🔑 La senal ya estaba en el DOM: en este resumen la clase `mono` marca
+  // valor de maquina, no prosa. Son 3 nodos y los otros dos («8 GB de RAM», el
+  // modelo del disco) llevan espacios, asi que con `normal` siguen plegando por
+  // el espacio. `normal` no parte dentro de la palabra y `overflow-x: auto`
+  // deja alcanzable lo que sobresalga, que es lo que pide la clausula de 1024
+  // de V2-G06. Va DESPUES del `anywhere` a proposito: misma especificidad
+  // (0,2,0) y el nodo lleva las dos clases, asi que gana la ultima.
+  // 🔑 `.mono *` tambien: la regla de arriba le da `anywhere` DIRECTAMENTE a
+  // `span`, y una regla directa sobre el hijo le gana a lo heredado del padre.
+  // Sin el descendiente, este arreglo seria un no-op para cualquier valor que
+  // venga envuelto en un span o un label.
+  .mono, .mono *
+    overflow-wrap: normal
+    overflow-x: auto
   .q-chip
     height: auto
     max-width: 100%
@@ -263,6 +284,55 @@ body.body--dark
 input[type="datetime-local"],
 input[type="date"],
 input[type="time"]
+  font-family: $obs-font-mono
+
+// 🔑 V2-G06 (2026-11-14): CAUSA Y ARREGLO del aviso tapado.
+//
+// Medido sobre los assets servidos de `343b6a8`, en `/erase-intake`, diálogo de
+// alta de ingresos, a 1024 y en los dos temas: los 3 avisos «Puedes escanear el
+// código con un lector…» pliegan a 3 líneas, el bottom mide 41 px y
+// `.q-field--with-bottom` sólo reserva 20 ⇒ 21 px de derrame, y la línea 2 queda
+// tapada por el `.q-field__control` OPACO del campo de abajo. Franja de
+// 20,1 × 5,0 px con F1==F2 (cero texto pintado) y F3≠F4 (con el opaco fuera sí
+// pinta). No es un recorte: el aviso está dibujado y hay algo encima.
+//
+// La mecánica: `use-field.js` marca el bottom como `--animated` SIEMPRE que no
+// haya `hide-bottom-space`, y `.q-field__bottom--animated` es
+// `position:absolute; bottom:0; transform:translateY(100%)` dentro de
+// `.q-field__inner.relative-position`. Absoluto = fuera del flujo = el campo de
+// abajo no se entera de que creció.
+//
+// 🪤 Mis DOS conclusiones anteriores estaban invertidas. Primero leí que
+// `--animated` era opcional y que estos campos «no la piden», cuando se aplica
+// POR DEFECTO y lo que la quita es `hide-bottom-space`: el «cero
+// hide-bottom-space» de `AssetIntakeForm.vue` era la prueba de CULPA, no de
+// inocencia. Después anoté que `hide-bottom-space` «re-rompe el plegado», y es
+// falso: con esa prop la clase pasa a `--stale`, que **no tiene NINGUNA regla**
+// en el CSS servido ⇒ el bottom queda en flujo, que es justo lo que falta.
+//
+// 🔑 Por eso el arreglo va acá y no campo por campo: el derrame le pasa a
+// CUALQUIER campo cuyo aviso pliegue, y marcar uno por uno repite el error de
+// arreglar donde medí. El bottom pasa a flujo y se quita la reserva fija.
+// Los avisos de UNA línea no se mueven ni un píxel: `.q-field__bottom` ya trae
+// `min-height: 20px`, que es exactamente el `padding-bottom: 20px` que se
+// retira. Un aviso de 3 líneas ahora EMPUJA 21 px en vez de tapar.
+// La especificidad (0,2,0) le gana a la de Quasar (0,1,0) sin depender del
+// orden de carga de las hojas.
+.q-field__inner > .q-field__bottom--animated
+  position: static
+  transform: none
+.q-field.q-field--with-bottom
+  padding-bottom: 0
+
+// V2-G01 lista cerrada, clase 14 (2026-11-14): el valor MOSTRADO de un
+// `q-select` sin `use-input` no es un `<input>`: Quasar lo rinde como
+// `div.q-field__native > span.ellipsis`. Por eso `input-class="mono"` del
+// select de zona horaria de `/setup` NO lo alcanzaba, y `America/Santiago`
+// salía en Archivo mientras los otros 4 sitios de la misma clase salían en
+// mono. 🔑 Se acota a `.q-field__native` a propósito: el rótulo del campo vive
+// fuera de ese nodo y tiene que seguir en Archivo, que es interfaz.
+.obs-valor-mono .q-field__native,
+.obs-valor-mono .q-field__native > span
   font-family: $obs-font-mono
 
 // V2-G07 (2026-11-12): un identificador sin espacios MÁS LARGO que su caja no

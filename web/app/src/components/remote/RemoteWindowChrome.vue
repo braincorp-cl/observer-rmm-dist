@@ -57,6 +57,7 @@
 import { onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { fetchDashboardInfo } from "@/api/core";
+import { colorDeBarraDeCarga } from "@/utils/barra-carga";
 
 defineProps({
   // Migas "cliente / sitio". Vacío en las ventanas que no cuelgan de un equipo.
@@ -78,7 +79,12 @@ onMounted(async () => {
   try {
     const { dark_mode, loading_bar_color } = await fetchDashboardInfo();
     $q.dark.set(dark_mode);
-    $q.loadingBar.setDefaults({ color: loading_bar_color });
+    // 🪤 V2-G02: este sitio aplicaba el valor CRUDO y se quedaba con el
+    // #f44336 de fabrica cuando el usuario tenia "red" guardado. El remapeo
+    // vive en @/utils/barra-carga y lo comparte con store/index.js.
+    $q.loadingBar.setDefaults({
+      color: colorDeBarraDeCarga(loading_bar_color),
+    });
   } catch (e) {
     console.error(e);
   }

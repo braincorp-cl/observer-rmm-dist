@@ -3,6 +3,7 @@ import { Screen, Dark, LoadingBar } from "quasar";
 import axios from "axios";
 import { formatDate } from "@/utils/format";
 import { applyLocale } from "@/boot/i18n";
+import { colorDeBarraDeCarga } from "@/utils/barra-carga";
 
 export default function () {
   const Store = new createStore({
@@ -268,10 +269,7 @@ export default function () {
         // justamente las que abren en ventana aparte. El color de la barra es un
         // default global, no un ajuste «editado»: va fuera de la condicional.
         LoadingBar.setDefaults({
-          color:
-            data.loading_bar_color === "red"
-              ? "secondary"
-              : data.loading_bar_color,
+          color: colorDeBarraDeCarga(data.loading_bar_color),
         });
         if (edited) {
           commit(

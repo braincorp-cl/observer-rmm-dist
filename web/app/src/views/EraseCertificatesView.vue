@@ -708,7 +708,12 @@ export default {
         align: "left",
         sortable: true,
         // V2-G07: token sin espacios que fijaría el ancho de la columna.
-        classes: "obs-break-anywhere",
+        // 🪤 V2-G01 clase 10 (2026-11-14): acá faltaba `mono`. Es la MISMA
+        // columna que `intakeColumns.process_id`, que sí la lleva: el mismo
+        // dato en dos tablas de la misma vista, y la clase quedó en una sola.
+        // Medidos `OE-IN-97C45AF7AA` y `OE-IN-1CBF066E04` en Archivo, a 1280 y
+        // a 1440, en `td.obs-break-anywhere:nth-of-type(1)`.
+        classes: "mono obs-break-anywhere",
       },
       {
         name: "equipment_serial",

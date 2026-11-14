@@ -88,8 +88,12 @@
         }}</q-td>
       </template>
 
+      <!-- V2-G01 clase 11 (porcentaje medido en su celda): va en mono. La
+           plantilla de celda propia se salta el `classes` de la columna, así
+           que la clase tiene que ir acá, en el `q-td` que esta plantilla rinde.
+           Medidos «100%» y «47%» en Archivo en `td.q-td:nth-of-type(6)`. -->
       <template v-slot:body-cell-encryption_percentage="props">
-        <q-td :props="props">
+        <q-td :props="props" class="mono">
           {{ percentText(props.row.encryption_percentage) }}
         </q-td>
       </template>

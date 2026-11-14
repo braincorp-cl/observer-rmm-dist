@@ -196,6 +196,18 @@ export default {
     // (especificación o modelo de hardware) y clase 8 (marca de tiempo
     // dedicada). Lo que NO está acá es interfaz: el fabricante, el tipo y
     // origen del medio, la disposición, el método aplicado y la norma.
+    // 🪤 V2-G01 (2026-11-14): este Set existía y la fila que fallaba NO estaba
+    // en él. La medida cayó en `created_at` («Emitido», fila 25 de 28) y las
+    // otras TRES marcas de tiempo de la misma tabla —`concurrence_at`,
+    // `started_at`, `finished_at`— tampoco estaban: no se midieron sólo porque
+    // esos certificados las traían con guion. Se agregan las cuatro, y también
+    // el hash del documento y el id de la llave, que son clase 10, y la versión
+    // del software, que es clase 2.
+    //
+    // 🪤 `equipment_serial`, `issued_at` y `process_id` NO corresponden a
+    // ninguna de las 28 filas de `fields`: son claves muertas. Se dejan porque
+    // quitarlas no cambia nada rendido, pero quedan declaradas acá para que no
+    // se lean como prueba de que esos campos están cubiertos.
     const VALOR_MONO = new Set([
       "certificate_id",
       "asset_tag",
@@ -204,6 +216,13 @@ export default {
       "equipment_hostname",
       "issued_at",
       "process_id",
+      "concurrence_at",
+      "started_at",
+      "finished_at",
+      "created_at",
+      "software_version",
+      "document_hash",
+      "signing_key_id",
     ]);
 
     const fields = computed(() => {

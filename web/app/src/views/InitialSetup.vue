@@ -61,6 +61,7 @@
           :options="allTimezones"
           input-class="mono"
           popup-content-class="mono"
+          class="obs-valor-mono"
         />
       </div>
 
