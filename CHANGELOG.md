@@ -8,6 +8,11 @@ desde el aviso de "versión disponible" (`MainLayout.vue`, ancla `#v{versión}`)
 Formato de cada entrada: `## vX.Y.Z — YYYY-MM-DD` (el token `vX.Y.Z` se usa tal cual
 como ancla HTML `id`, así que debe coincidir con `ORMM_VERSION`). Viñetas con `-`.
 
+## v1.4.44 — 2026-11-14
+
+- **Las claves secretas del almacén de claves dejan de mostrarse.** Cada clave lleva ahora una marca de «secreto». Si está marcada, la consola ya no muestra su valor ni lo devuelve por la API, y la auditoría registra sólo una huella del valor, no el valor mismo. Las pruebas de acciones URL registran sólo los nombres de las cabeceras y la plantilla del cuerpo, nunca el valor resuelto. Las claves existentes quedan marcadas como secretas al actualizar, salvo la configuración del monitoreo de actividad.
+- **Corregido: actualizar MeshCentral no reiniciaba el servicio.** El despliegue dejaba la versión nueva en disco y terminaba en verde, pero el proceso seguía corriendo la versión anterior. Ahora reinicia MeshCentral sólo cuando de verdad cambió algo.
+
 ## v1.4.43 — 2026-11-11
 
 - **El servidor aguanta mejor una flota grande.** Siete ajustes de rendimiento medidos sobre una réplica de datos reales: el emparejamiento de resultados con tareas y checks ya no dispara una consulta por resultado, los procesos de tareas se reciclan por memoria y no cada dos tareas, el servidor web reutiliza conexiones a la base, y el historial de un equipo se pide por páginas en vez de serializar la tabla entera de una vez.
