@@ -384,6 +384,7 @@ function pintar() {
   if (esAnclaYNoControl(objetivo)) return ocultar();
   let caja = cajaDe(objetivo);
   let r = rectUnion(caja);
+  let sustituido = false;
   // Si el propio enfocado no se puede dibujar, se busca su sustituto visible
   // ANTES de rendirse. Se consulta sólo en ese caso, para no cambiarle la caja
   // a nada que ya funcione.
@@ -394,10 +395,22 @@ function pintar() {
       if (!rectInservible(rs)) {
         caja = sus;
         r = rs;
+        sustituido = true;
       }
     }
   }
-  if (noSenalaNingunLugar(r)) return ocultar();
+  // 🪤 V2-G15 (2026-11-14, medido): un sustituto NO pasa por
+  // `noSenalaNingunLugar`. Esa guarda existe para descartar un contenedor que
+  // resultó del tamaño de la ventana por accidente y por eso no señala ningún
+  // lugar; un sustituto es lo contrario: es el elemento que ELEGIMOS marcar
+  // porque el enfocado real no se puede dibujar. Sin esta excepción el anillo
+  // de `/webterm` moría acá: medido a 1280x900, `innerHeight` es 757 -no 900,
+  // que es el alto de VENTANA- y el `.xterm` mide 1280x702, asi que
+  // 1280 >= 1280-100 y 702 >= 757-100 daban las dos verdaderas y la capa se
+  // ocultaba. Un terminal a pantalla completa es indistinguible de un
+  // contenedor que llena la ventana, y la diferencia no está en la geometría
+  // sino en POR QUÉ llegamos a ese elemento.
+  if (!sustituido && noSenalaNingunLugar(r)) return ocultar();
   // 🪤 V2-G15 (2026-11-14): estas dos ramas hacían `capa.style.display` SIN
   // guarda, y `crear()` recién se llama más abajo. O sea: en una página cuyo
   // PRIMER enfocable tiene rect inservible, el primer TAB entraba acá con
