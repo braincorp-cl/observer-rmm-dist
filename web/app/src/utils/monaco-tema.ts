@@ -232,6 +232,18 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
     "editorBracketHighlight.foreground1": oscuro ? "#FFD700" : "#0431FA",
     "editorBracketHighlight.foreground2": oscuro ? "#DA70D6" : "#287828",
     "editorBracketHighlight.foreground3": oscuro ? "#179FFF" : "#7B3814",
+    // 🪤 Y el SEPTIMO color de corchete, que no esta numerado y por eso se me
+    // paso: `unexpectedBracket.foreground` -el corchete sin par-. En vs-dark y
+    // en vs vale `rgba(255,18,18,0.8)`, y COMPUESTO sobre cada capa da 3,32 /
+    // 2,82 / 2,71 en oscuro y 3,56 / 3,69 / 3,64 / 3,93 en claro: los SEIS
+    // cruces violan 4,5. Aparece cada vez que alguien teclea un corchete que
+    // todavia no cierra, o sea casi siempre mientras se escribe codigo.
+    // Se le dan los mismos valores que a la regla `invalid`, porque es la misma
+    // semantica -un corchete sin par ES un token invalido- y ya estan medidos
+    // en 5,01 y 5,02 sobre la peor capa de cada tema.
+    "editorBracketHighlight.unexpectedBracket.foreground": oscuro
+      ? "#F66767"
+      : "#C42F2F",
   };
 }
 
