@@ -514,7 +514,7 @@ export default {
   word-break: break-all;
 }
 .oe-path {
-  font-family: monospace;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   word-break: break-all;
 }
 </style>

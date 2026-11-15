@@ -57,7 +57,7 @@ function onOKClick() {
 
 <style>
 pre {
-  font-family: monospace;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   white-space: pre-wrap;
 }
 </style>

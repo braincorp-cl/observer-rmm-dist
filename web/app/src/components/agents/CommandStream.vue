@@ -94,7 +94,7 @@ onUnmounted(close);
 
 <style scoped>
 .command-stream {
-  font-family: monospace;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   background: var(--obs-deep);
   color: var(--obs-text);
   padding: 0 10px;
