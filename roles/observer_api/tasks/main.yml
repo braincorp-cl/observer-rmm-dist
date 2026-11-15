@@ -135,15 +135,27 @@
 # tarea de `migrate`, que no menciona ni el vault ni el rol ni como arreglarlo. La
 # comprobacion va aca, pegada al render, para que cubra tambien la rebanada api_config,
 # que es justo la que reescribe el archivo sin tocar nada mas.
+# 🪤 Instalacion nueva: el venv ya existe en este punto (se crea mas arriba), pero Django
+# y el codigo todavia no -- los instala django_deploy, mas abajo. Bastaba con mirar que
+# existiera env/bin/python y la comprobacion corria `import django` en un venv vacio:
+# ModuleNotFoundError, y la tarea de abajo abortaba la instalacion con "la base no abre".
+# Volver a correr no lo arreglaba, porque nunca se llegaba al pip. Paso desde el 4-nov
+# (330f860) y no se vio porque desde entonces no se instalo ningun servidor nuevo. Por
+# eso la condicion es que el codigo este sincronizado Y que Django importe.
 - name: "Comprobar si el entorno Django ya existe para probar la conexion"
   tags: [api_config]
-  ansible.builtin.stat:
-    path: "{{ observer_root }}/api/env/bin/python"
+  ansible.builtin.shell:
+    cmd: >-
+      test -f {{ observer_root }}/api/{{ observer_app_name }}/manage.py &&
+      {{ observer_root }}/api/env/bin/python -c "import django"
   register: _api_venv
+  changed_when: false
+  failed_when: false
+  check_mode: false
 
 - name: "Comprobar que las credenciales de local_settings.py abren la base"
   tags: [api_config]
-  when: _api_venv.stat.exists
+  when: _api_venv.rc == 0
   ansible.builtin.command:
     cmd: >-
       {{ observer_root }}/api/env/bin/python -c
@@ -166,7 +178,7 @@
 - name: "Explicar que PostgreSQL rechaza la contrasena escrita en local_settings.py"
   tags: [api_config]
   when:
-    - _api_venv.stat.exists
+    - _api_venv.rc == 0
     - (_db_conn.rc | default(0)) != 0
     - "'password authentication failed' in (_db_conn.stderr | default(''))"
   ansible.builtin.fail:
@@ -187,7 +199,7 @@
 - name: "Explicar que la base no abre por una razon distinta de la contrasena"
   tags: [api_config]
   when:
-    - _api_venv.stat.exists
+    - _api_venv.rc == 0
     - (_db_conn.rc | default(0)) != 0
     - "'password authentication failed' not in (_db_conn.stderr | default(''))"
   ansible.builtin.fail:
@@ -255,6 +267,11 @@
     # El chromium que baja plotly.io.get_chrome() es solo el binario: en un servidor mínimo
     # NO arranca por falta de sus librerías de sistema (BrowserFailedError). Espejo del patrón
     # de WeasyPrint (arriba). Lista derivada de `ldd chrome | grep "not found"` en Ubuntu 22.04.
+    # 🪤 Desde 24.04 (transicion t64) cinco de estos nombres son paquetes VIRTUALES, y en
+    # 24.04 y 26.04 `libasound2` lo proveen DOS paquetes (libasound2t64 y
+    # liboss4-salsa-asound2): apt no elige y falla, y como esto va en un `rescue` la
+    # instalacion seguia en verde con los reportes sin graficos. Se pide el nombre real:
+    # sin sufijo en 22.04, con `t64` desde 24.04 (verificado en los indices de las tres).
     #
     # Va condicionado al mismo `stat` que la descarga. CONTRAPARTIDA ASUMIDA: si alguien borra
     # estas librerías pero deja el binario, el deploy ya no las repone y el render fallaría con
@@ -262,18 +279,20 @@
     # la que la descarga ya confiaba, y la salida es la misma que para cualquier otro problema
     # de la caché: borrar el binario y volver a correr, que re-provisiona ambas cosas.
     - name: Instalar dependencias de sistema de chromium (Kaleido)
+      vars:
+        _kaleido_t64: "{{ '' if ansible_facts['distribution_version'] is version('24.04', '<') else 't64' }}"
       ansible.builtin.apt:
         name:
           - libxcomposite1
           - libxdamage1
           - libxfixes3
           - libxrandr2
-          - libasound2
-          - libatk1.0-0
-          - libatk-bridge2.0-0
-          - libatspi2.0-0
+          - "libasound2{{ _kaleido_t64 }}"
+          - "libatk1.0-0{{ _kaleido_t64 }}"
+          - "libatk-bridge2.0-0{{ _kaleido_t64 }}"
+          - "libatspi2.0-0{{ _kaleido_t64 }}"
           - libcairo2
-          - libcups2
+          - "libcups2{{ _kaleido_t64 }}"
           - libgbm1
           - libxkbcommon0
           - fonts-liberation

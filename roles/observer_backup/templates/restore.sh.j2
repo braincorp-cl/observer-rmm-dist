@@ -60,7 +60,8 @@ die() { rojo "ERROR: $*"; exit 1; }
 cd / || die "no se pudo cambiar a /"
 
 # ----------------------------------------------------------------- desempaquetar
-W=$(mktemp -d -t observer-restore-XXXXXXXX)   # /var/tmp via TMPDIR si se quiere; mktemp -t usa /tmp
+# /var/tmp y no /tmp: desde Ubuntu 24.10 /tmp es tmpfs (RAM) y un respaldo completo no cabe.
+W=$(mktemp -d -p "${TMPDIR:-/var/tmp}" observer-restore-XXXXXXXX)
 trap 'rm -rf "$W"' EXIT
 info "desempaquetando en $W"
 tar -xf "$TARBALL" -C "$W" || die "el tarball no se pudo desempaquetar"

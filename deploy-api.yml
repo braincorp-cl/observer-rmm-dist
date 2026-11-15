@@ -140,24 +140,31 @@
         # El binario que baja plotly.io.get_chrome() NO arranca en un servidor mínimo sin sus
         # librerías de sistema (BrowserFailedError). Espejo del bloque del rol observer_api.
         # Lista derivada de `ldd chrome | grep "not found"` en Ubuntu 22.04.
+        # 🪤 Desde 24.04 (transicion t64) cinco de estos nombres son paquetes VIRTUALES, y en
+        # 24.04 y 26.04 `libasound2` lo proveen DOS paquetes (libasound2t64 y
+        # liboss4-salsa-asound2): apt no elige y falla, y como esto va en un `rescue` la
+        # instalacion seguia en verde con los reportes sin graficos. Se pide el nombre real:
+        # sin sufijo en 22.04, con `t64` desde 24.04 (verificado en los indices de las tres).
         #
         # Condicionado al mismo `stat` que la descarga. CONTRAPARTIDA ASUMIDA: si se borran las
         # librerías dejando el binario, el deploy ya no las repone. Se acepta porque la presencia
         # del binario es la misma señal en la que la descarga ya confiaba; para re-provisionar
         # ambas cosas se borra el binario y se vuelve a correr.
         - name: Instalar dependencias de sistema de chromium (Kaleido)
+          vars:
+            _kaleido_t64: "{{ '' if ansible_facts['distribution_version'] is version('24.04', '<') else 't64' }}"
           ansible.builtin.apt:
             name:
               - libxcomposite1
               - libxdamage1
               - libxfixes3
               - libxrandr2
-              - libasound2
-              - libatk1.0-0
-              - libatk-bridge2.0-0
-              - libatspi2.0-0
+              - "libasound2{{ _kaleido_t64 }}"
+              - "libatk1.0-0{{ _kaleido_t64 }}"
+              - "libatk-bridge2.0-0{{ _kaleido_t64 }}"
+              - "libatspi2.0-0{{ _kaleido_t64 }}"
               - libcairo2
-              - libcups2
+              - "libcups2{{ _kaleido_t64 }}"
               - libgbm1
               - libxkbcommon0
               - fonts-liberation
