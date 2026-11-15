@@ -34,6 +34,10 @@
           - libffi-dev
           - libsqlite3-dev
           - libbz2-dev
+          # _lzma y _uuid: sin sus -dev CPython compila igual pero sin esos modulos
+          # (existen con el mismo nombre en jammy, noble y resolute).
+          - liblzma-dev
+          - uuid-dev
         state: present
         update_cache: true
 

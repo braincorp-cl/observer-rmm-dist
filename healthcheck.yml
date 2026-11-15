@@ -89,18 +89,22 @@
     # /core/version/ es un endpoint protegido real (Observer NO usa prefijo
     # /api/): sin token devuelve 401, probando toda la cadena nginx→uwsgi→Django→DRF auth.
     # El host se auto-resuelve vía /etc/hosts (observer_common, install.sh L203-219).
+    # validate_certs: true por omisión, porque en acme y con un certificado de CA pública
+    # verificar es justo lo que se quiere medir. Un certificado de CA privada (cliente
+    # on-premise) o autofirmado no lo valida el almacén del sistema y el chequeo caía en
+    # rojo con el servicio sano: -e observer_healthcheck_validate_certs=false.
     - name: Verificar endpoint protegido del API retorna 401
       ansible.builtin.uri:
         url: "https://{{ observer_domain }}/core/version/"
         status_code: 401
-        validate_certs: true
+        validate_certs: "{{ observer_healthcheck_validate_certs | default(true) | bool }}"
       register: api_result
 
     - name: Verificar health endpoint del API retorna 200
       ansible.builtin.uri:
         url: "https://{{ observer_domain }}/"
         status_code: 200
-        validate_certs: true
+        validate_certs: "{{ observer_healthcheck_validate_certs | default(true) | bool }}"
       register: api_health
 
     - name: Mostrar resultado

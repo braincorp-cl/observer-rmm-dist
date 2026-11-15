@@ -33,7 +33,8 @@ KEEP_MONTHLY={{ observer_backup_keep_monthly }}
 
 sysd="/etc/systemd/system"
 dt_now=$(date '+%Y_%m_%d__%H_%M_%S')
-tmp_dir=$(mktemp -d -t observerrmm-XXXXXXXXXXXX)
+# /var/tmp y no /tmp: desde Ubuntu 24.10 /tmp es tmpfs (RAM) y el volcado completo no cabe.
+tmp_dir=$(mktemp -d -p "${TMPDIR:-/var/tmp}" observerrmm-XXXXXXXXXXXX)
 trap 'rm -rf "${tmp_dir}"' EXIT
 mkdir -p "${tmp_dir}"/{postgres,certs,nginx,systemd,rmm,confd,opt,meshcentral}
 
