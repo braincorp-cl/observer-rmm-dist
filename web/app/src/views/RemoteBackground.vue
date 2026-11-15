@@ -8,12 +8,26 @@
     (ObsSectionNav, el mismo del espacio de trabajo del agente) en vez de las
     pestañas planas de la v1, y los tokens --obs-* para superficies y bordes.
 
+    🔴 V2-P10 (2026-11-15): y TAMBIÉN la cabecera propia. Esta ventana era la
+    única de las cuatro remotas sin `h1` ni migas —medido en 8 de 8 lecturas de
+    la pasada final—, así que no se veía a qué equipo estabas conectado justo en
+    la ventana donde se ejecutan comandos y se borran archivos. La enmienda del
+    2026-11-04 define shell como tokens + cabecera propia + ObsSectionNav, y es
+    una SUMA: el riel no sustituye la cabecera. `RemoteWindowChrome` ya existía
+    para que las ventanas la hereden; acá sólo faltaba usarlo. Él aporta además
+    el arranque de tema y el color de la barra de carga, que esta vista hacía
+    por su cuenta (y apagaba la barra; ahora se comporta como las otras tres).
+
     UI-F09: la sección sigue viviendo en la URL como ?tab=. Al entrar se lee de
     ahí (los atajos de la barra de acción abren esta ventana ya en una pestaña) y
     al cambiar de sección se reescribe con replace, igual que la sección del
     espacio de trabajo (UI-E02): recargar la ventana reabre la misma sección.
   -->
-  <div class="obs-page obs-remote">
+  <RemoteWindowChrome
+    :crumbs="crumbs"
+    :hostname="hostname"
+    :title="$t('agentActions.remoteBackground')"
+  >
     <ObsSectionNav
       :groups="navGroups"
       :section="tab"
@@ -46,7 +60,7 @@
       />
       <RegistryManager v-else-if="tab === 'registry'" :agent_id="agent_id" />
     </div>
-  </div>
+  </RemoteWindowChrome>
 </template>
 
 <script>
@@ -54,12 +68,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { useQuasar, useMeta } from "quasar";
+import { useMeta } from "quasar";
 import { fetchAgentMeshCentralURLs } from "@/api/agents";
-import { fetchDashboardInfo } from "@/api/core";
 
 // ui imports
 import ObsSectionNav from "@/components/shell/ObsSectionNav.vue";
+import RemoteWindowChrome from "@/components/remote/RemoteWindowChrome.vue";
 import ProcessManager from "@/components/agents/remotebg/ProcessManager.vue";
 import ServicesManager from "@/components/agents/remotebg/ServicesManager.vue";
 import EventLogManager from "@/components/agents/remotebg/EventLogManager.vue";
@@ -90,14 +104,13 @@ export default {
   name: "RemoteBackground",
   components: {
     ObsSectionNav,
+    RemoteWindowChrome,
     ServicesManager,
     EventLogManager,
     ProcessManager,
     RegistryManager,
   },
   setup() {
-    // setup quasar
-    const $q = useQuasar();
     const { t } = useI18n();
 
     // vue router
@@ -108,6 +121,16 @@ export default {
     // meshcentral tabs
     const terminal = ref("");
     const file = ref("");
+
+    // V2-P10: la cabecera propia. `fetchAgentMeshCentralURLs` ya traía estos
+    // tres campos en la misma respuesta que da las URL de las pestañas; la
+    // vista los descartaba y sólo los usaba para el título de la ventana.
+    const hostname = ref("");
+    const client = ref("");
+    const site = ref("");
+    const crumbs = computed(() =>
+      [client.value, site.value].filter(Boolean).join(" / "),
+    );
 
     const plataforma = computed(() => route.query.agentPlatform);
 
@@ -156,6 +179,9 @@ export default {
       const data = await fetchAgentMeshCentralURLs(params.agent_id);
       terminal.value = data.terminal;
       file.value = data.file;
+      hostname.value = data.hostname;
+      client.value = data.client;
+      site.value = data.site;
       useMeta({
         title: t("remoteBackground.metaTitle", {
           hostname: data.hostname,
@@ -165,15 +191,10 @@ export default {
       });
     }
 
-    async function getDashInfo() {
-      const { dark_mode } = await fetchDashboardInfo();
-      $q.dark.set(dark_mode);
-      $q.loadingBar.setDefaults({ size: "0px" });
-    }
-
     // vue lifecycle hooks
     onMounted(() => {
-      getDashInfo();
+      // El tema y la barra de carga los arranca RemoteWindowChrome, igual que
+      // en las otras tres ventanas remotas: tenerlo acá lo llamaba dos veces.
       getMeshURLs();
     });
 
@@ -181,6 +202,8 @@ export default {
       // reactive data
       terminal,
       file,
+      hostname,
+      crumbs,
       tab,
       navGroups,
       plataforma,
@@ -194,16 +217,11 @@ export default {
 </script>
 
 <style lang="sass" scoped>
-// Ventana completa: el riel a la izquierda y la sección se come el resto.
-// `.obs-page` aporta el remapeo de grises de Quasar a tokens (app.sass); acá se
-// le quita el relleno y el gap de página y pasa a franjas horizontales.
-.obs-page.obs-remote
-  flex-direction: row
-  height: 100vh
-  padding: 0
-  gap: 0
-  overflow: hidden
-  background: var(--obs-page)
+// V2-P10: la caja de la ventana (alto, relleno, fondo) la define ahora
+// RemoteWindowChrome, que es el nodo raíz. 🪤 Un `scoped` del padre SÍ alcanza
+// el raíz del hijo, así que dejar acá el `flex-direction: row` de antes pondría
+// la cabecera y el lienzo en fila. El riel y la sección quedan en fila porque
+// `.obs-remote__canvas` del chrome ya es flex.
 .obs-remote__content
   display: flex
   flex-direction: column
