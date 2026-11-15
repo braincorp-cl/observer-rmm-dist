@@ -1008,13 +1008,26 @@
                   {{ $t("editCoreSettings.eraseAttachmentRetentionDays") }}
                 </div>
                 <div class="col-2"></div>
+                <!-- 🔴 V2-P07 (2026-11-15): esto llevaba `min="366"` nativo, y
+                     un control nativo invalido BLOQUEA el submit del formulario
+                     sin pintar nada: ni aviso, ni campo en rojo, ni mensaje. Con
+                     el valor por omision de una instancia sin tocar (365, que es
+                     el `default` del modelo y queda por debajo del minimo legal
+                     que este mismo campo declara) el Guardar de Ajustes moria en
+                     silencio. La regla de Quasar hace lo mismo pero VISIBLE: el
+                     campo se marca, muestra el motivo y el formulario enfoca el
+                     primer error. -->
                 <q-input
                   dense
                   outlined
                   type="number"
-                  min="366"
                   v-model.number="settings.erase_attachment_retention_days"
                   class="col-6"
+                  :rules="[
+                    (v) =>
+                      Number(v) >= 366 ||
+                      $t('editCoreSettings.eraseAttachmentRetentionDaysHint'),
+                  ]"
                   :hint="$t('editCoreSettings.eraseAttachmentRetentionDaysHint')"
                 />
               </q-card-section>
