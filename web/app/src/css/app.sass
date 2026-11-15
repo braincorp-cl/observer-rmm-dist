@@ -347,6 +347,13 @@ input[type="time"]
 // para que el usuario pueda llegar al resto. La enmienda de G06 del 2026-11-11
 // habilita esto al dejar de contar el scroll propio de un área como violación.
 .obs-token-entero
+  // 🔴 V2-G08 (2026-11-15): sin `display` esto NO funcionaba en un `span`.
+  // `overflow-x` y `max-width` no aplican a una caja inline, asi que en la
+  // IP LAN del resumen el texto se quedaba con el `nowrap` y DESBORDABA sin
+  // ningun scroll: el canal que este arreglo promete solo existia en el `p`
+  // de TOTPSetup y en el `q-item-section` del disco, que ya son bloques.
+  display: inline-block
+  vertical-align: bottom
   white-space: nowrap
   overflow-x: auto
   max-width: 100%

@@ -161,7 +161,7 @@
             </q-item-section>
             <!-- V2-G07: el modelo de disco es un token sin espacios que no
                  cabe en su caja; se deja entero y alcanzable por scroll. -->
-            <q-item-section class="mono obs-token-entero">{{
+            <q-item-section class="mono obs-token-entero" :title="disk">{{
               disk
             }}</q-item-section>
           </q-item>
@@ -198,7 +198,7 @@
             <q-item-section avatar>
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section
+            <q-item-section :title="summary.local_ips"
               ><i18n-t
                 keypath="agentTabs.summary.lanIp"
                 class="obs-ui-text"
