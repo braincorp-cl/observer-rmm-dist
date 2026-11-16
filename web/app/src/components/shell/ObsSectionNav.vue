@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 
 // groups: [{ key, label?, items: [{ key, label, full?, icon?, count?, countClass? }] }]
 const props = defineProps({
@@ -76,7 +76,22 @@ function verElActivo() {
   else if (r.top < rn.top) nav.scrollTop -= rn.top - r.top;
 }
 
-onMounted(() => nextTick(verElActivo));
+// 🪤 Y hace falta un ResizeObserver, no basta con montar y mirar la seccion: los
+// badges de la cabecera llegan de la API DESPUES del montaje, asi que la nav se
+// encoge -de 463 a 424 px en el caso medido- cuando `verElActivo` ya corrio con
+// la caja grande. Sin esto el arreglo no cubre justo el caso que fallo.
+let ro = null;
+onMounted(() => {
+  nextTick(verElActivo);
+  if (typeof ResizeObserver !== "undefined" && navEl.value) {
+    ro = new ResizeObserver(() => verElActivo());
+    ro.observe(navEl.value);
+  }
+});
+onBeforeUnmount(() => {
+  if (ro) ro.disconnect();
+  ro = null;
+});
 watch(
   () => props.section,
   () => nextTick(verElActivo),
