@@ -142,6 +142,18 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
       "--obs-text",
       oscuro ? "#E6EDF5" : "#16202E",
     ),
+    // 🔴 V2-G02 (2026-11-15): sin esta clave Monaco la DERIVA como la inversa
+    // por canal del foreground del caret, y ese valor derivado no pertenece a
+    // ningun token: --obs-text oscuro es rgb(230,237,245) y el `color` medido
+    // del nodo `.monaco-editor .cursor` salia rgb(25,18,10) -255 menos cada
+    // canal-, con su simetrico en claro. Por eso ningun grep lo encontraba:
+    // nadie lo habia escrito. Es el color del GLIFO bajo el caret de bloque, o
+    // sea el fondo del editor, y la enmienda del 2026-11-12 dice que en el
+    // cromo cualquier color fuera del set sigue violando.
+    "editorCursor.background": token(
+      oscuro ? "--obs-deep" : "--obs-field",
+      oscuro ? "#0A1220" : "#F2F4F7",
+    ),
     "editorWidget.background": token(
       "--obs-surface",
       oscuro ? "#131F31" : "#FFFFFF",

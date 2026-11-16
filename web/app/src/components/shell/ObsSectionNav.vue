@@ -4,7 +4,12 @@
     SectionNav.vue (046): grupos e ítems por props y la sección elegida la decide
     la URL de quien la usa. Es una lista de navegación, no un tablist (UI-E04).
   -->
-  <nav class="obs-secnav" :class="{ 'obs-secnav--wide': wide }" :aria-label="ariaLabel">
+  <nav
+    ref="navEl"
+    class="obs-secnav"
+    :class="{ 'obs-secnav--wide': wide }"
+    :aria-label="ariaLabel"
+  >
     <slot name="top" />
     <template v-for="group in groups" :key="group.key">
       <div v-if="group.label" class="obs-secnav__group">{{ group.label }}</div>
@@ -37,8 +42,10 @@
 </template>
 
 <script setup>
+import { ref, watch, onMounted, nextTick } from "vue";
+
 // groups: [{ key, label?, items: [{ key, label, full?, icon?, count?, countClass? }] }]
-defineProps({
+const props = defineProps({
   groups: { type: Array, required: true },
   section: { type: String, default: null },
   ariaLabel: { type: String, default: null },
@@ -46,6 +53,34 @@ defineProps({
   wide: { type: Boolean, default: false },
 });
 defineEmits(["select"]);
+
+const navEl = ref(null);
+
+// 🔴 V2-P11 (2026-11-15): esta caja YA tenía `overflow-y: auto`, así que la
+// sección se podía alcanzar desplazando. Lo que faltaba es que al ENTRAR por URL
+// la nav se desplazara hasta el ítem activo. Medido en el espacio del agente: en
+// cuanto la cabecera trae fila de badges la nav baja de 463 a 424 px y el 12.º
+// ítem («Borrado») queda en top 706,9 contra una caja que termina en bottom 700,
+// con `activo = true` — o sea, estando el usuario en esa sección no veía ni el
+// ítem ni cuál estaba activa: la nav de 12 secciones presentaba 11.
+// 🪤 Se ajusta `scrollTop` a mano y NO con `scrollIntoView`, que también
+// desplaza los ancestros scrollables y movería la página entera.
+function verElActivo() {
+  const nav = navEl.value;
+  if (!nav || !props.section) return;
+  const it = nav.querySelector(`[data-section="${props.section}"]`);
+  if (!it) return;
+  const r = it.getBoundingClientRect();
+  const rn = nav.getBoundingClientRect();
+  if (r.bottom > rn.bottom) nav.scrollTop += r.bottom - rn.bottom;
+  else if (r.top < rn.top) nav.scrollTop -= rn.top - r.top;
+}
+
+onMounted(() => nextTick(verElActivo));
+watch(
+  () => props.section,
+  () => nextTick(verElActivo),
+);
 </script>
 
 <style lang="sass" scoped>

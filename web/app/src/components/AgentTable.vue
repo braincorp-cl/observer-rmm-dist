@@ -425,7 +425,7 @@
           <q-td :props="props" key="pendingactions">
             <q-icon
               v-if="props.row.pending_actions_count > 0"
-              @click="showPendingActionsModal(props.row)"
+              @click.stop="showPendingActionsModal(props.row)"
               name="far fa-clock"
               size="1.4em"
               class="cursor-pointer obs-icon-neutral"

@@ -461,12 +461,40 @@ function alEnfocar(ev) {
   pintar();
 }
 
+// 🔴 V2-G15 (2026-11-15): la capa solo se dibujaba en `focusin`, y hay teclas
+// que ENCIENDEN la modalidad de teclado sin mover el foco. El caso medido es
+// `/webterm`: xterm consume el TAB -para un terminal es un caracter-, asi que
+// tras un clic real el foco se queda en su `textarea` ayudante y ninguna tecla
+// disparaba `focusin`. Resultado: `:focus-visible` verdadero, `teclado` ya en
+// true y la capa en `display:none` — un control enfocado SIN anillo, con el PNG
+// del paso enfocado byte a byte igual al del paso sin foco. La enmienda `j`
+// promete que «hasta la tecla siguiente no hay anillo»: la tecla llegaba, el
+// redibujo no. Esto reevalua el elemento que YA tiene el foco cuando la bandera
+// pasa de false a true, en el cuadro siguiente para que una tecla que SI mueve
+// el foco no pinte un anillo espurio en el control viejo.
+function reevaluarPorTeclado() {
+  requestAnimationFrame(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body || !el.matches) return;
+    try {
+      if (!el.matches(":focus-visible")) return;
+    } catch (e) {
+      /* sin soporte: se marca igual */
+    }
+    objetivo = el;
+    vistoVisible = true;
+    pintar();
+  });
+}
+
 export default () => {
   if (typeof document === "undefined") return;
   document.addEventListener(
     "keydown",
     () => {
+      const antes = teclado;
       teclado = true;
+      if (!antes) reevaluarPorTeclado();
     },
     true,
   );
