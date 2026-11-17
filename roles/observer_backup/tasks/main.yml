@@ -30,33 +30,39 @@
     - monthly
   when: observer_backup_enabled | bool
 
+# Directorio y scripts de ROOT, no de observer: los dos los corre root (cron diario y
+# `sudo restore.sh`). Con dueno observer, quien ejecute codigo como observer (Django,
+# celery) podia reescribir backup.sh y quedar root a las 00:00. Ademas el rol
+# observer_mesh crea este mismo directorio como root:root 0755 para clean_mesh_events.sh:
+# con duenos distintos los dos roles se lo pisaban en cada install.yml. Visto en el
+# alta de almasur, 17-nov-2026.
 - name: Crear directorio de scripts
   ansible.builtin.file:
     path: "{{ observer_backup_script_dir }}"
     state: directory
-    owner: "{{ observer_user }}"
-    group: "{{ observer_group }}"
-    mode: "0750"
+    owner: root
+    group: root
+    mode: "0755"
   when: observer_backup_enabled | bool
 
 - name: Desplegar script de backup
   ansible.builtin.template:
     src: backup.sh.j2
     dest: "{{ observer_backup_script_dir }}/backup.sh"
-    owner: "{{ observer_user }}"
-    group: "{{ observer_group }}"
+    owner: root
+    group: root
     mode: "0750"
   when: observer_backup_enabled | bool
 
 # El restore se despliega junto al backup y no por separado a proposito: un respaldo sin
 # procedimiento de vuelta probado no es un respaldo. Va con el mismo modo 0750 y el mismo
-# dueno. No lo invoca ningun cron: lo corre una persona, y pide escribir RESTAURAR.
+# dueno (root). No lo invoca ningun cron: lo corre una persona, y pide escribir RESTAURAR.
 - name: Desplegar script de restauracion
   ansible.builtin.template:
     src: restore.sh.j2
     dest: "{{ observer_backup_script_dir }}/restore.sh"
-    owner: "{{ observer_user }}"
-    group: "{{ observer_group }}"
+    owner: root
+    group: root
     mode: "0750"
   when: observer_backup_enabled | bool
 

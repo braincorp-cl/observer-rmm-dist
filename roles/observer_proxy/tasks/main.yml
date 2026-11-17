@@ -243,6 +243,10 @@
     rsync_opts:
       - "--no-owner"
       - "--no-group"
+      # Permisos fijos y no los del control-plane: con su umask 002 llegaban 775/664 y
+      # chocaban con el 0755 de "Crear directorio de activos del frontend" en cada corrida
+      # (y recargaban nginx sin motivo).
+      - "--chmod=D0755,F0644"
       - "--exclude=env-config.js"   # generado por la tarea siguiente (GAP-045); no borrar con --delete
   become: true
   become_user: "{{ observer_user }}"
