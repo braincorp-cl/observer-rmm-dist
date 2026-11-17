@@ -298,8 +298,12 @@
               # INVERIFICABLES: respaldar con el resto del vault del ambiente.
               # Para rotar: generar una nueva acá y publicar la PÚBLICA de la saliente
               # en `observer_erase_signing_keys_retired`, o lo que firmó deja de verificar.
+              # indent(2) y no 16: `content` ya llega des-sangrado por YAML, asi que el PEM
+              # solo necesita los 2 espacios del bloque. Con 16 quedaba guardado con 14
+              # espacios de mas en cada linea menos la primera, y local_settings.py cambiaba
+              # en cada corrida (y reiniciaba la API) respecto de la primera instalacion.
               vault_erase_signing_key: |
-                {{ _s_erasesign | indent(16) }}
+                {{ _s_erasesign | indent(2) }}
           no_log: true
 
         - name: Cifrar la clave de firma recién generada

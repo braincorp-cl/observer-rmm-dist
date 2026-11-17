@@ -81,8 +81,10 @@ GOOGLE_GEOLOCATION_API_KEY = '{{ observer_google_geolocation_api_key }}'
 # `key_id` identifica al emisor y cada cliente verifica contra la de su instancia.
 # Va entre comillas triples porque es un PEM MULTILINEA; con comillas simples
 # Django leeria una clave truncada y LocalRSASigner reventaria al arrancar.
+# Se le quita la sangria a cada linea: los vault generados antes del arreglo de
+# indent() la traen, y sin normalizar el archivo cambiaba entre la primera corrida y las demas.
 ERASE_SIGNING_KEY = """
-{{ vault_erase_signing_key }}
+{{ vault_erase_signing_key | regex_replace('(?m)^[ \t]+', '') | trim }}
 """
 {% endif %}
 # Gate legal del Bloque A destructivo (043 · ADR-029). Se emite SIEMPRE, tambien
