@@ -72,8 +72,14 @@
 
 # 2b. Version de PostgreSQL: la resuelve el host, no un numero fijo en los defaults.
 #     Detalle y motivo en el propio archivo incluido.
+# `apply` es obligatorio: los tags de un include_tasks marcan SOLO el include, no las
+# tareas que trae. Sin `apply`, `--tags pg_version` incluia el archivo y no ejecutaba
+# ninguna de sus tareas (visto en el alta de almasur, 17-nov-2026).
 - name: Resolver la version de PostgreSQL de este host
-  ansible.builtin.include_tasks: resolve_version.yml
+  ansible.builtin.include_tasks:
+    file: resolve_version.yml
+    apply:
+      tags: [pg_version]
   tags: [pg_version]
 
 # 3. Instalar PostgreSQL
