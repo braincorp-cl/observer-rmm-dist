@@ -13,6 +13,32 @@
     dest: /etc/apt/keyrings/nginx.asc
     mode: "0644"
 
+# get_url guarda lo que reciba: una pagina HTML de error (portal cautivo, CDN caido)
+# quedaria como "llave" y apt fallaria despues con un error que no apunta aca. Como
+# get_url no vuelve a bajar un archivo que ya existe, el archivo malo ademas persiste.
+- name: Verificar que la clave nginx sea una llave PGP
+  ansible.builtin.command: grep -q -- "-----BEGIN PGP PUBLIC KEY BLOCK-----" /etc/apt/keyrings/nginx.asc
+  register: _nginx_key_ok
+  changed_when: false
+  failed_when: _nginx_key_ok.rc != 0
+  # Si falla: borrar /etc/apt/keyrings/nginx.asc y repetir el playbook.
+
+# Prioridad 900 para nginx.org (la que recomienda nginx.org). Hoy gana su paquete solo
+# porque su version es mayor que la de Ubuntu (1.30 vs 1.28 en 26.04). Si Ubuntu
+# publicara una mayor, un apt upgrade cambiaria de paquete y de estructura de config
+# (el de Ubuntu trae sites-enabled; el de nginx.org, conf.d).
+- name: Fijar prioridad del repositorio nginx.org
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/99nginx
+    content: |
+      Package: *
+      Pin: origin nginx.org
+      Pin: release o=nginx
+      Pin-Priority: 900
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Registrar repositorio nginx stable con signed-by
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/nginx.list

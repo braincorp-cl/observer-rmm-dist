@@ -28,6 +28,15 @@
     state: present
     update_cache: true
 
+# Con libharfbuzz-subset0, WeasyPrint recorta las fuentes de los PDF con harfbuzz en vez
+# de fonttools (mas rapido). Es opcional: sin ella usa fonttools. Existe desde 24.04;
+# 22.04 no la empaqueta y su harfbuzz (2.7) es menor que el 4.1 que WeasyPrint exige.
+- name: Instalar libharfbuzz-subset0 para WeasyPrint (24.04 o superior)
+  ansible.builtin.apt:
+    name: libharfbuzz-subset0
+    state: present
+  when: ansible_facts['distribution_version'] is version('24.04', '>=')
+
 # Directorios
 - name: Crear directorios del API
   ansible.builtin.file:

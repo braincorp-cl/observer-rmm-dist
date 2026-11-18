@@ -62,6 +62,14 @@
     dest: /etc/apt/keyrings/pgdg.asc
     mode: "0644"
 
+# Igual que con nginx: get_url guarda lo que reciba, y un HTML de error quedaria como llave.
+- name: Verificar que la clave PGDG sea una llave PGP
+  ansible.builtin.command: grep -q -- "-----BEGIN PGP PUBLIC KEY BLOCK-----" /etc/apt/keyrings/pgdg.asc
+  register: _pgdg_key_ok
+  changed_when: false
+  failed_when: _pgdg_key_ok.rc != 0
+  # Si falla: borrar /etc/apt/keyrings/pgdg.asc y repetir el playbook.
+
 - name: Registrar repositorio PostgreSQL con signed-by
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/pgdg.list
