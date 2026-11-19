@@ -522,6 +522,16 @@ input[type="time"]
   border-color: var(--obs-border)
 .q-dialog__backdrop
   background: var(--obs-backdrop)
+// 050 V2-G04 (2026-11-19): Quasar pone el telón con z-index:-1 dentro del
+// .q-dialog fijo, y axe-core lo apila ENCIMA de la tarjeta: «Guardar» medido
+// 1,15 en un diálogo y 2,4 en dos apilados, con 5,66 real. Reproducido fuera
+// de la consola con quasar.prod.css y el marcado real; con z 0/1 axe da 0 y su
+// control positivo se detecta igual. El orden visual no cambia: el interior va
+// sobre el telón y sigue sin eventos de puntero, así que el clic afuera cierra.
+.q-dialog__backdrop
+  z-index: 0
+.q-dialog__inner
+  z-index: 1
 // Tablas fuera de .obs-ws (diálogos: detalle de certificado, etc.).
 .q-table__card, .q-table__card--dark, .q-markup-table
   color: var(--obs-text)

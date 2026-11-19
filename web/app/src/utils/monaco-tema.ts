@@ -110,6 +110,10 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
     // descartaba en silencio y el borde de la linea actual era el #282828 de
     // vs-dark -que no es ningun token-. Nadie lo midio porque el relleno opaco
     // que puse el 13-11 lo tapaba: un arreglo escondiendo al de al lado.
+    // V2-G02 (2026-11-19): el contorno del editor enfocado tomaba el
+    // focusBorder por defecto de vs/vs-dark (rgb(0,127,212) / rgb(0,144,241)),
+    // fuera del set. Pasa al token de foco del proyecto.
+    focusBorder: token("--obs-focus", oscuro ? "#E6EDF5" : "#16202E"),
     "editor.lineHighlightBorder": token(
       "--obs-border",
       oscuro ? "#1E2D42" : "#D3DCE7",

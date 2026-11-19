@@ -18,7 +18,18 @@
         <i18n-t keypath="agentWorkspace.context.siteLine" tag="span">
           <template #site>{{ siteName }}</template>
           <template #count>
+            <!-- 050 V2-P11 / UI-E02 (2026-11-19): antes del primer GET el conteo
+                 era agents.length = 0 y se leía «Sin equipos» durante 0,4–1,1 s
+                 con la API devolviendo 1. Mientras no hay dato, la frase cambia
+                 ENTERA (una por estado) y no se muestra un número que no se sabe. -->
+            <span v-if="estado === 'cargando'" data-estado="cargando">{{
+              $t("agentWorkspace.context.equipmentLoading")
+            }}</span>
+            <span v-else-if="estado === 'error'" data-estado="error">{{
+              $t("agentWorkspace.context.equipmentUnknown")
+            }}</span>
             <i18n-t
+              v-else
               keypath="agentWorkspace.context.equipmentCount"
               :plural="agents.length"
               tag="span"
@@ -61,7 +72,10 @@
       </div>
     </div>
     <div class="col obs-ctx__list" style="min-height: 0">
-      <div v-if="!loading && !shown.length" class="q-pa-md obs-ctx__empty">
+      <div
+        v-if="estado === 'ok' && !shown.length"
+        class="q-pa-md obs-ctx__empty"
+      >
         {{ $t("agentWorkspace.context.empty") }}
       </div>
       <q-virtual-scroll
@@ -147,6 +161,9 @@ const router = useRouter();
 const { t } = useI18n();
 const agents = ref([]);
 const loading = ref(false);
+// "cargando" hasta que el GET del sitio responde; "error" si falla. El conteo y
+// el estado vacío solo se dibujan con dato ("ok").
+const estado = ref("cargando");
 const onlyFailing = ref(false);
 const onlyOnline = ref(false);
 
@@ -191,13 +208,19 @@ function open(a) {
 async function load(siteId) {
   if (!siteId) return;
   loading.value = true;
+  estado.value = "cargando";
+  agents.value = [];
   try {
     const data = await fetchAgents({ site: siteId });
+    if (props.agent.site !== siteId) return; // respuesta de un sitio anterior
     agents.value = Array.isArray(data) ? data : [];
+    estado.value = "ok";
   } catch (e) {
     console.error(e);
+    if (props.agent.site === siteId) estado.value = "error";
+  } finally {
+    if (props.agent.site === siteId) loading.value = false;
   }
-  loading.value = false;
 }
 
 watch(

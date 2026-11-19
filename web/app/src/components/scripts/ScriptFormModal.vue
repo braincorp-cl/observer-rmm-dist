@@ -105,7 +105,6 @@
               filled
               dense
               v-model="script.shell"
-              class="obs-mono-values"
               :options="shellOptions"
               emit-value
               map-options

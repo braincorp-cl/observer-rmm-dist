@@ -58,7 +58,6 @@
         <q-card-section>
           <observer-dropdown
             v-model="script.shell"
-            class="obs-mono-values"
             :options="shellOptions"
             :label="$t('scriptUpload.type')"
             outlined

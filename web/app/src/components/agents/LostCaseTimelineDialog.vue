@@ -248,9 +248,17 @@
       </template>
 
       <!-- imagen completa -->
-      <q-dialog v-model="fullDialog">
+      <!-- 050 V2-G06 (2026-11-19): la q-card sin ancho dejaba la q-img en 0×0
+           (su alto sale del ancho por padding-bottom) y el visor medía 2×23 px
+           en 1024, 1280 y 1440. Ancho propio y la imagen contenida en la altura. -->
+      <q-dialog v-model="fullDialog" full-width>
         <q-card>
-          <q-img :src="fullSrc" :alt="$t('lostEquipment.timeline.screenAlt')" />
+          <q-img
+            :src="fullSrc"
+            :alt="$t('lostEquipment.timeline.screenAlt')"
+            fit="contain"
+            style="max-height: 85vh"
+          />
         </q-card>
       </q-dialog>
     </q-card>

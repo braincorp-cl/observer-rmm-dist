@@ -3750,6 +3750,8 @@
     },
     "context": {
       "equipmentCount": "Sin equipos | {n} equipo | {n} equipos",
+      "equipmentLoading": "cargando equipos",
+      "equipmentUnknown": "equipos sin dato",
       "filterFailing": "Chequeos fallando",
       "filterOnline": "Sólo en línea",
       "shownOf": "{shown} de {total}",

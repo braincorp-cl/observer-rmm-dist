@@ -39,7 +39,7 @@
         <q-select
           v-model="snippet.shell"
           :options="shellOptions"
-          class="q-pa-sm col-2 obs-mono-values"
+          class="q-pa-sm col-2"
           :label="$t('scriptsCommon.shellType')"
           options-dense
           filled

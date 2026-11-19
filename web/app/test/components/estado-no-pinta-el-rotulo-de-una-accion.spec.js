@@ -220,7 +220,7 @@ const DECLARADOS = {
     "error, y por eso se corrigio.",
   // 🪤 Este sitio lo destapo la TERCERA codificacion del censo (el nombre de
   // clase compuesto): dos censos anteriores no lo veian.
-  "src/components/agents/workspace/ContextColumn.vue:84":
+  "src/components/agents/workspace/ContextColumn.vue:98":
     "MARCADOR con superficie propia: el punto de salud se dibuja con " +
     "`background: var(--q-positive|--q-negative|--q-warning)` sobre 8x8 con " +
     "border-radius, reporta dot(item) y trae role=img, aria-label y title con " +

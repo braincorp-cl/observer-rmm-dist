@@ -3750,6 +3750,8 @@
     },
     "context": {
       "equipmentCount": "No devices | {n} device | {n} devices",
+      "equipmentLoading": "loading devices",
+      "equipmentUnknown": "devices unavailable",
       "filterFailing": "Failing checks",
       "filterOnline": "Online only",
       "shownOf": "{shown} of {total}",
