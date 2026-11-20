@@ -208,9 +208,9 @@ const DECLARADOS = {
     "excepcion (b) del 2026-10-16, aprobada por el usuario: la estrella de " +
     "favorito de Scripts va en ambar como pide la maqueta. Su q-btn es `round` " +
     "y SIN rotulo, asi que el icono es la superficie del control.",
-  "src/components/scripts/ScriptManager.vue:421":
+  "src/components/scripts/ScriptManager.vue:418":
     "la misma estrella de la excepcion (b), en el arbol del gestor.",
-  "src/views/DashboardView.vue:85":
+  "src/views/DashboardView.vue:83":
     "MARCADOR: reporta un dato (failing_checks.error / failing_checks.warning / " +
     "maintenance_mode del nodo), nombra el estado en su propio aria-label y " +
     "tooltip (fleet.stateError / stateWarning / stateMaintenance) y viene " +

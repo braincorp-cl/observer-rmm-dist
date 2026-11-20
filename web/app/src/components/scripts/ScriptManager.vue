@@ -216,7 +216,7 @@
                     :alt="$t('scriptManager.templateMarkTip')"
                   />{{ props.row.name }}
                 </div>
-                <div class="obs-mgr__desc ellipsis" :title="props.row.description">
+                <div class="obs-mgr__desc">
                   {{ props.row.description }}
                 </div>
               </q-td>
@@ -225,14 +225,11 @@
                 platformsLabel(props.row)
               }}</q-td>
               <q-td key="category" :props="props">
-                <span
-                  class="ellipsis obs-mgr__cat"
-                  :title="props.row.category"
-                  >{{ props.row.category || $t("scriptManager.uncategorized") }}</span
+                <span class="obs-mgr__cat">{{ props.row.category || $t("scriptManager.uncategorized") }}</span
                 >
               </q-td>
               <q-td key="desc" :props="props">
-                <span class="ellipsis obs-mgr__cat" :title="props.row.description">{{
+                <span class="obs-mgr__cat">{{
                   props.row.description
                 }}</span>
               </q-td>

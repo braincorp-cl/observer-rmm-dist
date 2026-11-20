@@ -47,20 +47,20 @@
         <q-space />
         <q-radio
           v-model="logType"
-          color="cyan"
+          color="primary"
           val="Application"
           :label="$t('eventLogManager.logApplication')"
           @update:model-value="getEventLog"
         />
         <q-radio
           v-model="logType"
-          color="cyan"
+          color="primary"
           val="System"
           :label="$t('eventLogManager.logSystem')"
         />
         <q-radio
           v-model="logType"
-          color="cyan"
+          color="primary"
           val="Security"
           :label="$t('eventLogManager.logSecurity')"
         />

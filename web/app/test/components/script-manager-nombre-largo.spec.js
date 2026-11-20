@@ -161,9 +161,16 @@ describe("ScriptManager /scripts: un nombre largo se puede leer entero (G08)", (
       .findAll("tbody [title]")
       .map((el) => el.attributes("title"));
 
+    // V2-G06 (2026-11-20): la descripción ya no se recorta (salta de línea),
+    // así que no necesita title; se exige entera en el texto y sin .ellipsis.
+    const desc = wrapper
+      .findAll("tbody .obs-mgr__desc")
+      .map((el) => el.text());
+    expect(desc, "la descripción no sale entera").toContain(DESC_LARGA);
+    expect(wrapper.findAll("tbody .obs-mgr__desc.ellipsis")).toHaveLength(0);
+
     for (const [campo, valor] of [
       ["nombre", NOMBRE_LARGO],
-      ["descripción", DESC_LARGA],
       ["argumentos", ARGS_LARGOS.join(" ")],
     ]) {
       expect(

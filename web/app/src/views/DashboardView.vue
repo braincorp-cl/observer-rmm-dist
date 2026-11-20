@@ -72,15 +72,13 @@
         >
           <template v-slot:default-header="props">
             <div class="row items-center no-wrap full-width obs-fleet__node">
+              <!-- V2-G06 (2026-11-20): a 1024 el nombre del sitio se cortaba y
+                   solo lo devolvían el title o un tooltip de ratón (con foco de
+                   teclado, 0 tooltips). Ahora salta de línea y se lee entero. -->
               <span
-                class="ellipsis col"
+                class="col obs-fleet__label"
                 :class="props.node.children ? 'obs-fleet__client' : 'obs-fleet__site'"
-                :title="props.node.label"
-                >{{ props.node.label
-                }}<!-- V2-G06 (2026-11-20): a 1024 el nombre del sitio se corta
-                  11 px y solo tenía title; el tooltip lo muestra al pasar. --><q-tooltip
-                  >{{ props.node.label }}</q-tooltip
-                ></span
+                >{{ props.node.label }}</span
               >
               <q-icon
                 v-for="st in nodeStates(props.node)"

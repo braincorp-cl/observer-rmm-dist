@@ -614,9 +614,23 @@ body .leaflet-container
 // del set; las líneas del árbol heredan ese color. Pasa al token atenuado.
 .q-tree
   color: var(--obs-muted)
+// V2-G04 (2026-11-20): el nodo seleccionado pintaba el primario sobre el lienzo
+// --obs-deep del registro remoto (#0A7186 sobre #DCE3EC = 4,37). Con el fondo
+// de selección del tema queda en 5,23 en claro y 5,09 en oscuro.
+.q-tree__node--selected
+  background: var(--obs-selected)
+// V2-G04 (2026-11-20): en oscuro, el rótulo de un campo relleno en error daba
+// #F25A5F sobre el relleno #273447 = 3,84. El rótulo del control queda neutro
+// (el error lo marcan el borde y el mensaje, que van sobre la superficie: 4,7).
+body.body--dark .q-field--filled.q-field--error .q-field__label, body.body--dark .q-field--standout.q-field--error .q-field__label
+  color: var(--obs-text-2)
 // V2-G06 (2026-11-20): el valor elegido de un select largo («Ordenar
 // alfabéticamente, moviendo los clientes con fallos al inicio») se cortaba 43 px
 // a 1024 y solo quedaba el title. Con esta clase salta de línea y el campo crece.
+.obs-fleet__label
+  white-space: normal
+  overflow-wrap: anywhere
+  min-width: 0
 .obs-select-envuelve
   .q-field__control, .q-field__native
     height: auto
@@ -806,10 +820,14 @@ body.body--dark
   color: var(--obs-text)
 .obs-mgr__name--cell
   max-width: 260px
+// V2-G06 (2026-11-20): descripción y categoría saltan de línea en vez de
+// cortarse; a 1024 la tanda contó 123 recortes recuperables solo por title.
 .obs-mgr__desc
   max-width: 260px
   font-size: 12px
   color: var(--obs-muted)
+  white-space: normal
+  overflow-wrap: anywhere
 .obs-mgr__args
   display: inline-block
   max-width: 110px
@@ -818,6 +836,8 @@ body.body--dark
   display: inline-block
   max-width: 150px
   vertical-align: bottom
+  white-space: normal
+  overflow-wrap: anywhere
 .obs-mgr__star
   color: var(--obs-faint)
 .obs-mgr__row--hidden .obs-mgr__name

@@ -14,7 +14,7 @@
       <div class="obs-ctx__client ellipsis" :title="clientName">
         {{ clientName }}
       </div>
-      <div class="obs-ctx__site ellipsis" :title="siteName">
+      <div class="obs-ctx__site ellipsis" :title="siteLineText">
         <i18n-t keypath="agentWorkspace.context.siteLine" tag="span">
           <template #site>{{ siteName }}</template>
           <template #count>
@@ -178,6 +178,18 @@ const onlyOnline = ref(false);
 const currentId = computed(() => route.params.agent_id);
 const clientName = computed(() => props.agent.client || "");
 const siteName = computed(() => props.agent.site_name || "");
+// V2-G08: si la línea se corta, el title la devuelve ENTERA, con el conteo.
+const siteLineText = computed(() => {
+  const count =
+    estado.value === "cargando"
+      ? t("agentWorkspace.context.equipmentLoading")
+      : estado.value === "error"
+        ? t("agentWorkspace.context.equipmentUnknown")
+        : t("agentWorkspace.context.equipmentCount", agents.value.length, {
+            n: agents.value.length,
+          });
+  return t("agentWorkspace.context.siteLine", { site: siteName.value, count });
+});
 
 const failingCount = computed(
   () => agents.value.filter((a) => a.checks && a.checks.failing > 0).length,

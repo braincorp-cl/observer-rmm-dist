@@ -57,7 +57,7 @@
             <q-badge
               v-if="disco.is_system_disk"
               color="primary"
-              class="q-ml-sm"
+              class="q-ml-sm obs-ui-text"
             >
               {{ $t("storageMedia.detail.systemDisk") }}
             </q-badge>

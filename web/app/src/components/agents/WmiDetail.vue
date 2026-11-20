@@ -14,7 +14,7 @@
                fecha SOLA, sin hora, que es interfaz. De ahí `esFechaSinHora`. -->
           <q-badge
             class="q-ml-sm text-caption obs-chip-neutral"
-            :class="{ mono: !esFechaSinHora(v) && !esNombre(k, v) }"
+            :class="{ mono: !esFechaSinHora(v) && !esNombre(k, v, j) }"
             >{{ v }}</q-badge
           >
           <q-btn
@@ -43,7 +43,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { uid } from "quasar";
-import { esPalabra } from "@/utils/tipografia";
+import { esIdentificador, esPalabra } from "@/utils/tipografia";
 
 export default {
   name: "WmiDetail",
@@ -78,20 +78,42 @@ export default {
     // y la lista de idiomas—.
     const CLAVES_NOMBRE = new Set([
       "CSName",
+      "DNSHostName",
+      "SystemName",
       "UserName",
       "RegisteredUser",
       "Organization",
       "OSArchitecture",
       "MUILanguages",
       "BuildType",
+      "NetConnectionID",
     ]);
-    function esNombre(k, v) {
+    // Claves cuyo valor es SIEMPRE un identificador generado (clase 10) o un
+    // nombre de clase WMI: todos los hermanos van en mono, aunque alguno salga
+    // hecho solo de letras («NdisWan» junto a «vmxnet3ndis6»).
+    const CLAVES_DATO = new Set([
+      "ServiceName",
+      "PNPDeviceID",
+      "DeviceID",
+      "SettingID",
+      "GUID",
+      "CreationClassName",
+      "CSCreationClassName",
+      "SystemCreationClassName",
+    ]);
+    function esNombre(k, v, j) {
+      const clave = String(k);
+      if (CLAVES_DATO.has(clave)) return false;
+      if (CLAVES_NOMBRE.has(clave)) return true;
+      // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
+      if (esIdentificador(v)) return false;
+      // El hostname es nombre (enmienda 2026-11-14) también cuando WMI lo
+      // repite como Caption o Name de Win32_ComputerSystem.
+      if (j && [j.CSName, j.DNSHostName, j.SystemName].includes(v)) return true;
       // El nombre del SO («Microsoft Windows 10 Pro») es un nombre con versión
       // embebida; el Caption de una CPU es especificación y sigue en mono.
       const so = typeof v === "string" && /^Microsoft Windows\b/.test(v);
-      return (
-        esPalabra(v) || CLAVES_NOMBRE.has(String(k)) || Array.isArray(v) || so
-      );
+      return esPalabra(v) || Array.isArray(v) || so;
     }
 
     return {
