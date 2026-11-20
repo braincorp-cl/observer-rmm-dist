@@ -14,7 +14,7 @@
                fecha SOLA, sin hora, que es interfaz. De ahí `esFechaSinHora`. -->
           <q-badge
             class="q-ml-sm text-caption obs-chip-neutral"
-            :class="{ mono: !esFechaSinHora(v) }"
+            :class="{ mono: !esFechaSinHora(v) && !esNombre(k, v) }"
             >{{ v }}</q-badge
           >
           <q-btn
@@ -43,6 +43,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import { uid } from "quasar";
+import { esPalabra } from "@/utils/tipografia";
 
 export default {
   name: "WmiDetail",
@@ -69,7 +70,32 @@ export default {
       return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
     }
 
+    // V2-G01 (2026-11-20): nombres, estados y palabras van en Archivo. Por
+    // valor: lo hecho solo de palabras (esPalabra). Por clave: las propiedades
+    // WMI que guardan un NOMBRE aunque traigan dígitos —el nombre de equipo
+    // (enmienda 2026-11-14: el hostname no es valor dedicado), el usuario, la
+    // organización, el nombre del SO con su versión, la arquitectura «64 bits»
+    // y la lista de idiomas—.
+    const CLAVES_NOMBRE = new Set([
+      "CSName",
+      "UserName",
+      "RegisteredUser",
+      "Organization",
+      "OSArchitecture",
+      "MUILanguages",
+      "BuildType",
+    ]);
+    function esNombre(k, v) {
+      // El nombre del SO («Microsoft Windows 10 Pro») es un nombre con versión
+      // embebida; el Caption de una CPU es especificación y sigue en mono.
+      const so = typeof v === "string" && /^Microsoft Windows\b/.test(v);
+      return (
+        esPalabra(v) || CLAVES_NOMBRE.has(String(k)) || Array.isArray(v) || so
+      );
+    }
+
     return {
+      esNombre,
       esFechaSinHora,
       tabHeight,
       uid,

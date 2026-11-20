@@ -368,7 +368,7 @@
                   outlined
                   dense
                   v-model="settings.date_format"
-                  class="col-6"
+                  class="obs-ui-text col-6"
                 >
                   <template v-slot:after>
                     <q-btn
@@ -540,7 +540,7 @@
                       @click="removeEmail(email)"
                     >
                       <q-item-section>
-                        <q-item-label class="mono">{{ email }}</q-item-label>
+                        <q-item-label>{{ email }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
                         <q-icon name="delete" />
@@ -570,7 +570,7 @@
                   outlined
                   dense
                   v-model="settings.smtp_from_email"
-                  class="col-6 q-pa-none"
+                  class="obs-ui-text col-6 q-pa-none"
                   :rules="[
                     (val) =>
                       isValidEmail(val) || $t('editCoreSettings.invalidEmail'),
@@ -594,7 +594,7 @@
                   outlined
                   dense
                   v-model="settings.smtp_host"
-                  class="col-6 q-pa-none"
+                  class="obs-ui-text col-6 q-pa-none"
                 />
               </q-card-section>
               <q-card-section class="row">
@@ -629,7 +629,7 @@
                   outlined
                   dense
                   v-model="settings.smtp_host_user"
-                  class="col-6 q-pa-none"
+                  class="obs-ui-text col-6 q-pa-none"
                 />
               </q-card-section>
               <q-card-section class="row" v-show="settings.smtp_requires_auth">

@@ -59,6 +59,7 @@
             v-model="state.args"
             class="obs-mono-values"
             :label="$t('runScript.scriptArgs')"
+            :hint="$t('runScript.scriptArgsHint')"
             filled
             use-input
             multiple
@@ -72,6 +73,7 @@
             v-model="state.env_vars"
             class="obs-mono-values"
             :label="$t('scriptsCommon.envVarsLabel')"
+            :hint="$t('scriptsCommon.envVarsLabelHint')"
             filled
             use-input
             multiple
@@ -111,6 +113,7 @@
           <observer-dropdown
             v-model="state.emails"
             :label="$t('runScript.emailRecipients')"
+            :hint="$t('runScript.emailRecipientsHint')"
             filled
             use-input
             multiple

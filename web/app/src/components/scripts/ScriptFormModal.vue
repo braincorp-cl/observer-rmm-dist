@@ -140,6 +140,7 @@
               v-model="script.args"
               class="obs-mono-values"
               :label="$t('scriptFormModal.scriptArgsLabel')"
+              :hint="$t('scriptFormModal.scriptArgsLabelHint')"
               filled
               use-input
               multiple
@@ -151,6 +152,7 @@
               v-model="script.env_vars"
               class="obs-mono-values"
               :label="$t('scriptsCommon.envVarsLabel')"
+              :hint="$t('scriptsCommon.envVarsLabelHint')"
               filled
               use-input
               multiple

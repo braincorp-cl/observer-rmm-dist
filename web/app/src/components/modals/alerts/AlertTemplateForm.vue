@@ -241,6 +241,7 @@
                 class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.failureArgs')"
+                :hint="$t('alertTemplate.failureArgsHint')"
                 filled
                 v-model="template.action_args"
                 use-input
@@ -256,6 +257,7 @@
                 class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.failureEnvVars')"
+                :hint="$t('alertTemplate.failureEnvVarsHint')"
                 filled
                 v-model="template.action_env_vars"
                 use-input
@@ -339,6 +341,7 @@
                 class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.resolvedArgs')"
+                :hint="$t('alertTemplate.resolvedArgsHint')"
                 filled
                 v-model="template.resolved_action_args"
                 use-input
@@ -354,6 +357,7 @@
                 class="q-mb-sm obs-mono-values"
                 dense
                 :label="$t('alertTemplate.resolvedEnvVars')"
+                :hint="$t('alertTemplate.resolvedEnvVarsHint')"
                 filled
                 v-model="template.resolved_action_env_vars"
                 use-input

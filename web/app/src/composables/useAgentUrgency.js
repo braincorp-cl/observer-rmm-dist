@@ -30,15 +30,17 @@ export function useAgentUrgency() {
     } catch (e) {
       console.error(e);
     }
-    if (agent.plat === "windows") {
-      try {
-        const updates = await fetchAgentUpdates(agent.agent_id);
-        pendingPatches.value = Array.isArray(updates)
-          ? updates.filter((u) => u.action === "approve" && !u.installed).length
-          : 0;
-      } catch (e) {
-        console.error(e);
-      }
+    // V2-P11 / UI-E05 (2026-11-20): antes solo se consultaba en Windows, y en
+    // un equipo Linux con un parche aprobado y no instalado (has_patches_pending
+    // = true en la API) la cabecera no mostraba nada mientras la v1 sí dibujaba
+    // el escudo. Ni RN-05 ni la columna de la v1 filtran por plataforma.
+    try {
+      const updates = await fetchAgentUpdates(agent.agent_id);
+      pendingPatches.value = Array.isArray(updates)
+        ? updates.filter((u) => u.action === "approve" && !u.installed).length
+        : 0;
+    } catch (e) {
+      console.error(e);
     }
   }
 

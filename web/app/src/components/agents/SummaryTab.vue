@@ -137,13 +137,20 @@
             <q-item-section avatar>
               <q-icon name="fas fa-desktop" />
             </q-item-section>
-            <q-item-section>{{ summary.make_model }}</q-item-section>
+            <!-- V2-G01 (2026-11-20): lo que es solo palabras («Hewlett-Packard»,
+                 «None», «No Enclosure N/A») no es especificación ⇒ Archivo. -->
+            <q-item-section
+              :class="{ 'obs-ui-text': esPalabra(summary.make_model) }"
+              >{{ summary.make_model }}</q-item-section
+            >
           </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-microchip" />
             </q-item-section>
-            <q-item-section>{{ cpu }}</q-item-section>
+            <q-item-section :class="{ 'obs-ui-text': esPalabra(cpu) }">{{
+              cpu
+            }}</q-item-section>
           </q-item>
           <q-item>
             <q-item-section avatar>
@@ -170,14 +177,24 @@
             <q-item-section avatar>
               <q-icon name="fas fa-tv" />
             </q-item-section>
-            <q-item-section>{{ summary.graphics }}</q-item-section>
+            <q-item-section
+              :class="{ 'obs-ui-text': esPalabra(summary.graphics) }"
+              >{{ summary.graphics }}</q-item-section
+            >
           </q-item>
           <!-- serial -->
           <q-item v-if="serial_number">
             <q-item-section avatar>
               <q-icon name="fa-solid fa-barcode" />
             </q-item-section>
-            <q-item-section class="mono">{{ serial_number }}</q-item-section>
+            <!-- V2-G08 (2026-11-20): el serial de FAZOCAR mide 202 px en una caja
+                 de 182 y se cortaba sin ningún canal. Mismo trato que el disco y
+                 la IP LAN: entero, alcanzable por scroll, y con el valor en title. -->
+            <q-item-section
+              class="mono obs-token-entero"
+              :title="serial_number"
+              >{{ serial_number }}</q-item-section
+            >
           </q-item>
           <q-item>
             <q-item-section avatar>
@@ -374,6 +391,7 @@ import {
   openAgentWindow,
 } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
+import { esPalabra } from "@/utils/tipografia";
 import { fetchCustomFields } from "@/api/core";
 
 // ui imports
@@ -513,6 +531,7 @@ export default {
     });
 
     return {
+      esPalabra,
       // reactive data
       summary,
       customFields,

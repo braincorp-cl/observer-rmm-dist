@@ -168,7 +168,8 @@ export default {
         align: "left",
         label: t("agentTabs.software.colPublisher"),
         field: "publisher",
-        classes: "mono obs-wrap-words",
+        // V2-G01 (2026-11-20): el editor es un nombre de empresa ⇒ Archivo.
+        classes: "obs-wrap-words",
         sortable: true,
       },
       {

@@ -599,6 +599,32 @@ body.body--light .text-white:not(.q-header):not(.bg-dark)
   fill: none
 // Mapa (Leaflet) en los diálogos de ubicación. Prefijo body: leaflet.css se carga
 // después (chunk del diálogo) y con igual especificidad ganaba.
+// V2-G02 (2026-11-20): el trazo del mapa llevaba como atributo SVG el primary
+// leído AL MONTAR, así que al cambiar de tema quedaba el del otro (rgb(20,165,192)
+// en claro, rgb(10,113,134) en oscuro), fuera del set. Una regla CSS gana al
+// atributo de presentación y sigue al tema vivo; el atributo queda de respaldo.
+body .leaflet-container
+  .obs-mapa-traza, .obs-mapa-precision, .obs-mapa-punto
+    stroke: var(--q-primary)
+  .obs-mapa-precision, .obs-mapa-punto--ultimo
+    fill: var(--q-primary)
+  .obs-mapa-punto:not(.obs-mapa-punto--ultimo)
+    fill: var(--obs-on-dark)
+// V2-G02 (2026-11-20): Quasar pinta .q-tree con #9e9e9e (rgb(158,158,158)), fuera
+// del set; las líneas del árbol heredan ese color. Pasa al token atenuado.
+.q-tree
+  color: var(--obs-muted)
+// V2-G06 (2026-11-20): el valor elegido de un select largo («Ordenar
+// alfabéticamente, moviendo los clientes con fallos al inicio») se cortaba 43 px
+// a 1024 y solo quedaba el title. Con esta clase salta de línea y el campo crece.
+.obs-select-envuelve
+  .q-field__control, .q-field__native
+    height: auto
+    min-height: 40px
+  .q-field__native > span.ellipsis
+    white-space: normal
+    overflow: visible
+    text-overflow: clip
 body .leaflet-container
   background: var(--obs-raised)
   color: var(--obs-text)
@@ -969,6 +995,11 @@ body.body--dark
 .obs-set__panel .q-input:not(.obs-ui-text) .q-field__native,
 .obs-set__panel .q-textarea:not(.obs-ui-text) .q-field__native
   font-family: $obs-font-mono
+// V2-G01 (2026-11-20): la máscara «••••» de un secreto no es un valor: es la
+// señal de que hay uno guardado ⇒ Archivo, aunque el panel ponga sus campos en mono.
+.obs-set__panel .q-input .q-field__native.ormm-secret-mask,
+.q-field__native.ormm-secret-mask
+  font-family: $typography-font-family
 // 050 (T034, G05): en tema oscuro QDialogPlugin enfoca el campo del prompt en
 // ámbar; el borde del campo enfocado es el control y va en teal.
 .q-dialog-plugin--dark .q-field__control.text-amber

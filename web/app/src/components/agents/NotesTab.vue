@@ -90,7 +90,9 @@
             </div>
           </q-card-section>
           <q-card-section style="max-height: 20vh" class="scroll">
-            <pre>{{ props.row.note }}</pre>
+            <!-- V2-G01 (2026-11-20): <pre> aplicaba la monoespaciada del
+                 navegador al texto libre de la nota; se conservan los saltos. -->
+            <div class="obs-nota-texto">{{ props.row.note }}</div>
           </q-card-section>
         </q-card>
       </template>
@@ -274,4 +276,8 @@ export default {
 .notes-card
   width: 100%
   max-width: 20vw
+
+.obs-nota-texto
+  white-space: pre-wrap
+  overflow-wrap: anywhere
 </style>

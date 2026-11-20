@@ -89,7 +89,12 @@
       </template>
 
       <template v-slot:body-cell-method="props">
-        <q-td :props="props" class="mono">
+        <!-- V2-G01 (2026-11-20): «Ninguno» es una palabra (Archivo); el
+             algoritmo («XTS-AES-128») es especificación y sigue en mono. -->
+        <q-td
+          :props="props"
+          :class="{ mono: !esPalabra(systemMethod(props.row)) }"
+        >
           {{ systemMethod(props.row) }}
         </q-td>
       </template>
@@ -124,6 +129,7 @@ import ObsPageHead from "@/components/ui/ObsPageHead.vue";
 import { fetchDiskEncryptionFleet } from "@/api/diskencryption";
 import { fetchClients } from "@/api/clients";
 import { formatDate } from "@/utils/format";
+import { esPalabra } from "@/utils/tipografia";
 import { encryptionMethodLabel } from "@/utils/diskEncryption";
 
 export default {
@@ -265,6 +271,7 @@ export default {
     });
 
     return {
+      esPalabra,
       rows,
       columns,
       loading,

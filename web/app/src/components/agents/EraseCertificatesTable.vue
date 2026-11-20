@@ -139,14 +139,14 @@ export default {
       },
       {
         name: "method_applied",
-        classes: "mono",
+        // V2-G01 (2026-11-20): método = valor enumerado ⇒ interfaz (Archivo).
         label: t("erase.certificates.colMethod"),
         field: "method_applied",
         align: "left",
       },
       {
         name: "standard_ref",
-        classes: "mono",
+        // V2-G01 (2026-11-20): nombre de norma con versión embebida ⇒ Archivo.
         label: t("erase.certificates.colStandard"),
         field: "standard_ref",
         align: "left",

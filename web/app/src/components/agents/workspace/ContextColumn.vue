@@ -51,7 +51,14 @@
           :aria-pressed="onlyFailing ? 'true' : 'false'"
           @click="onlyFailing = !onlyFailing"
         >
-          <i18n-t keypath="agentWorkspace.context.filterFailingN" tag="span"
+          <!-- V2-P11 / UI-E02 (2026-11-20): sin dato, el chip no inventa un 0. -->
+          <span v-if="estado !== 'ok'">{{
+            $t("agentWorkspace.context.filterFailing")
+          }}</span>
+          <i18n-t
+            v-else
+            keypath="agentWorkspace.context.filterFailingN"
+            tag="span"
             ><template #n
               ><span class="mono">{{ failingCount }}</span></template
             ></i18n-t
@@ -133,7 +140,8 @@
         </q-item>
       </q-virtual-scroll>
     </div>
-    <div class="obs-ctx__foot">
+    <!-- V2-P11 / UI-E02 (2026-11-20): «0 de 0» mientras carga contradecía a la API. -->
+    <div v-if="estado === 'ok'" class="obs-ctx__foot">
       <i18n-t keypath="agentWorkspace.context.shownOf" tag="span">
         <template #shown
           ><span class="mono">{{ shown.length }}</span></template

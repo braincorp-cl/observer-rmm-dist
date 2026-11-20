@@ -76,7 +76,11 @@
                 class="ellipsis col"
                 :class="props.node.children ? 'obs-fleet__client' : 'obs-fleet__site'"
                 :title="props.node.label"
-                >{{ props.node.label }}</span
+                >{{ props.node.label
+                }}<!-- V2-G06 (2026-11-20): a 1024 el nombre del sitio se corta
+                  11 px y solo tenía title; el tooltip lo muestra al pasar. --><q-tooltip
+                  >{{ props.node.label }}</q-tooltip
+                ></span
               >
               <q-icon
                 v-for="st in nodeStates(props.node)"

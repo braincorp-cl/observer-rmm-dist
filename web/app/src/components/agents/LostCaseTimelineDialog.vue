@@ -469,7 +469,13 @@ export default {
       if (enOrden.length > 1) {
         L.polyline(
           enOrden.map((p) => [p.lat, p.lng]),
-          { color: cPrimario, weight: 3, opacity: 0.6, dashArray: "4 6" },
+          {
+            color: cPrimario,
+            weight: 3,
+            opacity: 0.6,
+            dashArray: "4 6",
+            className: "obs-mapa-traza",
+          },
         ).addTo(map);
       }
 
@@ -481,6 +487,7 @@ export default {
             color: cPrimario,
             fillOpacity: esUltimo ? 0.12 : 0.05,
             weight: 1,
+            className: "obs-mapa-precision",
           }).addTo(map);
         }
         L.circleMarker([p.lat, p.lng], {
@@ -489,6 +496,9 @@ export default {
           fillColor: esUltimo ? cPrimario : cRelleno,
           fillOpacity: 0.9,
           weight: 2,
+          className: esUltimo
+            ? "obs-mapa-punto obs-mapa-punto--ultimo"
+            : "obs-mapa-punto",
         }).addTo(map);
       }
 

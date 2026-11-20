@@ -210,7 +210,7 @@ const DECLARADOS = {
     "y SIN rotulo, asi que el icono es la superficie del control.",
   "src/components/scripts/ScriptManager.vue:421":
     "la misma estrella de la excepcion (b), en el arbol del gestor.",
-  "src/views/DashboardView.vue:81":
+  "src/views/DashboardView.vue:85":
     "MARCADOR: reporta un dato (failing_checks.error / failing_checks.warning / " +
     "maintenance_mode del nodo), nombra el estado en su propio aria-label y " +
     "tooltip (fleet.stateError / stateWarning / stateMaintenance) y viene " +
@@ -220,7 +220,7 @@ const DECLARADOS = {
     "error, y por eso se corrigio.",
   // 🪤 Este sitio lo destapo la TERCERA codificacion del censo (el nombre de
   // clase compuesto): dos censos anteriores no lo veian.
-  "src/components/agents/workspace/ContextColumn.vue:98":
+  "src/components/agents/workspace/ContextColumn.vue:105":
     "MARCADOR con superficie propia: el punto de salud se dibuja con " +
     "`background: var(--q-positive|--q-negative|--q-warning)` sobre 8x8 con " +
     "border-radius, reporta dot(item) y trae role=img, aria-label y title con " +

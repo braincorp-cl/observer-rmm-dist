@@ -30,6 +30,7 @@
           <q-select
             dense
             :label="$t('scriptCheck.scriptArgs')"
+            :hint="$t('scriptCheck.scriptArgsHint')"
             filled
             v-model="state.script_args"
             class="obs-mono-values"
@@ -44,6 +45,7 @@
           <q-select
             dense
             :label="$t('scriptsCommon.envVarsLabel')"
+            :hint="$t('scriptsCommon.envVarsLabelHint')"
             filled
             v-model="state.env_vars"
             class="obs-mono-values"
@@ -57,6 +59,7 @@
         <q-card-section>
           <observer-dropdown
             :label="$t('scriptCheck.infoReturnCodes')"
+            :hint="$t('scriptCheck.infoReturnCodesHint')"
             filled
             v-model="state.info_return_codes"
             class="obs-mono-values"
@@ -71,6 +74,7 @@
         <q-card-section>
           <observer-dropdown
             :label="$t('scriptCheck.warningReturnCodes')"
+            :hint="$t('scriptCheck.warningReturnCodesHint')"
             filled
             v-model="state.warning_return_codes"
             class="obs-mono-values"
@@ -85,6 +89,7 @@
         <q-card-section>
           <observer-dropdown
             :label="$t('scriptCheck.successReturnCodes')"
+            :hint="$t('scriptCheck.successReturnCodesHint')"
             filled
             v-model="state.success_return_codes"
             class="obs-mono-values"

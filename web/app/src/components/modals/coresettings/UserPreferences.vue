@@ -220,7 +220,7 @@
                   options-dense
                   v-model="clientTreeSort"
                   :options="clientTreeSortOptions"
-                  class="col-8"
+                  class="col-8 obs-select-envuelve"
                 />
               </q-card-section>
               <q-card-section class="row">

@@ -136,6 +136,7 @@
                   class="col-3 obs-mono-values"
                   dense
                   :label="$t('automatedTask.scriptArgs')"
+                  :hint="$t('automatedTask.scriptArgsHint')"
                   filled
                   v-model="defaultArgs"
                   use-input
@@ -151,6 +152,7 @@
                   class="col-3 obs-mono-values"
                   dense
                   :label="$t('scriptsCommon.envVarsLabel')"
+                  :hint="$t('scriptsCommon.envVarsLabelHint')"
                   filled
                   v-model="defaultEnvVars"
                   use-input

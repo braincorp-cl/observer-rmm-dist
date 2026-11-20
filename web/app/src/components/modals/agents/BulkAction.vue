@@ -103,6 +103,7 @@
             v-model="state.args"
             class="obs-mono-values"
             :label="$t('bulkAction.scriptArgs')"
+            :hint="$t('bulkAction.scriptArgsHint')"
             filled
             use-input
             multiple
@@ -116,6 +117,7 @@
             v-model="state.env_vars"
             class="obs-mono-values"
             :label="$t('scriptsCommon.envVarsLabel')"
+            :hint="$t('scriptsCommon.envVarsLabelHint')"
             filled
             use-input
             multiple

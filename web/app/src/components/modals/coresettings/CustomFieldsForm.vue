@@ -55,6 +55,7 @@
           <q-select
             dense
             :label="$t('customFieldsForm.inputOptions')"
+            :hint="$t('customFieldsForm.inputOptionsHint')"
             filled
             v-model="localField.options"
             class="obs-mono-values"
