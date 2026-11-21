@@ -1190,7 +1190,7 @@
     "selectScript": "Seleccionar script",
     "scriptArgs": "Argumentos del script",
     "scriptArgsHint": "Presione Enter tras escribir cada argumento",
-    "timeout": "Tiempo de espera (s)",
+    "timeout": "Espera (s)",
     "commandLabel": "Comando",
     "shellCmd": "CMD",
     "shellPowershell": "Powershell",
