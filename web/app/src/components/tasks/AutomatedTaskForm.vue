@@ -106,9 +106,7 @@
         >
           <div class="scroll" style="max-height: 60vh">
             <q-form @submit.prevent="addAction">
-              <div
-                class="row q-pa-sm q-col-gutter-x-xs q-col-gutter-y-sm items-start"
-              >
+              <div class="row q-pa-sm q-gutter-x-xs items-center">
                 <div class="text-subtitle2 col-12">
                   {{ $t("automatedTask.actionTypeLabel") }}
                 </div>
@@ -124,7 +122,7 @@
 
                 <observer-dropdown
                   v-if="actionType === 'script'"
-                  class="col-12 col-md-3"
+                  class="col-3"
                   :label="$t('automatedTask.selectScript')"
                   v-model="script"
                   :options="scriptOptions"
@@ -135,7 +133,7 @@
 
                 <q-select
                   v-if="actionType === 'script'"
-                  class="col-12 col-sm-6 col-md-3 obs-mono-values"
+                  class="col-3 obs-mono-values"
                   dense
                   :label="$t('automatedTask.scriptArgs')"
                   :hint="$t('automatedTask.scriptArgsHint')"
@@ -151,7 +149,7 @@
 
                 <q-select
                   v-if="actionType === 'script'"
-                  class="col-12 col-sm-6 col-md-3 obs-mono-values"
+                  class="col-3 obs-mono-values"
                   dense
                   :label="$t('scriptsCommon.envVarsLabel')"
                   :hint="$t('scriptsCommon.envVarsLabelHint')"
@@ -167,7 +165,7 @@
 
                 <q-input
                   v-if="actionType === 'script'"
-                  class="col-6 col-md-2"
+                  class="col-2"
                   filled
                   dense
                   v-model.number="defaultTimeout"
@@ -181,11 +179,11 @@
                   v-model="command"
                   dense
                   filled
-                  class="col-12 col-md-5 obs-mono-values"
+                  class="col-5 obs-mono-values"
                 />
                 <q-input
                   v-if="actionType === 'cmd'"
-                  class="col-6 col-md-2"
+                  class="col-2"
                   filled
                   dense
                   v-model.number="defaultTimeout"
@@ -194,7 +192,7 @@
                 />
                 <q-option-group
                   v-if="actionType === 'cmd'"
-                  class="col-12 col-md-4 q-pl-sm"
+                  class="col-4 q-pl-sm"
                   inline
                   v-model="shell"
                   :options="[
