@@ -137,10 +137,11 @@
             <q-item-section avatar>
               <q-icon name="fas fa-desktop" />
             </q-item-section>
-            <!-- V2-G01 (2026-11-20): lo que es solo palabras («Hewlett-Packard»,
-                 «None», «No Enclosure N/A») no es especificación ⇒ Archivo. -->
+            <!-- V2-G01 (2026-11-21): modelo = especificación (clase 7) ⇒ mono,
+                 aunque sea solo palabras; solo la AUSENCIA («None», «No
+                 Enclosure N/A») va en Archivo. -->
             <q-item-section
-              :class="{ 'obs-ui-text': esPalabra(summary.make_model) }"
+              :class="{ 'obs-ui-text': esAusencia(summary.make_model) }"
               >{{ summary.make_model }}</q-item-section
             >
           </q-item>
@@ -148,7 +149,7 @@
             <q-item-section avatar>
               <q-icon name="fas fa-microchip" />
             </q-item-section>
-            <q-item-section :class="{ 'obs-ui-text': esPalabra(cpu) }">{{
+            <q-item-section :class="{ 'obs-ui-text': esAusencia(cpu) }">{{
               cpu
             }}</q-item-section>
           </q-item>
@@ -178,7 +179,7 @@
               <q-icon name="fas fa-tv" />
             </q-item-section>
             <q-item-section
-              :class="{ 'obs-ui-text': esPalabra(summary.graphics) }"
+              :class="{ 'obs-ui-text': esAusencia(summary.graphics) }"
               >{{ summary.graphics }}</q-item-section
             >
           </q-item>
@@ -192,6 +193,7 @@
                  la IP LAN: entero, alcanzable por scroll, y con el valor en title. -->
             <q-item-section
               class="mono obs-token-entero"
+              :class="{ 'obs-ui-text': esAusencia(serial_number) }"
               :title="serial_number"
               >{{ serial_number }}</q-item-section
             >
@@ -391,7 +393,7 @@ import {
   openAgentWindow,
 } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
-import { esPalabra } from "@/utils/tipografia";
+import { esAusencia } from "@/utils/tipografia";
 import { fetchCustomFields } from "@/api/core";
 
 // ui imports
@@ -531,7 +533,7 @@ export default {
     });
 
     return {
-      esPalabra,
+      esAusencia,
       // reactive data
       summary,
       customFields,

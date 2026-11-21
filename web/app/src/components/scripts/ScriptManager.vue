@@ -207,7 +207,7 @@
                 </q-btn>
               </q-td>
               <q-td key="name" :props="props">
-                <div class="obs-mgr__name ellipsis obs-mgr__name--cell" :title="props.row.name">
+                <div class="obs-mgr__name obs-mgr__name--cell">
                   <img
                     v-if="props.row.script_type === 'builtin'"
                     class="obs-brand-mark vertical-middle q-mr-xs"
@@ -225,8 +225,10 @@
                 platformsLabel(props.row)
               }}</q-td>
               <q-td key="category" :props="props">
-                <span class="obs-mgr__cat">{{ props.row.category || $t("scriptManager.uncategorized") }}</span
-                >
+                <span class="obs-mgr__cat"><template
+                  v-for="(parte, i) in partesCategoria(props.row.category || $t('scriptManager.uncategorized'))"
+                  :key="i"
+                ><wbr v-if="i" />{{ parte }}</template></span>
               </q-td>
               <q-td key="desc" :props="props">
                 <span class="obs-mgr__cat">{{
@@ -1285,6 +1287,12 @@ export default {
       "args",
       "default_timeout",
     ]);
+    // V2-G07: la categoría («(Todos):Almacenamiento») solo puede saltar de
+    // línea después de «:», nunca a mitad de palabra.
+    function partesCategoria(cat) {
+      return String(cat).split(/(?<=:)/);
+    }
+
     function platformsLabel(row) {
       const p = row.supported_platforms || [];
       return p.length ? p.map(capitalize).join(", ") : t("scriptManager.platformAll");
@@ -1384,6 +1392,7 @@ export default {
     onMounted(getScripts);
 
     return {
+      partesCategoria,
       // reactive data
       search,
       tableView,

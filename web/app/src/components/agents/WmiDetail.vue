@@ -87,6 +87,8 @@ export default {
       "MUILanguages",
       "BuildType",
       "NetConnectionID",
+      // Valor ENUMERADO («Ethernet 802.3»): interfaz (enmienda 2026-11-21 B).
+      "AdapterType",
     ]);
     // Claves cuyo valor es SIEMPRE un identificador generado (clase 10) o un
     // nombre de clase WMI: todos los hermanos van en mono, aunque alguno salga
@@ -101,10 +103,17 @@ export default {
       "CSCreationClassName",
       "SystemCreationClassName",
     ]);
+    // V2-G01 (2026-11-21): en un dispositivo PnP (la instancia trae
+    // PNPDeviceID) el Name, Caption, Description o Model es su MODELO de
+    // hardware (clase 7) y va en mono aunque sea solo palabras: la tanda sobre
+    // 6a1ef85 midió «WAN Miniport (SSTP)» en Archivo junto a «WAN Miniport
+    // (IKEv2)» en mono, en la misma clave.
+    const CLAVES_MODELO = new Set(["Name", "Caption", "Description", "Model"]);
     function esNombre(k, v, j) {
       const clave = String(k);
       if (CLAVES_DATO.has(clave)) return false;
       if (CLAVES_NOMBRE.has(clave)) return true;
+      if (j && j.PNPDeviceID && CLAVES_MODELO.has(clave)) return false;
       // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
       if (esIdentificador(v)) return false;
       // El hostname es nombre (enmienda 2026-11-14) también cuando WMI lo

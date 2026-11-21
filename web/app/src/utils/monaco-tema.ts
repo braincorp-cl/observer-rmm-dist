@@ -245,9 +245,22 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
     // rgb(255,215,0) en oscuro y rgb(4,49,250) en claro. De los 6 niveles solo
     // 3 son visibles (4, 5 y 6 valen #00000000). El unico que no pasa es el
     // nivel 2 en claro: #319331 da 3,56 sobre --obs-field.
-    "editorBracketHighlight.foreground1": oscuro ? "#FFD700" : "#0431FA",
-    "editorBracketHighlight.foreground2": oscuro ? "#DA70D6" : "#287828",
-    "editorBracketHighlight.foreground3": oscuro ? "#179FFF" : "#7B3814",
+    // V2-G02 (2026-11-21): eran hex literales fuera del set de tokens
+    // (#FFD700/#DA70D6/#179FFF y #0431FA/#287828/#7B3814). La tanda sobre
+    // 6a1ef85 los juzgo cromo del editor, no sintaxis: van a tokens neutros,
+    // y los tres niveles se distinguen por luminosidad.
+    "editorBracketHighlight.foreground1": token(
+      "--obs-text",
+      oscuro ? "#E6EDF5" : "#16202E",
+    ),
+    "editorBracketHighlight.foreground2": token(
+      "--obs-text-2",
+      oscuro ? "#C3D2E3" : "#33445A",
+    ),
+    "editorBracketHighlight.foreground3": token(
+      "--obs-muted",
+      oscuro ? "#8FA3BC" : "#52647A",
+    ),
     // 🪤 Y el SEPTIMO color de corchete, que no esta numerado y por eso se me
     // paso: `unexpectedBracket.foreground` -el corchete sin par-. En vs-dark y
     // en vs vale `rgba(255,18,18,0.8)`, y COMPUESTO sobre cada capa da 3,32 /
@@ -257,9 +270,11 @@ function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
     // Se le dan los mismos valores que a la regla `invalid`, porque es la misma
     // semantica -un corchete sin par ES un token invalido- y ya estan medidos
     // en 5,01 y 5,02 sobre la peor capa de cada tema.
-    "editorBracketHighlight.unexpectedBracket.foreground": oscuro
-      ? "#F66767"
-      : "#C42F2F",
+    // Corchete sin par = error: color de estado negativo del proyecto.
+    "editorBracketHighlight.unexpectedBracket.foreground": token(
+      "--q-negative",
+      oscuro ? "#F25A5F" : "#C5282D",
+    ),
   };
 }
 

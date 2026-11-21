@@ -98,7 +98,11 @@ async function montarGestor(scripts = [UN_SCRIPT]) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: "/scripts/:library?", name: "Scripts", component: { template: "<div/>" } },
+      {
+        path: "/scripts/:library?",
+        name: "Scripts",
+        component: { template: "<div/>" },
+      },
     ],
   });
   router.push("/scripts");
@@ -163,16 +167,21 @@ describe("ScriptManager /scripts: un nombre largo se puede leer entero (G08)", (
 
     // V2-G06 (2026-11-20): la descripción ya no se recorta (salta de línea),
     // así que no necesita title; se exige entera en el texto y sin .ellipsis.
-    const desc = wrapper
-      .findAll("tbody .obs-mgr__desc")
-      .map((el) => el.text());
+    const desc = wrapper.findAll("tbody .obs-mgr__desc").map((el) => el.text());
     expect(desc, "la descripción no sale entera").toContain(DESC_LARGA);
     expect(wrapper.findAll("tbody .obs-mgr__desc.ellipsis")).toHaveLength(0);
 
-    for (const [campo, valor] of [
-      ["nombre", NOMBRE_LARGO],
-      ["argumentos", ARGS_LARGOS.join(" ")],
-    ]) {
+    // V2-G06 (2026-11-21): el nombre tampoco se recorta (salta de línea en
+    // espacios); se exige entero en el texto y sin .ellipsis.
+    const nombres = wrapper
+      .findAll("tbody .obs-mgr__name--cell")
+      .map((el) => el.text());
+    expect(nombres, "el nombre no sale entero").toContain(NOMBRE_LARGO);
+    expect(wrapper.findAll("tbody .obs-mgr__name--cell.ellipsis")).toHaveLength(
+      0,
+    );
+
+    for (const [campo, valor] of [["argumentos", ARGS_LARGOS.join(" ")]]) {
       expect(
         titulos,
         `la celda de ${campo} no expone el valor entero en title`,

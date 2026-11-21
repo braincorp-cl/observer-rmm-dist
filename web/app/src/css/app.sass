@@ -622,14 +622,23 @@ body .leaflet-container
 // V2-G04 (2026-11-20): en oscuro, el rótulo de un campo relleno en error daba
 // #F25A5F sobre el relleno #273447 = 3,84. El rótulo del control queda neutro
 // (el error lo marcan el borde y el mensaje, que van sobre la superficie: 4,7).
-body.body--dark .q-field--filled.q-field--error .q-field__label, body.body--dark .q-field--standout.q-field--error .q-field__label
+// 2026-11-21: la tanda sobre 6a1ef85 midió lo mismo en CLARO (#C5282D sobre el
+// relleno con hover #D4D6D9 = 3,88, ScriptFormModal) y en un campo sin relleno
+// (el «Escribe yes para confirmar» del borrado). La regla vale para todo campo
+// en error, en los dos temas.
+body .q-field.q-field--error .q-field__label
   color: var(--obs-text-2)
+// V2-G04 (2026-11-21): la notificación negativa traía el texto o la leyenda con
+// opacidad (#F2D9D7 sobre #BA3125 = 4,41). Texto --obs-on-brand opaco.
+.q-notification.bg-negative, .q-notification.bg-negative .q-notification__caption, .q-notification.bg-negative .q-notification__message
+  color: var(--obs-on-brand)
+  opacity: 1
 // V2-G06 (2026-11-20): el valor elegido de un select largo («Ordenar
 // alfabéticamente, moviendo los clientes con fallos al inicio») se cortaba 43 px
 // a 1024 y solo quedaba el title. Con esta clase salta de línea y el campo crece.
 .obs-fleet__label
   white-space: normal
-  overflow-wrap: anywhere
+  overflow-wrap: break-word
   min-width: 0
 .obs-select-envuelve
   .q-field__control, .q-field__native
@@ -820,24 +829,25 @@ body.body--dark
   color: var(--obs-text)
 .obs-mgr__name--cell
   max-width: 260px
-// V2-G06 (2026-11-20): descripción y categoría saltan de línea en vez de
-// cortarse; a 1024 la tanda contó 123 recortes recuperables solo por title.
+  white-space: normal
+  overflow-wrap: break-word
+// V2-G06/G07 (2026-11-21): nombre, descripción y categoría saltan de línea en
+// espacios o separadores, nunca a mitad de palabra (anywhere partía «ObserverRMM»); a 1024 la tanda contó 123 recortes recuperables solo por title.
 .obs-mgr__desc
   max-width: 260px
   font-size: 12px
   color: var(--obs-muted)
   white-space: normal
-  overflow-wrap: anywhere
+  overflow-wrap: break-word
 .obs-mgr__args
   display: inline-block
   max-width: 110px
   vertical-align: bottom
 .obs-mgr__cat
   display: inline-block
-  max-width: 150px
   vertical-align: bottom
   white-space: normal
-  overflow-wrap: anywhere
+  overflow-wrap: break-word
 .obs-mgr__star
   color: var(--obs-faint)
 .obs-mgr__row--hidden .obs-mgr__name
