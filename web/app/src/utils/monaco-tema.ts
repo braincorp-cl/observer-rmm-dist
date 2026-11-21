@@ -57,8 +57,12 @@ export const TEMA_OSCURO = "obs-oscuro";
 // Lee un token del documento. Se lee en caliente y no se cachea: el valor
 // cambia con el tema, y es justo el cambio lo que este modulo existe para
 // seguir.
+// Se lee del BODY y no del <html>: los tokens por tema (--q-negative entre
+// ellos) se redefinen en body.body--light/dark, y en <html> queda el valor
+// base de Quasar (#E5484D), que la sonda del 2026-11-21 midió fuera del set.
+// El body hereda del <html> todo lo que no redefine, así que nada se pierde.
 function token(nombre: string, respaldo: string): string {
-  const v = getComputedStyle(document.documentElement)
+  const v = getComputedStyle(document.body)
     .getPropertyValue(nombre)
     .trim();
   return v || respaldo;
