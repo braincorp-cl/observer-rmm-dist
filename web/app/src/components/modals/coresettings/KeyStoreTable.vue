@@ -80,7 +80,10 @@
                 : $t("keyStoreTable.secretEmpty")
             }}
           </q-td>
-          <q-td v-else class="mono">
+          <!-- V2-G06 (tanda 2026-11-22): el td de q-table no salta de línea
+               y un valor JSON de 924 caracteres dejaba la tabla en 7374 px con
+               la columna fuera de alcance; salta en los espacios del valor. -->
+          <q-td v-else class="mono obs-keystore__valor">
             {{ props.row.value }}
           </q-td>
         </q-tr>

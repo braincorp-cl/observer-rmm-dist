@@ -141,7 +141,6 @@
                  aunque sea solo palabras; solo la AUSENCIA («None», «No
                  Enclosure N/A») va en Archivo. -->
             <q-item-section
-              :class="{ 'obs-ui-text': esAusencia(summary.make_model) }"
               >{{ summary.make_model }}</q-item-section
             >
           </q-item>
@@ -149,7 +148,7 @@
             <q-item-section avatar>
               <q-icon name="fas fa-microchip" />
             </q-item-section>
-            <q-item-section :class="{ 'obs-ui-text': esAusencia(cpu) }">{{
+            <q-item-section>{{
               cpu
             }}</q-item-section>
           </q-item>
@@ -179,7 +178,6 @@
               <q-icon name="fas fa-tv" />
             </q-item-section>
             <q-item-section
-              :class="{ 'obs-ui-text': esAusencia(summary.graphics) }"
               >{{ summary.graphics }}</q-item-section
             >
           </q-item>
@@ -193,7 +191,6 @@
                  la IP LAN: entero, alcanzable por scroll, y con el valor en title. -->
             <q-item-section
               class="mono obs-token-entero"
-              :class="{ 'obs-ui-text': esAusencia(serial_number) }"
               :title="serial_number"
               >{{ serial_number }}</q-item-section
             >
@@ -393,7 +390,6 @@ import {
   openAgentWindow,
 } from "@/api/agents";
 import { notifySuccess } from "@/utils/notify";
-import { esAusencia } from "@/utils/tipografia";
 import { fetchCustomFields } from "@/api/core";
 
 // ui imports
@@ -533,7 +529,6 @@ export default {
     });
 
     return {
-      esAusencia,
       // reactive data
       summary,
       customFields,

@@ -216,9 +216,7 @@
                     :alt="$t('scriptManager.templateMarkTip')"
                   />{{ props.row.name }}
                 </div>
-                <div class="obs-mgr__desc">
-                  {{ props.row.description }}
-                </div>
+                <div class="obs-mgr__desc"><template v-for="(t, i) in trozosTexto(props.row.description)" :key="i"><span v-if="t.nw" class="obs-nowrap">{{ t.s }}</span><template v-else>{{ t.s }}</template></template></div>
               </q-td>
               <q-td key="shell" :props="props" class="mono">{{ props.row.shell }}</q-td>
               <q-td key="supported_platforms" :props="props">{{
@@ -231,9 +229,7 @@
                 ><wbr v-if="i" />{{ parte }}</template></span>
               </q-td>
               <q-td key="desc" :props="props">
-                <span class="obs-mgr__cat">{{
-                  props.row.description
-                }}</span>
+                <span class="obs-mgr__cat"><template v-for="(t, i) in trozosTexto(props.row.description)" :key="i"><span v-if="t.nw" class="obs-nowrap">{{ t.s }}</span><template v-else>{{ t.s }}</template></template></span>
               </q-td>
               <q-td key="args" :props="props" class="mono">
                 <span
@@ -1292,6 +1288,15 @@ export default {
     function partesCategoria(cat) {
       return String(cat).split(/(?<=:)/);
     }
+    // V2-G07 (tanda 2026-11-22): el navegador ofrece un salto entre «=» y «<»
+    // y partía «SERIAL=<valor>» en la descripción; un token con =, < o > es
+    // código y se pinta entero.
+    function trozosTexto(txt) {
+      return String(txt ?? "")
+        .split(/(\s+)/)
+        .filter((x) => x !== "")
+        .map((x) => ({ s: x, nw: /[=<>]/.test(x) && !/\s/.test(x) }));
+    }
 
     function platformsLabel(row) {
       const p = row.supported_platforms || [];
@@ -1393,6 +1398,7 @@ export default {
 
     return {
       partesCategoria,
+      trozosTexto,
       // reactive data
       search,
       tableView,

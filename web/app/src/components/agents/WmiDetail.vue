@@ -99,9 +99,17 @@ export default {
       "DeviceID",
       "SettingID",
       "GUID",
+    ]);
+    // V2-G01 (tanda 2026-11-22, enmienda B): valores ENUMERADOS por WMI —el
+    // nombre de clase («Win32_Processor»), el rol («CPU»), el estado («OK»)—
+    // son interfaz y van en Archivo; la clase 10 es solo para identificadores
+    // GENERADOS.
+    const CLAVES_ENUMERADAS = new Set([
       "CreationClassName",
       "CSCreationClassName",
       "SystemCreationClassName",
+      "Role",
+      "Status",
     ]);
     // V2-G01 (2026-11-21): en un dispositivo PnP (la instancia trae
     // PNPDeviceID) el Name, Caption, Description o Model es su MODELO de
@@ -113,6 +121,8 @@ export default {
       const clave = String(k);
       if (CLAVES_DATO.has(clave)) return false;
       if (CLAVES_NOMBRE.has(clave)) return true;
+      if (CLAVES_ENUMERADAS.has(clave)) return true;
+      if (typeof v === "string" && /^(CIM|Win32)_\w+$/.test(v)) return true;
       if (j && j.PNPDeviceID && CLAVES_MODELO.has(clave)) return false;
       // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
       if (esIdentificador(v)) return false;

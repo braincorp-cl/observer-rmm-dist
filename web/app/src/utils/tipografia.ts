@@ -16,14 +16,3 @@ export function esPalabra(v: unknown): boolean {
     !esIdentificador(v)
   );
 }
-
-// V2-G01 (2026-11-21): un modelo de hardware es especificación (clase 7) y va
-// en mono AUNQUE sea solo palabras («VMware SVGA II Adapter»): la tanda sobre
-// 6a1ef85 lo midió en Archivo y era violación. Lo único que sale del mono es
-// el marcador de AUSENCIA que manda el agente cuando no hay dato («None»,
-// «N/A», «No Enclosure N/A»): no es un valor, es la falta de uno.
-export function esAusencia(v: unknown): boolean {
-  if (v === null || v === undefined) return true;
-  const t = String(v).trim();
-  return t === "" || /^(none|n\/a|unknown|no enclosure( n\/a)?)$/i.test(t);
-}

@@ -233,7 +233,6 @@ import { useI18n } from "vue-i18n";
 import { runTakeControl, openAgentWindow } from "@/api/agents";
 import AgentActionMenu from "@/components/agents/AgentActionMenu.vue";
 import AgentLocationDialog from "@/components/agents/AgentLocationDialog.vue";
-import { esAusencia } from "@/utils/tipografia";
 
 const props = defineProps({
   agent: { type: Object, required: true },
@@ -301,7 +300,7 @@ const sysParts = computed(() => {
   const parts = [];
   if (a.operating_system) parts.push({ t: a.operating_system, mono: false });
   if (a.make_model)
-    parts.push({ t: a.make_model, mono: !esAusencia(a.make_model) });
+    parts.push({ t: a.make_model, mono: true });
   if (a.total_ram)
     parts.push({
       t: t("agentWorkspace.header.ram", { gb: a.total_ram }),

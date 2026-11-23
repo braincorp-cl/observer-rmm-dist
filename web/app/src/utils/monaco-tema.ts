@@ -61,11 +61,32 @@ export const TEMA_OSCURO = "obs-oscuro";
 // ellos) se redefinen en body.body--light/dark, y en <html> queda el valor
 // base de Quasar (#E5484D), que la sonda del 2026-11-21 midió fuera del set.
 // El body hereda del <html> todo lo que no redefine, así que nada se pierde.
+// 🪤 V2-G02 (tanda 2026-11-22): Monaco SOLO entiende hex (#RGB, #RRGGBB,
+// #RRGGBBAA); un `rgba(...)` lo parsea como rojo puro. Desde body,
+// --obs-hover llega como `rgba(230, 237, 245, .06)` y la línea actual salió
+// rgb(255,0,0) en 8 superficies. Todo token se pasa a hex; lo que no se pueda
+// convertir cae al respaldo, que ya es hex.
+function aHex(v: string): string | null {
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) return v;
+  const m = v.match(/^rgba?\(([^)]+)\)$/i);
+  if (!m) return null;
+  const p = m[1].split(/[\s,/]+/).filter(Boolean);
+  if (p.length < 3) return null;
+  const n = p.slice(0, 3).map((x) => Math.round(parseFloat(x)));
+  if (n.some((x) => isNaN(x) || x < 0 || x > 255)) return null;
+  let a = p.length > 3 ? parseFloat(p[3]) : 1;
+  if (p[3] && p[3].endsWith("%")) a = a / 100;
+  if (isNaN(a)) return null;
+  const hh = (x: number) => x.toString(16).padStart(2, "0");
+  const alfa = a < 1 ? hh(Math.round(Math.max(0, a) * 255)) : "";
+  return "#" + n.map(hh).join("") + alfa;
+}
+
 function token(nombre: string, respaldo: string): string {
   const v = getComputedStyle(document.body)
     .getPropertyValue(nombre)
     .trim();
-  return v || respaldo;
+  return (v && aHex(v)) || respaldo;
 }
 
 function cromo(oscuro: boolean): monaco.editor.IStandaloneThemeData["colors"] {
