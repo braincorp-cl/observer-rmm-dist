@@ -101,13 +101,16 @@ function crear() {
 // persigue, así que el anillo va al widget que SÍ se ve. Es el mismo criterio
 // que ya aplica `cajaDe` con el `<input>` de un campo de Quasar: el elemento
 // que recibe el foco no siempre es el que hay que marcar.
-// 🪤 Monaco NO va en esta lista, y es a propósito. Su `textarea.inputarea` mide
-// 1×1 pero está EN pantalla, así que no cae en `rectInservible` (1 no es < 1) y
-// nunca llegaría a pedir sustituto: la entrada sería código que nadie llama.
-// Además la pasada de `c14973e` ya resolvió que ese textarea es artefacto del
-// instrumento —1432 de 1438 candidatos— y no un control alcanzable. Si eso se
-// revisa alguna vez, el cambio va en el umbral, no en esta lista.
 const SUSTITUTOS_DE_AYUDANTE = ".xterm";
+// 🔴 V2-G15 (tanda sobre 3e2c666, 2026-11-23): Monaco SÍ necesita sustituto, y
+// la nota que había acá («su textarea es artefacto del instrumento») era falsa
+// en píxeles. Su `textarea.inputarea` mide 1×1 y está EN pantalla, así que
+// `rectInservible` no lo ve, y el anillo se dibujaba como un cuadradito de
+// ~9 px junto al cursor, con la banda interna rellenándolo: otra forma y otro
+// grosor que en el resto de la consola. Lo que el usuario cree enfocado es el
+// EDITOR, así que la caja es `.monaco-editor`, elegida por identidad (como el
+// `.q-field__control` de un campo) y no por tamaño.
+const SUSTITUTO_EDITOR = ".monaco-editor";
 
 // ¿El rect no sirve para dibujar? Misma prueba que usaba `pintar` en línea.
 function rectInservible(r) {
@@ -122,6 +125,10 @@ function rectInservible(r) {
 }
 
 function cajaDe(el) {
+  if (el.tagName === "TEXTAREA") {
+    const editor = el.closest(SUSTITUTO_EDITOR);
+    if (editor) return editor;
+  }
   const campo = el.closest(".q-field__control");
   if (campo) return campo;
   const marca = el.closest(".q-checkbox, .q-radio, .q-toggle");
@@ -384,7 +391,9 @@ function pintar() {
   if (esAnclaYNoControl(objetivo)) return ocultar();
   let caja = cajaDe(objetivo);
   let r = rectUnion(caja);
-  let sustituido = false;
+  // Un editor elegido como caja es un sustituto: no pasa por
+  // `noSenalaNingunLugar` (un editor maximizado llena casi la ventana).
+  let sustituido = caja !== objetivo && caja.matches(SUSTITUTO_EDITOR);
   // Si el propio enfocado no se puede dibujar, se busca su sustituto visible
   // ANTES de rendirse. Se consulta sólo en ese caso, para no cambiarle la caja
   // a nada que ya funcione.

@@ -34,7 +34,7 @@
               :plural="agents.length"
               tag="span"
               ><template #n
-                ><span class="mono">{{ agents.length }}</span></template
+                ><span>{{ agents.length }}</span></template
               ></i18n-t
             >
           </template>
@@ -132,7 +132,7 @@
                 :plural="item.checks.failing"
                 tag="span"
                 ><template #n
-                  ><span class="mono">{{ item.checks.failing }}</span></template
+                  ><span>{{ item.checks.failing }}</span></template
                 ></i18n-t
               ></q-item-label
             >
@@ -144,10 +144,10 @@
     <div v-if="estado === 'ok'" class="obs-ctx__foot">
       <i18n-t keypath="agentWorkspace.context.shownOf" tag="span">
         <template #shown
-          ><span class="mono">{{ shown.length }}</span></template
+          ><span>{{ shown.length }}</span></template
         >
         <template #total
-          ><span class="mono">{{ agents.length }}</span></template
+          ><span>{{ agents.length }}</span></template
         >
       </i18n-t>
     </div>
