@@ -205,13 +205,7 @@ body.body--dark
     overflow-wrap: anywhere
   // Valores cortos que no se parten (fecha, usuario, IP, tamaño, badge, botón):
   // con anywhere la tabla los cortaba letra a letra para no desbordar.
-  .q-table td// V2-G02 (tanda sobre 3e2c666): el <svg> de q-spinner no declara `fill` y
-// computa el negro inicial (rgb(0,0,0)), fuera del set de tokens, aunque sus
-// trazos usen currentColor. Con `fill: currentColor` el computado es el token
-// del propio spinner; los círculos con fill="none" siguen sin relleno.
-svg.q-spinner
-  fill: currentColor
-.obs-nowrap
+  .q-table td.obs-nowrap
     white-space: nowrap
     overflow-wrap: normal
   // Conservada por compatibilidad: desde la inversión coincide con el default,
@@ -845,6 +839,12 @@ body.body--dark
   color: var(--obs-muted)
   white-space: normal
   overflow-wrap: break-word
+// V2-G02 (tanda sobre 3e2c666): el <svg> de q-spinner no declara `fill` y
+// computa el negro inicial (rgb(0,0,0)), fuera del set de tokens, aunque sus
+// trazos usen currentColor. Con `fill: currentColor` el computado es el token
+// del propio spinner; los círculos con fill="none" siguen sin relleno.
+svg.q-spinner
+  fill: currentColor
 .obs-nowrap
   white-space: nowrap
 .q-table td.obs-keystore__valor
