@@ -357,12 +357,17 @@
             :color="diskBarColor(disk.percent)"
             class="q-mt-sm"
           />
-          <span class="mono">{{
-            $t("agentTabs.summary.diskFree", {
-              free: disk.free,
-              total: disk.total,
-            })
-          }}</span>
+          <!-- V2-G01: la frase va en Archivo; solo los tamaños en Mono. -->
+          <i18n-t
+            keypath="agentTabs.summary.diskFree"
+            class="obs-ui-text"
+            tag="span"
+            ><template #free
+              ><span class="mono">{{ disk.free }}</span></template
+            ><template #total
+              ><span class="mono">{{ disk.total }}</span></template
+            ></i18n-t
+          >
           <q-separator />
         </div>
       </div>

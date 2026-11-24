@@ -1,6 +1,8 @@
 <template>
   <div>
+    <!-- V2-G04: velo opaco; detrás hay un iframe blanco que no sigue el tema. -->
     <q-inner-loading
+      class="obs-velo-opaco"
       :showing="isLoading"
       :label='$t("reporting.common.pleaseWait")'
       label-style="font-size: 1.1em"

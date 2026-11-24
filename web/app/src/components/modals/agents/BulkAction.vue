@@ -81,7 +81,7 @@
 
         <q-card-section v-if="mode === 'script'" class="q-pt-none">
           <observer-dropdown
-            :rules="[(val) => !!val || '*Required']"
+            :rules="[(val) => !!val || $t('bulkAction.required')]"
             v-model="state.script"
             :options="filterByPlatformOptions"
             :label="$t('bulkAction.selectScript')"

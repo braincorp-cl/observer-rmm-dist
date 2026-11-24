@@ -850,10 +850,14 @@ svg.q-spinner
 .q-table td.obs-keystore__valor
   white-space: normal
   overflow-wrap: break-word
+// V2-G06 (tanda bd548e1): a 1024 la elipsis dejaba «-Modo verificar» solo en el
+// title. Los argumentos parten entre sí (y, si uno solo no cabe, dentro).
 .obs-mgr__args
   display: inline-block
   max-width: 110px
   vertical-align: bottom
+  white-space: normal
+  overflow-wrap: break-word
 .obs-mgr__cat
   display: inline-block
   vertical-align: bottom
@@ -1297,3 +1301,61 @@ body:has(#obs-anillo-foco) :focus-visible
 // del sistema, no de una pantalla.
 .q-field--filled .q-field__control, .q-field--filled .q-field__control:before
   border-radius: 8px
+
+// 050 V2-G02 (tanda bd548e1): los grises con alfa de Quasar (rgba(0,0,0,.54/.6/.87),
+// rgba(255,255,255,.7)) y sus negros opacos se escapaban fuera del espacio 1c, en
+// los diálogos y menús que Quasar monta en body. Mismos tokens que .obs-ws/.obs-page.
+// Prefijo body para ganarle a las variantes --dark de Quasar (dos clases).
+body
+  .q-field__marginal, .q-field--dark .q-field__marginal,
+  .q-field__label, .q-field--dark .q-field__label,
+  .q-field__bottom, .q-field--dark:not(.q-field--error) .q-field__bottom
+    color: var(--obs-muted)
+  .q-field__native, .q-field--dark .q-field__native,
+  .q-field__input, .q-field--dark .q-field__input,
+  .q-field__prefix, .q-field__suffix
+    color: var(--obs-text)
+  .q-item__label--caption, .q-item--dark .q-item__label--caption
+    color: var(--obs-muted)
+  .q-checkbox__inner:not(.q-checkbox__inner--truthy),
+  .q-checkbox__inner--dark:not(.q-checkbox__inner--truthy),
+  .q-radio__inner:not(.q-radio__inner--truthy),
+  .q-radio__inner--dark:not(.q-radio__inner--truthy),
+  .q-toggle__inner:not(.q-toggle__inner--truthy)
+    color: var(--obs-muted)
+  // El ícono del paso activo del stepper en oscuro: Quasar fija #000.
+  .q-stepper--dark .q-stepper__dot span
+    color: var(--obs-on-brand)
+  // Pulgar del scroll: Quasar pinta #000 con opacidad .2.
+  .q-scrollarea__thumb
+    background: var(--obs-text)
+  // xterm.css fija #000 en el viewport; el lienzo ya usa --obs-term-bg.
+  .xterm .xterm-viewport
+    background-color: var(--obs-term-bg)
+  // El encabezado es navy en ambos temas: sus campos siguen en on-dark.
+  .q-header .q-field__marginal, .q-header .q-field__native, .q-header .q-field__label
+    color: var(--obs-on-dark)
+
+// 050 V2-G04 (tanda bd548e1): a 390 px los controles del encabezado no caben y el
+// menú de usuario quedaba fuera del viewport (axe medía su flecha sobre el lienzo,
+// 1,04:1, y no se podía alcanzar). Bajo 600 px el toolbar parte en dos filas:
+// botón y título arriba, controles abajo. QHeader observa su alto y el layout se
+// corre solo.
+@media (max-width: 599px)
+  .q-header .q-toolbar
+    flex-wrap: wrap
+    justify-content: flex-end
+  .q-header .q-toolbar > .q-toolbar__title
+    flex: 1 1 calc(100% - 48px)
+    min-width: 0
+
+// 050 V2-G04 (tanda bd548e1): el ícono de la columna ordenada salía con la opacidad
+// .86 de Quasar (#69798c sobre #f6f8fb = 4,19:1). Opaco, toma --obs-muted.
+.q-table th.sorted .q-table__sort-icon
+  opacity: 1
+
+// 050 V2-G04 (tanda bd548e1): en las vistas de reporte el velo cubre un iframe
+// blanco que no sigue el tema; con --obs-veil (oscuro a .6) el rótulo quedaba en
+// 3,9:1 y el spinner en 1,6:1. Ahí el velo es opaco, con el lienzo del tema.
+.q-inner-loading.obs-velo-opaco
+  background: var(--obs-page)

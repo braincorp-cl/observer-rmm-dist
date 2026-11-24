@@ -233,7 +233,7 @@
               </q-td>
               <q-td key="args" :props="props" class="mono">
                 <span
-                  class="ellipsis obs-mgr__args"
+                  class="obs-mgr__args"
                   :title="props.row.args.join(' ')"
                   >{{ props.row.args.length ? props.row.args.join(" ") : dash }}</span
                 >
