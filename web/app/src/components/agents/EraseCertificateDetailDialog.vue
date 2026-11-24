@@ -77,7 +77,9 @@
                    16:15» y «TAG-G050-0x». -->
               <tr v-for="field in fields" :key="field.key">
                 <th>{{ field.label }}</th>
-                <td :class="{ mono: VALOR_MONO.has(field.key) }">
+                <!-- V2-G01 (tanda 97dc0ea): el «—» de un dato ausente es interfaz y va en
+                     Archivo aunque la ranura sea mono. -->
+                <td :class="{ mono: VALOR_MONO.has(field.key) && field.value !== dash }">
                   {{ field.value }}
                 </td>
               </tr>
@@ -213,7 +215,8 @@ export default {
       "asset_tag",
       "equipment_serial",
       "equipment_model",
-      "equipment_hostname",
+      // equipment_hostname fuera: un hostname es un nombre elegido por una
+      // persona y va en Archivo (enmienda 2026-11-20 B, V2-G01 tanda 97dc0ea).
       "issued_at",
       "process_id",
       "concurrence_at",
@@ -475,6 +478,7 @@ export default {
       verification,
       fields,
       VALOR_MONO,
+      dash,
       pathRows,
       verificationLevel,
       notVerified,

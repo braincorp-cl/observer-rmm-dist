@@ -27,7 +27,9 @@
           <q-item-section v-if="item.icon" avatar class="obs-secnav__icon">
             <q-icon :name="item.icon" size="16px" />
           </q-item-section>
-          <q-item-section class="ellipsis" :title="item.full || item.label">
+          <!-- V2-G06 (tanda 97dc0ea): a 1024 «Explorador de archivos» quedaba
+               cortado y solo legible en el title; el rótulo parte línea. -->
+          <q-item-section class="obs-secnav__label" :title="item.full || item.label">
             <span>{{ item.label }}</span>
           </q-item-section>
           <q-item-section v-if="item.count || item.count === 0" side>
@@ -122,6 +124,11 @@ watch(
 .obs-secnav__item--active
   background: var(--obs-selected)
   color: var(--q-primary)
+.obs-secnav__label
+  white-space: normal
+  overflow-wrap: break-word
+  line-height: 1.25
+  min-width: 0
 .obs-secnav__icon
   min-width: 26px
   padding-right: 6px
