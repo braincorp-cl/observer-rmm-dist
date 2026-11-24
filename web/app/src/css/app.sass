@@ -1308,7 +1308,7 @@ body:has(#obs-anillo-foco) :focus-visible
 // Prefijo body para ganarle a las variantes --dark de Quasar (dos clases).
 body
   .q-field__marginal, .q-field--dark .q-field__marginal,
-  .q-field__label, .q-field--dark .q-field__label,
+  .q-field__label, .q-field--dark:not(.q-field--highlighted) .q-field__label,
   .q-field__bottom, .q-field--dark:not(.q-field--error) .q-field__bottom
     color: var(--obs-muted)
   .q-field__native, .q-field--dark .q-field__native,
@@ -1351,8 +1351,9 @@ body
 
 // 050 V2-G04 (tanda bd548e1): el ícono de la columna ordenada salía con la opacidad
 // .86 de Quasar (#69798c sobre #f6f8fb = 4,19:1). Opaco, toma --obs-muted.
-.q-table th.sorted .q-table__sort-icon
-  opacity: 1
+// Quasar la declara con !important (.86), así que el override también.
+body .q-table th.sorted .q-table__sort-icon
+  opacity: 1 !important
 
 // 050 V2-G04 (tanda bd548e1): en las vistas de reporte el velo cubre un iframe
 // blanco que no sigue el tema; con --obs-veil (oscuro a .6) el rótulo quedaba en
