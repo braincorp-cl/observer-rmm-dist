@@ -1148,7 +1148,7 @@ export default {
         sortedCategories.forEach((category) => {
           let temp = {
             icon: "folder",
-            label: category,
+            label: category === "Unassigned" ? t("scriptManager.unassigned") : category,
             selectable: false,
             id: category,
             children: [],

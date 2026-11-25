@@ -1295,7 +1295,7 @@
                   dense
                   outlined
                   v-model="settings.open_ai_model"
-                  class="col-6"
+                  class="col-6 obs-ui-text"
                   :hint="$t('editCoreSettings.aiModelHint')"
                 />
               </q-card-section>

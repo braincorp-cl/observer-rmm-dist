@@ -36,6 +36,7 @@
         <!-- top slot -->
         <template v-slot:top>
           <q-btn
+            color="primary"
             :label="$t('clientsManager.new')"
             dense
             flat

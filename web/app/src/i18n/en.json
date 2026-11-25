@@ -88,10 +88,10 @@
     "bulkLock": "Bulk screen lock",
     "bulkAlarm": "Bulk sound alarm",
     "bulkStopAlarm": "Bulk stop alarm",
-    "eraseCertificates": "Erase certificates",
+    "eraseCertificates": "Erasure certificates",
     "eraseIntake": "Asset intake",
     "eraseReconciliation": "Reconciliation",
-    "eraseOrders": "Erase orders",
+    "eraseOrders": "Erasure orders",
     "activityLive": "Live monitoring",
     "storageMedia": "Storage media"
   },
@@ -108,7 +108,7 @@
   },
   "totp": {
     "title": "Setup 2-Factor",
-    "scanInstructions": "Scan the QR Code with your authenticator app and then click Finish to be redirected back to the signin page. If you navigate away from this page you 2FA signin will need to be reset!",
+    "scanInstructions": "Scan the QR Code with your authenticator app and then click Finish to be redirected back to the sign-in page. If you navigate away from this page, your 2FA sign-in will need to be reset!",
     "manualInstructions": "You can also use the below code to configure the authenticator manually.",
     "qrAlt": "QR Code",
     "finish": "Finish"
@@ -518,7 +518,7 @@
     "eraseAttachmentPruneEnabled": "Purge expired attachments",
     "eraseAttachmentPruneEnabledHint": "When off, the purge still runs hourly but only RECORDS how much it would delete, deleting nothing. When on, it deletes the file and keeps the row with its hash. This is irreversible.",
     "erasePublicVerifyEnabled": "Expose public certificate verification",
-    "erasePublicVerifyEnabledHint": "Opens a public page at /verificar/, with no authentication, where a third party checks a certificate by its identifier. It shows no customer, device or serial. Tell the customer before turning it on."
+    "erasePublicVerifyEnabledHint": "Opens a public page at /verificar/, with no authentication, where a third party checks a certificate by its identifier. It shows no client, device or serial. Tell the client before turning it on."
   },
   "bulkAction": {
     "close": "Close",
@@ -667,7 +667,7 @@
       "resetAllChecksStatus": "Reset All Checks Status",
       "resetCheckStatus": "Reset Check Status",
       "managedByPolicy": "This check is managed by a policy",
-      "overriddenByPolicy": "This check is overriden by a policy",
+      "overriddenByPolicy": "This check is overridden by a policy",
       "showRunHistory": "Show Run History",
       "lastOutput": "Last Output",
       "never": "Never",
@@ -866,7 +866,9 @@
   "confirmDialog": {
     "prompt": "Please type {yes} in the box below to confirm {action} of {hostname}.",
     "typeYes": "Type yes to confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "defaultTitle": "Confirm action",
+    "confirm": "Confirm"
   },
   "resetPass": {
     "newPassword": "New password:",
@@ -971,7 +973,7 @@
     "runScript": "Run Script",
     "bulkActions": "Bulk Actions",
     "recoverAgents": "Recover Agents",
-    "useRegistry": "Use Registry",
+    "useRegistry": "Use Windows Registry",
     "listNotes": "List Notes",
     "manageNotes": "Manage Notes",
     "viewGlobalSettings": "View Global Settings",
@@ -1506,7 +1508,7 @@
     "colResolvedOn": "Resolved On",
     "colSnoozedUntil": "Snoozed Until",
     "colActions": "Actions",
-    "noDataFound": "No data found. Try to refine you search",
+    "noDataFound": "No data found. Try to refine your search",
     "clickSearch": "Click search to find alerts",
     "snoozeTitle": "Snooze Alert",
     "snoozeMessage": "How many days to snooze alert?",
@@ -1624,7 +1626,8 @@
     "rowActions": "Actions",
     "columnsBtn": "Columns",
     "columnArgsShort": "Arguments",
-    "pageHint": "Double-click a row: edit (view code for templates). The ⋯ button and right-click open the script actions: view code, clone, edit, delete, favorite, download and hide."
+    "pageHint": "Double-click a row: edit (view code for templates). The ⋯ button and right-click open the script actions: view code, clone, edit, delete, favorite, download and hide.",
+    "unassigned": "Unassigned"
   },
   "scriptOutput": {
     "title": "Script Output",
@@ -1858,7 +1861,7 @@
     "required": "*Required",
     "actionsLabel": "Actions",
     "auditLog": "Audit Log",
-    "auditLogTip": "Removes agent check results",
+    "auditLogTip": "Removes audit log entries",
     "pendingActions": "Pending Actions",
     "pendingActionsTip": "Removes completed pending actions",
     "alerts": "Alerts",
@@ -1937,7 +1940,7 @@
     "time6Months": "6 Months Ago",
     "time1Year": "1 Year Ago",
     "timeEverything": "Everything",
-    "noDataSearched": "No data found. Try to refine you search",
+    "noDataSearched": "No data found. Try to refine your search",
     "noDataInitial": "Click search to find audit logs",
     "actEndpointResponse": "Endpoint response"
   },
@@ -2487,7 +2490,7 @@
     "colMonths": "Months",
     "colDaysOfMonth": "Days of Month",
     "colWeeksOfMonth": "Weeks of Month",
-    "everyWeekday": "Every Weekday",
+    "everyWeekday": "Every Day of the Week",
     "everyMonth": "Every Month",
     "everyDay": "Every Day",
     "everyWeek": "Every week",
@@ -2809,7 +2812,8 @@
       "confirmTitle": "Are you sure?",
       "nAssets": "{n} assets",
       "oneAsset": "an asset",
-      "deleteConfirmMessage": "You are about to delete {assets}. This action isn't reversible"
+      "deleteConfirmMessage": "You are about to delete {assets}. This action isn't reversible",
+      "root": "Assets"
     },
     "assetSelect": {
       "title": "Report Asset Select",
@@ -3103,7 +3107,7 @@
     }
   },
   "endpointResponse": {
-    "menu": "Endpoint response",
+    "menu": "Quick response",
     "sendAlert": "On-screen message",
     "lock": "Lock screen",
     "alarm": "Sound alarm",
@@ -3414,7 +3418,7 @@
       "draft": "Draft",
       "pending_confirmation": "Pending 2nd confirmation",
       "confirmed": "Confirmed",
-      "recovery_window": "In recovery window",
+      "recovery_window": "In cancellation window",
       "dispatched": "Dispatched",
       "cancelled": "Cancelled",
       "executed": "Executed",
@@ -3579,7 +3583,7 @@
       "error": "Could not confirm the order"
     },
     "recovery": {
-      "title": "Recovery window",
+      "title": "Cancellation window",
       "forHost": "Order for {hostname}",
       "expired": "Window expired",
       "deadline": "Expires: {when}",
@@ -3592,7 +3596,7 @@
     "orders": {
       "title": "Governed wipe orders",
       "refresh": "Refresh",
-      "governanceNotice": "This view only governs existing orders (2nd confirmation and recovery window). Creating a wipe order is part of the destructive block, disabled.",
+      "governanceNotice": "This view only governs existing orders (2nd confirmation and cancellation window). Creating a wipe order is part of the destructive block, disabled.",
       "noData": "No orders",
       "confirmAction": "Confirm",
       "windowAction": "Window",
@@ -3766,7 +3770,7 @@
     "context": {
       "equipmentCount": "No devices | {n} device | {n} devices",
       "equipmentLoading": "loading devices",
-      "equipmentUnknown": "devices unavailable",
+      "equipmentUnknown": "device count unavailable",
       "filterFailing": "Failing checks",
       "filterOnline": "Online only",
       "shownOf": "{shown} of {total}",
@@ -3792,9 +3796,9 @@
     }
   },
   "agentActivity": {
-    "noAgent": "Select a machine to see its activity.",
-    "noPermission": "You do not have permission to view this machine's activity.",
-    "noData": "This machine has not reported activity yet.",
+    "noAgent": "Select a device to see its activity.",
+    "noPermission": "You do not have permission to view this device's activity.",
+    "noData": "This device has not reported activity yet.",
     "day": "Day",
     "partial": "Partial",
     "user": "User",

@@ -518,7 +518,7 @@
     "eraseAttachmentPruneEnabled": "Purgar los adjuntos vencidos",
     "eraseAttachmentPruneEnabledHint": "Apagado, la purga corre igual cada hora pero sólo REGISTRA cuánto borraría, sin borrar nada. Encendido, borra el archivo y conserva la fila con su hash. Es irreversible.",
     "erasePublicVerifyEnabled": "Exponer la verificación pública de certificados",
-    "erasePublicVerifyEnabledHint": "Abre una página pública en /verificar/, sin autenticación, donde un tercero comprueba un certificado con su identificador. No muestra cliente, equipo ni serie. Avise al cliente antes de encenderla."
+    "erasePublicVerifyEnabledHint": "Abre una página pública en /verificar/, sin autenticación, donde un tercero comprueba un certificado con su identificador. No muestra cliente, equipo ni serie. Avisa al cliente antes de encenderla."
   },
   "bulkAction": {
     "close": "Cerrar",
@@ -866,7 +866,9 @@
   "confirmDialog": {
     "prompt": "Escribe {yes} en el recuadro para confirmar la {action} de {hostname}.",
     "typeYes": "Escribe yes para confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "defaultTitle": "Confirmar acción",
+    "confirm": "Confirmar"
   },
   "resetPass": {
     "newPassword": "Nueva contraseña:",
@@ -971,7 +973,7 @@
     "runScript": "Ejecutar script",
     "bulkActions": "Acciones masivas",
     "recoverAgents": "Recuperar agentes",
-    "useRegistry": "Usar registro",
+    "useRegistry": "Usar el Registro de Windows",
     "listNotes": "Listar notas",
     "manageNotes": "Gestionar notas",
     "viewGlobalSettings": "Ver configuración global",
@@ -1118,11 +1120,11 @@
     "titleAdd": "Agregar chequeo de registro de eventos",
     "eventLogToQuery": "Registro de eventos a consultar",
     "failWhen": "Fallar cuando",
-    "eventId": "ID de evento (use * para coincidir con todos los ID de evento)",
+    "eventId": "ID de evento (usa * para coincidir con todos los ID de evento)",
     "invalidEventId": "ID de evento inválido",
     "eventSource": "Fuente del evento",
     "messageContains": "El mensaje contiene el texto",
-    "searchLastDays": "Cuántos días previos buscar (ingrese 0 para todo el registro)",
+    "searchLastDays": "Cuántos días previos buscar (ingresa 0 para todo el registro)",
     "min0": "Mínimo 0",
     "max9999": "Máximo 9999",
     "eventType": "Tipo de evento:",
@@ -1140,13 +1142,13 @@
     "settingsScriptManager": "Configuración -> Gestor de scripts",
     "selectScript": "Seleccionar script",
     "scriptArgs": "Argumentos del script",
-    "scriptArgsHint": "Presione Enter después de escribir cada argumento",
+    "scriptArgsHint": "Presiona Enter después de escribir cada argumento",
     "infoReturnCodes": "Códigos de retorno informativos",
-    "infoReturnCodesHint": "Presione Enter después de escribir cada código",
+    "infoReturnCodesHint": "Presiona Enter después de escribir cada código",
     "warningReturnCodes": "Códigos de retorno de advertencia",
-    "warningReturnCodesHint": "Presione Enter después de escribir cada código",
+    "warningReturnCodesHint": "Presiona Enter después de escribir cada código",
     "successReturnCodes": "Códigos de retorno de éxito",
-    "successReturnCodesHint": "Presione Enter después de escribir cada código",
+    "successReturnCodesHint": "Presiona Enter después de escribir cada código",
     "timeout": "Tiempo de espera del script (segundos)"
   },
   "winSvcCheck": {
@@ -1165,7 +1167,7 @@
     "editingTitle": "Editando tarea automatizada: {name}",
     "addingTitle": "Agregar tarea automatizada",
     "close": "Cerrar",
-    "noScript1": "Primero debe subir un script",
+    "noScript1": "Primero debes subir un script",
     "noScript2": "Configuración -> Administrador de scripts",
     "step1Title": "Seleccionar tarea",
     "nameLabel": "Nombre descriptivo de la tarea",
@@ -1189,8 +1191,8 @@
     "typeCommand": "Comando",
     "selectScript": "Seleccionar script",
     "scriptArgs": "Argumentos del script",
-    "scriptArgsHint": "Presione Enter tras escribir cada argumento",
-    "timeout": "Espera (s)",
+    "scriptArgsHint": "Presiona Enter después de escribir cada argumento",
+    "timeout": "Tiempo de espera (segundos)",
     "commandLabel": "Comando",
     "shellCmd": "CMD",
     "shellPowershell": "Powershell",
@@ -1624,7 +1626,8 @@
     "rowActions": "Acciones",
     "columnsBtn": "Columnas",
     "columnArgsShort": "Argumentos",
-    "pageHint": "Doble clic en la fila: editar (en las plantillas, ver código). El botón ⋯ y el clic derecho abren las acciones del script: ver código, clonar, editar, eliminar, favorito, descargar y ocultar."
+    "pageHint": "Doble clic en la fila: editar (en las plantillas, ver código). El botón ⋯ y el clic derecho abren las acciones del script: ver código, clonar, editar, eliminar, favorito, descargar y ocultar.",
+    "unassigned": "Sin categoría"
   },
   "scriptOutput": {
     "title": "Salida del script",
@@ -1755,7 +1758,7 @@
     "addedSuccess": "¡Clave agregada!",
     "isSecret": "Secreto",
     "isSecretHint": "El valor de una clave secreta no vuelve a mostrarse: sólo se reemplaza. Para quitar la marca hay que escribir un valor nuevo.",
-    "keepHint": "Déjelo vacío para conservar el valor guardado."
+    "keepHint": "Déjalo vacío para conservar el valor guardado."
   },
   "resetPatchPolicy": {
     "title": "Restablecer política de parches del agente",
@@ -1858,7 +1861,7 @@
     "required": "*Requerido",
     "actionsLabel": "Acciones",
     "auditLog": "Registro de auditoría",
-    "auditLogTip": "Elimina los resultados de chequeos de agentes",
+    "auditLogTip": "Elimina las entradas del registro de auditoría",
     "pendingActions": "Acciones pendientes",
     "pendingActionsTip": "Elimina las acciones pendientes completadas",
     "alerts": "Alertas",
@@ -2322,9 +2325,9 @@
     "failureScript": "Script de fallo",
     "failureWebHook": "Web Hook de fallo",
     "failureArgs": "Argumentos del script de fallo",
-    "failureArgsHint": "Presione Enter después de escribir cada argumento",
+    "failureArgsHint": "Presiona Enter después de escribir cada argumento",
     "failureEnvVars": "Variables de entorno del script de fallo",
-    "failureEnvVarsHint": "Presione Enter después de escribir cada par clave=valor",
+    "failureEnvVarsHint": "Presiona Enter después de escribir cada par clave=valor",
     "failureTimeout": "Tiempo de espera del script de fallo (segundos)",
     "failureTimeoutRequired": "El tiempo de espera del script de fallo es obligatorio",
     "alertResolvedSettings": "Configuración de alerta resuelta",
@@ -2567,11 +2570,11 @@
     "noValues": "No se encontraron valores",
     "regBinaryDenied": "Acceso denegado para modificar valores REG_BINARY.",
     "confirmKeyDeleteTitle": "Confirmar eliminación de clave",
-    "confirmKeyDeleteMessage": "¿Está seguro de que desea eliminar permanentemente esta clave y todas sus subclaves?",
+    "confirmKeyDeleteMessage": "¿Seguro que quieres eliminar permanentemente esta clave y todas sus subclaves?",
     "confirmValueDeleteTitle": "Confirmar eliminación de valor",
-    "confirmValueDeleteMessage": "Eliminar ciertos valores del registro puede causar inestabilidad del sistema. ¿Está seguro de que desea eliminar permanentemente este valor?",
+    "confirmValueDeleteMessage": "Eliminar ciertos valores del registro puede causar inestabilidad del sistema. ¿Seguro que quieres eliminar permanentemente este valor?",
     "selectionRequiredTitle": "Selección requerida",
-    "selectionRequiredMessage": "Seleccione un subárbol o clave antes de crear una nueva clave."
+    "selectionRequiredMessage": "Selecciona un subárbol o clave antes de crear una nueva clave."
   },
   "registryValueModal": {
     "edit": "Editar",
@@ -2748,7 +2751,7 @@
     "argMeshdir": "-meshdir \"C:\\Program Files\\Your Company Name\\Mesh Agent\"",
     "argNomesh": "-nomesh",
     "argCert": "-cert \"C:\\\\<some folder or path>\\\\ca.pem\"",
-    "argDesc": "-desc \"Desired custom description on agent\"",
+    "argDesc": "-desc \"Descripción personalizada del agente\"",
     "argProxy": "-proxy \"http://proxyserver:port\""
   },
   "common": {
@@ -2809,7 +2812,8 @@
       "confirmTitle": "¿Está seguro?",
       "nAssets": "{n} activos",
       "oneAsset": "un activo",
-      "deleteConfirmMessage": "Está a punto de eliminar {assets}. Esta acción no es reversible."
+      "deleteConfirmMessage": "Está a punto de eliminar {assets}. Esta acción no es reversible.",
+      "root": "Activos"
     },
     "assetSelect": {
       "title": "Seleccionar activo de reporte",
@@ -3334,7 +3338,7 @@
       "launch": "Recuperar",
       "launched": "Orden de recuperación enviada",
       "launchError": "No se pudo crear la orden de recuperación",
-      "needPaths": "Ingresá al menos una ruta",
+      "needPaths": "Ingresa al menos una ruta",
       "noOrders": "Sin órdenes de recuperación",
       "colStatus": "Estado",
       "colDryRun": "Simulacro",
@@ -3372,22 +3376,22 @@
       "title": "Wipe selectivo — {hostname}",
       "open": "Ordenar wipe selectivo",
       "close": "Cerrar",
-      "retrievalWarning": "Vas a ordenar un borrado sin que conste una recuperación de archivos de este equipo. Podés continuar, pero lo borrado no se recupera.",
+      "retrievalWarning": "Vas a ordenar un borrado sin que conste una recuperación de archivos de este equipo. Puedes continuar, pero lo borrado no se recupera.",
       "templateLabel": "Plantilla de rutas",
-      "templateHint": "Base de rutas por política/cliente; podés ajustarla abajo.",
+      "templateHint": "Base de rutas por política/cliente; puedes ajustarla abajo.",
       "pathsAddLabel": "Rutas a añadir (una por línea)",
       "pathsAddHint": "Se suman a las de la plantilla.",
       "pathsRemoveLabel": "Rutas a quitar (una por línea)",
       "pathsRemoveHint": "Se descartan de las de la plantilla.",
       "resolvedTitle": "Rutas resueltas: {count}",
-      "resolvedEmpty": "Sin rutas: elegí una plantilla o añadí rutas.",
+      "resolvedEmpty": "Sin rutas: elige una plantilla o añade rutas.",
       "reasonLabel": "Motivo",
       "reasonHint": "Queda en la auditoría de la orden.",
       "dryRun": "Simulacro (no borra, sólo enumera el plan)",
       "launch": "Ordenar wipe",
       "launched": "Orden de wipe creada; queda pendiente de 2ª confirmación.",
       "launchError": "No se pudo crear la orden de wipe.",
-      "needReason": "Indicá el motivo de la orden.",
+      "needReason": "Indica el motivo de la orden.",
       "noOrders": "Sin órdenes de wipe para este equipo.",
       "colStatus": "Estado",
       "colDryRun": "Simulacro",
@@ -3792,8 +3796,8 @@
     }
   },
   "agentActivity": {
-    "noAgent": "Seleccione un equipo para ver su actividad.",
-    "noPermission": "No tiene permiso para ver la actividad de este equipo.",
+    "noAgent": "Selecciona un equipo para ver su actividad.",
+    "noPermission": "No tienes permiso para ver la actividad de este equipo.",
     "noData": "Este equipo no ha reportado actividad todavía.",
     "day": "Día",
     "partial": "Parcial",

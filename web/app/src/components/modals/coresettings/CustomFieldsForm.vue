@@ -52,13 +52,16 @@
         <q-card-section
           v-if="localField.type === 'single' || localField.type == 'multiple'"
         >
+          <!-- V2-G01 (lote G01, familia 4 aprobada 2026-11-24): las opciones y el valor por
+               defecto de un campo de selección los escribe una persona y son enumerados:
+               van en Archivo (obs-ui-text), no en Mono. -->
           <q-select
             dense
             :label="$t('customFieldsForm.inputOptions')"
             :hint="$t('customFieldsForm.inputOptionsHint')"
             filled
             v-model="localField.options"
-            class="obs-mono-values"
+            class="obs-ui-text"
             use-input
             use-chips
             multiple
@@ -102,7 +105,7 @@
             outlined
             dense
             v-model="localField.default_value_string"
-            class="obs-mono-values"
+            class="obs-ui-text"
             :rules="defaultValueRules"
             reactive-rules
           />
@@ -116,7 +119,7 @@
             dense
             multiple
             v-model="localField.default_values_multiple"
-            class="obs-mono-values"
+            class="obs-ui-text"
             :rules="defaultValueRules"
             reactive-rules
           />

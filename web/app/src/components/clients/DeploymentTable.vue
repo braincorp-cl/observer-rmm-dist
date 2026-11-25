@@ -51,6 +51,7 @@
       >
         <template v-slot:top>
           <q-btn
+            color="primary"
             dense
             flat
             icon="add"

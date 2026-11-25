@@ -18,6 +18,7 @@
     <div class="q-pa-md">
       <div class="q-gutter-sm">
         <q-btn
+          color="primary"
           ref="new"
           :label="$t('adminManager.new')"
           dense

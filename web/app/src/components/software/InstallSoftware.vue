@@ -61,6 +61,7 @@
                      este botón se llega con la flecha derecha desde el nombre.
                      Sigue siendo clicable igual que antes. -->
                 <q-btn
+                  color="primary"
                   dense
                   flat
                   push
@@ -81,7 +82,7 @@
                      Espacio. El clic en el nombre hace lo mismo que hacía el
                      clic en la celda. -->
                 <span
-                  class="mono obs-rej__host"
+                  class="obs-rej__host"
                   role="button"
                   :data-fila="props.rowIndex"
                   :tabindex="props.rowIndex === filaFoco ? 0 : -1"

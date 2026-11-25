@@ -116,7 +116,12 @@ export default {
     // hardware (clase 7) y va en mono aunque sea solo palabras: la tanda sobre
     // 6a1ef85 midió «WAN Miniport (SSTP)» en Archivo junto a «WAN Miniport
     // (IKEv2)» en mono, en la misma clave.
-    const CLAVES_MODELO = new Set(["Name", "Caption", "Description", "Model"]);
+    // V2-G01 (lote G01, familia 3 aprobada 2026-11-24): el Name, Caption o
+    // Description de un dispositivo PnP es su DESCRIPCIÓN («Disk drive», «WAN
+    // Miniport (IKEv2)», «Standard USB … - 1.20 (Microsoft)»), con versión
+    // embebida a veces ⇒ Archivo. Solo Model queda como modelo (clase 7).
+    const CLAVES_MODELO = new Set(["Model"]);
+    const CLAVES_DESCRIPCION_PNP = new Set(["Name", "Caption", "Description"]);
     function esNombre(k, v, j) {
       const clave = String(k);
       if (CLAVES_DATO.has(clave)) return false;
@@ -124,6 +129,7 @@ export default {
       if (CLAVES_ENUMERADAS.has(clave)) return true;
       if (typeof v === "string" && /^(CIM|Win32)_\w+$/.test(v)) return true;
       if (j && j.PNPDeviceID && CLAVES_MODELO.has(clave)) return false;
+      if (j && j.PNPDeviceID && CLAVES_DESCRIPCION_PNP.has(clave)) return true;
       // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
       if (esIdentificador(v)) return false;
       // El hostname es nombre (enmienda 2026-11-14) también cuando WMI lo

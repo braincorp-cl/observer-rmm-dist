@@ -154,7 +154,7 @@ const { createFileNode, createFolderNode, getFile } = useFileBrowser();
 
 // data
 const nodes = ref([
-  createFolderNode("Assets", "/", "storage", "primary"),
+  createFolderNode(t("reporting.assets.root"), "/", "storage", "primary"),
 ] as QTreeFileNode[]);
 const fileBrowser = ref<InstanceType<typeof FileBrowser> | null>(null);
 const isLoading = ref(false);

@@ -38,6 +38,8 @@ module.exports = configure(function (/* ctx */) {
       "integrations",
       "autotitle",
       "monooptions",
+      // 050 (V2-G01): el «—» de dato ausente va en Archivo aunque su celda sea Mono.
+      "raya-archivo",
       // 050 (V2-G15): dibuja el anillo de foco en una capa sobre <body>. Va al
       // final a proposito: solo toca el DOM y no depende de ningun otro boot.
       "anillo-foco",

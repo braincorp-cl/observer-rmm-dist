@@ -7,7 +7,7 @@
       style="min-width: 25vw; max-width: 70vw"
     >
       <q-card-section class="text-h6 q-dialog__title">{{
-        title
+        title || $t("confirmDialog.defaultTitle")
       }}</q-card-section>
 
       <q-card-section>
@@ -39,7 +39,7 @@
         />
         <q-btn
           :color="okColor"
-          :label="okLabel"
+          :label="okLabel || $t('confirmDialog.confirm')"
           :disable="(model || '').toLowerCase() !== 'yes'"
           @click="onDialogOK()"
         />
@@ -55,8 +55,10 @@ import { useDialogPluginComponent } from "quasar";
 defineProps({
   hostname: { type: String, required: true },
   actionVerb: { type: String, required: true },
-  title: { type: String, default: "Confirm action" },
-  okLabel: { type: String, default: "Confirm" },
+  // V2-G01/i18n (lote S05 2026-11-24): sin literales en inglés; el texto por
+  // defecto sale de i18n cuando quien abre el diálogo no lo pasa.
+  title: { type: String, default: "" },
+  okLabel: { type: String, default: "" },
   okColor: { type: String, default: "primary" },
 });
 
