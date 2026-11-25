@@ -130,6 +130,10 @@ export default {
       if (typeof v === "string" && /^(CIM|Win32)_\w+$/.test(v)) return true;
       if (j && j.PNPDeviceID && CLAVES_MODELO.has(clave)) return false;
       if (j && j.PNPDeviceID && CLAVES_DESCRIPCION_PNP.has(clave)) return true;
+      // El mismo rótulo descriptivo del adaptador aparece fuera de PnP con su
+      // índice delante («[00000003] WAN Miniport (IKEv2)», en
+      // Win32_NetworkAdapterConfiguration): sigue siendo descripción ⇒ Archivo.
+      if (CLAVES_DESCRIPCION_PNP.has(clave) && typeof v === "string" && /^\[\d+\]\s/.test(v)) return true;
       // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
       if (esIdentificador(v)) return false;
       // El hostname es nombre (enmienda 2026-11-14) también cuando WMI lo

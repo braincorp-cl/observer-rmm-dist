@@ -165,9 +165,12 @@
                   new-value-mode="add"
                 />
 
+                <!-- V2-G06/S05 (tanda 6f99005): con el rótulo de v1 «Tiempo de espera
+                     (segundos)» la columna lg-2 lo cortaba a 1440; va en lg-3 y el
+                     botón Agregar baja a la línea siguiente. -->
                 <q-input
                   v-if="actionType === 'script'"
-                  class="col-6 col-lg-2"
+                  class="col-6 col-lg-3"
                   filled
                   dense
                   v-model.number="defaultTimeout"
