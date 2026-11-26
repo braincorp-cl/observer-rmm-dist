@@ -36,6 +36,7 @@
           <WmiDetail
             v-else-if="!['encryption', 'storage_media'].includes(opt.value)"
             :info="assets[opt.value]"
+            :seccion="opt.value"
           />
         </div>
       </q-expansion-item>

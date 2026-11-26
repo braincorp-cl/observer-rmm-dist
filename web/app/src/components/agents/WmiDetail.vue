@@ -47,8 +47,8 @@ import { esIdentificador, esPalabra } from "@/utils/tipografia";
 
 export default {
   name: "WmiDetail",
-  props: { info: !Object },
-  setup() {
+  props: { info: !Object, seccion: { type: String, default: "" } },
+  setup(props) {
     // setup vuex
     const store = useStore();
     const { t } = useI18n();
@@ -140,12 +140,24 @@ export default {
       "Win32_NetworkAdapter",
       "Win32_DiskDrive",
     ]);
+    // Sondas 78f5e53: el agente manda la sección de gráficos SIN PNPDeviceID
+    // ni CreationClassName, así que la instancia se reconoce también por la
+    // sección del inventario en que vive.
+    const SECCIONES_DISPOSITIVO = new Set([
+      "cpu",
+      "usb",
+      "disk",
+      "graphics",
+      "desktop_monitor",
+      "network_adapter",
+    ]);
     function esDispositivo(j) {
       return (
         !!j &&
         typeof j === "object" &&
         (Object.prototype.hasOwnProperty.call(j, "PNPDeviceID") ||
-          CLASES_DISPOSITIVO.has(j.CreationClassName))
+          CLASES_DISPOSITIVO.has(j.CreationClassName) ||
+          SECCIONES_DISPOSITIVO.has(props.seccion))
       );
     }
     function esNombre(k, v, j) {
