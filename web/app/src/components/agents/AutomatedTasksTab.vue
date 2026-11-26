@@ -423,19 +423,11 @@
               formatDate(props.row.task_result.last_run)
             }}</q-td>
             <q-td v-else>{{ $t("agentTabs.tasks.hasNotRun") }}</q-td>
-            <q-td
-              >{{ truncateText(props.row.schedule, 70) }}
-              <q-tooltip v-if="props.row.schedule.length > 70">{{
-                props.row.schedule
-              }}</q-tooltip>
-            </q-td>
-            <q-td>
-              <span v-if="props.row.check_name">
-                {{ truncateText(props.row.check_name, 40) }}
-                <q-tooltip v-if="props.row.check_name.length > 40">{{
-                  props.row.check_name
-                }}</q-tooltip>
-              </span>
+            <!-- 050 (V2-G06, 2026-11-26): programación y chequeo enteros; pliegan
+                 en la celda en vez de cortarse en JS con el resto solo en tooltip. -->
+            <q-td class="obs-mgr__desc">{{ props.row.schedule }}</q-td>
+            <q-td class="obs-mgr__desc">
+              <span v-if="props.row.check_name">{{ props.row.check_name }}</span>
             </q-td>
           </q-tr>
         </template>
@@ -453,7 +445,6 @@ import { useI18n } from "vue-i18n";
 import { updateTask, removeTask, runTask } from "@/api/tasks";
 import { fetchAgentTasks } from "@/api/agents";
 import { notifySuccess, notifyError } from "@/utils/notify";
-import { truncateText } from "@/utils/format";
 
 // ui imports
 import AutomatedTaskForm from "@/components/tasks/AutomatedTaskForm.vue";
@@ -710,7 +701,6 @@ export default {
       showScriptOutput,
 
       // helpers
-      truncateText,
     };
   },
 };

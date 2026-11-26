@@ -72,12 +72,8 @@ const ESPERADO = {
   "components/modals/coresettings/CustomFieldsTable.vue": [
     "props.row.default_value_string",
   ],
-  // desc y pattern se rinden enteros desde 2026-11-26 (G06 a 1024).
-  "components/modals/coresettings/URLActionsTable.vue": ["props.row.name"],
-  "components/agents/AutomatedTasksTab.vue": [
-    "props.row.schedule",
-    "props.row.check_name",
-  ],
+  // URLActionsTable y AutomatedTasksTab salieron el 2026-11-26 (G06 a 1024 sobre
+  // 55032b5): nombre, programación y chequeo se rinden enteros y pliegan.
   "components/agents/WinUpdateTab.vue": [
     "props.row.title",
     "props.row.description",

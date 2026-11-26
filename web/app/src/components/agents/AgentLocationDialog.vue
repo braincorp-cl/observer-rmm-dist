@@ -119,7 +119,6 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useStore } from "vuex";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getCssVar } from "quasar";
 import {
   fetchAgentLocation,
   fetchAgentLocationHistory,
@@ -224,12 +223,14 @@ export default {
     }
 
     // 046 (UI-D02): colores del mapa desde los tokens del tema, no hex literales.
+    // V2-G05 (2026-11-26): el recorrido no es acción ni navegación: va neutro
+    // (--obs-text-2), no teal. Las clases obs-mapa-* siguen al tema vivo (app.sass);
+    // el atributo queda de respaldo.
     function coloresMapa() {
+      const css = getComputedStyle(document.body);
       return {
-        primario: getCssVar("primary"),
-        relleno: getComputedStyle(document.body)
-          .getPropertyValue("--obs-on-dark")
-          .trim(),
+        primario: css.getPropertyValue("--obs-text-2").trim(),
+        relleno: css.getPropertyValue("--obs-on-dark").trim(),
       };
     }
 
@@ -307,6 +308,7 @@ export default {
           radius: location.value.accuracy_m,
           color: cPrimario,
           fillOpacity: 0.1,
+          className: "obs-mapa-precision",
         }).addTo(map);
       }
 
@@ -316,6 +318,7 @@ export default {
         color: cPrimario,
         fillColor: cPrimario,
         fillOpacity: 0.9,
+        className: "obs-mapa-punto obs-mapa-punto--ultimo",
       }).addTo(map);
 
       // el histórico se dibuja solo cuando el usuario lo pide
@@ -344,6 +347,7 @@ export default {
           weight: 3,
           opacity: 0.6,
           dashArray: "4 6",
+          className: "obs-mapa-traza",
         }).addTo(historyLayer);
       }
 
@@ -355,6 +359,7 @@ export default {
           fillColor: cRelleno,
           fillOpacity: 0.9,
           weight: 2,
+          className: "obs-mapa-punto",
         }).addTo(historyLayer);
       }
 

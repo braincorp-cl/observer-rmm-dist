@@ -78,14 +78,15 @@
             </q-list>
           </q-menu>
           <!-- name -->
-          <q-td :title="props.row.name">
+          <!-- 050 (V2-G06, 2026-11-26): nombre entero, pliega en la celda. -->
+          <q-td class="obs-mgr__desc">
             <span
               class="obs-rej__host"
               :data-fila="props.rowIndex"
               :tabindex="props.rowIndex === filaFoco ? 0 : -1"
               @focus="filaFoco = props.rowIndex"
               @keyup.enter="editURLAction(props.row)"
-              >{{ truncateText(props.row.name, 30) }}</span
+              >{{ props.row.name }}</span
             >
           </q-td>
           <!-- desc -->
@@ -110,7 +111,6 @@ import { useI18n } from "vue-i18n";
 import { QTableColumn, useQuasar } from "quasar";
 import { fetchURLActions, removeURLAction } from "@/api/core";
 import { notifySuccess } from "@/utils/notify";
-import { truncateText } from "@/utils/format";
 import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
