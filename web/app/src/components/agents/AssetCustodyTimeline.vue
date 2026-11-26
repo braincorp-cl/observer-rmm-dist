@@ -27,8 +27,8 @@
             }}
           </q-chip>
           <div class="text-caption text-grey-7">
-            {{ intake.process_id }} {{ sep }}
-            {{ intake.equipment_serial || dash }}
+            <span class="mono">{{ intake.process_id || dash }}</span> {{ sep }}
+            <span class="mono">{{ intake.equipment_serial || dash }}</span>
           </div>
         </div>
 
@@ -52,7 +52,7 @@
 
         <!-- En orden de CADENA (id), no por fecha: un evento registrado tarde
              sobre un hecho antiguo no reordena los eslabones. -->
-        <q-timeline v-else dense>
+        <q-timeline v-else dense color="grey">
           <q-timeline-entry
             v-for="ev in events"
             :key="ev.id"
@@ -79,7 +79,7 @@
                 class="text-caption text-grey-6 ellipsis"
                 :title="campo('recordHash', ev.record_hash || dash)"
               >
-                {{ campo("recordHash", corto(ev.record_hash)) }}
+                {{ rotulo("recordHash") }}<span class="mono">{{ corto(ev.record_hash) }}</span>
               </div>
             </div>
           </q-timeline-entry>
@@ -237,6 +237,7 @@ export default {
       // El `: ` va acá y no en la plantilla: el gate `lint:i18n` trata
       // cualquier texto crudo en el template como falta de traducción.
       campo: (clave, valor) => `${t(`erase.custody.${clave}`)}: ${valor}`,
+      rotulo: (clave) => `${t(`erase.custody.${clave}`)}: `,
       // 🪤 Sin hash no hay recorte que marcar: un «…» solo seria un corte
       // falso, que es justo lo que el criterio castiga.
       corto: (hash) => (hash ? `${hash.slice(0, 16)}…` : dash),

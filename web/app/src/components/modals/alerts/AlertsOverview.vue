@@ -148,28 +148,34 @@
 
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-icon
+              <q-btn
                 v-if="props.row.action_run"
-                name="mdi-archive-alert"
+                flat
+                round
+                dense
                 size="sm"
-                class="cursor-pointer"
+                icon="mdi-archive-alert"
+                :aria-label="$t('alertsOverview.showFailureResults')"
                 @click="showScriptOutput(props.row, true)"
               >
                 <q-tooltip>{{
                   $t("alertsOverview.showFailureResults")
                 }}</q-tooltip>
-              </q-icon>
-              <q-icon
+              </q-btn>
+              <q-btn
                 v-if="props.row.resolved_action_run"
-                name="mdi-archive-check"
+                flat
+                round
+                dense
                 size="sm"
-                class="cursor-pointer"
+                icon="mdi-archive-check"
+                :aria-label="$t('alertsOverview.showResolvedResults')"
                 @click="showScriptOutput(props.row, false)"
               >
                 <q-tooltip>{{
                   $t("alertsOverview.showResolvedResults")
                 }}</q-tooltip>
-              </q-icon>
+              </q-btn>
               <q-icon
                 v-if="!props.row.resolved && !props.row.snoozed"
                 name="snooze"
@@ -179,15 +185,18 @@
               >
                 <q-tooltip>{{ $t("alertsOverview.snoozeAlert") }}</q-tooltip>
               </q-icon>
-              <q-icon
+              <q-btn
                 v-else-if="!props.row.resolved && props.row.snoozed"
-                name="alarm_off"
+                flat
+                round
+                dense
                 size="sm"
-                class="cursor-pointer"
+                icon="alarm_off"
+                :aria-label="$t('alertsOverview.unsnoozeAlert')"
                 @click="unsnoozeAlert(props.row)"
               >
                 <q-tooltip>{{ $t("alertsOverview.unsnoozeAlert") }}</q-tooltip>
-              </q-icon>
+              </q-btn>
               <q-icon
                 v-if="!props.row.resolved"
                 name="flag"

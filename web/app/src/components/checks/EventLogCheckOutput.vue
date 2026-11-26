@@ -27,6 +27,27 @@
           :rows-per-page-options="[0]"
           :no-data-label="$t('eventLogCheckOutput.noEventLogs')"
         >
+          <!-- V2-G15: cabeceras ordenables alcanzables con TAB y activables con
+               Enter/Espacio; aria-sort conserva la semántica de columnheader. -->
+          <template v-slot:header-cell="props">
+            <q-th
+              :props="props"
+              :tabindex="props.col.sortable ? 0 : undefined"
+              :aria-sort="
+                props.col.sortable
+                  ? pagination.sortBy === props.col.name
+                    ? pagination.descending
+                      ? 'descending'
+                      : 'ascending'
+                    : 'none'
+                  : undefined
+              "
+              @keydown.enter.space.prevent.stop="
+                props.col.sortable && props.sort(props.col)
+              "
+              >{{ props.col.label }}</q-th
+            >
+          </template>
           <template v-slot:top>
             <q-space />
             <q-input

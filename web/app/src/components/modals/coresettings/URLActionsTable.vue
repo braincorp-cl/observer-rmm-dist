@@ -15,7 +15,16 @@
       />
     </div>
     <q-separator />
+    <!-- 050 (V2-G15): PATRÓN DE REJILLA (composables/rejillaTabla.js). Editar
+         y Eliminar eran sólo de doble clic y clic derecho; el host de la celda
+         del nombre es la única parada de TAB: Enter edita y la tecla Menú abre
+         el menú contextual de la fila. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+      ref="tablaRejilla"
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       dense
       :rows="actions"
       :columns="columns"
@@ -70,19 +79,27 @@
           </q-menu>
           <!-- name -->
           <q-td :title="props.row.name">
-            {{ truncateText(props.row.name, 30) }}
+            <span
+              class="obs-rej__host"
+              :data-fila="props.rowIndex"
+              :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+              @focus="filaFoco = props.rowIndex"
+              @keyup.enter="editURLAction(props.row)"
+              >{{ truncateText(props.row.name, 30) }}</span
+            >
           </q-td>
           <!-- desc -->
-          <q-td :title="props.row.desc">
-            {{ truncateText(props.row.desc, 20) }}
-          </q-td>
+          <!-- 050 (V2-G06): sin corte a 20; la descripción pliega en espacios. -->
+          <q-td class="obs-mgr__desc">{{ props.row.desc }}</q-td>
           <!-- pattern -->
-          <q-td class="mono" :title="props.row.pattern">
-            {{ truncateText(props.row.pattern, 20) }}
-          </q-td>
+          <!-- 050 (V2-G06): patrón entero, lo que sobra con su propio scroll. -->
+          <q-td class="mono"
+            ><span class="obs-token-entero">{{ props.row.pattern }}</span></q-td
+          >
         </q-tr>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
@@ -94,6 +111,7 @@ import { QTableColumn, useQuasar } from "quasar";
 import { fetchURLActions, removeURLAction } from "@/api/core";
 import { notifySuccess } from "@/utils/notify";
 import { truncateText } from "@/utils/format";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
 import URLActionsForm from "@/components/modals/coresettings/URLActionsForm.vue";
@@ -111,6 +129,15 @@ const { t } = useI18n();
 const loading = ref(false);
 
 const actions = ref([] as URLAction[]);
+
+// 050 (V2-G15): patrón de rejilla; el `ref` de la plantilla tiene que existir
+// acá o `scrollTo` por índice no encuentra la tabla.
+const tablaRejilla = ref();
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: tablaRejilla,
+    filas: () => actions.value,
+  });
 
 // labels depend on action type (web = URL Action, otherwise Web Hook)
 const title = computed(() =>

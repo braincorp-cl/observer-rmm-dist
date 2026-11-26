@@ -87,7 +87,7 @@
         :filter="intakeSearch"
         :columns="intakeColumns"
         :loading="loading"
-        :rows-per-page-options="[25, 50, 0]"
+        :rows-per-page-options="[25, 50, 100]"
         :no-data-label="$t('erase.view.noIntakes')"
         :loading-label="$t('erase.certificates.loading')"
       >
@@ -394,7 +394,7 @@
             />
           </div>
 
-          <q-banner v-if="!accredited" dense class="obs-notice">
+          <q-banner v-if="!accredited" dense class="obs-notice obs-notice--warning">
             <template v-slot:avatar>
               <q-icon name="gpp_maybe" />
             </template>
@@ -754,8 +754,6 @@ export default {
         label: t("erase.reconciliation.stalled"),
         field: "stalled",
         align: "left",
-        // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
-        classes: "mono",
       },
       { name: "actions", label: "", field: "actions", align: "right" },
     ];

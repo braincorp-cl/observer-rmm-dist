@@ -128,7 +128,7 @@
         <!-- 049-E: aplicaciones con tiempo activo e inactivo -->
         <div v-if="u.apps.length" class="q-mt-sm">
           <div v-for="a in u.apps" :key="a.p" class="row items-center no-wrap text-caption">
-            <div class="ellipsis" style="width: 160px">{{ a.p }}</div>
+            <div class="obs-token-entero" style="width: 160px">{{ a.p }}</div>
             <div class="col row no-wrap" style="height: 10px">
               <div :style="{ width: `${(100 * a.a) / u.appsMax}%`, background: 'var(--obs-act-app)' }" />
               <div :style="{ width: `${(100 * a.i) / u.appsMax}%`, background: 'var(--obs-act-app-idle)' }" />
@@ -163,7 +163,13 @@
             :key="c.id"
             class="cursor-pointer"
             style="width: 180px"
+            tabindex="0"
+            role="button"
+            :aria-label="leyenda(c)"
+            :aria-disabled="!c.url"
             @click="verCaptura(c)"
+            @keydown.enter.prevent="verCaptura(c)"
+            @keydown.space.prevent="verCaptura(c)"
           >
             <q-img
               v-if="c.url"

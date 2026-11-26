@@ -13,7 +13,17 @@
       />
     </div>
     <q-separator />
+    <!-- 050 (V2-G15): patrón de rejilla (composables/rejillaTabla.js). Editar,
+         Eliminar y Copiar eran sólo de ratón; ahora el nombre es el host
+         enfocable de la fila (una parada de TAB, flechas entre filas), Enter
+         edita, la tecla Menú abre el menú contextual y la flecha derecha llega
+         al botón de copiar. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+      ref="tablaRejilla"
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       dense
       :rows="keys"
       :columns="columns"
@@ -62,7 +72,14 @@
           </q-menu>
           <!-- name -->
           <q-td>
-            {{ props.row.name }}
+            <span
+              class="obs-rej__host"
+              :data-fila="props.rowIndex"
+              :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+              @focus="filaFoco = props.rowIndex"
+              @keydown.enter.prevent="editAPIKey(props.row)"
+              >{{ props.row.name }}</span
+            >
           </q-td>
           <q-td>
             {{ props.row.username }}
@@ -76,17 +93,23 @@
             {{ formatDate(props.row.created_time) }}
           </q-td>
           <q-td>
-            <q-icon
+            <q-btn
+              flat
+              round
+              dense
               size="sm"
-              name="content_copy"
+              icon="content_copy"
+              tabindex="-1"
+              :aria-label="$t('apiKeysTable.copyTooltip')"
               @click="copyKeyToClipboard(props.row.key)"
             >
               <q-tooltip>{{ $t("apiKeysTable.copyTooltip") }}</q-tooltip>
-            </q-icon>
+            </q-btn>
           </q-td>
         </q-tr>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
@@ -99,6 +122,7 @@ import { fetchAPIKeys, removeAPIKey } from "@/api/accounts";
 import { useQuasar, copyToClipboard } from "quasar";
 import { notifySuccess, notifyError } from "@/utils/notify";
 import APIKeysForm from "@/components/core/APIKeysForm.vue";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 export default {
   name: "APIKeysTable",
@@ -153,6 +177,18 @@ export default {
     // setup api keys logic
     const keys = ref([]);
     const loading = ref(false);
+
+    // 050 (V2-G15): rejilla de teclado sobre la tabla virtual.
+    const tablaRejilla = ref(null);
+    const {
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
+    } = usarRejillaTabla({
+      refTabla: tablaRejilla,
+      filas: () => keys.value,
+    });
 
     // setup table
     const pagination = ref({
@@ -216,6 +252,13 @@ export default {
     // component lifecycle hooks
     onMounted(getAPIKeys);
     return {
+      // 050 (V2-G15): rejilla de teclado
+      tablaRejilla,
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
+
       // reactive data
       keys,
       loading,

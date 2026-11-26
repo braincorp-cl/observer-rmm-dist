@@ -8,7 +8,8 @@
     "cancel": "Cancel",
     "twoFactorSubmit": "Submit",
     "heading": "Sign in",
-    "twoStepNote": "If your account has two-step verification, the code is requested in the next step."
+    "twoStepNote": "If your account has two-step verification, the code is requested in the next step.",
+    "togglePassword": "Show or hide password"
   },
   "layout": {
     "language": "Language",
@@ -199,7 +200,8 @@
     "queuedUnit": "queued",
     "colSmsAlert": "SMS alert",
     "colEmailAlert": "Email alert",
-    "colDashboardAlert": "Dashboard alert"
+    "colDashboardAlert": "Dashboard alert",
+    "nodeActions": "Actions for {name}"
   },
   "agentTable": {
     "noAgents": "No Agents",
@@ -724,7 +726,8 @@
       "colSeverity": "Severity",
       "colName": "Name",
       "colMoreInfo": "More Info",
-      "colInstalledOn": "Installed On"
+      "colInstalledOn": "Installed On",
+      "changePolicy": "Change policy"
     },
     "software": {
       "installSoftware": "Install Software",
@@ -792,7 +795,10 @@
       "alertOverride": "Setting is overridden by alert template: {name}",
       "smsAlert": "SMS Alert",
       "emailAlert": "Email Alert",
-      "dashboardAlert": "Dashboard Alert"
+      "dashboardAlert": "Dashboard Alert",
+      "sortBy": "Sort by",
+      "sortAscending": "Ascending order (click to reverse)",
+      "sortDescending": "Descending order (click to reverse)"
     },
     "location": {
       "button": "Location",
@@ -876,7 +882,8 @@
     "required": "*Required",
     "passwordsNoMatch": "Passwords do not match",
     "reset": "Reset",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "togglePassword": "Show or hide password"
   },
   "userSessions": {
     "title": "User Sessions for {username}",
@@ -909,7 +916,9 @@
     "newPassword": "New Password:",
     "required": "*Required",
     "reset": "Reset",
-    "success": "User Password Reset!"
+    "success": "User Password Reset!",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "userForm": {
     "username": "Username:",
@@ -927,7 +936,9 @@
     "titleEdit": "Edit User",
     "titleAdd": "Add User",
     "editedSuccess": "User edited!",
-    "addedSuccess": "User {name} was added!"
+    "addedSuccess": "User {name} was added!",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "rolesForm": {
     "titleEditing": "Editing Role",
@@ -1287,7 +1298,8 @@
     "scriptTimeoutRequired": "Script and timeout must be set",
     "commandTimeoutRequired": "A command and timeout must be set",
     "atLeastOnePlatform": "There must be at least one supported platform",
-    "atLeastOneAction": "There must be at least one action"
+    "atLeastOneAction": "There must be at least one action",
+    "removeAction": "Remove action"
   },
   "automationManager": {
     "title": "Automation Manager",
@@ -1758,7 +1770,9 @@
     "addedSuccess": "Key was added!",
     "isSecret": "Secret",
     "isSecretHint": "A secret key value is never shown again: it can only be replaced. Removing the mark requires entering a new value.",
-    "keepHint": "Leave empty to keep the stored value."
+    "keepHint": "Leave empty to keep the stored value.",
+    "showValue": "Show value",
+    "hideValue": "Hide value"
   },
   "resetPatchPolicy": {
     "title": "Reset Agent Patch Policy",
@@ -1942,7 +1956,8 @@
     "timeEverything": "Everything",
     "noDataSearched": "No data found. Try to refine your search",
     "noDataInitial": "Click search to find audit logs",
-    "actEndpointResponse": "Endpoint response"
+    "actEndpointResponse": "Endpoint response",
+    "detail": "View log details"
   },
   "debugLog": {
     "title": "Debug Log",
@@ -2115,7 +2130,8 @@
     "colStatus": "Status",
     "colLogOnAs": "Log On As",
     "startTypeDelayed": "{type} (Delayed)",
-    "localSystem": "LocalSystem"
+    "localSystem": "LocalSystem",
+    "actionsAria": "Actions for service {name}"
   },
   "serviceDetail": {
     "title": "Service Details - {name}",
@@ -2376,7 +2392,8 @@
     "addNumberTitle": "Add number",
     "addNumberMessage": "Use E.164 format: must have the <b>+</b> symbol and <span class='mono'>country code</span>, followed by the <span class='mono'>phone number</span> e.g. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "nameRequired": "Name needs to be set",
-    "notifyEdited": "Alert Template edited!"
+    "notifyEdited": "Alert Template edited!",
+    "removeRecipient": "Remove recipient"
   },
   "alertTemplateAdd": {
     "title": "Edit Alert Template assigned to {type}",
@@ -2574,7 +2591,8 @@
     "confirmValueDeleteTitle": "Confirm Value Delete",
     "confirmValueDeleteMessage": "Deleting certain registry values could cause system instability. Are you sure you want to permanently delete this value?",
     "selectionRequiredTitle": "Selection Required",
-    "selectionRequiredMessage": "Please select a hive or key before creating a new key."
+    "selectionRequiredMessage": "Please select a hive or key before creating a new key.",
+    "actionsAria": "Actions for {name}"
   },
   "registryValueModal": {
     "edit": "Edit",
@@ -2694,7 +2712,8 @@
     "returnCode": "Return Code: ",
     "stdOut": "Std Out: ",
     "errOut": "Err Out: ",
-    "executionTime": "Execution Time: "
+    "executionTime": "Execution Time: ",
+    "downloadPng": "Download chart (PNG)"
   },
   "fileBrowser": {
     "folderEmpty": "Folder is Empty",
@@ -2946,7 +2965,8 @@
       "colDateCreated": "Date Created",
       "deleteTitle": "Delete History for {name}?",
       "deleteMessage": "This will remove the history entry permanently.",
-      "showError": "Show error"
+      "showError": "Show error",
+      "colError": "Error"
     },
     "htmlTemplateForm": {
       "newTitle": "New Base Template",
@@ -3248,7 +3268,8 @@
       "reason_so_no_soportado_camara": "This operating system cannot take camera photos"
     },
     "filterClient": "Client",
-    "search": "Search the table"
+    "search": "Search the table",
+    "viewTimeline": "View case"
   },
   "diskEncryption": {
     "title": "Disk encryption",
@@ -3892,7 +3913,8 @@
     "state_error": "Error requesting the screenshot",
     "state_timeout": "The device did not respond",
     "state_espera": "Wait a few seconds before requesting another",
-    "state_offline": "The device is offline"
+    "state_offline": "The device is offline",
+    "open": "View screenshot of {host}"
   },
   "settingsPage": {
     "pageTitle": "Settings",

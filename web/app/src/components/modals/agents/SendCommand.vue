@@ -78,7 +78,7 @@
             dense
             outlined
             type="number"
-            style="max-width: 150px"
+            style="max-width: 240px"
             class="obs-mono-values"
             :label="$t('sendCommandCommon.timeoutSeconds')"
             stack-label

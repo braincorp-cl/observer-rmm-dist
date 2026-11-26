@@ -100,7 +100,7 @@
       <q-select
         v-show="winupdatepolicy.run_time_frequency !== 'inherit'"
         dense
-        class="col-5"
+        class="col-5 obs-mono-values"
         outlined
         v-model="winupdatepolicy.run_time_day"
         :options="monthDays"

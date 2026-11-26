@@ -18,7 +18,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn :label="$t('preDialog.ok')" @click="onOKClick" />
+        <q-btn color="primary" :label="$t('preDialog.ok')" @click="onOKClick" />
       </q-card-actions>
     </q-card>
   </q-dialog>

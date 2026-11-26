@@ -60,6 +60,19 @@
           />
         </template>
 
+        <!-- V2-G15: cabeceras ordenables alcanzables con TAB y activables con
+             Enter/Espacio; `.stop` para que la rejilla no reciba la tecla. -->
+        <template v-slot:header-cell="props">
+          <q-th
+            :props="props"
+            :tabindex="props.col.sortable ? 0 : undefined"
+            @keydown.enter.space.prevent.stop="
+              props.col.sortable && props.sort(props.col)
+            "
+            >{{ props.col.label }}</q-th
+          >
+        </template>
+
         <template v-slot:body="props">
           <q-tr
             :props="props"

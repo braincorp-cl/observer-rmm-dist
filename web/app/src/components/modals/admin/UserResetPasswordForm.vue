@@ -20,9 +20,15 @@
               :rules="[(val) => !!val || $t('userResetPassword.required')]"
             >
               <template v-slot:append>
-                <q-icon
-                  :name="isPwd ? 'visibility_off' : 'visibility'"
-                  class="cursor-pointer"
+                <q-btn
+                  flat
+                  round
+                  dense
+                  :icon="isPwd ? 'visibility_off' : 'visibility'"
+                  :aria-label="
+                    isPwd ? $t('userResetPassword.showPassword') : $t('userResetPassword.hidePassword')
+                  "
+                  :aria-pressed="String(!isPwd)"
                   @click="isPwd = !isPwd"
                 />
               </template>

@@ -1,6 +1,7 @@
 <template>
   <q-input
     :class="longTextClass(field)"
+    :input-class="field.type === 'number' ? 'mono' : ''"
     v-if="field.type === 'text' || field.type === 'number'"
     ref="input"
     outlined

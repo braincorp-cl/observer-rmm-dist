@@ -487,6 +487,31 @@
                 >{{ props.node.name }}</span
               >
               <span class="q-pl-xs">{{ props.node.description }}</span>
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                icon="more_horiz"
+                :aria-label="$t('scriptManager.rowActions')"
+                @click.stop
+              >
+                <q-menu>
+                  <q-list dense style="min-width: 200px">
+                    <q-item
+                      v-for="a in rowActions(props.node)"
+                      :key="a.key"
+                      clickable
+                      v-close-popup
+                      :disable="a.disable"
+                      @click="a.run"
+                    >
+                      <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                      <q-item-section>{{ a.label }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
 
             <!-- context menu -->
@@ -619,6 +644,7 @@
         virtual-scroll
         :rows-per-page-options="[0]"
         column-select
+        :exclude-columns="['actions']"
         :storage-key="storageKey"
       >
         <template v-slot:header-cell-favorite="props">
@@ -862,10 +888,11 @@
               }}</q-tooltip>
             </q-td>
             <!-- args -->
-            <q-td key="args" :props="props">
+            <q-td key="args" :props="props" class="mono">
               <span v-if="props.row.args.length > 0">
                 {{ truncateText(props.row.args.toString(), 30) }}
                 <q-tooltip
+                  class="mono"
                   v-if="props.row.args.toString().length > 30"
                   style="font-size: 12px"
                 >
@@ -883,9 +910,34 @@
                 >{{ props.row.description }}</q-tooltip
               >
             </q-td>
-            <q-td key="default_timeout" :props="props">{{
+            <q-td key="default_timeout" :props="props" class="mono">{{
               props.row.default_timeout
             }}</q-td>
+            <q-td key="actions" :props="props" auto-width @click.stop>
+              <q-btn
+                flat
+                dense
+                round
+                icon="more_horiz"
+                :aria-label="$t('scriptManager.rowActions')"
+              >
+                <q-menu>
+                  <q-list dense style="min-width: 200px">
+                    <q-item
+                      v-for="a in rowActions(props.row)"
+                      :key="a.key"
+                      clickable
+                      v-close-popup
+                      :disable="a.disable"
+                      @click="a.run"
+                    >
+                      <q-item-section side><q-icon :name="a.icon" /></q-item-section>
+                      <q-item-section>{{ a.label }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </q-td>
             <q-td></q-td>
           </q-tr>
         </template>
@@ -1003,6 +1055,7 @@ export default {
         align: "left",
         sortable: true,
       },
+      { name: "actions", label: "", field: "id", align: "right", required: true },
     ]);
 
     // script manager logic

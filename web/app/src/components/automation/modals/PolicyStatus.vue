@@ -17,8 +17,14 @@
           <q-tooltip>{{ $t("policyStatus.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
-      <q-card-section>
+      <!-- V2-G15: patrón de rejilla (composables/rejillaTabla.js). La tabla es UNA
+           parada de tabulador (el host del nombre de equipo), las flechas mueven la
+           fila y la flecha derecha llega al botón «Salida». Los oyentes de la raíz
+           atajan el foco cuando el reciclaje lo sube al scroller. -->
+      <q-card-section @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
         <q-table
+          ref="tablaRejilla"
+          @virtual-scroll="alDesplazarVirtual"
           style="max-height: 35vh"
           :table-class="{
             'table-bgcolor': !$q.dark.isActive,
@@ -45,7 +51,15 @@
             <q-tr :props="props">
               <!-- tds -->
               <!-- agent hostname -->
-              <q-td>{{ props.row.hostname }}</q-td>
+              <q-td>
+                <span
+                  class="obs-rej__host"
+                  :data-fila="props.rowIndex"
+                  :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                  @focus="filaFoco = props.rowIndex"
+                  >{{ props.row.hostname }}</span
+                >
+              </q-td>
               <!-- status icon -->
               <q-td v-if="props.row.status === 'passing'">
                 <q-icon
@@ -102,12 +116,16 @@
               <q-td v-else></q-td>
               <!-- more info -->
               <q-td v-if="props.row.check_type === 'ping'">
-                <span
-                  style="cursor: pointer; text-decoration: underline"
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  tabindex="-1"
+                  class="ping-cell"
+                  :label="$t('policyStatus.output')"
                   @click="pingInfo(props.row)"
-                  class="ping-cell text-primary"
-                  >{{ $t("policyStatus.output") }}</span
-                >
+                />
               </q-td>
               <q-td
                 v-else-if="
@@ -117,20 +135,28 @@
                   props.row.stderr
                 "
               >
-                <span
-                  style="cursor: pointer; text-decoration: underline"
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  tabindex="-1"
+                  class="script-cell"
+                  :label="$t('policyStatus.output')"
                   @click="showScriptOutput(props.row)"
-                  class="script-cell text-primary"
-                  >{{ $t("policyStatus.output") }}</span
-                >
+                />
               </q-td>
               <q-td v-else-if="props.row.check_type === 'eventlog'">
-                <span
-                  style="cursor: pointer; text-decoration: underline"
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  tabindex="-1"
+                  class="eventlog-cell"
+                  :label="$t('policyStatus.output')"
                   @click="showEventInfo(props.row)"
-                  class="eventlog-cell text-primary"
-                  >{{ $t("policyStatus.output") }}</span
-                >
+                />
               </q-td>
               <q-td
                 v-else-if="
@@ -164,9 +190,11 @@ import { useStore, mapState } from "vuex";
 import ScriptOutput from "@/components/checks/ScriptOutput.vue";
 import EventLogCheckOutput from "@/components/checks/EventLogCheckOutput.vue";
 import PreDialog from "@/components/ui/PreDialog.vue";
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
 
 export default {
   name: "PolicyStatus",
+  mixins: [mixinRejillaTabla],
   emits: ["hide", "ok", "cancel"],
   props: {
     item: {
@@ -202,6 +230,12 @@ export default {
     };
   },
   computed: {
+    rejillaFilas() {
+      return this.data;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
     ...mapState([
       "dash_info_color",
       "dash_positive_color",

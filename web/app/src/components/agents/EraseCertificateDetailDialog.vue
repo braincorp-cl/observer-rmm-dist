@@ -10,7 +10,7 @@
       </q-bar>
 
       <q-card-section v-if="loading" class="row justify-center q-pa-lg">
-        <q-spinner size="2em" color="primary" />
+        <q-spinner size="2em" class="obs-icon-neutral" />
       </q-card-section>
 
       <template v-else-if="cert">
@@ -59,7 +59,7 @@
           <!-- Feature 053: que el documento declare que NO se verificó la
                destrucción tiene que verse arriba, no perdido como una celda
                más de la tabla. -->
-          <q-banner v-if="notVerified" dense class="obs-notice q-mb-md">
+          <q-banner v-if="notVerified" dense class="obs-notice obs-notice--warning q-mb-md">
             <template v-slot:avatar>
               <q-icon name="gpp_maybe" />
             </template>
@@ -113,7 +113,7 @@
                 <tr v-for="r in pathRows" :key="r.path">
                   <td class="text-left oe-path">{{ r.path }}</td>
                   <td class="text-left">{{ r.status }}</td>
-                  <td class="text-right">{{ r.bytes }}</td>
+                  <td class="text-right" :class="{ mono: r.bytes !== dash }">{{ r.bytes }}</td>
                 </tr>
               </tbody>
             </q-markup-table>

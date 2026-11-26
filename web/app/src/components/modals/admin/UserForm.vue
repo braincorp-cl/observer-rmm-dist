@@ -32,9 +32,15 @@
               class="q-pa-none"
             >
               <template v-slot:append>
-                <q-icon
-                  :name="isPwd ? 'visibility_off' : 'visibility'"
-                  class="cursor-pointer"
+                <q-btn
+                  flat
+                  round
+                  dense
+                  :icon="isPwd ? 'visibility_off' : 'visibility'"
+                  :aria-label="
+                    isPwd ? $t('userForm.showPassword') : $t('userForm.hidePassword')
+                  "
+                  :aria-pressed="String(!isPwd)"
                   @click="isPwd = !isPwd"
                 />
               </template>

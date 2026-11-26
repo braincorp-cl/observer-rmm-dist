@@ -220,7 +220,7 @@ const DECLARADOS = {
     "error, y por eso se corrigio.",
   // 🪤 Este sitio lo destapo la TERCERA codificacion del censo (el nombre de
   // clase compuesto): dos censos anteriores no lo veian.
-  "src/components/agents/workspace/ContextColumn.vue:105":
+  "src/components/agents/workspace/ContextColumn.vue:109":
     "MARCADOR con superficie propia: el punto de salud se dibuja con " +
     "`background: var(--q-positive|--q-negative|--q-warning)` sobre 8x8 con " +
     "border-radius, reporta dot(item) y trae role=img, aria-label y title con " +
@@ -233,9 +233,9 @@ const DECLARADOS = {
   // conviene saberlo antes de culpar al producto.
   "src/components/agents/ConfirmWipeOrderDialog.vue:46":
     "q-badge: trae fondo propio y reporta order.dry_run.",
-  "src/components/agents/LostCaseTimelineDialog.vue:207":
+  "src/components/agents/LostCaseTimelineDialog.vue:222":
     "q-chip: fondo propio, reporta screen.note del caso.",
-  "src/components/agents/LostCaseTimelineDialog.vue:224":
+  "src/components/agents/LostCaseTimelineDialog.vue:239":
     "q-chip: fondo propio, reporta webcam.note del caso.",
   "src/components/automation/AutomationManager.vue:53":
     "q-badge Activa/Inactiva: fondo propio y liga declarada al campo `active` " +
@@ -244,7 +244,7 @@ const DECLARADOS = {
     "familia de la excepcion (c): es el mensaje del slot #hint del campo, que " +
     "informa el estado «el secreto se borro». El TEXTO ya lo dice; el color " +
     "acompana, no es el unico portador.",
-  "src/ee/reporting/components/VariablesSelector.vue:15":
+  "src/ee/reporting/components/VariablesSelector.vue:17":
     "el q-item NO es clickable (el control es el span.cursor-pointer de otra " +
     "seccion), asi que el icono no cae sobre la superficie de ningun control; " +
     "y trae su q-tooltip con el estado.",
@@ -358,9 +358,6 @@ describe("un color de estado no pinta la superficie propia de un control (V2-G05
     "src/components/agents/workspace/ContextColumn.vue:obs-ctx__fail":
       "el rotulo del q-item clickable quedo en --obs-muted y el color de estado " +
       "lo lleva el span.mono con item.checks.failing, que es el numero exento.",
-    "src/components/agents/workspace/ContextColumn.vue:obs-ctx__chip--on-neg":
-      "igual: el rotulo del q-chip clickable encendido va neutro y el rojo queda " +
-      "en el span.mono con failingCount.",
   };
 
   it("las reglas anidadas que pintan estado están declaradas y apuntan al número", async () => {

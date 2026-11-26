@@ -56,8 +56,8 @@
             {{ disco.model || disco.pnp_device_id }}
             <q-badge
               v-if="disco.is_system_disk"
-              color="primary"
-              class="q-ml-sm obs-ui-text"
+              color="grey"
+              class="q-ml-sm obs-ui-text obs-chip-neutral"
             >
               {{ $t("storageMedia.detail.systemDisk") }}
             </q-badge>

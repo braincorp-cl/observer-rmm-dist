@@ -82,6 +82,7 @@
               dense
               filled
               v-model="intake.asset_tag"
+              input-class="mono"
               :label="$t('erase.intakeForm.assetTag')"
               :hint="$t('erase.intakeScanHint')"
               @keydown.enter.prevent="enfocarSerie('campoEquipmentSerial')"
@@ -101,6 +102,7 @@
               dense
               filled
               v-model="intake.equipment_model"
+              input-class="mono"
               :label="$t('erase.intakeForm.equipmentModel')"
             />
             <q-input
@@ -109,6 +111,7 @@
               dense
               filled
               v-model="intake.equipment_serial"
+              input-class="mono"
               :label="$t('erase.intakeForm.equipmentSerial')"
               :hint="$t('erase.intakeScanHint')"
               @keydown.enter.prevent="enfocarSerie('campoMediaSerial')"
@@ -119,6 +122,7 @@
               dense
               filled
               v-model="intake.media_serial"
+              input-class="mono"
               :label="$t('erase.intakeForm.mediaSerial')"
               :hint="$t('erase.intakeScanHint')"
               @keydown.enter.prevent="enfocarSerie(null)"

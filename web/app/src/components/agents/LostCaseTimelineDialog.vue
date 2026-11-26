@@ -140,14 +140,21 @@
                     square
                     size="72px"
                     v-if="c.screen && c.screen.has_asset"
-                    class="cursor-pointer"
                   >
-                    <img
+                    <!-- 050 (V2-G15): la ampliación es un control alcanzable con TAB. -->
+                    <q-btn
                       v-if="thumbs[c.screen.id]"
-                      :src="thumbs[c.screen.id]"
-                      :alt="$t('lostEquipment.timeline.screenAlt')"
+                      flat
+                      dense
+                      padding="0"
+                      :aria-label="$t('lostEquipment.timeline.screenAlt')"
                       @click.stop="openFull(c.screen.id)"
-                    />
+                    >
+                      <img
+                        :src="thumbs[c.screen.id]"
+                        :alt="$t('lostEquipment.timeline.screenAlt')"
+                      />
+                    </q-btn>
                     <q-icon v-else name="image" color="grey-6" />
                   </q-avatar>
                   <q-avatar square size="72px" v-else>
@@ -162,14 +169,22 @@
                     v-if="c.webcam && c.webcam.has_asset"
                     square
                     size="72px"
-                    class="cursor-pointer q-mt-xs"
+                    class="q-mt-xs"
                   >
-                    <img
+                    <!-- 050 (V2-G15): la ampliación es un control alcanzable con TAB. -->
+                    <q-btn
                       v-if="thumbs[c.webcam.id]"
-                      :src="thumbs[c.webcam.id]"
-                      :alt="$t('lostEquipment.timeline.webcamAlt')"
+                      flat
+                      dense
+                      padding="0"
+                      :aria-label="$t('lostEquipment.timeline.webcamAlt')"
                       @click.stop="openFull(c.webcam.id)"
-                    />
+                    >
+                      <img
+                        :src="thumbs[c.webcam.id]"
+                        :alt="$t('lostEquipment.timeline.webcamAlt')"
+                      />
+                    </q-btn>
                     <q-icon v-else name="photo_camera" color="grey-6" />
                     <q-badge floating color="grey" class="obs-chip-neutral" rounded>
                       <q-icon name="photo_camera" size="12px" />
@@ -288,7 +303,6 @@
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getCssVar } from "quasar";
 
 import { fetchLostEvidence, fetchLostEvidenceFile } from "@/api/lostmode";
 import { formatDate } from "@/utils/format";
@@ -445,7 +459,10 @@ export default {
     // 046 (UI-D02): colores del mapa desde los tokens del tema, no hex literales.
     function coloresMapa() {
       return {
-        primario: getCssVar("primary"),
+        // 050 (V2-G05): el mapa dibuja datos, no acciones ⇒ neutro, no teal.
+        primario: getComputedStyle(document.body)
+          .getPropertyValue("--obs-text-2")
+          .trim(),
         relleno: getComputedStyle(document.body)
           .getPropertyValue("--obs-on-dark")
           .trim(),

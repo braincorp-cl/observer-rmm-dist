@@ -72,11 +72,8 @@ const ESPERADO = {
   "components/modals/coresettings/CustomFieldsTable.vue": [
     "props.row.default_value_string",
   ],
-  "components/modals/coresettings/URLActionsTable.vue": [
-    "props.row.name",
-    "props.row.desc",
-    "props.row.pattern",
-  ],
+  // desc y pattern se rinden enteros desde 2026-11-26 (G06 a 1024).
+  "components/modals/coresettings/URLActionsTable.vue": ["props.row.name"],
   "components/agents/AutomatedTasksTab.vue": [
     "props.row.schedule",
     "props.row.check_name",
@@ -85,11 +82,8 @@ const ESPERADO = {
     "props.row.title",
     "props.row.description",
   ],
-  // ⚠️ Excepcion declarada: el recorte vive en la definicion de la columna
-  // (`format: (val) => ...`), asi que el valor no se nombra en el sitio. Su
-  // canal es el slot `body-cell-command`, cuyo `q-tooltip` rinde
-  // `props.col.field(props.row)`, o sea el valor sin recortar.
-  "components/agents/HistoryTab.vue": ["val"],
+  // HistoryTab salio de la lista el 2026-11-26: el comando se rinde entero
+  // (sin truncateText) desde el arreglo de G06/G15 sobre 118dece.
   "components/agents/ChecksTab.vue": ["props.row.readable_desc"],
   "components/agents/remotebg/EventLogManager.vue": ["props.row.message"],
   "components/agents/remotebg/ServicesManager.vue": ["props.row.display_name"],
@@ -97,9 +91,7 @@ const ESPERADO = {
 };
 
 // Los que no pueden probarse nombrando el valor, con su canal verificado a mano.
-const SIN_NOMBRE_PROPIO = {
-  "components/agents/HistoryTab.vue": "props.col.field(props.row)",
-};
+const SIN_NOMBRE_PROPIO = {};
 
 describe("V2-G08: censo de recortes por JavaScript", () => {
   it("no hay mas sitios de recorte que los declarados", () => {

@@ -129,6 +129,11 @@ function cajaDe(el) {
     const editor = el.closest(SUSTITUTO_EDITOR);
     if (editor) return editor;
   }
+  // 050 (G15, 2026-11-26): un botón del adorno del campo (ojo de contraseña,
+  // quitar, deshacer) es su propia parada de TAB: el anillo marca el botón y no
+  // el campo entero, que es lo que pasaba al resolver primero .q-field__control.
+  const adorno = el.closest(".q-field__marginal .q-btn");
+  if (adorno) return adorno;
   const campo = el.closest(".q-field__control");
   if (campo) return campo;
   const marca = el.closest(".q-checkbox, .q-radio, .q-toggle");

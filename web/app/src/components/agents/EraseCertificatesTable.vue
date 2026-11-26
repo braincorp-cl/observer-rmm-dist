@@ -12,6 +12,20 @@
     :loading-label="$t('erase.certificates.loading')"
     @row-click="onRowClick"
   >
+    <!-- 050 (V2-G15): cabecera ordenable como q-btn para que entre al TAB. -->
+    <template v-slot:header-cell="props">
+      <q-th :props="props">
+        <q-btn
+          v-if="props.col.sortable"
+          flat
+          dense
+          no-caps
+          :label="props.col.label"
+          @click.stop="props.sort(props.col)"
+        />
+        <template v-else>{{ props.col.label }}</template>
+      </q-th>
+    </template>
     <template v-slot:body-cell-kind="props">
       <q-td :props="props">
         <q-badge :color="kindColor(props.row.kind)">

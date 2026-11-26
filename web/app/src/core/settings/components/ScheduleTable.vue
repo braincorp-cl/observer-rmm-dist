@@ -14,19 +14,25 @@
     </div>
     <q-separator />
 
+    <!-- 050 (V2-G15): PATRÓN DE REJILLA, ver composables/rejillaTabla.js. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <observer-table
+      ref="tablaRejilla"
       :rows="schedules"
       :columns="columns"
       row-key="id"
       binary-state-sort
       virtual-scroll
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       :rows-per-page-options="[0]"
       :loading="isLoading"
       column-select
       dense
       storage-key="schedule-table"
     >
-      <template #body="{ row, cols }">
+      <template #body="{ row, cols, rowIndex }">
         <q-tr class="cursor-pointer" @dblclick="openEditScheduleForm(row)">
           <q-menu context-menu>
             <q-list dense style="min-width: 200px">
@@ -61,16 +67,30 @@
             :key="col.id"
             :class="{ mono: monoCell(col) }"
           >
-            {{ col.value }}
+            <!-- Host enfocable de la fila: única parada de tabulador de la
+                 tabla; Enter abre Editar y la tecla Menú abre el menú
+                 contextual de la fila, que antes era solo de ratón. -->
+            <span
+              v-if="col.name === 'name'"
+              class="obs-rej__host"
+              :data-fila="rowIndex"
+              :tabindex="rowIndex === filaFoco ? 0 : -1"
+              @focus="filaFoco = rowIndex"
+              @keydown.enter.prevent="openEditScheduleForm(row)"
+              >{{ col.value }}</span
+            >
+            <template v-else>{{ col.value }}</template>
           </q-td>
         </q-tr>
       </template>
     </observer-table>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed } from "vue";
+import { onMounted, computed, ref } from "vue";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 import { QTableColumn, useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useScheduleShared } from "../api";
@@ -243,6 +263,19 @@ function removeSchedule(schedule: Schedule) {
     if (isError.value) return;
   });
 }
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila. 🪤 `observer-table` envuelve la `q-table` y no la expone: el `scrollTo`
+// por índice y `filteredSortedRows` viven en su `ref` interno `observerTable`.
+const tablaRejilla = ref();
+const qTablaRejilla = computed(
+  () => tablaRejilla.value?.$refs?.observerTable ?? null,
+);
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: qTablaRejilla,
+    filas: () => schedules.value,
+  });
 
 onMounted(getSchedules);
 </script>

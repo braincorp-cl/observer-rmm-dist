@@ -2,13 +2,16 @@
   <div v-if="agentPlatform.toLowerCase() !== 'windows'" class="q-pa-sm">
     {{ $t("eventLogManager.onlyWindows") }}
   </div>
-  <div v-else>
+  <!-- 050 (V2-G15): patrón de rejilla (la tabla lleva virtual-scroll). Los
+       oyentes de la raíz atajan el foco que el reciclaje sube al scroller. -->
+  <div v-else @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <div class="row q-pt-sm q-pl-sm">
       <div class="col-2">
         <q-select
           dense
           options-dense
           outlined
+          class="obs-mono-values"
           v-model="days"
           :options="lastDaysOptions"
           :label="showDays"
@@ -16,15 +19,16 @@
       </div>
       <div class="col-7"></div>
       <div class="col-3">
-        <code v-if="events">{{
+        <span v-if="events">{{
           $t("eventLogManager.totalRecords", {
             type: logType,
             count: events.length,
           })
-        }}</code>
+        }}</span>
       </div>
     </div>
     <q-table
+      ref="tablaRejilla"
       dense
       :table-class="{
         'table-bgcolor': !$q.dark.isActive,
@@ -39,6 +43,9 @@
       row-key="uid"
       binary-state-sort
       virtual-scroll
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       :rows-per-page-options="[0]"
       :loading="loading"
     >
@@ -94,13 +101,22 @@
           <!-- 050 (G08, 13.ª corrida): el clic ya abria el mensaje completo,
                pero era el UNICO canal y el texto se corta en JS. El title da el
                valor completo sin abrir el dialogo. -->
-          <q-td
-            @click="showEventMessage(props.row.message)"
-            :title="props.row.message"
-          >
+          <!-- 050 (V2-G15): el mensaje es el host enfocable de la fila (una
+               sola parada de tabulador por tabla); Enter y Espacio abren el
+               mensaje completo igual que el clic. -->
+          <q-td :title="props.row.message">
             <span
+              class="obs-rej__host text-primary"
+              role="button"
+              :data-fila="props.rowIndex"
+              :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+              :aria-label="props.row.message"
               style="cursor: pointer; text-decoration: underline"
-              class="text-primary"
+              @focus="filaFoco = props.rowIndex"
+              @keydown.space.prevent
+              @keyup.enter="showEventMessage(props.row.message)"
+              @keyup.space="showEventMessage(props.row.message)"
+              @click="showEventMessage(props.row.message)"
               >{{ truncateText(props.row.message, 30) }}</span
             >
           </q-td>
@@ -117,6 +133,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import { fetchAgentEventLog } from "@/api/agents";
 import { truncateText } from "@/utils/format";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
@@ -187,6 +204,11 @@ export default {
     const filter = ref("");
     const loading = ref(false);
 
+    // 050 (V2-G15): patrón de rejilla para la tabla con virtual-scroll
+    const tablaRejilla = ref(null);
+    const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+      usarRejillaTabla({ refTabla: tablaRejilla, filas: () => events.value });
+
     const showDays = computed(() =>
       t("eventLogManager.showLastDays", { days: days.value }),
     );
@@ -226,6 +248,8 @@ export default {
       filter,
       showDays,
       loading,
+      tablaRejilla,
+      filaFoco,
 
       // non-reactive data
       columns,
@@ -235,6 +259,9 @@ export default {
       getEventLog,
       showEventMessage,
       truncateText,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
     };
   },
 };

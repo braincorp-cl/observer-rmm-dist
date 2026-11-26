@@ -9,9 +9,14 @@
 
       <q-card-section class="q-pt-none">
         <p>{{ $t("uninstallSoftware.confirmCommand") }}</p>
-        <q-input class="q-mb-md" dense v-model="uninstallString" />
         <q-input
-          style="max-width: 100px"
+          class="q-mb-md"
+          dense
+          v-model="uninstallString"
+          input-class="mono"
+        />
+        <q-input
+          style="max-width: 260px"
           :label="$t('uninstallSoftware.timeout')"
           type="number"
           v-model.number="timeout"

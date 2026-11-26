@@ -370,23 +370,25 @@
                 </q-td>
                 <!-- applied to -->
                 <q-td>
-                  <span
-                    style="cursor: pointer; text-decoration: underline"
-                    class="text-primary"
-                    @click="showTemplateApplied(props.row)"
+                  <a
+                    href="#"
+                    class="obs-mgr__link"
+                    tabindex="-1"
+                    @click.prevent="showTemplateApplied(props.row)"
                     >{{
                       $t("alertsManager.showAppliedCount", {
                         count: props.row.applied_count,
                       })
-                    }}</span
+                    }}</a
                   ></q-td
                 >
                 <!-- alert exclusions -->
                 <q-td>
-                  <span
-                    style="cursor: pointer; text-decoration: underline"
-                    class="text-primary"
-                    @click="showAlertExclusions(props.row)"
+                  <a
+                    href="#"
+                    class="obs-mgr__link"
+                    tabindex="-1"
+                    @click.prevent="showAlertExclusions(props.row)"
                     >{{
                       $t("alertsManager.alertExclusionsCount", {
                         count:
@@ -394,7 +396,7 @@
                           props.row.excluded_clients.length +
                           props.row.excluded_sites.length,
                       })
-                    }}</span
+                    }}</a
                   ></q-td
                 >
                 <!-- failure action -->

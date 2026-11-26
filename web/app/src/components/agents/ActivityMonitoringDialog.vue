@@ -7,7 +7,7 @@
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
       <q-card-section v-if="loaded && !globalEnabled" class="q-pb-none">
-        <q-banner dense class="obs-notice">
+        <q-banner dense class="obs-notice obs-notice--warning">
           <template v-slot:avatar>
             <q-icon name="warning" />
           </template>

@@ -42,6 +42,18 @@
         :data="services"
       />
     </template>
+    <!-- 050 (V2-G15): el th ordenable de Quasar sólo ordenaba con clic; se
+         le da parada de TAB y Enter/Espacio llaman al mismo props.sort. -->
+    <template v-slot:header-cell="props">
+      <q-th
+        :props="props"
+        :tabindex="props.col.sortable ? 0 : undefined"
+        :role="props.col.sortable ? 'button' : undefined"
+        @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+        @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+        >{{ props.col.label }}</q-th
+      >
+    </template>
     <template v-slot:body="props">
       <q-tr
         :props="props"
@@ -79,8 +91,66 @@
         <q-td key="display_name" :props="props" :title="props.row.display_name">
           <q-icon name="fas fa-cogs" />
           &nbsp;&nbsp;&nbsp;{{ truncateText(props.row.display_name, 30) }}
+          <!-- 050 (V2-G15): vía de teclado al menú de la fila (Iniciar,
+               Detener, Reiniciar, Detalles). El context-menu y el doble clic
+               de la fila quedan como atajos de ratón. -->
+          <q-btn
+            flat
+            dense
+            round
+            size="sm"
+            icon="more_vert"
+            :aria-label="
+              $t('servicesManager.actionsAria', {
+                name: props.row.display_name,
+              })
+            "
+            @click.stop
+            @dblclick.stop
+          >
+            <q-menu auto-close>
+              <q-list dense style="min-width: 200px">
+                <q-item
+                  clickable
+                  @click="sendServiceAction(props.row, 'start')"
+                >
+                  <q-item-section>{{
+                    $t("servicesCommon.start")
+                  }}</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  @click="sendServiceAction(props.row, 'stop')"
+                >
+                  <q-item-section>{{
+                    $t("servicesCommon.stop")
+                  }}</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  @click="sendServiceAction(props.row, 'restart')"
+                >
+                  <q-item-section>{{
+                    $t("servicesCommon.restart")
+                  }}</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable @click="showServiceDetail(props.row)">
+                  <q-item-section>{{
+                    $t("servicesManager.serviceDetails")
+                  }}</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable>
+                  <q-item-section>{{
+                    $t("servicesCommon.close")
+                  }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </q-td>
-        <q-td key="name" :props="props">{{ props.row.name }}</q-td>
+        <q-td key="name" :props="props" class="mono">{{ props.row.name }}</q-td>
         <q-td key="start_type" :props="props">{{
           props.row.start_type.toLowerCase() === "automatic" &&
           props.row.autodelay
@@ -89,7 +159,7 @@
               })
             : props.row.start_type
         }}</q-td>
-        <q-td key="pid" :props="props">{{
+        <q-td key="pid" :props="props" class="mono">{{
           props.row.pid === 0 ? "" : props.row.pid
         }}</q-td>
         <q-td key="status" :props="props">{{ props.row.status }}</q-td>

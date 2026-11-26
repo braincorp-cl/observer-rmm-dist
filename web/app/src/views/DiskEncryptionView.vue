@@ -73,6 +73,19 @@
       :no-data-label="$t('diskEncryption.noData')"
       :loading-label="$t('diskEncryption.loading')"
     >
+      <!-- V2-G15: el hostname es un enlace al equipo, alcanzable con TAB
+           (el row-click queda como atajo de ratón). -->
+      <template v-slot:body-cell-hostname="props">
+        <q-td :props="props">
+          <router-link
+            class="obs-mgr__link"
+            :to="{ name: 'Agent', params: { agent_id: props.row.agent_id } }"
+            @click.stop
+            >{{ props.row.hostname }}</router-link
+          >
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-state="props">
         <q-td :props="props">
           <q-badge

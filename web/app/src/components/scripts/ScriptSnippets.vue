@@ -23,7 +23,15 @@
           <q-tooltip>{{ $t("scriptsCommon.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <!-- V2-G15: patrón de rejilla (composables/rejillaTabla.js); la tabla
+           es una sola parada de tabulador y Enter/tecla Menú actúan sobre la
+           fila enfocada. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         dense
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
@@ -51,8 +59,24 @@
           />
         </template>
         <template v-slot:header-cell-shell="props">
-          <q-th :props="props" auto-width>
+          <q-th
+            :props="props"
+            auto-width
+            tabindex="0"
+            @keydown.enter.prevent.stop="props.sort(props.col)"
+            @keydown.space.prevent.stop="props.sort(props.col)"
+          >
             {{ $t("scriptSnippets.columnShell") }}
+          </q-th>
+        </template>
+        <template v-slot:header-cell-name="props">
+          <q-th
+            :props="props"
+            tabindex="0"
+            @keydown.enter.prevent.stop="props.sort(props.col)"
+            @keydown.space.prevent.stop="props.sort(props.col)"
+          >
+            {{ props.col.label }}
           </q-th>
         </template>
 
@@ -144,11 +168,21 @@
               </q-icon>
             </q-td>
             <!-- name -->
-            <q-td>{{ props.row.name }}</q-td>
+            <q-td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                @keydown.enter="editSnippetModal(props.row)"
+                >{{ props.row.name }}</span
+              >
+            </q-td>
             <q-td>{{ props.row.desc }}</q-td>
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -160,6 +194,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchScriptSnippets, removeScriptSnippet } from "@/api/scripts";
 import { notifySuccess } from "@/utils/notify";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
 import ScriptSnippetFormModal from "@/components/scripts/ScriptSnippetFormModal.vue";
@@ -233,6 +268,14 @@ export default {
     // table setup
     const loading = ref(false);
 
+    // V2-G15: rejilla de teclado sobre la tabla virtual.
+    const tablaRejilla = ref();
+    const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+      usarRejillaTabla({
+        refTabla: tablaRejilla,
+        filas: () => snippets.value,
+      });
+
     function newSnippetModal() {
       $q.dialog({
         component: ScriptSnippetFormModal,
@@ -257,6 +300,11 @@ export default {
       // reactive data
       snippets,
       loading,
+      tablaRejilla,
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
 
       // non-reactive data
       columns,

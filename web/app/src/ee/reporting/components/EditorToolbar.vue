@@ -210,6 +210,7 @@
 
           <q-input
             v-model="linkUrl"
+            class="obs-mono-values"
             :label="$t('reporting.editorToolbar.url')"
             type="text"
           />

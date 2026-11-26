@@ -3,7 +3,14 @@
     {{ $t("agentTabs.noAgentSelected") }}
   </div>
   <div v-else>
+    <!-- 050 (V2-G15): patron de rejilla (composables/rejillaTabla.js). La tabla
+         lleva desplazamiento virtual y un control por fila (Salida): la tabla
+         es UNA parada de tabulador, las flechas mueven la fila y la flecha
+         derecha llega al boton de la fila. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+      ref="tablaRejilla"
+      @virtual-scroll="alDesplazarVirtual"
       :table-class="{
         'table-bgcolor': !$q.dark.isActive,
         'table-bgcolor-dark': $q.dark.isActive,
@@ -43,36 +50,38 @@
 
       <template v-slot:body-cell-output="props">
         <q-td :props="props">
-          <span
-            style="cursor: pointer; text-decoration: underline"
-            class="text-primary"
+          <!-- 050 (V2-G15): control real; `tabindex="-1"`: se alcanza con la
+               flecha derecha desde la hora (host de la fila). -->
+          <q-btn
+            flat
+            dense
+            no-caps
+            color="primary"
+            tabindex="-1"
+            :label="$t('agentTabs.history.output')"
             @click="
               props.row.type === 'cmd_run'
                 ? showCommandOutput(props.row.command, props.row.results)
                 : showScriptOutput(props.row.script_results)
             "
-            >{{ $t("agentTabs.history.output") }}</span
-          >
-        </q-td>
-      </template>
-
-      <!-- 046 (UI-I03): comando o script recortado a 30 ⇒ tooltip con el texto completo. -->
-      <template v-slot:body-cell-command="props">
-        <q-td :props="props"
-          >{{ props.value }}
-          <q-tooltip
-            v-if="String(props.col.field(props.row) || '').length > 30"
-            >{{ props.col.field(props.row) }}</q-tooltip
-          >
+          />
         </q-td>
       </template>
 
       <template v-slot:body-cell-time="props">
         <q-td :props="props" class="mono">
-          {{ formatDate(props.row.time) }}
+          <!-- Host enfocable de la fila (rejilla): existe en TODAS las filas. -->
+          <span
+            class="obs-rej__host"
+            :data-fila="props.rowIndex"
+            :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+            @focus="filaFoco = props.rowIndex"
+            >{{ formatDate(props.row.time) }}</span
+          >
         </q-td>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
@@ -82,7 +91,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useQuasar, Notify } from "quasar";
 import { useI18n } from "vue-i18n";
-import { formatTableColumnText, truncateText } from "@/utils/format";
+import { formatTableColumnText } from "@/utils/format";
 import { fetchAgentHistory } from "@/api/agents";
 
 // ui imports
@@ -90,8 +99,19 @@ import ScriptOutput from "@/components/checks/ScriptOutput.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 import PreDialog from "@/components/ui/PreDialog.vue";
 
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
+
 export default {
   name: "HistoryTab",
+  mixins: [mixinRejillaTabla],
+  computed: {
+    rejillaFilas() {
+      return this.history;
+    },
+    rejillaRef() {
+      return "tablaRejilla";
+    },
+  },
   components: {
     ExportTableBtn,
   },
@@ -137,7 +157,6 @@ export default {
           row.type === "script_run" ? row.script_name : row.command,
         align: "left",
         sortable: true,
-        format: (val) => truncateText(val, 30),
       },
       {
         name: "username",
@@ -225,7 +244,6 @@ export default {
       showScriptOutput,
       showCommandOutput,
       getHistory,
-      truncateText,
 
       // computed
       selectedAgent,

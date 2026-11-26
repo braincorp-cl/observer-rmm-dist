@@ -7,6 +7,10 @@
         <q-space />
         <q-btn dense flat icon="close" v-close-popup />
       </q-bar>
+      <!-- 050 (V2-G15): PATRÓN DE REJILLA (composables/rejillaTabla.js): una
+           parada de TAB por tabla, flechas arriba/abajo por fila y
+           izquierda/derecha hasta los botones de acción. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
         dense
         :table-class="{
@@ -17,6 +21,8 @@
         style="max-height: 70vh"
         binary-state-sort
         virtual-scroll
+        @virtual-scroll="alDesplazarVirtual"
+        ref="tablaRejilla"
         :rows="roles"
         :columns="columns"
         row-key="id"
@@ -72,7 +78,15 @@
                 </q-item>
               </q-list>
             </q-menu>
-            <q-td key="name" :props="props">{{ props.row.name }}</q-td>
+            <q-td key="name" :props="props"
+              ><span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                >{{ props.row.name }}</span
+              ></q-td
+            >
             <q-td key="is_superuser" :props="props">
               <q-icon
                 v-if="props.row.is_superuser"
@@ -83,9 +97,31 @@
             <q-td key="user_count" :props="props" class="mono">
               {{ props.row.user_count }}
             </q-td>
+            <q-td key="actions" :props="props" class="obs-nowrap" @dblclick.stop>
+              <q-btn
+                flat
+                dense
+                round
+                icon="edit"
+                tabindex="-1"
+                :aria-label="$t('permissionsManager.edit')"
+                @click="showEditRoleModal(props.row)"
+              />
+              <q-btn
+                flat
+                dense
+                round
+                icon="delete"
+                tabindex="-1"
+                :aria-label="$t('permissionsManager.delete')"
+                :disable="props.row.user_count > 0"
+                @click="deleteRole(props.row)"
+              />
+            </q-td>
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -97,6 +133,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchRoles, removeRole } from "@/api/accounts";
 import { notifySuccess } from "@/utils/notify";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
 import RolesForm from "@/components/accounts/RolesForm.vue";
@@ -135,11 +172,25 @@ export default {
         // V2-G01: la vara dice «conteos y tamanos en su celda o badge» en mono.
         classes: "mono",
       },
+      {
+        name: "actions",
+        label: "",
+        field: "actions",
+        align: "right",
+      },
     ]);
 
     // permission manager logic
     const roles = ref([]);
     const loading = ref(false);
+
+    // 050 (V2-G15): patrón de rejilla (ver composables/rejillaTabla.js).
+    const tablaRejilla = ref();
+    const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+      usarRejillaTabla({
+        refTabla: tablaRejilla,
+        filas: () => roles.value,
+      });
 
     function showEditRoleModal(role) {
       $q.dialog({
@@ -187,6 +238,8 @@ export default {
       // reactive data
       roles,
       loading,
+      tablaRejilla,
+      filaFoco,
 
       // non-reactive data
       columns,
@@ -196,6 +249,9 @@ export default {
       deleteRole,
       showAddRoleModal,
       showEditRoleModal,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
 
       // quasar dialog
       dialogRef,

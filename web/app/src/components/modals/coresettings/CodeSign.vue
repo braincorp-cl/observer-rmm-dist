@@ -9,7 +9,7 @@
       <q-btn
         :disable="!settings.token"
         :label="$t('codeSign.codeSignAll')"
-        color="positive"
+        color="primary"
         class="full-width"
         @click="doCodeSign"
         :loading="loading"
@@ -27,6 +27,7 @@
         <q-input
           outlined
           dense
+          input-class="mono"
           v-model="settings.token"
           class="col-9 q-pa-none"
           :rules="[(val) => !!val || $t('codeSign.tokenRequired')]"

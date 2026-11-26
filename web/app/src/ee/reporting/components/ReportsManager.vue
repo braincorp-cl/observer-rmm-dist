@@ -17,7 +17,10 @@
           }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <!-- 🪤 050 (V2-G15): PATRÓN DE REJILLA, ver composables/rejillaTabla.js. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
         dense
         :table-class="{
           'table-bgcolor': !$q.dark.isActive,
@@ -34,6 +37,7 @@
         binary-state-sort
         virtual-scroll
         :rows-per-page-options="[0]"
+        @virtual-scroll="alDesplazarVirtual"
       >
         <template #top>
           <!--
@@ -228,7 +232,26 @@
             </q-menu>
 
             <!-- rows -->
-            <td>{{ props.row.name }}</td>
+            <!-- 050 (V2-G15): host enfocable de la fila. Es la única parada de
+                 tabulador de la tabla; Enter abre el reporte (como el doble
+                 clic) y la tecla Menú abre el menú contextual de la fila. -->
+            <td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                @keyup.enter="
+                  openReport(
+                    props.row.id,
+                    props.row.type !== 'plaintext' ? 'html' : 'plaintext',
+                    props.row.depends_on,
+                    {},
+                  )
+                "
+                >{{ props.row.name }}</span
+              >
+            </td>
             <td>{{ capitalize(props.row.type) }}</td>
             <td>
               {{
@@ -240,12 +263,14 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
 // composition imports
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
@@ -308,6 +333,16 @@ const {
 
 onMounted(getReportTemplates);
 const search = ref("");
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila. El tope real sale de `filteredSortedRows` de la propia tabla (lleva
+// `:filter="search"`).
+const tablaRejilla = ref();
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: tablaRejilla,
+    filas: () => reportTemplates.value,
+  });
 
 function openReportAssets() {
   $q.dialog({

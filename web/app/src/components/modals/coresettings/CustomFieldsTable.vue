@@ -1,5 +1,14 @@
 <template>
+  <!-- 050 (V2-G15): PATRÓN DE REJILLA (composables/rejillaTabla.js). La fila
+       sólo respondía a doble clic y a clic derecho; el host de la celda del
+       nombre es la única parada de TAB: Enter edita y la tecla Menú abre el
+       menú contextual de la fila (Editar / Eliminar). -->
+  <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
   <q-table
+    ref="tablaRejilla"
+    @virtual-scroll="alDesplazarVirtual"
+    :virtual-scroll-item-size="33"
+    :virtual-scroll-sticky-size-start="28"
     dense
     :rows="data"
     :columns="columns"
@@ -53,7 +62,14 @@
         </q-menu>
         <!-- name -->
         <q-td>
-          {{ props.row.name }}
+          <span
+            class="obs-rej__host"
+            :data-fila="props.rowIndex"
+            :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+            @focus="filaFoco = props.rowIndex"
+            @keyup.enter="editCustomField(props.row)"
+            >{{ props.row.name }}</span
+          >
           <q-tooltip :delay="600">{{
             $t("customFieldsTable.idTooltip", { id: props.row.id })
           }}</q-tooltip>
@@ -74,13 +90,18 @@
         <q-td v-if="props.row.type === 'checkbox'" class="mono">
           {{ props.row.default_value_bool }}
         </q-td>
-        <q-td v-else-if="props.row.type === 'multiple'" class="mono">
+        <q-td v-else-if="props.row.type === 'multiple'">
           <span v-if="props.row.default_values_multiple.length > 0">{{
             props.row.default_values_multiple
           }}</span>
         </q-td>
         <!-- 050 (T034, G01): las fechas van en Archivo; el resto de valores en Mono. -->
-        <q-td v-else :class="{ mono: props.row.type !== 'datetime' }">
+        <!-- 050 (G01, enmienda 2026-11-24 C): 'single' es un enumerado escrito por
+             una persona y también va en Archivo. -->
+        <q-td
+          v-else
+          :class="{ mono: !['datetime', 'single'].includes(props.row.type) }"
+        >
           <!-- 🪤 050 (G08, 13.ª corrida): iba sin segundo argumento porque
                resolvia al `truncateText` DEL MIXIN, que cortaba a 60 fijo. Al
                unificar en el util el umbral tiene que ir escrito: sin el, el
@@ -99,6 +120,7 @@
       </q-tr>
     </template>
   </q-table>
+  </div>
 </template>
 
 <script>
@@ -109,11 +131,12 @@ import mixins from "@/mixins/mixins";
 // archivo era el unico que llamaba al del mixin, asi que el duplicado se fue y
 // el umbral queda escrito donde se usa.
 import { truncateText } from "@/utils/format";
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
 
 export default {
   name: "CustomFieldsTable",
   emits: ["refresh"],
-  mixins: [mixins],
+  mixins: [mixins, mixinRejillaTabla],
   props: {
     data: !Array,
   },

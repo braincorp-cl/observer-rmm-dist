@@ -184,11 +184,11 @@
                   v-model="command"
                   dense
                   filled
-                  class="col-5 obs-mono-values"
+                  class="col-12 col-sm-6 col-lg-5 obs-mono-values"
                 />
                 <q-input
                   v-if="actionType === 'cmd'"
-                  class="col-2"
+                  class="col-6 col-lg-3"
                   filled
                   dense
                   v-model.number="defaultTimeout"
@@ -197,7 +197,7 @@
                 />
                 <q-option-group
                   v-if="actionType === 'cmd'"
-                  class="col-4 q-pl-sm"
+                  class="col-12 col-lg-4 q-pl-sm"
                   inline
                   v-model="shell"
                   :options="[
@@ -214,7 +214,7 @@
                   ]"
                 />
                 <q-btn
-                  class="col-1"
+                  class="col-auto"
                   type="submit"
                   style="width: 50px"
                   flat
@@ -304,9 +304,12 @@
                       </q-item-label>
                     </q-item-section>
                     <q-item-section side>
-                      <q-icon
-                        class="cursor-pointer"
-                        name="close"
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        :aria-label="$t('automatedTask.removeAction')"
                         @click="removeAction(index)"
                       />
                     </q-item-section>
@@ -479,7 +482,7 @@
                   :rules="[
                     (val) => val.length > 0 || $t('automatedTask.required'),
                   ]"
-                  class="col-4 q-pa-sm"
+                  class="col-4 q-pa-sm obs-select-envuelve"
                   filled
                   dense
                   options-dense
@@ -636,7 +639,7 @@
                   :rules="[
                     (val) => val.length > 0 || $t('automatedTask.required'),
                   ]"
-                  class="col-4 q-pa-sm"
+                  class="col-4 q-pa-sm obs-select-envuelve"
                   filled
                   dense
                   options-dense

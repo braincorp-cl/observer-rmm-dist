@@ -64,7 +64,7 @@
               dense
               outlined
               autofocus
-              :input-class="localBase === 'hex' ? 'text-uppercase' : ''"
+              :input-class="['mono', localBase === 'hex' ? 'text-uppercase' : '']"
               :error="!!numericError"
               :error-message="numericError"
               @keypress="onKeyPress"

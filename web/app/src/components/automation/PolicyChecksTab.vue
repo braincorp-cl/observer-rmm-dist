@@ -145,6 +145,40 @@
         <template v-slot:header-cell-statusicon="props">
           <q-th auto-width :props="props"></q-th>
         </template>
+        <template v-slot:header-cell-desc="props">
+          <q-th
+            :props="props"
+            tabindex="0"
+            role="button"
+            :aria-sort="
+              pagination.sortBy === props.col.name
+                ? pagination.descending
+                  ? 'descending'
+                  : 'ascending'
+                : 'none'
+            "
+            @keydown.enter.prevent="props.sort(props.col)"
+            @keydown.space.prevent="props.sort(props.col)"
+            >{{ props.col.label }}</q-th
+          >
+        </template>
+        <template v-slot:header-cell-assigned_task="props">
+          <q-th
+            :props="props"
+            tabindex="0"
+            role="button"
+            :aria-sort="
+              pagination.sortBy === props.col.name
+                ? pagination.descending
+                  ? 'descending'
+                  : 'ascending'
+                : 'none'
+            "
+            @keydown.enter.prevent="props.sort(props.col)"
+            @keydown.space.prevent="props.sort(props.col)"
+            >{{ props.col.label }}</q-th
+          >
+        </template>
         <!-- body slots -->
         <template v-slot:body="props">
           <q-tr

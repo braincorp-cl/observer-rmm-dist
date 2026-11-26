@@ -15,6 +15,8 @@
           <q-tooltip>{{ $t("reporting.common.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <!-- 050 (V2-G15): PATRÓN DE REJILLA, ver composables/rejillaTabla.js. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
         dense
         :table-class="{
@@ -31,7 +33,11 @@
         row-key="id"
         binary-state-sort
         virtual-scroll
+        @virtual-scroll="alDesplazarVirtual"
+        :virtual-scroll-item-size="33"
+        :virtual-scroll-sticky-size-start="28"
         :rows-per-page-options="[0]"
+        ref="tablaRejilla"
       >
         <template #top>
           <q-btn
@@ -57,6 +63,18 @@
               <q-icon name="search" />
             </template>
           </q-input>
+        </template>
+
+        <!-- 050 (V2-G15): la cabecera ordenable entra al recorrido del TAB y
+             ordena con Enter o Espacio, igual que con el clic. -->
+        <template #header-cell-name="props">
+          <q-th
+            :props="props"
+            tabindex="0"
+            @keydown.enter.prevent="props.sort(props.col)"
+            @keydown.space.prevent="props.sort(props.col)"
+            >{{ props.col.label }}</q-th
+          >
         </template>
 
         <template #body="props">
@@ -105,16 +123,30 @@
             </q-menu>
 
             <!-- rows -->
-            <td>{{ props.row.name }}</td>
+            <!-- Host enfocable de la fila: única parada de tabulador de la
+                 tabla; Enter abre Editar y la tecla Menú abre el menú
+                 contextual de la fila, que antes era solo de ratón. -->
+            <td>
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                @keydown.enter.prevent="openEditDataQuery(props.row)"
+                >{{ props.row.name }}</span
+              >
+            </td>
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
 // composition imports
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 import { ref, computed, onMounted } from "vue";
 import { useQuasar, useDialogPluginComponent, type QTableColumn } from "quasar";
 import { useI18n } from "vue-i18n";
@@ -151,6 +183,15 @@ const {
   deleteReportDataQuery,
 } = useSharedReportDataQueries;
 const search = ref("");
+
+// Patrón de rejilla: la tabla es UNA parada de tabulador y las flechas mueven la
+// fila (el tope sale de `filteredSortedRows`, porque la tabla lleva `:filter`).
+const tablaRejilla = ref();
+const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+  usarRejillaTabla({
+    refTabla: tablaRejilla,
+    filas: () => reportDataQueries.value,
+  });
 
 function openNewDataQueryForm() {
   $q.dialog({

@@ -80,6 +80,29 @@
       :no-data-label="$t('storageMedia.noData')"
       :loading-label="$t('storageMedia.loading')"
     >
+      <!-- 050 (V2-G15): cabecera ordenable alcanzable con TAB. -->
+      <template v-slot:header-cell="props">
+        <q-th
+          :props="props"
+          :tabindex="props.col.sortable ? 0 : undefined"
+          :role="props.col.sortable ? 'button' : undefined"
+          @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+          @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+          >{{ props.col.label }}</q-th
+        >
+      </template>
+      <!-- 050 (V2-G15): el equipo se abre por teclado desde el hostname. -->
+      <template v-slot:body-cell-hostname="props">
+        <q-td :props="props">
+          <router-link
+            class="obs-mgr__link"
+            :to="{ name: 'Agent', params: { agent_id: props.row.agent_id } }"
+            @click.stop
+            >{{ props.row.hostname }}</router-link
+          >
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-verdict="props">
         <q-td :props="props">
           <q-badge
@@ -101,8 +124,19 @@
       </template>
 
       <template v-slot:body-cell-media="props">
-        <q-td :props="props" class="mono">
-          {{ systemMedia(props.row) }}
+        <!-- 050 (V2-G01): el tipo de medio es interfaz (Archivo); modelo y
+             capacidad son valores (Mono). -->
+        <q-td :props="props">
+          <template v-if="props.row.system_disk">
+            <template
+              v-for="(parte, i) in systemMediaParts(props.row)"
+              :key="i"
+              ><template v-if="i > 0">{{ SEPARADOR }}</template
+              ><span :class="parte.ui ? 'obs-ui-text' : 'mono'">{{
+                parte.text
+              }}</span></template
+            >
+          </template>
         </q-td>
       </template>
 
@@ -238,6 +272,17 @@ export default {
       return partes.filter((p) => p).join(" · ");
     }
 
+    // Lo mismo, por partes, para pintar cada una en su familia (V2-G01).
+    function systemMediaParts(row) {
+      const disco = row.system_disk;
+      if (!disco) return [];
+      return [
+        { text: disco.model, ui: false },
+        { text: mediaTypeLabel(t, disco.media_type_code), ui: true },
+        { text: capacityLabel(disco.size_bytes), ui: false },
+      ].filter((p) => p.text);
+    }
+
     async function load() {
       loading.value = true;
       try {
@@ -290,6 +335,8 @@ export default {
       verdictLabel,
       verdictHelp,
       systemMedia,
+      systemMediaParts,
+      SEPARADOR: " · ",
       load,
       onClientChange,
       openAgent,

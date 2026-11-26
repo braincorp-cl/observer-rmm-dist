@@ -56,6 +56,20 @@
         virtual-scroll
       >
         <!-- header slots -->
+        <!-- 050 (V2-G15): cabecera ordenable como q-btn para que entre al TAB. -->
+        <template v-slot:header-cell="props">
+          <q-th :props="props">
+            <q-btn
+              v-if="props.col.sortable"
+              flat
+              dense
+              no-caps
+              :label="props.col.label"
+              @click.stop="props.sort(props.col)"
+            />
+            <span v-else>{{ props.col.label }}</span>
+          </q-th>
+        </template>
         <template v-slot:header-cell-is_active="props">
           <q-th :props="props" auto-width>
             <q-icon name="power_settings_new" size="1.5em">
@@ -181,7 +195,8 @@
             <q-td>
               <q-chip
                 v-if="props.row.social_accounts.length > 0"
-                color="primary"
+                color="grey"
+                class="obs-chip-neutral"
                 dense
                 >{{ $t("adminManager.sso") }}</q-chip
               >
@@ -357,7 +372,7 @@ export default {
             username: user.username,
           }),
           cancel: true,
-          ok: { label: this.$t("adminManager.reset"), color: "positive" },
+          ok: { label: this.$t("adminManager.reset"), color: "primary" },
         })
         .onOk(() => {
           this.$axios
@@ -392,7 +407,6 @@ export default {
           label: "",
           field: "sso",
           align: "left",
-          sortable: true,
         },
         {
           name: "username",

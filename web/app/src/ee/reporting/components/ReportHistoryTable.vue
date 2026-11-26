@@ -61,8 +61,22 @@
           </q-input>
         </template>
 
-        <template #header-cell-report_template_name="props">
-          <q-th auto-width :props="props">{{ props.col.label }}</q-th>
+        <!-- 050 (V2-G15): las cabeceras ordenables entran al recorrido del
+             TAB y ordenan con Enter o Espacio, igual que con el clic. -->
+        <template #header-cell="props">
+          <q-th
+            :props="props"
+            :auto-width="props.col.name === 'report_template_name'"
+            :tabindex="props.col.sortable ? 0 : undefined"
+            :aria-label="
+              props.col.name === 'error_data'
+                ? $t('reporting.historyTable.colError')
+                : undefined
+            "
+            @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+            @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+            >{{ props.col.label }}</q-th
+          >
         </template>
 
         <template #body="props">

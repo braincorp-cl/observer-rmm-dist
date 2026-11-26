@@ -34,9 +34,17 @@
               (val) => !!val || keepsStoredValue || $t('keyStoreForm.required'),
             ]"
             ><template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
+              <!-- 050 (V2-G15): botón y no q-icon, para que mostrar/ocultar
+                   el valor sea alcanzable con TAB, Enter y Espacio. -->
+              <q-btn
+                flat
+                round
+                dense
+                :icon="isPwd ? 'visibility_off' : 'visibility'"
+                :aria-label="
+                  isPwd ? $t('keyStoreForm.showValue') : $t('keyStoreForm.hideValue')
+                "
+                :aria-pressed="String(!isPwd)"
                 @click="isPwd = !isPwd"
               />
             </template>

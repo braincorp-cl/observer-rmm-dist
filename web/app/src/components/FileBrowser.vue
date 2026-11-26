@@ -61,6 +61,21 @@
             ></slot>
           </template>
 
+          <!-- 050 (V2-G15): cabecera ordenable como q-btn para que entre al TAB. -->
+          <template #header-cell="props">
+            <q-th :props="props">
+              <q-btn
+                v-if="props.col.sortable"
+                flat
+                dense
+                no-caps
+                :label="props.col.label"
+                @click.stop="props.sort(props.col)"
+              />
+              <template v-else>{{ props.col.label }}</template>
+            </q-th>
+          </template>
+
           <template #body="slotProps">
             <q-tr
               class="cursor-pointer"

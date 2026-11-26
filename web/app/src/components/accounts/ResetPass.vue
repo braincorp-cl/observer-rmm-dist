@@ -12,9 +12,12 @@
             :rules="[(val) => !!val || $t('resetPass.required')]"
           >
             <template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
+              <q-btn
+                flat
+                round
+                dense
+                :icon="isPwd ? 'visibility_off' : 'visibility'"
+                :aria-label="$t('resetPass.togglePassword')"
                 @click="isPwd = !isPwd"
               />
             </template>
@@ -30,9 +33,12 @@
             :rules="[(val) => val === pass || $t('resetPass.passwordsNoMatch')]"
           >
             <template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
+              <q-btn
+                flat
+                round
+                dense
+                :icon="isPwd ? 'visibility_off' : 'visibility'"
+                :aria-label="$t('resetPass.togglePassword')"
                 @click="isPwd = !isPwd"
               />
             </template>

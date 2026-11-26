@@ -13,7 +13,16 @@
       />
     </div>
     <q-separator />
+    <!-- 050 (V2-G15): PATRÓN DE REJILLA (composables/rejillaTabla.js). Editar
+         y Eliminar eran sólo de doble clic y clic derecho; el host de la celda
+         del nombre es la única parada de TAB: Enter edita y la tecla Menú abre
+         el menú contextual de la fila. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+      ref="tablaRejilla"
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       dense
       :rows="keystore"
       :columns="columns"
@@ -59,7 +68,14 @@
           </q-menu>
           <!-- name -->
           <q-td>
-            {{ props.row.name }}
+            <span
+              class="obs-rej__host"
+              :data-fila="props.rowIndex"
+              :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+              @focus="filaFoco = props.rowIndex"
+              @keyup.enter="editKey(props.row)"
+              >{{ props.row.name }}</span
+            >
           </q-td>
           <!-- value -->
           <!-- RT-AUT-09 (llega por merge desde main): el servidor no entrega
@@ -89,16 +105,18 @@
         </q-tr>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
 <script>
 import KeyStoreForm from "@/components/modals/coresettings/KeyStoreForm.vue";
 import mixins from "@/mixins/mixins";
+import { mixinRejillaTabla } from "@/composables/rejillaTabla";
 
 export default {
   name: "KeyStoreTable",
-  mixins: [mixins],
+  mixins: [mixins, mixinRejillaTabla],
   data() {
     return {
       keystore: [],

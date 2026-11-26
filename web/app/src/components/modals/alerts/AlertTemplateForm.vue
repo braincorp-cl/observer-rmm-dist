@@ -97,9 +97,12 @@
                       <q-item-label>{{ email }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
-                      <q-icon
-                        class="cursor-pointer"
-                        name="delete"
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="delete"
+                        :aria-label="$t('alertTemplate.removeRecipient')"
                         @click="removeEmail(email)"
                       />
                     </q-item-section>
@@ -144,9 +147,12 @@
                       <q-item-label>{{ num }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
-                      <q-icon
-                        class="cursor-pointer"
-                        name="delete"
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="delete"
+                        :aria-label="$t('alertTemplate.removeRecipient')"
                         @click="removeSMSNumber(num)"
                       />
                     </q-item-section>

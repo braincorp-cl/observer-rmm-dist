@@ -42,24 +42,30 @@
               getTimeLapse(alert.alert_time)
             }}</q-item-label>
             <q-item-label>
-              <q-icon
-                name="snooze"
-                size="xs"
-                class="cursor-pointer"
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="snooze"
+                :aria-label="$t('alertsIcon.snoozeAlert')"
                 @click="snoozeAlert(alert)"
                 v-close-popup
               >
                 <q-tooltip>{{ $t("alertsIcon.snoozeAlert") }}</q-tooltip>
-              </q-icon>
-              <q-icon
-                name="flag"
-                size="xs"
-                class="cursor-pointer"
+              </q-btn>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="flag"
+                :aria-label="$t('alertsIcon.resolveAlert')"
                 @click="resolveAlert(alert)"
                 v-close-popup
               >
                 <q-tooltip>{{ $t("alertsIcon.resolveAlert") }}</q-tooltip>
-              </q-icon>
+              </q-btn>
             </q-item-label>
           </q-item-section>
         </q-item>

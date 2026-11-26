@@ -174,7 +174,7 @@
           :plural="urgency.failingChecks"
           tag="span"
           ><template #n
-            ><span class="mono">{{ urgency.failingChecks }}</span></template
+            ><span>{{ urgency.failingChecks }}</span></template
           ></i18n-t
         >
       </span>
@@ -189,7 +189,7 @@
           :plural="urgency.pendingPatches"
           tag="span"
           ><template #n
-            ><span class="mono">{{ urgency.pendingPatches }}</span></template
+            ><span>{{ urgency.pendingPatches }}</span></template
           ></i18n-t
         >
       </span>
@@ -204,7 +204,7 @@
           :plural="urgency.pendingActions"
           tag="span"
           ><template #n
-            ><span class="mono">{{ urgency.pendingActions }}</span></template
+            ><span>{{ urgency.pendingActions }}</span></template
           ></i18n-t
         >
       </span>

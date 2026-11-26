@@ -54,6 +54,26 @@
             push
             @click="showAddTask"
           />
+          <!-- 050 (V2-G15): las cabeceras ordenables de QTh no son enfocables;
+               el orden se alcanza por teclado desde estos dos controles. -->
+          <q-select
+            class="q-ml-sm"
+            style="min-width: 160px"
+            dense
+            options-dense
+            emit-value
+            map-options
+            :label="$t('agentTabs.common.sortBy')"
+            v-model="pagination.sortBy"
+            :options="columns.filter((c) => c.sortable).map((c) => ({ label: c.label, value: c.name }))"
+          />
+          <q-btn
+            dense
+            flat
+            :icon="pagination.descending ? 'arrow_downward' : 'arrow_upward'"
+            :aria-label="pagination.descending ? $t('agentTabs.common.sortDescending') : $t('agentTabs.common.sortAscending')"
+            @click="pagination = { ...pagination, descending: !pagination.descending }"
+          />
         </template>
 
         <template v-slot:loading>
@@ -151,6 +171,23 @@
                   </q-item-section>
                   <q-item-section>{{
                     $t("agentTabs.common.delete")
+                  }}</q-item-section>
+                </q-item>
+                <q-item
+                  v-if="
+                    props.row.task_result.retcode !== null ||
+                    props.row.task_result.stdout ||
+                    props.row.task_result.stderr
+                  "
+                  clickable
+                  v-close-popup
+                  @click="showScriptOutput(props.row)"
+                >
+                  <q-item-section side>
+                    <q-icon name="description" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("agentTabs.tasks.output")
                   }}</q-item-section>
                 </q-item>
                 <q-separator></q-separator>

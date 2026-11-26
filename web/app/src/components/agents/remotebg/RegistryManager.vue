@@ -4,6 +4,7 @@
       <q-input
         v-model="pathInput"
         dense
+        input-class="mono"
         class="col"
         borderless
         @keyup.enter="navigateToPath"
@@ -59,6 +60,80 @@
                 style="max-width: 200px"
               />
               <span v-else>{{ prop.node.label }}</span>
+              <!-- 050 (V2-G15): vía de teclado al menú del nodo; el
+                   context-menu queda como atajo de ratón. -->
+              <q-btn
+                v-if="editingNodeId !== prop.node.id"
+                flat
+                dense
+                round
+                size="sm"
+                icon="more_vert"
+                class="q-ml-xs"
+                :aria-label="
+                  $t('registryManager.actionsAria', { name: prop.node.label })
+                "
+                @click.stop
+                @dblclick.stop
+                @keyup.stop
+              >
+                <q-menu
+                  transition-show="jump-up"
+                  transition-hide="jump-down"
+                >
+                  <q-list dense style="min-width: 180px">
+                    <q-item clickable style="padding-right: 4px !important">
+                      <q-item-section>{{
+                        $t("registryManager.new")
+                      }}</q-item-section>
+                      <q-item-section side>
+                        <q-icon name="chevron_right" />
+                      </q-item-section>
+                      <q-menu
+                        anchor="top end"
+                        self="top start"
+                        transition-show="jump-right"
+                        transition-hide="jump-left"
+                      >
+                        <q-list dense style="min-width: 220px">
+                          <q-item
+                            v-for="item in registryValueTypes"
+                            :key="item.type"
+                            clickable
+                            v-close-popup
+                            @click="
+                              item.type === 'KEY'
+                                ? createKey(prop.node)
+                                : createValue(prop.node, item.type, true)
+                            "
+                          >
+                            <q-item-section>{{ item.label }}</q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-menu>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="refreshNode(prop.node.id)"
+                    >
+                      <q-item-section>{{
+                        $t("registryManager.refresh")
+                      }}</q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="renameKey(prop.node)">
+                      <q-item-section>{{
+                        $t("registryManager.rename")
+                      }}</q-item-section>
+                    </q-item>
+                    <q-item clickable v-close-popup @click="deleteKey(prop.node)">
+                      <q-item-section>{{
+                        $t("registryManager.delete")
+                      }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
             <div v-else class="q-ml-xs q-my-xs">
               <q-btn
@@ -221,6 +296,59 @@
                         {{ props.row.name }}
                       </div>
                     </div>
+                    <!-- 050 (V2-G15): vía de teclado a Modificar, Renombrar y
+                         Eliminar; el context-menu y el doble clic quedan como
+                         atajos de ratón. -->
+                    <q-btn
+                      v-if="editingValueName !== props.row.name"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="more_vert"
+                      :aria-label="
+                        $t('registryManager.actionsAria', {
+                          name: props.row.name,
+                        })
+                      "
+                      @click.stop
+                      @dblclick.stop
+                    >
+                      <q-menu
+                        transition-show="jump-up"
+                        transition-hide="jump-down"
+                      >
+                        <q-list dense style="min-width: 180px">
+                          <q-item
+                            clickable
+                            v-close-popup
+                            @click="openModifyDialog(props.row)"
+                          >
+                            <q-item-section>{{
+                              $t("registryManager.modify")
+                            }}</q-item-section>
+                          </q-item>
+                          <q-item
+                            clickable
+                            v-close-popup
+                            @click="renameValue(props.row)"
+                          >
+                            <q-item-section>{{
+                              $t("registryManager.rename")
+                            }}</q-item-section>
+                          </q-item>
+                          <q-item
+                            clickable
+                            v-close-popup
+                            @click="deleteValue(props.row)"
+                          >
+                            <q-item-section>{{
+                              $t("registryManager.delete")
+                            }}</q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-menu>
+                    </q-btn>
                   </div>
                   <q-menu
                     context-menu
@@ -263,7 +391,7 @@
                 <q-td :props="props">{{ props.row.type }}</q-td>
               </template>
               <template #body-cell-data="props">
-                <q-td :props="props">
+                <q-td :props="props" class="mono">
                   <span v-if="Array.isArray(props.row.data)">
                     {{
                       JSON.stringify(props.row.data)
@@ -309,7 +437,7 @@
       @confirm="confirmDeleteKey"
       type="confirm"
       icon="warning"
-      iconColor="warning"
+      iconColor="grey"
     />
     <ConfirmDialog
       v-model="confirmDeleteValueDialog"
@@ -318,7 +446,7 @@
       @confirm="confirmDeleteValue"
       type="confirm"
       icon="warning"
-      iconColor="warning"
+      iconColor="grey"
     />
     <ConfirmDialog
       v-model="warningDialog"
@@ -388,7 +516,7 @@ const columns = computed<QTableColumn[]>(() => [
     field: "data",
     align: "left",
     style:
-      "min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;",
+      "min-width: 300px; max-width: 300px; white-space: normal; overflow-wrap: break-word;",
     headerStyle: "min-width: 300px; max-width: 300px;",
   },
 ]);

@@ -57,7 +57,17 @@
                 <q-tooltip>{{ $t("activityLive.refresh") }}</q-tooltip>
               </q-btn>
             </q-card-section>
-            <div class="cursor-pointer" @click="ver(e)">
+            <!-- V2-G15: la captura ampliada también se abre con el teclado -->
+            <div
+              class="cursor-pointer"
+              role="button"
+              :tabindex="e.img ? 0 : -1"
+              :aria-label="$t('activityLive.open', { host: e.hostname })"
+              :aria-disabled="!e.img"
+              @click="ver(e)"
+              @keydown.enter.prevent="ver(e)"
+              @keydown.space.prevent="ver(e)"
+            >
               <q-img v-if="e.img" :src="e.img" :ratio="16 / 9" fit="cover" />
               <div v-else class="sin-imagen flex flex-center text-grey">
                 {{ $t("activityLive.noImage") }}
@@ -66,7 +76,7 @@
             <q-card-section class="q-py-xs text-caption">
               <div class="ellipsis text-grey" :title="`${e.client} · ${e.site}`">{{ `${e.client} · ${e.site}` }}</div>
               <div class="ellipsis" :title="detalle(e)">{{ detalle(e) }}</div>
-              <div v-if="e.ultima && e.ultima.url" class="ellipsis text-grey mono" :title="e.ultima.url">{{ e.ultima.url }}</div>
+              <div v-if="e.ultima && e.ultima.url" class="text-grey mono obs-live__url" :title="e.ultima.url">{{ e.ultima.url }}</div>
               <q-chip
                 v-if="e.estado && e.estado !== 'ok'"
                 dense
@@ -229,5 +239,10 @@ onBeforeUnmount(() => equipos.value.forEach(liberar));
 .obs-live__host {
   font-weight: 600;
   color: var(--obs-text);
+}
+/* V2-G06: la URL se pliega entera dentro de la tarjeta (el title no cuenta) */
+.obs-live__url {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 </style>

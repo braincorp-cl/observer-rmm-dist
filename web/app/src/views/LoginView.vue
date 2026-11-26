@@ -49,9 +49,12 @@
           ]"
         >
           <template v-slot:append>
-            <q-icon
-              :name="showPassword ? 'visibility_off' : 'visibility'"
-              class="cursor-pointer"
+            <q-btn
+              flat
+              round
+              dense
+              :icon="showPassword ? 'visibility_off' : 'visibility'"
+              :aria-label="$t('login.togglePassword')"
               @click="showPassword = !showPassword"
             />
           </template>

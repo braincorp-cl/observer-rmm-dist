@@ -43,7 +43,7 @@
         </q-input>
       </div>
       <div v-if="!treeReady" class="q-pa-md text-center">
-        <q-spinner size="32px" color="primary" />
+        <q-spinner size="32px" class="obs-icon-neutral" />
       </div>
       <div v-else class="obs-fleet__tree scroll">
         <q-item
@@ -95,6 +95,20 @@
                   ? props.node.client.agent_count
                   : props.node.site.agent_count
               }}</span>
+              <!-- V2-G15: vía de teclado al mismo menú del clic derecho; emite
+                   `contextmenu` sobre el ancla del q-menu (este div). -->
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                icon="more_vert"
+                class="obs-fleet__node-menu"
+                :aria-label="$t('fleet.nodeActions', { name: props.node.label })"
+                @click.stop="openNodeMenu"
+                @keydown.stop
+                @keyup.stop
+              />
           <q-menu context-menu>
             <q-list dense style="min-width: 200px">
               <q-item
@@ -682,6 +696,19 @@ export default {
     },
   },
   methods: {
+    openNodeMenu(evt) {
+      const btn = evt.target.closest(".q-btn");
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      btn.dispatchEvent(
+        new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          clientX: r.left + r.width / 2,
+          clientY: r.bottom,
+        }),
+      );
+    },
     // 050 · flota
     // Estados del nodo: chequeos (error, si no advertencia) y, aparte, mantenimiento. node.color
     // (store, v1) elige uno solo con mantenimiento primero y tapa los chequeos con error.

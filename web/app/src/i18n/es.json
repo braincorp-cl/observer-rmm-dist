@@ -8,15 +8,16 @@
     "cancel": "Cancelar",
     "twoFactorSubmit": "Enviar",
     "heading": "Ingresar",
-    "twoStepNote": "Si tu cuenta tiene verificación en dos pasos, el código se pide en el paso siguiente."
+    "twoStepNote": "Si tu cuenta tiene verificación en dos pasos, el código se pide en el paso siguiente.",
+    "togglePassword": "Mostrar u ocultar la contraseña"
   },
   "layout": {
     "language": "Idioma",
     "outdatedVersion": "Está viendo una versión desactualizada de esta página.",
     "refresh": "Actualizar",
-    "licenseInactive1": "Su licencia está actualmente inactiva, generalmente debido a un problema de pago.",
-    "licenseInactive2": "Para restaurar el acceso, actualice su método de pago.",
-    "licenseInactive3": "Si canceló su patrocinio intencionalmente, puede eliminar su clave de licencia para dejar de ver este mensaje.",
+    "licenseInactive1": "Tu licencia está actualmente inactiva, generalmente debido a un problema de pago.",
+    "licenseInactive2": "Para restaurar el acceso, actualiza tu método de pago.",
+    "licenseInactive3": "Si cancelaste tu patrocinio intencionalmente, puedes eliminar tu clave de licencia para dejar de ver este mensaje.",
     "licenseInactive4": "Si necesita ayuda, contacte a nuestro equipo de soporte en",
     "supportUrl": "https://support.observer.cl",
     "backToDashboard": "Volver al Panel",
@@ -33,7 +34,7 @@
     "resetPassword": "Restablecer Contraseña",
     "reset2fa": "Restablecer 2FA",
     "logout": "Cerrar Sesión",
-    "reset2faConfirm": "¿Está seguro de que desea restablecer su token 2FA?",
+    "reset2faConfirm": "¿Estás seguro de que deseas restablecer tu token 2FA?",
     "maintenanceCount": "{count} equipo(s) en modo mantenimiento.",
     "maintenanceOldest": "El más antiguo, hace {days} día(s).",
     "maintenanceSuppressed": "Las alertas de esos equipos están suprimidas.",
@@ -199,7 +200,8 @@
     "queuedUnit": "en cola",
     "colSmsAlert": "Alerta por SMS",
     "colEmailAlert": "Alerta por correo",
-    "colDashboardAlert": "Alerta en el panel"
+    "colDashboardAlert": "Alerta en el panel",
+    "nodeActions": "Acciones de {name}"
   },
   "agentTable": {
     "noAgents": "Sin agentes",
@@ -540,7 +542,7 @@
     "saveToAgentNote": "Guardar resultados en nota del agente",
     "selectCustomField": "Seleccionar campo personalizado",
     "saveAllOutput": "Guardar toda la salida",
-    "timeoutSeconds": "Tiempo de espera (s)",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
     "action": "Acción",
     "offlineAgents": "Agentes desconectados (ejecutar en el próximo reporte)",
     "offlineAgentsTooltip": "Si el agente está desconectado, se creará una acción pendiente para ejecutar cuando el agente se reporte",
@@ -724,7 +726,8 @@
       "colSeverity": "Severidad",
       "colName": "Nombre",
       "colMoreInfo": "Más información",
-      "colInstalledOn": "Instalada el"
+      "colInstalledOn": "Instalada el",
+      "changePolicy": "Cambiar política"
     },
     "software": {
       "installSoftware": "Instalar software",
@@ -792,7 +795,10 @@
       "alertOverride": "La configuración está sobrescrita por la plantilla de alerta: {name}",
       "smsAlert": "Alerta por SMS",
       "emailAlert": "Alerta por correo",
-      "dashboardAlert": "Alerta en el panel"
+      "dashboardAlert": "Alerta en el panel",
+      "sortBy": "Ordenar por",
+      "sortAscending": "Orden ascendente (pulsa para invertir)",
+      "sortDescending": "Orden descendente (pulsa para invertir)"
     },
     "location": {
       "button": "Ubicación",
@@ -876,7 +882,8 @@
     "required": "*Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "reset": "Restablecer",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "togglePassword": "Mostrar u ocultar la contraseña"
   },
   "userSessions": {
     "title": "Sesiones de {username}",
@@ -909,7 +916,9 @@
     "newPassword": "Nueva contraseña:",
     "required": "*Requerido",
     "reset": "Restablecer",
-    "success": "¡Contraseña del usuario restablecida!"
+    "success": "¡Contraseña del usuario restablecida!",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "userForm": {
     "username": "Usuario:",
@@ -927,7 +936,9 @@
     "titleEdit": "Editar usuario",
     "titleAdd": "Agregar usuario",
     "editedSuccess": "¡Usuario editado!",
-    "addedSuccess": "¡Usuario {name} agregado!"
+    "addedSuccess": "¡Usuario {name} agregado!",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   },
   "rolesForm": {
     "titleEditing": "Editando rol",
@@ -1287,7 +1298,8 @@
     "scriptTimeoutRequired": "Debe establecer el script y el tiempo de espera",
     "commandTimeoutRequired": "Debe establecer un comando y un tiempo de espera",
     "atLeastOnePlatform": "Debe haber al menos una plataforma compatible",
-    "atLeastOneAction": "Debe haber al menos una acción"
+    "atLeastOneAction": "Debe haber al menos una acción",
+    "removeAction": "Quitar acción"
   },
   "automationManager": {
     "title": "Gestor de automatización",
@@ -1758,7 +1770,9 @@
     "addedSuccess": "¡Clave agregada!",
     "isSecret": "Secreto",
     "isSecretHint": "El valor de una clave secreta no vuelve a mostrarse: sólo se reemplaza. Para quitar la marca hay que escribir un valor nuevo.",
-    "keepHint": "Déjalo vacío para conservar el valor guardado."
+    "keepHint": "Déjalo vacío para conservar el valor guardado.",
+    "showValue": "Mostrar valor",
+    "hideValue": "Ocultar valor"
   },
   "resetPatchPolicy": {
     "title": "Restablecer política de parches del agente",
@@ -1839,7 +1853,7 @@
   "uninstallSoftware": {
     "title": "Desinstalando {name}",
     "confirmCommand": "Confirma o edita el comando de desinstalación:",
-    "timeout": "Tiempo de espera (s)",
+    "timeout": "Tiempo de espera (segundos)",
     "timeoutRequired": "El tiempo de espera es obligatorio",
     "runAsUser": "Ejecutar como usuario",
     "cancel": "Cancelar",
@@ -1942,7 +1956,8 @@
     "timeEverything": "Todo",
     "noDataSearched": "No se encontraron datos. Intenta refinar tu búsqueda",
     "noDataInitial": "Haz clic en Buscar para encontrar registros de auditoría",
-    "actEndpointResponse": "Respuesta de endpoint"
+    "actEndpointResponse": "Respuesta de endpoint",
+    "detail": "Ver detalle del registro"
   },
   "debugLog": {
     "title": "Registro de depuración",
@@ -2044,7 +2059,7 @@
     "customShell": "Shell personalizado",
     "customShellPlaceholder": "/usr/bin/python3",
     "required": "*Requerido",
-    "timeoutSeconds": "Tiempo de espera (s)",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
     "minTimeout": "El mínimo es {min} segundos",
     "maxTimeout": "El máximo es {max} segundos",
     "command": "Comando",
@@ -2083,7 +2098,7 @@
     "runOnServer": "Ejecutar en el servidor",
     "runOnServerDisabledTip": "Habilita los scripts del lado del servidor globalmente para activar esta función.",
     "runOnServerTip": "Ejecuta el script en el servidor Observer RMM en el contexto de este agente.",
-    "timeoutSeconds": "Tiempo de espera (s)",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
     "minTimeout": "El mínimo es {min} segundos",
     "cancel": "Cancelar",
     "run": "Ejecutar",
@@ -2115,7 +2130,8 @@
     "colStatus": "Estado",
     "colLogOnAs": "Iniciar sesión como",
     "startTypeDelayed": "{type} (retrasado)",
-    "localSystem": "LocalSystem"
+    "localSystem": "LocalSystem",
+    "actionsAria": "Acciones del servicio {name}"
   },
   "serviceDetail": {
     "title": "Detalles del servicio - {name}",
@@ -2180,7 +2196,7 @@
     "shebangWarning": "Los scripts Shell/Python en Linux/Mac necesitan un shebang al inicio del script, p. ej. {bash} o {python}{br}Agrega uno para eliminar esta advertencia. Ignóralo en Windows.",
     "scriptArgsLabel": "Argumentos del script",
     "scriptArgsLabelHint": "Presiona Enter después de escribir cada argumento",
-    "timeoutSeconds": "Tiempo de espera (s)",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
     "syntax": "Sintaxis",
     "runAsUser": "Ejecutar como usuario (solo Windows)",
     "runAsUserTip": "Establecer este valor en el modelo del script siempre anulará cualquier casilla 'Ejecutar como usuario' de la interfaz y forzará que este script se ejecute siempre en el contexto del usuario conectado. Si no hay ningún usuario conectado, el script se ejecutará como SYSTEM.",
@@ -2335,9 +2351,9 @@
     "resolvedScript": "Script de resolución",
     "resolvedWebHook": "Web Hook de resolución",
     "resolvedArgs": "Argumentos del script de resolución",
-    "resolvedArgsHint": "Presione Enter después de escribir cada argumento",
+    "resolvedArgsHint": "Presiona Enter después de escribir cada argumento",
     "resolvedEnvVars": "Variables de entorno de la acción de resolución",
-    "resolvedEnvVarsHint": "Presione Enter después de escribir cada par clave=valor",
+    "resolvedEnvVarsHint": "Presiona Enter después de escribir cada par clave=valor",
     "resolvedTimeout": "Tiempo de espera del script de resolución (segundos)",
     "resolvedTimeoutRequired": "El tiempo de espera del script de resolución es obligatorio",
     "runActionsOnlyOn": "Ejecutar acciones solo en",
@@ -2346,25 +2362,25 @@
     "checks": "Chequeos",
     "tasks": "Tareas",
     "stepAgentOverdue": "Configuración de agente atrasado",
-    "tooltipAgentFailure": "Seleccione qué notificaciones se deben enviar cuando un agente está atrasado. Habilitado anulará la configuración de notificaciones del agente y siempre notificará. Sin configurar usará la configuración de notificaciones definida en el agente. Deshabilitado anulará la configuración de notificaciones del agente y nunca notificará.",
+    "tooltipAgentFailure": "Selecciona qué notificaciones se deben enviar cuando un agente está atrasado. Habilitado anulará la configuración de notificaciones del agente y siempre notificará. Sin configurar usará la configuración de notificaciones definida en el agente. Deshabilitado anulará la configuración de notificaciones del agente y nunca notificará.",
     "email": "Correo",
     "text": "SMS",
     "dashboard": "Panel",
     "alertAgainDays": "Volver a alertar si no se resuelve después de (días)",
     "periodicDaysMin": "Los días periódicos deben ser 0 o mayores",
-    "tooltipAgentResolved": "Seleccione qué notificaciones se deben enviar cuando un agente atrasado vuelve a estar en línea.",
+    "tooltipAgentResolved": "Selecciona qué notificaciones se deben enviar cuando un agente atrasado vuelve a estar en línea.",
     "stepCheck": "Configuración de chequeos",
-    "tooltipCheckFailure": "Seleccione qué notificaciones se envían cuando un chequeo falla. Habilitado anulará la configuración de notificaciones del chequeo y siempre notificará. Sin configurar usará la configuración de notificaciones definida en el chequeo. Deshabilitado anulará la configuración de notificaciones del chequeo y nunca notificará.",
+    "tooltipCheckFailure": "Selecciona qué notificaciones se envían cuando un chequeo falla. Habilitado anulará la configuración de notificaciones del chequeo y siempre notificará. Sin configurar usará la configuración de notificaciones definida en el chequeo. Deshabilitado anulará la configuración de notificaciones del chequeo y nunca notificará.",
     "onlyEmailSeverity": "Solo enviar correo según la severidad de la alerta",
     "hintDefaultErrorWarning": "Por defecto 'error' y 'advertencia'",
     "onlyTextSeverity": "Solo enviar SMS según la severidad de la alerta",
     "onlyDashboardSeverity": "Solo mostrar la alerta en el panel según la severidad",
     "hintDefaultErrorWarningInfo": "Por defecto 'error', 'advertencia' e 'info'",
-    "tooltipCheckResolved": "Seleccione qué notificaciones se envían cuando un chequeo fallido se resuelve.",
+    "tooltipCheckResolved": "Selecciona qué notificaciones se envían cuando un chequeo fallido se resuelve.",
     "stepTask": "Configuración de tareas automatizadas",
-    "tooltipTaskFailure": "Seleccione qué notificaciones se envían cuando una tarea automatizada falla. Habilitado anulará la configuración de notificaciones de la tarea y siempre notificará. Sin configurar usará la configuración de notificaciones definida en la tarea. Deshabilitado anulará la configuración de notificaciones de la tarea y nunca notificará.",
+    "tooltipTaskFailure": "Selecciona qué notificaciones se envían cuando una tarea automatizada falla. Habilitado anulará la configuración de notificaciones de la tarea y siempre notificará. Sin configurar usará la configuración de notificaciones definida en la tarea. Deshabilitado anulará la configuración de notificaciones de la tarea y nunca notificará.",
     "alertAgainDaysTask": "Volver a alertar si no se resuelve (días)",
-    "tooltipTaskResolved": "Seleccione qué notificaciones se envían cuando una tarea fallida se resuelve.",
+    "tooltipTaskResolved": "Selecciona qué notificaciones se envían cuando una tarea fallida se resuelve.",
     "sevError": "Error",
     "sevWarning": "Advertencia",
     "sevInfo": "Informativo",
@@ -2374,9 +2390,10 @@
     "addEmailTitle": "Agregar correo",
     "addBtn": "Agregar",
     "addNumberTitle": "Agregar número",
-    "addNumberMessage": "Use el formato E.164: debe tener el símbolo <b>+</b> y el <span class='mono'>código de país</span>, seguido del <span class='mono'>número de teléfono</span>, p. ej. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
+    "addNumberMessage": "Usa el formato E.164: debe tener el símbolo <b>+</b> y el <span class='mono'>código de país</span>, seguido del <span class='mono'>número de teléfono</span>, p. ej. <b>+<span class='mono'>1</span><span class='mono'>2131231234</span></b>",
     "nameRequired": "Debe establecer un nombre",
-    "notifyEdited": "¡Plantilla de alerta guardada!"
+    "notifyEdited": "¡Plantilla de alerta guardada!",
+    "removeRecipient": "Quitar destinatario"
   },
   "alertTemplateAdd": {
     "title": "Editar plantilla de alerta asignada a {type}",
@@ -2574,7 +2591,8 @@
     "confirmValueDeleteTitle": "Confirmar eliminación de valor",
     "confirmValueDeleteMessage": "Eliminar ciertos valores del registro puede causar inestabilidad del sistema. ¿Seguro que quieres eliminar permanentemente este valor?",
     "selectionRequiredTitle": "Selección requerida",
-    "selectionRequiredMessage": "Selecciona un subárbol o clave antes de crear una nueva clave."
+    "selectionRequiredMessage": "Selecciona un subárbol o clave antes de crear una nueva clave.",
+    "actionsAria": "Acciones de {name}"
   },
   "registryValueModal": {
     "edit": "Editar",
@@ -2694,7 +2712,8 @@
     "returnCode": "Código de retorno: ",
     "stdOut": "Salida estándar: ",
     "errOut": "Salida de error: ",
-    "executionTime": "Tiempo de ejecución: "
+    "executionTime": "Tiempo de ejecución: ",
+    "downloadPng": "Descargar gráfico (PNG)"
   },
   "fileBrowser": {
     "folderEmpty": "La carpeta está vacía",
@@ -2770,7 +2789,7 @@
       "actions": "Acciones",
       "description": "Descripción",
       "search": "Buscar",
-      "pleaseWait": "Espere por favor...",
+      "pleaseWait": "Espera, por favor...",
       "import": "Importar",
       "export": "Exportar",
       "run": "Ejecutar",
@@ -2807,9 +2826,9 @@
       "bulkActions": "Acciones masivas",
       "rename": "Renombrar",
       "download": "Descargar",
-      "enterFolderName": "Ingrese un nombre de carpeta",
-      "enterNewName": "Ingrese un nuevo nombre de {type}",
-      "confirmTitle": "¿Está seguro?",
+      "enterFolderName": "Ingresa un nombre de carpeta",
+      "enterNewName": "Ingresa un nuevo nombre de {type}",
+      "confirmTitle": "¿Estás seguro?",
       "nAssets": "{n} activos",
       "oneAsset": "un activo",
       "deleteConfirmMessage": "Está a punto de eliminar {assets}. Esta acción no es reversible.",
@@ -2822,13 +2841,13 @@
       "text": "Texto",
       "url": "URL",
       "output": "Salida",
-      "noAssets": "No se encontraron activos de reporte. Vaya al Gestor de Reportes y use el botón Activos de Reporte para subir archivos",
+      "noAssets": "No se encontraron activos de reporte. Ve al Gestor de Reportes y usa el botón Activos de Reporte para subir archivos",
       "selected": "Seleccionado",
       "select": "Seleccionar"
     },
     "assetUpload": {
       "title": "Subir archivo",
-      "selectFiles": "Seleccione archivos",
+      "selectFiles": "Selecciona archivos",
       "upload": "Subir",
       "uploadSuccess": "Archivos subidos correctamente"
     },
@@ -2854,7 +2873,7 @@
     "variablesSelector": {
       "baseTemplateBlocks": "Bloques de plantilla base",
       "copied": "¡Copiado!",
-      "blockNotFound": "Bloque no encontrado en la plantilla. Haga clic en el bloque para copiarlo y pegarlo en la plantilla",
+      "blockNotFound": "Bloque no encontrado en la plantilla. Haz clic en el bloque para copiarlo y pegarlo en la plantilla",
       "variables": "Variables",
       "forLoop": "bucle for",
       "dataQueryNoResults": "La consulta de datos: {key} no devolvió resultados",
@@ -2869,7 +2888,7 @@
       "attachmentNameLabel": "Nombre del adjunto",
       "attachmentNameHint": "No incluya la extensión.",
       "attachmentExtensionLabel": "Extensión del adjunto",
-      "attachmentExtensionHint": "Ingrese la extensión deseada sin punto (p. ej., csv, json, txt). Predeterminado 'txt' si se deja en blanco.",
+      "attachmentExtensionHint": "Ingresa la extensión deseada sin punto (p. ej., csv, json, txt). Predeterminado 'txt' si se deja en blanco.",
       "includeReportLinkLabel": "Incluir un enlace directo para ver el reporte en línea (requiere autenticación de cuenta Observer).",
       "includeReportLinkTooltip": "El enlace se agregará automáticamente al final del cuerpo del correo."
     },
@@ -2890,7 +2909,7 @@
       "title": "Seleccionar Consulta de Datos",
       "queriesLabel": "Consultas de Datos",
       "select": "Seleccionar",
-      "selectPrompt": "Seleccione una consulta del menú desplegable"
+      "selectPrompt": "Selecciona una consulta del menú desplegable"
     },
     "editorToolbar": {
       "formatting": "Formato",
@@ -2946,7 +2965,8 @@
       "colDateCreated": "Fecha de creación",
       "deleteTitle": "¿Eliminar el historial de {name}?",
       "deleteMessage": "Esto eliminará la entrada del historial permanentemente.",
-      "showError": "Ver el error"
+      "showError": "Ver el error",
+      "colError": "Error"
     },
     "htmlTemplateForm": {
       "newTitle": "Nueva plantilla base",
@@ -3248,7 +3268,8 @@
       "reason_so_no_soportado_camara": "Este sistema operativo no toma fotos con la cámara"
     },
     "filterClient": "Cliente",
-    "search": "Buscar en la tabla"
+    "search": "Buscar en la tabla",
+    "viewTimeline": "Ver el caso"
   },
   "diskEncryption": {
     "title": "Cifrado de disco",
@@ -3716,7 +3737,7 @@
       "verdictValid": "Este certificado es auténtico y no fue alterado.",
       "verdictInvalid": "Este certificado no supera la verificación.",
       "notFound": "No hay un certificado con ese identificador en esta instalación.",
-      "throttled": "Demasiadas consultas seguidas. Espere un momento y vuelva a intentar.",
+      "throttled": "Demasiadas consultas seguidas. Espera un momento y vuelve a intentar.",
       "offlineNotice": "La firma también puede verificarse sin este sitio, con la clave pública de la instalación:",
       "offlineLink": "clave pública de firma",
       "issuedAtLine": "Emitido: {value}",
@@ -3867,7 +3888,7 @@
     "on": "Encendido",
     "off": "Apagado",
     "removeTooltip": "Quitar la regla (vuelve a heredar)",
-    "addTitle": "Agregar regla: elija un cliente y, si corresponde, un sitio o un equipo",
+    "addTitle": "Agregar regla: elige un cliente y, si corresponde, un sitio o un equipo",
     "client": "Cliente",
     "siteOptional": "Sitio (opcional)",
     "agentOptional": "Equipo (opcional)",
@@ -3892,7 +3913,8 @@
     "state_error": "Error al pedir la captura",
     "state_timeout": "El equipo no respondió",
     "state_espera": "Espera unos segundos antes de pedir otra",
-    "state_offline": "El equipo está sin conexión"
+    "state_offline": "El equipo está sin conexión",
+    "open": "Ver captura de {host}"
   },
   "settingsPage": {
     "pageTitle": "Ajustes",

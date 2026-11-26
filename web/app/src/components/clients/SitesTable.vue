@@ -15,7 +15,15 @@
           <q-tooltip>{{ $t("sitesTable.close") }}</q-tooltip>
         </q-btn>
       </q-bar>
+      <!-- V2-G15: patrón de rejilla (composables/rejillaTabla.js). La tabla es UNA
+           parada de tabulador (el host del nombre), las flechas mueven la fila,
+           Enter/Espacio editan y la tecla Menú abre el menú contextual de la fila.
+           Los oyentes de la raíz atajan el foco cuando el reciclaje lo sube al
+           scroller. -->
+      <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
       <q-table
+        ref="tablaRejilla"
+        @virtual-scroll="alDesplazarVirtual"
         dense
         :rows="sites"
         :columns="columns"
@@ -48,7 +56,7 @@
 
         <!-- loading slot -->
         <template v-slot:loading>
-          <q-inner-loading showing color="primary" />
+          <q-inner-loading showing class="obs-icon-neutral" />
         </template>
 
         <!-- body slots -->
@@ -91,7 +99,15 @@
             </q-menu>
             <!-- name -->
             <q-td>
-              {{ props.row.name }}
+              <span
+                class="obs-rej__host"
+                :data-fila="props.rowIndex"
+                :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+                @focus="filaFoco = props.rowIndex"
+                @keydown.enter.prevent="showEditSite(props.row)"
+                @keydown.space.prevent="showEditSite(props.row)"
+                >{{ props.row.name }}</span
+              >
             </q-td>
             <!-- agent count -->
             <!-- 🪤 V2-G01 (2026-11-12): el `classes: "mono"` de la definicion de
@@ -105,6 +121,7 @@
           </q-tr>
         </template>
       </q-table>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -116,6 +133,7 @@ import { useI18n } from "vue-i18n";
 import { useQuasar, useDialogPluginComponent } from "quasar";
 import { fetchClient, removeSite } from "@/api/clients";
 import { notifySuccess } from "@/utils/notify";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imports
 import SitesForm from "@/components/clients/SitesForm.vue";
@@ -154,6 +172,14 @@ export default {
     // sites table logic
     const sites = ref([]);
     const loading = ref(false);
+
+    // 050 (V2-G15): rejilla de teclado sobre la tabla virtual.
+    const tablaRejilla = ref(null);
+    const { filaFoco, alEntrarFoco, alTeclaRejilla, alDesplazarVirtual } =
+      usarRejillaTabla({
+        refTabla: tablaRejilla,
+        filas: () => sites.value,
+      });
 
     async function getSites() {
       loading.value = true;
@@ -221,6 +247,13 @@ export default {
 
       // i18n-aware columns
       columns,
+
+      // rejilla de teclado (V2-G15)
+      tablaRejilla,
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
 
       // methods
       getSites,

@@ -141,6 +141,11 @@
                  aunque sea solo palabras; solo la AUSENCIA («None», «No
                  Enclosure N/A») va en Archivo. -->
             <q-item-section
+              :class="{
+                'obs-ui-text': ['None', 'No Enclosure N/A'].includes(
+                  summary.make_model,
+                ),
+              }"
               >{{ summary.make_model }}</q-item-section
             >
           </q-item>
@@ -250,7 +255,7 @@
             <small
               ><i18n-t keypath="agentTabs.summary.checksPassing" tag="span"
                 ><template #n
-                  ><span class="mono">{{
+                  ><span>{{
                     summary.checks.passing
                   }}</span></template
                 ></i18n-t
@@ -267,7 +272,7 @@
             <small
               ><i18n-t keypath="agentTabs.summary.checksFailing" tag="span"
                 ><template #n
-                  ><span class="mono">{{
+                  ><span>{{
                     summary.checks.failing
                   }}</span></template
                 ></i18n-t
@@ -284,7 +289,7 @@
             <small
               ><i18n-t keypath="agentTabs.summary.checksWarning" tag="span"
                 ><template #n
-                  ><span class="mono">{{
+                  ><span>{{
                     summary.checks.warning
                   }}</span></template
                 ></i18n-t
@@ -296,7 +301,7 @@
             <small
               ><i18n-t keypath="agentTabs.summary.checksInfo" tag="span"
                 ><template #n
-                  ><span class="mono">{{ summary.checks.info }}</span></template
+                  ><span>{{ summary.checks.info }}</span></template
                 ></i18n-t
               ></small
             >

@@ -42,6 +42,19 @@
             outline
           />
         </template>
+        <!-- 050 (V2-G15): cabeceras ordenables alcanzables con TAB; `.stop`
+             para que la rejilla no reciba la tecla. -->
+        <template #header-cell="props">
+          <q-th
+            :props="props"
+            :tabindex="props.col.sortable ? 0 : undefined"
+            :role="props.col.sortable ? 'button' : undefined"
+            @keydown.enter.space.prevent.stop="
+              props.col.sortable && props.sort(props.col)
+            "
+            >{{ props.col.label }}</q-th
+          >
+        </template>
         <template #body="props">
           <q-tr>
             <!-- rows -->
@@ -115,7 +128,7 @@ const columns = computed<QTableColumn[]>(() => [
     label: "",
     field: "action",
     align: "left",
-    sortable: true,
+    sortable: false,
   },
 ]);
 

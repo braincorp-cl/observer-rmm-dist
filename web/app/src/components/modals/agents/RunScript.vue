@@ -164,7 +164,7 @@
             dense
             outlined
             type="number"
-            style="max-width: 150px"
+            style="max-width: 240px"
             :label="$t('runScript.timeoutSeconds')"
             stack-label
             :rules="[

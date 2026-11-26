@@ -104,10 +104,15 @@
           :style="{ height: `${$q.screen.height - 132}px` }"
           container
         >
+          <!-- 050 (V2-G06): `behavior="desktop"`. En el layout container el
+               breakpoint se mide sobre el layout (1008 px a 1024) y en modo
+               móvil desaparecen el mini y su tirador, que es el único control
+               para reabrir el cajón. -->
           <q-drawer
             v-model="showVariablesDrawer"
             :mini="drawerMiniState"
             side="left"
+            behavior="desktop"
             bordered
             :width="500"
             :mini-width="40"
@@ -254,7 +259,6 @@
         v-if="tab == 'preview'"
         :showing="isLoading"
         :label="$t('reporting.templateForm.generatingReport')"
-        color="primary"
         label-style="font-size: 1.1em"
       />
 

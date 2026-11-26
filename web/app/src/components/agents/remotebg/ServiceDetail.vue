@@ -12,7 +12,7 @@
       <q-card-section>
         <div class="row">
           <div class="col-3">{{ $t("serviceDetail.serviceName") }}</div>
-          <div class="col-9">{{ service.name }}</div>
+          <div class="col-9 mono">{{ service.name }}</div>
         </div>
         <br />
         <div class="row">

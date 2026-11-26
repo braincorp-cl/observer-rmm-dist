@@ -15,6 +15,19 @@
         />
         {{ title }}
         <q-space />
+        <!-- 050 (V2-G15): la barra propia de ApexCharts (div sin tabindex) se
+             apaga; la descarga, que era su única acción sin otro control,
+             pasa a un q-btn alcanzable con el tabulador. -->
+        <q-btn
+          v-if="showChart"
+          dense
+          flat
+          icon="download"
+          :aria-label="$t('checkGraph.downloadPng')"
+          @click="downloadPng"
+        >
+          <q-tooltip>{{ $t("checkGraph.downloadPng") }}</q-tooltip>
+        </q-btn>
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip>{{ $t("checkGraph.close") }}</q-tooltip>
         </q-btn>
@@ -37,6 +50,7 @@
         />
       </div>
       <apexchart
+        ref="chart"
         v-if="showChart"
         class="q-pt-md"
         type="line"
@@ -81,14 +95,19 @@ export default {
         chart: {
           id: "chart2",
           type: "line",
+          // 050 (V2-G15): sin barra ni zoom por arrastre (sólo ratón).
           toolbar: {
-            show: true,
+            show: false,
+          },
+          zoom: {
+            enabled: false,
           },
           animations: {
             enabled: false,
           },
         },
-        colors: [getCssVar("primary")],
+        // 050 (V2-G05): la serie es un dato, no una acción: token neutro.
+        colors: [obsToken("--obs-text-2")],
         stroke: {
           width: 3,
         },
@@ -174,6 +193,16 @@ export default {
         .catch(() => {
           this.$q.loading.hide();
         });
+    },
+    downloadPng() {
+      const chart = this.$refs.chart;
+      if (!chart || !chart.dataURI) return;
+      chart.dataURI().then(({ imgURI }) => {
+        const a = document.createElement("a");
+        a.href = imgURI;
+        a.download = `${this.title}.png`;
+        a.click();
+      });
     },
     show() {
       this.$refs.dialog.show();

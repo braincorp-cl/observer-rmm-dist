@@ -228,6 +228,60 @@
                   $t("agentTabs.common.delete")
                 }}</q-item-section>
               </q-item>
+              <!-- 050 (V2-G15): los enlaces de «más información» son <span>
+                   sin teclado; desde el menú de la fila quedan alcanzables. -->
+              <q-item
+                v-if="props.row.check_result.id"
+                clickable
+                v-close-popup
+                @click="showCheckGraphModal(props.row)"
+              >
+                <q-item-section side>
+                  <q-icon name="history" />
+                </q-item-section>
+                <q-item-section>{{
+                  $t("agentTabs.checks.showRunHistory")
+                }}</q-item-section>
+              </q-item>
+              <q-item
+                v-if="props.row.check_type === 'ping' && props.row.check_result.id"
+                clickable
+                v-close-popup
+                @click="showPingInfo(props.row)"
+              >
+                <q-item-section side>
+                  <q-icon name="description" />
+                </q-item-section>
+                <q-item-section>{{
+                  $t("agentTabs.checks.lastOutput")
+                }}</q-item-section>
+              </q-item>
+              <q-item
+                v-if="props.row.check_type === 'script' && props.row.check_result.id"
+                clickable
+                v-close-popup
+                @click="showScriptOutput(props.row.check_result)"
+              >
+                <q-item-section side>
+                  <q-icon name="description" />
+                </q-item-section>
+                <q-item-section>{{
+                  $t("agentTabs.checks.lastOutput")
+                }}</q-item-section>
+              </q-item>
+              <q-item
+                v-if="props.row.check_type === 'eventlog' && props.row.check_result.id"
+                clickable
+                v-close-popup
+                @click="showEventInfo(props.row)"
+              >
+                <q-item-section side>
+                  <q-icon name="description" />
+                </q-item-section>
+                <q-item-section>{{
+                  $t("agentTabs.checks.lastOutput")
+                }}</q-item-section>
+              </q-item>
               <q-separator></q-separator>
               <q-item
                 clickable

@@ -10,6 +10,8 @@
       v-for="block in templateBlocks"
       :key="block"
       :inset-level="block.warning ? 0 : 1"
+      clickable
+      @click="copy(block.block, false, true)"
     >
       <q-item-section avatar v-if="block.warning">
         <q-icon name="warning" color="warning">
@@ -19,13 +21,11 @@
         </q-icon>
       </q-item-section>
       <q-item-section>
-        <!-- 050 (T044, G01): un bloque de la plantilla base y una variable son
-             identificadores de código ⇒ JetBrains Mono. -->
-        <span
-          class="cursor-pointer mono"
-          style="text-decoration-line: underline; font-size: smaller"
-          @click="copy(block.block, false, true)"
-        >
+        <!-- 050 (V2-G01, enmienda 2026-11-20 B): el nombre de un bloque o de
+             una variable lo elige el autor de la plantilla ⇒ Archivo.
+             (V2-G15): la acción de copiar vive en el q-item clickable, que
+             entra en el recorrido del tabulador. -->
+        <span style="text-decoration-line: underline; font-size: smaller">
           {{ block.block }}
         </span>
       </q-item-section>
@@ -58,6 +58,8 @@
     <q-item
       v-for="(type, prop) in variableAnalysis"
       :key="prop"
+      clickable
+      @click="copy(prop.toString(), type.toLowerCase() === 'array')"
       @mouseover="mouseover = prop.toString()"
       @mouseleave="mouseover = ''"
     >
@@ -67,11 +69,7 @@
         <q-badge class="obs-chip-neutral" :label="type"></q-badge>
       </q-item-section>
       <q-item-label :lines="1">
-        <span
-          class="cursor-pointer mono"
-          style="text-decoration-line: underline; font-size: smaller"
-          @click="copy(prop.toString(), type.toLowerCase() === 'array')"
-        >
+        <span style="text-decoration-line: underline; font-size: smaller">
           {{ prop }}
         </span>
         <q-tooltip :delay="500">
@@ -85,11 +83,9 @@
         "
         side
       >
-        <q-badge
-          class="cursor-pointer"
-          :label="$t('reporting.variablesSelector.forLoop')"
-          @click="copy(prop.toString(), true)"
-        />
+        <!-- 050 (V2-G15): indicador; el q-item clickable ya copia el bucle
+             for en los tipos Array (normalizados en getVariables). -->
+        <q-badge :label="$t('reporting.variablesSelector.forLoop')" />
       </q-item-section>
     </q-item>
   </q-list>

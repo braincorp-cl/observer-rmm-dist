@@ -6,7 +6,6 @@
       :showing="isLoading"
       :label='$t("reporting.common.pleaseWait")'
       label-style="font-size: 1.1em"
-      color="primary"
     />
     <!-- 050 (T045, G02): el lienzo del reporte es papel y sale del token
          --obs-paper, igual en ambos temas; el documento no se re-tematiza. -->

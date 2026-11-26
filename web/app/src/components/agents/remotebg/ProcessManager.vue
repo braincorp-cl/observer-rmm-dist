@@ -49,7 +49,7 @@
           <q-icon name="fas fa-memory" class="q-mr-xs" />
           <div class="text-caption">
             {{ $t("processManager.ramUsage") }}
-            <span class="text-body1 text-weight-medium">{{
+            <span class="text-body1 text-weight-medium mono">{{
               $t("processManager.ramValue", {
                 used: bytes2Human(totalRamUsage),
                 total: total_ram,
@@ -84,7 +84,7 @@
           <q-badge
             align="middle"
             size="sm"
-            class="text-h6"
+            class="text-h6 mono"
             color="blue"
             :label="pollInterval"
           />
@@ -131,9 +131,24 @@
         <q-td>{{
           $t("processManager.percent", { value: props.row.cpu_percent })
         }}</q-td>
-        <q-td>{{ bytes2Human(props.row.membytes) }}</q-td>
+        <q-td class="mono">{{ bytes2Human(props.row.membytes) }}</q-td>
         <q-td>{{ props.row.username }}</q-td>
-        <q-td>{{ props.row.pid }}</q-td>
+        <q-td class="mono">{{ props.row.pid }}</q-td>
+        <!-- 050 (V2-G15): vía de teclado a «Finalizar proceso»; el
+             context-menu de la fila queda como atajo de ratón. -->
+        <q-td auto-width>
+          <q-btn
+            flat
+            round
+            dense
+            size="sm"
+            icon="fas fa-trash-alt"
+            :aria-label="
+              $t('processManager.endProcess') + ' ' + props.row.name
+            "
+            @click="killProcess(props.row.pid, props.row.name)"
+          />
+        </q-td>
       </q-tr>
     </template>
   </q-table>
@@ -197,6 +212,7 @@ export default {
         align: "left",
         sortable: true,
       },
+      { name: "actions", label: "", field: "pid", align: "right" },
     ]);
 
     // polling setup

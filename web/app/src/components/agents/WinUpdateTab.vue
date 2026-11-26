@@ -144,10 +144,41 @@
             <q-icon
               v-else-if="props.row.action === 'inherit'"
               name="fas fa-sitemap"
-              color="accent"
+              class="obs-icon-neutral"
             >
               <q-tooltip>{{ $t("agentTabs.patches.inherit") }}</q-tooltip>
             </q-icon>
+            <!-- V2-G15: vía de teclado al mismo menú de política del clic derecho -->
+            <q-btn
+              v-if="!props.row.installed"
+              flat
+              dense
+              round
+              size="sm"
+              icon="more_vert"
+              :aria-label="$t('agentTabs.patches.changePolicy')"
+            >
+              <q-menu>
+                <q-list dense style="min-width: 100px">
+                  <q-item
+                    v-for="op in [
+                      ['inherit', 'inherit'],
+                      ['approve', 'approve'],
+                      ['ignore', 'ignore'],
+                      ['nothing', 'doNothing'],
+                    ]"
+                    :key="op[0]"
+                    clickable
+                    v-close-popup
+                    @click="editWinUpdate(props.row.id, op[0])"
+                  >
+                    <q-item-section>{{
+                      $t("agentTabs.patches." + op[1])
+                    }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </q-td>
           <q-td>
             <q-icon
@@ -192,11 +223,12 @@
               props.row.title
             }}</q-tooltip>
           </q-td>
-          <q-td @click="showUpdateDetails(props.row)">
-            <span
-              style="cursor: pointer; text-decoration: underline"
-              class="text-primary"
-              >{{ truncateText(props.row.description, 50) }}</span
+          <q-td>
+            <a
+              href="#"
+              class="obs-mgr__link"
+              @click.prevent="showUpdateDetails(props.row)"
+              >{{ truncateText(props.row.description, 50) }}</a
             >
             <q-tooltip v-if="(props.row.description || '').length > 50">{{
               props.row.description

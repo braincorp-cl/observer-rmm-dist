@@ -109,6 +109,17 @@
           >
             <q-menu auto-close>
               <q-list dense style="min-width: 210px">
+                <!-- 050 (V2-G15): abrir el caso por teclado; la fila solo
+                     responde al clic. -->
+                <q-item clickable @click="openTimeline(null, props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="timeline" size="xs" />
+                  </q-item-section>
+                  <q-item-section>{{
+                    $t("lostEquipment.viewTimeline")
+                  }}</q-item-section>
+                </q-item>
+                <q-separator />
                 <q-item clickable @click="lockScreen(props.row)">
                   <q-item-section avatar>
                     <q-icon name="lock" size="xs" />

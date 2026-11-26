@@ -63,6 +63,7 @@
           <q-input
             v-model="state.custom_shell"
             outlined
+            input-class="mono"
             :label="$t('sendCommandCommon.customShell')"
             stack-label
             :placeholder="$t('sendCommandCommon.customShellPlaceholder')"
@@ -75,7 +76,7 @@
             dense
             outlined
             type="number"
-            style="max-width: 150px"
+            style="max-width: 240px"
             :label="$t('sendCommandCommon.timeoutSeconds')"
             stack-label
             :rules="[
@@ -92,6 +93,7 @@
           <q-input
             v-model="state.cmd"
             outlined
+            input-class="mono"
             :label="$t('sendCommandCommon.command')"
             stack-label
             :placeholder="cmdPlaceholder(state.shell)"

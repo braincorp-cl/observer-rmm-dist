@@ -64,6 +64,19 @@
           />
         </template>
 
+        <!-- 050 (V2-G15): el th ordenable de Quasar sólo ordenaba con clic; se
+             le da parada de TAB y Enter/Espacio llaman al mismo props.sort. -->
+        <template v-slot:header-cell="props">
+          <q-th
+            :props="props"
+            :tabindex="props.col.sortable ? 0 : undefined"
+            :role="props.col.sortable ? 'button' : undefined"
+            @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+            @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+            >{{ props.col.label }}</q-th
+          >
+        </template>
+
         <template v-slot:body="props">
           <q-tr class="cursor-pointer">
             <q-menu context-menu auto-close>

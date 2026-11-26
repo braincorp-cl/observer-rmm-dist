@@ -185,9 +185,13 @@
                     <q-item-label>{{ email }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
-                    <q-icon
-                      class="cursor-pointer"
-                      name="delete"
+                    <!-- 050 (V2-G15): botón focable, entra al recorrido del TAB. -->
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      icon="delete"
+                      :aria-label="$t('reporting.common.delete') + ': ' + email"
                       @click="removeEmail(email)"
                     />
                   </q-item-section>

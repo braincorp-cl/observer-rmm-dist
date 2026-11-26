@@ -8,7 +8,17 @@
         <q-tooltip>{{ $t("auditManager.close") }}</q-tooltip>
       </q-btn>
     </q-bar>
+    <!-- 050 (V2-G15): patrón de rejilla (composables/rejillaTabla.js). La fila
+         abría el detalle sólo con clic; ahora la celda de hora es el host
+         enfocable (una parada de TAB, flechas entre filas, Enter/Espacio abre
+         el detalle). Los oyentes de la raíz atajan el foco que el reciclaje
+         del desplazamiento virtual sube al scroller. -->
+    <div @focusin="alEntrarFoco" @keydown="alTeclaRejilla">
     <q-table
+      ref="tablaRejilla"
+      @virtual-scroll="alDesplazarVirtual"
+      :virtual-scroll-item-size="33"
+      :virtual-scroll-sticky-size-start="28"
       @request="onRequest"
       :title="modal ? $t('auditManager.tableTitle') : ''"
       :rows="auditLogs"
@@ -127,6 +137,25 @@
         <q-space />
         <export-table-btn :data="auditLogs" :columns="columns" />
       </template>
+      <!-- 050 (V2-G15): el th ordenable de Quasar sólo ordenaba con clic; se
+           le da parada de TAB y Enter/Espacio llaman al mismo props.sort. -->
+      <template v-slot:header-cell="props">
+        <q-th
+          :props="props"
+          :tabindex="props.col.sortable ? 0 : undefined"
+          :role="props.col.sortable ? 'button' : undefined"
+          :aria-sort="
+            props.col.sortable && pagination.sortBy === props.col.name
+              ? pagination.descending
+                ? 'descending'
+                : 'ascending'
+              : undefined
+          "
+          @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+          @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+          >{{ props.col.label }}</q-th
+        >
+      </template>
       <template v-slot:body-cell-action="props">
         <q-td :props="props">
           <div>
@@ -150,6 +179,16 @@
 
       <template v-slot:body-cell-entry_time="props">
         <q-td :props="props">
+          <span
+            class="obs-rej__host"
+            :data-fila="props.rowIndex"
+            :tabindex="props.rowIndex === filaFoco ? 0 : -1"
+            role="button"
+            :aria-label="$t('auditManager.detail')"
+            @focus="filaFoco = props.rowIndex"
+            @keydown.enter.prevent="openAuditDetail($event, props.row)"
+            @keydown.space.prevent="openAuditDetail($event, props.row)"
+          >
           <!-- fecha y hora en líneas propias, sin partir la fecha en sus guiones.
                V2-G01 (enmienda 2026-11-11): la marca de tiempo es un VALOR y
                va ENTERA en mono, no sólo su hora: así las horas quedan
@@ -161,9 +200,11 @@
             class="obs-nowrap-inline mono"
             >{{ parte }}
           </span>
+          </span>
         </q-td>
       </template>
     </q-table>
+    </div>
   </q-card>
 </template>
 
@@ -178,6 +219,7 @@ import { useUserDropdown } from "@/composables/accounts";
 import { useQuasar } from "quasar";
 import { fetchAuditLog } from "@/api/logs";
 import { formatTableColumnText } from "@/utils/format";
+import { usarRejillaTabla } from "@/composables/rejillaTabla";
 
 // ui imported
 import AuditLogDetailModal from "@/components/logs/AuditLogDetailModal.vue";
@@ -375,6 +417,18 @@ export default {
 
     // setup main audit log functionality
     const auditLogs = ref([]);
+
+    // 050 (V2-G15): rejilla de teclado sobre la tabla virtual.
+    const tablaRejilla = ref(null);
+    const {
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
+    } = usarRejillaTabla({
+      refTabla: tablaRejilla,
+      filas: () => auditLogs.value,
+    });
     const agentFilter = ref(null);
     const userFilter = ref(null);
     const actionFilter = ref(null);
@@ -483,6 +537,13 @@ export default {
     });
 
     return {
+      // 050 (V2-G15): rejilla de teclado
+      tablaRejilla,
+      filaFoco,
+      alEntrarFoco,
+      alTeclaRejilla,
+      alDesplazarVirtual,
+
       // data
       auditLogs,
       agentFilter,

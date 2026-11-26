@@ -89,6 +89,10 @@ export default {
       "NetConnectionID",
       // Valor ENUMERADO («Ethernet 802.3»): interfaz (enmienda 2026-11-21 B).
       "AdapterType",
+      // Nombre del dispositivo o del procesador gráfico (tanda 118dece): es
+      // nombre, no modelo ⇒ Archivo en todas las instancias.
+      "ProductName",
+      "VideoProcessor",
     ]);
     // Claves cuyo valor es SIEMPRE un identificador generado (clase 10) o un
     // nombre de clase WMI: todos los hermanos van en mono, aunque alguno salga
@@ -99,6 +103,12 @@ export default {
       "DeviceID",
       "SettingID",
       "GUID",
+      // Direcciones de red (tanda 118dece, I-339): valores dedicados aunque
+      // lleguen como arreglo ⇒ mono.
+      "IPAddress",
+      "IPSubnet",
+      "DefaultIPGateway",
+      "DNSServerSearchOrder",
     ]);
     // V2-G01 (tanda 2026-11-22, enmienda B): valores ENUMERADOS por WMI —el
     // nombre de clase («Win32_Processor»), el rol («CPU»), el estado («OK»)—
@@ -122,14 +132,34 @@ export default {
     // embebida a veces ⇒ Archivo. Solo Model queda como modelo (clase 7).
     const CLAVES_MODELO = new Set(["Model"]);
     const CLAVES_DESCRIPCION_PNP = new Set(["Name", "Caption", "Description"]);
+    // Tanda 118dece: una instancia es dispositivo si TRAE la clave PNPDeviceID
+    // (aunque valga null, como Win32_Processor) o si su clase es de hardware.
+    const CLASES_DISPOSITIVO = new Set([
+      "Win32_Processor",
+      "Win32_VideoController",
+      "Win32_NetworkAdapter",
+      "Win32_DiskDrive",
+    ]);
+    function esDispositivo(j) {
+      return (
+        !!j &&
+        typeof j === "object" &&
+        (Object.prototype.hasOwnProperty.call(j, "PNPDeviceID") ||
+          CLASES_DISPOSITIVO.has(j.CreationClassName))
+      );
+    }
     function esNombre(k, v, j) {
       const clave = String(k);
       if (CLAVES_DATO.has(clave)) return false;
       if (CLAVES_NOMBRE.has(clave)) return true;
       if (CLAVES_ENUMERADAS.has(clave)) return true;
       if (typeof v === "string" && /^(CIM|Win32)_\w+$/.test(v)) return true;
-      if (j && j.PNPDeviceID && CLAVES_MODELO.has(clave)) return false;
-      if (j && j.PNPDeviceID && CLAVES_DESCRIPCION_PNP.has(clave)) return true;
+      // I-336: Model es modelo de hardware (clase 7) traiga o no PNPDeviceID.
+      if (CLAVES_MODELO.has(clave)) return false;
+      // Ruta de dispositivo («\\.\PHYSICALDRIVE0»): clase 5 ⇒ mono, también
+      // cuando WMI la repite como Name de un dispositivo.
+      if (typeof v === "string" && v.startsWith("\\\\")) return false;
+      if (esDispositivo(j) && CLAVES_DESCRIPCION_PNP.has(clave)) return true;
       // El mismo rótulo descriptivo del adaptador aparece fuera de PnP con su
       // índice delante («[00000003] WAN Miniport (IKEv2)», en
       // Win32_NetworkAdapterConfiguration): sigue siendo descripción ⇒ Archivo.

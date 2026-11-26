@@ -61,6 +61,17 @@
       :no-data-label="$t('erase.orders.noData')"
       :loading-label="$t('erase.certificates.loading')"
     >
+      <!-- 050 (V2-G15): cabecera ordenable alcanzable con TAB. -->
+      <template v-slot:header-cell="props">
+        <q-th
+          :props="props"
+          :tabindex="props.col.sortable ? 0 : undefined"
+          :role="props.col.sortable ? 'button' : undefined"
+          @keydown.enter.prevent="props.col.sortable && props.sort(props.col)"
+          @keydown.space.prevent="props.col.sortable && props.sort(props.col)"
+          >{{ props.col.label }}</q-th
+        >
+      </template>
       <template v-slot:body-cell-action="props">
         <q-td :props="props">{{ actionLabel(props.row.action) }}</q-td>
       </template>

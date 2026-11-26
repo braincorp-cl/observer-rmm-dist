@@ -18,6 +18,7 @@
       <q-card-section class="q-gutter-sm">
         <q-input
           v-model="pathsText"
+          class="obs-mono-values"
           type="textarea"
           autogrow
           outlined
@@ -61,7 +62,7 @@
             <q-td :props="props">
               <q-icon
                 :name="props.row.dry_run ? 'science' : 'download'"
-                :color="props.row.dry_run ? 'warning' : 'secondary'"
+                class="obs-icon-neutral"
               />
             </q-td>
           </template>

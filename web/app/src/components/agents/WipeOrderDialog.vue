@@ -19,7 +19,11 @@
 
       <!-- Aviso no bloqueante "borrar sin recuperar" (D-06 / RN-03): sólo si no
            consta una recuperación completada para este equipo. No impide crear. -->
-      <q-banner v-if="!fileretrievalDone" dense class="obs-notice q-ma-md">
+      <q-banner
+        v-if="!fileretrievalDone"
+        dense
+        class="obs-notice obs-notice--warning q-ma-md"
+      >
         <template v-slot:avatar>
           <q-icon name="warning" />
         </template>
@@ -75,6 +79,7 @@
           type="textarea"
           autogrow
           outlined
+          class="obs-mono-values"
           :label="$t('erase.wipe.pathsAddLabel')"
           :hint="$t('erase.wipe.pathsAddHint')"
         />
@@ -83,6 +88,7 @@
           type="textarea"
           autogrow
           outlined
+          class="obs-mono-values"
           :label="$t('erase.wipe.pathsRemoveLabel')"
           :hint="$t('erase.wipe.pathsRemoveHint')"
         />
@@ -158,7 +164,7 @@
             <q-td :props="props">
               <q-icon
                 :name="props.row.dry_run ? 'science' : 'delete_forever'"
-                :color="props.row.dry_run ? 'warning' : 'negative'"
+                class="obs-icon-neutral"
               />
             </q-td>
           </template>
@@ -242,7 +248,7 @@
             <tr v-for="r in resultRows" :key="r.path">
               <td class="text-left oe-path">{{ r.path }}</td>
               <td class="text-left">{{ r.status }}</td>
-              <td class="text-right">{{ r.bytes }}</td>
+              <td class="text-right mono">{{ r.bytes }}</td>
             </tr>
           </tbody>
         </q-markup-table>

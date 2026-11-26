@@ -60,7 +60,11 @@
             keypath="agentWorkspace.context.filterFailingN"
             tag="span"
             ><template #n
-              ><span class="mono">{{ failingCount }}</span></template
+              ><span
+                class="mono"
+                :class="{ 'obs-ctx__num--neg': failingCount > 0 }"
+                >{{ failingCount }}</span
+              ></template
             ></i18n-t
           >
         </q-chip>
@@ -282,8 +286,9 @@ watch(
 .obs-ctx__chip--on-neg
   background: var(--obs-selected)
   color: var(--obs-text)
-  .mono
-    color: var(--q-negative)
+// 050 (B-203): el rojo liga al dato (failingCount > 0), no al encendido del filtro.
+.obs-ctx__num--neg
+  color: var(--q-negative)
 .obs-ctx__list
   overflow: hidden
 .obs-ctx__empty

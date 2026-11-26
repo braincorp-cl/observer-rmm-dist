@@ -49,6 +49,7 @@
               outlined
               dense
               autofocus
+              input-class="mono"
               :label="$t('erase.verify.inputLabel')"
               :hint="$t('erase.verify.inputHint')"
               @keyup.enter="verificar"

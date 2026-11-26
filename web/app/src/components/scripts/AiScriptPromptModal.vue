@@ -8,8 +8,7 @@
     <q-card class="ai-prompt-card">
       <q-card-section class="row items-center no-wrap q-pb-sm">
         <q-avatar
-          color="primary"
-          text-color="white"
+          class="obs-chip-neutral"
           icon="auto_awesome"
           size="34px"
         />

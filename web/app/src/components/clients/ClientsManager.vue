@@ -49,7 +49,7 @@
 
         <!-- loading slot -->
         <template v-slot:loading>
-          <q-inner-loading showing color="primary" />
+          <q-inner-loading showing class="obs-icon-neutral" />
         </template>
 
         <!-- body slots -->
