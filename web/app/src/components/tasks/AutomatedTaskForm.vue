@@ -217,8 +217,9 @@
                     { label: $t('automatedTask.shellCustom'), value: 'custom' },
                   ]"
                 />
+                <!-- S05: arriba, junto a la primera fila de shells, como v1. -->
                 <q-btn
-                  class="col-auto"
+                  class="col-auto self-start"
                   type="submit"
                   style="width: 50px"
                   flat

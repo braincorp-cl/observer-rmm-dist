@@ -1402,8 +1402,11 @@ body .q-table th.sorted .q-table__sort-icon
   min-width: 13.5em
 .row > .obs-tarea-comando
   min-width: 12em
+// Las shells en columnas explícitas: con un tope de ancho el pliegue dependía
+// del ancho de cada rótulo en Archivo (medido: 2+1+1 a 1280).
 .row > .q-option-group.obs-tarea-shells
-  max-width: 15em
+  display: grid
+  grid-template-columns: repeat(2, max-content)
 @media (min-width: 1440px)
   .row > .q-option-group.obs-tarea-shells
-    max-width: 20em
+    grid-template-columns: repeat(3, max-content)
