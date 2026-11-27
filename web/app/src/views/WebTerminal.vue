@@ -93,6 +93,24 @@ function setupXTerm() {
   term.loadAddon(fit);
   term.open(xtermContainer.value!);
   fit.fit();
+  // 🪤 (2026-11-27) xterm mide la celda al abrir, y si JetBrains Mono aún no
+  // cargó la mide con la fuente de respaldo (más baja): medido, 39 filas de
+  // 20 px = 780 px en un lienzo de 714, así que las 3 últimas filas —el prompt—
+  // quedaban bajo el borde de la ventana. Al terminar de cargar la fuente se
+  // reasigna fontFamily (xterm vuelve a medir la celda) y se reajusta; el
+  // tamaño del contenedor no cambia, así que el ResizeObserver no lo haría.
+  // `fonts.load` y no `fonts.ready`: la fuente se pide perezosa y `ready` puede
+  // resolverse antes de que nadie la haya pedido. El valor se alterna porque
+  // xterm ignora la reasignación del mismo valor y no volvería a medir.
+  document.fonts
+    ?.load(`15px ${OBS_FONT_MONO}`)
+    .catch(() => undefined)
+    .then(() => {
+      if (!term) return;
+      term.options.fontFamily = "monospace";
+      term.options.fontFamily = OBS_FONT_MONO;
+      resizeWindow();
+    });
   term.onData((data) => {
     send(JSON.stringify({ action: "ormmcli.input", data: { input: data } }));
   });
