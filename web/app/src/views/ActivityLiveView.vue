@@ -42,7 +42,7 @@
         <div v-for="e in pagina" :key="e.agent_id" class="col-12 col-sm-6 col-md-4 col-lg-3">
           <q-card flat bordered class="obs-live__card">
             <q-card-section class="q-py-xs row items-center no-wrap">
-              <div class="ellipsis obs-live__host" :title="e.hostname">{{ e.hostname }}</div>
+              <div class="obs-live__host obs-live__plegar">{{ e.hostname }}</div>
               <q-space />
               <q-btn
                 dense
@@ -75,7 +75,7 @@
             </div>
             <q-card-section class="q-py-xs text-caption">
               <div class="text-grey obs-live__lugar" :title="`${e.client} · ${e.site}`">{{ `${e.client} · ${e.site}` }}</div>
-              <div class="ellipsis" :title="detalle(e)">{{ detalle(e) }}</div>
+              <div class="obs-live__plegar">{{ detalle(e) }}</div>
               <div v-if="e.ultima && e.ultima.url" class="text-grey mono obs-live__url" :title="e.ultima.url">{{ e.ultima.url }}</div>
               <q-chip
                 v-if="e.estado && e.estado !== 'ok'"
@@ -249,5 +249,12 @@ onBeforeUnmount(() => equipos.value.forEach(liberar));
 .obs-live__lugar {
   white-space: normal;
   overflow-wrap: break-word;
+}
+/* V2-G06 (tanda 8042dd7): nombre y detalle pliegan enteros a 1024; un
+   identificador largo sin espacios parte solo si no cabe (G07). */
+.obs-live__plegar {
+  white-space: normal;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 </style>

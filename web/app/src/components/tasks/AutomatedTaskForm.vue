@@ -184,25 +184,24 @@
                   v-model="command"
                   dense
                   filled
-                  class="col-12 col-sm-6 col-lg-5 obs-mono-values"
+                  class="col-12 col-sm obs-mono-values"
                 />
+                <!-- V2-S05/G06 (tanda 8042dd7): una sola fila como v1 —Comando
+                     flexible, espera con ancho para su rótulo entero, las shells
+                     en línea que pliegan (3+1 a 1440, 2x2 a 1280) y Agregar a su
+                     derecha—. La grilla de 2 columnas en `col` colapsaba a 8 px. -->
                 <q-input
                   v-if="actionType === 'cmd'"
-                  class="col-6 col-lg-3"
+                  class="col-6 col-sm-auto obs-tarea-espera"
                   filled
                   dense
                   v-model.number="defaultTimeout"
                   type="number"
                   :label="$t('automatedTask.timeout')"
                 />
-                <!-- V2-S05 (tanda 5809d7e): v1 dispone las cuatro shells en 2x2
-                     con Agregar a su derecha (orden de lectura CMD, Powershell,
-                     Agregar, Bash, Personalizado); bajo lg van en la misma fila
-                     que el botón y en dos columnas. -->
                 <q-option-group
                   v-if="actionType === 'cmd'"
-                  class="col col-lg-4 q-pl-sm"
-                  style="display: grid; grid-template-columns: repeat(2, max-content)"
+                  class="col-auto q-pl-sm obs-tarea-shells"
                   inline
                   v-model="shell"
                   :options="[

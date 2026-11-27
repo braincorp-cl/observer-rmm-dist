@@ -30,7 +30,12 @@ code, kbd, samp, pre
 // Lotes 5809d7e (G01): el tooltip de CheckGraph. ApexCharts escribe el font-family
 // inline en el título (fecha y hora del punto, clase 8), por eso !important; el
 // valor y es un porcentaje (clase 11) solo en cpuload/memory/diskspace.
-.obs-check-graph .apexcharts-tooltip-title
+.obs-check-graph .apexcharts-tooltip-title,
+// Tanda 8042dd7: ApexCharts pone `.apexcharts-tooltip * { font-family: inherit }`,
+// que gana a .mono y a <pre>: la salida cruda (clase 16) y el retcode (clase 12)
+// del tooltip salían en Archivo.
+.obs-check-graph .apexcharts-tooltip .mono,
+.obs-check-graph .apexcharts-tooltip pre
   font-family: $obs-font-mono !important
 .obs-check-graph--pct .apexcharts-tooltip-text-y-value
   font-family: $obs-font-mono
@@ -1387,3 +1392,14 @@ body .q-table th.sorted .q-table__sort-icon
 // interfaz, en Archivo aunque la celda sea Mono. La marca boot/raya-archivo.js.
 .obs-raya
   font-family: $typography-font-family !important
+
+// V2-S05 (tanda 8042dd7): fila de comando de agregar-tarea con la forma de v1.
+// La espera lleva el ancho de su rótulo entero «Tiempo de espera (segundos)»
+// (G06); las shells pliegan en 2x2 bajo 1440 y en 3+1 desde 1440, como v1.
+.obs-tarea-espera
+  min-width: 13.5em
+.obs-tarea-shells
+  max-width: 15em
+@media (min-width: 1440px)
+  .obs-tarea-shells
+    max-width: 20em
