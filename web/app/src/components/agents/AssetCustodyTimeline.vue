@@ -57,9 +57,12 @@
             v-for="ev in events"
             :key="ev.id"
             :title="ev.kind_label || labelCustodyKind(ev.kind)"
-            :subtitle="formatDate(ev.at)"
             :icon="iconFor(ev.kind)"
           >
+            <!-- 050 (G01 clase 8): marca de tiempo dedicada del eslabon, en Mono. -->
+            <template #subtitle>
+              <span class="mono">{{ formatDate(ev.at) }}</span>
+            </template>
             <div class="text-body2">
               <div v-if="ev.location">
                 {{ campo("location", ev.location) }}
@@ -75,11 +78,10 @@
                    el boot respeta un title propio (`hasAttribute` + sin marca).
                    🔑 Una salvaguarda que lee el DOM no repara un corte hecho
                    ANTES del DOM. -->
-              <div
-                class="text-caption text-grey-6 ellipsis"
-                :title="campo('recordHash', ev.record_hash || dash)"
-              >
-                {{ rotulo("recordHash") }}<span class="mono">{{ corto(ev.record_hash) }}</span>
+              <!-- 050 (G06, 5809d7e): el hash va ENTERO; si no cabe, tiene
+                   scroll propio (.obs-token-entero), sin partir ni recortar. -->
+              <div class="text-caption text-grey-6">
+                {{ rotulo("recordHash") }}<span class="mono obs-token-entero">{{ ev.record_hash || dash }}</span>
               </div>
             </div>
           </q-timeline-entry>
@@ -238,9 +240,6 @@ export default {
       // cualquier texto crudo en el template como falta de traducción.
       campo: (clave, valor) => `${t(`erase.custody.${clave}`)}: ${valor}`,
       rotulo: (clave) => `${t(`erase.custody.${clave}`)}: `,
-      // 🪤 Sin hash no hay recorte que marcar: un «…» solo seria un corte
-      // falso, que es justo lo que el criterio castiga.
-      corto: (hash) => (hash ? `${hash.slice(0, 16)}…` : dash),
       hasDetail: (ev) => ev.detail && Object.keys(ev.detail).length > 0,
       detailText: (ev) =>
         Object.entries(ev.detail || {})

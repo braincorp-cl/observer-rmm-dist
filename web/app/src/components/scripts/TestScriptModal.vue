@@ -11,9 +11,10 @@
       <q-card-section style="height: 70vh" class="scroll">
         <div>
           {{ $t("testScriptModal.runTime") }}
-          <code>{{
+          <!-- V2-G01 (tanda 5809d7e): la duración medida no está en las 16 clases (la 15 es la duración de configuración): va en Archivo. -->
+          <span class="obs-ui-text">{{
             $t("testScriptModal.secondsValue", { n: ret.execution_time })
-          }}</code>
+          }}</span>
           <br />{{ $t("testScriptModal.returnCode") }}
           <code>{{ ret.retcode }}</code>
           <br />

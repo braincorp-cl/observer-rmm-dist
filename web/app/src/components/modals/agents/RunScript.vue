@@ -198,8 +198,9 @@
           <q-card-section v-if="state.run_on_server" class="scroll">
             <div>
               {{ $t("runScript.runTime") }}
-              <code
-                >{{ ret.execution_time }} {{ $t("runScript.seconds") }}</code
+              <!-- V2-G01 (tanda 5809d7e): la duración medida no está en las 16 clases (la 15 es la duración de configuración): va en Archivo. -->
+              <span class="obs-ui-text"
+                >{{ ret.execution_time }} {{ $t("runScript.seconds") }}</span
               >
               <br />{{ $t("runScript.returnCode") }}
               <code>{{ ret.retcode }}</code>

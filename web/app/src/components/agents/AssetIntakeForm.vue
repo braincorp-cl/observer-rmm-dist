@@ -16,7 +16,7 @@
                identifica el equipo y el medio. -->
           <div class="row q-col-gutter-md">
             <q-select
-              class="col-12 col-sm-6"
+              class="col-12 col-sm-6 obs-select-envuelve"
               dense
               filled
               emit-value
@@ -28,7 +28,7 @@
               @update:model-value="onClientChange"
             />
             <q-select
-              class="col-12 col-sm-6"
+              class="col-12 col-sm-6 obs-select-envuelve"
               dense
               filled
               clearable
@@ -44,7 +44,7 @@
                  OPCIONAL a propósito — un disco suelto no tiene equipo— y se
                  filtra por el cliente (o el sitio, si ya se eligió). -->
             <q-select
-              class="col-12 col-sm-6"
+              class="col-12 col-sm-6 obs-select-envuelve"
               dense
               filled
               clearable

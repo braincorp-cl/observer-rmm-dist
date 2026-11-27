@@ -487,15 +487,15 @@
                     >
                     <q-chip
                       v-if="props.row.default_server_policy"
-                      color="primary"
-                      text-color="white"
+                      color="grey"
+                      class="obs-chip-neutral"
                       size="sm"
                       >{{ $t("automationManager.defaultServer") }}</q-chip
                     >
                     <q-chip
                       v-if="props.row.default_workstation_policy"
-                      color="primary"
-                      text-color="white"
+                      color="grey"
+                      class="obs-chip-neutral"
                       size="sm"
                       >{{ $t("automationManager.defaultWorkstation") }}</q-chip
                     >

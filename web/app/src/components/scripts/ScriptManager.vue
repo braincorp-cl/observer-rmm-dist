@@ -218,7 +218,7 @@
                 </div>
                 <div class="obs-mgr__desc"><template v-for="(t, i) in trozosTexto(props.row.description)" :key="i"><span v-if="t.nw" class="obs-nowrap">{{ t.s }}</span><template v-else>{{ t.s }}</template></template></div>
               </q-td>
-              <q-td key="shell" :props="props" class="mono">{{ props.row.shell }}</q-td>
+              <q-td key="shell" :props="props">{{ props.row.shell }}</q-td>
               <q-td key="supported_platforms" :props="props">{{
                 platformsLabel(props.row)
               }}</q-td>

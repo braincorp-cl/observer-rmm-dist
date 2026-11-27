@@ -96,8 +96,10 @@
         <q-tr :props="props">
           <q-td>{{ props.row.eventType }}</q-td>
           <q-td>{{ props.row.source }}</q-td>
-          <q-td>{{ props.row.eventID }}</q-td>
-          <q-td>{{ props.row.time }}</q-td>
+          <!-- 050 (V2-G01): Id. de evento = código crudo (clase 12) y la marca
+               de tiempo con fecha y hora en su celda (clase 8): Mono. -->
+          <q-td class="mono">{{ props.row.eventID }}</q-td>
+          <q-td class="mono obs-nowrap">{{ props.row.time }}</q-td>
           <!-- 050 (G08, 13.ª corrida): el clic ya abria el mensaje completo,
                pero era el UNICO canal y el texto se corta en JS. El title da el
                valor completo sin abrir el dialogo. -->

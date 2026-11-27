@@ -11,7 +11,10 @@
           push
           icon="refresh"
         />
-        <span class="ellipsis" style="min-width: 0">{{ title }}</span>
+        <!-- 050 (V2-G08): el título se corta con elipsis; el title lo da entero. -->
+        <span class="ellipsis" style="min-width: 0" :title="title">{{
+          title
+        }}</span>
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip>{{ $t("policyStatus.close") }}</q-tooltip>

@@ -71,15 +71,24 @@
               </div>
               <div>{{ par("bus", busTypeLabel($t, disco.bus_type)) }}</div>
               <div v-if="disco.size_bytes">
-                {{ par("capacity", capacityLabel(disco.size_bytes)) }}
+                <i18n-t keypath="storageMedia.detail.pair" tag="div" scope="global">
+                  <template #label>{{ $t("storageMedia.detail.capacity") }}</template>
+                  <template #value><span class="mono">{{ capacityLabel(disco.size_bytes) }}</span></template>
+                </i18n-t>
               </div>
             </div>
             <div class="row q-col-gutter-x-md">
               <div v-if="disco.serial_number">
-                {{ par("serial", disco.serial_number) }}
+                <i18n-t keypath="storageMedia.detail.pair" tag="div" scope="global">
+                  <template #label>{{ $t("storageMedia.detail.serial") }}</template>
+                  <template #value><span class="mono obs-token-entero">{{ disco.serial_number }}</span></template>
+                </i18n-t>
               </div>
               <div v-if="disco.firmware_revision">
-                {{ par("firmware", disco.firmware_revision) }}
+                <i18n-t keypath="storageMedia.detail.pair" tag="div" scope="global">
+                  <template #label>{{ $t("storageMedia.detail.firmware") }}</template>
+                  <template #value><span class="mono">{{ disco.firmware_revision }}</span></template>
+                </i18n-t>
               </div>
               <div>
                 {{

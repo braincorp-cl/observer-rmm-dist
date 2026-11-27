@@ -36,8 +36,6 @@ const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 // Sitios donde el código pega «…» o «...» a un valor. Cada uno dice por qué es
 // legítimo. Un sitio nuevo tiene que entrar acá a mano, con su razón.
 const ELIPSIS_LEGITIMA = {
-  "src/components/agents/AssetCustodyTimeline.vue":
-    "recorta el hash a 16 de 64 hex y el :title del mismo nodo trae los 64",
   "src/utils/format.ts":
     "truncateText: solo pega «...» cuando txt.length > chars, y cada llamador declara su canal",
 };

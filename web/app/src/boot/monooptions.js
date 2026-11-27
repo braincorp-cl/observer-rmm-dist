@@ -8,11 +8,26 @@ const SELECTOR =
   ".obs-mono-values [aria-controls], .q-table__bottom .q-select [aria-controls]";
 const CLASE = "obs-mono-options";
 
+// Lotes 5809d7e (G01): una opción escrita con palabras («Todas», «All» del paginador)
+// no es un conteo y va en Archivo (aclaración 2026-10-27); la marca obs-ui-text la
+// saca de la regla Mono, en el menú y en el valor mostrado del paginador.
+const esPalabra = (el) => !/^\s*\d/.test(el.textContent || "");
+
+function palabras(raiz, selector) {
+  raiz.querySelectorAll(selector).forEach((el) => {
+    const p = esPalabra(el);
+    if (el.classList.contains("obs-ui-text") !== p) el.classList.toggle("obs-ui-text", p);
+  });
+}
+
 function marcar(control) {
   const id = control.getAttribute("aria-controls");
   if (!id) return;
   const lista = document.getElementById(id);
   if (lista && !lista.classList.contains(CLASE)) lista.classList.add(CLASE);
+  if (lista) palabras(lista, ".q-item__label");
+  const campo = control.closest(".q-table__bottom .q-select");
+  if (campo) palabras(campo, ".q-field__native > span");
 }
 
 export default boot(() => {

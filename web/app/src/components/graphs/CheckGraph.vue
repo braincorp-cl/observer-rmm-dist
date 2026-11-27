@@ -1,7 +1,8 @@
 <template>
   <q-dialog ref="dialog" @hide="onHide">
     <q-card
-      class="q-dialog-plugin"
+      class="q-dialog-plugin obs-check-graph"
+      :class="{ 'obs-check-graph--pct': isPercentCheck }"
       style="min-width: 80vw; min-height: 65vh; overflow-x: hidden"
     >
       <q-bar>
@@ -72,6 +73,17 @@ function obsToken(name) {
   return getComputedStyle(document.body).getPropertyValue(name).trim();
 }
 
+// 050 (V2-G01): el formatter del tooltip concatena HTML; los valores crudos
+// del agente se escapan antes de insertarlos.
+function escapeHtml(v) {
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export default {
   name: "CheckGraph",
   emits: ["hide", "ok", "cancel"],
@@ -95,6 +107,9 @@ export default {
         chart: {
           id: "chart2",
           type: "line",
+          // 050 (V2-G01): sin esto ApexCharts escribe Helvetica/Arial en cada
+          // texto; ejes y rótulos van en Archivo (la pila del body).
+          fontFamily: getComputedStyle(document.body).fontFamily,
           // 050 (V2-G15): sin barra ni zoom por arrastre (sólo ratón).
           toolbar: {
             show: false,
@@ -146,6 +161,11 @@ export default {
         { value: 30, label: this.$t("checkGraph.last30Days") },
         { value: 0, label: this.$t("checkGraph.everything") },
       ];
+    },
+    isPercentCheck() {
+      return ["cpuload", "memory", "diskspace"].includes(
+        this.check.check_type,
+      );
     },
     showChart() {
       return !this.$q.loading.isActive && this.history.length > 0;
@@ -312,22 +332,33 @@ export default {
         formatter: (value, { dataPointIndex }) => {
           let formatted = "";
           if (this.check.check_type === "script") {
+            // 050 (V2-G01): retcode (clase 12) y stdout/stderr (clase 16) en
+            // Mono, fuera del rótulo, que queda en Archivo.
             formatted +=
               this.$t("checkGraph.returnCode") +
-              this.results[dataPointIndex].results.retcode +
-              "<br/>";
+              '<span class="mono">' +
+              escapeHtml(this.results[dataPointIndex].results.retcode) +
+              "</span><br/>";
             formatted +=
               this.$t("checkGraph.stdOut") +
-              this.results[dataPointIndex].results.stdout +
-              "<br/>";
+              '<pre class="mono q-ma-none">' +
+              escapeHtml(this.results[dataPointIndex].results.stdout) +
+              "</pre>";
             formatted +=
               this.$t("checkGraph.errOut") +
-              this.results[dataPointIndex].results.errout +
-              "<br/>";
+              '<pre class="mono q-ma-none">' +
+              escapeHtml(this.results[dataPointIndex].results.errout) +
+              "</pre>";
             formatted +=
               this.$t("checkGraph.executionTime") +
               this.results[dataPointIndex].results.execution_time +
               "<br/>";
+          } else if (this.check.check_type === "ping") {
+            // 050 (V2-G01): la salida del ping es salida cruda (clase 16).
+            formatted +=
+              '<pre class="mono q-ma-none">' +
+              escapeHtml(this.results[dataPointIndex].results) +
+              "</pre>";
           } else {
             formatted += this.results[dataPointIndex].results;
           }

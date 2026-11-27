@@ -400,6 +400,7 @@
                         .replace(/,/g, ", ")
                     }}
                     <q-tooltip
+                      class="mono"
                       anchor="top middle"
                       self="bottom middle"
                       :offset="[10, 10]"
@@ -415,6 +416,7 @@
                   <span v-else>
                     {{ props.row.data }}
                     <q-tooltip
+                      class="mono"
                       anchor="top middle"
                       self="bottom middle"
                       :offset="[10, 10]"
@@ -498,9 +500,10 @@ const columns = computed<QTableColumn[]>(() => [
     label: t("registryManager.colName"),
     field: "name",
     align: "left",
-    style:
-      "width: 240px; max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;",
-    headerStyle: "width: 240px; max-width: 240px;",
+    // 050 (V2-G06): el nombre pliega en vez de recortarse con ellipsis; el
+    // .cell-hover queda solo como atajo de ratón.
+    style: "min-width: 240px; white-space: normal; overflow-wrap: break-word;",
+    headerStyle: "min-width: 240px;",
   },
   {
     name: "type",
@@ -1180,9 +1183,8 @@ watch(currentPath, (newPath) => {
   overflow: visible !important;
 }
 .cell-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .cell-hover {
   position: absolute;

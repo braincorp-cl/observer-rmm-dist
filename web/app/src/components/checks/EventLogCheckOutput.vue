@@ -115,6 +115,7 @@ export default {
         field: "eventID",
         align: "left",
         sortable: true,
+        classes: "mono",
       },
       {
         name: "time",
@@ -122,6 +123,7 @@ export default {
         field: "time",
         align: "left",
         sortable: true,
+        classes: "mono",
       },
       {
         name: "message",

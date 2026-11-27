@@ -107,7 +107,10 @@
         >
           <q-item v-for="p in resolvedPaths" :key="p">
             <q-item-section>
-              <q-item-label class="oe-path">{{ p }}</q-item-label>
+              <q-item-label class="oe-path"
+                ><template v-for="(seg, i) in pathParts(p)" :key="i"
+                  >{{ seg }}<wbr /></template
+              ></q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -278,6 +281,7 @@ import {
 import { fetchStorageMediaDetail } from "@/api/storagemedia";
 import { overwriteIsDefensible } from "@/utils/storageMedia";
 import { notifySuccess, notifyError } from "@/utils/notify";
+import { formatDate } from "@/utils/format";
 
 // Estados en los que una orden aún se puede cancelar desde la consola (antes de
 // despacharse). Después es terminal.
@@ -360,6 +364,9 @@ export default {
         label: t("erase.wipe.colOrderedAt"),
         field: "ordered_at",
         align: "left",
+        // 050 (G01 clase 8): marca de tiempo dedicada en su celda, en Mono.
+        format: (v) => formatDate(v),
+        classes: "mono obs-nowrap",
       },
       {
         name: "actions",
@@ -591,6 +598,8 @@ export default {
       confirm,
       cancel,
       openCertificate,
+      // 050 (G07): trozos que terminan en un separador, para un <wbr> tras cada uno.
+      pathParts: (p) => String(p).split(/(?<=[\\/])/),
     };
   },
 };
@@ -603,6 +612,9 @@ export default {
 }
 .oe-path {
   font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-  word-break: break-all;
+  /* 050 (G07): break-all partia segmentos; pliega en los separadores (<wbr>)
+     y solo parte un segmento que por si solo no cabe. */
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 </style>

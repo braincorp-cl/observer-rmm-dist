@@ -43,7 +43,7 @@
       <q-select
         dense
         outlined
-        class="obs-page__field"
+        class="obs-page__field obs-select-envuelve"
         clearable
         emit-value
         map-options
@@ -55,7 +55,7 @@
       <q-select
         dense
         outlined
-        class="obs-page__field"
+        class="obs-page__field obs-select-envuelve"
         clearable
         emit-value
         map-options

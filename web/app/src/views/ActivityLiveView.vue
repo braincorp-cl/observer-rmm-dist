@@ -74,7 +74,7 @@
               </div>
             </div>
             <q-card-section class="q-py-xs text-caption">
-              <div class="ellipsis text-grey" :title="`${e.client} · ${e.site}`">{{ `${e.client} · ${e.site}` }}</div>
+              <div class="text-grey obs-live__lugar" :title="`${e.client} · ${e.site}`">{{ `${e.client} · ${e.site}` }}</div>
               <div class="ellipsis" :title="detalle(e)">{{ detalle(e) }}</div>
               <div v-if="e.ultima && e.ultima.url" class="text-grey mono obs-live__url" :title="e.ultima.url">{{ e.ultima.url }}</div>
               <q-chip
@@ -244,5 +244,10 @@ onBeforeUnmount(() => equipos.value.forEach(liberar));
 .obs-live__url {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+/* V2-G06: «cliente · sitio» pliega en vez de cortarse con elipsis. */
+.obs-live__lugar {
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 </style>

@@ -27,7 +27,9 @@
             <q-item-label overline v-else>{{
               $t("alertsIcon.noAgent")
             }}</q-item-label>
-            <q-item-label lines="1">
+            <!-- V2-G08: el mensaje no tiene cota; con lines="1" se cortaba con
+                 elipsis sin forma de leerlo. Pliega y el menú queda acotado. -->
+            <q-item-label style="overflow-wrap: break-word; max-width: 60ch">
               <q-icon
                 size="xs"
                 :class="`text-${alertIconColor(alert.severity)}`"

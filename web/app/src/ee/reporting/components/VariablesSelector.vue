@@ -68,14 +68,22 @@
              insignia neutra, no teal. -->
         <q-badge class="obs-chip-neutral" :label="type"></q-badge>
       </q-item-section>
-      <q-item-label :lines="1">
-        <span style="text-decoration-line: underline; font-size: smaller">
-          {{ prop }}
-        </span>
-        <q-tooltip :delay="500">
-          {{ prop }}
-        </q-tooltip>
-      </q-item-label>
+      <!-- 050 (V2-G06): sin recorte a una línea; el nombre (identificador sin
+           espacios) va entero en .obs-token-entero, con scroll propio si no
+           cabe. El tooltip queda como atajo de ratón. -->
+      <q-item-section style="min-width: 0">
+        <q-item-label>
+          <span
+            class="obs-token-entero"
+            style="text-decoration-line: underline; font-size: smaller"
+          >
+            {{ prop }}
+          </span>
+          <q-tooltip :delay="500">
+            {{ prop }}
+          </q-tooltip>
+        </q-item-label>
+      </q-item-section>
       <q-item-section
         v-if="
           type.toLowerCase().substring(0, 5) === 'array' &&

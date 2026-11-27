@@ -461,17 +461,16 @@
                tabla. Desde aquí la tecla Menú abre el menú contextual de la fila
                —que antes era sólo de ratón— y las flechas izquierda/derecha
                llegan a las casillas de alerta de la fila. -->
-          <q-td>
+          <!-- 050 (V2-G06): la descripción pliega entera; antes se cortaba a 40
+               en JS y sólo la q-tooltip (no es un control) daba el resto. -->
+          <q-td style="white-space: normal; overflow-wrap: break-word">
             <span
               class="obs-rej__host"
               :data-fila="props.rowIndex"
               :tabindex="props.rowIndex === filaFoco ? 0 : -1"
               @focus="filaFoco = props.rowIndex"
             >
-              {{ truncateText(props.row.readable_desc, 40) }}
-              <q-tooltip v-if="props.row.readable_desc.length > 40">{{
-                props.row.readable_desc
-              }}</q-tooltip>
+              {{ props.row.readable_desc }}
             </span></q-td
           >
           <!-- more info -->
@@ -517,8 +516,9 @@
               @click="showEventInfo(props.row)"
               >{{ $t("agentTabs.checks.lastOutput") }}</span
             >
-            <!-- 046 (UI-D01): solo la salida del chequeo (dato) va en mono; los
-                 enlaces son interfaz y quedan en Archivo. -->
+            <!-- 050 (V2-G01, lista cerrada): more_info de estos chequeos es una
+                 frase con números («Average CPU utilization: 12%»), no un valor
+                 dedicado ni salida preformateada: va en Archivo. -->
             <span
               v-else-if="
                 ['diskspace', 'cpuload', 'memory'].includes(
@@ -526,7 +526,6 @@
                 ) ||
                 (props.row.check_type === 'winsvc' && props.row.check_result.id)
               "
-              class="mono"
               >{{ props.row.check_result.more_info }}</span
             >
           </q-td>
@@ -566,7 +565,6 @@ import {
   runAgentChecks,
 } from "@/api/checks";
 import { fetchAgentChecks } from "@/api/agents";
-import { truncateText } from "@/utils/format";
 import { notifySuccess, notifyWarning } from "@/utils/notify";
 
 // ui imports
@@ -893,7 +891,6 @@ export default {
       editCheck,
       deleteCheck,
       resetCheckStatus,
-      truncateText,
       formatDate,
       getAlertSeverity,
       runChecks,

@@ -25,7 +25,14 @@ body
 // ninguna de las dos familias. Lo que va en <code> en la consola son comandos,
 // rutas, códigos de retorno y argumentos (clases 3, 5, 6 y 13) o la fila
 // clave-valor de una ejecución (clases 8 y 15): JetBrains Mono, como <pre>.
-code, kbd, samp
+code, kbd, samp, pre
+  font-family: $obs-font-mono
+// Lotes 5809d7e (G01): el tooltip de CheckGraph. ApexCharts escribe el font-family
+// inline en el título (fecha y hora del punto, clase 8), por eso !important; el
+// valor y es un porcentaje (clase 11) solo en cpuload/memory/diskspace.
+.obs-check-graph .apexcharts-tooltip-title
+  font-family: $obs-font-mono !important
+.obs-check-graph--pct .apexcharts-tooltip-text-y-value
   font-family: $obs-font-mono
 
 // Tokens 1c por tema. Los componentes nuevos usan var(--obs-*); nunca hex sueltos
@@ -923,7 +930,8 @@ svg.q-spinner
 .obs-mono-options .q-item__label
   font-family: $obs-font-mono
 .obs-mono-options .q-item__label.obs-ui-text,
-.obs-mono-values .q-field__native .obs-ui-text
+.obs-mono-values .q-field__native .obs-ui-text,
+.q-table__bottom .q-select .q-field__native .obs-ui-text
   font-family: $typography-font-family
 // Valor mostrado de un select múltiple armado con slot: separador entre ítems.
 .obs-sel-item + .obs-sel-item:before

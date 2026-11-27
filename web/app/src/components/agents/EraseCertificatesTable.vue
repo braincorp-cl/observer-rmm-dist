@@ -123,12 +123,13 @@ export default {
     const columns = [
       {
         name: "certificate_id",
-        classes: "mono obs-break-anywhere",
+        // V2-G07: identificador generado, entero en una línea; el ancho extra
+        // lo absorbe el scroll propio de la tabla (enmienda de V2-G06).
+        classes: "mono obs-nowrap",
         label: t("erase.certificates.colId"),
         field: "certificate_id",
         align: "left",
         sortable: true,
-        // V2-G07: token sin espacios que fijaría el ancho de la columna.
       },
       {
         name: "kind",

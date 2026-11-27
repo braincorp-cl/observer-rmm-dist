@@ -160,8 +160,25 @@ export default {
           SECCIONES_DISPOSITIVO.has(props.seccion))
       );
     }
+    // V2-G01 (tanda 5809d7e): un RÓTULO de zócalo o de enumeración de WMI
+    // —palabra(s) + índice: «CPU0», «DesktopMonitor1», «VideoController1»,
+    // «Physical Memory 0», «RAM slot #0», «CPU 0»— no es un identificador
+    // GENERADO (la clase 10 quedó solo para esos, enmienda 2026-11-20 B) ⇒
+    // Archivo. Va antes de CLAVES_DATO porque DeviceID trae las dos formas: el
+    // PNPDeviceID, la ruta \\.\PHYSICALDRIVE0 y el índice suelto «0» no
+    // calzan con el patrón y siguen en mono.
+    const CLAVES_ROTULO_ZOCALO = new Set([
+      "DeviceID",
+      "Tag",
+      "DeviceLocator",
+      "BankLabel",
+      "SocketDesignation",
+      "Name",
+    ]);
+    const ROTULO_ZOCALO = /^\p{L}+(?: \p{L}+)* ?#?\d+$/u;
     function esNombre(k, v, j) {
       const clave = String(k);
+      if (CLAVES_ROTULO_ZOCALO.has(clave) && typeof v === "string" && ROTULO_ZOCALO.test(v)) return true;
       if (CLAVES_DATO.has(clave)) return false;
       if (CLAVES_NOMBRE.has(clave)) return true;
       if (CLAVES_ENUMERADAS.has(clave)) return true;
@@ -176,6 +193,11 @@ export default {
       // índice delante («[00000003] WAN Miniport (IKEv2)», en
       // Win32_NetworkAdapterConfiguration): sigue siendo descripción ⇒ Archivo.
       if (CLAVES_DESCRIPCION_PNP.has(clave) && typeof v === "string" && /^\[\d+\]\s/.test(v)) return true;
+      // Tanda 5809d7e: en esa misma sección (network_config) la Description
+      // viene SIN índice («WAN Miniport (IKEv2)», «vmxnet3 Ethernet Adapter») y
+      // la instancia no trae PNPDeviceID; los dígitos la mandaban a mono. Es
+      // la descripción del adaptador (enmienda 2026-11-24 C) ⇒ Archivo.
+      if (props.seccion === "network_config" && clave === "Description" && typeof v === "string" && !esIdentificador(v)) return true;
       // Ruta, unidad o identificador compuesto: dato, aunque no traiga dígitos.
       if (esIdentificador(v)) return false;
       // El hostname es nombre (enmienda 2026-11-14) también cuando WMI lo
@@ -184,7 +206,14 @@ export default {
       // El nombre del SO («Microsoft Windows 10 Pro») es un nombre con versión
       // embebida; el Caption de una CPU es especificación y sigue en mono.
       const so = typeof v === "string" && /^Microsoft Windows\b/.test(v);
-      return esPalabra(v) || Array.isArray(v) || so;
+      // L-280: un arreglo de CÓDIGOS numéricos crudos (BiosCharacteristics,
+      // PowerManagementCapabilities, Capabilities) es clase 12 ⇒ mono; el
+      // resto de arreglos (listas de nombres) sigue en Archivo.
+      const codigos =
+        Array.isArray(v) &&
+        v.length > 0 &&
+        v.every((n) => typeof n === "number" || (typeof n === "string" && /^\d+$/.test(n)));
+      return esPalabra(v) || (Array.isArray(v) && !codigos) || so;
     }
 
     return {

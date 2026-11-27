@@ -496,6 +496,9 @@ export default {
 .oe-detail-table {
   width: 100%;
   border-collapse: collapse;
+  /* V2-G07 (N-56): con layout fijo el 30 % del th manda y `break-word` puede
+     partir un hash que no cabe; con layout auto el token ensancharía la tabla. */
+  table-layout: fixed;
 }
 .oe-detail-table th,
 .oe-detail-table td {
@@ -515,7 +518,9 @@ export default {
   opacity: 0.75;
 }
 .oe-detail-table td {
-  word-break: break-all;
+  /* V2-G07 (N-56): `break-all` partía palabras de prosa; esto pliega por
+     espacios y sólo parte un token que no quepa entero. */
+  overflow-wrap: break-word;
 }
 .oe-path {
   font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;

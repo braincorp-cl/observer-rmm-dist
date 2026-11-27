@@ -13,9 +13,11 @@
           {{ $t("scriptOutput.lastRun") }}
           <code>{{ formatDate(scriptInfo.last_run) }}</code>
           <br />{{ $t("scriptOutput.runTime") }}
-          <code>{{
+          <!-- V2-G01 (tanda 5809d7e): la duración medida no está en las 16
+               clases (la 15 es la duración de configuración): va en Archivo. -->
+          <span class="obs-ui-text">{{
             $t("scriptOutput.secondsValue", { n: scriptInfo.execution_time })
-          }}</code>
+          }}</span>
           <br />{{ $t("scriptOutput.returnCode") }}
           <code>{{ scriptInfo.retcode }}</code>
           <br />

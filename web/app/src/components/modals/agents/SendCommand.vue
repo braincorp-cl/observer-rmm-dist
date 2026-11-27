@@ -138,7 +138,7 @@
           class="q-pl-md q-pr-md q-pt-none q-ma-none scroll"
           style="max-height: 50vh"
         >
-          <pre>{{ ret }}</pre>
+          <pre class="mono">{{ ret }}</pre>
         </q-card-section>
         <q-card-section v-if="showStream" class="q-py-xs">
           <command-stream

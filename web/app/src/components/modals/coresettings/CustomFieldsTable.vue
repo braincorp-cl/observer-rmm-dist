@@ -95,12 +95,13 @@
             props.row.default_values_multiple
           }}</span>
         </q-td>
-        <!-- 050 (T034, G01): las fechas van en Archivo; el resto de valores en Mono. -->
+        <!-- 050 (G01, enmienda 2026-11-11): 'datetime' lleva fecha y hora en su
+             celda (clase 8) y va en Mono con el resto de valores. -->
         <!-- 050 (G01, enmienda 2026-11-24 C): 'single' es un enumerado escrito por
              una persona y también va en Archivo. -->
         <q-td
           v-else
-          :class="{ mono: !['datetime', 'single'].includes(props.row.type) }"
+          :class="{ mono: props.row.type !== 'single' }"
         >
           <!-- 🪤 050 (G08, 13.ª corrida): iba sin segundo argumento porque
                resolvia al `truncateText` DEL MIXIN, que cortaba a 60 fijo. Al

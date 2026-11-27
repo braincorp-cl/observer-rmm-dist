@@ -119,15 +119,12 @@
             <q-td key="created" :props="props" class="mono">{{
               formatDate(props.row.created)
             }}</q-td>
-            <q-td key="flags" :props="props"
-              ><q-badge
-                color="grey-8"
-                :label="$t('deploymentTable.viewFlags')"
-              />
-              <q-tooltip style="font-size: 12px">{{
-                props.row.install_flags
-              }}</q-tooltip>
-            </q-td>
+            <!-- V2-G06/G01: las banderas se muestran en la celda (antes solo en un
+                 tooltip de hover, inalcanzable por teclado), en Mono y plegando
+                 entre banderas. -->
+            <q-td key="flags" :props="props" class="mono obs-deploy__flags">{{
+              props.row.install_flags
+            }}</q-td>
             <q-td key="link" :props="props">
               <!-- `tabindex="-1"`: se alcanza con la flecha derecha desde el
                    host de la fila. -->
@@ -309,3 +306,9 @@ export default {
   },
 };
 </script>
+<style scoped>
+.obs-deploy__flags {
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+</style>

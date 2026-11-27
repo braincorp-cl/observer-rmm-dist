@@ -80,10 +80,10 @@ const ESPERADO = {
   ],
   // HistoryTab salio de la lista el 2026-11-26: el comando se rinde entero
   // (sin truncateText) desde el arreglo de G06/G15 sobre 118dece.
-  "components/agents/ChecksTab.vue": ["props.row.readable_desc"],
+  // ChecksTab y AssetCustodyTimeline salieron el 2026-11-27 (lote N sobre
+  // 5809d7e): la descripción del chequeo y el hash se rinden enteros.
   "components/agents/remotebg/EventLogManager.vue": ["props.row.message"],
   "components/agents/remotebg/ServicesManager.vue": ["props.row.display_name"],
-  "components/agents/AssetCustodyTimeline.vue": ["ev.record_hash"],
 };
 
 // Los que no pueden probarse nombrando el valor, con su canal verificado a mano.

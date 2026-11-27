@@ -32,7 +32,23 @@
             use-chips
             map-options
             emit-value
-          />
+          >
+            <!-- V2-G08: el nombre del cliente pliega dentro del chip en vez de
+                 cortarse con elipsis sin salida. -->
+            <template v-slot:selected-item="scope">
+              <q-chip
+                dense
+                removable
+                :tabindex="scope.tabindex"
+                style="height: auto; max-width: 100%"
+                @remove="scope.removeAtIndex(scope.index)"
+              >
+                <span style="white-space: normal; overflow-wrap: break-word">{{
+                  scope.opt.label
+                }}</span>
+              </q-chip>
+            </template>
+          </q-select>
         </div>
         <div class="q-pa-sm col-3">
           <q-select

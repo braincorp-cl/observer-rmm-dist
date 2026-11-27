@@ -41,7 +41,7 @@
           <q-icon name="fas fa-microchip" class="q-mr-xs" />
           <div class="text-caption q-mr-sm">
             {{ $t("processManager.cpuUsage") }}
-            <span class="text-body1 text-weight-medium">{{
+            <span class="text-body1 text-weight-medium mono">{{
               $t("processManager.percent", { value: totalCpuUsage })
             }}</span>
           </div>
@@ -128,7 +128,7 @@
           </q-list>
         </q-menu>
         <q-td>{{ props.row.name }}</q-td>
-        <q-td>{{
+        <q-td class="mono">{{
           $t("processManager.percent", { value: props.row.cpu_percent })
         }}</q-td>
         <q-td class="mono">{{ bytes2Human(props.row.membytes) }}</q-td>

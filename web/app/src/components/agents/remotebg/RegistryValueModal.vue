@@ -52,6 +52,7 @@
           type="textarea"
           dense
           outlined
+          input-class="mono"
           :autofocus="!!row.name"
         />
         <div
@@ -87,7 +88,14 @@
             />
           </div>
         </div>
-        <q-input v-else v-model="stringValue" dense outlined autofocus />
+        <q-input
+          v-else
+          v-model="stringValue"
+          dense
+          outlined
+          autofocus
+          input-class="mono"
+        />
       </q-card-section>
       <q-card-actions align="right" class="q-gutter-sm">
         <q-btn

@@ -195,9 +195,14 @@
                   type="number"
                   :label="$t('automatedTask.timeout')"
                 />
+                <!-- V2-S05 (tanda 5809d7e): v1 dispone las cuatro shells en 2x2
+                     con Agregar a su derecha (orden de lectura CMD, Powershell,
+                     Agregar, Bash, Personalizado); bajo lg van en la misma fila
+                     que el botón y en dos columnas. -->
                 <q-option-group
                   v-if="actionType === 'cmd'"
-                  class="col-12 col-lg-4 q-pl-sm"
+                  class="col col-lg-4 q-pl-sm"
+                  style="display: grid; grid-template-columns: repeat(2, max-content)"
                   inline
                   v-model="shell"
                   :options="[

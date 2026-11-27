@@ -858,7 +858,7 @@
     "shutdownSuccess": "{hostname} se apagará ahora",
     "confirmDeletionTitle": "Confirmar eliminación",
     "verbDeletion": "eliminación",
-    "verbShutdown": "apagado",
+    "verbShutdown": "el apagado",
     "uninstall": "Desinstalar",
     "agentOfflineTitle": "Agente sin conexión",
     "agentOfflineMessage": "No se puede contactar a {hostname}. ¿Deseas continuar con la desinstalación? De ser así, el agente deberá desinstalarse manualmente en el equipo.",
@@ -870,7 +870,7 @@
     "scanShortly": "El escaneo se ejecutará en breve en {hostname}"
   },
   "confirmDialog": {
-    "prompt": "Escribe {yes} en el recuadro para confirmar la {action} de {hostname}.",
+    "prompt": "Escribe {yes} en el recuadro para confirmar {action} de {hostname}.",
     "typeYes": "Escribe yes para confirmar",
     "cancel": "Cancelar",
     "defaultTitle": "Confirmar acción",
@@ -1179,7 +1179,7 @@
     "addingTitle": "Agregar tarea automatizada",
     "close": "Cerrar",
     "noScript1": "Primero debes subir un script",
-    "noScript2": "Configuración -> Administrador de scripts",
+    "noScript2": "Configuración -> Gestor de scripts",
     "step1Title": "Seleccionar tarea",
     "nameLabel": "Nombre descriptivo de la tarea",
     "required": "*Requerido",
@@ -2642,7 +2642,7 @@
   "apiKeysTable": {
     "title": "Claves de API",
     "addKey": "Agregar clave",
-    "noData": "Aún no se agregaron tokens de API",
+    "noData": "Aún no se agregaron claves de API",
     "edit": "Editar",
     "delete": "Eliminar",
     "close": "Cerrar",
@@ -2766,10 +2766,10 @@
     "descInsecure": "Omitir la verificación del certificado TLS (autofirmado / CA interna)",
     "argLogDebug": "-log debug",
     "argSilent": "-silent",
-    "argLocalMesh": "-local-mesh \"C:\\\\<some folder or path>\\\\meshagent.exe\"",
-    "argMeshdir": "-meshdir \"C:\\Program Files\\Your Company Name\\Mesh Agent\"",
+    "argLocalMesh": "-local-mesh \"C:\\\\<alguna carpeta o ruta>\\\\meshagent.exe\"",
+    "argMeshdir": "-meshdir \"C:\\Program Files\\Nombre de tu empresa\\Mesh Agent\"",
     "argNomesh": "-nomesh",
-    "argCert": "-cert \"C:\\\\<some folder or path>\\\\ca.pem\"",
+    "argCert": "-cert \"C:\\\\<alguna carpeta o ruta>\\\\ca.pem\"",
     "argDesc": "-desc \"Descripción personalizada del agente\"",
     "argProxy": "-proxy \"http://proxyserver:port\""
   },
@@ -3673,7 +3673,7 @@
       "added": "Evento registrado",
       "kind": "Qué pasó",
       "at": "Cuándo ocurrió",
-      "atHint": "Cuándo ocurrió el hecho, que puede ser anterior a cuándo lo registras.",
+      "atHint": "Cuándo ocurrió el hecho, que puede ser anterior a cuando lo registras.",
       "actor": "Registrado por",
       "location": "Dónde quedó",
       "detail": "Detalle",
@@ -3874,7 +3874,7 @@
     "saved": "Monitoreo de actividad actualizado"
   },
   "activityScope": {
-    "noPermission": "No tiene permiso para encender o apagar el monitoreo (permiso de rol «Encender/apagar monitoreo de actividad»).",
+    "noPermission": "No tienes permiso para encender o apagar el monitoreo (permiso de rol «Encender/apagar monitoreo de actividad»).",
     "monitored": "{n} equipos monitoreados",
     "globalOffHint": "El interruptor global está apagado: el alcance no tiene efecto hasta encenderlo y guardar.",
     "empty": "Sin reglas: el monitoreo no está encendido en ningún cliente, sitio ni equipo.",
