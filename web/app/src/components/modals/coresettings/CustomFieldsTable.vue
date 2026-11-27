@@ -99,9 +99,17 @@
              celda (clase 8) y va en Mono con el resto de valores. -->
         <!-- 050 (G01, enmienda 2026-11-24 C): 'single' es un enumerado escrito por
              una persona y también va en Archivo. -->
+        <!-- 050 (G01, tanda db8ba85): una fecha SIN hora («2026-11-30») queda
+             fuera de la lista cerrada y va en Archivo (pista 2026-10-18 d). -->
         <q-td
           v-else
-          :class="{ mono: props.row.type !== 'single' }"
+          :class="{
+            mono:
+              props.row.type !== 'single' &&
+              !/^\d{4}-\d{2}-\d{2}$/.test(
+                String(props.row.default_value_string || '').trim(),
+              ),
+          }"
         >
           <!-- 🪤 050 (G08, 13.ª corrida): iba sin segundo argumento porque
                resolvia al `truncateText` DEL MIXIN, que cortaba a 60 fijo. Al

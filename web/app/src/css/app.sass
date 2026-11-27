@@ -35,7 +35,11 @@ code, kbd, samp, pre
 // que gana a .mono y a <pre>: la salida cruda (clase 16) y el retcode (clase 12)
 // del tooltip salían en Archivo.
 .obs-check-graph .apexcharts-tooltip .mono,
-.obs-check-graph .apexcharts-tooltip pre
+.obs-check-graph .apexcharts-tooltip pre,
+// Tanda db8ba85: la insignia del eje x bajo la línea de hover es la misma marca
+// de tiempo compacta del título (fecha y hora en su insignia, clase 8).
+.obs-check-graph .apexcharts-xaxistooltip,
+.obs-check-graph .apexcharts-xaxistooltip-text
   font-family: $obs-font-mono !important
 .obs-check-graph--pct .apexcharts-tooltip-text-y-value
   font-family: $obs-font-mono
