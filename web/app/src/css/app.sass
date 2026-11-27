@@ -1396,10 +1396,14 @@ body .q-table th.sorted .q-table__sort-icon
 // V2-S05 (tanda 8042dd7): fila de comando de agregar-tarea con la forma de v1.
 // La espera lleva el ancho de su rótulo entero «Tiempo de espera (segundos)»
 // (G06); las shells pliegan en 2x2 bajo 1440 y en 3+1 desde 1440, como v1.
-.obs-tarea-espera
+// 🪤 Con la especificidad de `.col-auto` (max-width: 100%) el tope no aplicaba
+// y la fila no plegaba: Comando se aplastaba a 0. Va con la clase del grupo.
+.row > .obs-tarea-espera
   min-width: 13.5em
-.obs-tarea-shells
+.row > .obs-tarea-comando
+  min-width: 12em
+.row > .q-option-group.obs-tarea-shells
   max-width: 15em
 @media (min-width: 1440px)
-  .obs-tarea-shells
+  .row > .q-option-group.obs-tarea-shells
     max-width: 20em

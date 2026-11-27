@@ -184,7 +184,7 @@
                   v-model="command"
                   dense
                   filled
-                  class="col-12 col-sm obs-mono-values"
+                  class="col-12 col-sm obs-mono-values obs-tarea-comando"
                 />
                 <!-- V2-S05/G06 (tanda 8042dd7): una sola fila como v1 —Comando
                      flexible, espera con ancho para su rótulo entero, las shells
